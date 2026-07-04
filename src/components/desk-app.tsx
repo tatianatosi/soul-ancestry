@@ -308,7 +308,8 @@ function ValidacaoJuridica() {
 
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[880px] text-sm">
+
             <thead className="bg-navy text-cream text-left text-[11px] uppercase tracking-wide">
               <tr>
                 <th className="px-4 py-3">Cliente</th>
