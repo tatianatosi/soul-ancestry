@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import sealAsset from "@/assets/clube-ancestral-seal.jpeg.asset.json";
+import sealUrl from "@/assets/clube-ancestral-seal-transparent.png";
 
 interface LogoProps { size?: number; className?: string; showText?: boolean; textColor?: string; }
 export function BrandLogo({ size = 44, className, showText = true, textColor }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <img
-        src={sealAsset.url}
+        src={sealUrl}
         alt="Clube Ancestral"
         width={size}
         height={size}
-        className="shrink-0 object-contain"
-        style={{ width: size, height: size }}
+        loading="lazy"
+        className="shrink-0 object-contain bg-transparent"
+        style={{ width: size, height: size, background: "transparent" }}
       />
+
       {showText && (
         <span
           className="italic leading-none tracking-wide"
