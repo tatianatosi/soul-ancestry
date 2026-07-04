@@ -271,16 +271,16 @@ function HomeTab() {
       </section>
 
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Micro-entregas recentes</h3>
+        <h3 className="mb-3 font-serif text-lg text-navy">Achados Recentes</h3>
         <div className="space-y-2.5">
           {[
-            { t: "Registro de batismo — Coimbra, 1887", d: "há 2 dias", tag: "Achado" },
-            { t: "Nota de contexto: emigração 1920", d: "há 5 dias", tag: "Contexto" },
+            { t: "Certidão de Giuseppe localizada — Nápoles, 1887", d: "28 jun 2026" },
+            { t: "Registro de emigração encontrado — Gênova, 1912", d: "24 jun 2026" },
           ].map((x) => (
-            <div key={x.t} className="rounded-xl border border-border bg-card p-4">
+            <div key={x.t} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
               <div className="mb-1 flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-gold" />
-                <span className="text-[10px] uppercase tracking-widest text-gold">{x.tag}</span>
+                <Search className="h-3.5 w-3.5 text-gold" />
+                <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
               </div>
               <div className="text-sm text-navy">{x.t}</div>
               <div className="mt-1 text-xs text-sage">{x.d}</div>
