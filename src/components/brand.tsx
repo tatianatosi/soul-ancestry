@@ -8,16 +8,26 @@ export function BrandLogo({ size = 44, className, showText = true }: LogoProps) 
       <svg width={size} height={size} viewBox="0 0 100 100" className="shrink-0">
         <circle cx="50" cy="50" r="48" fill="#1B2B4B" stroke="#C9A84C" strokeWidth="2" />
         <circle cx="50" cy="50" r="42" fill="none" stroke="#C9A84C" strokeWidth="0.5" opacity="0.5" />
-        {/* Tree trunk */}
-        <path d="M50 68 L50 40" stroke="#C9A84C" strokeWidth="2.5" strokeLinecap="round" />
-        {/* Branches */}
-        <path d="M50 48 Q42 42 36 34 M50 44 Q58 38 64 30 M50 52 Q40 48 32 44 M50 50 Q60 46 68 42 M50 40 Q46 32 44 26 M50 40 Q54 32 56 26" stroke="#C9A84C" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        {/* Ground line */}
+        <line x1="24" y1="60" x2="76" y2="60" stroke="#C9A84C" strokeWidth="0.6" opacity="0.5" />
+        {/* Trunk */}
+        <path d="M50 60 L50 38" stroke="#C9A84C" strokeWidth="2.8" strokeLinecap="round" />
+        {/* Canopy branches */}
+        <path d="M50 44 Q42 40 36 32 M50 40 Q44 32 42 24 M50 40 Q56 32 58 24 M50 44 Q58 40 64 32 M50 48 Q40 46 32 42 M50 48 Q60 46 68 42" stroke="#C9A84C" strokeWidth="1.4" fill="none" strokeLinecap="round" />
         {/* Leaves */}
-        {[[36,34],[64,30],[32,44],[68,42],[44,26],[56,26],[50,22],[40,30],[60,34]].map(([x,y],i)=>(
-          <circle key={i} cx={x} cy={y} r="3" fill="#C9A84C" />
+        {[[36,32],[64,32],[42,24],[58,24],[50,20],[32,42],[68,42],[40,28],[60,28],[46,22],[54,22]].map(([x,y],i)=>(
+          <circle key={i} cx={x} cy={y} r="2.6" fill="#C9A84C" />
         ))}
-        {/* Roots */}
-        <path d="M50 68 Q44 74 38 78 M50 68 Q56 74 62 78 M50 68 Q48 76 46 82 M50 68 Q52 76 54 82 M50 68 Q40 72 34 74 M50 68 Q60 72 66 74" stroke="#C9A84C" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.9" />
+        {/* Prominent roots growing downward */}
+        <path d="M50 60 Q46 66 42 72 Q40 76 38 80" stroke="#C9A84C" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+        <path d="M50 60 Q54 66 58 72 Q60 76 62 80" stroke="#C9A84C" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+        <path d="M50 60 L50 82" stroke="#C9A84C" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M50 60 Q44 64 38 66 Q34 68 32 70" stroke="#C9A84C" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.85" />
+        <path d="M50 60 Q56 64 62 66 Q66 68 68 70" stroke="#C9A84C" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.85" />
+        {/* Root tips */}
+        {[[38,80],[62,80],[50,82],[32,70],[68,70]].map(([x,y],i)=>(
+          <circle key={`r${i}`} cx={x} cy={y} r="1.2" fill="#C9A84C" />
+        ))}
       </svg>
       {showText && (
         <div className="leading-tight">

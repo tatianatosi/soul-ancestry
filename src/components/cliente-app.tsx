@@ -2,34 +2,59 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Home, Route as RouteIcon, Radar, TreeDeciduous, FileText, BookOpen,
-  Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, Crown,
+  Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, User,
+  MessageCircle, Calendar, ChevronRight, ArrowLeft,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio";
 
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
+  const [showConta, setShowConta] = useState(false);
+
   return (
     <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
-      {/* Top bar */}
       <header className="flex items-center justify-between border-b border-border/60 bg-navy px-5 py-4 text-cream">
-        <div>
-          <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vindo</div>
-          <div className="font-serif text-xl italic">Marina Alves</div>
-        </div>
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-gold/20 text-gold font-medium">MA</div>
+        {showConta ? (
+          <>
+            <button onClick={() => setShowConta(false)} className="flex items-center gap-2 text-sm text-cream/80">
+              <ArrowLeft className="h-4 w-4" /> Voltar
+            </button>
+            <div className="font-serif text-lg italic text-gold">Minha Conta</div>
+            <div className="w-16" />
+          </>
+        ) : (
+          <>
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
+              <div className="font-serif text-xl italic">Marina Alves</div>
+            </div>
+            <button
+              onClick={() => setShowConta(true)}
+              className="grid h-10 w-10 place-items-center rounded-full bg-gold/20 text-gold hover:bg-gold/30 transition"
+              aria-label="Minha Conta"
+            >
+              <User className="h-5 w-5" />
+            </button>
+          </>
+        )}
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-24">
-        {tab === "home" && <HomeTab />}
-        {tab === "jornada" && <JornadaTab />}
-        {tab === "radar" && <RadarTab />}
-        {tab === "arvore" && <ArvoreTab />}
-        {tab === "docs" && <DocsTab />}
-        {tab === "biblio" && <BiblioTab />}
+      <main className="flex-1 overflow-y-auto pb-28">
+        {showConta ? (
+          <ContaScreen />
+        ) : (
+          <>
+            {tab === "home" && <HomeTab />}
+            {tab === "jornada" && <JornadaTab />}
+            {tab === "radar" && <RadarTab />}
+            {tab === "arvore" && <ArvoreTab />}
+            {tab === "docs" && <DocsTab />}
+            {tab === "biblio" && <BiblioTab />}
+          </>
+        )}
       </main>
 
-      {/* Bottom nav */}
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
         <div className="grid grid-cols-6">
           {([
@@ -42,13 +67,13 @@ export function ClienteApp() {
           ] as const).map(([id, Icon, label]) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              onClick={() => { setTab(id); setShowConta(false); }}
               className={cn(
                 "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
-                tab === id ? "text-navy" : "text-muted-foreground hover:text-navy"
+                !showConta && tab === id ? "text-navy" : "text-muted-foreground hover:text-navy"
               )}
             >
-              <Icon className={cn("h-5 w-5", tab === id && "text-gold")} />
+              <Icon className={cn("h-5 w-5", !showConta && tab === id && "text-gold")} />
               <span>{label}</span>
             </button>
           ))}
@@ -58,8 +83,76 @@ export function ClienteApp() {
   );
 }
 
+/* -------- CONTA -------- */
+function ContaScreen() {
+  const history = [
+    { t: "Certidão de casamento recebida", d: "28 jun 2026" },
+    { t: "Nova conexão familiar identificada", d: "18 jun 2026" },
+    { t: "Pesquisa em Coimbra iniciada", d: "10 jun 2026" },
+    { t: "Micro-entrega: contexto emigração", d: "02 jun 2026" },
+    { t: "Kickoff do caso", d: "12 mar 2026" },
+  ];
+  return (
+    <div className="space-y-5 p-5">
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-navy text-2xl font-serif italic text-gold">MA</div>
+          <div className="min-w-0">
+            <div className="font-serif text-xl text-navy truncate">Marina Alves</div>
+            <div className="text-xs text-sage">marina.alves@email.com</div>
+            <span className="mt-1 inline-block rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold text-navy">PLANO RECONSTRUÇÃO</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Info label="Caso iniciado" value="12 mar 2026" />
+        <Info label="Assinatura" value="Ativa" tone="ok" />
+        <Info label="Caso" value="Cidadania PT" />
+        <Info label="Genealogista" value="Ana Ribeiro" />
+      </div>
+
+      <button className="flex w-full items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm hover:bg-muted/30 transition">
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+          <MessageCircle className="h-5 w-5" />
+        </div>
+        <div className="flex-1 text-left">
+          <div className="text-sm font-medium text-navy">WhatsApp direto</div>
+          <div className="text-xs text-sage">Fale com sua genealogista</div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-sage" />
+      </button>
+
+      <section>
+        <h3 className="mb-3 font-serif text-lg text-navy">Histórico de atividade</h3>
+        <div className="rounded-2xl border border-border bg-white shadow-sm">
+          {history.map((h, i) => (
+            <div key={i} className={cn("flex items-start gap-3 p-4", i < history.length - 1 && "border-b border-border")}>
+              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm text-navy">{h.t}</div>
+                <div className="text-xs text-sage">{h.d}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+function Info({ label, value, tone }: { label: string; value: string; tone?: "ok" }) {
+  return (
+    <div className="rounded-xl border border-border bg-white p-3">
+      <div className="text-[10px] uppercase tracking-wide text-sage">{label}</div>
+      <div className={cn("mt-0.5 text-sm font-semibold text-navy", tone === "ok" && "text-emerald-700")}>{value}</div>
+    </div>
+  );
+}
+
 /* -------- HOME -------- */
 function HomeTab() {
+  const steps = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"];
+  const currentIdx = 2;
   return (
     <div className="space-y-5 p-5">
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
@@ -70,6 +163,7 @@ function HomeTab() {
           </div>
           <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">CASO ATIVO</span>
         </div>
+
         <div className="mt-5">
           <div className="mb-2 flex justify-between text-xs text-cream/70">
             <span>Progresso da jornada</span>
@@ -78,7 +172,33 @@ function HomeTab() {
           <div className="h-2 overflow-hidden rounded-full bg-navy-soft">
             <div className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold" style={{ width: "65%" }} />
           </div>
-          <div className="mt-3 text-[11px] text-cream/60">Etapa atual: Reconstrução de linhagem</div>
+        </div>
+
+        {/* Step indicator */}
+        <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
+          <div className="mb-2 text-[10px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
+          <div className="flex items-center justify-between gap-1">
+            {steps.map((s, i) => {
+              const done = i < currentIdx;
+              const active = i === currentIdx;
+              return (
+                <div key={s} className="flex flex-1 flex-col items-center">
+                  <div className={cn(
+                    "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
+                    done && "bg-gold/40 text-gold",
+                    active && "bg-gold text-navy ring-4 ring-gold/30 scale-110",
+                    !done && !active && "bg-navy/40 text-cream/50 border border-cream/20",
+                  )}>
+                    {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+                  </div>
+                  <div className={cn(
+                    "mt-1.5 text-center text-[9px] leading-tight",
+                    active ? "font-bold text-gold" : "text-cream/60"
+                  )}>{s}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -99,9 +219,9 @@ function HomeTab() {
               )}>{it.n}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-navy">{it.t}</div>
-                <div className="text-xs text-muted-foreground">{it.s}</div>
+                <div className="text-xs text-sage">{it.s}</div>
               </div>
-              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
             </div>
           ))}
         </div>
@@ -112,8 +232,8 @@ function HomeTab() {
           <Users className="h-7 w-7 text-gold" />
         </div>
         <div className="flex-1">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Pessoas conectadas</div>
-          <div className="font-serif text-2xl text-navy">12 <span className="text-sm text-muted-foreground">ancestrais recuperados</span></div>
+          <div className="text-xs uppercase tracking-wide text-sage">Pessoas conectadas</div>
+          <div className="font-serif text-2xl text-navy">12 <span className="text-sm text-sage">ancestrais recuperados</span></div>
         </div>
       </section>
 
@@ -130,18 +250,24 @@ function HomeTab() {
                 <span className="text-[10px] uppercase tracking-widest text-gold">{x.tag}</span>
               </div>
               <div className="text-sm text-navy">{x.t}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{x.d}</div>
+              <div className="mt-1 text-xs text-sage">{x.d}</div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-terracotta to-terracotta/80 p-5 text-cream">
-        <Crown className="absolute -right-4 -top-4 h-24 w-24 text-cream/10" />
-        <div className="text-[11px] uppercase tracking-widest text-cream/70">Upgrade</div>
-        <div className="mt-1 font-serif text-lg italic">Desbloqueie o plano Legado</div>
-        <p className="mt-1 text-xs text-cream/80">Álbum familiar impresso, dossiê narrativo completo e sessão presencial.</p>
-        <button className="mt-4 rounded-full bg-cream px-4 py-2 text-xs font-semibold text-terracotta">Conhecer plano</button>
+      {/* Discreet next-level card */}
+      <section className="rounded-xl border border-plum/30 bg-plum/5 p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-plum/15 text-plum">
+            <Lock className="h-3.5 w-3.5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] uppercase tracking-widest text-plum">Próximo nível disponível</div>
+            <div className="mt-0.5 text-sm text-navy">Sua história familiar completa aguarda.</div>
+            <button className="mt-2 text-xs font-medium text-plum hover:underline">Saber mais →</button>
+          </div>
+        </div>
       </section>
     </div>
   );
@@ -150,11 +276,12 @@ function HomeTab() {
 /* -------- JORNADA -------- */
 function JornadaTab() {
   const left = [
-    { y: "1820", t: "Ramo Ferreira — Minho, Portugal" },
-    { y: "1887", t: "Batismo de Joaquim, seu 3º avô" },
-    { y: "1923", t: "Casamento Isabel & António", union: true },
-    { y: "1965", t: "Migração para São Paulo", union: true },
-    { y: "2024", t: "Você inicia sua jornada" },
+    { y: "1887", t: "Nascimento do bisavô Giuseppe (Itália)" },
+    { y: "1912", t: "Emigração para o Brasil", union: true },
+    { y: "1923", t: "Nascimento da avó Isabel" },
+    { y: "1951", t: "Nascimento do pai", union: true },
+    { y: "1978", t: "Nascimento da cliente (Marina)" },
+    { y: "2024", t: "Início da jornada Clube Ancestral" },
   ];
   const right = [
     { s: "Kickoff", d: "12/03" },
@@ -166,11 +293,11 @@ function JornadaTab() {
   return (
     <div className="p-5">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
-      <p className="mt-1 text-sm text-muted-foreground italic">Duas linhas caminham juntas: a história e o seu processo.</p>
+      <p className="mt-1 text-sm text-sage italic">Duas linhas caminham juntas: a história e o seu processo.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
-          <div className="mb-3 text-[11px] uppercase tracking-widest text-gold">Ancestralidade</div>
+          <div className="mb-3 text-[11px] uppercase tracking-widest text-gold">Linha Ancestral</div>
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
             {left.map((e) => (
@@ -180,7 +307,7 @@ function JornadaTab() {
                   e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold"
                 )} />
                 <div className="font-serif text-lg text-navy">{e.y}</div>
-                <div className="text-xs text-muted-foreground">{e.t}</div>
+                <div className="text-xs text-sage">{e.t}</div>
                 {e.union && (
                   <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">União de Ramos</span>
                 )}
@@ -190,7 +317,7 @@ function JornadaTab() {
         </div>
 
         <div>
-          <div className="mb-3 text-[11px] uppercase tracking-widest text-navy">Seu processo</div>
+          <div className="mb-3 text-[11px] uppercase tracking-widest text-navy">Linha do Processo</div>
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-navy/30" />
             {right.map((e) => (
@@ -200,7 +327,7 @@ function JornadaTab() {
                   e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60"
                 )} />
                 <div className="font-serif text-base text-navy">{e.s}</div>
-                <div className="text-xs text-muted-foreground">{e.d}</div>
+                <div className="text-xs text-sage">{e.d}</div>
               </div>
             ))}
           </div>
@@ -209,7 +336,7 @@ function JornadaTab() {
 
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
         <div className="text-[11px] uppercase tracking-widest text-terracotta">Momentos de união</div>
-        <p className="mt-1 text-sm text-navy italic">"Duas famílias se encontraram em 1923 e novamente em 1965 — sua história é feita desses encontros."</p>
+        <p className="mt-1 text-sm text-navy italic">"Duas famílias se encontraram em 1912 e novamente em 1951 — sua história é feita desses encontros."</p>
       </div>
     </div>
   );
@@ -228,7 +355,7 @@ function RadarTab() {
   return (
     <div className="p-5">
       <h2 className="font-serif text-2xl text-navy">Radar Ancestral</h2>
-      <p className="mt-1 text-sm text-muted-foreground italic">Seu equilíbrio nas 6 dimensões.</p>
+      <p className="mt-1 text-sm text-sage italic">Seu equilíbrio nas 6 dimensões.</p>
       <div className="mt-4 rounded-2xl border border-border bg-white p-4">
         <RadarChart axes={axes} size={280} color="#C9A84C" />
       </div>
@@ -236,10 +363,10 @@ function RadarTab() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         {axes.map((a) => (
           <div key={a.k} className="rounded-xl border border-border bg-card p-3">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{a.k}</div>
+            <div className="text-[10px] uppercase tracking-wide text-sage">{a.k}</div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="font-serif text-2xl text-navy">{a.v}</span>
-              <span className="text-xs text-muted-foreground">%</span>
+              <span className="text-xs text-sage">%</span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-gold" style={{ width: `${a.v}%` }} />
@@ -323,18 +450,17 @@ function ArvoreTab() {
       connected ? "border-gold ring-2 ring-gold/30" : "border-border"
     )}>
       <div className="font-semibold text-navy leading-tight">{label}</div>
-      {hint && <div className="text-[9px] text-muted-foreground">{hint}</div>}
+      {hint && <div className="text-[9px] text-sage">{hint}</div>}
       {connected && <div className="mt-0.5 text-[8px] uppercase tracking-widest text-gold">conectado</div>}
     </div>
   );
   return (
     <div className="p-5">
       <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
-      <p className="mt-1 text-sm text-muted-foreground italic">Cinco gerações que compõem você.</p>
+      <p className="mt-1 text-sm text-sage italic">Cinco gerações que compõem você.</p>
 
       <div className="mt-5 rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
-          {/* G5 */}
           <Gen label="G5 · Ancestrais">
             <div className="grid grid-cols-3 gap-2">
               <Node label="Manuel F." hint="~1820" />
@@ -343,7 +469,6 @@ function ArvoreTab() {
             </div>
           </Gen>
           <Connector />
-          {/* G4 */}
           <Gen label="G4 · Bisavós de bisavós">
             <div className="grid grid-cols-4 gap-2">
               <Node label="Joaquim F." hint="1855" />
@@ -353,7 +478,6 @@ function ArvoreTab() {
             </div>
           </Gen>
           <Connector />
-          {/* G3 */}
           <Gen label="G3 · Bisavós">
             <div className="grid grid-cols-4 gap-2">
               <Node label="Isabel F." hint="1887" connected />
@@ -363,7 +487,6 @@ function ArvoreTab() {
             </div>
           </Gen>
           <Connector />
-          {/* G2 */}
           <Gen label="G2 · Avós">
             <div className="mx-auto grid max-w-[200px] grid-cols-2 gap-2">
               <Node label="Helena" hint="1930" />
@@ -371,12 +494,11 @@ function ArvoreTab() {
             </div>
           </Gen>
           <Connector />
-          {/* G1 */}
           <Gen label="G1 · Você">
             <div className="mx-auto max-w-[110px]">
               <div className="rounded-lg border-2 border-navy bg-navy px-2 py-2 text-center text-cream shadow">
                 <div className="text-xs font-semibold">Marina Alves</div>
-                <div className="text-[9px] text-cream/70">1992</div>
+                <div className="text-[9px] text-cream/70">1978</div>
               </div>
             </div>
           </Gen>
@@ -385,7 +507,7 @@ function ArvoreTab() {
 
       <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-4 text-center">
         <div className="font-serif text-lg text-navy">12 pessoas conectadas recuperadas</div>
-        <div className="text-xs text-muted-foreground">de um universo de 31 possíveis nas 5 gerações</div>
+        <div className="text-xs text-sage">de um universo de 31 possíveis nas 5 gerações</div>
       </div>
     </div>
   );
@@ -415,7 +537,7 @@ function DocsTab() {
   return (
     <div className="p-5">
       <h2 className="font-serif text-2xl text-navy">Documentos</h2>
-      <p className="mt-1 text-sm text-muted-foreground italic">Seu acervo processual.</p>
+      <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
       <div className="mt-4 space-y-2.5">
         {docs.map((d) => {
           const cfg = {
@@ -430,7 +552,7 @@ function DocsTab() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="truncate text-sm font-medium text-navy">{d.t}</div>
-                <div className="text-xs text-muted-foreground">{d.d}</div>
+                <div className="text-xs text-sage">{d.d}</div>
               </div>
               <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.bg, cfg.color)}>
                 {cfg.label}
@@ -445,46 +567,55 @@ function DocsTab() {
 
 /* -------- BIBLIO + LEGADO -------- */
 function BiblioTab() {
+  const achados = [
+    { d: "28 jun 2026", t: "Certidão de nascimento de Giuseppe localizada — Nápoles, 1887", desc: "Documento original recuperado no arquivo diocesano de Nápoles, confirmando a linhagem paterna italiana." },
+    { d: "14 jun 2026", t: "Registro de emigração encontrado — Porto de Gênova, 1912", desc: "Lista de passageiros do navio Città di Torino, com Giuseppe entre os embarcados rumo a Santos." },
+    { d: "02 jun 2026", t: "Sobrenome confirmado em 3 gerações consecutivas", desc: "Cruzamento de registros paroquiais e civis valida a continuidade do sobrenome familiar." },
+  ];
   return (
     <div className="space-y-6 p-5">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-gold">Biblioteca</div>
-        <h2 className="font-serif text-2xl text-navy">Seus achados</h2>
+        <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <div className="mt-4 space-y-3">
-          {[
-            { tag: "Achado comentado", t: "Registro de batismo, Coimbra 1887", d: "Comentário do genealogista sobre o padrinho identificado." },
-            { tag: "Registro histórico", t: "Livro paroquial S. Maria — pág. 142", d: "Cópia digitalizada com transcrição." },
-            { tag: "Nota de contexto", t: "A emigração portuguesa dos anos 1920", d: "Contexto histórico que envolveu seus ancestrais." },
-          ].map((x) => (
+          {achados.map((x) => (
             <div key={x.t} className="rounded-xl border border-border bg-white p-4 shadow-sm">
-              <div className="mb-1 flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-gold" />
-                <span className="text-[10px] uppercase tracking-widest text-gold">{x.tag}</span>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-gold" />
+                  <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
+                </div>
+                <span className="inline-flex items-center gap-1 text-[10px] text-sage">
+                  <Calendar className="h-3 w-3" />{x.d}
+                </span>
               </div>
-              <div className="text-sm font-medium text-navy">{x.t}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{x.d}</div>
+              <div className="font-serif text-base text-navy leading-snug">{x.t}</div>
+              <div className="mt-1.5 text-xs text-sage">{x.desc}</div>
+              <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy hover:text-cream transition">
+                Ver detalhes <ChevronRight className="h-3 w-3" />
+              </button>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-2xl border border-navy bg-gradient-to-br from-navy via-navy-soft to-navy p-6 text-cream">
+      <section className="relative overflow-hidden rounded-2xl border border-plum/40 bg-gradient-to-br from-plum via-plum to-[#5B3877] p-6 text-cream">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)" }} />
         <div className="relative">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-purple-500/20 px-3 py-1 text-[10px] uppercase tracking-widest text-purple-200">
-            <Lock className="h-3 w-3" /> Legado — bloqueado
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] uppercase tracking-widest text-cream">
+            <Lock className="h-3 w-3" /> Legado — plano premium
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
           <p className="mt-2 text-sm text-cream/80">
             Um livro impresso, um dossiê narrativo e a árvore expandida completa — para você e as próximas gerações.
           </p>
-          <ul className="mt-4 space-y-1 text-xs text-cream/70">
+          <ul className="mt-4 space-y-1 text-xs text-cream/80">
             <li>· Álbum ilustrado impresso</li>
             <li>· Narrativa completa em áudio</li>
             <li>· Cerimônia de entrega</li>
           </ul>
           <button className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy">
-            Fazer upgrade para Legado <ArrowRight className="h-4 w-4" />
+            Conhecer plano Legado <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </section>

@@ -35,6 +35,8 @@
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
   --color-terracotta: var(--terracotta);
+  --color-sage: var(--sage);
+  --color-plum: var(--plum);
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
@@ -47,6 +49,8 @@
   --gold-soft: #E4CE8A;
   --cream: #F5F0E8;
   --terracotta: #8B4513;
+  --sage: #6B7B5E;
+  --plum: #7B4F9E;
 
   --background: var(--cream);
   --foreground: var(--navy);
