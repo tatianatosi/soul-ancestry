@@ -47,7 +47,7 @@ export function ClienteApp() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-28">
-        {showConta ? (
+        {showConta || tab === "conta" ? (
           <ContaScreen />
         ) : (
           <>
@@ -62,7 +62,7 @@ export function ClienteApp() {
       </main>
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-7">
           {([
             ["home", Home, "Home"],
             ["jornada", RouteIcon, "Jornada"],
@@ -70,19 +70,26 @@ export function ClienteApp() {
             ["arvore", TreeDeciduous, "Árvore"],
             ["docs", FileText, "Docs"],
             ["biblio", BookOpen, "Legado"],
-          ] as const).map(([id, Icon, label]) => (
-            <button
-              key={id}
-              onClick={() => { setTab(id); setShowConta(false); }}
-              className={cn(
-                "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
-                !showConta && tab === id ? "text-navy" : "text-muted-foreground hover:text-navy"
-              )}
-            >
-              <Icon className={cn("h-5 w-5", !showConta && tab === id && "text-gold")} />
-              <span>{label}</span>
-            </button>
-          ))}
+            ["conta", User, "Conta"],
+          ] as const).map(([id, Icon, label]) => {
+            const isActive = id === "conta" ? (showConta || tab === "conta") : (!showConta && tab === id);
+            return (
+              <button
+                key={id}
+                onClick={() => {
+                  setTab(id);
+                  setShowConta(id === "conta");
+                }}
+                className={cn(
+                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
+                  isActive ? "text-navy" : "text-muted-foreground hover:text-navy"
+                )}
+              >
+                <Icon className={cn("h-5 w-5", isActive && "text-gold")} />
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>
