@@ -36,8 +36,7 @@ export function AppSwitcher({ current, onChange }: { current: "cliente" | "desk"
     <div className="sticky top-0 z-50 border-b bg-navy text-cream">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <BrandLogo size={32} showText={false} />
-          <span className="font-serif text-base italic text-gold">Clube Ancestral</span>
+          <BrandLogo size={34} showText={true} textColor="#C9A84C" />
           <span className="hidden sm:inline text-xs text-cream/60 uppercase tracking-widest">Protótipo</span>
         </div>
         <div className="flex items-center gap-1 rounded-full border border-cream/20 bg-navy-soft/60 p-1">
