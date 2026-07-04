@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Home, Route as RouteIcon, Radar, TreeDeciduous, FileText, BookOpen,
   Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, User,
-  MessageCircle, Calendar, ChevronRight, ArrowLeft,
+  MessageCircle, Calendar, ChevronRight, ArrowLeft, Search, Check,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio";
