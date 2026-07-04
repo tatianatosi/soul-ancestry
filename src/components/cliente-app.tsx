@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "./brand";
 import {
   Home, Route as RouteIcon, Radar, TreeDeciduous, FileText, BookOpen,
   Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, User,
-  MessageCircle, Calendar, ChevronRight, ArrowLeft,
+  MessageCircle, Calendar, ChevronRight, ArrowLeft, Search, Check,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio";
@@ -25,13 +26,16 @@ export function ClienteApp() {
           </>
         ) : (
           <>
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
-              <div className="font-serif text-xl italic">Marina Alves</div>
+            <div className="flex items-center gap-3 min-w-0">
+              <BrandLogo size={32} showText={false} />
+              <div className="min-w-0">
+                <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
+                <div className="font-serif text-lg italic truncate">Marina Alves</div>
+              </div>
             </div>
             <button
               onClick={() => setShowConta(true)}
-              className="grid h-10 w-10 place-items-center rounded-full bg-gold/20 text-gold hover:bg-gold/30 transition"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/20 text-gold hover:bg-gold/30 transition"
               aria-label="Minha Conta"
             >
               <User className="h-5 w-5" />
@@ -86,53 +90,93 @@ export function ClienteApp() {
 /* -------- CONTA -------- */
 function ContaScreen() {
   const history = [
-    { t: "Certidão de casamento recebida", d: "28 jun 2026" },
-    { t: "Nova conexão familiar identificada", d: "18 jun 2026" },
-    { t: "Pesquisa em Coimbra iniciada", d: "10 jun 2026" },
-    { t: "Micro-entrega: contexto emigração", d: "02 jun 2026" },
-    { t: "Kickoff do caso", d: "12 mar 2026" },
+    { t: "📄 Certidão recebida", d: "28 jun 2026" },
+    { t: "🔎 Achado documental", d: "15 jun 2026" },
+    { t: "✅ Pesquisa confirmada", d: "10 jun 2026" },
+    { t: "💬 Consulta realizada", d: "02 jun 2026" },
+    { t: "🎯 Caso iniciado", d: "15 jan 2024" },
   ];
   return (
-    <div className="space-y-5 p-5">
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+    <div className="space-y-6 p-5">
+      {/* SECTION A — Perfil */}
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-full bg-navy text-2xl font-serif italic text-gold">MA</div>
           <div className="min-w-0">
             <div className="font-serif text-xl text-navy truncate">Marina Alves</div>
-            <div className="text-xs text-sage">marina.alves@email.com</div>
-            <span className="mt-1 inline-block rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold text-navy">PLANO RECONSTRUÇÃO</span>
+            <div className="text-xs text-sage truncate">marina.alves@email.com</div>
+            <div className="text-xs text-sage">WhatsApp: +55 11 98765-4321</div>
           </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Info label="Caso iniciado" value="12 mar 2026" />
-        <Info label="Assinatura" value="Ativa" tone="ok" />
-        <Info label="Caso" value="Cidadania PT" />
-        <Info label="Genealogista" value="Ana Ribeiro" />
-      </div>
-
-      <button className="flex w-full items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm hover:bg-muted/30 transition">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-          <MessageCircle className="h-5 w-5" />
+        <div className="mt-4 border-t border-border pt-3 text-xs text-sage">
+          Membro desde: <span className="font-semibold text-navy">Janeiro 2024</span>
         </div>
-        <div className="flex-1 text-left">
-          <div className="text-sm font-medium text-navy">WhatsApp direto</div>
-          <div className="text-xs text-sage">Fale com sua genealogista</div>
-        </div>
-        <ChevronRight className="h-4 w-4 text-sage" />
-      </button>
+      </section>
 
+      {/* SECTION B — Meu Plano */}
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Histórico de atividade</h3>
+        <h3 className="mb-3 font-serif text-lg text-navy">Meu Plano</h3>
+        <div className="mb-3 flex items-center justify-between rounded-xl border border-navy/20 bg-navy p-4 text-cream">
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-gold/80">Plano atual</div>
+            <div className="font-serif text-lg italic text-gold">Plano Essencial</div>
+          </div>
+          <span className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold text-navy">ATIVO</span>
+        </div>
+
+        {/* Upsell card */}
+        <div className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
+          <div className="mb-1 text-base font-semibold text-navy">👨‍👩‍👧 Familiar Conectado</div>
+          <div className="text-xs text-sage">Inclua até 4 familiares na sua jornada</div>
+          <ul className="mt-3 space-y-1.5 text-sm text-navy">
+            <li>✓ Acesso compartilhado para toda a família</li>
+            <li>✓ Alertas de WhatsApp para cada membro</li>
+            <li>✓ Árvore familiar colaborativa</li>
+          </ul>
+          <div className="mt-4 flex items-center justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-sage">A partir de</div>
+              <div className="font-serif text-lg text-navy">R$ 269<span className="text-xs text-sage">/mês</span></div>
+            </div>
+            <button className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy hover:bg-gold/90 transition">
+              Conhecer plano familiar
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION C — WhatsApp */}
+      <section>
+        <h3 className="mb-3 font-serif text-lg text-navy">WhatsApp</h3>
+        <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+              <MessageCircle className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-navy">Alertas Básicos</div>
+              <div className="text-xs text-sage">R$ 19/mês · plano atual</div>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">ATIVO</span>
+          </div>
+          <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-dashed border-gold/60 bg-gold/5 p-3 text-left hover:bg-gold/10 transition">
+            <div>
+              <div className="text-xs font-semibold text-navy">Alertas Família — R$ 39/mês</div>
+              <div className="text-[11px] text-sage">Para grupos familiares</div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gold" />
+          </button>
+        </div>
+      </section>
+
+      {/* SECTION D — Histórico */}
+      <section>
+        <h3 className="mb-3 font-serif text-lg text-navy">Histórico de atividades</h3>
         <div className="rounded-2xl border border-border bg-white shadow-sm">
           {history.map((h, i) => (
-            <div key={i} className={cn("flex items-start gap-3 p-4", i < history.length - 1 && "border-b border-border")}>
-              <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-navy">{h.t}</div>
-                <div className="text-xs text-sage">{h.d}</div>
-              </div>
+            <div key={i} className={cn("flex items-center justify-between p-4", i < history.length - 1 && "border-b border-border")}>
+              <div className="text-sm text-navy">{h.t}</div>
+              <div className="text-xs text-sage shrink-0 ml-3">{h.d}</div>
             </div>
           ))}
         </div>
@@ -140,14 +184,7 @@ function ContaScreen() {
     </div>
   );
 }
-function Info({ label, value, tone }: { label: string; value: string; tone?: "ok" }) {
-  return (
-    <div className="rounded-xl border border-border bg-white p-3">
-      <div className="text-[10px] uppercase tracking-wide text-sage">{label}</div>
-      <div className={cn("mt-0.5 text-sm font-semibold text-navy", tone === "ok" && "text-emerald-700")}>{value}</div>
-    </div>
-  );
-}
+
 
 /* -------- HOME -------- */
 function HomeTab() {
@@ -238,16 +275,16 @@ function HomeTab() {
       </section>
 
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Micro-entregas recentes</h3>
+        <h3 className="mb-3 font-serif text-lg text-navy">Achados Recentes</h3>
         <div className="space-y-2.5">
           {[
-            { t: "Registro de batismo — Coimbra, 1887", d: "há 2 dias", tag: "Achado" },
-            { t: "Nota de contexto: emigração 1920", d: "há 5 dias", tag: "Contexto" },
+            { t: "Certidão de Giuseppe localizada — Nápoles, 1887", d: "28 jun 2026" },
+            { t: "Registro de emigração encontrado — Gênova, 1912", d: "24 jun 2026" },
           ].map((x) => (
-            <div key={x.t} className="rounded-xl border border-border bg-card p-4">
+            <div key={x.t} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
               <div className="mb-1 flex items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 text-gold" />
-                <span className="text-[10px] uppercase tracking-widest text-gold">{x.tag}</span>
+                <Search className="h-3.5 w-3.5 text-gold" />
+                <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
               </div>
               <div className="text-sm text-navy">{x.t}</div>
               <div className="mt-1 text-xs text-sage">{x.d}</div>
