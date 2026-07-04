@@ -7,7 +7,7 @@ import {
   MessageCircle, Calendar, ChevronRight, ArrowLeft, Search, Check,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio";
+type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
