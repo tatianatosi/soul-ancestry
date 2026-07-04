@@ -2,9 +2,26 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import {
-  Home, Route as RouteIcon, Radar, TreeDeciduous, FileText, BookOpen,
-  Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, User,
-  MessageCircle, Calendar, ChevronRight, ArrowLeft, Search, Check,
+  Home,
+  Route as RouteIcon,
+  Radar,
+  TreeDeciduous,
+  FileText,
+  BookOpen,
+  Sparkles,
+  Clock,
+  CheckCircle2,
+  Eye,
+  Lock,
+  ArrowRight,
+  Users,
+  User,
+  MessageCircle,
+  Calendar,
+  ChevronRight,
+  ArrowLeft,
+  Search,
+  Check,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
@@ -61,16 +78,18 @@ export function ClienteApp() {
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
         <div className="grid grid-cols-7">
-          {([
-            ["home", Home, "Home"],
-            ["jornada", RouteIcon, "Jornada"],
-            ["radar", Radar, "Radar"],
-            ["arvore", TreeDeciduous, "Árvore"],
-            ["docs", FileText, "Docs"],
-            ["biblio", BookOpen, "Legado"],
-            ["conta", User, "Conta"],
-          ] as const).map(([id, Icon, label]) => {
-            const isActive = id === "conta" ? (showConta || tab === "conta") : (!showConta && tab === id);
+          {(
+            [
+              ["home", Home, "Home"],
+              ["jornada", RouteIcon, "Jornada"],
+              ["radar", Radar, "Radar"],
+              ["arvore", TreeDeciduous, "Árvore"],
+              ["docs", FileText, "Docs"],
+              ["biblio", BookOpen, "Legado"],
+              ["conta", User, "Conta"],
+            ] as const
+          ).map(([id, Icon, label]) => {
+            const isActive = id === "conta" ? showConta || tab === "conta" : !showConta && tab === id;
             return (
               <button
                 key={id}
@@ -80,7 +99,7 @@ export function ClienteApp() {
                 }}
                 className={cn(
                   "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
-                  isActive ? "text-navy" : "text-muted-foreground hover:text-navy"
+                  isActive ? "text-navy" : "text-muted-foreground hover:text-navy",
                 )}
               >
                 <Icon className={cn("h-5 w-5", isActive && "text-gold")} />
@@ -108,7 +127,9 @@ function ContaScreen() {
       {/* SECTION A — Perfil */}
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-navy text-2xl font-serif italic text-gold">MA</div>
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-navy text-2xl font-serif italic text-gold">
+            MA
+          </div>
           <div className="min-w-0">
             <div className="font-serif text-xl text-navy truncate">Marina Alves</div>
             <div className="text-xs text-sage truncate">marina.alves@email.com</div>
@@ -143,7 +164,9 @@ function ContaScreen() {
           <div className="mt-4 flex items-center justify-between">
             <div>
               <div className="text-[10px] uppercase tracking-wide text-sage">A partir de</div>
-              <div className="font-serif text-lg text-navy">R$ 269<span className="text-xs text-sage">/mês</span></div>
+              <div className="font-serif text-lg text-navy">
+                R$ 269<span className="text-xs text-sage">/mês</span>
+              </div>
             </div>
             <button className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy hover:bg-gold/90 transition">
               Conhecer plano familiar
@@ -164,7 +187,9 @@ function ContaScreen() {
               <div className="text-sm font-medium text-navy">Alertas Básicos</div>
               <div className="text-xs text-sage">R$ 19/mês · plano atual</div>
             </div>
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">ATIVO</span>
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              ATIVO
+            </span>
           </div>
           <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-dashed border-gold/60 bg-gold/5 p-3 text-left hover:bg-gold/10 transition">
             <div>
@@ -181,7 +206,13 @@ function ContaScreen() {
         <h3 className="mb-3 font-serif text-lg text-navy">Histórico de atividades</h3>
         <div className="rounded-2xl border border-border bg-white shadow-sm">
           {history.map((h, i) => (
-            <div key={i} className={cn("flex items-center justify-between p-4", i < history.length - 1 && "border-b border-border")}>
+            <div
+              key={i}
+              className={cn(
+                "flex items-center justify-between p-4",
+                i < history.length - 1 && "border-b border-border",
+              )}
+            >
               <div className="text-sm text-navy">{h.t}</div>
               <div className="text-xs text-sage shrink-0 ml-3">{h.d}</div>
             </div>
@@ -191,7 +222,6 @@ function ContaScreen() {
     </div>
   );
 }
-
 
 /* -------- HOME -------- */
 function HomeTab() {
@@ -227,18 +257,24 @@ function HomeTab() {
               const active = i === currentIdx;
               return (
                 <div key={s} className="flex flex-1 flex-col items-center">
-                  <div className={cn(
-                    "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
-                    done && "bg-gold/40 text-gold",
-                    active && "bg-gold text-navy ring-4 ring-gold/30 scale-110",
-                    !done && !active && "bg-navy/40 text-cream/50 border border-cream/20",
-                  )}>
+                  <div
+                    className={cn(
+                      "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
+                      done && "bg-gold/40 text-gold",
+                      active && "bg-gold text-navy ring-4 ring-gold/30 scale-110",
+                      !done && !active && "bg-navy/40 text-cream/50 border border-cream/20",
+                    )}
+                  >
                     {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
                   </div>
-                  <div className={cn(
-                    "mt-1.5 text-center text-[9px] leading-tight",
-                    active ? "font-bold text-gold" : "text-cream/60"
-                  )}>{s}</div>
+                  <div
+                    className={cn(
+                      "mt-1.5 text-center text-[9px] leading-tight",
+                      active ? "font-bold text-gold" : "text-cream/60",
+                    )}
+                  >
+                    {s}
+                  </div>
                 </div>
               );
             })}
@@ -255,12 +291,16 @@ function HomeTab() {
             { n: 3, t: "Entrevista com sua tia Rosa", s: "Agendar até 15/07", tone: "soft" },
           ].map((it) => (
             <div key={it.n} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
-              <div className={cn(
-                "grid h-9 w-9 shrink-0 place-items-center rounded-full font-serif text-sm font-semibold",
-                it.tone === "urgent" && "bg-terracotta/15 text-terracotta",
-                it.tone === "info" && "bg-gold/20 text-navy",
-                it.tone === "soft" && "bg-muted text-navy/70"
-              )}>{it.n}</div>
+              <div
+                className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-full font-serif text-sm font-semibold",
+                  it.tone === "urgent" && "bg-terracotta/15 text-terracotta",
+                  it.tone === "info" && "bg-gold/20 text-navy",
+                  it.tone === "soft" && "bg-muted text-navy/70",
+                )}
+              >
+                {it.n}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-navy">{it.t}</div>
                 <div className="text-xs text-sage">{it.s}</div>
@@ -277,7 +317,9 @@ function HomeTab() {
         </div>
         <div className="flex-1">
           <div className="text-xs uppercase tracking-wide text-sage">Pessoas conectadas</div>
-          <div className="font-serif text-2xl text-navy">12 <span className="text-sm text-sage">ancestrais recuperados</span></div>
+          <div className="font-serif text-2xl text-navy">
+            12 <span className="text-sm text-sage">ancestrais recuperados</span>
+          </div>
         </div>
       </section>
 
@@ -346,14 +388,18 @@ function JornadaTab() {
             <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
             {left.map((e) => (
               <div key={e.y} className="relative mb-6">
-                <div className={cn(
-                  "absolute -left-3 top-1 h-3 w-3 rounded-full",
-                  e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold"
-                )} />
+                <div
+                  className={cn(
+                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold",
+                  )}
+                />
                 <div className="font-serif text-lg text-navy">{e.y}</div>
                 <div className="text-xs text-sage">{e.t}</div>
                 {e.union && (
-                  <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">União de Ramos</span>
+                  <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
+                    União de Ramos
+                  </span>
                 )}
               </div>
             ))}
@@ -366,10 +412,12 @@ function JornadaTab() {
             <div className="absolute left-1 top-1 bottom-1 w-px bg-navy/30" />
             {right.map((e) => (
               <div key={e.s} className="relative mb-6">
-                <div className={cn(
-                  "absolute -left-3 top-1 h-3 w-3 rounded-full",
-                  e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60"
-                )} />
+                <div
+                  className={cn(
+                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60",
+                  )}
+                />
                 <div className="font-serif text-base text-navy">{e.s}</div>
                 <div className="text-xs text-sage">{e.d}</div>
               </div>
@@ -380,7 +428,9 @@ function JornadaTab() {
 
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
         <div className="text-[11px] uppercase tracking-widest text-terracotta">Momentos de união</div>
-        <p className="mt-1 text-sm text-navy italic">"Duas famílias se encontraram em 1912 e novamente em 1951 — sua história é feita desses encontros."</p>
+        <p className="mt-1 text-sm text-navy italic">
+          "Duas famílias se encontraram em 1912 e novamente em 1951 — sua história é feita desses encontros."
+        </p>
       </div>
     </div>
   );
@@ -423,7 +473,10 @@ function RadarTab() {
 }
 
 export function RadarChart({
-  axes, size = 300, color = "#C9A84C", strokeColor,
+  axes,
+  size = 300,
+  color = "#C9A84C",
+  strokeColor,
   polygons,
 }: {
   axes: { k: string; v: number }[];
@@ -432,7 +485,8 @@ export function RadarChart({
   strokeColor?: string;
   polygons?: { name: string; values: number[]; color: string }[];
 }) {
-  const cx = size / 2, cy = size / 2;
+  const cx = size / 2,
+    cy = size / 2;
   const r = size / 2 - 44;
   const n = axes.length;
   const pt = (i: number, val: number) => {
@@ -448,7 +502,9 @@ export function RadarChart({
         <polygon
           key={rg}
           points={axes.map((_, i) => pt(i, rg).join(",")).join(" ")}
-          fill="none" stroke="#E4DBC8" strokeWidth="1"
+          fill="none"
+          stroke="#E4DBC8"
+          strokeWidth="1"
         />
       ))}
       {axes.map((_, i) => {
@@ -460,24 +516,38 @@ export function RadarChart({
           <polygon
             key={p.name}
             points={axes.map((_, i) => pt(i, p.values[i]).join(",")).join(" ")}
-            fill={p.color} fillOpacity="0.18" stroke={p.color} strokeWidth="2"
+            fill={p.color}
+            fillOpacity="0.18"
+            stroke={p.color}
+            strokeWidth="2"
           />
         ))
       ) : (
         <polygon
           points={single.map((p) => p.join(",")).join(" ")}
-          fill={color} fillOpacity="0.35"
-          stroke={strokeColor ?? color} strokeWidth="2"
+          fill={color}
+          fillOpacity="0.35"
+          stroke={strokeColor ?? color}
+          strokeWidth="2"
         />
       )}
-      {!polygons && single.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="4" fill={color} stroke="#1B2B4B" strokeWidth="1.5" />
-      ))}
+      {!polygons &&
+        single.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="4" fill={color} stroke="#1B2B4B" strokeWidth="1.5" />
+        ))}
       {axes.map((a, i) => {
         const [x, y] = pt(i, 118);
         return (
-          <text key={a.k} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="10" fill="#1B2B4B" fontWeight="600">
+          <text
+            key={a.k}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="10"
+            fill="#1B2B4B"
+            fontWeight="600"
+          >
             {a.k}
           </text>
         );
@@ -489,10 +559,12 @@ export function RadarChart({
 /* -------- ARVORE -------- */
 function ArvoreTab() {
   const Node = ({ label, hint, connected }: { label: string; hint?: string; connected?: boolean }) => (
-    <div className={cn(
-      "flex flex-col items-center justify-center rounded-lg border bg-white px-2 py-2 text-center text-[10px] shadow-sm",
-      connected ? "border-gold ring-2 ring-gold/30" : "border-border"
-    )}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center rounded-lg border bg-white px-2 py-2 text-center text-[10px] shadow-sm",
+        connected ? "border-gold ring-2 ring-gold/30" : "border-border",
+      )}
+    >
       <div className="font-semibold text-navy leading-tight">{label}</div>
       {hint && <div className="text-[9px] text-sage">{hint}</div>}
       {connected && <div className="mt-0.5 text-[8px] uppercase tracking-widest text-gold">conectado</div>}
@@ -586,8 +658,8 @@ function DocsTab() {
         {docs.map((d) => {
           const cfg = {
             delivered: { Icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", label: "Entregue" },
-            pending:   { Icon: Clock, color: "text-orange-600", bg: "bg-orange-50", label: "Pendente" },
-            review:    { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
+            pending: { Icon: Clock, color: "text-orange-600", bg: "bg-orange-50", label: "Pendente" },
+            review: { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
           }[d.s]!;
           return (
             <div key={d.t} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
@@ -612,9 +684,21 @@ function DocsTab() {
 /* -------- BIBLIO + LEGADO -------- */
 function BiblioTab() {
   const achados = [
-    { d: "28 jun 2026", t: "Certidão de nascimento de Giuseppe localizada — Nápoles, 1887", desc: "Documento original recuperado no arquivo diocesano de Nápoles, confirmando a linhagem paterna italiana." },
-    { d: "14 jun 2026", t: "Registro de emigração encontrado — Porto de Gênova, 1912", desc: "Lista de passageiros do navio Città di Torino, com Giuseppe entre os embarcados rumo a Santos." },
-    { d: "02 jun 2026", t: "Sobrenome confirmado em 3 gerações consecutivas", desc: "Cruzamento de registros paroquiais e civis valida a continuidade do sobrenome familiar." },
+    {
+      d: "28 jun 2026",
+      t: "Certidão de nascimento de Giuseppe localizada — Nápoles, 1887",
+      desc: "Documento original recuperado no arquivo diocesano de Nápoles, confirmando a linhagem paterna italiana.",
+    },
+    {
+      d: "14 jun 2026",
+      t: "Registro de emigração encontrado — Porto de Gênova, 1912",
+      desc: "Lista de passageiros do navio Città di Torino, com Giuseppe entre os embarcados rumo a Santos.",
+    },
+    {
+      d: "02 jun 2026",
+      t: "Sobrenome confirmado em 3 gerações consecutivas",
+      desc: "Cruzamento de registros paroquiais e civis valida a continuidade do sobrenome familiar.",
+    },
   ];
   return (
     <div className="space-y-6 p-5">
@@ -630,7 +714,8 @@ function BiblioTab() {
                   <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
                 </div>
                 <span className="inline-flex items-center gap-1 text-[10px] text-sage">
-                  <Calendar className="h-3 w-3" />{x.d}
+                  <Calendar className="h-3 w-3" />
+                  {x.d}
                 </span>
               </div>
               <div className="font-serif text-base text-navy leading-snug">{x.t}</div>
@@ -644,7 +729,10 @@ function BiblioTab() {
       </section>
 
       <section className="relative overflow-hidden rounded-2xl border border-plum/40 bg-gradient-to-br from-plum via-plum to-[#5B3877] p-6 text-cream">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)" }} />
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)" }}
+        />
         <div className="relative">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] uppercase tracking-widest text-cream">
             <Lock className="h-3 w-3" /> Legado — plano premium

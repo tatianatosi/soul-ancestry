@@ -16,7 +16,15 @@ export function BrandLogo({ size = 40, className, showText = true, textColor }: 
       <img
         src={LOGO_URL}
         alt="Clube Ancestral"
-        style={{ height: size, width: "auto", objectFit: "contain", background: "transparent" }}
+        style={{
+          height: size,
+          width: "auto",
+          objectFit: "contain",
+          background: "transparent",
+          mixBlendMode: "multiply",
+          borderRadius: "50%",
+          overflow: "hidden",
+        }}
       />
       {showText && (
         <span
@@ -46,9 +54,7 @@ export function AppSwitcher({
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
         <div className="flex items-center gap-3">
           <BrandLogo size={36} showText={true} textColor="#ECDFCD" />
-          <span className="hidden sm:inline text-xs text-cream/60 uppercase tracking-widest">
-            Protótipo
-          </span>
+          <span className="hidden sm:inline text-xs text-cream/60 uppercase tracking-widest">Protótipo</span>
         </div>
         <div className="flex items-center gap-1 rounded-full border border-cream/20 bg-navy-soft/60 p-1">
           {(["cliente", "desk"] as const).map((v) => (
@@ -57,7 +63,7 @@ export function AppSwitcher({
               onClick={() => onChange(v)}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm",
-                current === v ? "bg-gold text-navy" : "text-cream/70 hover:text-cream"
+                current === v ? "bg-gold text-navy" : "text-cream/70 hover:text-cream",
               )}
             >
               {v === "cliente" ? "App Cliente" : "Desk Intelligence"}
