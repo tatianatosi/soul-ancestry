@@ -27,7 +27,9 @@ export function ClienteApp() {
         ) : (
           <>
             <div className="flex items-center gap-3 min-w-0">
-              <BrandLogo size={32} showText={false} />
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy overflow-hidden">
+                <BrandLogo size={36} showText={false} />
+              </div>
               <div className="min-w-0">
                 <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
                 <div className="font-serif text-lg italic truncate">Marina Alves</div>
