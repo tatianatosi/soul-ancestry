@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "./brand";
 import {
   Home, Route as RouteIcon, Radar, TreeDeciduous, FileText, BookOpen,
   Sparkles, Clock, CheckCircle2, Eye, Lock, ArrowRight, Users, User,
