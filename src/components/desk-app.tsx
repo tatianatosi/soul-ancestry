@@ -26,10 +26,11 @@ export function DeskApp() {
     <div className="flex min-h-[calc(100vh-52px)] bg-cream">
       <aside className="hidden w-60 shrink-0 border-r border-border bg-navy text-cream md:sticky md:top-[52px] md:flex md:h-[calc(100vh-52px)] md:flex-col">
         <div className="border-b border-cream/10 px-5 py-4">
-          <div className="text-[10px] uppercase tracking-widest text-gold">Interno</div>
-          <div className="font-serif text-lg italic text-cream">Desk Intelligence</div>
+          <BrandLogo size={30} showText={true} textColor="#C9A84C" />
+          <div className="mt-2 text-[10px] uppercase tracking-widest text-gold/80">Desk Intelligence</div>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+
           {nav.map(([id, Icon, label]) => (
             <button
               key={id}
