@@ -26,13 +26,16 @@ export function ClienteApp() {
           </>
         ) : (
           <>
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
-              <div className="font-serif text-xl italic">Marina Alves</div>
+            <div className="flex items-center gap-3 min-w-0">
+              <BrandLogo size={32} showText={false} />
+              <div className="min-w-0">
+                <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
+                <div className="font-serif text-lg italic truncate">Marina Alves</div>
+              </div>
             </div>
             <button
               onClick={() => setShowConta(true)}
-              className="grid h-10 w-10 place-items-center rounded-full bg-gold/20 text-gold hover:bg-gold/30 transition"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/20 text-gold hover:bg-gold/30 transition"
               aria-label="Minha Conta"
             >
               <User className="h-5 w-5" />
