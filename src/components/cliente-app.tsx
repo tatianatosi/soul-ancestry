@@ -22,6 +22,8 @@ import {
   ArrowLeft,
   Search,
   Check,
+  UploadCloud,
+
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
@@ -643,6 +645,18 @@ function Connector() {
 
 /* -------- DOCS -------- */
 function DocsTab() {
+  const checklist = [
+    { t: "Procuração europeia (conforme país do antenato)", s: "pending" },
+    { t: "Procuração brasileira", s: "pending" },
+    { t: "RG ou CNH", s: "done" },
+    { t: "CPF", s: "done" },
+    { t: "Certidão de nascimento", s: "done" },
+    { t: "Certidão de casamento", s: "done" },
+    { t: "Comprovante de residência atualizado", s: "pending" },
+    { t: "Documentos dos ascendentes disponíveis", s: "partial" },
+    { t: "Certidões localizadas pela equipe", s: "partial" },
+    { t: "Óbito ou documento complementar (se aplicável)", s: "pending" },
+  ];
   const docs = [
     { t: "Certidão de nascimento — Marina", d: "12/03", s: "delivered" },
     { t: "Certidão de batismo — Joaquim (1887)", d: "01/06", s: "delivered" },
@@ -651,35 +665,92 @@ function DocsTab() {
     { t: "Autenticação notarial", d: "aguardando", s: "pending" },
     { t: "Dossiê consolidado", d: "em revisão", s: "review" },
   ];
+  const doneCount = checklist.filter((c) => c.s === "done").length;
   return (
-    <div className="p-5">
-      <h2 className="font-serif text-2xl text-navy">Documentos</h2>
-      <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
-      <div className="mt-4 space-y-2.5">
-        {docs.map((d) => {
-          const cfg = {
-            delivered: { Icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", label: "Entregue" },
-            pending: { Icon: Clock, color: "text-orange-600", bg: "bg-orange-50", label: "Pendente" },
-            review: { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
-          }[d.s]!;
-          return (
-            <div key={d.t} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-              <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", cfg.bg)}>
-                <cfg.Icon className={cn("h-5 w-5", cfg.color)} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="truncate text-sm font-medium text-navy">{d.t}</div>
-                <div className="text-xs text-sage">{d.d}</div>
-              </div>
-              <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.bg, cfg.color)}>
-                {cfg.label}
-              </span>
-            </div>
-          );
-        })}
+    <div className="space-y-6 p-5">
+      <div>
+        <h2 className="font-serif text-2xl text-navy">Documentos</h2>
+        <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
       </div>
+
+      {/* Upload card */}
+      <button className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-gold/60 bg-gold/5 p-6 text-center transition hover:bg-gold/10">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-gold/20 text-gold">
+          <UploadCloud className="h-6 w-6" />
+        </div>
+        <div className="text-sm font-semibold text-navy">Enviar novo documento</div>
+        <div className="text-xs text-sage">PDF, JPG ou PNG — até 10 MB por arquivo</div>
+        <span className="mt-1 rounded-full bg-navy px-4 py-1.5 text-xs font-semibold text-cream">
+          Selecionar arquivo
+        </span>
+      </button>
+
+      {/* Checklist consolidado */}
+      <section>
+        <div className="mb-3 flex items-end justify-between">
+          <h3 className="font-serif text-lg text-navy">Checklist consolidado</h3>
+          <span className="text-xs text-sage">
+            {doneCount}/{checklist.length} concluídos
+          </span>
+        </div>
+        <div className="rounded-2xl border border-border bg-white shadow-sm">
+          {checklist.map((c, i) => {
+            const cfg = {
+              done: { cls: "bg-emerald-50 text-emerald-600", label: "OK" },
+              partial: { cls: "bg-blue-50 text-blue-600", label: "Parcial" },
+              pending: { cls: "bg-orange-50 text-orange-600", label: "Pendente" },
+            }[c.s]!;
+            return (
+              <div
+                key={c.t}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3",
+                  i < checklist.length - 1 && "border-b border-border",
+                )}
+              >
+                <div className={cn("grid h-6 w-6 shrink-0 place-items-center rounded-full", cfg.cls)}>
+                  {c.s === "done" ? <Check className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                </div>
+                <div className="flex-1 text-sm text-navy">{c.t}</div>
+                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.cls)}>
+                  {cfg.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Entregas do caso */}
+      <section>
+        <h3 className="mb-3 font-serif text-lg text-navy">Entregas do caso</h3>
+        <div className="space-y-2.5">
+          {docs.map((d) => {
+            const cfg = {
+              delivered: { Icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", label: "Entregue" },
+              pending: { Icon: Clock, color: "text-orange-600", bg: "bg-orange-50", label: "Pendente" },
+              review: { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
+            }[d.s]!;
+            return (
+              <div key={d.t} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", cfg.bg)}>
+                  <cfg.Icon className={cn("h-5 w-5", cfg.color)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="truncate text-sm font-medium text-navy">{d.t}</div>
+                  <div className="text-xs text-sage">{d.d}</div>
+                </div>
+                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.bg, cfg.color)}>
+                  {cfg.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
+
 }
 
 /* -------- BIBLIO + LEGADO -------- */
