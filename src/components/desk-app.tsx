@@ -117,7 +117,32 @@ function Overview() {
         ))}
       </div>
 
+      {/* Funil de leads */}
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="font-serif text-lg text-navy">Funil de leads</h3>
+          <span className="text-[11px] uppercase tracking-widest text-gold">Últimos 30 dias</span>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[
+            { l: "Novos leads", v: "58", bar: 100, c: "bg-navy" },
+            { l: "Leads em WhatsApp", v: "31", bar: 53, c: "bg-sage" },
+            { l: "Lead → diagnóstico", v: "42%", bar: 42, c: "bg-gold" },
+            { l: "Lead → cliente", v: "12%", bar: 12, c: "bg-terracotta" },
+          ].map((f) => (
+            <div key={f.l} className="rounded-xl border border-border bg-cream/60 p-4">
+              <div className="text-xs uppercase tracking-wide text-sage">{f.l}</div>
+              <div className="mt-1 font-serif text-2xl text-navy">{f.v}</div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className={cn("h-full rounded-full", f.c)} style={{ width: `${f.bar}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
+
         <div className="rounded-2xl border border-border bg-white shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <h3 className="font-serif text-lg text-navy">Alertas de achados pendentes</h3>
