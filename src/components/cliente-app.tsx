@@ -362,13 +362,13 @@ function HomeTab() {
 /* -------- JORNADA -------- */
 function JornadaTab() {
   const left = [
+    { y: "1820", t: "Origem do ramo Ferreira — Minho, Portugal" },
     { y: "1887", t: "Nascimento do bisavô Giuseppe (Itália)" },
-    { y: "1912", t: "Emigração para o Brasil", union: true },
-    { y: "1923", t: "Nascimento da avó Isabel" },
-    { y: "1951", t: "Nascimento do pai", union: true },
-    { y: "1978", t: "Nascimento da cliente (Marina)" },
+    { y: "1923", t: "Casamento de Isabel e Antônio", union: true },
+    { y: "1965", t: "Encontro dos ramos italiano e português", union: true },
     { y: "2024", t: "Início da jornada Clube Ancestral" },
   ];
+
   const right = [
     { s: "Kickoff", d: "12/03" },
     { s: "Coleta inicial", d: "20/03" },
@@ -429,8 +429,9 @@ function JornadaTab() {
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
         <div className="text-[11px] uppercase tracking-widest text-terracotta">Momentos de união</div>
         <p className="mt-1 text-sm text-navy italic">
-          "Duas famílias se encontraram em 1912 e novamente em 1951 — sua história é feita desses encontros."
+          "Dois ramos se uniram em 1923 e se reencontraram em 1965 — sua história é feita desses encontros."
         </p>
+
       </div>
     </div>
   );
