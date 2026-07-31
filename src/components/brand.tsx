@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/clube-ancestral-logo.svg.asset.json";
 
-const LOGO_URL = "https://i.imgur.com/LVq06O5.jpeg";
+const LOGO_URL = logoAsset.url;
 
 interface LogoProps {
   size?: number;
@@ -21,9 +22,6 @@ export function BrandLogo({ size = 40, className, showText = true, textColor }: 
           width: "auto",
           objectFit: "contain",
           background: "transparent",
-          mixBlendMode: "multiply",
-          borderRadius: "50%",
-          overflow: "hidden",
         }}
       />
       {showText && (
