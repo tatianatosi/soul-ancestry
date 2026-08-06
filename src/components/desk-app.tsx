@@ -7,6 +7,7 @@ import {
 } from "@/data/casos";
 import {
   PROPOSTAS,
+  produtoMestre,
   RECOMENDACOES_WHATSAPP,
   recomendacaoWhatsappPorCaso,
   planoWhatsapp,
