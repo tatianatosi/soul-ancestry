@@ -870,7 +870,9 @@ function DocsTab({ caso }: { caso: Caso }) {
 
 /* -------- BIBLIO + LEGADO -------- */
 function BiblioTab({ caso }: { caso: Caso }) {
+  const proposta = propostaByCaso(caso.id);
   return (
+
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
