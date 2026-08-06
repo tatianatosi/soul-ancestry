@@ -11,6 +11,8 @@ import {
   resumoCaso,
   type Caso,
 } from "@/data/casos";
+import { propostaByCaso } from "@/data/propostas";
+
 import {
   Home,
   Route as RouteIcon,
