@@ -513,7 +513,7 @@ function RadarTab() {
     { k: "Legado", v: 40 },
   ];
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="radar">
       <h2 className="font-serif text-2xl text-navy">Radar Ancestral</h2>
       <p className="mt-1 text-sm text-sage italic">Seu equilíbrio nas 6 dimensões.</p>
       <div className="mt-4 rounded-2xl border border-border bg-white p-4">
@@ -637,7 +637,7 @@ function ArvoreTab() {
     </div>
   );
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="arvore">
       <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
       <p className="mt-1 text-sm text-sage italic">Cinco gerações que compõem você.</p>
 
