@@ -908,16 +908,22 @@ function BiblioTab({ caso }: { caso: Caso }) {
             <Lock className="h-3 w-3" /> {PLANO_LEGADO.nome} — upsell
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
-          <p className="mt-2 text-sm text-cream/80">{PLANO_LEGADO.descricao}</p>
+          <p className="mt-2 text-sm text-cream/80">
+            Upsells mapeados na proposta do caso {proposta.casoId} (Planilha Mestre de Produtos).
+          </p>
           <ul className="mt-4 space-y-1 text-xs text-cream/80">
-            {PLANO_LEGADO.itens.map((i) => (
-              <li key={i}>· {i}</li>
+            {proposta.upsells.map((u) => (
+              <li key={u.sku}>
+                · {u.nome} — {brl(u.valor)}
+              </li>
             ))}
           </ul>
           <div className="mt-5 flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] uppercase tracking-wide text-cream/70">A partir de</div>
-              <div className="font-serif text-xl text-gold">{brl(PLANO_LEGADO.precoRef)}</div>
+              <div className="font-serif text-xl text-gold">
+                {brl(proposta.upsells.length ? Math.min(...proposta.upsells.map((u) => u.valor)) : PLANO_LEGADO.precoRef)}
+              </div>
             </div>
             <button className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy">
               Conhecer plano Legado <ArrowRight className="h-4 w-4" />
@@ -925,6 +931,7 @@ function BiblioTab({ caso }: { caso: Caso }) {
           </div>
         </div>
       </section>
+
     </div>
   );
 }
