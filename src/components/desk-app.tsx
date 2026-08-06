@@ -78,6 +78,8 @@ export function DeskApp() {
         <div className="mx-auto max-w-6xl">
           {sec === "overview" && <Overview />}
           {sec === "casos" && <Casos />}
+          {sec === "propostas" && <Propostas />}
+
           {sec === "appcliente" && <ChecklistAppCliente />}
           {sec === "financeiro" && <Financeiro />}
           {sec === "checklist" && <Checklist />}
