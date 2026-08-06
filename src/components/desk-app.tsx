@@ -27,7 +27,7 @@ export function DeskApp() {
       <aside className="hidden w-60 shrink-0 border-r border-border bg-navy text-cream md:sticky md:top-[52px] md:flex md:h-[calc(100vh-52px)] md:flex-col">
         <div className="border-b border-cream/10 px-5 py-4">
           <BrandLogo size={30} showText={true} textColor="#C9A84C" />
-          <div className="mt-2 text-[10px] uppercase tracking-widest text-gold/80">Desk Intelligence</div>
+          <div className="mt-2 text-[11px] uppercase tracking-widest text-gold/80">Desk Intelligence</div>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
 
@@ -55,7 +55,7 @@ export function DeskApp() {
           <button
             key={id}
             onClick={() => setSec(id)}
-            className={cn("flex flex-col items-center gap-1 py-2 text-[10px]",
+            className={cn("flex flex-col items-center gap-1 py-2 text-[11px]",
               sec === id ? "text-gold" : "text-cream/70")}
           >
             <Icon className="h-4 w-4" />
@@ -276,7 +276,7 @@ function Checklist() {
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Prioridade máxima</div>
         <h1 className="font-serif text-3xl italic text-navy">Checklist da Semana</h1>
-        <p className="mt-1 text-sm text-sage">A ferramenta interna mais usada — o que precisa acontecer agora.</p>
+        <p className="mt-1 text-[13px] text-navy/70">A ferramenta interna mais usada — o que precisa acontecer agora.</p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -286,7 +286,7 @@ function Checklist() {
             <div key={s.title} className={cn("rounded-2xl border-2 p-5 shadow-sm", st.border, st.bg)}>
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-xl text-navy">{s.title}</h3>
-                <span className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold", st.chip)}>
+                <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold", st.chip)}>
                   {s.items.length}
                 </span>
               </div>
@@ -328,7 +328,7 @@ function ValidacaoJuridica() {
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Elegibilidade & viabilidade</div>
         <h1 className="font-serif text-3xl italic text-navy">Validação Jurídica</h1>
-        <p className="mt-1 text-sm text-sage">Critérios legais aplicáveis a cada caso.</p>
+        <p className="mt-1 text-[13px] text-navy/70">Critérios legais aplicáveis a cada caso.</p>
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
@@ -353,7 +353,7 @@ function ValidacaoJuridica() {
                   <td className="px-4 py-3 text-navy">{r.cr}</td>
                   <td className="px-4 py-3 text-sage whitespace-nowrap">{r.g}</td>
                   <td className="px-4 py-3">
-                    <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap", badge(r.s))}>{r.s}</span>
+                    <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap", badge(r.s))}>{r.s}</span>
                   </td>
                   <td className="px-4 py-3 text-sage italic">{r.obs}</td>
                 </tr>
@@ -390,7 +390,7 @@ function RadarInterno() {
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Análise comparativa</div>
         <h1 className="font-serif text-3xl italic text-navy">Radar Interno</h1>
-        <p className="mt-1 text-sm text-sage">Priorização estratégica dos casos ativos.</p>
+        <p className="mt-1 text-[13px] text-navy/70">Priorização estratégica dos casos ativos.</p>
       </header>
 
       <div className="inline-flex rounded-full border border-border bg-white p-1 shadow-sm">
@@ -475,12 +475,12 @@ function PriorityMatrix() {
                   <span className="h-3 w-3 rounded-full" style={{ background: it.c }} />
                   <span className="text-navy">{it.l}</span>
                 </div>
-                <span className="text-xs text-sage">{it.n} casos</span>
+                <span className="text-[12px] text-navy/70">{it.n} casos</span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="rounded-2xl bg-muted/60 p-4 text-xs text-sage">
+        <div className="rounded-2xl bg-muted/60 p-4 text-[12px] text-navy/70">
           Cada ponto é um cliente ativo. Priorize o quadrante superior direito — alta elegibilidade e alta urgência — para maximizar conversão.
         </div>
       </div>
@@ -504,7 +504,7 @@ function RadarIndividual() {
       <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-gold">Cliente</div>
+            <div className="text-[11px] uppercase tracking-widest text-gold">Cliente</div>
             <div className="font-serif text-xl text-navy">{client.name}</div>
           </div>
           <select
@@ -580,7 +580,7 @@ function Alertas() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide font-semibold whitespace-nowrap",
+                    <span className={cn("rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide font-semibold whitespace-nowrap",
                       r.s === "novo" && "bg-blue-100 text-blue-700",
                       r.s === "revisado" && "bg-emerald-100 text-emerald-700",
                       r.s === "urgente" && "bg-red-100 text-red-700",
@@ -627,21 +627,21 @@ function BiblioMestre() {
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Curadoria interna</div>
         <h1 className="font-serif text-3xl italic text-navy">Biblioteca Mestre</h1>
-        <p className="mt-1 text-sm text-sage">Todos os conteúdos produzidos, organizados por caso.</p>
+        <p className="mt-1 text-[13px] text-navy/70">Todos os conteúdos produzidos, organizados por caso.</p>
       </header>
 
       {groups.map((g) => (
         <section key={g.client}>
           <div className="mb-3 flex items-baseline justify-between">
             <h3 className="font-serif text-xl text-navy">{g.client}</h3>
-            <span className="text-xs text-sage">{g.items.length} peças</span>
+            <span className="text-[12px] text-navy/70">{g.items.length} peças</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {g.items.map((it) => (
               <div key={it.t} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest text-gold">{it.type}</span>
-                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", chip(it.s))}>{it.s}</span>
+                  <span className="text-[11px] uppercase tracking-widest text-gold">{it.type}</span>
+                  <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", chip(it.s))}>{it.s}</span>
                 </div>
                 <div className="font-serif text-lg text-navy">{it.t}</div>
                 <div className="mt-3 h-24 rounded-lg bg-gradient-to-br from-cream to-muted" />

@@ -81,7 +81,7 @@ export function ClienteApp() {
           onClick={() =>
             setCaseStatus((s) => (s === "proposta-aceita" ? "em-andamento" : "proposta-aceita"))
           }
-          className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[10px] font-semibold text-navy hover:bg-navy/5 transition"
+          className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy/5 transition"
         >
           {caseStatus === "proposta-aceita" ? "Voltar ao estado inicial" : "Simular proposta aceita"}
         </button>
@@ -125,7 +125,7 @@ export function ClienteApp() {
                   setShowConta(id === "conta");
                 }}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
+                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition",
                   isActive ? "text-navy" : "text-muted-foreground hover:text-navy",
                 )}
               >
@@ -159,11 +159,11 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
           </div>
           <div className="min-w-0">
             <div className="font-serif text-xl text-navy truncate">Marina Alves</div>
-            <div className="text-xs text-sage truncate">marina.alves@email.com</div>
-            <div className="text-xs text-sage">WhatsApp: +55 11 98765-4321</div>
+            <div className="text-[12px] text-navy/70 truncate">marina.alves@email.com</div>
+            <div className="text-[12px] text-navy/70">WhatsApp: +55 11 98765-4321</div>
           </div>
         </div>
-        <div className="mt-4 border-t border-border pt-3 text-xs text-sage">
+        <div className="mt-4 border-t border-border pt-3 text-[12px] text-navy/70">
           Membro desde: <span className="font-semibold text-navy">Janeiro 2024</span>
         </div>
       </section>
@@ -173,20 +173,20 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
         <h3 className="mb-3 font-serif text-lg text-navy">Meu Plano</h3>
         <div className="mb-3 flex items-center justify-between rounded-xl border border-navy/20 bg-navy p-4 text-cream">
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-gold/80">Plano atual</div>
+            <div className="text-[11px] uppercase tracking-widest text-gold/80">Plano atual</div>
             <div className="font-serif text-lg italic text-gold">Plano Essencial</div>
             {caseStatus === "proposta-aceita" && (
               <div className="mt-1 text-[11px] text-cream/70">Contratado após aceite da proposta</div>
             )}
           </div>
-          <span className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold text-navy">ATIVO</span>
+          <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-bold text-navy">ATIVO</span>
         </div>
 
 
         {/* Upsell card */}
         <div className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
           <div className="mb-1 text-base font-semibold text-navy">👨‍👩‍👧 Familiar Conectado</div>
-          <div className="text-xs text-sage">Inclua até 4 familiares na sua jornada</div>
+          <div className="text-[12px] text-navy/70">Inclua até 4 familiares na sua jornada</div>
           <ul className="mt-3 space-y-1.5 text-sm text-navy">
             <li>✓ Acesso compartilhado para toda a família</li>
             <li>✓ Alertas de WhatsApp para cada membro</li>
@@ -194,9 +194,9 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
           </ul>
           <div className="mt-4 flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-wide text-sage">A partir de</div>
+              <div className="text-[11px] uppercase tracking-wide text-sage">A partir de</div>
               <div className="font-serif text-lg text-navy">
-                R$ 269<span className="text-xs text-sage">/mês</span>
+                R$ 269<span className="text-[12px] text-navy/70">/mês</span>
               </div>
             </div>
             <button className="rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy hover:bg-gold/90 transition">
@@ -216,16 +216,16 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
             </div>
             <div className="flex-1">
               <div className="text-sm font-medium text-navy">Alertas Básicos</div>
-              <div className="text-xs text-sage">R$ 19/mês · plano atual</div>
+              <div className="text-[12px] text-navy/70">R$ 19/mês · plano atual</div>
             </div>
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
               ATIVO
             </span>
           </div>
           <button className="mt-3 flex w-full items-center justify-between rounded-xl border border-dashed border-gold/60 bg-gold/5 p-3 text-left hover:bg-gold/10 transition">
             <div>
               <div className="text-xs font-semibold text-navy">Alertas Família — R$ 39/mês</div>
-              <div className="text-[11px] text-sage">Para grupos familiares</div>
+              <div className="text-[11px] text-navy/70">Para grupos familiares</div>
             </div>
             <ChevronRight className="h-4 w-4 text-gold" />
           </button>
@@ -245,7 +245,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
               )}
             >
               <div className="text-sm text-navy">{h.t}</div>
-              <div className="text-xs text-sage shrink-0 ml-3">{h.d}</div>
+              <div className="text-[12px] text-navy/70 shrink-0 ml-3">{h.d}</div>
             </div>
           ))}
         </div>
@@ -267,13 +267,13 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-sage">Pagamento confirmado</div>
+              <div className="text-[11px] uppercase tracking-widest text-sage">Pagamento confirmado</div>
               <div className="text-sm text-navy">Proposta aceita — seu caso foi ativado.</div>
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between rounded-xl bg-areia p-3">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-navy/60">Próximo passo</div>
+              <div className="text-[11px] uppercase tracking-widest text-navy/60">Próximo passo</div>
               <div className="text-sm font-medium text-navy">Agendar chamada inicial</div>
             </div>
             <button className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-[11px] font-semibold text-navy hover:bg-gold/90 transition">
@@ -304,7 +304,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
 
         {/* Step indicator */}
         <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
-          <div className="mb-2 text-[10px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
+          <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
           <div className="flex items-center justify-between gap-1">
             {steps.map((s, i) => {
               const done = i < currentIdx;
@@ -313,7 +313,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
                 <div key={s} className="flex flex-1 flex-col items-center">
                   <div
                     className={cn(
-                      "grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold transition",
+                      "grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold transition",
                       done && "bg-gold/40 text-gold",
                       active && "bg-gold text-navy ring-4 ring-gold/30 scale-110",
                       !done && !active && "bg-navy/40 text-cream/50 border border-cream/20",
@@ -323,7 +323,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
                   </div>
                   <div
                     className={cn(
-                      "mt-1.5 text-center text-[9px] leading-tight",
+                      "mt-1.5 text-center text-[11px] leading-tight",
                       active ? "font-bold text-gold" : "text-cream/60",
                     )}
                   >
@@ -357,7 +357,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-navy">{it.t}</div>
-                <div className="text-xs text-sage">{it.s}</div>
+                <div className="text-[12px] text-navy/70">{it.s}</div>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
             </div>
@@ -372,7 +372,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
         <div className="flex-1">
           <div className="text-xs uppercase tracking-wide text-sage">Pessoas conectadas</div>
           <div className="font-serif text-2xl text-navy">
-            12 <span className="text-sm text-sage">ancestrais recuperados</span>
+            12 <span className="text-[13px] text-navy/70">ancestrais recuperados</span>
           </div>
         </div>
       </section>
@@ -387,10 +387,10 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
             <div key={x.t} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
               <div className="mb-1 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-gold" />
-                <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
+                <span className="text-[11px] uppercase tracking-widest text-gold">Achado</span>
               </div>
               <div className="text-sm text-navy">{x.t}</div>
-              <div className="mt-1 text-xs text-sage">{x.d}</div>
+              <div className="mt-1 text-[12px] text-navy/70">{x.d}</div>
             </div>
           ))}
         </div>
@@ -403,7 +403,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
             <Lock className="h-3.5 w-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-plum">Próximo nível disponível</div>
+            <div className="text-[11px] uppercase tracking-widest text-plum">Próximo nível disponível</div>
             <div className="mt-0.5 text-sm text-navy">Sua história familiar completa aguarda.</div>
             <button className="mt-2 text-xs font-medium text-plum hover:underline">Saber mais →</button>
           </div>
@@ -433,7 +433,7 @@ function JornadaTab() {
   return (
     <div className="p-5" data-tab="jornada">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
-      <p className="mt-1 text-sm text-sage italic">Duas linhas caminham juntas: a história e o seu processo.</p>
+      <p className="mt-1 text-[13px] text-navy/70 italic">Duas linhas caminham juntas: a história e o seu processo.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
@@ -453,9 +453,9 @@ function JornadaTab() {
                   className="rounded-xl border border-navy/30 bg-areia p-3"
                 >
                   <div className="font-serif text-lg text-navy">{e.y}</div>
-                  <div className="text-xs text-sage">{e.t}</div>
+                  <div className="text-[12px] text-navy/70">{e.t}</div>
                   {e.union && (
-                    <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
+                    <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[11px] font-medium text-terracotta">
                       União de Ramos
                     </span>
                   )}
@@ -482,7 +482,7 @@ function JornadaTab() {
                   className="rounded-xl border border-navy/30 bg-areia p-3"
                 >
                   <div className="font-serif text-base text-navy">{e.s}</div>
-                  <div className="text-xs text-sage">{e.d}</div>
+                  <div className="text-[12px] text-navy/70">{e.d}</div>
                 </div>
               </div>
             ))}
@@ -515,7 +515,7 @@ function RadarTab() {
   return (
     <div className="p-5" data-tab="radar">
       <h2 className="font-serif text-2xl text-navy">Radar Ancestral</h2>
-      <p className="mt-1 text-sm text-sage italic">Seu equilíbrio nas 6 dimensões.</p>
+      <p className="mt-1 text-[13px] text-navy/70 italic">Seu equilíbrio nas 6 dimensões.</p>
       <div className="mt-4 rounded-2xl border border-border bg-white p-4">
         <RadarChart axes={axes} size={280} color="#C9A84C" />
       </div>
@@ -523,10 +523,10 @@ function RadarTab() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         {axes.map((a) => (
           <div key={a.k} className="rounded-xl border border-border bg-card p-3">
-            <div className="text-[10px] uppercase tracking-wide text-sage">{a.k}</div>
+            <div className="text-[11px] uppercase tracking-wide text-sage">{a.k}</div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="font-serif text-2xl text-navy">{a.v}</span>
-              <span className="text-xs text-sage">%</span>
+              <span className="text-[12px] text-navy/70">%</span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-gold" style={{ width: `${a.v}%` }} />
@@ -627,19 +627,19 @@ function ArvoreTab() {
   const Node = ({ label, hint, connected }: { label: string; hint?: string; connected?: boolean }) => (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border bg-white px-2 py-2 text-center text-[10px] shadow-sm",
+        "flex flex-col items-center justify-center rounded-lg border bg-white px-2 py-2 text-center text-[11px] shadow-sm",
         connected ? "border-gold ring-2 ring-gold/30" : "border-border",
       )}
     >
       <div className="font-semibold text-navy leading-tight">{label}</div>
-      {hint && <div className="text-[9px] text-sage">{hint}</div>}
-      {connected && <div className="mt-0.5 text-[8px] uppercase tracking-widest text-gold">conectado</div>}
+      {hint && <div className="text-[11px] text-navy/70">{hint}</div>}
+      {connected && <div className="mt-0.5 text-[11px] uppercase tracking-widest text-gold">conectado</div>}
     </div>
   );
   return (
     <div className="p-5" data-tab="arvore">
       <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
-      <p className="mt-1 text-sm text-sage italic">Cinco gerações que compõem você.</p>
+      <p className="mt-1 text-[13px] text-navy/70 italic">Cinco gerações que compõem você.</p>
 
       <div className="mt-5 rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
@@ -680,7 +680,7 @@ function ArvoreTab() {
             <div className="mx-auto max-w-[110px]">
               <div className="rounded-lg border-2 border-navy bg-navy px-2 py-2 text-center text-cream shadow">
                 <div className="text-xs font-semibold">Marina Alves</div>
-                <div className="text-[9px] text-cream/70">1978</div>
+                <div className="text-[11px] text-cream/70">1978</div>
               </div>
             </div>
           </Gen>
@@ -689,7 +689,7 @@ function ArvoreTab() {
 
       <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-4 text-center">
         <div className="font-serif text-lg text-navy">12 pessoas conectadas recuperadas</div>
-        <div className="text-xs text-sage">de um universo de 31 possíveis nas 5 gerações</div>
+        <div className="text-[12px] text-navy/70">de um universo de 31 possíveis nas 5 gerações</div>
       </div>
     </div>
   );
@@ -697,7 +697,7 @@ function ArvoreTab() {
 function Gen({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-2 text-[10px] uppercase tracking-widest text-gold">{label}</div>
+      <div className="mb-2 text-[11px] uppercase tracking-widest text-gold">{label}</div>
       {children}
     </div>
   );
@@ -733,7 +733,7 @@ function DocsTab() {
     <div className="space-y-6 p-5" data-tab="docs">
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
-        <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
+        <p className="mt-1 text-[13px] text-navy/70 italic">Seu acervo processual.</p>
       </div>
 
       {/* Upload card */}
@@ -742,7 +742,7 @@ function DocsTab() {
           <UploadCloud className="h-6 w-6" />
         </div>
         <div className="text-sm font-semibold text-navy">Enviar novo documento</div>
-        <div className="text-xs text-sage">PDF, JPG ou PNG — até 10 MB por arquivo</div>
+        <div className="text-[12px] text-navy/70">PDF, JPG ou PNG — até 10 MB por arquivo</div>
         <span className="mt-1 rounded-full bg-navy px-4 py-1.5 text-xs font-semibold text-cream">
           Selecionar arquivo
         </span>
@@ -752,7 +752,7 @@ function DocsTab() {
       <section>
         <div className="mb-3 flex items-end justify-between">
           <h3 className="font-serif text-lg text-navy">Checklist consolidado</h3>
-          <span className="text-xs text-sage">
+          <span className="text-[12px] text-navy/70">
             {doneCount}/{checklist.length} concluídos
           </span>
         </div>
@@ -775,7 +775,7 @@ function DocsTab() {
                   {c.s === "done" ? <Check className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                 </div>
                 <div className="flex-1 text-sm text-navy">{c.t}</div>
-                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.cls)}>
+                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold", cfg.cls)}>
                   {cfg.label}
                 </span>
               </div>
@@ -801,9 +801,9 @@ function DocsTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="truncate text-sm font-medium text-navy">{d.t}</div>
-                  <div className="text-xs text-sage">{d.d}</div>
+                  <div className="text-[12px] text-navy/70">{d.d}</div>
                 </div>
-                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold", cfg.bg, cfg.color)}>
+                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold", cfg.bg, cfg.color)}>
                   {cfg.label}
                 </span>
               </div>
@@ -846,15 +846,15 @@ function BiblioTab() {
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-gold" />
-                  <span className="text-[10px] uppercase tracking-widest text-gold">Achado</span>
+                  <span className="text-[11px] uppercase tracking-widest text-gold">Achado</span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[10px] text-sage">
+                <span className="inline-flex items-center gap-1 text-[11px] text-navy/70">
                   <Calendar className="h-3 w-3" />
                   {x.d}
                 </span>
               </div>
               <div className="font-serif text-base text-navy leading-snug">{x.t}</div>
-              <div className="mt-1.5 text-xs text-sage">{x.desc}</div>
+              <div className="mt-1.5 text-[12px] text-navy/70">{x.desc}</div>
               <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy hover:text-cream transition">
                 Ver detalhes <ChevronRight className="h-3 w-3" />
               </button>
@@ -869,7 +869,7 @@ function BiblioTab() {
           style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)" }}
         />
         <div className="relative">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] uppercase tracking-widest text-cream">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-widest text-cream">
             <Lock className="h-3 w-3" /> Legado — plano premium
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
