@@ -914,7 +914,7 @@ function Propostas() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="font-serif text-xl text-navy">{p.cliente}</div>
-                <div className="text-[11px] uppercase tracking-widest text-terracota">{p.casoId}</div>
+                <div className="text-[11px] uppercase tracking-widest text-terracotta">{p.casoId}</div>
               </div>
               <span className="shrink-0 rounded-full bg-navy px-3 py-1 text-[11px] font-semibold text-cream">
                 {p.capa.pais}
