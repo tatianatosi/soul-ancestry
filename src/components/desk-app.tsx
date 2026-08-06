@@ -32,7 +32,7 @@ export function DeskApp() {
     ["propostas", FileText, "Propostas"],
     ["appcliente", Smartphone, "Checklist AppCliente"],
     ["financeiro", Wallet, "Financeiro"],
-    ["checklist", ListChecks, "Checklist"],
+    ["checklist", ListChecks, "Checklist semanal"],
     ["juridica", Scale, "Validação Jurídica"],
     ["radar", RadarIcon, "Radar Interno"],
     ["alertas", Bell, "Alertas"],
