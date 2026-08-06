@@ -3,22 +3,30 @@ import { cn } from "@/lib/utils";
 import { RadarChart } from "./cliente-app";
 import { BrandLogo } from "./brand";
 import {
+  CASOS, ETAPAS, INTEGRACOES, STATUS_APP, brl, painelUniversal, resumoCaso,
+} from "@/data/casos";
+import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
-  Scale,
+  Scale, Wallet, Plug, Smartphone,
 } from "lucide-react";
 
-type Section = "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio";
+type Section =
+  | "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio"
+  | "financeiro" | "appcliente" | "integracoes";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
   const nav = [
     ["overview", LayoutGrid, "Visão Geral"],
     ["casos", Users, "Casos 360"],
+    ["appcliente", Smartphone, "Checklist AppCliente"],
+    ["financeiro", Wallet, "Financeiro"],
     ["checklist", ListChecks, "Checklist"],
     ["juridica", Scale, "Validação Jurídica"],
     ["radar", RadarIcon, "Radar Interno"],
     ["alertas", Bell, "Alertas"],
+    ["integracoes", Plug, "Integrações"],
     ["biblio", Library, "Biblioteca Mestre"],
   ] as const;
 
