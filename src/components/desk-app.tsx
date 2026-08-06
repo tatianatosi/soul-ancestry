@@ -897,3 +897,106 @@ function Integracoes() {
     </div>
   );
 }
+
+/* --- Propostas: resumo por caso (src/data/propostas.ts) --- */
+function Propostas() {
+  return (
+    <div data-tab="desk-propostas">
+      <h2 className="font-serif text-2xl text-navy">Resumo da proposta por caso</h2>
+      <p className="mt-1 text-[13px] text-navy/70">
+        Valores consolidados da Planilha Mestre de Produtos × planejador universal — mesma base usada
+        no app cliente (Conta e Legado).
+      </p>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {PROPOSTAS.map((p) => (
+          <div key={p.casoId} className="rounded-2xl border border-navy/25 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="font-serif text-xl text-navy">{p.cliente}</div>
+                <div className="text-[11px] uppercase tracking-widest text-terracota">{p.casoId}</div>
+              </div>
+              <span className="shrink-0 rounded-full bg-navy px-3 py-1 text-[11px] font-semibold text-cream">
+                {p.capa.pais}
+              </span>
+            </div>
+
+            <div className="mt-4 flex items-end justify-between rounded-xl bg-areia p-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-widest text-navy/70">Referência total</div>
+                <div className="font-serif text-2xl text-navy">{brl(p.capa.referenciaTotal)}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[11px] uppercase tracking-widest text-navy/70">Formato recomendado</div>
+                <div className="text-[13px] font-semibold text-navy">{p.formatoRecomendado}</div>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+              {p.visaoGeral.caminhosInvestimento.map((c) => (
+                <div
+                  key={c.formato}
+                  className={cn(
+                    "rounded-lg border p-2",
+                    c.formato === p.formatoRecomendado ? "border-gold bg-gold/15" : "border-navy/20 bg-cream",
+                  )}
+                >
+                  <div className="text-navy/70">{c.titulo}</div>
+                  <div className="font-semibold text-navy">{c.valor}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-navy/70">
+                Principais SKUs inclusos
+              </div>
+              <ul className="mt-2 space-y-1">
+                {p.skusPrincipais.map((s) => (
+                  <li key={s.sku} className="flex items-start justify-between gap-3 text-[12px] text-navy">
+                    <span className="min-w-0">
+                      <span className="font-semibold">{s.sku}</span> · {s.nome}
+                    </span>
+                    <span className="shrink-0 font-semibold">{brl(s.valor)}</span>
+                  </li>
+                ))}
+                {p.skusPrincipais.length === 0 && (
+                  <li className="text-[12px] text-navy/60">Pacote a definir (PARAMETROS pendentes).</li>
+                )}
+              </ul>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-plum/30 bg-plum/5 p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-plum">
+                Upsells sugeridos
+              </div>
+              <ul className="mt-2 space-y-1">
+                {p.upsells.map((s) => (
+                  <li key={s.sku} className="flex items-start justify-between gap-3 text-[12px] text-navy">
+                    <span className="min-w-0">{s.nome}</span>
+                    <span className="shrink-0 font-semibold">{brl(s.valor)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2 text-[12px]">
+              {[
+                p.resumoFinanceiro.linhaHonorarios,
+                p.resumoFinanceiro.linhaDiagnostico,
+                p.resumoFinanceiro.linhaDespesas,
+                p.resumoFinanceiro.linhaTaxas,
+                p.resumoFinanceiro.linhaSaldo,
+              ].map((l) => (
+                <div key={l.rotulo} className="rounded-lg bg-cream p-2">
+                  <div className="text-navy/70">{l.rotulo}</div>
+                  <div className="font-semibold text-navy">{brl(l.valor)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
