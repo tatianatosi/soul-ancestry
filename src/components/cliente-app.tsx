@@ -39,6 +39,7 @@ import {
   Scale,
   CreditCard,
   Link2,
+  ClipboardList,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
