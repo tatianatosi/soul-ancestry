@@ -194,7 +194,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
           </ul>
           <div className="mt-4 flex items-center justify-between">
             <div>
-              <div className="text-[11px] uppercase tracking-wide text-sage">A partir de</div>
+              <div className="text-[11px] uppercase tracking-wide text-navy/70">A partir de</div>
               <div className="font-serif text-lg text-navy">
                 R$ 269<span className="text-[12px] text-navy/70">/mês</span>
               </div>
@@ -267,7 +267,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] uppercase tracking-widest text-sage">Pagamento confirmado</div>
+              <div className="text-[11px] uppercase tracking-widest text-navy/70">Pagamento confirmado</div>
               <div className="text-sm text-navy">Proposta aceita — seu caso foi ativado.</div>
             </div>
           </div>
@@ -370,7 +370,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
           <Users className="h-7 w-7 text-gold" />
         </div>
         <div className="flex-1">
-          <div className="text-xs uppercase tracking-wide text-sage">Pessoas conectadas</div>
+          <div className="text-xs uppercase tracking-wide text-navy/70">Pessoas conectadas</div>
           <div className="font-serif text-2xl text-navy">
             12 <span className="text-[13px] text-navy/70">ancestrais recuperados</span>
           </div>
@@ -523,7 +523,7 @@ function RadarTab() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         {axes.map((a) => (
           <div key={a.k} className="rounded-xl border border-border bg-card p-3">
-            <div className="text-[11px] uppercase tracking-wide text-sage">{a.k}</div>
+            <div className="text-[11px] uppercase tracking-wide text-navy/70">{a.k}</div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="font-serif text-2xl text-navy">{a.v}</span>
               <span className="text-[12px] text-navy/70">%</span>

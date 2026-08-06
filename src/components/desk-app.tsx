@@ -111,7 +111,7 @@ function Overview() {
             <div className={cn("mb-4 grid h-10 w-10 place-items-center rounded-lg", k.tint)}>
               <k.i className="h-5 w-5" />
             </div>
-            <div className="text-xs uppercase tracking-wide text-sage">{k.l}</div>
+            <div className="text-xs uppercase tracking-wide text-navy/70">{k.l}</div>
             <div className="mt-1 font-serif text-3xl text-navy">{k.v}</div>
           </div>
         ))}
@@ -131,7 +131,7 @@ function Overview() {
             { l: "Lead → cliente", v: "12%", bar: 12, c: "bg-terracotta" },
           ].map((f) => (
             <div key={f.l} className="rounded-xl border border-border bg-cream/60 p-4">
-              <div className="text-xs uppercase tracking-wide text-sage">{f.l}</div>
+              <div className="text-xs uppercase tracking-wide text-navy/70">{f.l}</div>
               <div className="mt-1 font-serif text-2xl text-navy">{f.v}</div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
                 <div className={cn("h-full rounded-full", f.c)} style={{ width: `${f.bar}%` }} />
@@ -150,7 +150,7 @@ function Overview() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wide text-sage">
+              <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wide text-navy/70">
                 <tr>
                   <th className="px-5 py-3">Cliente</th>
                   <th className="px-5 py-3">Tipo</th>
@@ -162,7 +162,7 @@ function Overview() {
                 {alerts.map((a) => (
                   <tr key={a.c} className="hover:bg-muted/30">
                     <td className="px-5 py-3 font-medium text-navy whitespace-nowrap">{a.c}</td>
-                    <td className="px-5 py-3 text-sage">{a.t}</td>
+                    <td className="px-5 py-3 text-navy/75">{a.t}</td>
                     <td className="px-5 py-3">
                       <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
                         a.d > 5 ? "bg-terracotta/15 text-terracotta" : "bg-orange-100 text-orange-700")}>
@@ -189,7 +189,7 @@ function Overview() {
                 {c.tone === "done" && <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />}
                 {c.tone === "todo" && <Circle className="mt-0.5 h-4 w-4 text-sage" />}
                 {c.tone === "warn" && <AlertTriangle className="mt-0.5 h-4 w-4 text-terracotta" />}
-                <span className={cn("text-sm", c.tone === "done" ? "text-sage line-through" : "text-navy")}>
+                <span className={cn("text-sm", c.tone === "done" ? "text-navy/50 line-through" : "text-navy")}>
                   {c.t}
                 </span>
               </li>
@@ -242,12 +242,12 @@ function Casos() {
                   <td className="px-5 py-3">
                     <span className="inline-flex items-center gap-2 whitespace-nowrap">
                       <span className={cn("h-2.5 w-2.5 rounded-full", dot[r.h as keyof typeof dot])} />
-                      <span className="text-xs capitalize text-sage">
+                      <span className="text-[12px] capitalize text-navy/75">
                         {r.h === "emerald" ? "saudável" : r.h === "orange" ? "atenção" : "crítico"}
                       </span>
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-sage">{r.a}</td>
+                  <td className="px-5 py-3 text-navy/75">{r.a}</td>
                   <td className="px-5 py-3 text-right font-serif text-navy whitespace-nowrap">{r.t}</td>
                 </tr>
               ))}
@@ -296,7 +296,7 @@ function Checklist() {
                   return (
                     <li key={i} className="flex items-start gap-3 rounded-lg bg-white/70 p-3">
                       <st.Icon className={cn("mt-0.5 h-4 w-4 shrink-0", st.iconColor)} />
-                      <span className={cn("text-sm", done ? "text-sage line-through" : "text-navy font-medium")}>{it}</span>
+                      <span className={cn("text-sm", done ? "text-navy/50 line-through" : "text-navy font-medium")}>{it}</span>
                     </li>
                   );
                 })}
@@ -351,11 +351,11 @@ function ValidacaoJuridica() {
                   <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{r.c}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{r.p}</td>
                   <td className="px-4 py-3 text-navy">{r.cr}</td>
-                  <td className="px-4 py-3 text-sage whitespace-nowrap">{r.g}</td>
+                  <td className="px-4 py-3 text-navy/75 whitespace-nowrap">{r.g}</td>
                   <td className="px-4 py-3">
                     <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap", badge(r.s))}>{r.s}</span>
                   </td>
-                  <td className="px-4 py-3 text-sage italic">{r.obs}</td>
+                  <td className="px-4 py-3 text-navy/75 italic">{r.obs}</td>
                 </tr>
               ))}
             </tbody>
@@ -571,8 +571,8 @@ function Alertas() {
               {rows.map((r, i) => (
                 <tr key={i} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{r.c}</td>
-                  <td className="px-4 py-3 text-sage whitespace-nowrap">{r.t}</td>
-                  <td className="px-4 py-3 text-sage italic">{r.d}</td>
+                  <td className="px-4 py-3 text-navy/75 whitespace-nowrap">{r.t}</td>
+                  <td className="px-4 py-3 text-navy/75 italic">{r.d}</td>
                   <td className="px-4 py-3">
                     <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
                       r.w > 5 ? "bg-terracotta/15 text-terracotta" : "bg-orange-100 text-orange-700")}>
