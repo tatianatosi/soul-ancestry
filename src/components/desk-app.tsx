@@ -12,6 +12,7 @@ import {
   planoWhatsapp,
   type RecomendacaoWhatsapp,
 } from "@/data/propostas";
+import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneamento";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
