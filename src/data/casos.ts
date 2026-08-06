@@ -673,15 +673,19 @@ export const painelUniversal = () => {
   const despesas = CASOS.reduce((s, c) => s + c.plano.despesasPrevistas, 0);
   const taxas = CASOS.reduce((s, c) => s + c.plano.taxasPrevistas, 0);
   const pago = CASOS.reduce((s, c) => s + c.financeiro.pagoCliente, 0);
+  const desembolsado = CASOS.reduce((s, c) => s + c.financeiro.desembolsadoClube, 0);
   const saldo = honorarios + despesas + taxas - pago;
   return {
     honorarios,
     despesas,
     taxas,
+    pago,
+    desembolsado,
     saldo,
     casos: CASOS.length,
     ticketMedio: Math.round(honorarios / CASOS.length),
   };
+
 };
 
 /* ---- Plano Legado (upsell — SKU CA-CID-025 / extensões familiares) ---- */
