@@ -358,14 +358,14 @@ function ValidacaoJuridica() {
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3">País Alvo</th>
                 <th className="px-4 py-3">Critério Jurídico</th>
-                <th className="px-4 py-3">Geração</th>
+                <th className="px-4 py-3">Etapa atual</th>
                 <th className="px-4 py-3">Elegibilidade</th>
                 <th className="px-4 py-3">Observações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.c} className="hover:bg-muted/30 align-top">
+              {rows.map((r, i) => (
+                <tr key={r.c + i} className="hover:bg-muted/30 align-top">
                   <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{r.c}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{r.p}</td>
                   <td className="px-4 py-3 text-navy">{r.cr}</td>
