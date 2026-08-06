@@ -743,13 +743,26 @@ function ChecklistAppCliente() {
 /* --- Financeiro: resumo por caso + painel universal --- */
 function Financeiro() {
   const p = painelUniversal();
+  const [detalhe, setDetalhe] = useState<string | null>(null);
+  const [explic, setExplic] = useState(false);
+  const aberto = CASOS.find((c) => c.id === detalhe) ?? null;
   return (
     <div className="space-y-8">
-      <header>
-        <div className="text-[11px] uppercase tracking-widest text-gold">RESUMO_CASOS · PAINEL</div>
-        <h1 className="font-serif text-3xl italic text-navy">Painel financeiro</h1>
-        <p className="mt-1 text-[13px] text-navy/70">Previsto x realizado por caso e o agregado universal.</p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-widest text-gold">RESUMO_CASOS · PAINEL</div>
+          <h1 className="font-serif text-3xl italic text-navy">Painel financeiro</h1>
+          <p className="mt-1 text-[13px] text-navy/70">Previsto x realizado por caso e o agregado universal.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExplic(true)}
+          className="rounded-full border border-gold px-4 py-2 text-[12px] font-semibold text-navy transition hover:bg-gold/20"
+        >
+          Como ler estes números
+        </button>
       </header>
+
 
       {/* Painel universal */}
       <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
