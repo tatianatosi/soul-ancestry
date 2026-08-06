@@ -344,7 +344,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
             { n: 2, t: "Validar certidão de Isabel (1923)", s: "Documento recém-encontrado", tone: "info" },
             { n: 3, t: "Entrevista com sua tia Rosa", s: "Agendar até 15/07", tone: "soft" },
           ].map((it) => (
-            <div key={it.n} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+            <div key={it.n} className="flex items-start gap-3 rounded-xl border border-navy/25 bg-card p-4 shadow-sm">
               <div
                 className={cn(
                   "grid h-9 w-9 shrink-0 place-items-center rounded-full font-serif text-sm font-semibold",
@@ -522,7 +522,7 @@ function RadarTab() {
 
       <div className="mt-5 grid grid-cols-2 gap-3">
         {axes.map((a) => (
-          <div key={a.k} className="rounded-xl border border-border bg-card p-3">
+          <div key={a.k} className="rounded-xl border border-navy/25 bg-card p-3">
             <div className="text-[11px] uppercase tracking-wide text-navy/70">{a.k}</div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="font-serif text-2xl text-navy">{a.v}</span>
@@ -795,7 +795,7 @@ function DocsTab() {
               review: { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
             }[d.s]!;
             return (
-              <div key={d.t} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+              <div key={d.t} className="flex items-center gap-3 rounded-xl border border-navy/25 bg-card p-3">
                 <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", cfg.bg)}>
                   <cfg.Icon className={cn("h-5 w-5", cfg.color)} />
                 </div>
