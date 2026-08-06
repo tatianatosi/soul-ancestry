@@ -326,14 +326,17 @@ function Checklist() {
 
 /* --- Validação Jurídica --- */
 function ValidacaoJuridica() {
-  const rows = [
-    { c: "Marina Alves",   p: "Portugal",  cr: "Bisneto de português (Lei 37/81)", g: "3ª geração", s: "Confirmado", obs: "Documentação civil consistente." },
-    { c: "Ricardo Vieira", p: "Itália",    cr: "Jus sanguinis sem interrupção",     g: "4ª geração", s: "Em Análise", obs: "Falta certidão de casamento 1902." },
-    { c: "Camila Santos",  p: "Espanha",   cr: "Lei de Memória Democrática",         g: "2ª geração", s: "Confirmado", obs: "Ancestral perseguido — prazo até 2025." },
-    { c: "João Ferreira",  p: "Portugal",  cr: "Neto de português (art. 1º-B)",     g: "2ª geração", s: "Pendente",   obs: "Necessária prova de vínculo cultural." },
-    { c: "Beatriz Lima",   p: "Alemanha",  cr: "§ 15 StAG (reparação)",              g: "3ª geração", s: "Em Análise", obs: "Ascendente vítima do regime nazista." },
-    { c: "Paulo Neto",     p: "Itália",    cr: "1948 case — linha materna",          g: "3ª geração", s: "Confirmado", obs: "Requer ação judicial em Roma." },
-  ];
+  const rows = CASOS.flatMap((c) =>
+    c.marcosJuridicos.map((m) => ({
+      c: c.cliente,
+      p: c.pais,
+      cr: m.titulo,
+      g: ETAPAS.find((e) => e.key === c.etapaAtual)?.label ?? "—",
+      s: m.situacao === "aberta" ? "Confirmado" : m.situacao === "condicionada" ? "Em Análise" : "Pendente",
+      obs: m.nota,
+    })),
+  );
+
   const badge = (s: string) =>
     s === "Confirmado" ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
     s === "Em Análise" ? "bg-blue-100 text-blue-700 border-blue-300" :
