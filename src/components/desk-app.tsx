@@ -668,3 +668,224 @@ function BiblioMestre() {
     </div>
   );
 }
+
+/* --- Checklist AppCliente por caso --- */
+function ChecklistAppCliente() {
+  return (
+    <div className="space-y-6">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Go-live · Checklist_AppCliente</div>
+        <h1 className="font-serif text-3xl italic text-navy">Checklist AppCliente por caso</h1>
+        <p className="mt-1 text-[13px] text-navy/70">O que precisa estar configurado no app de cada cliente.</p>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {CASOS.map((c) => {
+          const feitos = c.checklistAppCliente.filter((i) => i.feito).length;
+          const total = c.checklistAppCliente.length;
+          return (
+            <section key={c.id} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] text-navy/60">{c.id}</div>
+                  <h3 className="font-serif text-xl text-navy">{c.cliente}</h3>
+                  <div className="text-[12px] text-navy/70">{c.tipoProcesso}</div>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                    feitos === total ? "bg-emerald-600 text-white" : "bg-gold text-navy",
+                  )}
+                >
+                  {feitos}/{total}
+                </span>
+              </div>
+              <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${(feitos / total) * 100}%` }} />
+              </div>
+              <ul className="space-y-2">
+                {c.checklistAppCliente.map((i) => (
+                  <li key={i.item} className="flex items-start gap-3 rounded-lg bg-cream/60 p-3">
+                    {i.feito ? (
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    ) : (
+                      <Circle className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" />
+                    )}
+                    <span className={cn("text-sm", i.feito ? "text-navy/50 line-through" : "font-medium text-navy")}>
+                      {i.item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* --- Financeiro: resumo por caso + painel universal --- */
+function Financeiro() {
+  const p = painelUniversal();
+  return (
+    <div className="space-y-8">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">RESUMO_CASOS · PAINEL</div>
+        <h1 className="font-serif text-3xl italic text-navy">Painel financeiro</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Previsto x realizado por caso e o agregado universal.</p>
+      </header>
+
+      {/* Painel universal */}
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="mb-4 font-serif text-lg text-navy">Painel universal</h3>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {[
+            ["Total honorários", brl(p.honorarios)],
+            ["Total despesas", brl(p.despesas)],
+            ["Total taxas", brl(p.taxas)],
+            ["Saldo total", brl(p.saldo)],
+            ["Quantidade de casos", String(p.casos)],
+            ["Ticket médio", brl(p.ticketMedio)],
+          ].map(([l, v]) => (
+            <div key={l} className="rounded-xl border border-border bg-cream/60 p-4">
+              <div className="text-xs uppercase tracking-wide text-navy/70">{l}</div>
+              <div className="mt-1 font-serif text-2xl text-navy">{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumo por caso */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {CASOS.map((c) => {
+          const { previsto, saldo } = resumoCaso(c);
+          return (
+            <section key={c.id} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] text-navy/60">{c.id}</div>
+                  <h3 className="font-serif text-xl text-navy">{c.cliente}</h3>
+                  <div className="text-[12px] text-navy/70">{c.plano.nome} · {c.plano.formato}</div>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                    saldo > 0 ? "bg-terracotta text-white" : "bg-emerald-600 text-white",
+                  )}
+                >
+                  {saldo > 0 ? "Saldo em aberto" : "Quitado"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {[
+                  ["Honorários previstos", brl(c.plano.honorariosBase)],
+                  ["Despesas previstas", brl(c.plano.despesasPrevistas)],
+                  ["Taxas previstas", brl(c.plano.taxasPrevistas)],
+                  ["Total previsto", brl(previsto)],
+                  ["Pago pelo cliente", brl(c.financeiro.pagoCliente)],
+                  ["Desembolsado Clube", brl(c.financeiro.desembolsadoClube)],
+                ].map(([l, v]) => (
+                  <div key={l} className="rounded-lg border border-border bg-cream/60 p-3">
+                    <div className="text-[12px] text-navy/70">{l}</div>
+                    <div className="font-semibold text-navy">{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div
+                className={cn(
+                  "mt-3 flex items-center justify-between rounded-lg p-3",
+                  saldo > 0 ? "border border-terracotta/40 bg-terracotta/10" : "border border-emerald-300 bg-emerald-50",
+                )}
+              >
+                <span className="text-[12px] font-semibold uppercase tracking-wide text-navy/70">Saldo total</span>
+                <span className={cn("font-serif text-xl", saldo > 0 ? "text-terracotta" : "text-emerald-700")}>
+                  {brl(saldo)}
+                </span>
+              </div>
+              <div className="mt-2 text-[12px] text-navy/70">Parcelas sugeridas: {c.plano.parcelas}</div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* --- Integrações de pagamento + status do App Cliente --- */
+function Integracoes() {
+  const flag = {
+    configurado: { cls: "bg-emerald-100 text-emerald-700 border-emerald-300", label: "Configurado" },
+    "em-teste": { cls: "bg-blue-100 text-blue-700 border-blue-300", label: "Em teste" },
+    pendente: { cls: "bg-orange-100 text-orange-700 border-orange-300", label: "Pendente" },
+  };
+  return (
+    <div className="space-y-8">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Checklist de prioridades</div>
+        <h1 className="font-serif text-3xl italic text-navy">Integrações e status do app</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Pagamentos (T-003, T-017, T-018) e escopo MVP x fase 2 (T-026, T-043).</p>
+      </header>
+
+      <section>
+        <h3 className="mb-3 font-serif text-xl text-navy">Status de integração de pagamentos</h3>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {INTEGRACOES.map((i) => {
+            const f = flag[i.flag];
+            return (
+              <div key={i.tarefa} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="font-mono text-[11px] text-navy/60">{i.tarefa}</span>
+                  <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold", f.cls)}>
+                    {f.label}
+                  </span>
+                </div>
+                <div className="font-serif text-lg text-navy">{i.titulo}</div>
+                <div className="mt-1 text-[12px] text-navy/70">{i.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 font-serif text-xl text-navy">App Cliente — MVP x fase 2</h3>
+        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-navy text-left text-[11px] uppercase tracking-wide text-cream">
+                <tr>
+                  <th className="px-4 py-3">Tela / elemento</th>
+                  <th className="px-4 py-3">Fase</th>
+                  <th className="px-4 py-3">Situação</th>
+                  <th className="px-4 py-3">Nota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {STATUS_APP.map((s) => (
+                  <tr key={s.tela} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium text-navy">{s.tela}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        s.fase === "MVP" ? "bg-gold/25 text-navy" : "bg-plum/15 text-plum")}>
+                        {s.fase}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center gap-2 whitespace-nowrap text-[12px]",
+                        s.ativo ? "text-emerald-700" : "text-navy/60")}>
+                        {s.ativo ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+                        {s.ativo ? "Ativa" : "Planejada"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 italic text-navy/75">{s.nota}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
