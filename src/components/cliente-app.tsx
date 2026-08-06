@@ -40,7 +40,7 @@ import {
   Link2,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab = "home" | "jornada" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
