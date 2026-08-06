@@ -226,12 +226,17 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
             ))}
           </div>
           <div className="mt-3 flex items-center justify-between rounded-lg bg-gold/15 p-3 text-[12px]">
-            <span className="text-cream/80">Total previsto</span>
-            <span className="font-serif text-lg text-gold">{brl(previsto)}</span>
+            <span className="text-cream/80">Referência total da proposta</span>
+            <span className="font-serif text-lg text-gold">{brl(proposta.capa.referenciaTotal)}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between rounded-lg bg-navy-soft/70 p-3 text-[12px]">
+            <span className="text-cream/70">Formato recomendado</span>
+            <span className="font-semibold text-cream">{proposta.formatoRecomendado}</span>
           </div>
           <div className="mt-2 text-[11px] text-cream/70">
-            SKUs de referência: {caso.plano.skus.join(" · ")}
+            SKUs de referência: {proposta.skusPrincipais.map((s) => s.sku).join(" · ") || caso.plano.skus.join(" · ")}
           </div>
+
         </div>
 
         {/* Método de pagamento */}
