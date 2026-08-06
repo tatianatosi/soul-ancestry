@@ -172,6 +172,8 @@ export function ClienteApp() {
 /* -------- CONTA -------- */
 function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
   const { previsto, saldo } = resumoCaso(caso);
+  const proposta = propostaByCaso(caso.id);
+
   return (
     <div className="space-y-6 p-5" data-tab="conta">
       {/* A — Perfil */}
