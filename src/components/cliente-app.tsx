@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { runCanvasAudit } from "@/lib/canvas-audit";
+
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import {
@@ -27,10 +29,17 @@ import {
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
+  const [caseStatus, setCaseStatus] = useState<CaseStatus>("em-andamento");
+
+  useEffect(() => {
+    const id = window.setTimeout(() => runCanvasAudit(), 400);
+    return () => window.clearTimeout(id);
+  }, [tab, showConta, caseStatus]);
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
@@ -63,12 +72,27 @@ export function ClienteApp() {
         )}
       </header>
 
+      {/* Acesso público — sem login, apenas abrir painel */}
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-areia px-5 py-2.5">
+        <div className="min-w-0 text-[11px] text-navy/70">
+          Acesso público · painel da jornada (sem cadastro)
+        </div>
+        <button
+          onClick={() =>
+            setCaseStatus((s) => (s === "proposta-aceita" ? "em-andamento" : "proposta-aceita"))
+          }
+          className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[10px] font-semibold text-navy hover:bg-navy/5 transition"
+        >
+          {caseStatus === "proposta-aceita" ? "Voltar ao estado inicial" : "Simular proposta aceita"}
+        </button>
+      </div>
+
       <main className="flex-1 overflow-y-auto pb-28">
         {showConta || tab === "conta" ? (
-          <ContaScreen />
+          <ContaScreen caseStatus={caseStatus} />
         ) : (
           <>
-            {tab === "home" && <HomeTab />}
+            {tab === "home" && <HomeTab caseStatus={caseStatus} />}
             {tab === "jornada" && <JornadaTab />}
             {tab === "radar" && <RadarTab />}
             {tab === "arvore" && <ArvoreTab />}
@@ -77,6 +101,7 @@ export function ClienteApp() {
           </>
         )}
       </main>
+
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
         <div className="grid grid-cols-7">
