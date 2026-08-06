@@ -5,7 +5,13 @@ import { BrandLogo } from "./brand";
 import {
   CASOS, ETAPAS, INTEGRACOES, STATUS_APP, brl, painelUniversal, resumoCaso,
 } from "@/data/casos";
-import { PROPOSTAS } from "@/data/propostas";
+import {
+  PROPOSTAS,
+  RECOMENDACOES_WHATSAPP,
+  recomendacaoWhatsappPorCaso,
+  planoWhatsapp,
+  type RecomendacaoWhatsapp,
+} from "@/data/propostas";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
