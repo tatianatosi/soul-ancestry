@@ -387,7 +387,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
             <div key={x.t} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
               <div className="mb-1 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-gold" />
-                <span className="text-[11px] uppercase tracking-widest text-gold">Achado</span>
+                <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
               </div>
               <div className="text-sm text-navy">{x.t}</div>
               <div className="mt-1 text-[12px] text-navy/70">{x.d}</div>
@@ -437,7 +437,7 @@ function JornadaTab() {
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
-          <div className="mb-3 text-[11px] uppercase tracking-widest text-gold">Linha Ancestral</div>
+          <div className="mb-3 text-[11px] uppercase tracking-widest text-terracotta">Linha Ancestral</div>
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
             {left.map((e) => (
@@ -610,7 +610,7 @@ export function RadarChart({
             y={y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="10"
+            fontSize="11"
             fill="#1B2B4B"
             fontWeight="600"
           >
@@ -633,7 +633,7 @@ function ArvoreTab() {
     >
       <div className="font-semibold text-navy leading-tight">{label}</div>
       {hint && <div className="text-[11px] text-navy/70">{hint}</div>}
-      {connected && <div className="mt-0.5 text-[11px] uppercase tracking-widest text-gold">conectado</div>}
+      {connected && <div className="mt-0.5 text-[11px] uppercase tracking-widest text-terracotta">conectado</div>}
     </div>
   );
   return (
@@ -697,7 +697,7 @@ function ArvoreTab() {
 function Gen({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-2 text-[11px] uppercase tracking-widest text-gold">{label}</div>
+      <div className="mb-2 text-[11px] uppercase tracking-widest text-terracotta">{label}</div>
       {children}
     </div>
   );
@@ -838,7 +838,7 @@ function BiblioTab() {
   return (
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
-        <div className="mb-1 text-[11px] uppercase tracking-widest text-gold">Biblioteca</div>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <div className="mt-4 space-y-3">
           {achados.map((x) => (
@@ -846,7 +846,7 @@ function BiblioTab() {
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-gold" />
-                  <span className="text-[11px] uppercase tracking-widest text-gold">Achado</span>
+                  <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
                 </div>
                 <span className="inline-flex items-center gap-1 text-[11px] text-navy/70">
                   <Calendar className="h-3 w-3" />
