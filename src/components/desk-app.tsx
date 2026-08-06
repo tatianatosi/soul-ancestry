@@ -3,22 +3,30 @@ import { cn } from "@/lib/utils";
 import { RadarChart } from "./cliente-app";
 import { BrandLogo } from "./brand";
 import {
+  CASOS, ETAPAS, INTEGRACOES, STATUS_APP, brl, painelUniversal, resumoCaso,
+} from "@/data/casos";
+import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
-  Scale,
+  Scale, Wallet, Plug, Smartphone,
 } from "lucide-react";
 
-type Section = "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio";
+type Section =
+  | "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio"
+  | "financeiro" | "appcliente" | "integracoes";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
   const nav = [
     ["overview", LayoutGrid, "Visão Geral"],
     ["casos", Users, "Casos 360"],
+    ["appcliente", Smartphone, "Checklist AppCliente"],
+    ["financeiro", Wallet, "Financeiro"],
     ["checklist", ListChecks, "Checklist"],
     ["juridica", Scale, "Validação Jurídica"],
     ["radar", RadarIcon, "Radar Interno"],
     ["alertas", Bell, "Alertas"],
+    ["integracoes", Plug, "Integrações"],
     ["biblio", Library, "Biblioteca Mestre"],
   ] as const;
 
@@ -50,12 +58,12 @@ export function DeskApp() {
       </aside>
 
       {/* mobile nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-7 border-t border-border bg-navy text-cream md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t border-border bg-navy text-cream md:hidden">
         {nav.map(([id, Icon]) => (
           <button
             key={id}
             onClick={() => setSec(id)}
-            className={cn("flex flex-col items-center gap-1 py-2 text-[11px]",
+            className={cn("flex min-w-[56px] flex-1 flex-col items-center gap-1 py-2 text-[11px]",
               sec === id ? "text-gold" : "text-cream/70")}
           >
             <Icon className="h-4 w-4" />
@@ -67,10 +75,13 @@ export function DeskApp() {
         <div className="mx-auto max-w-6xl">
           {sec === "overview" && <Overview />}
           {sec === "casos" && <Casos />}
+          {sec === "appcliente" && <ChecklistAppCliente />}
+          {sec === "financeiro" && <Financeiro />}
           {sec === "checklist" && <Checklist />}
           {sec === "juridica" && <ValidacaoJuridica />}
           {sec === "radar" && <RadarInterno />}
           {sec === "alertas" && <Alertas />}
+          {sec === "integracoes" && <Integracoes />}
           {sec === "biblio" && <BiblioMestre />}
         </div>
       </main>
@@ -203,52 +214,56 @@ function Overview() {
 
 /* --- Casos 360 --- */
 function Casos() {
-  const rows = [
-    { n: "Marina Alves", p: "Portugal", e: "Reconstrução", h: "emerald", a: "Enviar micro-entrega", t: "R$ 8.400" },
-    { n: "Ricardo Vieira", p: "Itália", e: "Coleta inicial", h: "orange", a: "Solicitar certidão", t: "R$ 5.200" },
-    { n: "Camila Santos", p: "Espanha", e: "Validação", h: "emerald", a: "Revisar dossiê", t: "R$ 12.900" },
-    { n: "João Ferreira", p: "Portugal", e: "Kickoff", h: "orange", a: "Agendar chamada", t: "R$ 3.100" },
-    { n: "Beatriz Lima", p: "Alemanha", e: "Requerimento", h: "red", a: "Corrigir documento", t: "R$ 14.700" },
-    { n: "Paulo Neto", p: "Itália", e: "Reconstrução", h: "emerald", a: "Confirmar linhagem", t: "R$ 9.800" },
-  ];
-  const dot = { emerald: "bg-emerald-500", orange: "bg-orange-500", red: "bg-red-500" };
+  const dot = { saudavel: "bg-emerald-500", atencao: "bg-orange-500", critico: "bg-red-500" };
   return (
     <div className="space-y-6">
       <header>
-        <div className="text-[11px] uppercase tracking-widest text-gold">Operação</div>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Operação · aba CASOS</div>
         <h1 className="font-serif text-3xl italic text-navy">Casos 360</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Um registro por ID de caso, com saúde e próxima ação.</p>
       </header>
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-navy text-cream text-left text-[11px] uppercase tracking-wide">
+          <table className="w-full min-w-[980px] text-sm">
+            <thead className="bg-navy text-left text-[11px] uppercase tracking-wide text-cream">
               <tr>
-                <th className="px-5 py-3">Nome</th>
-                <th className="px-5 py-3">País alvo</th>
-                <th className="px-5 py-3">Estágio</th>
-                <th className="px-5 py-3">Saúde</th>
-                <th className="px-5 py-3">Próxima ação</th>
-                <th className="px-5 py-3 text-right">Ticket</th>
+                <th className="px-4 py-3">ID do caso</th>
+                <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Tipo de processo</th>
+                <th className="px-4 py-3">País / base jurídica</th>
+                <th className="px-4 py-3">Responsável</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Início</th>
+                <th className="px-4 py-3">Saúde</th>
+                <th className="px-4 py-3">Próxima ação</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.n} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-medium text-navy whitespace-nowrap">{r.n}</td>
-                  <td className="px-5 py-3 whitespace-nowrap">{r.p}</td>
-                  <td className="px-5 py-3">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs whitespace-nowrap">{r.e}</span>
+              {CASOS.map((c) => (
+                <tr key={c.id} className="align-top hover:bg-muted/30">
+                  <td className="whitespace-nowrap px-4 py-3 font-mono text-[12px] text-navy">{c.id}</td>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-navy">{c.cliente}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-navy/75">{c.tipoProcesso}</td>
+                  <td className="px-4 py-3 text-navy/75">
+                    <div className="font-medium text-navy">{c.pais}</div>
+                    <div className="text-[12px]">{c.baseJuridica}</div>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 py-3 text-navy/75">{c.responsavel}</td>
+                  <td className="px-4 py-3">
+                    <span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-navy">
+                      {c.status === "proposta-aceita" ? "Proposta aceita" : c.status === "em-proposta" ? "Em proposta" : "Em andamento"}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-navy/75">{c.dataInicio}</td>
+                  <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-2 whitespace-nowrap">
-                      <span className={cn("h-2.5 w-2.5 rounded-full", dot[r.h as keyof typeof dot])} />
-                      <span className="text-[12px] capitalize text-navy/75">
-                        {r.h === "emerald" ? "saudável" : r.h === "orange" ? "atenção" : "crítico"}
+                      <span className={cn("h-2.5 w-2.5 rounded-full", dot[c.saude])} />
+                      <span className="text-[12px] text-navy/75">
+                        {c.saude === "saudavel" ? "saudável" : c.saude === "atencao" ? "atenção" : "crítico"}
                       </span>
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-navy/75">{r.a}</td>
-                  <td className="px-5 py-3 text-right font-serif text-navy whitespace-nowrap">{r.t}</td>
+                  <td className="px-4 py-3 text-navy/75">{c.proximaAcao}</td>
                 </tr>
               ))}
             </tbody>
@@ -311,14 +326,17 @@ function Checklist() {
 
 /* --- Validação Jurídica --- */
 function ValidacaoJuridica() {
-  const rows = [
-    { c: "Marina Alves",   p: "Portugal",  cr: "Bisneto de português (Lei 37/81)", g: "3ª geração", s: "Confirmado", obs: "Documentação civil consistente." },
-    { c: "Ricardo Vieira", p: "Itália",    cr: "Jus sanguinis sem interrupção",     g: "4ª geração", s: "Em Análise", obs: "Falta certidão de casamento 1902." },
-    { c: "Camila Santos",  p: "Espanha",   cr: "Lei de Memória Democrática",         g: "2ª geração", s: "Confirmado", obs: "Ancestral perseguido — prazo até 2025." },
-    { c: "João Ferreira",  p: "Portugal",  cr: "Neto de português (art. 1º-B)",     g: "2ª geração", s: "Pendente",   obs: "Necessária prova de vínculo cultural." },
-    { c: "Beatriz Lima",   p: "Alemanha",  cr: "§ 15 StAG (reparação)",              g: "3ª geração", s: "Em Análise", obs: "Ascendente vítima do regime nazista." },
-    { c: "Paulo Neto",     p: "Itália",    cr: "1948 case — linha materna",          g: "3ª geração", s: "Confirmado", obs: "Requer ação judicial em Roma." },
-  ];
+  const rows = CASOS.flatMap((c) =>
+    c.marcosJuridicos.map((m) => ({
+      c: c.cliente,
+      p: c.pais,
+      cr: m.titulo,
+      g: ETAPAS.find((e) => e.key === c.etapaAtual)?.label ?? "—",
+      s: m.situacao === "aberta" ? "Confirmado" : m.situacao === "condicionada" ? "Em Análise" : "Pendente",
+      obs: m.nota,
+    })),
+  );
+
   const badge = (s: string) =>
     s === "Confirmado" ? "bg-emerald-100 text-emerald-700 border-emerald-300" :
     s === "Em Análise" ? "bg-blue-100 text-blue-700 border-blue-300" :
@@ -340,14 +358,14 @@ function ValidacaoJuridica() {
                 <th className="px-4 py-3">Cliente</th>
                 <th className="px-4 py-3">País Alvo</th>
                 <th className="px-4 py-3">Critério Jurídico</th>
-                <th className="px-4 py-3">Geração</th>
+                <th className="px-4 py-3">Etapa atual</th>
                 <th className="px-4 py-3">Elegibilidade</th>
                 <th className="px-4 py-3">Observações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.c} className="hover:bg-muted/30 align-top">
+              {rows.map((r, i) => (
+                <tr key={r.c + i} className="hover:bg-muted/30 align-top">
                   <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{r.c}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{r.p}</td>
                   <td className="px-4 py-3 text-navy">{r.cr}</td>
@@ -650,6 +668,227 @@ function BiblioMestre() {
           </div>
         </section>
       ))}
+    </div>
+  );
+}
+
+/* --- Checklist AppCliente por caso --- */
+function ChecklistAppCliente() {
+  return (
+    <div className="space-y-6">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Go-live · Checklist_AppCliente</div>
+        <h1 className="font-serif text-3xl italic text-navy">Checklist AppCliente por caso</h1>
+        <p className="mt-1 text-[13px] text-navy/70">O que precisa estar configurado no app de cada cliente.</p>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {CASOS.map((c) => {
+          const feitos = c.checklistAppCliente.filter((i) => i.feito).length;
+          const total = c.checklistAppCliente.length;
+          return (
+            <section key={c.id} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] text-navy/60">{c.id}</div>
+                  <h3 className="font-serif text-xl text-navy">{c.cliente}</h3>
+                  <div className="text-[12px] text-navy/70">{c.tipoProcesso}</div>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                    feitos === total ? "bg-emerald-600 text-white" : "bg-gold text-navy",
+                  )}
+                >
+                  {feitos}/{total}
+                </span>
+              </div>
+              <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-gold" style={{ width: `${(feitos / total) * 100}%` }} />
+              </div>
+              <ul className="space-y-2">
+                {c.checklistAppCliente.map((i) => (
+                  <li key={i.item} className="flex items-start gap-3 rounded-lg bg-cream/60 p-3">
+                    {i.feito ? (
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    ) : (
+                      <Circle className="mt-0.5 h-4 w-4 shrink-0 text-navy/40" />
+                    )}
+                    <span className={cn("text-sm", i.feito ? "text-navy/50 line-through" : "font-medium text-navy")}>
+                      {i.item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* --- Financeiro: resumo por caso + painel universal --- */
+function Financeiro() {
+  const p = painelUniversal();
+  return (
+    <div className="space-y-8">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">RESUMO_CASOS · PAINEL</div>
+        <h1 className="font-serif text-3xl italic text-navy">Painel financeiro</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Previsto x realizado por caso e o agregado universal.</p>
+      </header>
+
+      {/* Painel universal */}
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="mb-4 font-serif text-lg text-navy">Painel universal</h3>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {[
+            ["Total honorários", brl(p.honorarios)],
+            ["Total despesas", brl(p.despesas)],
+            ["Total taxas", brl(p.taxas)],
+            ["Saldo total", brl(p.saldo)],
+            ["Quantidade de casos", String(p.casos)],
+            ["Ticket médio", brl(p.ticketMedio)],
+          ].map(([l, v]) => (
+            <div key={l} className="rounded-xl border border-border bg-cream/60 p-4">
+              <div className="text-xs uppercase tracking-wide text-navy/70">{l}</div>
+              <div className="mt-1 font-serif text-2xl text-navy">{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumo por caso */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {CASOS.map((c) => {
+          const { previsto, saldo } = resumoCaso(c);
+          return (
+            <section key={c.id} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] text-navy/60">{c.id}</div>
+                  <h3 className="font-serif text-xl text-navy">{c.cliente}</h3>
+                  <div className="text-[12px] text-navy/70">{c.plano.nome} · {c.plano.formato}</div>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                    saldo > 0 ? "bg-terracotta text-white" : "bg-emerald-600 text-white",
+                  )}
+                >
+                  {saldo > 0 ? "Saldo em aberto" : "Quitado"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {[
+                  ["Honorários previstos", brl(c.plano.honorariosBase)],
+                  ["Despesas previstas", brl(c.plano.despesasPrevistas)],
+                  ["Taxas previstas", brl(c.plano.taxasPrevistas)],
+                  ["Total previsto", brl(previsto)],
+                  ["Pago pelo cliente", brl(c.financeiro.pagoCliente)],
+                  ["Desembolsado Clube", brl(c.financeiro.desembolsadoClube)],
+                ].map(([l, v]) => (
+                  <div key={l} className="rounded-lg border border-border bg-cream/60 p-3">
+                    <div className="text-[12px] text-navy/70">{l}</div>
+                    <div className="font-semibold text-navy">{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div
+                className={cn(
+                  "mt-3 flex items-center justify-between rounded-lg p-3",
+                  saldo > 0 ? "border border-terracotta/40 bg-terracotta/10" : "border border-emerald-300 bg-emerald-50",
+                )}
+              >
+                <span className="text-[12px] font-semibold uppercase tracking-wide text-navy/70">Saldo total</span>
+                <span className={cn("font-serif text-xl", saldo > 0 ? "text-terracotta" : "text-emerald-700")}>
+                  {brl(saldo)}
+                </span>
+              </div>
+              <div className="mt-2 text-[12px] text-navy/70">Parcelas sugeridas: {c.plano.parcelas}</div>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* --- Integrações de pagamento + status do App Cliente --- */
+function Integracoes() {
+  const flag = {
+    configurado: { cls: "bg-emerald-100 text-emerald-700 border-emerald-300", label: "Configurado" },
+    "em-teste": { cls: "bg-blue-100 text-blue-700 border-blue-300", label: "Em teste" },
+    pendente: { cls: "bg-orange-100 text-orange-700 border-orange-300", label: "Pendente" },
+  };
+  return (
+    <div className="space-y-8">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Checklist de prioridades</div>
+        <h1 className="font-serif text-3xl italic text-navy">Integrações e status do app</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Pagamentos (T-003, T-017, T-018) e escopo MVP x fase 2 (T-026, T-043).</p>
+      </header>
+
+      <section>
+        <h3 className="mb-3 font-serif text-xl text-navy">Status de integração de pagamentos</h3>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {INTEGRACOES.map((i) => {
+            const f = flag[i.flag];
+            return (
+              <div key={i.tarefa} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="font-mono text-[11px] text-navy/60">{i.tarefa}</span>
+                  <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-semibold", f.cls)}>
+                    {f.label}
+                  </span>
+                </div>
+                <div className="font-serif text-lg text-navy">{i.titulo}</div>
+                <div className="mt-1 text-[12px] text-navy/70">{i.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 font-serif text-xl text-navy">App Cliente — MVP x fase 2</h3>
+        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-navy text-left text-[11px] uppercase tracking-wide text-cream">
+                <tr>
+                  <th className="px-4 py-3">Tela / elemento</th>
+                  <th className="px-4 py-3">Fase</th>
+                  <th className="px-4 py-3">Situação</th>
+                  <th className="px-4 py-3">Nota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {STATUS_APP.map((s) => (
+                  <tr key={s.tela} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium text-navy">{s.tela}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        s.fase === "MVP" ? "bg-gold/25 text-navy" : "bg-plum/15 text-plum")}>
+                        {s.fase}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn("inline-flex items-center gap-2 whitespace-nowrap text-[12px]",
+                        s.ativo ? "text-emerald-700" : "text-navy/60")}>
+                        {s.ativo ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+                        {s.ativo ? "Ativa" : "Planejada"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 italic text-navy/75">{s.nota}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

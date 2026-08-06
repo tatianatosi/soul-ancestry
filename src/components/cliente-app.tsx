@@ -4,6 +4,14 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import {
+  CASOS,
+  ETAPAS,
+  PLANO_LEGADO,
+  brl,
+  resumoCaso,
+  type Caso,
+} from "@/data/casos";
+import {
   Home,
   Route as RouteIcon,
   Radar,
@@ -25,7 +33,9 @@ import {
   Search,
   Check,
   UploadCloud,
-
+  Scale,
+  CreditCard,
+  Link2,
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
@@ -34,12 +44,16 @@ export type CaseStatus = "em-andamento" | "proposta-aceita";
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
-  const [caseStatus, setCaseStatus] = useState<CaseStatus>("em-andamento");
+  const [casoId, setCasoId] = useState<string>(CASOS[0].id);
+  const caso = CASOS.find((c) => c.id === casoId) ?? CASOS[0];
+  const [override, setOverride] = useState<Record<string, boolean>>({});
+  const aceita = override[caso.id] ?? caso.status === "proposta-aceita";
+  const caseStatus: CaseStatus = aceita ? "proposta-aceita" : "em-andamento";
 
   useEffect(() => {
     const id = window.setTimeout(() => runCanvasAudit(), 400);
     return () => window.clearTimeout(id);
-  }, [tab, showConta, caseStatus]);
+  }, [tab, showConta, casoId, aceita]);
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
@@ -57,8 +71,8 @@ export function ClienteApp() {
             <div className="flex items-center gap-3 min-w-0">
               <BrandLogo size={36} showText={false} />
               <div className="min-w-0">
-                <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
-                <div className="font-serif text-lg italic truncate">Marina Alves</div>
+                <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vindo(a)</div>
+                <div className="font-serif text-lg italic truncate">{caso.cliente}</div>
               </div>
             </div>
             <button
@@ -72,36 +86,49 @@ export function ClienteApp() {
         )}
       </header>
 
-      {/* Acesso público — sem login, apenas abrir painel */}
-      <div className="flex items-center justify-between gap-3 border-b border-border bg-areia px-5 py-2.5">
-        <div className="min-w-0 text-[11px] text-navy/70">
-          Acesso público · painel da jornada (sem cadastro)
+      {/* Acesso público + seletor de caso */}
+      <div className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 text-[11px] text-navy/70">Acesso público · painel da jornada (sem cadastro)</div>
+          <button
+            onClick={() => setOverride((o) => ({ ...o, [caso.id]: !aceita }))}
+            className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy/5 transition"
+          >
+            {aceita ? "Voltar ao estado inicial" : "Simular proposta aceita"}
+          </button>
         </div>
-        <button
-          onClick={() =>
-            setCaseStatus((s) => (s === "proposta-aceita" ? "em-andamento" : "proposta-aceita"))
-          }
-          className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy/5 transition"
-        >
-          {caseStatus === "proposta-aceita" ? "Voltar ao estado inicial" : "Simular proposta aceita"}
-        </button>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {CASOS.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setCasoId(c.id)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold transition",
+                c.id === caso.id
+                  ? "border-navy bg-navy text-cream"
+                  : "border-navy/25 text-navy hover:bg-navy/5",
+              )}
+            >
+              {c.cliente.split(" ")[0]} · {c.pais}
+            </button>
+          ))}
+        </div>
       </div>
 
       <main className="flex-1 overflow-y-auto pb-28">
         {showConta || tab === "conta" ? (
-          <ContaScreen caseStatus={caseStatus} />
+          <ContaScreen caso={caso} caseStatus={caseStatus} />
         ) : (
           <>
-            {tab === "home" && <HomeTab caseStatus={caseStatus} />}
-            {tab === "jornada" && <JornadaTab />}
-            {tab === "radar" && <RadarTab />}
-            {tab === "arvore" && <ArvoreTab />}
-            {tab === "docs" && <DocsTab />}
-            {tab === "biblio" && <BiblioTab />}
+            {tab === "home" && <HomeTab caso={caso} caseStatus={caseStatus} />}
+            {tab === "jornada" && <JornadaTab caso={caso} />}
+            {tab === "radar" && <RadarTab caso={caso} />}
+            {tab === "arvore" && <ArvoreTab caso={caso} />}
+            {tab === "docs" && <DocsTab caso={caso} />}
+            {tab === "biblio" && <BiblioTab caso={caso} />}
           </>
         )}
       </main>
-
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
         <div className="grid grid-cols-7">
@@ -141,57 +168,93 @@ export function ClienteApp() {
 }
 
 /* -------- CONTA -------- */
-function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
-  const history = [
-    { t: "📄 Certidão recebida", d: "28 jun 2026" },
-    { t: "🔎 Achado documental", d: "15 jun 2026" },
-    { t: "✅ Pesquisa confirmada", d: "10 jun 2026" },
-    { t: "💬 Consulta realizada", d: "02 jun 2026" },
-    { t: "🎯 Caso iniciado", d: "15 jan 2024" },
-  ];
+function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
+  const { previsto, saldo } = resumoCaso(caso);
   return (
     <div className="space-y-6 p-5" data-tab="conta">
-      {/* SECTION A — Perfil */}
+      {/* A — Perfil */}
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-full bg-navy text-2xl font-serif italic text-gold">
-            MA
+            {caso.iniciais}
           </div>
           <div className="min-w-0">
-            <div className="font-serif text-xl text-navy truncate">Marina Alves</div>
-            <div className="text-[12px] text-navy/70 truncate">marina.alves@email.com</div>
-            <div className="text-[12px] text-navy/70">WhatsApp: +55 11 98765-4321</div>
+            <div className="font-serif text-xl text-navy truncate">{caso.cliente}</div>
+            <div className="text-[12px] text-navy/70 truncate">Caso {caso.id}</div>
+            <div className="text-[12px] text-navy/70">{caso.tipoProcesso}</div>
           </div>
         </div>
         <div className="mt-4 border-t border-border pt-3 text-[12px] text-navy/70">
-          Membro desde: <span className="font-semibold text-navy">Janeiro 2024</span>
+          Início do caso: <span className="font-semibold text-navy">{caso.dataInicio}</span> · Responsável:{" "}
+          <span className="font-semibold text-navy">{caso.responsavel}</span>
         </div>
       </section>
 
-      {/* SECTION B — Meu Plano */}
+      {/* B — Plano contratado */}
       <section>
-        <h3 className="mb-3 font-serif text-xl text-navy">Meu Plano</h3>
-        <div className="mb-3 flex items-center justify-between rounded-xl border border-navy/20 bg-navy p-4 text-cream">
-          <div>
-            <div className="text-[11px] uppercase tracking-widest text-gold/80">Plano atual</div>
-            <div className="font-serif text-lg italic text-gold">Plano Essencial</div>
-            {caseStatus === "proposta-aceita" && (
-              <div className="mt-1 text-[11px] text-cream/70">Contratado após aceite da proposta</div>
-            )}
+        <h3 className="mb-3 font-serif text-xl text-navy">Plano contratado</h3>
+        <div className="rounded-2xl border border-navy/20 bg-navy p-5 text-cream">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] uppercase tracking-widest text-gold/80">{caso.plano.formato}</div>
+              <div className="font-serif text-lg italic text-gold">{caso.plano.nome}</div>
+            </div>
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1 text-[11px] font-bold",
+                caseStatus === "proposta-aceita" ? "bg-gold text-navy" : "bg-cream/15 text-cream",
+              )}
+            >
+              {caseStatus === "proposta-aceita" ? "ATIVO" : "EM PROPOSTA"}
+            </span>
           </div>
-          <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-bold text-navy">ATIVO</span>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-[12px]">
+            {[
+              ["Honorários base", brl(caso.plano.honorariosBase)],
+              ["Despesas previstas", brl(caso.plano.despesasPrevistas)],
+              ["Taxas previstas", brl(caso.plano.taxasPrevistas)],
+              ["Parcelas", caso.plano.parcelas],
+            ].map(([l, v]) => (
+              <div key={l} className="rounded-lg bg-navy-soft/70 p-3">
+                <div className="text-cream/70">{l}</div>
+                <div className="font-semibold text-cream">{v}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-lg bg-gold/15 p-3 text-[12px]">
+            <span className="text-cream/80">Total previsto</span>
+            <span className="font-serif text-lg text-gold">{brl(previsto)}</span>
+          </div>
+          <div className="mt-2 text-[11px] text-cream/70">
+            SKUs de referência: {caso.plano.skus.join(" · ")}
+          </div>
         </div>
 
+        {/* Método de pagamento */}
+        <div className="mt-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/20 text-navy">
+              <CreditCard className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-navy">Método de pagamento</div>
+              <div className="truncate text-[12px] text-navy/70">{caso.plano.linkPagamento}</div>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-xl bg-areia p-3">
+            <div className="text-[12px] text-navy/70">
+              Saldo em aberto: <span className="font-semibold text-navy">{brl(Math.max(saldo, 0))}</span>
+            </div>
+            <button className="inline-flex shrink-0 items-center gap-1 rounded-full bg-navy px-3 py-1.5 text-[11px] font-semibold text-cream">
+              <Link2 className="h-3 w-3" /> Abrir link
+            </button>
+          </div>
+        </div>
 
-        {/* Upsell card */}
-        <div className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
+        {/* Upsell */}
+        <div className="mt-3 rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
           <div className="mb-1 text-base font-semibold text-navy">👨‍👩‍👧 Familiar Conectado</div>
           <div className="text-[12px] text-navy/70">Inclua até 4 familiares na sua jornada</div>
-          <ul className="mt-3 space-y-1.5 text-sm text-navy">
-            <li>✓ Acesso compartilhado para toda a família</li>
-            <li>✓ Alertas de WhatsApp para cada membro</li>
-            <li>✓ Árvore familiar colaborativa</li>
-          </ul>
           <div className="mt-4 flex items-center justify-between">
             <div>
               <div className="text-[11px] uppercase tracking-wide text-navy/70">A partir de</div>
@@ -206,7 +269,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
         </div>
       </section>
 
-      {/* SECTION C — WhatsApp */}
+      {/* C — WhatsApp */}
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">WhatsApp</h3>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
@@ -232,20 +295,20 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
         </div>
       </section>
 
-      {/* SECTION D — Histórico */}
+      {/* D — Histórico */}
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Histórico de atividades</h3>
         <div className="rounded-2xl border border-border bg-white shadow-sm">
-          {history.map((h, i) => (
+          {caso.historico.map((h, i) => (
             <div
-              key={i}
+              key={h.t + i}
               className={cn(
                 "flex items-center justify-between p-4",
-                i < history.length - 1 && "border-b border-border",
+                i < caso.historico.length - 1 && "border-b border-border",
               )}
             >
               <div className="text-sm text-navy">{h.t}</div>
-              <div className="text-[12px] text-navy/70 shrink-0 ml-3">{h.d}</div>
+              <div className="ml-3 shrink-0 text-[12px] text-navy/70">{h.d}</div>
             </div>
           ))}
         </div>
@@ -255,9 +318,9 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
 }
 
 /* -------- HOME -------- */
-function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
-  const steps = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"];
-  const currentIdx = 2;
+function HomeTab({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
+  const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
+  const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
   return (
     <div className="space-y-5 p-5" data-tab="home">
       {caseStatus === "proposta-aceita" && (
@@ -271,52 +334,57 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
               <div className="text-sm text-navy">Proposta aceita — seu caso foi ativado.</div>
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-areia p-3">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-areia p-3">
             <div className="min-w-0">
               <div className="text-[11px] uppercase tracking-widest text-navy/60">Próximo passo</div>
-              <div className="text-sm font-medium text-navy">Agendar chamada inicial</div>
+              <div className="text-sm font-medium text-navy">{proximoPasso}</div>
             </div>
             <button className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-[11px] font-semibold text-navy hover:bg-gold/90 transition">
-              Agendar
+              Avançar
             </button>
           </div>
         </section>
       )}
 
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-[11px] uppercase tracking-widest text-gold/80">Seu caso</div>
-            <div className="font-serif text-xl italic">Cidadania Portuguesa</div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-widest text-gold/80">Seu caso · {caso.id}</div>
+            <div className="font-serif text-xl italic">{caso.tipoProcesso}</div>
+            <div className="text-[11px] text-cream/70">{caso.baseJuridica}</div>
           </div>
-          <span className="rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">CASO ATIVO</span>
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-[11px] font-semibold text-navy">
+            {caseStatus === "proposta-aceita" ? "CASO ATIVO" : caso.status === "em-proposta" ? "EM PROPOSTA" : "EM ANDAMENTO"}
+          </span>
         </div>
 
         <div className="mt-5">
           <div className="mb-2 flex justify-between text-xs text-cream/70">
             <span>Progresso da jornada</span>
-            <span className="text-gold font-semibold">65%</span>
+            <span className="font-semibold text-gold">{caso.progresso}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-navy-soft">
-            <div className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold" style={{ width: "65%" }} />
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-gold-soft to-gold"
+              style={{ width: `${caso.progresso}%` }}
+            />
           </div>
         </div>
 
-        {/* Step indicator */}
         <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
           <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
           <div className="flex items-center justify-between gap-1">
-            {steps.map((s, i) => {
+            {ETAPAS.map((s, i) => {
               const done = i < currentIdx;
               const active = i === currentIdx;
               return (
-                <div key={s} className="flex flex-1 flex-col items-center">
+                <div key={s.key} className="flex flex-1 flex-col items-center">
                   <div
                     className={cn(
                       "grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold transition",
                       done && "bg-gold/40 text-gold",
-                      active && "bg-gold text-navy ring-4 ring-gold/30 scale-110",
-                      !done && !active && "bg-navy/40 text-cream/50 border border-cream/20",
+                      active && "scale-110 bg-gold text-navy ring-4 ring-gold/30",
+                      !done && !active && "border border-cream/20 bg-navy/40 text-cream/50",
                     )}
                   >
                     {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
@@ -327,7 +395,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
                       active ? "font-bold text-gold" : "text-cream/60",
                     )}
                   >
-                    {s}
+                    {s.label}
                   </div>
                 </div>
               );
@@ -339,25 +407,21 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Próximos passos</h3>
         <div className="space-y-2.5">
-          {[
-            { n: 1, t: "Assinar procuração digital", s: "Aguardando sua ação", tone: "urgent" },
-            { n: 2, t: "Validar certidão de Isabel (1923)", s: "Documento recém-encontrado", tone: "info" },
-            { n: 3, t: "Entrevista com sua tia Rosa", s: "Agendar até 15/07", tone: "soft" },
-          ].map((it) => (
-            <div key={it.n} className="flex items-start gap-3 rounded-xl border border-navy/25 bg-card p-4 shadow-sm">
+          {caso.proximosPassos.map((it, i) => (
+            <div key={it.titulo} className="flex items-start gap-3 rounded-xl border border-navy/25 bg-card p-4 shadow-sm">
               <div
                 className={cn(
                   "grid h-9 w-9 shrink-0 place-items-center rounded-full font-serif text-sm font-semibold",
-                  it.tone === "urgent" && "bg-terracotta/15 text-terracotta",
-                  it.tone === "info" && "bg-gold/20 text-navy",
-                  it.tone === "soft" && "bg-muted text-navy/70",
+                  it.tom === "urgent" && "bg-terracotta/15 text-terracotta",
+                  it.tom === "info" && "bg-gold/20 text-navy",
+                  it.tom === "soft" && "bg-muted text-navy/70",
                 )}
               >
-                {it.n}
+                {i + 1}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-navy">{it.t}</div>
-                <div className="text-[12px] text-navy/70">{it.s}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-navy">{it.titulo}</div>
+                <div className="text-[12px] text-navy/70">{it.sub}</div>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
             </div>
@@ -372,7 +436,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
         <div className="flex-1">
           <div className="text-xs uppercase tracking-wide text-navy/70">Pessoas conectadas</div>
           <div className="font-serif text-2xl text-navy">
-            12 <span className="text-[13px] text-navy/70">ancestrais recuperados</span>
+            {caso.linhaAncestral.length * 3} <span className="text-[13px] text-navy/70">ancestrais recuperados</span>
           </div>
         </div>
       </section>
@@ -380,23 +444,19 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Achados Recentes</h3>
         <div className="space-y-2.5">
-          {[
-            { t: "Certidão de Giuseppe localizada — Nápoles, 1887", d: "28 jun 2026" },
-            { t: "Registro de emigração encontrado — Gênova, 1912", d: "24 jun 2026" },
-          ].map((x) => (
-            <div key={x.t} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
+          {caso.achados.map((x) => (
+            <div key={x.titulo} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
               <div className="mb-1 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-gold" />
                 <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
               </div>
-              <div className="text-sm text-navy">{x.t}</div>
-              <div className="mt-1 text-[12px] text-navy/70">{x.d}</div>
+              <div className="text-sm text-navy">{x.titulo}</div>
+              <div className="mt-1 text-[12px] text-navy/70">{x.data}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Discreet next-level card */}
       <section className="rounded-xl border border-plum/30 bg-plum/5 p-4">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-plum/15 text-plum">
@@ -414,47 +474,31 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
 }
 
 /* -------- JORNADA -------- */
-function JornadaTab() {
-  const left = [
-    { y: "1820", t: "Origem do ramo Ferreira — Minho, Portugal" },
-    { y: "1887", t: "Nascimento do bisavô Giuseppe (Itália)" },
-    { y: "1923", t: "Casamento de Isabel e Antônio", union: true },
-    { y: "1965", t: "Encontro dos ramos italiano e português", union: true },
-    { y: "2024", t: "Início da jornada Clube Ancestral" },
-  ];
-
-  const right = [
-    { s: "Kickoff", d: "12/03" },
-    { s: "Coleta inicial", d: "20/03" },
-    { s: "Reconstrução de linhagem", d: "05/06", active: true },
-    { s: "Validação consular", d: "—" },
-    { s: "Requerimento final", d: "—" },
-  ];
+function JornadaTab({ caso }: { caso: Caso }) {
   return (
     <div className="p-5" data-tab="jornada">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
-      <p className="mt-1 text-[13px] text-navy/70 italic">Duas linhas caminham juntas: a história e o seu processo.</p>
+      <p className="mt-1 text-[13px] italic text-navy/70">
+        Duas linhas caminham juntas: a história e o seu processo — {caso.id}.
+      </p>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
           <div className="mb-3 text-[11px] uppercase tracking-widest text-terracotta">Linha Ancestral</div>
           <div className="relative pl-4">
-            <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
-            {left.map((e) => (
-              <div key={e.y} className="relative mb-4">
+            <div className="absolute bottom-1 left-1 top-1 w-px bg-gold/40" />
+            {caso.linhaAncestral.map((e) => (
+              <div key={e.ano} className="relative mb-4">
                 <div
                   className={cn(
                     "absolute -left-3 top-4 h-3 w-3 rounded-full",
-                    e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold",
+                    e.uniao ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold",
                   )}
                 />
-                <div
-                  data-audit="jornada-card"
-                  className="rounded-xl border border-navy/30 bg-areia p-3"
-                >
-                  <div className="font-serif text-xl text-navy">{e.y}</div>
-                  <div className="text-[12px] text-navy/70">{e.t}</div>
-                  {e.union && (
+                <div data-audit="jornada-card" className="rounded-xl border border-navy/30 bg-areia p-3">
+                  <div className="font-serif text-xl text-navy">{e.ano}</div>
+                  <div className="text-[12px] text-navy/70">{e.texto}</div>
+                  {e.uniao && (
                     <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[11px] font-medium text-terracotta">
                       União de Ramos
                     </span>
@@ -468,60 +512,56 @@ function JornadaTab() {
         <div>
           <div className="mb-3 text-[11px] uppercase tracking-widest text-navy">Linha do Processo</div>
           <div className="relative pl-4">
-            <div className="absolute left-1 top-1 bottom-1 w-px bg-navy/30" />
-            {right.map((e) => (
-              <div key={e.s} className="relative mb-4">
-                <div
-                  className={cn(
-                    "absolute -left-3 top-4 h-3 w-3 rounded-full",
-                    e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60",
-                  )}
-                />
-                <div
-                  data-audit="jornada-card"
-                  className="rounded-xl border border-navy/30 bg-areia p-3"
-                >
-                  <div className="font-serif text-lg text-navy">{e.s}</div>
-                  <div className="text-[12px] text-navy/70">{e.d}</div>
+            <div className="absolute bottom-1 left-1 top-1 w-px bg-navy/30" />
+            {caso.linhaProcesso.map((e) => {
+              const label = ETAPAS.find((x) => x.key === e.etapa)?.label ?? e.etapa;
+              const atual = e.etapa === caso.etapaAtual;
+              return (
+                <div key={e.etapa} className="relative mb-4">
+                  <div
+                    className={cn(
+                      "absolute -left-3 top-4 h-3 w-3 rounded-full",
+                      atual ? "bg-navy ring-4 ring-gold/40" : e.realizado ? "bg-sage" : "bg-navy/40",
+                    )}
+                  />
+                  <div data-audit="jornada-card" className="rounded-xl border border-navy/30 bg-areia p-3">
+                    <div className="font-serif text-lg text-navy">{label}</div>
+                    <div className="text-[12px] text-navy/70">
+                      {e.realizado ? "Realizado em " : "Previsto: "}
+                      {e.data}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-
       </div>
 
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
         <div className="text-[11px] uppercase tracking-widest text-terracotta">Momentos de união</div>
-        <p className="mt-1 text-sm text-navy italic">
-          "Dois ramos se uniram em 1923 e se reencontraram em 1965 — sua história é feita desses encontros."
+        <p className="mt-1 text-sm italic text-navy">
+          {caso.linhaAncestral.filter((e) => e.uniao).length > 0
+            ? "Ramos que se uniram ao longo do tempo — sua história é feita desses encontros."
+            : "Ainda mapeando as uniões de ramos deste caso."}
         </p>
-
       </div>
     </div>
   );
 }
 
 /* -------- RADAR -------- */
-function RadarTab() {
-  const axes = [
-    { k: "Documentação", v: 78 },
-    { k: "Origem", v: 90 },
-    { k: "Conexões Familiares", v: 65 },
-    { k: "Elegibilidade", v: 72 },
-    { k: "Memória", v: 55 },
-    { k: "Legado", v: 40 },
-  ];
+function RadarTab({ caso }: { caso: Caso }) {
   return (
     <div className="p-5" data-tab="radar">
       <h2 className="font-serif text-2xl text-navy">Radar Ancestral</h2>
-      <p className="mt-1 text-[13px] text-navy/70 italic">Seu equilíbrio nas 6 dimensões.</p>
+      <p className="mt-1 text-[13px] italic text-navy/70">Seu equilíbrio nas 6 dimensões.</p>
       <div className="mt-4 rounded-2xl border border-border bg-white p-4">
-        <RadarChart axes={axes} size={280} color="#C9A84C" />
+        <RadarChart axes={caso.radar} size={280} color="#C9A84C" />
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        {axes.map((a) => (
+        {caso.radar.map((a) => (
           <div key={a.k} className="rounded-xl border border-navy/25 bg-card p-3">
             <div className="text-[11px] uppercase tracking-wide text-navy/70">{a.k}</div>
             <div className="mt-1 flex items-baseline gap-1">
@@ -534,6 +574,32 @@ function RadarTab() {
           </div>
         ))}
       </div>
+
+      {/* Marcos jurídicos / elegibilidade */}
+      <section className="mt-6">
+        <h3 className="mb-3 font-serif text-xl text-navy">Elegibilidade e marcos jurídicos</h3>
+        <div className="space-y-2.5">
+          {caso.marcosJuridicos.map((m) => (
+            <div key={m.titulo} className="rounded-xl border border-navy/25 bg-card p-4">
+              <div className="mb-1 flex items-center gap-2">
+                <Scale className="h-3.5 w-3.5 text-terracotta" />
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    m.situacao === "aberta" && "bg-emerald-50 text-emerald-700",
+                    m.situacao === "condicionada" && "bg-orange-50 text-orange-700",
+                    m.situacao === "fechada" && "bg-red-50 text-red-700",
+                  )}
+                >
+                  Via {m.situacao}
+                </span>
+              </div>
+              <div className="text-sm font-medium text-navy">{m.titulo}</div>
+              <div className="mt-1 text-[12px] text-navy/70">{m.nota}</div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -623,7 +689,7 @@ export function RadarChart({
 }
 
 /* -------- ARVORE -------- */
-function ArvoreTab() {
+function ArvoreTab({ caso }: { caso: Caso }) {
   const Node = ({ label, hint, connected }: { label: string; hint?: string; connected?: boolean }) => (
     <div
       className={cn(
@@ -631,7 +697,7 @@ function ArvoreTab() {
         connected ? "border-gold ring-2 ring-gold/30" : "border-border",
       )}
     >
-      <div className="font-semibold text-navy leading-tight">{label}</div>
+      <div className="font-semibold leading-tight text-navy">{label}</div>
       {hint && <div className="text-[11px] text-navy/70">{hint}</div>}
       {connected && <div className="mt-0.5 text-[11px] uppercase tracking-widest text-terracotta">conectado</div>}
     </div>
@@ -639,48 +705,48 @@ function ArvoreTab() {
   return (
     <div className="p-5" data-tab="arvore">
       <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
-      <p className="mt-1 text-[13px] text-navy/70 italic">Cinco gerações que compõem você.</p>
+      <p className="mt-1 text-[13px] italic text-navy/70">Cinco gerações que compõem você.</p>
 
       <div className="mt-5 rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
           <Gen label="G5 · Ancestrais">
             <div className="grid grid-cols-3 gap-2">
-              <Node label="Manuel F." hint="~1820" />
-              <Node label="Maria P." hint="~1825" />
-              <Node label="João S." hint="~1830" />
+              <Node label="Ancestral I" hint="~1820" />
+              <Node label="Ancestral II" hint="~1825" />
+              <Node label="Ancestral III" hint="~1830" />
             </div>
           </Gen>
           <Connector />
-          <Gen label="G4 · Bisavós de bisavós">
+          <Gen label="G4 · Trisavós">
             <div className="grid grid-cols-4 gap-2">
-              <Node label="Joaquim F." hint="1855" />
-              <Node label="Ana C." hint="1858" />
-              <Node label="Antônio R." hint="1860" connected />
-              <Node label="Rosa L." hint="1862" />
+              <Node label="Trisavô A" hint="1855" />
+              <Node label="Trisavó B" hint="1858" />
+              <Node label="Trisavô C" hint="1860" connected />
+              <Node label="Trisavó D" hint="1862" />
             </div>
           </Gen>
           <Connector />
           <Gen label="G3 · Bisavós">
             <div className="grid grid-cols-4 gap-2">
-              <Node label="Isabel F." hint="1887" connected />
-              <Node label="Pedro M." hint="1885" />
-              <Node label="Clara R." hint="1890" />
-              <Node label="José A." hint="1888" />
+              <Node label="Antenato" hint="1887" connected />
+              <Node label="Bisavô B" hint="1885" />
+              <Node label="Bisavó C" hint="1890" />
+              <Node label="Bisavô D" hint="1888" />
             </div>
           </Gen>
           <Connector />
           <Gen label="G2 · Avós">
             <div className="mx-auto grid max-w-[200px] grid-cols-2 gap-2">
-              <Node label="Helena" hint="1930" />
-              <Node label="Carlos" hint="1928" />
+              <Node label="Avó" hint="1930" />
+              <Node label="Avô" hint="1928" />
             </div>
           </Gen>
           <Connector />
           <Gen label="G1 · Você">
-            <div className="mx-auto max-w-[110px]">
+            <div className="mx-auto max-w-[130px]">
               <div className="rounded-lg border-2 border-navy bg-navy px-2 py-2 text-center text-cream shadow">
-                <div className="text-xs font-semibold">Marina Alves</div>
-                <div className="text-[11px] text-cream/70">1978</div>
+                <div className="text-xs font-semibold">{caso.cliente}</div>
+                <div className="text-[11px] text-cream/70">{caso.pais}</div>
               </div>
             </div>
           </Gen>
@@ -688,7 +754,7 @@ function ArvoreTab() {
       </div>
 
       <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-4 text-center">
-        <div className="font-serif text-xl text-navy">12 pessoas conectadas recuperadas</div>
+        <div className="font-serif text-xl text-navy">{caso.linhaAncestral.length * 3} pessoas conectadas</div>
         <div className="text-[12px] text-navy/70">de um universo de 31 possíveis nas 5 gerações</div>
       </div>
     </div>
@@ -707,36 +773,23 @@ function Connector() {
 }
 
 /* -------- DOCS -------- */
-function DocsTab() {
-  const checklist = [
-    { t: "Procuração europeia (conforme país do antenato)", s: "pending" },
-    { t: "Procuração brasileira", s: "pending" },
-    { t: "RG ou CNH", s: "done" },
-    { t: "CPF", s: "done" },
-    { t: "Certidão de nascimento", s: "done" },
-    { t: "Certidão de casamento", s: "done" },
-    { t: "Comprovante de residência atualizado", s: "pending" },
-    { t: "Documentos dos ascendentes disponíveis", s: "partial" },
-    { t: "Certidões localizadas pela equipe", s: "partial" },
-    { t: "Óbito ou documento complementar (se aplicável)", s: "pending" },
-  ];
-  const docs = [
-    { t: "Certidão de nascimento — Marina", d: "12/03", s: "delivered" },
-    { t: "Certidão de batismo — Joaquim (1887)", d: "01/06", s: "delivered" },
-    { t: "Registro de casamento — Isabel & Antônio", d: "22/06", s: "delivered" },
-    { t: "Certidão consular Portugal", d: "aguardando", s: "pending" },
-    { t: "Autenticação notarial", d: "aguardando", s: "pending" },
-    { t: "Dossiê consolidado", d: "em revisão", s: "review" },
-  ];
-  const doneCount = checklist.filter((c) => c.s === "done").length;
+function DocsTab({ caso }: { caso: Caso }) {
+  const okCount = caso.checklistDocs.filter((c) => c.status === "ok").length;
+  const cfgFor = (s: string) =>
+    ({
+      ok: { cls: "bg-emerald-50 text-emerald-700", label: "OK" },
+      parcial: { cls: "bg-blue-50 text-blue-700", label: "Parcial" },
+      pendente: { cls: "bg-orange-50 text-orange-700", label: "Pendente" },
+    })[s]!;
   return (
     <div className="space-y-6 p-5" data-tab="docs">
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
-        <p className="mt-1 text-[13px] text-navy/70 italic">Seu acervo processual.</p>
+        <p className="mt-1 text-[13px] italic text-navy/70">
+          Checklist do caso {caso.id} · {caso.tipoProcesso}
+        </p>
       </div>
 
-      {/* Upload card */}
       <button className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-gold/60 bg-gold/5 p-6 text-center transition hover:bg-gold/10">
         <div className="grid h-12 w-12 place-items-center rounded-full bg-gold/20 text-gold">
           <UploadCloud className="h-6 w-6" />
@@ -748,101 +801,83 @@ function DocsTab() {
         </span>
       </button>
 
-      {/* Checklist consolidado */}
       <section>
         <div className="mb-3 flex items-end justify-between">
           <h3 className="font-serif text-xl text-navy">Checklist consolidado</h3>
           <span className="text-[12px] text-navy/70">
-            {doneCount}/{checklist.length} concluídos
+            {okCount}/{caso.checklistDocs.length} concluídos
           </span>
         </div>
-        <div className="rounded-2xl border border-border bg-white shadow-sm">
-          {checklist.map((c, i) => {
-            const cfg = {
-              done: { cls: "bg-emerald-50 text-emerald-600", label: "OK" },
-              partial: { cls: "bg-blue-50 text-blue-600", label: "Parcial" },
-              pending: { cls: "bg-orange-50 text-orange-600", label: "Pendente" },
-            }[c.s]!;
+        <div className="space-y-2.5">
+          {caso.checklistDocs.map((c) => {
+            const cfg = cfgFor(c.status);
             return (
-              <div
-                key={c.t}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3",
-                  i < checklist.length - 1 && "border-b border-border",
-                )}
-              >
-                <div className={cn("grid h-6 w-6 shrink-0 place-items-center rounded-full", cfg.cls)}>
-                  {c.s === "done" ? <Check className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+              <div key={c.item} className="rounded-xl border border-navy/25 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className={cn("grid h-6 w-6 shrink-0 place-items-center rounded-full", cfg.cls)}>
+                    {c.status === "ok" ? <Check className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                  </div>
+                  <div className="flex-1 text-sm text-navy">{c.item}</div>
+                  <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold", cfg.cls)}>
+                    {cfg.label}
+                  </span>
                 </div>
-                <div className="flex-1 text-sm text-navy">{c.t}</div>
-                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold", cfg.cls)}>
-                  {cfg.label}
-                </span>
+                {c.status !== "ok" && (
+                  <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-navy/30 bg-areia px-3 py-2 text-[12px] font-semibold text-navy transition hover:bg-areia/70">
+                    <UploadCloud className="h-3.5 w-3.5" /> Enviar arquivo deste item
+                  </button>
+                )}
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* Entregas do caso */}
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Entregas do caso</h3>
         <div className="space-y-2.5">
-          {docs.map((d) => {
-            const cfg = {
-              delivered: { Icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", label: "Entregue" },
-              pending: { Icon: Clock, color: "text-orange-600", bg: "bg-orange-50", label: "Pendente" },
-              review: { Icon: Eye, color: "text-blue-600", bg: "bg-blue-50", label: "Em revisão" },
-            }[d.s]!;
-            return (
-              <div key={d.t} className="flex items-center gap-3 rounded-xl border border-navy/25 bg-card p-3">
-                <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", cfg.bg)}>
-                  <cfg.Icon className={cn("h-5 w-5", cfg.color)} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="truncate text-sm font-medium text-navy">{d.t}</div>
-                  <div className="text-[12px] text-navy/70">{d.d}</div>
-                </div>
-                <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold", cfg.bg, cfg.color)}>
-                  {cfg.label}
-                </span>
+          {caso.achados.map((d) => (
+            <div key={d.titulo} className="flex items-center gap-3 rounded-xl border border-navy/25 bg-card p-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50">
+                <CheckCircle2 className="h-5 w-5 text-emerald-700" />
               </div>
-            );
-          })}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-navy">{d.titulo}</div>
+                <div className="text-[12px] text-navy/70">{d.data}</div>
+              </div>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                Entregue
+              </span>
+            </div>
+          ))}
+          <div className="flex items-center gap-3 rounded-xl border border-navy/25 bg-card p-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-50">
+              <Eye className="h-5 w-5 text-blue-700" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-navy">Dossiê consolidado</div>
+              <div className="text-[12px] text-navy/70">em revisão</div>
+            </div>
+            <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+              Em revisão
+            </span>
+          </div>
         </div>
       </section>
     </div>
   );
-
 }
 
 /* -------- BIBLIO + LEGADO -------- */
-function BiblioTab() {
-  const achados = [
-    {
-      d: "28 jun 2026",
-      t: "Certidão de nascimento de Giuseppe localizada — Nápoles, 1887",
-      desc: "Documento original recuperado no arquivo diocesano de Nápoles, confirmando a linhagem paterna italiana.",
-    },
-    {
-      d: "14 jun 2026",
-      t: "Registro de emigração encontrado — Porto de Gênova, 1912",
-      desc: "Lista de passageiros do navio Città di Torino, com Giuseppe entre os embarcados rumo a Santos.",
-    },
-    {
-      d: "02 jun 2026",
-      t: "Sobrenome confirmado em 3 gerações consecutivas",
-      desc: "Cruzamento de registros paroquiais e civis valida a continuidade do sobrenome familiar.",
-    },
-  ];
+function BiblioTab({ caso }: { caso: Caso }) {
   return (
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <div className="mt-4 space-y-3">
-          {achados.map((x) => (
-            <div key={x.t} className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          {caso.achados.map((x) => (
+            <div key={x.titulo} className="rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-gold" />
@@ -850,12 +885,12 @@ function BiblioTab() {
                 </div>
                 <span className="inline-flex items-center gap-1 text-[11px] text-navy/70">
                   <Calendar className="h-3 w-3" />
-                  {x.d}
+                  {x.data}
                 </span>
               </div>
-              <div className="font-serif text-lg text-navy leading-snug">{x.t}</div>
+              <div className="font-serif text-lg leading-snug text-navy">{x.titulo}</div>
               <div className="mt-1.5 text-[12px] text-navy/70">{x.desc}</div>
-              <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy hover:text-cream transition">
+              <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy transition hover:bg-navy hover:text-cream">
                 Ver detalhes <ChevronRight className="h-3 w-3" />
               </button>
             </div>
@@ -870,20 +905,24 @@ function BiblioTab() {
         />
         <div className="relative">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-widest text-cream">
-            <Lock className="h-3 w-3" /> Legado — plano premium
+            <Lock className="h-3 w-3" /> {PLANO_LEGADO.nome} — upsell
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
-          <p className="mt-2 text-sm text-cream/80">
-            Um livro impresso, um dossiê narrativo e a árvore expandida completa — para você e as próximas gerações.
-          </p>
+          <p className="mt-2 text-sm text-cream/80">{PLANO_LEGADO.descricao}</p>
           <ul className="mt-4 space-y-1 text-xs text-cream/80">
-            <li>· Álbum ilustrado impresso</li>
-            <li>· Narrativa completa em áudio</li>
-            <li>· Cerimônia de entrega</li>
+            {PLANO_LEGADO.itens.map((i) => (
+              <li key={i}>· {i}</li>
+            ))}
           </ul>
-          <button className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy">
-            Conhecer plano Legado <ArrowRight className="h-4 w-4" />
-          </button>
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-wide text-cream/70">A partir de</div>
+              <div className="font-serif text-xl text-gold">{brl(PLANO_LEGADO.precoRef)}</div>
+            </div>
+            <button className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy">
+              Conhecer plano Legado <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </section>
     </div>
