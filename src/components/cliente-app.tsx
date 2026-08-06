@@ -339,7 +339,15 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
 }
 
 /* -------- HOME -------- */
-function HomeTab({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
+function HomeTab({
+  caso,
+  caseStatus,
+  onOpenRelatorio,
+}: {
+  caso: Caso;
+  caseStatus: CaseStatus;
+  onOpenRelatorio: () => void;
+}) {
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
   return (
