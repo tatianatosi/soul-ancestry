@@ -72,7 +72,91 @@ export const PORTFOLIO_MESTRE: ProdutoMestre[] = [
   { sku: "CA-ASS-002", nome: "Plano Memórias", categoria: "Assinatura", familia: "F4 – Assinaturas", papel: "assinatura", precoAtual: 269, precoSugerido: 169, gatilho: "Acompanhamento + memória familiar" },
   { sku: "CA-ASS-003", nome: "Plano Legado", categoria: "Assinatura", familia: "F4 – Assinaturas", papel: "assinatura", precoAtual: 359, precoSugerido: 249, gatilho: "Acompanhamento contínuo premium (legado)" },
   { sku: "CA-ASS-004", nome: "Assinatura Cidadão Pós-Reconhecimento", categoria: "Assinatura", familia: "F3 – Pós-Cidadania", papel: "assinatura", precoAtual: 99, precoSugerido: 99, gatilho: "Após o reconhecimento da cidadania" },
+
+  // --- WhatsApp Familiar (Planilha Mestre · aba "Catalogo Produtos" + "SKU · Histórico & Status") ---
+  { sku: "CA-WPP-001", nome: "Pacote WhatsApp Essencial", categoria: "WhatsApp Familiar", familia: "F4 – Memória", papel: "upsell", precoAtual: 79, precoSugerido: 59, gatilho: "Plano individual — alertas básicos e conteúdos semanais (Fase 1 · D1-D30)" },
+  { sku: "CA-WPP-002", nome: "Pacote WhatsApp Premium", categoria: "WhatsApp Familiar", familia: "F4 – Memória", papel: "upsell", precoAtual: 149, precoSugerido: 119, gatilho: "Plano individual premium — conteúdo personalizado + acompanhamento (Fase 1 · D1-D30)" },
+  { sku: "CA-FAM-001", nome: "Familiar Conectado", categoria: "WhatsApp Familiar", familia: "F4 – Memória", papel: "upsell", precoAtual: 280, precoSugerido: 290, gatilho: "Acesso compartilhado do grupo familiar via WhatsApp (Fase 2 · D31-D60)" },
+  { sku: "CA-FAM-002", nome: "Familiar Conectado Plus", categoria: "WhatsApp Familiar", familia: "F4 – Memória", papel: "upsell", precoAtual: 490, precoSugerido: 490, gatilho: "Familiar Conectado premium — conteúdos exclusivos e acompanhamento (Fase 2 · D31-D60)" },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Planos de WhatsApp familiar — valores oficiais (Planilha Mestre)    */
+/* Nenhum preço novo: todos vêm de "Catalogo Produtos"/"SKU · Histórico".*/
+/* Nos LANCAMENTOS/PAGAMENTOS do planejador universal esses SKUs        */
+/* ainda NÃO aparecem — hoje são apenas upsell/recomendação interna.    */
+/* ------------------------------------------------------------------ */
+
+export type TipoPlanoWhatsapp = "individual" | "familiar";
+
+export const PLANOS_WHATSAPP: {
+  sku: string;
+  rotulo: string;
+  tipo: TipoPlanoWhatsapp;
+  precoAtual: number;
+  precoSugerido: number;
+  faseGoLive: string;
+  contratado: false;
+}[] = [
+  { sku: "CA-WPP-001", rotulo: "Alertas Básicos (Pacote WhatsApp Essencial)", tipo: "individual", precoAtual: 79, precoSugerido: 59, faseGoLive: "Fase 1 · D1-D30", contratado: false },
+  { sku: "CA-WPP-002", rotulo: "Pacote WhatsApp Premium", tipo: "individual", precoAtual: 149, precoSugerido: 119, faseGoLive: "Fase 1 · D1-D30", contratado: false },
+  { sku: "CA-FAM-001", rotulo: "Familiar Conectado", tipo: "familiar", precoAtual: 280, precoSugerido: 290, faseGoLive: "Fase 2 · D31-D60", contratado: false },
+  { sku: "CA-FAM-002", rotulo: "Familiar Conectado Plus", tipo: "familiar", precoAtual: 490, precoSugerido: 490, faseGoLive: "Fase 2 · D31-D60", contratado: false },
+];
+
+export const planoWhatsapp = (sku: string) => PLANOS_WHATSAPP.find((p) => p.sku === sku);
+
+/** Recomendação interna (Desk) — não exibida ao cliente. */
+export type RecomendacaoWhatsapp = {
+  casoId: string | null;
+  cliente: string;
+  familiarDireto: string;
+  momento: "diagnóstico" | "execução" | "pós-cidadania";
+  combinacao: string;
+  skus: string[];
+  status: "recomendação interna" | "upsell potencial";
+  nota: string;
+};
+
+export const RECOMENDACOES_WHATSAPP: RecomendacaoWhatsapp[] = [
+  {
+    casoId: "CA-CID-AT-2026-002",
+    cliente: "Ana Luiza Gomes Silveira",
+    familiarDireto: "Irmã (familiar direto provável)",
+    momento: "diagnóstico",
+    combinacao: "Ana Luiza no plano individual + irmã no Familiar Conectado",
+    skus: ["CA-WPP-001", "CA-FAM-001"],
+    status: "recomendação interna",
+    nota:
+      "Caso § 58c StbG com dois requerentes da mesma linha: o plano individual cobre os alertas da Ana Luiza e o Familiar Conectado abre o acesso compartilhado à irmã. Alternativa: ambas no Familiar Conectado (CA-FAM-001) quando os dois pedidos correrem juntos. Não ofertar ao cliente nesta rodada.",
+  },
+  {
+    casoId: null,
+    cliente: "Lara Ribeiro",
+    familiarDireto: "Marido agora; filho na fase seguinte",
+    momento: "execução",
+    combinacao: "Individual na execução → Familiar Conectado após início do processo / pós-cidadania",
+    skus: ["CA-WPP-001", "CA-FAM-001"],
+    status: "upsell potencial",
+    nota:
+      "Cidadania italiana: encaixar o plano individual quando a execução começar e migrar para Familiar Conectado em fase mais avançada (marido e, depois, filho). Nada contratado — apenas potencial de upsell.",
+  },
+  {
+    casoId: "CA-CID-IT-2026-001",
+    cliente: "Giovanna Prade",
+    familiarDireto: "Pai já italiano (reconhecido nos anos 1980)",
+    momento: "execução",
+    combinacao: "Plano individual (alertas básicos) como apoio ao acompanhamento",
+    skus: ["CA-WPP-001"],
+    status: "recomendação interna",
+    nota:
+      "Caso administrativo, NÃO judicial: foco em verificação/atualização de AIRE, pasta e acompanhamento. O WhatsApp entra como apoio ao acompanhamento do processo, nunca como produto de via judicial.",
+  },
+];
+
+export const recomendacaoWhatsappPorCaso = (casoId: string) =>
+  RECOMENDACOES_WHATSAPP.find((r) => r.casoId === casoId);
+
 
 export const produtoMestre = (sku: string) => PORTFOLIO_MESTRE.find((p) => p.sku === sku);
 

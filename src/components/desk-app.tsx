@@ -5,7 +5,13 @@ import { BrandLogo } from "./brand";
 import {
   CASOS, ETAPAS, INTEGRACOES, STATUS_APP, brl, painelUniversal, resumoCaso,
 } from "@/data/casos";
-import { PROPOSTAS } from "@/data/propostas";
+import {
+  PROPOSTAS,
+  RECOMENDACOES_WHATSAPP,
+  recomendacaoWhatsappPorCaso,
+  planoWhatsapp,
+  type RecomendacaoWhatsapp,
+} from "@/data/propostas";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
@@ -992,6 +998,8 @@ function Propostas() {
               </ul>
             </div>
 
+            <PlanoWhatsappCard casoId={p.casoId} />
+
             <div className="mt-4 grid grid-cols-2 gap-2 text-[12px]">
               {[
                 p.resumoFinanceiro.linhaHonorarios,
@@ -1006,9 +1014,80 @@ function Propostas() {
                 </div>
               ))}
             </div>
+
           </div>
         ))}
       </div>
+
+      {RECOMENDACOES_WHATSAPP.filter((r) => !r.casoId).length > 0 && (
+        <div className="mt-6">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-navy/70">
+            Casos ainda não cadastrados em CASOS
+          </div>
+          <div className="mt-2 grid gap-4 md:grid-cols-2">
+            {RECOMENDACOES_WHATSAPP.filter((r) => !r.casoId).map((r) => (
+              <div key={r.cliente} className="rounded-2xl border border-navy/25 bg-white p-5 shadow-sm">
+                <div className="font-serif text-xl text-navy">{r.cliente}</div>
+                <RecWhatsappBloco r={r} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+/* --- Plano WhatsApp sugerido (interno — não exibido ao cliente) --- */
+function PlanoWhatsappCard({ casoId }: { casoId: string }) {
+  const r = recomendacaoWhatsappPorCaso(casoId);
+  if (!r) return null;
+  return <RecWhatsappBloco r={r} />;
+}
+
+function RecWhatsappBloco({ r }: { r: RecomendacaoWhatsapp }) {
+  return (
+    <div className="mt-4 rounded-xl border border-sage/40 bg-sage/10 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-navy">
+          Plano WhatsApp sugerido
+        </div>
+        <span className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cream">
+          interno
+        </span>
+      </div>
+      <div className="mt-2 text-[12px] font-semibold text-navy">{r.combinacao}</div>
+      <div className="mt-1 text-[11px] text-navy/70">
+        Familiar direto: {r.familiarDireto} · Momento: {r.momento} · {r.status}
+      </div>
+      <ul className="mt-2 space-y-1">
+        {r.skus.map((sku) => {
+          const pl = planoWhatsapp(sku);
+          if (!pl) return null;
+          return (
+            <li key={sku} className="flex items-start justify-between gap-3 text-[12px] text-navy">
+              <span className="min-w-0">
+                <span className="font-semibold">{pl.sku}</span> · {pl.rotulo}
+                <span className="block text-[10px] uppercase tracking-wide text-navy/60">
+                  {pl.tipo === "individual" ? "plano individual" : "plano familiar"} · {pl.faseGoLive}
+                </span>
+              </span>
+              <span className="shrink-0 text-right font-semibold">
+                {brl(pl.precoAtual)}
+                <span className="block text-[10px] font-normal text-navy/60">
+                  sugerido {brl(pl.precoSugerido)}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-2 text-[11px] leading-snug text-navy/70">{r.nota}</p>
+      <p className="mt-1 text-[10px] text-navy/55">
+        Valores da Planilha Mestre (Catalogo Produtos / SKU · Histórico). Nenhum desses SKUs aparece em
+        LANCAMENTOS ou PAGAMENTOS — nada contratado, não exibir na Conta do app cliente.
+      </p>
+    </div>
+  );
+}
+
