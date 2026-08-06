@@ -819,6 +819,11 @@ function Financeiro() {
                 </span>
               </div>
               <div className="mt-2 text-[12px] text-navy/70">Parcelas sugeridas: {c.plano.parcelas}</div>
+              <div className="mt-2 text-[11px] leading-relaxed text-navy/60">
+                “Desembolsado Clube” = despesas pagas pelo Clube dentro do orçamento · “Pago Cliente” = valores já
+                recebidos do cliente.
+              </div>
+
             </section>
           );
         })}
