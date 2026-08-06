@@ -34,6 +34,8 @@
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-cream: var(--cream);
+  --color-areia: var(--areia);
+  --color-navy-deep: var(--navy);
   --color-terracotta: var(--terracotta);
   --color-sage: var(--sage);
   --color-plum: var(--plum);
@@ -48,6 +50,7 @@
   --gold: #C9A84C;
   --gold-soft: #E4CE8A;
   --cream: #F5F0E8;
+  --areia: #ECDFCD;
   --terracotta: #8B4513;
   --sage: #6B7B5E;
   --plum: #7B4F9E;
