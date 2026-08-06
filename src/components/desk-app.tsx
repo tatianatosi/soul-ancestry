@@ -214,52 +214,56 @@ function Overview() {
 
 /* --- Casos 360 --- */
 function Casos() {
-  const rows = [
-    { n: "Marina Alves", p: "Portugal", e: "Reconstrução", h: "emerald", a: "Enviar micro-entrega", t: "R$ 8.400" },
-    { n: "Ricardo Vieira", p: "Itália", e: "Coleta inicial", h: "orange", a: "Solicitar certidão", t: "R$ 5.200" },
-    { n: "Camila Santos", p: "Espanha", e: "Validação", h: "emerald", a: "Revisar dossiê", t: "R$ 12.900" },
-    { n: "João Ferreira", p: "Portugal", e: "Kickoff", h: "orange", a: "Agendar chamada", t: "R$ 3.100" },
-    { n: "Beatriz Lima", p: "Alemanha", e: "Requerimento", h: "red", a: "Corrigir documento", t: "R$ 14.700" },
-    { n: "Paulo Neto", p: "Itália", e: "Reconstrução", h: "emerald", a: "Confirmar linhagem", t: "R$ 9.800" },
-  ];
-  const dot = { emerald: "bg-emerald-500", orange: "bg-orange-500", red: "bg-red-500" };
+  const dot = { saudavel: "bg-emerald-500", atencao: "bg-orange-500", critico: "bg-red-500" };
   return (
     <div className="space-y-6">
       <header>
-        <div className="text-[11px] uppercase tracking-widest text-gold">Operação</div>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Operação · aba CASOS</div>
         <h1 className="font-serif text-3xl italic text-navy">Casos 360</h1>
+        <p className="mt-1 text-[13px] text-navy/70">Um registro por ID de caso, com saúde e próxima ação.</p>
       </header>
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-navy text-cream text-left text-[11px] uppercase tracking-wide">
+          <table className="w-full min-w-[980px] text-sm">
+            <thead className="bg-navy text-left text-[11px] uppercase tracking-wide text-cream">
               <tr>
-                <th className="px-5 py-3">Nome</th>
-                <th className="px-5 py-3">País alvo</th>
-                <th className="px-5 py-3">Estágio</th>
-                <th className="px-5 py-3">Saúde</th>
-                <th className="px-5 py-3">Próxima ação</th>
-                <th className="px-5 py-3 text-right">Ticket</th>
+                <th className="px-4 py-3">ID do caso</th>
+                <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Tipo de processo</th>
+                <th className="px-4 py-3">País / base jurídica</th>
+                <th className="px-4 py-3">Responsável</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Início</th>
+                <th className="px-4 py-3">Saúde</th>
+                <th className="px-4 py-3">Próxima ação</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.n} className="hover:bg-muted/30">
-                  <td className="px-5 py-3 font-medium text-navy whitespace-nowrap">{r.n}</td>
-                  <td className="px-5 py-3 whitespace-nowrap">{r.p}</td>
-                  <td className="px-5 py-3">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs whitespace-nowrap">{r.e}</span>
+              {CASOS.map((c) => (
+                <tr key={c.id} className="align-top hover:bg-muted/30">
+                  <td className="whitespace-nowrap px-4 py-3 font-mono text-[12px] text-navy">{c.id}</td>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-navy">{c.cliente}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-navy/75">{c.tipoProcesso}</td>
+                  <td className="px-4 py-3 text-navy/75">
+                    <div className="font-medium text-navy">{c.pais}</div>
+                    <div className="text-[12px]">{c.baseJuridica}</div>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 py-3 text-navy/75">{c.responsavel}</td>
+                  <td className="px-4 py-3">
+                    <span className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-navy">
+                      {c.status === "proposta-aceita" ? "Proposta aceita" : c.status === "em-proposta" ? "Em proposta" : "Em andamento"}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-navy/75">{c.dataInicio}</td>
+                  <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-2 whitespace-nowrap">
-                      <span className={cn("h-2.5 w-2.5 rounded-full", dot[r.h as keyof typeof dot])} />
-                      <span className="text-[12px] capitalize text-navy/75">
-                        {r.h === "emerald" ? "saudável" : r.h === "orange" ? "atenção" : "crítico"}
+                      <span className={cn("h-2.5 w-2.5 rounded-full", dot[c.saude])} />
+                      <span className="text-[12px] text-navy/75">
+                        {c.saude === "saudavel" ? "saudável" : c.saude === "atencao" ? "atenção" : "crítico"}
                       </span>
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-navy/75">{r.a}</td>
-                  <td className="px-5 py-3 text-right font-serif text-navy whitespace-nowrap">{r.t}</td>
+                  <td className="px-4 py-3 text-navy/75">{c.proximaAcao}</td>
                 </tr>
               ))}
             </tbody>
