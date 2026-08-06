@@ -150,7 +150,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
     { t: "🎯 Caso iniciado", d: "15 jan 2024" },
   ];
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="conta">
       {/* SECTION A — Perfil */}
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
@@ -175,9 +175,13 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
           <div>
             <div className="text-[10px] uppercase tracking-widest text-gold/80">Plano atual</div>
             <div className="font-serif text-lg italic text-gold">Plano Essencial</div>
+            {caseStatus === "proposta-aceita" && (
+              <div className="mt-1 text-[11px] text-cream/70">Contratado após aceite da proposta</div>
+            )}
           </div>
           <span className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold text-navy">ATIVO</span>
         </div>
+
 
         {/* Upsell card */}
         <div className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
