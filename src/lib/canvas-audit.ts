@@ -1,5 +1,8 @@
+import { ORIGEM_DADOS } from "@/data/casos";
+
 export type CanvasAuditReport = {
   projeto: "Ancestral Canvas";
+  dados_de_origem: string;
   font_ok: boolean;
   contrast_ok: boolean;
   cards_por_bloco: Record<string, number>;
@@ -125,6 +128,7 @@ export function runCanvasAudit(): CanvasAuditReport | null {
 
   const report: CanvasAuditReport = {
     projeto: "Ancestral Canvas",
+    dados_de_origem: ORIGEM_DADOS,
     font_ok,
     contrast_ok,
     cards_por_bloco,
