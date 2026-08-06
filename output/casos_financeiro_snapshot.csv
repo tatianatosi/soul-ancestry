@@ -1,0 +1,9 @@
+ID Caso,Cliente,Tipo de Processo,Honorarios previstos,Despesas previstas,Taxas previstas,Pago Cliente,Desembolsado Clube,Saldo,Parcelas padrao,Parcelas personalizadas
+CA-CID-IT-2026-001,Giovanna Prade,Cidadania Italiana,4500,1600,500,247,0,6353,6,6x (padrão PARAMETROS)
+CA-CID-AT-2026-002,Ana Luiza Gomes Silveira,Cidadania Austríaca,0,0,0,0,0,0,3,3x (padrão PARAMETROS)
+CA-CID-PT-2026-002,João Marcelo Faria Moraes,Cidadania Portuguesa,5300,1400,450,0,0,7150,6,6x (padrão PARAMETROS)
+CA-CID-HR-2026-001,Danilo Kluyber de Souza,Cidadania Croata,4000,1800,600,269,554.54,6131,4,4x (padrão PARAMETROS)
+CA-CID-IT-2026-002,Danilo Kluyber,Cidadania Italiana,4500,1600,500,0,0,6600,6,6x (padrão PARAMETROS)
+CA-CID-DE-2026-001,Danilo Kluyber,Cidadania Alemã,4200,1500,500,0,0,6200,6,6x (padrão PARAMETROS)
+CA-NAT-BR-2026-001,Amigo do Danilo,Naturalização Brasileira,900,300,0,0,0,1200,3,3x (padrão PARAMETROS)
+CA-NAT-FR-2026-001,Amigo Francês,Naturalização Francesa,1000,350,250,0,0,1600,3,3x (padrão PARAMETROS)
