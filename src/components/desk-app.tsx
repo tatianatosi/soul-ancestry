@@ -992,6 +992,8 @@ function Propostas() {
               </ul>
             </div>
 
+            <PlanoWhatsappCard casoId={p.casoId} />
+
             <div className="mt-4 grid grid-cols-2 gap-2 text-[12px]">
               {[
                 p.resumoFinanceiro.linhaHonorarios,
@@ -1006,6 +1008,7 @@ function Propostas() {
                 </div>
               ))}
             </div>
+
           </div>
         ))}
       </div>
