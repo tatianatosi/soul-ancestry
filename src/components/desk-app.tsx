@@ -5,21 +5,23 @@ import { BrandLogo } from "./brand";
 import {
   CASOS, ETAPAS, INTEGRACOES, STATUS_APP, brl, painelUniversal, resumoCaso,
 } from "@/data/casos";
+import { PROPOSTAS } from "@/data/propostas";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
-  Scale, Wallet, Plug, Smartphone,
+  Scale, Wallet, Plug, Smartphone, FileText,
 } from "lucide-react";
 
 type Section =
   | "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio"
-  | "financeiro" | "appcliente" | "integracoes";
+  | "financeiro" | "appcliente" | "integracoes" | "propostas";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
   const nav = [
     ["overview", LayoutGrid, "Visão Geral"],
     ["casos", Users, "Casos 360"],
+    ["propostas", FileText, "Propostas"],
     ["appcliente", Smartphone, "Checklist AppCliente"],
     ["financeiro", Wallet, "Financeiro"],
     ["checklist", ListChecks, "Checklist"],
@@ -29,6 +31,7 @@ export function DeskApp() {
     ["integracoes", Plug, "Integrações"],
     ["biblio", Library, "Biblioteca Mestre"],
   ] as const;
+
 
   return (
     <div className="flex min-h-[calc(100vh-52px)] bg-cream">
