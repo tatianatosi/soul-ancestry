@@ -236,6 +236,12 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
           <div className="mt-2 text-[11px] text-cream/70">
             SKUs de referência: {proposta.skusPrincipais.map((s) => s.sku).join(" · ") || caso.plano.skus.join(" · ")}
           </div>
+          <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-3 text-[12px] leading-relaxed text-cream/90">
+            O valor total apresentado já inclui as principais despesas de certidões, traduções e apostilas, muitas
+            delas antecipadas pelo Clube em nome do projeto — você não precisa se preocupar com cada pagamento
+            isolado.
+          </p>
+
 
         </div>
 
