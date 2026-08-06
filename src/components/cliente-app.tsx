@@ -730,7 +730,7 @@ function DocsTab() {
   ];
   const doneCount = checklist.filter((c) => c.s === "done").length;
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="docs">
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
         <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
@@ -836,7 +836,7 @@ function BiblioTab() {
     },
   ];
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-gold">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
