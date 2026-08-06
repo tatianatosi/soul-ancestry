@@ -141,7 +141,7 @@ export function ClienteApp() {
 }
 
 /* -------- CONTA -------- */
-function ContaScreen() {
+function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
   const history = [
     { t: "📄 Certidão recebida", d: "28 jun 2026" },
     { t: "🔎 Achado documental", d: "15 jun 2026" },
@@ -251,11 +251,34 @@ function ContaScreen() {
 }
 
 /* -------- HOME -------- */
-function HomeTab() {
+function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
   const steps = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"];
   const currentIdx = 2;
   return (
-    <div className="space-y-5 p-5">
+    <div className="space-y-5 p-5" data-tab="home">
+      {caseStatus === "proposta-aceita" && (
+        <section className="rounded-2xl border border-sage/40 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-sage">Pagamento confirmado</div>
+              <div className="text-sm text-navy">Proposta aceita — seu caso foi ativado.</div>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-areia p-3">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-navy/60">Próximo passo</div>
+              <div className="text-sm font-medium text-navy">Agendar chamada inicial</div>
+            </div>
+            <button className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-[11px] font-semibold text-navy hover:bg-gold/90 transition">
+              Agendar
+            </button>
+          </div>
+        </section>
+      )}
+
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
         <div className="flex items-center justify-between">
           <div>
