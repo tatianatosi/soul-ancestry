@@ -1156,6 +1156,15 @@ function Propostas() {
         no app cliente (Conta e Legado).
       </p>
 
+      <div className="mt-4 rounded-xl border border-gold/50 bg-gold/10 p-3 text-[12px] leading-relaxed text-navy/80">
+        <strong className="text-navy">De onde vêm estes valores:</strong> todos os preços, SKUs e totais são lidos
+        da Planilha Mestre de Produtos (catálogo e histórico de SKU) cruzada com o planejador universal
+        (PARAMETROS, CASOS, RESUMO_CASOS). Nada é calculado fora dessas planilhas — ajustes finos de rótulo,
+        preço e composição de pacote acontecem conforme os dados reais de cada caso evoluem.
+      </div>
+
+
+
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {PROPOSTAS.map((p) => (
           <div key={p.casoId} className="rounded-2xl border border-navy/25 bg-white p-5 shadow-sm">
