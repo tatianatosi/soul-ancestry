@@ -830,14 +830,161 @@ function Financeiro() {
                 “Desembolsado Clube” = despesas pagas pelo Clube dentro do orçamento · “Pago Cliente” = valores já
                 recebidos do cliente.
               </div>
+              <button
+                type="button"
+                onClick={() => setDetalhe(c.id)}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-navy/25 px-3 py-1.5 text-[12px] font-semibold text-navy transition hover:bg-navy hover:text-cream"
+              >
+                <FileText className="h-3.5 w-3.5" /> Ver detalhes
+              </button>
 
             </section>
           );
         })}
       </div>
+
+      {aberto && <DetalheCasoPanel caso={aberto} onClose={() => setDetalhe(null)} />}
+      {explic && <ExplicacaoFinanceiroModal onClose={() => setExplic(false)} />}
     </div>
   );
 }
+
+/* --- Modal de explicação das métricas financeiras --- */
+function ExplicacaoFinanceiroModal({ onClose }: { onClose: () => void }) {
+  const itens = [
+    ["Honorários previstos", "Valor do serviço do Clube (PARAMETROS / plano do caso). Não inclui despesas nem taxas."],
+    ["Despesas previstas", "Certidões, traduções, apostilas e envios estimados no orçamento do caso."],
+    ["Taxas previstas", "Taxas oficiais (consulado, comune, cartórios) previstas na planilha do planejador universal."],
+    ["Total previsto", "Honorários + despesas + taxas — é a referência total mostrada também na proposta."],
+    ["Pago Cliente", "Somatório do que o cliente já pagou ao Clube (LANCAMENTOS/PAGAMENTOS)."],
+    ["Desembolsado Clube", "Quanto o Clube já adiantou de despesas/taxas dentro do orçamento, antes do reembolso."],
+    ["Saldo total", "Total previsto menos o que o cliente já pagou. Positivo = ainda em aberto."],
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4" onClick={onClose}>
+      <div
+        className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-gold/40 bg-white p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-[11px] uppercase tracking-widest text-gold">Como ler este painel</div>
+        <h3 className="font-serif text-2xl italic text-navy">Explicação das métricas</h3>
+        <ul className="mt-4 space-y-3">
+          {itens.map(([t, d]) => (
+            <li key={t} className="rounded-xl border border-navy/15 bg-cream/60 p-3">
+              <div className="text-[13px] font-semibold text-navy">{t}</div>
+              <div className="text-[12px] leading-relaxed text-navy/70">{d}</div>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-[11px] leading-relaxed text-navy/60">
+          Origem: Planilha Mestre de Produtos + planejador universal (PARAMETROS, CASOS, LANCAMENTOS,
+          RESUMO_CASOS). Valores são de referência e podem ser ajustados conforme os dados reais evoluem.
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 w-full rounded-full bg-navy py-2.5 text-[13px] font-semibold text-cream"
+        >
+          Entendi
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* --- Painel secundário: lançamentos e pagamentos do caso --- */
+function DetalheCasoPanel({ caso: c, onClose }: { caso: (typeof CASOS)[number]; onClose: () => void }) {
+  const { previsto, saldo } = resumoCaso(c);
+  const lancamentos = [
+    ...c.plano.skus.map((sku) => {
+      const p = produtoMestre(sku);
+      return { rotulo: p?.nome ?? sku, sku, valor: p?.precoAtual ?? 0, tipo: "Honorário / SKU" };
+    }),
+    { rotulo: "Despesas previstas (certidões, traduções, apostilas)", sku: "—", valor: c.plano.despesasPrevistas, tipo: "Despesa" },
+    { rotulo: "Taxas oficiais previstas", sku: "—", valor: c.plano.taxasPrevistas, tipo: "Taxa" },
+  ];
+  const pagamentos = [
+    { rotulo: "Pago pelo cliente", valor: c.financeiro.pagoCliente, nota: `Formato: ${c.plano.formato} · ${c.plano.parcelas}` },
+    { rotulo: "Desembolsado pelo Clube", valor: c.financeiro.desembolsadoClube, nota: "Adiantado dentro do orçamento" },
+    { rotulo: "Saldo em aberto", valor: saldo, nota: "Total previsto − pago pelo cliente" },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-navy/50" onClick={onClose}>
+      <aside
+        className="h-full w-full max-w-md overflow-y-auto border-l border-gold/40 bg-cream p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-mono text-[11px] text-navy/60">{c.id}</div>
+            <h3 className="font-serif text-2xl italic text-navy">{c.cliente}</h3>
+            <div className="text-[12px] text-navy/70">{c.plano.nome}</div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-full border border-navy/25 px-3 py-1 text-[12px] font-semibold text-navy"
+          >
+            Fechar
+          </button>
+        </div>
+
+        <div className="mt-5">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Lançamentos previstos</div>
+          <div className="mt-2 space-y-2">
+            {lancamentos.map((l, i) => (
+              <div key={`${l.sku}-${i}`} className="flex items-start justify-between gap-3 rounded-xl border border-navy/15 bg-white p-3">
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold leading-snug text-navy">{l.rotulo}</div>
+                  <div className="font-mono text-[11px] text-navy/60">{l.sku} · {l.tipo}</div>
+                </div>
+                <div className="shrink-0 text-[13px] font-semibold text-navy">{brl(l.valor)}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center justify-between rounded-xl bg-areia p-3">
+            <span className="text-[12px] font-semibold uppercase tracking-wide text-navy/70">Total previsto</span>
+            <span className="font-serif text-xl text-navy">{brl(previsto)}</span>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Pagamentos</div>
+          <div className="mt-2 space-y-2">
+            {pagamentos.map((p) => (
+              <div key={p.rotulo} className="rounded-xl border border-navy/15 bg-white p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[13px] font-semibold text-navy">{p.rotulo}</span>
+                  <span className="text-[13px] font-semibold text-navy">{brl(p.valor)}</span>
+                </div>
+                <div className="text-[11px] text-navy/60">{p.nota}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {c.historico?.length > 0 && (
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">Histórico do caso</div>
+            <ul className="mt-2 space-y-2">
+              {c.historico.map((h, i) => (
+                <li key={i} className="rounded-lg border border-navy/15 bg-white p-2.5 text-[12px] text-navy/80">
+                  <span className="font-mono text-[11px] text-navy/60">{h.t}</span> · {h.d}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <p className="mt-6 text-[11px] leading-relaxed text-navy/60">
+          Lançamentos derivados da Planilha Mestre (SKUs do plano) e do planejador universal (despesas e taxas
+          previstas). Visão interna — não exibida ao cliente.
+        </p>
+      </aside>
+    </div>
+  );
+}
+
 
 /* --- Integrações de pagamento + status do App Cliente --- */
 function Integracoes() {
