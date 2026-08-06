@@ -327,7 +327,7 @@ export const CASOS: Caso[] = [
     iniciais: "GP",
     tipoProcesso: "Cidadania Italiana",
     pais: "Itália",
-    baseJuridica: "Itália / cidadania (via judicial provável)",
+    baseJuridica: "Itália / cidadania — via administrativa (pai italiano reconhecido nos anos 1980)",
     responsavel: "Tatiana",
     status: "em-proposta",
     dataInicio: "31/07/2026",
@@ -337,8 +337,8 @@ export const CASOS: Caso[] = [
     proximaAcao: "Configurar jornada do caso italiano no app cliente (cards, etapas, prazos)",
     linhaAncestral: [
       { ano: "1861", texto: "Unificação do Reino da Itália — marco da Lei nº 91/1992" },
-      { ano: "1948", texto: "Corte para transmissão por linha materna (via judicial)", uniao: true },
-      { ano: "2026", texto: "Início do caso CA-CID-IT-2026-001" },
+      { ano: "1980s", texto: "Pai reconhecido cidadão italiano — linha direta já constituída", uniao: true },
+      { ano: "2026", texto: "Início do caso CA-CID-IT-2026-001 — AIRE, pasta e acompanhamento" },
     ],
     linhaProcesso: [
       { etapa: "diagnostico", data: "31/07/2026", realizado: true },
@@ -365,7 +365,7 @@ export const CASOS: Caso[] = [
       { t: "💳 Diagnóstico CA-CID-001 pago", d: "31 jul 2026" },
       { t: "📄 Proposta enviada", d: "31 jul 2026" },
     ],
-    observacoes: "Status na planilha: Proposta",
+    observacoes: "Status na planilha: Proposta. Caso administrativo — não judicial: pai já italiano desde a década de 1980; foco em verificação/atualização de AIRE, pasta e acompanhamento.",
   },
   {
     id: "CA-CID-AT-2026-002",
