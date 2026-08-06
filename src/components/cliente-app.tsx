@@ -11,6 +11,8 @@ import {
   resumoCaso,
   type Caso,
 } from "@/data/casos";
+import { propostaByCaso } from "@/data/propostas";
+
 import {
   Home,
   Route as RouteIcon,
@@ -170,6 +172,8 @@ export function ClienteApp() {
 /* -------- CONTA -------- */
 function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
   const { previsto, saldo } = resumoCaso(caso);
+  const proposta = propostaByCaso(caso.id);
+
   return (
     <div className="space-y-6 p-5" data-tab="conta">
       {/* A — Perfil */}
@@ -222,12 +226,17 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
             ))}
           </div>
           <div className="mt-3 flex items-center justify-between rounded-lg bg-gold/15 p-3 text-[12px]">
-            <span className="text-cream/80">Total previsto</span>
-            <span className="font-serif text-lg text-gold">{brl(previsto)}</span>
+            <span className="text-cream/80">Referência total da proposta</span>
+            <span className="font-serif text-lg text-gold">{brl(proposta.capa.referenciaTotal)}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between rounded-lg bg-navy-soft/70 p-3 text-[12px]">
+            <span className="text-cream/70">Formato recomendado</span>
+            <span className="font-semibold text-cream">{proposta.formatoRecomendado}</span>
           </div>
           <div className="mt-2 text-[11px] text-cream/70">
-            SKUs de referência: {caso.plano.skus.join(" · ")}
+            SKUs de referência: {proposta.skusPrincipais.map((s) => s.sku).join(" · ") || caso.plano.skus.join(" · ")}
           </div>
+
         </div>
 
         {/* Método de pagamento */}
@@ -870,7 +879,9 @@ function DocsTab({ caso }: { caso: Caso }) {
 
 /* -------- BIBLIO + LEGADO -------- */
 function BiblioTab({ caso }: { caso: Caso }) {
+  const proposta = propostaByCaso(caso.id);
   return (
+
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
@@ -908,16 +919,22 @@ function BiblioTab({ caso }: { caso: Caso }) {
             <Lock className="h-3 w-3" /> {PLANO_LEGADO.nome} — upsell
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
-          <p className="mt-2 text-sm text-cream/80">{PLANO_LEGADO.descricao}</p>
+          <p className="mt-2 text-sm text-cream/80">
+            Upsells mapeados na proposta do caso {proposta.casoId} (Planilha Mestre de Produtos).
+          </p>
           <ul className="mt-4 space-y-1 text-xs text-cream/80">
-            {PLANO_LEGADO.itens.map((i) => (
-              <li key={i}>· {i}</li>
+            {proposta.upsells.map((u) => (
+              <li key={u.sku}>
+                · {u.nome} — {brl(u.valor)}
+              </li>
             ))}
           </ul>
           <div className="mt-5 flex items-center justify-between gap-3">
             <div>
               <div className="text-[11px] uppercase tracking-wide text-cream/70">A partir de</div>
-              <div className="font-serif text-xl text-gold">{brl(PLANO_LEGADO.precoRef)}</div>
+              <div className="font-serif text-xl text-gold">
+                {brl(proposta.upsells.length ? Math.min(...proposta.upsells.map((u) => u.valor)) : PLANO_LEGADO.precoRef)}
+              </div>
             </div>
             <button className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-navy">
               Conhecer plano Legado <ArrowRight className="h-4 w-4" />
@@ -925,6 +942,7 @@ function BiblioTab({ caso }: { caso: Caso }) {
           </div>
         </div>
       </section>
+
     </div>
   );
 }
