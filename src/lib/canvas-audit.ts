@@ -37,6 +37,15 @@ function parseColor(value: string): [number, number, number, number] | null {
   return [parts[0], parts[1], parts[2], parts[3] ?? 1];
 }
 
+function hasGradientAncestor(el: HTMLElement): boolean {
+  let node: HTMLElement | null = el;
+  while (node) {
+    if (getComputedStyle(node).backgroundImage !== "none") return true;
+    node = node.parentElement;
+  }
+  return false;
+}
+
 function effectiveBackground(el: HTMLElement): [number, number, number] {
   let node: HTMLElement | null = el;
   while (node) {
@@ -100,7 +109,7 @@ export function runCanvasAudit(): CanvasAuditReport | null {
         const rotulo = (n.textContent ?? "").trim().slice(0, 32);
         if (size < MIN_FONT_PX) falhasFonte.push(`${nome}: "${rotulo}" ${size}px`);
         const fg = parseColor(s.color);
-        if (!fg) continue;
+        if (!fg || hasGradientAncestor(n)) continue;
         const bg = effectiveBackground(n);
         const ratio = contrastRatio(blend(fg, bg), bg);
         const large = size >= 24 || (size >= 18.66 && parseInt(s.fontWeight, 10) >= 600);
