@@ -980,7 +980,7 @@ function SaneamentoSkus() {
         </div>
       </div>
     </section>
-    </div>
+
   );
 }
 
