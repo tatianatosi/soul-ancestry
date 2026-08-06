@@ -431,7 +431,7 @@ function JornadaTab() {
     { s: "Requerimento final", d: "—" },
   ];
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="jornada">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
       <p className="mt-1 text-sm text-sage italic">Duas linhas caminham juntas: a história e o seu processo.</p>
 
@@ -441,20 +441,25 @@ function JornadaTab() {
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
             {left.map((e) => (
-              <div key={e.y} className="relative mb-6">
+              <div key={e.y} className="relative mb-4">
                 <div
                   className={cn(
-                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    "absolute -left-3 top-4 h-3 w-3 rounded-full",
                     e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold",
                   )}
                 />
-                <div className="font-serif text-lg text-navy">{e.y}</div>
-                <div className="text-xs text-sage">{e.t}</div>
-                {e.union && (
-                  <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
-                    União de Ramos
-                  </span>
-                )}
+                <div
+                  data-audit="jornada-card"
+                  className="rounded-xl border border-navy/30 bg-areia p-3"
+                >
+                  <div className="font-serif text-lg text-navy">{e.y}</div>
+                  <div className="text-xs text-sage">{e.t}</div>
+                  {e.union && (
+                    <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
+                      União de Ramos
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -465,19 +470,25 @@ function JornadaTab() {
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-navy/30" />
             {right.map((e) => (
-              <div key={e.s} className="relative mb-6">
+              <div key={e.s} className="relative mb-4">
                 <div
                   className={cn(
-                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    "absolute -left-3 top-4 h-3 w-3 rounded-full",
                     e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60",
                   )}
                 />
-                <div className="font-serif text-base text-navy">{e.s}</div>
-                <div className="text-xs text-sage">{e.d}</div>
+                <div
+                  data-audit="jornada-card"
+                  className="rounded-xl border border-navy/30 bg-areia p-3"
+                >
+                  <div className="font-serif text-base text-navy">{e.s}</div>
+                  <div className="text-xs text-sage">{e.d}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
       </div>
 
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
