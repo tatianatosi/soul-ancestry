@@ -1,0 +1,35 @@
+SKU,Nome,Categoria,Tipo de Processo,Papel no portfolio,Preco atual,Presenca em SKUS_REFERENCIA,Presenca em LANCAMENTOS
+CA-CID-023,Assessoria Completa de Cidadania Italiana,Cidadania Italiana,Cidadania Italiana,pacote,4500,sim,sim
+PACOTE-PT-01,Pacote Cidadania Portuguesa,Cidadania Portuguesa,Cidadania Portuguesa,pacote,3800,sim,sim
+PACOTE-CROACIA-01,Pacote Cidadania Croata por Descendência,Cidadania Croata,Cidadania Croata,pacote,4000,sim,sim
+PACOTE-DE-01,Pacote Cidadania Alemã,Cidadania Alemã,Cidadania Alemã,pacote,4200,sim,nao
+NAT-BR-01,Pacote Naturalização Brasileira,Naturalização Brasileira,Naturalização Brasileira,pacote,900,sim,sim
+PACOTE-FR-01,Pacote Naturalização Francesa,Naturalização Francesa,Naturalização Francesa,pacote,1000,sim,sim
+CA-CID-001,Diagnóstico e Checklist Inicial (Itália),Cidadania Italiana,Cidadania Italiana,etapa,247,sim,sim
+CA-HIST-005,Pesquisa de Base Familiar,História da Família,História da Família,etapa,247,nao,nao
+CA-CID-002D,Pasta + Checklist de Pendências,Cidadania Italiana,Cidadania Italiana,etapa,390,sim,sim
+CA-CID-002A,Revisão de Pasta para Cidadania,Cidadania Italiana,Cidadania Italiana,etapa,690,sim,nao
+CA-CID-002B,Atualização de Pasta para Cidadania,Cidadania Italiana,Cidadania Italiana,etapa,890,sim,nao
+CA-CID-002,Montagem Completa de Pasta para Cidadania,Cidadania Italiana,Cidadania Italiana,etapa,1436,nao,nao
+CA-CID-006,Combo Codice Fiscale + SPID,Cidadania Italiana,Cidadania Italiana,etapa,280,sim,nao
+CA-CID-003,AIRE + Agendamento de Passaporte,Cidadania Italiana,Cidadania Italiana,etapa,530,sim,sim
+CA-CID-018,Transcrição de Atos no País de Origem,Cidadania Italiana,Cidadania Italiana,etapa,1588,sim,sim
+CA-CID-DE-001,Diagnóstico de Linha Alemã,Cidadania Alemã,Cidadania Alemã,etapa,247,sim,sim
+CA-CID-DE-002,Pesquisa e Montagem Documental (Alemã),Cidadania Alemã,Cidadania Alemã,etapa,1290,sim,sim
+CA-CID-DE-003b,Acompanhamento de Protocolo (Alemã),Cidadania Alemã,Cidadania Alemã,etapa,890,sim,sim
+CA-CID-025,Acompanhamento Familiar — Processo Compartilhado,Cidadania Italiana,Cidadania Italiana,upsell,990,sim,nao
+CA-CID-016,Registro de Filhos Adicionais (mesmo pedido AIRE),Cidadania Italiana,Cidadania Italiana,upsell,1511,sim,sim
+CA-CID-019,Declaração de Valor — Ensino Fundamental até Universidade,Cidadania Italiana,Cidadania Italiana,upsell,3881,sim,nao
+CA-CID-013,Agendamento de Passaporte Europeu (avulso),Cidadania Italiana,Cidadania Italiana,upsell,451,nao,nao
+CA-HIST-001,Estudo Genealógico e Patrimonial Aprofundado,História da Família,História da Família,upsell,5651,nao,nao
+CA-HIST-002,Pesquisa Genealógica Extra com Sobrenome Adicional,História da Família,História da Família,upsell,7053,nao,nao
+CA-MEM-004,Livro da História Familiar,Memória Familiar,Memória Familiar,upsell,490,nao,nao
+CA-MEM-008,Livro de Memórias Premium,Memória Familiar,Memória Familiar,upsell,2990,nao,nao
+CA-ASS-001,Plano Essência,Assinatura,Assinatura,assinatura,179,nao,nao
+CA-ASS-002,Plano Memórias,Assinatura,Assinatura,assinatura,269,nao,nao
+CA-ASS-003,Plano Legado,Assinatura,Assinatura,assinatura,359,nao,nao
+CA-ASS-004,Assinatura Cidadão Pós-Reconhecimento,Assinatura,Assinatura,assinatura,99,nao,nao
+CA-WPP-001,Pacote WhatsApp Essencial,WhatsApp Familiar,WhatsApp Familiar,upsell,79,nao,nao
+CA-WPP-002,Pacote WhatsApp Premium,WhatsApp Familiar,WhatsApp Familiar,upsell,149,nao,nao
+CA-FAM-001,Familiar Conectado,WhatsApp Familiar,WhatsApp Familiar,upsell,280,nao,nao
+CA-FAM-002,Familiar Conectado Plus,WhatsApp Familiar,WhatsApp Familiar,upsell,490,nao,nao

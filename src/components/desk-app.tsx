@@ -12,6 +12,7 @@ import {
   planoWhatsapp,
   type RecomendacaoWhatsapp,
 } from "@/data/propostas";
+import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneamento";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
@@ -912,7 +913,75 @@ function Integracoes() {
           </div>
         </div>
       </section>
+
+      <SaneamentoSkus />
     </div>
+  );
+}
+
+/* --- Saneamento de SKUs: origem dos dados + flags (interno) --- */
+function SaneamentoSkus() {
+  return (
+    <section>
+      <h3 className="mb-1 font-serif text-xl text-navy">Saneamento de SKUs</h3>
+      <p className="mb-3 text-[12px] text-navy/70">
+        Arquivos de origem e flags de saneamento. Snapshots exportados para análise externa:{" "}
+        {SAUDE_SKU.snapshots.join(" · ")}.
+      </p>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {SANEAMENTO_FONTES.map((f) => (
+          <div key={f.id} className="rounded-2xl border border-navy/25 bg-white p-5 shadow-sm">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div className="font-serif text-lg leading-tight text-navy">{f.arquivo}</div>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                  f.precisa_saneamento
+                    ? "border-orange-300 bg-orange-100 text-orange-700"
+                    : "border-emerald-300 bg-emerald-100 text-emerald-700",
+                )}
+              >
+                precisa_saneamento: {String(f.precisa_saneamento)}
+              </span>
+            </div>
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">Usado em</div>
+            <div className="text-[12px] text-navy">{f.usadoEm}</div>
+            <p className="mt-2 text-[12px] leading-snug text-navy/70">{f.nota}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-navy/25 bg-areia p-5">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-navy/70">
+            Blocos do Canvas dependentes das planilhas
+          </div>
+          <ul className="mt-2 space-y-2">
+            {ORIGEM_DADOS_CANVAS.map((b) => (
+              <li key={b.bloco} className="text-[12px] text-navy">
+                <span className="font-semibold">{b.bloco}</span>{" "}
+                <span className="text-[10px] uppercase tracking-wide text-navy/60">({b.onde})</span>
+                <div className="text-[11px] text-navy/70">{b.depende}</div>
+                <div className="text-[11px] italic text-navy/60">Ganho: {b.ganhoComSaneamento}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-gold/50 bg-gold/10 p-5">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-navy/70">
+            Onde o saneamento traz ganho direto
+          </div>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-[12px] text-navy">
+            {SAUDE_SKU.pontosDeMelhoria.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
   );
 }
 
