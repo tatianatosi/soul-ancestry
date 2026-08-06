@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { runCanvasAudit } from "@/lib/canvas-audit";
+
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import {
@@ -27,10 +29,17 @@ import {
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
+  const [caseStatus, setCaseStatus] = useState<CaseStatus>("em-andamento");
+
+  useEffect(() => {
+    const id = window.setTimeout(() => runCanvasAudit(), 400);
+    return () => window.clearTimeout(id);
+  }, [tab, showConta, caseStatus]);
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
@@ -63,12 +72,27 @@ export function ClienteApp() {
         )}
       </header>
 
+      {/* Acesso público — sem login, apenas abrir painel */}
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-areia px-5 py-2.5">
+        <div className="min-w-0 text-[11px] text-navy/70">
+          Acesso público · painel da jornada (sem cadastro)
+        </div>
+        <button
+          onClick={() =>
+            setCaseStatus((s) => (s === "proposta-aceita" ? "em-andamento" : "proposta-aceita"))
+          }
+          className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[10px] font-semibold text-navy hover:bg-navy/5 transition"
+        >
+          {caseStatus === "proposta-aceita" ? "Voltar ao estado inicial" : "Simular proposta aceita"}
+        </button>
+      </div>
+
       <main className="flex-1 overflow-y-auto pb-28">
         {showConta || tab === "conta" ? (
-          <ContaScreen />
+          <ContaScreen caseStatus={caseStatus} />
         ) : (
           <>
-            {tab === "home" && <HomeTab />}
+            {tab === "home" && <HomeTab caseStatus={caseStatus} />}
             {tab === "jornada" && <JornadaTab />}
             {tab === "radar" && <RadarTab />}
             {tab === "arvore" && <ArvoreTab />}
@@ -77,6 +101,7 @@ export function ClienteApp() {
           </>
         )}
       </main>
+
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
         <div className="grid grid-cols-7">
@@ -116,7 +141,7 @@ export function ClienteApp() {
 }
 
 /* -------- CONTA -------- */
-function ContaScreen() {
+function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
   const history = [
     { t: "📄 Certidão recebida", d: "28 jun 2026" },
     { t: "🔎 Achado documental", d: "15 jun 2026" },
@@ -125,7 +150,7 @@ function ContaScreen() {
     { t: "🎯 Caso iniciado", d: "15 jan 2024" },
   ];
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="conta">
       {/* SECTION A — Perfil */}
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
@@ -150,9 +175,13 @@ function ContaScreen() {
           <div>
             <div className="text-[10px] uppercase tracking-widest text-gold/80">Plano atual</div>
             <div className="font-serif text-lg italic text-gold">Plano Essencial</div>
+            {caseStatus === "proposta-aceita" && (
+              <div className="mt-1 text-[11px] text-cream/70">Contratado após aceite da proposta</div>
+            )}
           </div>
           <span className="rounded-full bg-gold px-3 py-1 text-[10px] font-bold text-navy">ATIVO</span>
         </div>
+
 
         {/* Upsell card */}
         <div className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
@@ -226,11 +255,34 @@ function ContaScreen() {
 }
 
 /* -------- HOME -------- */
-function HomeTab() {
+function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
   const steps = ["Diagnóstico", "Pesquisa", "Reconstrução", "Validação", "Entrega"];
   const currentIdx = 2;
   return (
-    <div className="space-y-5 p-5">
+    <div className="space-y-5 p-5" data-tab="home">
+      {caseStatus === "proposta-aceita" && (
+        <section className="rounded-2xl border border-sage/40 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sage/15 text-sage">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-sage">Pagamento confirmado</div>
+              <div className="text-sm text-navy">Proposta aceita — seu caso foi ativado.</div>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-areia p-3">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-navy/60">Próximo passo</div>
+              <div className="text-sm font-medium text-navy">Agendar chamada inicial</div>
+            </div>
+            <button className="shrink-0 rounded-full bg-gold px-3 py-1.5 text-[11px] font-semibold text-navy hover:bg-gold/90 transition">
+              Agendar
+            </button>
+          </div>
+        </section>
+      )}
+
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
         <div className="flex items-center justify-between">
           <div>
@@ -379,7 +431,7 @@ function JornadaTab() {
     { s: "Requerimento final", d: "—" },
   ];
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="jornada">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
       <p className="mt-1 text-sm text-sage italic">Duas linhas caminham juntas: a história e o seu processo.</p>
 
@@ -389,20 +441,25 @@ function JornadaTab() {
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-gold/40" />
             {left.map((e) => (
-              <div key={e.y} className="relative mb-6">
+              <div key={e.y} className="relative mb-4">
                 <div
                   className={cn(
-                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    "absolute -left-3 top-4 h-3 w-3 rounded-full",
                     e.union ? "bg-terracotta ring-2 ring-terracotta/30" : "bg-gold",
                   )}
                 />
-                <div className="font-serif text-lg text-navy">{e.y}</div>
-                <div className="text-xs text-sage">{e.t}</div>
-                {e.union && (
-                  <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
-                    União de Ramos
-                  </span>
-                )}
+                <div
+                  data-audit="jornada-card"
+                  className="rounded-xl border border-navy/30 bg-areia p-3"
+                >
+                  <div className="font-serif text-lg text-navy">{e.y}</div>
+                  <div className="text-xs text-sage">{e.t}</div>
+                  {e.union && (
+                    <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] font-medium text-terracotta">
+                      União de Ramos
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -413,19 +470,25 @@ function JornadaTab() {
           <div className="relative pl-4">
             <div className="absolute left-1 top-1 bottom-1 w-px bg-navy/30" />
             {right.map((e) => (
-              <div key={e.s} className="relative mb-6">
+              <div key={e.s} className="relative mb-4">
                 <div
                   className={cn(
-                    "absolute -left-3 top-1 h-3 w-3 rounded-full",
+                    "absolute -left-3 top-4 h-3 w-3 rounded-full",
                     e.active ? "bg-navy ring-4 ring-gold/40" : "bg-navy/60",
                   )}
                 />
-                <div className="font-serif text-base text-navy">{e.s}</div>
-                <div className="text-xs text-sage">{e.d}</div>
+                <div
+                  data-audit="jornada-card"
+                  className="rounded-xl border border-navy/30 bg-areia p-3"
+                >
+                  <div className="font-serif text-base text-navy">{e.s}</div>
+                  <div className="text-xs text-sage">{e.d}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
       </div>
 
       <div className="mt-6 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
@@ -450,7 +513,7 @@ function RadarTab() {
     { k: "Legado", v: 40 },
   ];
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="radar">
       <h2 className="font-serif text-2xl text-navy">Radar Ancestral</h2>
       <p className="mt-1 text-sm text-sage italic">Seu equilíbrio nas 6 dimensões.</p>
       <div className="mt-4 rounded-2xl border border-border bg-white p-4">
@@ -574,7 +637,7 @@ function ArvoreTab() {
     </div>
   );
   return (
-    <div className="p-5">
+    <div className="p-5" data-tab="arvore">
       <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
       <p className="mt-1 text-sm text-sage italic">Cinco gerações que compõem você.</p>
 
@@ -667,7 +730,7 @@ function DocsTab() {
   ];
   const doneCount = checklist.filter((c) => c.s === "done").length;
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="docs">
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
         <p className="mt-1 text-sm text-sage italic">Seu acervo processual.</p>
@@ -773,7 +836,7 @@ function BiblioTab() {
     },
   ];
   return (
-    <div className="space-y-6 p-5">
+    <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-gold">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
