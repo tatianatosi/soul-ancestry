@@ -433,6 +433,21 @@ function HomeTab({
         </div>
       </section>
 
+      <button
+        onClick={onOpenRelatorio}
+        className="flex w-full items-center gap-4 rounded-2xl border border-gold/40 bg-white p-5 text-left shadow-sm transition hover:bg-areia/60"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-gold">
+          <ClipboardList className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Projeto Essencial</div>
+          <div className="font-serif text-xl leading-tight text-navy">Relatório da sua família</div>
+          <div className="text-[12px] text-navy/70">Síntese da pesquisa base em cards.</div>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
+      </button>
+
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Próximos passos</h3>
         <div className="space-y-2.5">
