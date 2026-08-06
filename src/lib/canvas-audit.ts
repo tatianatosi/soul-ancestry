@@ -77,7 +77,7 @@ function blend(fg: [number, number, number, number], bg: [number, number, number
 }
 
 const CARD_SELECTOR =
-  '[class*="rounded-xl"][class*="border"], [class*="rounded-2xl"][class*="border"], [data-audit="jornada-card"]';
+  '[class*="rounded-lg"][class*="border"], [class*="rounded-xl"][class*="border"], [class*="rounded-2xl"][class*="border"], [data-audit="jornada-card"]';
 
 export function runCanvasAudit(): CanvasAuditReport | null {
   if (typeof document === "undefined") return null;
