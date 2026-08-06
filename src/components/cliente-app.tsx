@@ -123,8 +123,11 @@ export function ClienteApp() {
           <ContaScreen caso={caso} caseStatus={caseStatus} />
         ) : (
           <>
-            {tab === "home" && <HomeTab caso={caso} caseStatus={caseStatus} />}
+            {tab === "home" && (
+              <HomeTab caso={caso} caseStatus={caseStatus} onOpenRelatorio={() => setTab("relatorio")} />
+            )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
+            {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
@@ -134,11 +137,12 @@ export function ClienteApp() {
       </main>
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-8">
           {(
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
+              ["relatorio", ClipboardList, "Relatório"],
               ["radar", Radar, "Radar"],
               ["arvore", TreeDeciduous, "Árvore"],
               ["docs", FileText, "Docs"],
