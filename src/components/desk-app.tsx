@@ -752,7 +752,9 @@ function Financeiro() {
             ["Total honorários", brl(p.honorarios)],
             ["Total despesas", brl(p.despesas)],
             ["Total taxas", brl(p.taxas)],
-            ["Saldo total", brl(p.saldo)],
+            ["Pago Cliente", brl(p.pago)],
+            ["Desembolsado Clube", brl(p.desembolsado)],
+            ["Saldo Total", brl(p.saldo)],
             ["Quantidade de casos", String(p.casos)],
             ["Ticket médio", brl(p.ticketMedio)],
           ].map(([l, v]) => (
@@ -762,7 +764,12 @@ function Financeiro() {
             </div>
           ))}
         </div>
+        <div className="mt-4 rounded-xl border border-gold/50 bg-gold/10 p-3 text-[12px] leading-relaxed text-navy/80">
+          <strong className="text-navy">“Desembolsado Clube”</strong> = despesas que o Clube paga dentro do orçamento.{" "}
+          <strong className="text-navy">“Pago Cliente”</strong> = o que já entrou do cliente.
+        </div>
       </div>
+
 
       {/* Resumo por caso */}
       <div className="grid gap-6 lg:grid-cols-2">
