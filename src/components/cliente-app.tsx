@@ -170,7 +170,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
 
       {/* SECTION B — Meu Plano */}
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Meu Plano</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">Meu Plano</h3>
         <div className="mb-3 flex items-center justify-between rounded-xl border border-navy/20 bg-navy p-4 text-cream">
           <div>
             <div className="text-[11px] uppercase tracking-widest text-gold/80">Plano atual</div>
@@ -195,7 +195,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
           <div className="mt-4 flex items-center justify-between">
             <div>
               <div className="text-[11px] uppercase tracking-wide text-navy/70">A partir de</div>
-              <div className="font-serif text-lg text-navy">
+              <div className="font-serif text-xl text-navy">
                 R$ 269<span className="text-[12px] text-navy/70">/mês</span>
               </div>
             </div>
@@ -208,7 +208,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
 
       {/* SECTION C — WhatsApp */}
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">WhatsApp</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">WhatsApp</h3>
         <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-600">
@@ -234,7 +234,7 @@ function ContaScreen({ caseStatus }: { caseStatus: CaseStatus }) {
 
       {/* SECTION D — Histórico */}
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Histórico de atividades</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">Histórico de atividades</h3>
         <div className="rounded-2xl border border-border bg-white shadow-sm">
           {history.map((h, i) => (
             <div
@@ -337,7 +337,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
       </section>
 
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Próximos passos</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">Próximos passos</h3>
         <div className="space-y-2.5">
           {[
             { n: 1, t: "Assinar procuração digital", s: "Aguardando sua ação", tone: "urgent" },
@@ -378,7 +378,7 @@ function HomeTab({ caseStatus }: { caseStatus: CaseStatus }) {
       </section>
 
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Achados Recentes</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">Achados Recentes</h3>
         <div className="space-y-2.5">
           {[
             { t: "Certidão de Giuseppe localizada — Nápoles, 1887", d: "28 jun 2026" },
@@ -452,7 +452,7 @@ function JornadaTab() {
                   data-audit="jornada-card"
                   className="rounded-xl border border-navy/30 bg-areia p-3"
                 >
-                  <div className="font-serif text-lg text-navy">{e.y}</div>
+                  <div className="font-serif text-xl text-navy">{e.y}</div>
                   <div className="text-[12px] text-navy/70">{e.t}</div>
                   {e.union && (
                     <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[11px] font-medium text-terracotta">
@@ -481,7 +481,7 @@ function JornadaTab() {
                   data-audit="jornada-card"
                   className="rounded-xl border border-navy/30 bg-areia p-3"
                 >
-                  <div className="font-serif text-base text-navy">{e.s}</div>
+                  <div className="font-serif text-lg text-navy">{e.s}</div>
                   <div className="text-[12px] text-navy/70">{e.d}</div>
                 </div>
               </div>
@@ -688,7 +688,7 @@ function ArvoreTab() {
       </div>
 
       <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-4 text-center">
-        <div className="font-serif text-lg text-navy">12 pessoas conectadas recuperadas</div>
+        <div className="font-serif text-xl text-navy">12 pessoas conectadas recuperadas</div>
         <div className="text-[12px] text-navy/70">de um universo de 31 possíveis nas 5 gerações</div>
       </div>
     </div>
@@ -751,7 +751,7 @@ function DocsTab() {
       {/* Checklist consolidado */}
       <section>
         <div className="mb-3 flex items-end justify-between">
-          <h3 className="font-serif text-lg text-navy">Checklist consolidado</h3>
+          <h3 className="font-serif text-xl text-navy">Checklist consolidado</h3>
           <span className="text-[12px] text-navy/70">
             {doneCount}/{checklist.length} concluídos
           </span>
@@ -786,7 +786,7 @@ function DocsTab() {
 
       {/* Entregas do caso */}
       <section>
-        <h3 className="mb-3 font-serif text-lg text-navy">Entregas do caso</h3>
+        <h3 className="mb-3 font-serif text-xl text-navy">Entregas do caso</h3>
         <div className="space-y-2.5">
           {docs.map((d) => {
             const cfg = {
@@ -853,7 +853,7 @@ function BiblioTab() {
                   {x.d}
                 </span>
               </div>
-              <div className="font-serif text-base text-navy leading-snug">{x.t}</div>
+              <div className="font-serif text-lg text-navy leading-snug">{x.t}</div>
               <div className="mt-1.5 text-[12px] text-navy/70">{x.desc}</div>
               <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy hover:text-cream transition">
                 Ver detalhes <ChevronRight className="h-3 w-3" />
