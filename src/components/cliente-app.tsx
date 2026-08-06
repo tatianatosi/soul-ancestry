@@ -3,6 +3,7 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
+import { RelatorioVisualTab } from "./relatorio-visual";
 import {
   CASOS,
   ETAPAS,
@@ -38,9 +39,10 @@ import {
   Scale,
   CreditCard,
   Link2,
+  ClipboardList,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab = "home" | "jornada" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
@@ -122,8 +124,11 @@ export function ClienteApp() {
           <ContaScreen caso={caso} caseStatus={caseStatus} />
         ) : (
           <>
-            {tab === "home" && <HomeTab caso={caso} caseStatus={caseStatus} />}
+            {tab === "home" && (
+              <HomeTab caso={caso} caseStatus={caseStatus} onOpenRelatorio={() => setTab("relatorio")} />
+            )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
+            {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
@@ -133,11 +138,12 @@ export function ClienteApp() {
       </main>
 
       <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-8">
           {(
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
+              ["relatorio", ClipboardList, "Relatório"],
               ["radar", Radar, "Radar"],
               ["arvore", TreeDeciduous, "Árvore"],
               ["docs", FileText, "Docs"],
@@ -333,7 +339,15 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
 }
 
 /* -------- HOME -------- */
-function HomeTab({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
+function HomeTab({
+  caso,
+  caseStatus,
+  onOpenRelatorio,
+}: {
+  caso: Caso;
+  caseStatus: CaseStatus;
+  onOpenRelatorio: () => void;
+}) {
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
   return (
@@ -418,6 +432,21 @@ function HomeTab({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus }) {
           </div>
         </div>
       </section>
+
+      <button
+        onClick={onOpenRelatorio}
+        className="flex w-full items-center gap-4 rounded-2xl border border-gold/40 bg-white p-5 text-left shadow-sm transition hover:bg-areia/60"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-gold">
+          <ClipboardList className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Projeto Essencial</div>
+          <div className="font-serif text-xl leading-tight text-navy">Relatório da sua família</div>
+          <div className="text-[12px] text-navy/70">Síntese da pesquisa base em cards.</div>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
+      </button>
 
       <section>
         <h3 className="mb-3 font-serif text-xl text-navy">Próximos passos</h3>
