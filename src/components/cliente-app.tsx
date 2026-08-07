@@ -4,6 +4,8 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
+import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+
 import {
   CASOS,
   ETAPAS,
