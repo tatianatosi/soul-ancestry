@@ -147,7 +147,13 @@ export function ClienteApp() {
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
+      <nav
+        data-print-hide
+        className={cn(
+          "fixed bottom-0 left-1/2 z-40 w-full -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur",
+          wide ? "max-w-6xl" : "max-w-md",
+        )}
+      >
         <div className="grid grid-cols-8">
           {(
             [
