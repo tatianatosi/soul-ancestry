@@ -2,25 +2,75 @@
  * Ancestral Canvas — Relatório Visual (Projeto Essencial).
  *
  * Camada de conteúdo do relatório de página única mostrado no App Cliente.
- * Os valores abaixo são PLACEHOLDERS estruturados ({{...}} do briefing):
- * basta substituir por dados reais das planilhas/fontes internas.
+ * Estrutura preparada para conexão futura com dados reais: cada bloco
+ * (cliente, linha familiar, documentos, lacunas, próxima etapa e metadados)
+ * é separado e pode ser alimentado por fonte distinta (planilhas, Supabase,
+ * Ancestral Blueprint) sem alterar o componente visual.
+ *
+ * Os valores {{...}} são PLACEHOLDERS estruturados do briefing.
  */
 
 import type { Caso } from "./casos";
 
+/** Metadados do relatório — controlam o microbloco "ativo vivo" no topo. */
+export type RelatorioMeta = {
+  etapaAtual: string; // {{ETAPA_ATUAL}}
+  ultimaAtualizacao: string; // {{DATA_ULTIMA_ATUALIZACAO}}
+  status: "em_elaboracao" | "em_revisao" | "entregue" | "arquivado"; // {{STATUS_RELATORIO}}
+  versao: string; // {{VERSAO_RELATORIO}}
+  responsavel: string; // {{CONSULTORA_RESPONSAVEL}}
+  proximaRevisao: string; // {{PROXIMA_REVISAO}}
+};
+
+export const STATUS_LABEL: Record<RelatorioMeta["status"], string> = {
+  em_elaboracao: "Em elaboração",
+  em_revisao: "Em revisão",
+  entregue: "Entregue",
+  arquivado: "Arquivado",
+};
+
+/** Item arquivado na aba Legado ("Relatórios da sua família"). */
+export type EntregaJornada = {
+  id: string;
+  titulo: string;
+  data: string;
+  etapa: string;
+  status: RelatorioMeta["status"];
+  descricao: string;
+  /** true = abre o Relatório Visual ativo; false = entrega histórica. */
+  abreRelatorio?: boolean;
+};
+
 export type RelatorioVisual = {
   casoId: string;
+  /* --- cliente --- */
   sobrenomeFamilia: string; // {{SOBRENOME_FAMILIA}}
   pessoaFoco: string; // {{PESSOA_FOCO}}
   ancestralMaisAntigo: string; // {{ANCESTRAL_MAIS_ANTIGO}}
   numeroGeracoes: string; // {{NUMERO_GERACOES}}
   localidadesPrincipais: string; // {{LOCALIDADES_PRINCIPAIS}}
-  linhaPrincipal: { nome: string; eventos: string }[]; // {{GERACAO_N_NOME}} / {{GERACAO_N_EVENTOS}}
+  /* --- linha familiar --- */
+  linhaPrincipal: { nome: string; eventos: string }[]; // {{GERACAO_N_*}}
+  /* --- documentos --- */
   documentos: { pessoa: string; tipo: string; local: string; observacao: string }[];
   quantidadeRegistros: string; // {{QUANTIDADE_REGISTROS}}
+  /* --- lacunas --- */
   lacunas: string[]; // {{LACUNA_N}}
   pontosConfirmar: string[]; // {{PONTO_CONFIRMAR_N}}
+  /* --- próxima etapa --- */
+  proximaEtapa: { titulo: string; resumo: string; possibilidades: string[] };
+  /* --- metadados --- */
+  meta: RelatorioMeta;
+  /* --- entregas da jornada (Legado) --- */
+  entregas: EntregaJornada[];
 };
+
+export const POSSIBILIDADES_APROFUNDAMENTO = [
+  "Novas gerações e documentos",
+  "Ramos complementares",
+  "Leitura histórica mais ampla",
+  "Investigação de lacunas específicas",
+];
 
 /** Modelo base — usado quando o caso ainda não tem relatório dedicado. */
 function modelo(caso: Caso): RelatorioVisual {
@@ -48,6 +98,32 @@ function modelo(caso: Caso): RelatorioVisual {
     quantidadeRegistros: "{{QUANTIDADE_REGISTROS}}",
     lacunas: ["{{LACUNA_1}}", "{{LACUNA_2}}", "{{LACUNA_3}}"],
     pontosConfirmar: ["{{PONTO_CONFIRMAR_1}}", "{{PONTO_CONFIRMAR_2}}"],
+    proximaEtapa: {
+      titulo: "Próxima etapa recomendada",
+      resumo:
+        `Com a base agora estruturada, a família ${sobrenome} já tem um ponto de partida seguro para um estudo mais profundo. ` +
+        "Em uma etapa de aprofundamento, é possível ampliar gerações, esclarecer lacunas, investigar novos ramos e reconstruir com mais riqueza a trajetória da família ao longo do tempo.",
+      possibilidades: POSSIBILIDADES_APROFUNDAMENTO,
+    },
+    meta: {
+      etapaAtual: "Projeto Essencial · pesquisa base",
+      ultimaAtualizacao: "{{DATA_ULTIMA_ATUALIZACAO}}",
+      status: "em_elaboracao",
+      versao: "v1",
+      responsavel: "Consultoria Clube Ancestral",
+      proximaRevisao: "{{PROXIMA_REVISAO}}",
+    },
+    entregas: [
+      {
+        id: `${caso.id}-rel-essencial`,
+        titulo: "Relatório Visual · Projeto Essencial",
+        data: "{{DATA_ULTIMA_ATUALIZACAO}}",
+        etapa: "Projeto Essencial",
+        status: "em_elaboracao",
+        descricao: "Síntese da pesquisa base: linha principal, documentos e pontos em aberto.",
+        abreRelatorio: true,
+      },
+    ],
   };
 }
 
@@ -76,9 +152,33 @@ export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
       "Documento de desembarque no porto de entrada",
       "Certidão de casamento italiana em cópia integral",
     ],
-    pontosConfirmar: [
-      "Grafia do sobrenome nos registros brasileiros",
-      "Data exata de emigração",
+    pontosConfirmar: ["Grafia do sobrenome nos registros brasileiros", "Data exata de emigração"],
+    meta: {
+      etapaAtual: "Projeto Essencial · pesquisa base concluída",
+      ultimaAtualizacao: "12 de março de 2026",
+      status: "entregue",
+      versao: "v2",
+      responsavel: "Consultoria Clube Ancestral",
+      proximaRevisao: "Abril de 2026",
+    },
+    entregas: [
+      {
+        id: "CA-CID-IT-2026-001-rel-essencial",
+        titulo: "Relatório Visual · Projeto Essencial",
+        data: "12 de março de 2026",
+        etapa: "Projeto Essencial",
+        status: "entregue",
+        descricao: "Síntese da pesquisa base da família Prade: 4 gerações, 11 registros localizados.",
+        abreRelatorio: true,
+      },
+      {
+        id: "CA-CID-IT-2026-001-dossie-inicial",
+        titulo: "Dossiê inicial de documentos",
+        data: "28 de janeiro de 2026",
+        etapa: "Diagnóstico",
+        status: "arquivado",
+        descricao: "Primeira triagem documental e definição da linha a ser pesquisada.",
+      },
     ],
   },
 };
@@ -87,9 +187,7 @@ export function relatorioByCaso(caso: Caso): RelatorioVisual {
   return { ...modelo(caso), ...(RELATORIOS[caso.id] ?? {}) };
 }
 
-export const POSSIBILIDADES_APROFUNDAMENTO = [
-  "Novas gerações e documentos",
-  "Ramos complementares",
-  "Leitura histórica mais ampla",
-  "Investigação de lacunas específicas",
-];
+/** Entregas da jornada exibidas na aba Legado. */
+export function entregasByCaso(caso: Caso): EntregaJornada[] {
+  return relatorioByCaso(caso).entregas;
+}

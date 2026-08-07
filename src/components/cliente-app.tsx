@@ -4,6 +4,8 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
+import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+
 import {
   CASOS,
   ETAPAS,
@@ -59,8 +61,16 @@ export function ClienteApp() {
     return () => window.clearTimeout(id);
   }, [tab, showConta, casoId, aceita]);
 
+  const wide = !showConta && tab === "relatorio";
+
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
+    <div
+      className={cn(
+        "mx-auto flex min-h-[calc(100vh-52px)] w-full flex-col bg-cream transition-all",
+        wide ? "max-w-6xl" : "max-w-md",
+      )}
+    >
+
       <header className="flex items-center justify-between border-b border-border/60 bg-navy px-5 py-4 text-cream">
         {showConta ? (
           <>
@@ -91,7 +101,7 @@ export function ClienteApp() {
       </header>
 
       {/* Acesso público + seletor de caso */}
-      <div className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
+      <div data-print-hide className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 text-[11px] text-navy/70">Acesso público · painel da jornada (sem cadastro)</div>
           <button
@@ -132,12 +142,18 @@ export function ClienteApp() {
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
-            {tab === "biblio" && <BiblioTab caso={caso} />}
+            {tab === "biblio" && <BiblioTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />}
           </>
         )}
       </main>
 
-      <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur">
+      <nav
+        data-print-hide
+        className={cn(
+          "fixed bottom-0 left-1/2 z-40 w-full -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur",
+          wide ? "max-w-6xl" : "max-w-md",
+        )}
+      >
         <div className="grid grid-cols-8">
           {(
             [
@@ -913,15 +929,53 @@ function DocsTab({ caso }: { caso: Caso }) {
 }
 
 /* -------- BIBLIO + LEGADO -------- */
-function BiblioTab({ caso }: { caso: Caso }) {
+function BiblioTab({ caso, onOpenRelatorio }: { caso: Caso; onOpenRelatorio?: () => void }) {
   const proposta = propostaByCaso(caso.id);
+  const entregas = entregasByCaso(caso);
   return (
 
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
+        <h2 className="font-serif text-2xl text-navy">Relatórios da sua família</h2>
+        <p className="mt-1 text-[12px] italic text-navy/70">
+          Biblioteca histórica das entregas do Clube Ancestral — cada etapa fica registrada aqui.
+        </p>
+        <div className="mt-4 space-y-3">
+          {entregas.map((e) => (
+            <div key={e.id} className="rounded-xl border border-navy/25 bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-widest text-terracotta">{e.etapa}</div>
+                  <div className="font-serif text-lg leading-snug text-navy">{e.titulo}</div>
+                </div>
+                <span className="shrink-0 rounded-full border border-navy/20 bg-areia px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+                  {STATUS_LABEL[e.status]}
+                </span>
+              </div>
+              <div className="mt-1.5 text-[12px] text-navy/70">{e.descricao}</div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] text-navy/60">
+                  <Calendar className="h-3 w-3" />
+                  {e.data}
+                </span>
+                <button
+                  onClick={() => e.abreRelatorio && onOpenRelatorio?.()}
+                  className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy transition hover:bg-navy hover:text-cream"
+                >
+                  {e.abreRelatorio ? "Abrir relatório" : "Ver entrega"} <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <div className="mt-4 space-y-3">
+
           {caso.achados.map((x) => (
             <div key={x.titulo} className="rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-2">
