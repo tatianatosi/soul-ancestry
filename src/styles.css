@@ -86,3 +86,21 @@
   }
   h1, h2, h3, .font-serif { font-family: var(--font-serif); }
 }
+
+/* ---- Versão print-friendly do Relatório Visual ---- */
+@media print {
+  @page { margin: 14mm; }
+  html, body {
+    background: #ffffff !important;
+    color: var(--navy) !important;
+  }
+  header, nav, [data-print-hide] { display: none !important; }
+  main { overflow: visible !important; padding-bottom: 0 !important; }
+  [data-print-area] {
+    max-width: none !important;
+    width: 100% !important;
+  }
+  [data-print-area] section { box-shadow: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
