@@ -308,6 +308,8 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
       deliveryTime: "10 dias úteis",
       paymentUrl: caso.plano.linkPagamento || "https://pagamento.clubeancestral.com/etapa-02",
       paymentStatus: pago ? "confirmado" : "pendente",
+      included: ETAPA02_INCLUI,
+      notIncluded: ETAPA02_NAO_INCLUI,
     },
     report: {
       reportId: `REL-${caso.id}`,
