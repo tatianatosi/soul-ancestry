@@ -78,8 +78,8 @@ export const REGRAS_PAIS: Record<string, RegraPais> = {
       "Certidão de não naturalização",
       "Certidões brasileiras retificadas",
     ],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via italiana",
-    skuEtapa02: "CA-CID-IT-E02",
+    produtoEtapa02: "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana",
+    skuEtapa02: "CA-CID-002",
     valorEtapa02: 1436,
   },
   Portugal: {
@@ -160,7 +160,28 @@ export type Stage2Offer = {
   deliveryTime: string;
   paymentUrl: string;
   paymentStatus: PaymentStatus;
+  /** blocos de escopo (opcionais) */
+  included?: string[];
+  notIncluded?: string[];
 };
+
+/** Escopo padrão da Etapa 02 (SKU CA-CID-002). */
+export const ETAPA02_INCLUI = [
+  "Análise da cadeia documental",
+  "Checklist técnico de pendências",
+  "Leitura de riscos de grafia, datas e naturalização",
+  "Organização inicial da pasta",
+  "Plano de ação priorizado",
+  "Entrega pelo app e PDF em até 10 dias úteis",
+];
+
+export const ETAPA02_NAO_INCLUI = [
+  "Protocolo judicial",
+  "Honorários advocatícios",
+  "Emissão de certidões, traduções, apostilas e retificações",
+  "Taxas públicas",
+  "Acompanhamento completo do processo",
+];
 
 export type EntregaConsultiva = {
   caseId: string;
@@ -198,7 +219,7 @@ export const CASO_MODELO: EntregaConsultiva = {
   clientFirstName: "Sophi",
   country: "Itália",
   citizenshipType: "Cidadania Italiana",
-  suggestedRoute: "judicial",
+  suggestedRoute: "a-definir",
   routeDisclaimer: ROUTE_DISCLAIMER,
   stage1Status: "ETAPA_02_PENDENTE",
   stage1DeliveredAt: "Entrega 1 concluída",
@@ -208,9 +229,9 @@ export const CASO_MODELO: EntregaConsultiva = {
     "A linha de transmissão é curta e direta: avô italiano, filha brasileira e você. Isso é um bom sinal — quanto menos gerações, menor o volume documental e menor o risco de divergências de grafia.",
   eligibilitySummary: {
     viable: true,
-    scenario: "Cenário mais provável: via judicial na Itália",
+    scenario: "Cenário mais provável: reconhecimento da cidadania italiana por descendência",
     text:
-      "Pela leitura inicial, há viabilidade para o reconhecimento. O caminho mais provável hoje é o judicial, principalmente pela fila consular e pelo perfil da sua linha. Não é um problema: é apenas o trajeto com prazo mais previsível para o seu caso.",
+      "Pela leitura inicial, há viabilidade para o reconhecimento. A hipótese de via judicial será validada a partir da conferência documental da Etapa 02.",
   },
   documentChecklist: [
     { item: "Identificação do ancestral italiano", situacao: "tem" },
@@ -221,16 +242,18 @@ export const CASO_MODELO: EntregaConsultiva = {
   ],
   stage2Offer: {
     offerId: "OFR-IT-E02-001",
-    sku: "CA-CID-IT-E02",
-    productName: "Estudo aprofundado de elegibilidade + desenho da via italiana judicial",
+    sku: "CA-CID-002",
+    productName: "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana",
     description:
-      "Análise completa da sua linha, verificação documental item a item e desenho do caminho jurídico com prazos, custos e ordem das providências.",
-    benefit: "Você sai com clareza jurídica e documental e um plano concreto — sem precisar de reunião para começar.",
+      "Conferência técnica da linha familiar, verificação dos documentos já disponíveis, mapa de pendências, identificação de divergências, organização inicial da pasta e plano de ação para validar a estratégia de cidadania italiana, inclusive a hipótese de via judicial quando aplicável.",
+    benefit: "Você sai com clareza documental, pendências mapeadas e um plano de ação priorizado — sem depender de reunião.",
     price: 1436,
     currency: "R$",
     deliveryTime: "10 dias úteis",
-    paymentUrl: "https://pagamento.clubeancestral.com/etapa-02-italia",
+    paymentUrl: import.meta.env["VITE_ETAPA02_PAYMENT_URL"] ?? "https://pagamento.clubeancestral.com/etapa-02-italia",
     paymentStatus: "pendente",
+    included: ETAPA02_INCLUI,
+    notIncluded: ETAPA02_NAO_INCLUI,
   },
   report: {
     reportId: "REL-MODELO-SOPHI",
@@ -285,6 +308,8 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
       deliveryTime: "10 dias úteis",
       paymentUrl: caso.plano.linkPagamento || "https://pagamento.clubeancestral.com/etapa-02",
       paymentStatus: pago ? "confirmado" : "pendente",
+      included: ETAPA02_INCLUI,
+      notIncluded: ETAPA02_NAO_INCLUI,
     },
     report: {
       reportId: `REL-${caso.id}`,

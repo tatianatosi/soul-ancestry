@@ -203,6 +203,35 @@ export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
         <p className="mt-2 text-[13px] leading-relaxed text-navy/80">{oferta.description}</p>
         <p className="mt-2 border-l-2 border-gold pl-3 text-[13px] font-medium text-navy">{oferta.benefit}</p>
 
+        {(oferta.included?.length || oferta.notIncluded?.length) ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {oferta.included?.length ? (
+              <div className="rounded-xl border border-sage/40 bg-sage/5 p-4">
+                <div className="text-[11px] uppercase tracking-widest text-navy/60">O que está incluído</div>
+                <ul className="mt-2 space-y-1.5">
+                  {oferta.included.map((i) => (
+                    <li key={i} className="flex gap-2 text-[13px] leading-snug text-navy/85">
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sage" /> {i}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {oferta.notIncluded?.length ? (
+              <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
+                <div className="text-[11px] uppercase tracking-widest text-navy/60">O que não está incluído</div>
+                <ul className="mt-2 space-y-1.5">
+                  {oferta.notIncluded.map((i) => (
+                    <li key={i} className="flex gap-2 text-[13px] leading-snug text-navy/70">
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-terracotta" /> {i}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-xl bg-cream p-4">
           <div>
             <div className="text-[11px] uppercase tracking-wide text-navy/60">Investimento</div>
