@@ -4,6 +4,7 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
+import { EntregaConsultivaTab } from "./entrega-consultiva";
 import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
 
 import {
@@ -44,7 +45,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab = "home" | "jornada" | "entrega" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
@@ -61,7 +62,7 @@ export function ClienteApp() {
     return () => window.clearTimeout(id);
   }, [tab, showConta, casoId, aceita]);
 
-  const wide = !showConta && tab === "relatorio";
+  const wide = !showConta && (tab === "relatorio" || tab === "entrega");
 
   return (
     <div
@@ -135,9 +136,15 @@ export function ClienteApp() {
         ) : (
           <>
             {tab === "home" && (
-              <HomeTab caso={caso} caseStatus={caseStatus} onOpenRelatorio={() => setTab("relatorio")} />
+              <HomeTab
+                caso={caso}
+                caseStatus={caseStatus}
+                onOpenRelatorio={() => setTab("relatorio")}
+                onOpenEntrega={() => setTab("entrega")}
+              />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
+            {tab === "entrega" && <EntregaConsultivaTab caso={caso} />}
             {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
@@ -154,11 +161,12 @@ export function ClienteApp() {
           wide ? "max-w-6xl" : "max-w-md",
         )}
       >
-        <div className="grid grid-cols-8">
+        <div className="grid grid-cols-9">
           {(
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
+              ["entrega", Sparkles, "Entrega"],
               ["relatorio", ClipboardList, "Relatório"],
               ["radar", Radar, "Radar"],
               ["arvore", TreeDeciduous, "Árvore"],
@@ -176,7 +184,7 @@ export function ClienteApp() {
                   setShowConta(id === "conta");
                 }}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition",
+                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
                   isActive ? "text-navy" : "text-muted-foreground hover:text-navy",
                 )}
               >
@@ -359,10 +367,12 @@ function HomeTab({
   caso,
   caseStatus,
   onOpenRelatorio,
+  onOpenEntrega,
 }: {
   caso: Caso;
   caseStatus: CaseStatus;
   onOpenRelatorio: () => void;
+  onOpenEntrega: () => void;
 }) {
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
@@ -448,6 +458,21 @@ function HomeTab({
           </div>
         </div>
       </section>
+
+      <button
+        onClick={onOpenEntrega}
+        className="flex w-full items-center gap-4 rounded-2xl border-2 border-gold bg-white p-5 text-left shadow-sm transition hover:bg-areia/60"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-gold">
+          <Sparkles className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Entrega 1 · leitura inicial</div>
+          <div className="font-serif text-xl leading-tight text-navy">Seu caso e o próximo passo</div>
+          <div className="text-[12px] text-navy/70">Elegibilidade, checklist mínimo e CTA da Etapa 02.</div>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
+      </button>
 
       <button
         onClick={onOpenRelatorio}
