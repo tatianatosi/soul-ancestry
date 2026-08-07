@@ -61,8 +61,16 @@ export function ClienteApp() {
     return () => window.clearTimeout(id);
   }, [tab, showConta, casoId, aceita]);
 
+  const wide = !showConta && tab === "relatorio";
+
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-52px)] w-full max-w-md flex-col bg-cream">
+    <div
+      className={cn(
+        "mx-auto flex min-h-[calc(100vh-52px)] w-full flex-col bg-cream transition-all",
+        wide ? "max-w-6xl" : "max-w-md",
+      )}
+    >
+
       <header className="flex items-center justify-between border-b border-border/60 bg-navy px-5 py-4 text-cream">
         {showConta ? (
           <>
