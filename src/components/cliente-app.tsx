@@ -913,15 +913,53 @@ function DocsTab({ caso }: { caso: Caso }) {
 }
 
 /* -------- BIBLIO + LEGADO -------- */
-function BiblioTab({ caso }: { caso: Caso }) {
+function BiblioTab({ caso, onOpenRelatorio }: { caso: Caso; onOpenRelatorio?: () => void }) {
   const proposta = propostaByCaso(caso.id);
+  const entregas = entregasByCaso(caso);
   return (
 
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
+        <h2 className="font-serif text-2xl text-navy">Relatórios da sua família</h2>
+        <p className="mt-1 text-[12px] italic text-navy/70">
+          Biblioteca histórica das entregas do Clube Ancestral — cada etapa fica registrada aqui.
+        </p>
+        <div className="mt-4 space-y-3">
+          {entregas.map((e) => (
+            <div key={e.id} className="rounded-xl border border-navy/25 bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-widest text-terracotta">{e.etapa}</div>
+                  <div className="font-serif text-lg leading-snug text-navy">{e.titulo}</div>
+                </div>
+                <span className="shrink-0 rounded-full border border-navy/20 bg-areia px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+                  {STATUS_LABEL[e.status]}
+                </span>
+              </div>
+              <div className="mt-1.5 text-[12px] text-navy/70">{e.descricao}</div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] text-navy/60">
+                  <Calendar className="h-3 w-3" />
+                  {e.data}
+                </span>
+                <button
+                  onClick={() => e.abreRelatorio && onOpenRelatorio?.()}
+                  className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy transition hover:bg-navy hover:text-cream"
+                >
+                  {e.abreRelatorio ? "Abrir relatório" : "Ver entrega"} <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca</div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <div className="mt-4 space-y-3">
+
           {caso.achados.map((x) => (
             <div key={x.titulo} className="rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-2">
