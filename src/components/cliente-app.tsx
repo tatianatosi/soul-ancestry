@@ -367,10 +367,12 @@ function HomeTab({
   caso,
   caseStatus,
   onOpenRelatorio,
+  onOpenEntrega,
 }: {
   caso: Caso;
   caseStatus: CaseStatus;
   onOpenRelatorio: () => void;
+  onOpenEntrega: () => void;
 }) {
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
@@ -456,6 +458,21 @@ function HomeTab({
           </div>
         </div>
       </section>
+
+      <button
+        onClick={onOpenEntrega}
+        className="flex w-full items-center gap-4 rounded-2xl border-2 border-gold bg-white p-5 text-left shadow-sm transition hover:bg-areia/60"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-gold">
+          <Sparkles className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">Entrega 1 · leitura inicial</div>
+          <div className="font-serif text-xl leading-tight text-navy">Seu caso e o próximo passo</div>
+          <div className="text-[12px] text-navy/70">Elegibilidade, checklist mínimo e CTA da Etapa 02.</div>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
+      </button>
 
       <button
         onClick={onOpenRelatorio}
