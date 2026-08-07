@@ -101,7 +101,7 @@ export function ClienteApp() {
       </header>
 
       {/* Acesso público + seletor de caso */}
-      <div className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
+      <div data-print-hide className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 text-[11px] text-navy/70">Acesso público · painel da jornada (sem cadastro)</div>
           <button
