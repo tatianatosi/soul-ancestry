@@ -78,8 +78,8 @@ export const REGRAS_PAIS: Record<string, RegraPais> = {
       "Certidão de não naturalização",
       "Certidões brasileiras retificadas",
     ],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via italiana",
-    skuEtapa02: "CA-CID-IT-E02",
+    produtoEtapa02: "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana",
+    skuEtapa02: "CA-CID-002",
     valorEtapa02: 1436,
   },
   Portugal: {
