@@ -134,7 +134,7 @@ export function ClienteApp() {
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
-            {tab === "biblio" && <BiblioTab caso={caso} />}
+            {tab === "biblio" && <BiblioTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />}
           </>
         )}
       </main>
