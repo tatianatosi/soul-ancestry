@@ -160,7 +160,28 @@ export type Stage2Offer = {
   deliveryTime: string;
   paymentUrl: string;
   paymentStatus: PaymentStatus;
+  /** blocos de escopo (opcionais) */
+  included?: string[];
+  notIncluded?: string[];
 };
+
+/** Escopo padrão da Etapa 02 (SKU CA-CID-002). */
+export const ETAPA02_INCLUI = [
+  "Análise da cadeia documental",
+  "Checklist técnico de pendências",
+  "Leitura de riscos de grafia, datas e naturalização",
+  "Organização inicial da pasta",
+  "Plano de ação priorizado",
+  "Entrega pelo app e PDF em até 10 dias úteis",
+];
+
+export const ETAPA02_NAO_INCLUI = [
+  "Protocolo judicial",
+  "Honorários advocatícios",
+  "Emissão de certidões, traduções, apostilas e retificações",
+  "Taxas públicas",
+  "Acompanhamento completo do processo",
+];
 
 export type EntregaConsultiva = {
   caseId: string;
