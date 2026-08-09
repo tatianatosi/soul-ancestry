@@ -659,7 +659,7 @@ export const CASOS: Caso[] = [
      * Conteúdo de demonstração — nenhuma afirmação de elegibilidade confirmada.
      */
     id: "CA-ITA-SOPHI-PICCOLI",
-    cliente: "Sophi Piccoli",
+    cliente: "Sophia Piccoli Santiago",
     iniciais: "SP",
     tipoProcesso: "Cidadania Italiana",
     pais: "Itália",
@@ -670,11 +670,15 @@ export const CASOS: Caso[] = [
     etapaAtual: "diagnostico",
     progresso: 30,
     saude: "saudavel",
-    proximaAcao: "Apresentar Fase 01 e oferta da Etapa 02 (estudo aprofundado)",
+    proximaAcao: "Preparar proposta de pesquisa documental completa na Itália",
     linhaAncestral: [
-      { ano: "—", texto: "Ascendente italiano — dados em análise" },
-      { ano: "—", texto: "Geração intermediária brasileira — vínculo em análise", uniao: true },
-      { ano: "2026", texto: "Sophi Piccoli — requerente, diagnóstico inicial entregue" },
+      { ano: "c. 1868", texto: "Giovanni Piccoli — Istrana, Treviso (IT) — dado de pesquisa inicial" },
+      { ano: "c. 1866", texto: "Benedetta Bresolin — Padernello, Paese, Treviso (IT)", uniao: true },
+      { ano: "1872", texto: "Ângelo Piccoli — n. 30/08/1872, Noventa Vicentina, Vicenza (IT) — trisavô" },
+      { ano: "—", texto: "João Picoli — bisavô, nascido no Brasil — registros a confirmar" },
+      { ano: "—", texto: "Orlando Picoli — avô — casamento com Sandra da Silva Lopes a confirmar" },
+      { ano: "—", texto: "Juliana Picoli — mãe — registros a confirmar" },
+      { ano: "2006", texto: "Sophia Piccoli Santiago — requerente (n. 18/05/2006)" },
     ],
     linhaProcesso: [
       { etapa: "diagnostico", data: "07/08/2026", realizado: true },
@@ -686,20 +690,20 @@ export const CASOS: Caso[] = [
     checklistDocs: docs("Itália", 1, 2),
     checklistAppCliente: checklist(CHECKLIST_PADRAO, 2),
     proximosPassos: [
-      { titulo: "Etapa 02 — Estudo aprofundado + organização inicial da pasta", sub: "Oferta consultiva enviada — aguardando decisão", tom: "urgent" },
-      { titulo: "Confirmar dados do ascendente italiano", sub: "Localidade de origem e registros civis", tom: "info" },
+      { titulo: "Pesquisa documental completa na Itália", sub: "Proposta a preparar — produto e valor a definir pela equipe", tom: "urgent" },
+      { titulo: "Confirmar registros de Ângelo Piccoli", sub: "Comune de Noventa Vicentina (VI) — certidão de nascimento", tom: "info" },
       { titulo: "Reunir certidões brasileiras da cadeia", sub: "Inteiro teor, quando disponíveis", tom: "soft" },
     ],
     achados: [
-      { data: "07 ago 2026", titulo: "Diagnóstico inicial — Fase 01", desc: "Leitura inicial da linha, radar do caso e checklist mínimo de documentos (conteúdo demonstrativo)." },
+      { data: "09 ago 2026", titulo: "Diagnóstico inicial — Fase 01", desc: "Linha Piccoli organizada até Ângelo Piccoli (Noventa Vicentina/VI) com nomes e localidades dos pais no Veneto — validação documental pendente." },
     ],
     radar: radar([35, 55, 45, 50, 30, 20]),
     marcosJuridicos: MARCOS_JURIDICOS["Itália"],
     plano: plano("Cidadania Italiana", "Entrega consultiva em duas fases (caso-modelo)", "por etapas", ["CA-CID-001", "CA-CID-002"], "CA-ITA-SOPHI-PICCOLI"),
     financeiro: { pagoCliente: 0, desembolsadoClube: 0 },
-    historico: [{ t: "📄 Fase 01 — diagnóstico inicial disponível", d: "07 ago 2026" }],
+    historico: [{ t: "📄 Fase 01 — diagnóstico inicial disponível", d: "09 ago 2026" }],
     observacoes:
-      "Caso-modelo da entrega consultiva. Elegibilidade em análise: não há conclusão jurídica sobre via administrativa ou judicial.",
+      "Modelo de entrega consultiva com dados reais da linha Piccoli. Leitura inicial: sem cidadania reconhecida, elegibilidade confirmada, documentação localizada ou via definida.",
   },
 ];
 
