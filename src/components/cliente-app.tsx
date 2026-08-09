@@ -179,14 +179,16 @@ export function ClienteApp() {
           wide ? "max-w-6xl" : "max-w-md",
         )}
       >
-        <div className="grid grid-cols-9">
+        <div className="grid grid-cols-10">
           {(
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
               ["entrega", Sparkles, "Entrega"],
-              ["relatorio", ClipboardList, "Relatório"],
+              ["relatorio", ClipboardList, "Fase 01"],
+              ["fase02", Layers, "Fase 02"],
               ["radar", Radar, "Radar"],
+
               ["arvore", TreeDeciduous, "Árvore"],
               ["docs", FileText, "Docs"],
               ["biblio", BookOpen, "Legado"],
