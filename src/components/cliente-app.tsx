@@ -67,7 +67,9 @@ export function ClienteApp() {
     return () => window.clearTimeout(id);
   }, [tab, showConta, casoId, aceita]);
 
-  const wide = !showConta && (tab === "relatorio" || tab === "entrega");
+  const wide = !showConta && (tab === "relatorio" || tab === "entrega" || tab === "fase02");
+  const registro = registroOuFallback(caso.id, caso.cliente, caso.pais, caso.tipoProcesso);
+
 
   return (
     <div
