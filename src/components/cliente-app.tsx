@@ -45,7 +45,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "entrega" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab = "home" | "jornada" | "entrega" | "relatorio" | "fase02" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
