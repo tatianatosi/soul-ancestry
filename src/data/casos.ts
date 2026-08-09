@@ -653,7 +653,56 @@ export const CASOS: Caso[] = [
     historico: [{ t: "🎯 Pré-estudo iniciado", d: "27 jul 2026" }],
     observacoes: "Pacote leve (planilha CASOS).",
   },
+  {
+    /**
+     * Caso-modelo persistente da entrega consultiva em duas fases.
+     * Conteúdo de demonstração — nenhuma afirmação de elegibilidade confirmada.
+     */
+    id: "CA-ITA-SOPHI-PICCOLI",
+    cliente: "Sophi Piccoli",
+    iniciais: "SP",
+    tipoProcesso: "Cidadania Italiana",
+    pais: "Itália",
+    baseJuridica: "Itália / cidadania — potencial em análise (possível avaliação de via judicial)",
+    responsavel: "Tatiana",
+    status: "em-andamento",
+    dataInicio: "07/08/2026",
+    etapaAtual: "diagnostico",
+    progresso: 30,
+    saude: "saudavel",
+    proximaAcao: "Apresentar Fase 01 e oferta da Etapa 02 (estudo aprofundado)",
+    linhaAncestral: [
+      { ano: "—", texto: "Ascendente italiano — dados em análise" },
+      { ano: "—", texto: "Geração intermediária brasileira — vínculo em análise", uniao: true },
+      { ano: "2026", texto: "Sophi Piccoli — requerente, diagnóstico inicial entregue" },
+    ],
+    linhaProcesso: [
+      { etapa: "diagnostico", data: "07/08/2026", realizado: true },
+      { etapa: "pendencias", data: "—", realizado: false },
+      { etapa: "execucao", data: "—", realizado: false },
+      { etapa: "complementos", data: "—", realizado: false },
+      { etapa: "continuidade", data: "—", realizado: false },
+    ],
+    checklistDocs: docs("Itália", 1, 2),
+    checklistAppCliente: checklist(CHECKLIST_PADRAO, 2),
+    proximosPassos: [
+      { titulo: "Etapa 02 — Estudo aprofundado + organização inicial da pasta", sub: "Oferta consultiva enviada — aguardando decisão", tom: "urgent" },
+      { titulo: "Confirmar dados do ascendente italiano", sub: "Localidade de origem e registros civis", tom: "info" },
+      { titulo: "Reunir certidões brasileiras da cadeia", sub: "Inteiro teor, quando disponíveis", tom: "soft" },
+    ],
+    achados: [
+      { data: "07 ago 2026", titulo: "Diagnóstico inicial — Fase 01", desc: "Leitura inicial da linha, radar do caso e checklist mínimo de documentos (conteúdo demonstrativo)." },
+    ],
+    radar: radar([35, 55, 45, 50, 30, 20]),
+    marcosJuridicos: MARCOS_JURIDICOS["Itália"],
+    plano: plano("Cidadania Italiana", "Entrega consultiva em duas fases (caso-modelo)", "por etapas", ["CA-CID-001", "CA-CID-002"], "CA-ITA-SOPHI-PICCOLI"),
+    financeiro: { pagoCliente: 0, desembolsadoClube: 0 },
+    historico: [{ t: "📄 Fase 01 — diagnóstico inicial disponível", d: "07 ago 2026" }],
+    observacoes:
+      "Caso-modelo da entrega consultiva. Elegibilidade em análise: não há conclusão jurídica sobre via administrativa ou judicial.",
+  },
 ];
+
 
 export const casoById = (id: string) => CASOS.find((c) => c.id === id) ?? CASOS[0];
 
