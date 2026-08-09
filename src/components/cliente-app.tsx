@@ -977,12 +977,63 @@ function DocsTab({ caso }: { caso: Caso }) {
 }
 
 /* -------- BIBLIO + LEGADO -------- */
-function BiblioTab({ caso, onOpenRelatorio }: { caso: Caso; onOpenRelatorio?: () => void }) {
+function BiblioTab({
+  caso,
+  registro,
+  onOpenRelatorio,
+  onOpenFase02,
+}: {
+  caso: Caso;
+  registro: import("@/data/case-registry").CaseRecord;
+  onOpenRelatorio?: () => void;
+  onOpenFase02?: () => void;
+}) {
   const proposta = propostaByCaso(caso.id);
   const entregas = entregasByCaso(caso);
   return (
 
     <div className="space-y-6 p-5" data-tab="biblio">
+      <section>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca da jornada</div>
+        <h2 className="font-serif text-2xl text-navy">Relatórios da jornada</h2>
+        <p className="mt-1 text-[12px] italic text-navy/70">
+          Fase 01 e Fase 02 ficam arquivadas aqui, junto com a linha do tempo e o catálogo documental.
+        </p>
+        <div className="mt-4 space-y-3">
+          {registro.reports.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border p-4 text-[12px] text-navy/60">
+              Nenhuma entrega arquivada ainda — as fases aparecem aqui assim que forem criadas.
+            </div>
+          )}
+          {registro.reports.map((r) => (
+            <div key={r.id} className="rounded-xl border border-navy/20 bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-widest text-terracotta">{r.tipo}</div>
+                  <div className="font-serif text-lg leading-snug text-navy">{r.titulo}</div>
+                </div>
+                <span className="shrink-0 rounded-full border border-navy/20 bg-areia px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+                  {r.status}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-navy/60">
+                <span>
+                  Versão {r.versao} · atualizado em {r.atualizadoEm} · {r.responsavel}
+                </span>
+                <button
+                  onClick={() =>
+                    r.tipo === "Fase 02 — Relatório Completo" ? onOpenFase02?.() : onOpenRelatorio?.()
+                  }
+                  className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 font-semibold text-navy transition hover:bg-navy hover:text-cream"
+                >
+                  Abrir <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
         <h2 className="font-serif text-2xl text-navy">Relatórios da sua família</h2>
