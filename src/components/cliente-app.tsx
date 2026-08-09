@@ -148,17 +148,28 @@ export function ClienteApp() {
                 caseStatus={caseStatus}
                 onOpenRelatorio={() => setTab("relatorio")}
                 onOpenEntrega={() => setTab("entrega")}
+                onOpenFase02={() => setTab("fase02")}
+                fase02Status={registro.phase2Status}
               />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
             {tab === "entrega" && <EntregaConsultivaTab caso={caso} />}
             {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
+            {tab === "fase02" && <RelatorioFase02 registro={registro} />}
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
-            {tab === "biblio" && <BiblioTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />}
+            {tab === "biblio" && (
+              <BiblioTab
+                caso={caso}
+                registro={registro}
+                onOpenRelatorio={() => setTab("relatorio")}
+                onOpenFase02={() => setTab("fase02")}
+              />
+            )}
           </>
         )}
+
       </main>
 
       <nav
