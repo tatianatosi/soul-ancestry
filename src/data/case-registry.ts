@@ -356,3 +356,37 @@ export const INTEGRACOES_FUTURAS = [
   { nome: "CRM Mestre", campos: "lead, cliente, origem, proposta, pipeline, responsável", estado: "Mock local" },
   { nome: "WhatsApp", campos: "boas-vindas e atualizações de marcos", estado: "Texto manual, sem automação" },
 ];
+
+/**
+ * Fallback neutro para casos da jornada que ainda não possuem registro próprio.
+ * Não inventa dados: tudo fica marcado como a definir / pendente.
+ */
+export function registroOuFallback(casoId: string, cliente: string, pais: string, tipo: string): CaseRecord {
+  const found = registryByCasoId(casoId);
+  if (found) return found;
+  return {
+    id: casoId,
+    clientName: cliente,
+    displayName: cliente.split(" ")[0],
+    country: pais,
+    citizenshipPath: `${tipo} — escopo em análise`,
+    caseStatus: "Proposta enviada",
+    proposalStatus: "Enviada",
+    contractStatus: "Pendente",
+    paymentStatus: "Pendente",
+    phase1Status: "Prevista",
+    phase2Status: "Não prevista",
+    caseOwner: "A definir",
+    lastUpdate: "—",
+    nextAction: "Definir próxima ação com a equipe",
+    confidenceNote: "Sem conclusão de elegibilidade: informações pendentes de comprovação documental.",
+    sources: [],
+    people: [{ nome: cliente, papel: "Requerente", confianca: "Confirmado" }],
+    documents: [],
+    checklist: GO_LIVE_CHECKLIST.map((item) => ({ item, feito: false })),
+    reports: [],
+    proposalSummary: "Escopo a confirmar.",
+    paymentUrl: "",
+    casoJornadaId: casoId,
+  };
+}
