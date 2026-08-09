@@ -35,9 +35,10 @@ export function GoLiveDesk() {
   const alertas = alertasDoRegistro();
   const alertasCaso = alertas.filter((a) => a.caso === caso.clientName);
 
-  const marcado = (item: string) => ticks[caso.id]?.[item] ?? caso.checklist.find((i) => i.item === item)?.feito ?? false;
-  const alternar = (item: string) =>
-    setTicks((t) => ({ ...t, [caso.id]: { ...(t[caso.id] ?? {}), [item]: !marcado(item) } }));
+  const marcado = (item: string, padrao?: boolean) =>
+    ticks[caso.id]?.[item] ?? padrao ?? caso.checklist.find((i) => i.item === item)?.feito ?? false;
+  const alternar = (item: string, padrao?: boolean) =>
+    setTicks((t) => ({ ...t, [caso.id]: { ...(t[caso.id] ?? {}), [item]: !marcado(item, padrao) } }));
 
   return (
     <div className="space-y-6">
@@ -168,6 +169,8 @@ export function GoLiveDesk() {
             <div className="grid gap-2 sm:grid-cols-2">
               <Linha k="Responsável" v={caso.caseOwner} />
               <Linha k="Próxima ação" v={caso.nextAction} />
+              {caso.caseType && <Linha k="Tipo do caso" v={caso.caseType} />}
+              <Linha k="Fase 01" v={caso.phase1Status} />
             </div>
             <p className="mt-2 text-[12px] text-navy/70">{caso.confidenceNote}</p>
             {caso.internalNotes?.map((n) => (
@@ -196,6 +199,42 @@ export function GoLiveDesk() {
               )}
             </div>
           </Bloco>
+
+          {caso.reportSource && (
+            <Bloco titulo="Fonte do relatório">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Linha k="Arquivo/anexo" v={caso.reportSource.arquivo} />
+                <Linha k="Data" v={caso.reportSource.data} />
+                <Linha k="Versão" v={caso.reportSource.versao} />
+                <Linha k="Responsável" v={caso.reportSource.responsavel} />
+                <Linha k="Status de validação" v={caso.reportSource.validacao} />
+              </div>
+              <p className="mt-2 text-[12px] text-navy/70">{caso.reportSource.observacoes}</p>
+              <p className="mt-1 text-[11px] italic text-navy/55">
+                Anexe aqui o arquivo e registre data, versão e responsável quando a pesquisa real for consolidada.
+              </p>
+            </Bloco>
+          )}
+
+          {caso.internalChecklist?.length ? (
+            <Bloco titulo="Checklist interno do caso">
+              <div className="space-y-1">
+                {caso.internalChecklist.map((i) => {
+                  const ok = marcado(i.item, i.feito);
+                  return (
+                    <button
+                      key={i.item}
+                      onClick={() => alternar(i.item, i.feito)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-navy transition hover:bg-areia/60"
+                    >
+                      {ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-sage" /> : <Circle className="h-4 w-4 shrink-0 text-navy/30" />}
+                      <span className={cn(ok && "text-navy/50 line-through")}>{i.item}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Bloco>
+          ) : null}
 
           <Bloco titulo="Checklist de go-live (pós-fechamento)">
             <div className="space-y-1">
