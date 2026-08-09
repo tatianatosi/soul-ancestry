@@ -90,6 +90,8 @@ export function DeskApp() {
           {sec === "overview" && <Overview />}
           {sec === "casos" && <Casos />}
           {sec === "propostas" && <Propostas />}
+          {sec === "golive" && <GoLiveDesk />}
+
 
           {sec === "appcliente" && <ChecklistAppCliente />}
           {sec === "financeiro" && <Financeiro />}
