@@ -150,7 +150,7 @@ export const MODELO_SOPHIA: ModeloEntrega = {
         ),
         item(
           "Registros de Giovanni Piccoli (c. 1868 — Istrana, Treviso)",
-          "Hipótese de pesquisa" as StatusDocumento extends never ? never : StatusDocumento,
+          "Dado de pesquisa inicial",
           "Comune de Istrana",
           "Ano aproximado — busca por faixa de anos.",
           "Pesquisar registros civis e paroquiais de Istrana",
