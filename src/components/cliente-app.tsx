@@ -386,12 +386,17 @@ function HomeTab({
   caseStatus,
   onOpenRelatorio,
   onOpenEntrega,
+  onOpenFase02,
+  fase02Status,
 }: {
   caso: Caso;
   caseStatus: CaseStatus;
   onOpenRelatorio: () => void;
   onOpenEntrega: () => void;
+  onOpenFase02: () => void;
+  fase02Status: string;
 }) {
+
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
   return (
