@@ -46,6 +46,8 @@ import {
   CreditCard,
   Link2,
   ClipboardList,
+  Layers,
+
 } from "lucide-react";
 
 type Tab = "home" | "jornada" | "entrega" | "relatorio" | "fase02" | "radar" | "arvore" | "docs" | "biblio" | "conta";
