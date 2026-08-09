@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
 import { EntregaConsultivaTab } from "./entrega-consultiva";
+import { RelatorioFase02 } from "./relatorio-fase02";
+import { registroOuFallback } from "@/data/case-registry";
 import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+
 
 import {
   CASOS,
@@ -43,9 +46,11 @@ import {
   CreditCard,
   Link2,
   ClipboardList,
+  Layers,
+
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "entrega" | "relatorio" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab = "home" | "jornada" | "entrega" | "relatorio" | "fase02" | "radar" | "arvore" | "docs" | "biblio" | "conta";
 export type CaseStatus = "em-andamento" | "proposta-aceita";
 
 export function ClienteApp() {
@@ -62,7 +67,9 @@ export function ClienteApp() {
     return () => window.clearTimeout(id);
   }, [tab, showConta, casoId, aceita]);
 
-  const wide = !showConta && (tab === "relatorio" || tab === "entrega");
+  const wide = !showConta && (tab === "relatorio" || tab === "entrega" || tab === "fase02");
+  const registro = registroOuFallback(caso.id, caso.cliente, caso.pais, caso.tipoProcesso);
+
 
   return (
     <div
@@ -141,17 +148,28 @@ export function ClienteApp() {
                 caseStatus={caseStatus}
                 onOpenRelatorio={() => setTab("relatorio")}
                 onOpenEntrega={() => setTab("entrega")}
+                onOpenFase02={() => setTab("fase02")}
+                fase02Status={registro.phase2Status}
               />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
             {tab === "entrega" && <EntregaConsultivaTab caso={caso} />}
             {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
+            {tab === "fase02" && <RelatorioFase02 registro={registro} />}
             {tab === "radar" && <RadarTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
-            {tab === "biblio" && <BiblioTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />}
+            {tab === "biblio" && (
+              <BiblioTab
+                caso={caso}
+                registro={registro}
+                onOpenRelatorio={() => setTab("relatorio")}
+                onOpenFase02={() => setTab("fase02")}
+              />
+            )}
           </>
         )}
+
       </main>
 
       <nav
@@ -161,14 +179,16 @@ export function ClienteApp() {
           wide ? "max-w-6xl" : "max-w-md",
         )}
       >
-        <div className="grid grid-cols-9">
+        <div className="grid grid-cols-10">
           {(
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
               ["entrega", Sparkles, "Entrega"],
-              ["relatorio", ClipboardList, "Relatório"],
+              ["relatorio", ClipboardList, "Fase 01"],
+              ["fase02", Layers, "Fase 02"],
               ["radar", Radar, "Radar"],
+
               ["arvore", TreeDeciduous, "Árvore"],
               ["docs", FileText, "Docs"],
               ["biblio", BookOpen, "Legado"],
@@ -368,12 +388,17 @@ function HomeTab({
   caseStatus,
   onOpenRelatorio,
   onOpenEntrega,
+  onOpenFase02,
+  fase02Status,
 }: {
   caso: Caso;
   caseStatus: CaseStatus;
   onOpenRelatorio: () => void;
   onOpenEntrega: () => void;
+  onOpenFase02: () => void;
+  fase02Status: string;
 }) {
+
   const currentIdx = ETAPAS.findIndex((e) => e.key === caso.etapaAtual);
   const proximoPasso = caso.checklistAppCliente.find((i) => !i.feito)?.item ?? caso.proximaAcao;
   return (
@@ -473,6 +498,36 @@ function HomeTab({
         </div>
         <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
       </button>
+
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
+        <h3 className="font-serif text-xl text-navy">Suas duas fases de entrega</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <button
+            onClick={onOpenRelatorio}
+            className="rounded-xl border border-gold/50 bg-cream/60 p-4 text-left transition hover:bg-areia/70"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 01</div>
+            <div className="font-serif text-lg leading-snug text-navy">Relatório Visual</div>
+            <div className="mt-1 text-[12px] text-navy/70">Acompanhamento e decisão inicial.</div>
+            <div className="mt-2 inline-block rounded-full border border-sage/40 bg-sage/10 px-2 py-0.5 text-[10px] font-semibold text-sage">
+              Diagnóstico inicial disponível
+            </div>
+          </button>
+          <button
+            onClick={onOpenFase02}
+            className="rounded-xl border border-navy/20 bg-cream/60 p-4 text-left transition hover:bg-areia/70"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 02</div>
+            <div className="font-serif text-lg leading-snug text-navy">Relatório Completo de Pesquisa</div>
+            <div className="mt-1 text-[12px] text-navy/70">Entrega profunda, técnica e arquivável.</div>
+            <div className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-navy">
+              {fase02Status}
+            </div>
+          </button>
+        </div>
+      </section>
+
 
       <button
         onClick={onOpenRelatorio}
@@ -954,12 +1009,63 @@ function DocsTab({ caso }: { caso: Caso }) {
 }
 
 /* -------- BIBLIO + LEGADO -------- */
-function BiblioTab({ caso, onOpenRelatorio }: { caso: Caso; onOpenRelatorio?: () => void }) {
+function BiblioTab({
+  caso,
+  registro,
+  onOpenRelatorio,
+  onOpenFase02,
+}: {
+  caso: Caso;
+  registro: import("@/data/case-registry").CaseRecord;
+  onOpenRelatorio?: () => void;
+  onOpenFase02?: () => void;
+}) {
   const proposta = propostaByCaso(caso.id);
   const entregas = entregasByCaso(caso);
   return (
 
     <div className="space-y-6 p-5" data-tab="biblio">
+      <section>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca da jornada</div>
+        <h2 className="font-serif text-2xl text-navy">Relatórios da jornada</h2>
+        <p className="mt-1 text-[12px] italic text-navy/70">
+          Fase 01 e Fase 02 ficam arquivadas aqui, junto com a linha do tempo e o catálogo documental.
+        </p>
+        <div className="mt-4 space-y-3">
+          {registro.reports.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border p-4 text-[12px] text-navy/60">
+              Nenhuma entrega arquivada ainda — as fases aparecem aqui assim que forem criadas.
+            </div>
+          )}
+          {registro.reports.map((r) => (
+            <div key={r.id} className="rounded-xl border border-navy/20 bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-widest text-terracotta">{r.tipo}</div>
+                  <div className="font-serif text-lg leading-snug text-navy">{r.titulo}</div>
+                </div>
+                <span className="shrink-0 rounded-full border border-navy/20 bg-areia px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+                  {r.status}
+                </span>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-navy/60">
+                <span>
+                  Versão {r.versao} · atualizado em {r.atualizadoEm} · {r.responsavel}
+                </span>
+                <button
+                  onClick={() =>
+                    r.tipo === "Fase 02 — Relatório Completo" ? onOpenFase02?.() : onOpenRelatorio?.()
+                  }
+                  className="inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 font-semibold text-navy transition hover:bg-navy hover:text-cream"
+                >
+                  Abrir <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
         <h2 className="font-serif text-2xl text-navy">Relatórios da sua família</h2>

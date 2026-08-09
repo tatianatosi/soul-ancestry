@@ -14,15 +14,16 @@ import {
   type RecomendacaoWhatsapp,
 } from "@/data/propostas";
 import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneamento";
+import { GoLiveDesk } from "./desk-go-live";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
-  Scale, Wallet, Plug, Smartphone, FileText,
+  Scale, Wallet, Plug, Smartphone, FileText, Rocket,
 } from "lucide-react";
 
 type Section =
   | "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio"
-  | "financeiro" | "appcliente" | "integracoes" | "propostas";
+  | "financeiro" | "appcliente" | "integracoes" | "propostas" | "golive";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
@@ -30,6 +31,7 @@ export function DeskApp() {
     ["overview", LayoutGrid, "Visão Geral"],
     ["casos", Users, "Casos 360"],
     ["propostas", FileText, "Propostas"],
+    ["golive", Rocket, "Go-live"],
     ["appcliente", Smartphone, "Checklist AppCliente"],
     ["financeiro", Wallet, "Financeiro"],
     ["checklist", ListChecks, "Checklist semanal"],
@@ -39,6 +41,7 @@ export function DeskApp() {
     ["integracoes", Plug, "Integrações"],
     ["biblio", Library, "Biblioteca Mestre"],
   ] as const;
+
 
 
   return (
@@ -87,6 +90,8 @@ export function DeskApp() {
           {sec === "overview" && <Overview />}
           {sec === "casos" && <Casos />}
           {sec === "propostas" && <Propostas />}
+          {sec === "golive" && <GoLiveDesk />}
+
 
           {sec === "appcliente" && <ChecklistAppCliente />}
           {sec === "financeiro" && <Financeiro />}
