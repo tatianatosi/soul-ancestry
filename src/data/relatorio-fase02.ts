@@ -23,6 +23,7 @@ export const FASE02_STATUS_TOM: Record<PhaseStatus, string> = {
   Prevista: "border-gold/50 bg-gold/15 text-navy",
   "Em produção": "border-plum/40 bg-plum/10 text-plum",
   "Em revisão": "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  "Diagnóstico inicial disponível": "border-gold/50 bg-gold/10 text-navy",
   Entregue: "border-sage/40 bg-sage/15 text-sage",
 };
 
