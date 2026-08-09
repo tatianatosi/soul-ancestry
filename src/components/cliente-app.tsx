@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
 import { EntregaConsultivaTab } from "./entrega-consultiva";
+import { EntregaModeloTab } from "./entrega-modelo";
+import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
 import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
@@ -56,8 +58,13 @@ export type CaseStatus = "em-andamento" | "proposta-aceita";
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
-  const [casoId, setCasoId] = useState<string>(CASOS[0].id);
-  const caso = CASOS.find((c) => c.id === casoId) ?? CASOS[0];
+  /** Link individual: ?caso=<ID> abre apenas o caso da pessoa, sem seletor. */
+  const casoFixo =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("caso") : null;
+  const casoFixoValido = casoFixo && CASOS.some((c) => c.id === casoFixo) ? casoFixo : null;
+  const [casoId, setCasoId] = useState<string>(casoFixoValido ?? CASOS[0].id);
+  const caso = CASOS.find((c) => c.id === (casoFixoValido ?? casoId)) ?? CASOS[0];
+  const modelo = modeloByCaso(caso.id);
   const [override, setOverride] = useState<Record<string, boolean>>({});
   const aceita = override[caso.id] ?? caso.status === "proposta-aceita";
   const caseStatus: CaseStatus = aceita ? "proposta-aceita" : "em-andamento";
@@ -111,15 +118,19 @@ export function ClienteApp() {
       {/* Acesso público + seletor de caso */}
       <div data-print-hide className="space-y-2 border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 text-[11px] text-navy/70">Acesso público · painel da jornada (sem cadastro)</div>
-          <button
-            onClick={() => setOverride((o) => ({ ...o, [caso.id]: !aceita }))}
-            className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy/5 transition"
-          >
-            {aceita ? "Voltar ao estado inicial" : "Simular proposta aceita"}
-          </button>
+          <div className="min-w-0 text-[11px] text-navy/70">
+            {casoFixoValido ? "Acesso individual · painel da sua jornada" : "Acesso público · painel da jornada (sem cadastro)"}
+          </div>
+          {!casoFixoValido && (
+            <button
+              onClick={() => setOverride((o) => ({ ...o, [caso.id]: !aceita }))}
+              className="shrink-0 rounded-full border border-navy/30 px-3 py-1 text-[11px] font-semibold text-navy hover:bg-navy/5 transition"
+            >
+              {aceita ? "Voltar ao estado inicial" : "Simular proposta aceita"}
+            </button>
+          )}
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className={cn("flex gap-2 overflow-x-auto pb-1", casoFixoValido && "hidden")}>
           {CASOS.map((c) => (
             <button
               key={c.id}
@@ -153,7 +164,8 @@ export function ClienteApp() {
               />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
-            {tab === "entrega" && <EntregaConsultivaTab caso={caso} />}
+            {tab === "entrega" &&
+              (modelo ? <EntregaModeloTab modelo={modelo} /> : <EntregaConsultivaTab caso={caso} />)}
             {tab === "relatorio" && <RelatorioVisualTab caso={caso} />}
             {tab === "fase02" && <RelatorioFase02 registro={registro} />}
             {tab === "radar" && <RadarTab caso={caso} />}

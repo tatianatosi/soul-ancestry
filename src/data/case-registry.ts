@@ -62,7 +62,13 @@ export const CONFIANCA_TOM: Record<Confianca, string> = {
 export type ProposalStatus = "Não enviada" | "Enviada" | "Aceita" | "Recusada";
 export type ContractStatus = "Não aplicável" | "Pendente" | "Enviado" | "Assinado";
 export type PaymentStatusCase = "Não aplicável" | "Pendente" | "Confirmado";
-export type PhaseStatus = "Não prevista" | "Prevista" | "Em produção" | "Em revisão" | "Entregue";
+export type PhaseStatus =
+  | "Não prevista"
+  | "Prevista"
+  | "Em produção"
+  | "Em revisão"
+  | "Diagnóstico inicial disponível"
+  | "Entregue";
 
 export type PersonRef = { nome: string; papel: string; confianca: Confianca; nota?: string };
 export type DocumentRef = {
@@ -111,6 +117,19 @@ export type CaseRecord = {
   casoJornadaId?: string;
   demo?: boolean;
   internalNotes?: string[];
+  /** Checklist interno do caso (além do go-live padrão). */
+  internalChecklist?: { item: string; feito: boolean }[];
+  /** Fonte do relatório — arquivo/versão/validação, preenchida pela equipe. */
+  reportSource?: {
+    arquivo: string;
+    data: string;
+    versao: string;
+    responsavel: string;
+    observacoes: string;
+    validacao: string;
+  };
+  /** Tipo do caso (ex.: "Modelo de entrega consultiva"). */
+  caseType?: string;
 };
 
 /** Checklist de go-live disparado quando o caso vai para "Proposta aceita". */
@@ -146,48 +165,75 @@ const checklistAte = (n: number) => GO_LIVE_CHECKLIST.map((item, i) => ({ item, 
 export const CASE_REGISTRY: CaseRecord[] = [
   {
     id: "CA-ITA-SOPHI-PICCOLI",
-    clientName: "Sophi Piccoli",
-    displayName: "Sophi",
+    clientName: "Sophia Piccoli Santiago",
+    displayName: "Sophia",
     country: "Itália",
     citizenshipPath: "Cidadania italiana por descendência — potencial em análise",
-    caseStatus: "Fase 01 entregue",
-    proposalStatus: "Enviada",
-    contractStatus: "Pendente",
-    paymentStatus: "Pendente",
-    phase1Status: "Entregue",
+    caseStatus: "Pesquisa em andamento",
+    caseType: "Modelo de entrega consultiva (com dados reais da linha Piccoli)",
+    proposalStatus: "Não enviada",
+    contractStatus: "Não aplicável",
+    paymentStatus: "Não aplicável",
+    phase1Status: "Diagnóstico inicial disponível",
     phase2Status: "Prevista",
     caseOwner: "Tatiana",
-    lastUpdate: "07/08/2026",
-    nextAction: "Acompanhar decisão sobre a Etapa 02 (estudo aprofundado)",
+    lastUpdate: "09/08/2026",
+    nextAction: "Preparar proposta de pesquisa documental completa na Itália",
     confidenceNote:
-      "Potencial de cidadania italiana em análise. Possível necessidade de avaliação de via judicial — sem conclusão jurídica nesta fase.",
-    sources: ["Briefing inicial da cliente", "Leitura preliminar da linha familiar (demonstração)"],
+      "Potencial de cidadania italiana em análise. Sem elegibilidade confirmada, sem documentação localizada e sem via (administrativa ou judicial) definida.",
+    sources: ["Relato familiar da linha Piccoli", "Diagnóstico inicial da Fase 01 (09/08/2026)"],
     people: [
-      { nome: "Sophi Piccoli", papel: "Requerente", confianca: "Confirmado" },
-      { nome: "Geração intermediária", papel: "Vínculo de transmissão", confianca: "Em análise" },
-      { nome: "Ascendente italiano", papel: "Origem da linha", confianca: "Hipótese de pesquisa", nota: "Localidade de origem a confirmar" },
+      { nome: "Sophia Piccoli Santiago", papel: "Requerente (n. 18/05/2006)", confianca: "Pendente de documento" },
+      { nome: "Juliana Picoli", papel: "Mãe — filha de Orlando e Sandra", confianca: "Pendente de documento" },
+      { nome: "Orlando Picoli", papel: "Avô — filho de João", confianca: "Pendente de documento", nota: "Ex-esposa: Sandra da Silva Lopes (Sandra Silva Picoli), separados" },
+      { nome: "João Picoli", papel: "Bisavô — filho de Ângelo, nascido no Brasil", confianca: "Pendente de documento" },
+      { nome: "Ângelo Piccoli", papel: "Trisavô — ascendente italiano (n. 30/08/1872, Noventa Vicentina/VI)", confianca: "Em análise" },
+      { nome: "Giovanni Piccoli", papel: "Pai de Ângelo (c. 1868, Istrana/TV)", confianca: "Hipótese de pesquisa" },
+      { nome: "Benedetta Bresolin", papel: "Mãe de Ângelo (c. 1866, Padernello, Paese/TV)", confianca: "Hipótese de pesquisa" },
+      { nome: "Isadora Picoli Santiago", papel: "Irmã — interesse futuro, fora do escopo atual", confianca: "Não aplicável" },
     ],
     documents: [
-      docLinha("Documento de identificação da requerente", "Pendente de documento", "Cliente", "Solicitar cópia legível"),
-      docLinha("Certidões brasileiras da cadeia familiar", "Pendente de documento", "Cartórios BR", "Preferência por inteiro teor"),
-      docLinha("Dados conhecidos do ascendente italiano", "Em análise", "Briefing", "Confirmar nome, data e comune"),
-      docLinha("Certidões italianas / localidade de origem", "Hipótese de pesquisa", "Comune / arquivo", "Depende da confirmação da origem"),
-      docLinha("Registros de casamento, óbito ou mudança de nome", "Pendente de documento", "Cartórios BR", "Relevantes para grafia e cadeia"),
-      docLinha("Provas complementares de vínculo e transmissão", "Não aplicável", "A definir", "Somente se exigidas pela via escolhida"),
+      docLinha("Certidão de nascimento italiana de Ângelo Piccoli", "Pendente de documento", "Comune de Noventa Vicentina", "Data e local vêm do relato familiar", "09/08/2026"),
+      docLinha("Registros italianos de Giovanni Piccoli e Benedetta Bresolin", "Hipótese de pesquisa", "Comuni de Istrana e Paese", "Anos aproximados — busca por faixa", "09/08/2026"),
+      docLinha("Certidões brasileiras da cadeia (João, Orlando, Juliana, Sophia)", "Pendente de documento", "Cartórios BR", "Preferência por inteiro teor", "09/08/2026"),
+      docLinha("Casamento Orlando Picoli x Sandra da Silva Lopes", "Em análise", "Cartório BR", "Alteração de nome pode gerar divergência", "09/08/2026"),
+      docLinha("Divergência de grafia Piccoli / Picoli", "Em análise", "Relato familiar", "Mapear grafia em cada certidão", "09/08/2026"),
+      docLinha("Naturalização brasileira do ascendente italiano", "Pendente de documento", "Arquivo Nacional", "Determinante para a transmissão", "09/08/2026"),
     ],
-    checklist: checklistAte(10),
+    checklist: checklistAte(4),
+    internalChecklist: [
+      { item: "Revisar dados da linha Piccoli", feito: false },
+      { item: "Inserir fontes ou anexos de cada dado informado", feito: false },
+      { item: "Verificar grafias Piccoli/Picoli", feito: false },
+      { item: "Definir serviço/SKU adequado para pesquisa documental", feito: false },
+      { item: "Definir valor e link de pagamento, se aprovado comercialmente", feito: false },
+      { item: "Enviar parecer e proposta para Sophia", feito: false },
+      { item: "Registrar resposta e próximo evento comercial", feito: false },
+    ],
+    reportSource: {
+      arquivo: "—",
+      data: "09/08/2026",
+      versao: "v0.1",
+      responsavel: "Tatiana",
+      observacoes: "Dados do relato familiar. Anexos e fontes documentais ainda não vinculados.",
+      validacao: "Diagnóstico inicial disponível",
+    },
     reports: [
-      { id: "REL-SOPHI-F1", tipo: "Fase 01 — Relatório Visual", titulo: "Diagnóstico de Ancestralidade e Potencial de Cidadania — Sophi Piccoli", status: "Entregue", versao: "v1.0", atualizadoEm: "07/08/2026", responsavel: "Tatiana" },
-      { id: "REL-SOPHI-F2", tipo: "Fase 02 — Relatório Completo", titulo: "Relatório Completo de Pesquisa Genealógica — Sophi Piccoli", status: "Prevista", versao: "—", atualizadoEm: "—", responsavel: "A definir" },
-      { id: "REL-SOPHI-TL", tipo: "Linha do tempo familiar", titulo: "Linha do tempo familiar (em construção)", status: "Em produção", versao: "v0.2", atualizadoEm: "07/08/2026", responsavel: "Tatiana" },
-      { id: "REL-SOPHI-DOC", tipo: "Documentos e registros", titulo: "Catálogo documental do caso", status: "Em produção", versao: "v0.1", atualizadoEm: "07/08/2026", responsavel: "Equipe" },
+      { id: "REL-SOPHI-F1", tipo: "Fase 01 — Relatório Visual", titulo: "Diagnóstico de Ancestralidade e Potencial de Cidadania Italiana — Sophia Piccoli Santiago", status: "Diagnóstico inicial disponível", versao: "v0.1", atualizadoEm: "09/08/2026", responsavel: "Tatiana" },
+      { id: "REL-SOPHI-F2", tipo: "Fase 02 — Relatório Completo", titulo: "Relatório Completo de Pesquisa Genealógica — disponível após contratação da pesquisa aprofundada", status: "Prevista", versao: "—", atualizadoEm: "—", responsavel: "A definir" },
+      { id: "REL-SOPHI-TL", tipo: "Linha do tempo familiar", titulo: "Linha do tempo familiar (em construção)", status: "Em produção", versao: "v0.1", atualizadoEm: "09/08/2026", responsavel: "Tatiana" },
+      { id: "REL-SOPHI-DOC", tipo: "Documentos e registros", titulo: "Catálogo documental do caso (aguardando anexos)", status: "Em produção", versao: "v0.1", atualizadoEm: "09/08/2026", responsavel: "Equipe" },
     ],
     proposalSummary:
-      "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana (SKU CA-CID-002). Valor e link de contratação configuráveis pela equipe.",
+      "Proposta a preparar: pesquisa documental completa na Itália. Produto, SKU, valor e link de pagamento a definir pela equipe após análise humana da Fase 01.",
     paymentUrl: "",
     casoJornadaId: "CA-ITA-SOPHI-PICCOLI",
     demo: true,
-    internalNotes: ["Caso-modelo da entrega consultiva em duas fases."],
+    internalNotes: [
+      "Caso-modelo reutilizável da entrega consultiva (Itália, Portugal, Espanha, Alemanha, Áustria e demais cidadanias).",
+      "Conteúdo editorial da Fase 01 em src/data/caso-sophia.ts.",
+      "Não fixar SKU automaticamente: a escolha depende da análise humana após a Fase 01.",
+    ],
   },
   {
     id: "CA-ITA-GIOVANNA-PRADE",
