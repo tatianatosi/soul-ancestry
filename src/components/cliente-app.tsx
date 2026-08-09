@@ -497,6 +497,36 @@ function HomeTab({
         <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
       </button>
 
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
+        <h3 className="font-serif text-xl text-navy">Suas duas fases de entrega</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <button
+            onClick={onOpenRelatorio}
+            className="rounded-xl border border-gold/50 bg-cream/60 p-4 text-left transition hover:bg-areia/70"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 01</div>
+            <div className="font-serif text-lg leading-snug text-navy">Relatório Visual</div>
+            <div className="mt-1 text-[12px] text-navy/70">Acompanhamento e decisão inicial.</div>
+            <div className="mt-2 inline-block rounded-full border border-sage/40 bg-sage/10 px-2 py-0.5 text-[10px] font-semibold text-sage">
+              Diagnóstico inicial disponível
+            </div>
+          </button>
+          <button
+            onClick={onOpenFase02}
+            className="rounded-xl border border-navy/20 bg-cream/60 p-4 text-left transition hover:bg-areia/70"
+          >
+            <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 02</div>
+            <div className="font-serif text-lg leading-snug text-navy">Relatório Completo de Pesquisa</div>
+            <div className="mt-1 text-[12px] text-navy/70">Entrega profunda, técnica e arquivável.</div>
+            <div className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-navy">
+              {fase02Status}
+            </div>
+          </button>
+        </div>
+      </section>
+
+
       <button
         onClick={onOpenRelatorio}
         className="flex w-full items-center gap-4 rounded-2xl border border-gold/40 bg-white p-5 text-left shadow-sm transition hover:bg-areia/60"
