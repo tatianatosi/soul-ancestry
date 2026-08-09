@@ -5,7 +5,10 @@ import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
 import { EntregaConsultivaTab } from "./entrega-consultiva";
+import { RelatorioFase02 } from "./relatorio-fase02";
+import { registroOuFallback } from "@/data/case-registry";
 import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+
 
 import {
   CASOS,
