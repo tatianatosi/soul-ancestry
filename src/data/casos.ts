@@ -1077,7 +1077,9 @@ export const CASOS: Caso[] = [
     iniciais: "SP",
     tipoProcesso: "Cidadania Italiana",
     pais: "Itália",
-    baseJuridica: "Itália / cidadania — potencial em análise (possível avaliação de via judicial)",
+    baseJuridica: "Itália / cidadania — potencial em análise (cenário de via judicial: trisavô, 4ª geração)",
+    viaSugerida: "judicial",
+
     responsavel: "Tatiana",
     status: "em-andamento",
     dataInicio: "07/08/2026",
