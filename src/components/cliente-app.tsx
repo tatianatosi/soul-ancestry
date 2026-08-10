@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { runCanvasAudit } from "@/lib/canvas-audit";
 
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as con
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
+  const navigate = useNavigate();
   const caso = useActiveCase();
   const ficha = toFichaPiloto(caso);
 
