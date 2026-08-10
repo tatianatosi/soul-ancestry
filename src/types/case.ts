@@ -113,6 +113,9 @@ export type CaseFamiliaDireta = {
   bisavo_paterna: PessoaBase;
   avo_materno: PessoaBase;
   avo_materna: PessoaBase;
+  /** Geração anterior ao bisavô paterno (exibida na árvore expandida). */
+  pai_de_alessandro?: PessoaBase;
+
 };
 
 export type CaseArvore = {
