@@ -324,7 +324,7 @@ export const caseDataGiovanna: CaseData = {
         "Checklist documental acionável",
         "Relatório de Situação Inicial",
       ],
-      modalidade_escolhida: "pendente",
+      modalidade_escolhida: "Aguardando escolha formal",
       valor_contratado: "",
       meio_pagamento: "",
       parcelas_ou_recorrencia: "",
