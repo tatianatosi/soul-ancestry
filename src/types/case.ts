@@ -218,4 +218,130 @@ export type CaseData = {
   procuracoes?: CaseProcuracoes;
   /** Contrato e formalização do caso (visão interna). */
   contrato?: CaseContrato;
+  /** Kit contratual: contrato-base, OS, despesas, autorizações e escopo. */
+  contratacao?: CaseContratacao;
 };
+
+/* ---------------- Kit contratual ---------------- */
+
+export type StatusContratoBase = "nao_enviado" | "aguardando_aceite" | "aceito" | "arquivado";
+
+export type StatusOrdemServico =
+  | "nao_criada"
+  | "rascunho"
+  | "aguardando_aceite"
+  | "aceita"
+  | "arquivada";
+
+export type StatusDespesas =
+  | "nao_aplicavel"
+  | "estimativa"
+  | "incluida_no_orcamento"
+  | "antecipada_pelo_clube"
+  | "aguardando_comprovante"
+  | "ajuste_pendente"
+  | "aprovada_pela_cliente"
+  | "reembolsada";
+
+export type PoliticaDespesas =
+  | "nao_definida"
+  | "incluida_no_orcamento"
+  | "antecipacao_parcial_pelo_clube"
+  | "antecipacao_total_pelo_clube"
+  | "pagamento_direto_pela_cliente";
+
+export type ContratoBase = {
+  versao: string;
+  status: StatusContratoBase;
+  data_aceite: string;
+  documento_disponivel: boolean;
+  /** Só é usado quando `documento_disponivel = true`. */
+  secure_url: string;
+};
+
+export type OrdemServico = {
+  status: StatusOrdemServico;
+  case_id: string;
+  produto_sku: string;
+  produto_nome: string;
+  escopo_resumo: string;
+  etapa_inicial: string;
+  entregaveis: string[];
+  modalidade_escolhida: string;
+  valor_contratado: string;
+  meio_pagamento: string;
+  parcelas_ou_recorrencia: string;
+  primeiro_vencimento: string;
+  proximo_vencimento: string;
+  documento_disponivel: boolean;
+  secure_url: string;
+};
+
+export type DespesaItem = {
+  item: string;
+  finalidade: string;
+  estimativa: string;
+  valor_real: string;
+  status: StatusDespesas;
+  aprovacao: string;
+  comprovante: boolean;
+  reembolso: string;
+};
+
+export type DespesasExternas = {
+  politica: PoliticaDespesas;
+  descricao_cliente: string;
+  status: StatusDespesas;
+  valor_estimado_total: string;
+  valor_real_confirmado: string;
+  saldo_ajuste: string;
+  requer_aprovacao_para_excedente: boolean;
+  itens: DespesaItem[];
+  comprovantes_disponiveis: boolean;
+  secure_url: string;
+};
+
+export type AutorizacaoPesquisa = {
+  finalidade: string;
+  orgao_destinatario: string;
+  pessoas_relacionadas: string[];
+  documentos_solicitados: string[];
+  teto_valor: string;
+  prazo: string;
+  status: StatusProcuracao;
+  aceite: string;
+};
+
+export type ProcuracaoDocumento = {
+  status: StatusProcuracao;
+  finalidade: string;
+  orgao_destinatario: string;
+  pessoas_vinculadas?: string[];
+  validade?: string;
+  observacoes?: string;
+  documento_disponivel: boolean;
+  secure_url: string;
+};
+
+export type AlteracaoEscopo = {
+  escopo_anterior: string;
+  alteracao: string;
+  motivo: string;
+  impacto_prazo: string;
+  impacto_financeiro: string;
+  aceite: string;
+  data: string;
+};
+
+export type CaseContratacao = {
+  contrato_base: ContratoBase;
+  ordem_servico: OrdemServico;
+  despesas_externas: DespesasExternas;
+  autorizacoes: {
+    pesquisa_especifica: AutorizacaoPesquisa[];
+    procuracao_brasileira: ProcuracaoDocumento;
+    procuracao_italiana: ProcuracaoDocumento;
+  };
+  alteracoes_escopo: AlteracaoEscopo[];
+};
+
