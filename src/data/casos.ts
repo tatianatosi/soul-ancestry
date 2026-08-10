@@ -619,7 +619,8 @@ export const CASOS: Caso[] = [
       { etapa: "complementos", data: "—", realizado: false },
       { etapa: "continuidade", data: "—", realizado: false },
     ],
-    checklistDocs: docs("Itália", 2, 2),
+    // Nenhuma procuração iniciada e nenhum documento oficial vinculado até a formalização.
+    checklistDocs: docs("Itália", 0, 0),
     checklistAppCliente: checklist(CHECKLIST_PADRAO, 1),
     proximosPassos: [
       {
