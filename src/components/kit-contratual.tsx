@@ -138,15 +138,66 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
   ];
 }
 
+/** Estado de documento por área (derivado de caseData). */
+function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumento {
+  if (!c) return "nao_criado";
+  switch (id) {
+    case "contrato":
+      return c.contrato_base.status === "aceito"
+        ? "aceito"
+        : c.contrato_base.status === "arquivado"
+          ? "arquivado"
+          : preenchido(c.contrato_base.versao)
+            ? "aguardando_revisao"
+            : "nao_criado";
+    case "os":
+      return c.ordem_servico.status === "aceita"
+        ? "aceito"
+        : c.ordem_servico.status === "arquivada"
+          ? "arquivado"
+          : c.ordem_servico.status === "aguardando_aceite"
+            ? "aguardando_aceite"
+            : c.ordem_servico.status === "rascunho"
+              ? "rascunho"
+              : "nao_criado";
+    case "despesas":
+      return c.despesas_externas.status === "nao_aplicavel" ? "indisponivel" : "rascunho";
+    case "autorizacao":
+      return c.autorizacoes.pesquisa_especifica.length > 0 ? "rascunho" : "nao_criado";
+    case "proc_br":
+      return c.autorizacoes.procuracao_brasileira.status === "nao_iniciada"
+        ? "nao_criado"
+        : "rascunho";
+    case "proc_it":
+      return c.autorizacoes.procuracao_italiana.status === "nao_iniciada"
+        ? "nao_criado"
+        : "rascunho";
+    case "escopo":
+      return c.alteracoes_escopo.length > 0 ? "rascunho" : "nao_criado";
+    default:
+      return "nao_criado";
+  }
+}
+
+type AreaId = "visao" | string;
+
 export function KitContratual() {
   const caso = activeCase;
   const c = caso.contratacao;
-  const [modelo, setModelo] = useState<ModeloId | null>(null);
+  const [area, setArea] = useState<AreaId>("visao");
   const itens = cards(
     c,
     texto(caso.governanca.responsavel_caso, FALLBACK.aguardando),
     texto(caso.geral.data_abertura, FALLBACK.aguardando),
   );
+
+  const navegacao: { id: AreaId; label: string }[] = [
+    { id: "visao", label: "Visão geral" },
+    ...itens.map((i) => ({ id: i.id, label: i.titulo })),
+    { id: "historico", label: "Histórico contratual" },
+  ];
+
+  const atual = itens.find((i) => i.id === area);
 
   return (
     <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
@@ -154,8 +205,8 @@ export function KitContratual() {
         <div>
           <h3 className="font-serif text-xl text-navy">Kit Contratual do Caso</h3>
           <p className="mt-1 text-[12px] text-navy/70">
-            Estrutura visual interna. Nenhum documento assinado, link público, upload ou cobrança
-            está habilitado nesta fase.
+            Estrutura visual interna e somente leitura. Nenhum documento assinado, link público,
+            upload, edição ou cobrança está habilitado nesta fase.
           </p>
         </div>
         <span className="rounded-full border border-plum/30 bg-plum/10 px-3 py-1 text-[11px] font-semibold text-plum">
@@ -163,49 +214,138 @@ export function KitContratual() {
         </span>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        {itens.map((k) => (
-          <div key={k.id} className="rounded-xl border border-border bg-cream/50 p-4">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <k.icone className="h-4 w-4 text-gold" />
-                <div className="font-semibold text-navy">{k.titulo}</div>
-              </div>
-              <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
-                {k.status}
-              </span>
-            </div>
-            <dl className="mt-3 space-y-1.5 text-[11px] text-navy/75">
-              {[
-                ["Versão", k.versao],
-                ["Criação", k.criacao],
-                ["Aceite", k.aceite],
-                ["Responsável", k.responsavel],
-              ].map(([l, v]) => (
-                <div key={l} className="flex justify-between gap-3">
-                  <dt className="text-navy/55">{l}</dt>
-                  <dd className="text-right font-medium text-navy">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-3 text-[11px] italic text-navy/70">Próxima ação: {k.proximaAcao}</p>
-            {k.modelo && (
-              <button
-                type="button"
-                onClick={() => setModelo(k.modelo!)}
-                className="mt-3 w-full rounded-lg border border-navy/20 bg-navy px-3 py-2 text-[12px] font-semibold text-cream transition hover:bg-navy-soft"
-              >
-                Prévia interna do modelo
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      <div className="mt-4 gap-5 lg:flex">
+        <nav className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2 lg:mx-0 lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
+          {navegacao.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => setArea(n.id)}
+              className={cn(
+                "whitespace-nowrap rounded-lg border px-3 py-2 text-left text-[12px] font-semibold transition lg:whitespace-normal",
+                area === n.id
+                  ? "border-gold bg-gold text-navy"
+                  : "border-border bg-cream/50 text-navy/75 hover:bg-cream",
+              )}
+            >
+              {n.label}
+            </button>
+          ))}
+        </nav>
 
-      {modelo && <ModeloModal id={modelo} onClose={() => setModelo(null)} />}
+        <div className="min-w-0 flex-1">
+          {area === "visao" && (
+            <div className="grid gap-4 xl:grid-cols-2">
+              {itens.map((k) => (
+                <button
+                  key={k.id}
+                  type="button"
+                  onClick={() => setArea(k.id)}
+                  className="rounded-xl border border-border bg-cream/50 p-4 text-left transition hover:border-gold/60"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <k.icone className="h-4 w-4 text-gold" />
+                      <div className="font-semibold text-navy">{k.titulo}</div>
+                    </div>
+                    <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
+                      {k.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[11px] text-navy/70">
+                    {mensagemDocumento(estadoDoCard(k.id, c))}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {area === "historico" && <HistoricoContratual />}
+
+          {atual && (
+            <div className="rounded-xl border border-border bg-cream/40 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <atual.icone className="h-4 w-4 text-gold" />
+                  <h4 className="font-serif text-lg text-navy">{atual.titulo}</h4>
+                </div>
+                <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
+                  {atual.status}
+                </span>
+              </div>
+
+              <dl className="mt-3 grid gap-1.5 text-[11px] text-navy/75 sm:grid-cols-2">
+                {[
+                  ["Versão", atual.versao],
+                  ["Criação", atual.criacao],
+                  ["Aceite", atual.aceite],
+                  ["Responsável", atual.responsavel],
+                  ["Estado do documento", DOCUMENTO_ESTADO_LABEL[estadoDoCard(atual.id, c)]],
+                ].map(([l, v]) => (
+                  <div key={l} className="flex justify-between gap-3 border-b border-border py-1">
+                    <dt className="text-navy/55">{l}</dt>
+                    <dd className="text-right font-medium text-navy">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <p className="mt-3 text-[11px] italic text-navy/70">
+                Próxima ação: {atual.proximaAcao}
+              </p>
+              <p className="mt-2 rounded-lg border border-gold/40 bg-gold/10 p-2.5 text-[11px] text-navy">
+                {mensagemDocumento(estadoDoCard(atual.id, c))}
+              </p>
+
+              {atual.modelo && (
+                <div className="mt-4 rounded-xl border border-border bg-white p-4">
+                  <div className="text-[11px] uppercase tracking-widest text-terracotta">
+                    Prévia interna estática · somente leitura
+                  </div>
+                  <ModeloCorpo id={atual.modelo} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
+
+function HistoricoContratual() {
+  const caso = activeCase;
+  const etapas = caso.contratacao?.timeline ?? [];
+  return (
+    <div className="rounded-xl border border-border bg-cream/40 p-4">
+      <h4 className="font-serif text-lg text-navy">Histórico contratual</h4>
+      {etapas.length === 0 ? (
+        <p className="mt-2 text-[12px] text-navy/70">
+          Nenhum movimento contratual registrado até o momento.
+        </p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {etapas.map((e) => (
+            <li
+              key={e.id}
+              className="rounded-lg border border-border bg-white p-3 text-[12px] text-navy/80"
+            >
+              <div className="flex flex-wrap justify-between gap-2">
+                <span className="font-semibold text-navy">{e.titulo}</span>
+                <span className="text-navy/60">{STATUS_ETAPA_LABEL[e.status]}</span>
+              </div>
+              {preenchido(e.data) && <div className="mt-1 text-navy/55">{e.data}</div>}
+              <div className="mt-1">{e.descricao}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-3 text-[11px] text-navy/60">
+        Registros de aceite e assinatura só serão exibidos quando existirem de fato.
+      </p>
+    </div>
+  );
+}
+
 
 /* ---------- prévias internas dos anexos (somente leitura) ---------- */
 
