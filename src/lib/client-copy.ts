@@ -18,6 +18,9 @@ const GLOSSARIO: [RegExp, string][] = [
   [/§\s?58c\s?(StbG)?/gi, "via de reparação histórica"],
   [/\bStbG\b/g, "lei de nacionalidade austríaca"],
   [/\bLei n[ºo°]?\s?91\/1992\b/gi, "lei italiana de cidadania"],
+  // Bases externas de pesquisa nunca são citadas para a cliente.
+  [/\bRefer[êe]ncias?\s+FamilySearch\b/gi, "Referência genealógica"],
+  [/\bFamilySearch\b/gi, "base genealógica de pesquisa"],
 ];
 
 const VAZIOS = new Set(["", "—", "-", "undefined", "null", "n/a", "na", "todo", "placeholder"]);
