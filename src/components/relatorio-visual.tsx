@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Caso } from "@/data/casos";
-import { relatorioByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+import { relatorioByCaso, FASE1_STATUS_LABEL } from "@/data/relatorio-visual";
+import { limparCopy, limparLista } from "@/lib/client-copy";
+import { runPhase1ContentAudit } from "@/lib/phase1-content-audit";
 import { BrandLogo } from "./brand";
 import {
   Compass,
@@ -63,12 +65,34 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
   const r = relatorioByCaso(caso);
   const [modal, setModal] = useState(false);
 
-  const resumo = [
-    ["Pessoa-foco", r.pessoaFoco],
-    ["Ancestral mais antigo localizado", r.ancestralMaisAntigo],
-    ["Gerações identificadas", r.numeroGeracoes],
-    ["Localidades principais", r.localidadesPrincipais],
-  ] as const;
+  const linhaPrincipal = r.linhaPrincipal
+    .map((g) => ({ nome: limparCopy(g.nome), eventos: limparCopy(g.eventos) }))
+    .filter((g) => g.nome);
+  const documentos = r.documentos
+    .map((d) => ({
+      pessoa: limparCopy(d.pessoa),
+      tipo: limparCopy(d.tipo),
+      local: limparCopy(d.local),
+      observacao: limparCopy(d.observacao),
+    }))
+    .filter((d) => d.tipo);
+  const lacunas = limparLista(r.lacunas);
+  const pontosConfirmar = limparLista(r.pontosConfirmar);
+  const possibilidades = limparLista(r.proximaEtapa.possibilidades);
+
+  const resumo = (
+    [
+      ["Pessoa acompanhada", limparCopy(r.pessoaFoco)],
+      ["Ancestral mais antigo identificado", limparCopy(r.ancestralMaisAntigo)],
+      ["Gerações mapeadas até aqui", limparCopy(r.numeroGeracoes)],
+      ["Localidades principais", limparCopy(r.localidadesPrincipais)],
+    ] as [string, string][]
+  ).filter(([, v]) => v);
+
+  useEffect(() => {
+    const t = setTimeout(() => runPhase1ContentAudit(), 300);
+    return () => clearTimeout(t);
+  }, [caso.id]);
 
   return (
     <div className="space-y-5 p-5 print:p-0" data-tab="relatorio" data-print-area>
@@ -78,7 +102,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
         <div>
           <div className="font-serif text-lg italic text-navy">Clube Ancestral</div>
           <div className="text-[11px] uppercase tracking-widest text-navy/60">
-            Relatório Visual · {caso.id}
+            Diagnóstico inicial
           </div>
         </div>
       </div>
@@ -86,13 +110,15 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-[11px] uppercase tracking-widest text-navy/60">
-            Projeto Essencial · {caso.id}
+            Primeira etapa da sua jornada
           </div>
-          <h2 className="font-serif text-2xl text-navy lg:text-3xl">Relatório da sua família</h2>
+          <h2 className="font-serif text-2xl text-navy lg:text-3xl">Diagnóstico inicial</h2>
           <p className="mt-1 text-[13px] italic text-navy/70">
-            Uma síntese viva da pesquisa base — atualizada a cada avanço da jornada.
+            Organizamos os primeiros sinais da sua história familiar e os próximos passos
+            possíveis.
           </p>
         </div>
+
         <button
           onClick={() => window.print()}
           className="inline-flex items-center gap-2 rounded-full border border-navy/25 px-3.5 py-2 text-[12px] font-semibold text-navy transition hover:bg-navy hover:text-cream print:hidden"
@@ -119,7 +145,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-widest text-terracotta">
-              Status do relatório
+              Status desta etapa
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span
@@ -129,157 +155,196 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                 )}
               >
                 <BadgeCheck className="h-3 w-3" />
-                {STATUS_LABEL[r.meta.status]}
+                {FASE1_STATUS_LABEL[r.meta.status]}
               </span>
-              <span className="text-[11px] text-navy/60">{r.meta.versao}</span>
             </div>
           </div>
         </div>
         <div className="mt-3 border-t border-navy/10 pt-2.5 text-[11px] text-navy/60">
-          Acompanhamento: {r.meta.responsavel} · Próxima revisão prevista: {r.meta.proximaRevisao}
+          Acompanhamento: {r.meta.responsavel} · Próxima revisão: {r.meta.proximaRevisao}
         </div>
       </section>
+
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-6">
         {/* Card 1 */}
         <CardShell
           icon={Compass}
           eyebrow="Visão geral"
-          titulo="O que esta etapa revelou"
+          titulo="O que já identificamos"
           className="md:col-span-2 xl:col-span-3"
         >
           <p className="text-[13px] leading-relaxed text-navy/80">
-            A pesquisa base permitiu organizar os primeiros vínculos documentados da família{" "}
-            <strong className="text-navy">{r.sobrenomeFamilia}</strong>, identificando a linha
-            principal inicial e os registros mais importantes já localizados.
+            Esta primeira leitura organizou os sinais já reunidos sobre a família{" "}
+            <strong className="text-navy">{r.sobrenomeFamilia}</strong>: as pessoas conectadas até
+            aqui e as referências documentais disponíveis para seguir pesquisando.
           </p>
-          <div className="mt-4 rounded-xl bg-areia p-4">
-            <div className="mb-2 text-[11px] uppercase tracking-widest text-navy/70">
-              Resumo rápido
+          {resumo.length > 0 && (
+            <div className="mt-4 rounded-xl bg-areia p-4">
+              <div className="mb-2 text-[11px] uppercase tracking-widest text-navy/70">
+                Resumo rápido
+              </div>
+              <dl className="space-y-2">
+                {resumo.map(([k, v]) => (
+                  <div
+                    key={k}
+                    className="flex items-start justify-between gap-3 border-b border-navy/10 pb-2 last:border-0 last:pb-0"
+                  >
+                    <dt className="text-[12px] text-navy/70">{k}</dt>
+                    <dd className="text-right text-[13px] font-medium text-navy">{v}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
-            <dl className="space-y-2">
-              {resumo.map(([k, v]) => (
-                <div
-                  key={k}
-                  className="flex items-start justify-between gap-3 border-b border-navy/10 pb-2 last:border-0 last:pb-0"
-                >
-                  <dt className="text-[12px] text-navy/70">{k}</dt>
-                  <dd className="text-right text-[13px] font-medium text-navy">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          )}
         </CardShell>
 
         {/* Card 2 */}
-        <CardShell
-          icon={Users}
-          eyebrow="Linha principal"
-          titulo="Linha familiar identificada"
-          className="xl:col-span-3"
-        >
-          <ol className="relative space-y-4 border-l-2 border-gold/40 pl-5">
-            {r.linhaPrincipal.map((g, i) => (
-              <li key={i} className="relative">
-                <span className="absolute -left-[27px] top-1 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-gold bg-cream" />
-                <div className="text-[13px] font-semibold text-navy">{g.nome}</div>
-                <div className="text-[12px] text-navy/70">{g.eventos}</div>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-[12px] italic text-navy/60">
-            Esta visualização mostra a espinha dorsal inicial da família, sem avançar ainda para
-            todos os ramos e contextos possíveis nesta etapa.
-          </p>
-        </CardShell>
+        {linhaPrincipal.length > 0 && (
+          <CardShell
+            icon={Users}
+            eyebrow="Pessoas conectadas"
+            titulo="Linha familiar identificada"
+            className="xl:col-span-3"
+          >
+            <ol className="relative space-y-4 border-l-2 border-gold/40 pl-5">
+              {linhaPrincipal.map((g, i) => (
+                <li key={i} className="relative">
+                  <span className="absolute -left-[27px] top-1 grid h-3.5 w-3.5 place-items-center rounded-full border-2 border-gold bg-cream" />
+                  <div className="text-[13px] font-semibold text-navy">{g.nome}</div>
+                  {g.eventos && <div className="text-[12px] text-navy/70">{g.eventos}</div>}
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 text-[12px] italic text-navy/60">
+              Esta visualização mostra a espinha dorsal inicial da família, sem avançar ainda para
+              todos os ramos e contextos possíveis nesta etapa.
+            </p>
+          </CardShell>
+        )}
 
         {/* Card 3 */}
         <CardShell
           icon={FileText}
-          eyebrow="Documentos"
-          titulo="Documentos essenciais encontrados"
+          eyebrow="Referências documentais"
+          titulo="Registros já reunidos"
           className="xl:col-span-3"
         >
-          <div className="space-y-2.5">
-            {r.documentos.map((d, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border border-l-4 border-l-gold bg-white p-3.5"
-              >
-                <div className="text-[13px] font-semibold text-navy">{d.pessoa}</div>
-                <div className="text-[12px] text-navy/80">{d.tipo}</div>
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-navy/60">
-                  <MapPin className="h-3 w-3 shrink-0 text-sage" />
-                  <span className="truncate">{d.local}</span>
-                </div>
-                <div className="mt-1 text-[11px] uppercase tracking-widest text-terracotta">
-                  Valor genealógico
-                </div>
-                <div className="text-[12px] text-navy/70">{d.observacao}</div>
+          {documentos.length > 0 ? (
+            <>
+              <div className="space-y-2.5">
+                {documentos.map((d, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-border border-l-4 border-l-gold bg-white p-3.5"
+                  >
+                    {d.pessoa && (
+                      <div className="text-[13px] font-semibold text-navy">{d.pessoa}</div>
+                    )}
+                    <div className="text-[12px] text-navy/80">{d.tipo}</div>
+                    {d.local && (
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-navy/60">
+                        <MapPin className="h-3 w-3 shrink-0 text-sage" />
+                        <span className="truncate">{d.local}</span>
+                      </div>
+                    )}
+                    {d.observacao && (
+                      <>
+                        <div className="mt-1 text-[11px] uppercase tracking-widest text-terracotta">
+                          Leitura da consultoria
+                        </div>
+                        <div className="text-[12px] text-navy/70">{d.observacao}</div>
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="mt-4 rounded-xl bg-areia px-4 py-3 text-[12px] text-navy">
-            Quantidade total de registros localizados: <strong>{r.quantidadeRegistros}</strong>
-          </div>
+              {r.quantidadeRegistros && (
+                <div className="mt-4 rounded-xl bg-areia px-4 py-3 text-[12px] text-navy">
+                  Registros reunidos até aqui: <strong>{r.quantidadeRegistros}</strong>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[13px] leading-relaxed text-navy/70">
+              A busca por registros está em andamento. Assim que os primeiros documentos forem
+              reunidos, eles aparecem aqui com a leitura da consultoria.
+            </p>
+          )}
         </CardShell>
 
         {/* Card 4 */}
         <CardShell
           icon={HelpCircle}
-          eyebrow="O que ainda falta"
-          titulo="Pontos em aberto"
+          eyebrow="Pendências"
+          titulo="O que ainda precisamos confirmar"
           className="xl:col-span-3"
         >
-          <ul className="space-y-2">
-            {r.lacunas.map((l, i) => (
-              <li key={i} className="flex items-start gap-2 text-[13px] text-navy/80">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta" />
-                <span>{l}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 rounded-xl bg-areia p-4">
-            <div className="mb-2 text-[11px] uppercase tracking-widest text-navy/70">
-              Pontos que ainda pedem confirmação
-            </div>
-            <ul className="space-y-2">
-              {r.pontosConfirmar.map((p, i) => (
-                <li key={i} className="flex items-start gap-2 text-[12px] text-navy/80">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {lacunas.length > 0 || pontosConfirmar.length > 0 ? (
+            <>
+              {lacunas.length > 0 && (
+                <ul className="space-y-2">
+                  {lacunas.map((l, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[13px] text-navy/80">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta" />
+                      <span>{l}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {pontosConfirmar.length > 0 && (
+                <div className="mt-4 rounded-xl bg-areia p-4">
+                  <div className="mb-2 text-[11px] uppercase tracking-widest text-navy/70">
+                    Em conferência
+                  </div>
+                  <ul className="space-y-2">
+                    {pontosConfirmar.map((p, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[12px] text-navy/80">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sage" />
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[13px] leading-relaxed text-navy/70">
+              No momento não há pendências registradas. Novos pontos a confirmar aparecem aqui
+              conforme a pesquisa avança.
+            </p>
+          )}
           <p className="mt-4 text-[12px] italic text-navy/60">
-            Nesta fase, o foco é clareza e base documental, e não o esgotamento completo da
-            história familiar.
+            Nesta etapa o foco é clareza e organização: cada ponto em aberto é tratado com calma,
+            sem antecipar conclusões sobre o caminho da família.
           </p>
         </CardShell>
+
 
         {/* Card 5 — próxima etapa */}
         <section className="break-inside-avoid rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg md:col-span-2 xl:col-span-6 xl:p-7">
           <div className="grid gap-5 xl:grid-cols-[1.15fr_1fr] xl:items-center">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-gold/80">Continuidade</div>
-              <h3 className="font-serif text-xl italic xl:text-2xl">{r.proximaEtapa.titulo}</h3>
+              <h3 className="font-serif text-xl italic xl:text-2xl">
+                {limparCopy(r.proximaEtapa.titulo) || "Próximo passo recomendado"}
+              </h3>
               <p className="mt-3 text-[13px] leading-relaxed text-cream/85">
-                {r.proximaEtapa.resumo}
+                {limparCopy(r.proximaEtapa.resumo)}
               </p>
               <p className="mt-3 text-[12px] italic text-cream/70">
-                Nossa consultoria acompanha cada família de perto: a proposta é desenhada a partir
-                do que este relatório revelou — no seu tempo, sem pressa e sem etapas
+                O passo seguinte é uma análise de estratégia e documentação, desenhada a partir do
+                que esta primeira leitura mostrou — no seu tempo, sem pressa e sem etapas
                 desnecessárias.
               </p>
             </div>
             <div>
               <div className="rounded-xl bg-navy-soft/60 p-4">
                 <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">
-                  Possibilidades de aprofundamento
+                  O que pode ser aprofundado
                 </div>
                 <ul className="space-y-1.5">
-                  {r.proximaEtapa.possibilidades.map((p) => (
+                  {possibilidades.map((p) => (
                     <li key={p} className="flex items-start gap-2 text-[13px] text-cream/85">
                       <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" />
                       <span>{p}</span>
@@ -287,6 +352,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                   ))}
                 </ul>
               </div>
+
               <button
                 onClick={() => setModal(true)}
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-4 py-3 text-[13px] font-semibold text-navy transition hover:bg-gold/90 print:hidden"
@@ -344,10 +410,10 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
               ))}
             </ul>
             <div className="mt-4 rounded-xl bg-areia p-3 text-[12px] text-navy/75">
-              Espaço reservado para a integração futura com o <strong>Ancestral Blueprint</strong>{" "}
-              (camada de propostas) — a proposta será gerada automaticamente a partir deste
-              relatório.
+              Você recebe o escopo antes de decidir qualquer continuidade — sem compromisso e sem
+              promessa de resultado.
             </div>
+
             <button
               onClick={() => setModal(false)}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-[13px] font-semibold text-cream transition hover:bg-navy-soft"
