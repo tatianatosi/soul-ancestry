@@ -410,10 +410,10 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
               ))}
             </ul>
             <div className="mt-4 rounded-xl bg-areia p-3 text-[12px] text-navy/75">
-              Espaço reservado para a integração futura com o <strong>Ancestral Blueprint</strong>{" "}
-              (camada de propostas) — a proposta será gerada automaticamente a partir deste
-              relatório.
+              Você recebe o escopo antes de decidir qualquer continuidade — sem compromisso e sem
+              promessa de resultado.
             </div>
+
             <button
               onClick={() => setModal(false)}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-navy px-4 py-2.5 text-[13px] font-semibold text-cream transition hover:bg-navy-soft"
