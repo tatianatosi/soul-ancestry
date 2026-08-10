@@ -650,7 +650,7 @@ function JornadaTab({ caso }: { caso: Caso }) {
                 />
                 <div data-audit="jornada-card" className="rounded-xl border border-navy/30 bg-areia p-3">
                   <div className="font-serif text-xl text-navy">{e.ano}</div>
-                  <div className="text-[12px] text-navy/70">{e.texto}</div>
+                  <div className="text-[12px] text-navy/70">{limparCopy(e.texto)}</div>
                   {e.uniao && (
                     <span className="mt-1 inline-block rounded-full bg-terracotta/10 px-2 py-0.5 text-[11px] font-medium text-terracotta">
                       União de Ramos
@@ -1132,8 +1132,8 @@ function BiblioTab({
                   {x.data}
                 </span>
               </div>
-              <div className="font-serif text-lg leading-snug text-navy">{x.titulo}</div>
-              <div className="mt-1.5 text-[12px] text-navy/70">{x.desc}</div>
+              <div className="font-serif text-lg leading-snug text-navy">{limparCopy(x.titulo)}</div>
+              <div className="mt-1.5 text-[12px] text-navy/70">{limparCopy(x.desc)}</div>
               <button className="mt-3 inline-flex items-center gap-1 rounded-full border border-navy/20 px-3 py-1 text-[11px] font-semibold text-navy transition hover:bg-navy hover:text-cream">
                 Ver detalhes <ChevronRight className="h-3 w-3" />
               </button>
