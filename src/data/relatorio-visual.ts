@@ -11,6 +11,7 @@
  */
 
 import type { Caso } from "./casos";
+import { limparCopy, limparLista, primeiroOuMensagem } from "@/lib/client-copy";
 
 /** Metadados do relatório — controlam o microbloco "ativo vivo" no topo. */
 export type RelatorioMeta = {
