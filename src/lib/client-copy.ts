@@ -11,7 +11,13 @@ const PADROES_TECNICOS: RegExp[] = [
   /\bCA-[A-Z0-9]+(?:-[A-Z0-9]+)+\b/g, // IDs de caso e SKUs
   /\b(?:PACOTE|NAT)-[A-Z0-9]+(?:-[A-Z0-9]+)*\b/g, // SKUs de pacote
   /\bT-\d{3}\b/g, // códigos internos de checklist
-  /§\s?\d+[a-z]?\s?StbG/gi, // referência legal técnica
+];
+
+/** Traduções de jargão jurídico para linguagem do cliente. */
+const GLOSSARIO: [RegExp, string][] = [
+  [/§\s?58c\s?(StbG)?/gi, "via de reparação histórica"],
+  [/\bStbG\b/g, "lei de nacionalidade austríaca"],
+  [/\bLei n[ºo°]?\s?91\/1992\b/gi, "lei italiana de cidadania"],
 ];
 
 const VAZIOS = new Set(["", "—", "-", "undefined", "null", "n/a", "na", "todo", "placeholder"]);
@@ -20,6 +26,7 @@ const VAZIOS = new Set(["", "—", "-", "undefined", "null", "n/a", "na", "todo"
 export function limparCopy(valor: unknown): string {
   if (typeof valor !== "string") return "";
   let s = valor;
+  for (const [re, texto] of GLOSSARIO) s = s.replace(re, texto);
   for (const re of PADROES_TECNICOS) s = s.replace(re, "");
   s = s
     .replace(/\(\s*[.,;·-]*\s*\)/g, "") // parênteses que ficaram vazios
