@@ -391,33 +391,22 @@ const TITULOS: Record<ModeloId, string> = {
   alteracao_escopo: "Termo de Alteração de Escopo — prévia interna",
 };
 
-function ModeloModal({ id, onClose }: { id: ModeloId; onClose: () => void }) {
+function ModeloCorpo({ id }: { id: ModeloId }) {
   const caso = activeCase;
   const c = caso.contratacao;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-navy/60 p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gold/40 bg-white p-6 shadow-xl">
+    <div>
+      <div>
         <div className="flex items-start justify-between gap-4">
-          <h4 className="font-serif text-xl text-navy">{TITULOS[id]}</h4>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar prévia"
-            className="rounded-full border border-border p-1.5 text-navy/70 hover:bg-cream"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <h4 className="font-serif text-lg text-navy">{TITULOS[id]}</h4>
         </div>
         <p className="mt-1 text-[11px] uppercase tracking-widest text-terracotta">
           Rascunho interno · não vinculado a documento assinado
         </p>
 
         <div className="mt-4">
+
           {id === "ordem_servico" && (
             <>
               <Linha l="Código do caso" v={texto(c?.ordem_servico.case_id, caso.geral.case_id)} />
