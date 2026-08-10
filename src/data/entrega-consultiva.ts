@@ -411,8 +411,11 @@ export const CASO_MODELO: EntregaConsultiva = {
 
 /** Gera a entrega consultiva a partir de um caso do Canvas (template reaproveitável). */
 export function entregaByCaso(caso: Caso): EntregaConsultiva {
-  const via: ViaProcesso = caso.viaSugerida ?? regraPais(caso.pais).viaPadrao;
+  /** Oferta: só muda quando o caso tem via definida; sem isso mantém a oferta padrão do país. */
+  const via: ViaProcesso = caso.viaSugerida ?? "a-definir";
   const regra = regraPais(caso.pais, via);
+  const viaExibida: ViaProcesso = caso.viaSugerida ?? regra.viaPadrao;
+
   const linha = caso.linhaAncestral.slice(0, 4).map((l) => `${l.texto} · ${l.ano}`);
   const criticos = caso.checklistDocs.filter((d) => d.status === "pendente").slice(0, 3);
   const tem = caso.checklistDocs.filter((d) => d.status === "ok").slice(0, 2);
