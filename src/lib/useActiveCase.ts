@@ -1,4 +1,4 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { casoPorId } from "@/data/case-directory";
 import type { CaseData } from "@/types/case";
 
@@ -7,9 +7,8 @@ import type { CaseData } from "@/types/case";
  * Sem parâmetro, cai no caso padrão do diretório.
  */
 export function useActiveCase(): CaseData {
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
-  const id = typeof search?.["caso"] === "string" ? (search["caso"] as string) : undefined;
-  return casoPorId(id);
+  const search = useSearch({ strict: false }) as { caso?: string };
+  return casoPorId(search?.caso);
 }
 
 export function useActiveCaseId(): string {
