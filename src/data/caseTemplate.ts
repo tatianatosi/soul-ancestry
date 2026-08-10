@@ -262,6 +262,7 @@ export const caseTemplate: CaseData = {
       },
     },
     alteracoes_escopo: [],
+    timeline: [],
   },
 };
 

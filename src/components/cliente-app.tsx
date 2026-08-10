@@ -44,6 +44,8 @@ import {
   rotaLabel,
   texto,
 } from "@/lib/evidence";
+import { documentoVisivelParaCliente, statusClienteAmigavel } from "@/lib/visibilidade";
+import { TimelineContratualCliente } from "./timeline-contratual";
 import type { CaseData, PessoaBase } from "@/types/case";
 
 import {
@@ -1342,6 +1344,7 @@ function ContaScreen({ caso }: { caso: CaseData }) {
       </section>
 
       <ContaContrato caso={caso} />
+      <TimelineContratualCliente caso={caso} />
       <ContaProduto caso={caso} />
       <ContaPagamentos caso={caso} />
       <ContaDespesas caso={caso} />
@@ -1440,16 +1443,16 @@ function ContaContrato({ caso }: { caso: CaseData }) {
       <LinhaConta l="Código do caso" v={texto(caso.geral.case_id, FALLBACK.atualizacao)} />
       <LinhaConta
         l="Status do contrato"
-        v={c ? CONTRATO_BASE_LABEL[c.contrato_base.status] : FALLBACK.aguardando}
+        v={statusClienteAmigavel(c?.contrato_base.status)}
       />
       <LinhaConta
         l="Ordem de Serviço"
-        v={c ? ORDEM_SERVICO_LABEL[c.ordem_servico.status] : FALLBACK.aguardando}
+        v={statusClienteAmigavel(c?.ordem_servico.status)}
       />
       {preenchido(c?.contrato_base.data_aceite) && (
         <LinhaConta l="Data de aceite" v={c!.contrato_base.data_aceite} />
       )}
-      {documentoVisivel(c?.contrato_base) ? (
+      {documentoVisivelParaCliente(c?.contrato_base) ? (
         <a
           href={c!.contrato_base.secure_url}
           className="mt-1 block rounded-lg bg-navy px-4 py-2.5 text-center text-[13px] font-semibold text-cream"
