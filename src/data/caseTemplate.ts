@@ -36,8 +36,20 @@ export const caseTemplate: CaseData = {
     telefone: "",
   },
   familia_direta: {
-    pai: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
-    mae: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+    pai: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "pendente_validacao",
+    },
+    mae: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "pendente_validacao",
+    },
     avo_paterno: {
       nome: "",
       nascimento: "",
@@ -79,8 +91,20 @@ export const caseTemplate: CaseData = {
       familysearch_url: "",
       status_evidencia: "pendente_validacao",
     },
-    avo_materno: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
-    avo_materna: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+    avo_materno: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "pendente_validacao",
+    },
+    avo_materna: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "pendente_validacao",
+    },
   },
   arvore: {
     linha_prioritaria: "",
@@ -145,8 +169,20 @@ export const caseTemplate: CaseData = {
     texto_upgrade: "",
   },
   procuracoes: {
-    portugues: { status: "nao_iniciada", finalidade: "", data_assinatura: "", data_envio: "", observacao: "" },
-    italiano: { status: "nao_iniciada", finalidade: "", data_assinatura: "", data_envio: "", observacao: "" },
+    portugues: {
+      status: "nao_iniciada",
+      finalidade: "",
+      data_assinatura: "",
+      data_envio: "",
+      observacao: "",
+    },
+    italiano: {
+      status: "nao_iniciada",
+      finalidade: "",
+      data_assinatura: "",
+      data_envio: "",
+      observacao: "",
+    },
   },
   contrato: {
     produto_sku: "",

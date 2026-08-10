@@ -129,7 +129,10 @@ function modelo(caso: Caso): RelatorioVisual {
     },
     meta: {
       etapaAtual: "Diagnóstico inicial · primeira leitura da história familiar",
-      ultimaAtualizacao: primeiroOuMensagem([ultimoRegistro, caso.dataInicio], "Atualizado nesta semana"),
+      ultimaAtualizacao: primeiroOuMensagem(
+        [ultimoRegistro, caso.dataInicio],
+        "Atualizado nesta semana",
+      ),
       status: "em_elaboracao",
       versao: "v1",
       responsavel: "Consultoria Clube Ancestral",
@@ -142,13 +145,13 @@ function modelo(caso: Caso): RelatorioVisual {
         data: primeiroOuMensagem([ultimoRegistro, caso.dataInicio], "Em andamento"),
         etapa: "Diagnóstico inicial",
         status: "em_elaboracao",
-        descricao: "Primeira leitura da história familiar: linha principal, registros e pontos em aberto.",
+        descricao:
+          "Primeira leitura da história familiar: linha principal, registros e pontos em aberto.",
         abreRelatorio: true,
       },
     ],
   };
 }
-
 
 /** Ajustes editoriais por caso — apenas dados confirmados pela consultoria. */
 export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
@@ -161,7 +164,10 @@ export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
     linhaPrincipal: [
       { nome: "Paolo Prade", eventos: "Geração anterior — em validação documental" },
       { nome: "Alessandro Prade", eventos: "1874 — 1926" },
-      { nome: "Erwin Prade", eventos: "1917 — 1969 · também registrado como Ervino Prade e Erwin Prada" },
+      {
+        nome: "Erwin Prade",
+        eventos: "1917 — 1969 · também registrado como Ervino Prade e Erwin Prada",
+      },
       { nome: "Péricles Luiz Medeiros Prade", eventos: "Em atualização documental" },
       { nome: "Giovanna da Veiga Prade", eventos: "Pessoa-foco do processo" },
     ],
@@ -211,13 +217,13 @@ export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
         data: "10 de agosto de 2026",
         etapa: "Diagnóstico inicial",
         status: "em_elaboracao",
-        descricao: "Primeira leitura da linha paterna Prade: pessoas conectadas, referências e pontos em aberto.",
+        descricao:
+          "Primeira leitura da linha paterna Prade: pessoas conectadas, referências e pontos em aberto.",
         abreRelatorio: true,
       },
     ],
   },
 };
-
 
 export function relatorioByCaso(caso: Caso): RelatorioVisual {
   return { ...modelo(caso), ...(RELATORIOS[caso.id] ?? {}) };

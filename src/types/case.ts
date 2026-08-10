@@ -77,7 +77,6 @@ export type CaseContrato = {
   checklist: ItemChecklist[];
 };
 
-
 export type CaseGeral = {
   case_id: string;
   case_nome: string;
@@ -115,7 +114,6 @@ export type CaseFamiliaDireta = {
   avo_materna: PessoaBase;
   /** Geração anterior ao bisavô paterno (exibida na árvore expandida). */
   pai_de_alessandro?: PessoaBase;
-
 };
 
 export type CaseArvore = {
@@ -220,5 +218,4 @@ export type CaseData = {
   procuracoes?: CaseProcuracoes;
   /** Contrato e formalização do caso (visão interna). */
   contrato?: CaseContrato;
-
 };

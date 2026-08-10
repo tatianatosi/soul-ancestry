@@ -44,7 +44,8 @@ export const caseDataGiovanna: CaseData = {
     avo_paterno: {
       nome: "Erwin Prade",
       nascimento: "16 de agosto de 1917",
-      batismo: "19 de agosto de 1917 — Paróquia de São Francisco de Assis, Rodeio, Santa Catarina, Brasil",
+      batismo:
+        "19 de agosto de 1917 — Paróquia de São Francisco de Assis, Rodeio, Santa Catarina, Brasil",
       falecimento: "11 de abril de 1969",
       sepultamento: "Cemitério Luterano Centro, Timbó, Santa Catarina, Brasil",
       local_relevante: "Rodeio, Santa Catarina, Brasil",
@@ -104,7 +105,8 @@ export const caseDataGiovanna: CaseData = {
       familysearch_id: "",
       familysearch_url: "",
       status_evidencia: "relato_familiar",
-      observacao: "Informação atual a validar por documento oficial ou fonte genealógica compatível.",
+      observacao:
+        "Informação atual a validar por documento oficial ou fonte genealógica compatível.",
     },
   },
   arvore: {
@@ -258,7 +260,8 @@ export const caseDataGiovanna: CaseData = {
       finalidade: "Consulta documental e comunicação com órgãos italianos, quando aplicável",
       data_assinatura: "",
       data_envio: "",
-      observacao: "Não preparar, assinar ou enviar antes de confirmar a Comune ou o órgão competente.",
+      observacao:
+        "Não preparar, assinar ou enviar antes de confirmar a Comune ou o órgão competente.",
     },
   },
   contrato: {
@@ -269,12 +272,16 @@ export const caseDataGiovanna: CaseData = {
     proposta_final_url: "",
     data_assinatura: "",
     pagamento_status: "aguardando_confirmacao",
-    observacao: "A Fase 1 integra a Assessoria Completa e não deve ser cadastrada como produto avulso.",
+    observacao:
+      "A Fase 1 integra a Assessoria Completa e não deve ser cadastrada como produto avulso.",
     checklist: [
       { item: "Proposta comercial final revisada", feito: false },
       { item: "Contrato correto identificado", feito: false },
       { item: "Contrato vinculado ao caso CA-CID-IT-2026-001", feito: false },
-      { item: "Produto contratado confirmado: CA-CID-023 — Assessoria Completa de Cidadania Italiana", feito: false },
+      {
+        item: "Produto contratado confirmado: CA-CID-023 — Assessoria Completa de Cidadania Italiana",
+        feito: false,
+      },
       { item: "Nome civil da cliente conferido no contrato", feito: false },
       { item: "CPF e documento de identidade conferidos no contrato", feito: false },
       { item: "Escopo da Fase 1 descrito corretamente", feito: false },

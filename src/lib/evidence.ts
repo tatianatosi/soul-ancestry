@@ -1,4 +1,10 @@
-import type { CaseData, EvidenceStatus, StatusCaso, StatusContrato, StatusProcuracao } from "@/types/case";
+import type {
+  CaseData,
+  EvidenceStatus,
+  StatusCaso,
+  StatusContrato,
+  StatusProcuracao,
+} from "@/types/case";
 
 /**
  * Textos institucionais de fallback — nunca usar "erro", "sem dados",
@@ -44,7 +50,6 @@ export const REFERENCIA_CLIENTE = {
   etiqueta: "Em validação documental",
 } as const;
 
-
 /** Rótulo humano de cada status de evidência (linguagem para a cliente). */
 export const EVIDENCE_LABEL: Record<EvidenceStatus, string> = {
   confirmado_documentalmente: "Confirmado por documento",
@@ -69,7 +74,10 @@ export const STATUS_CASO_LABEL: Record<StatusCaso, string> = {
 };
 
 /** Texto seguro: devolve o valor limpo ou o fallback institucional. */
-export function texto(valor: string | null | undefined, fallback: string = FALLBACK.atualizacao): string {
+export function texto(
+  valor: string | null | undefined,
+  fallback: string = FALLBACK.atualizacao,
+): string {
   const v = (valor ?? "").trim();
   return v.length > 0 ? v : fallback;
 }
