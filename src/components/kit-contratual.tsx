@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { activeCase } from "@/data/activeCase";
 import {
   CONTRATO_BASE_LABEL,
@@ -458,5 +457,3 @@ function ProcuracaoPreview({ italiana }: { italiana: boolean }) {
     </>
   );
 }
-
-export const kitContratualClasses = cn();
