@@ -1,10 +1,11 @@
 import { caseDataGiovanna } from "./caseDataGiovanna";
 
 /**
- * CASO ATIVO DO APP.
+ * FALLBACK DO CASO ATIVO.
  *
- * Para publicar outro cliente, duplique `caseTemplate.ts`, preencha os dados e
- * troque apenas a linha abaixo:
- *   export const activeCase = caseDataNovoCliente;
+ * O app agora resolve o cliente dinamicamente pelo `caseId` da URL
+ * (`useActiveCase()` em `src/lib/useActiveCase.ts`, diretório em
+ * `src/data/case-directory.ts`). Esta constante é apenas o caso padrão usado
+ * quando nenhum `caseId` é informado.
  */
 export const activeCase = caseDataGiovanna;
