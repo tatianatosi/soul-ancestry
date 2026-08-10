@@ -411,7 +411,8 @@ export const CASO_MODELO: EntregaConsultiva = {
 
 /** Gera a entrega consultiva a partir de um caso do Canvas (template reaproveitável). */
 export function entregaByCaso(caso: Caso): EntregaConsultiva {
-  const regra = regraPais(caso.pais);
+  const via: ViaProcesso = caso.viaSugerida ?? regraPais(caso.pais).viaPadrao;
+  const regra = regraPais(caso.pais, via);
   const linha = caso.linhaAncestral.slice(0, 4).map((l) => `${l.texto} · ${l.ano}`);
   const criticos = caso.checklistDocs.filter((d) => d.status === "pendente").slice(0, 3);
   const tem = caso.checklistDocs.filter((d) => d.status === "ok").slice(0, 2);
@@ -425,7 +426,7 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
     clientFirstName: caso.cliente.split(" ")[0],
     country: caso.pais,
     citizenshipType: caso.tipoProcesso,
-    suggestedRoute: regra.viaPadrao,
+    suggestedRoute: via,
     routeDisclaimer: ROUTE_DISCLAIMER,
     stage1Status: pago ? "ETAPA_02_EM_ANDAMENTO" : "ETAPA_02_PENDENTE",
     stage1DeliveredAt: caso.dataInicio,
@@ -433,7 +434,7 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
     initialReading: `${regra.transmissao} ${regra.atencao}`,
     eligibilitySummary: {
       viable: true,
-      scenario: `Cenário mais provável: ${VIA_LABEL[regra.viaPadrao]}`,
+      scenario: `Cenário mais provável: ${VIA_LABEL[via]}`,
       text: `Pela leitura inicial da sua linha (${caso.tipoProcesso}), há viabilidade para seguir. ${regra.atencao}`,
     },
     documentChecklist: [
@@ -443,20 +444,23 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
       ...regra.docsCriticos.slice(0, 1).map((item) => ({ item, situacao: "critico" as const })),
     ].slice(0, 6),
     stage2Offer: {
-      offerId: `OFR-${caso.id}-E02`,
+      offerId: `OFR-${caso.id}-E02-${via.toUpperCase()}`,
       sku: regra.skuEtapa02,
       productName: regra.produtoEtapa02,
-      description:
-        "Análise completa da sua linha, verificação documental item a item e desenho do caminho com prazos, custos e ordem das providências.",
-      benefit: "Clareza jurídica e documental e um plano concreto para avançar, sem depender de reunião.",
+      description: regra.descricaoEtapa02,
+      benefit:
+        via === "judicial"
+          ? "Você tem o caso conduzido de ponta a ponta: documentação organizada, advogado parceiro na Itália e acompanhamento até o reconhecimento."
+          : "Clareza jurídica e documental e um plano concreto para avançar, sem depender de reunião.",
       price: regra.valorEtapa02,
       currency: "R$",
-      deliveryTime: "10 dias úteis",
+      deliveryTime: regra.prazoEtapa02,
       paymentUrl: caso.plano.linkPagamento || "https://pagamento.clubeancestral.com/etapa-02",
       paymentStatus: pago ? "confirmado" : "pendente",
-      included: ETAPA02_INCLUI,
-      notIncluded: ETAPA02_NAO_INCLUI,
+      included: regra.incluiEtapa02,
+      notIncluded: regra.naoIncluiEtapa02,
     },
+
     report: {
       reportId: `REL-${caso.id}`,
       reportVersion: "v1.0",
