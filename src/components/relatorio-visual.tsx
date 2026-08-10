@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Caso } from "@/data/casos";
-import { relatorioByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+import { relatorioByCaso, FASE1_STATUS_LABEL } from "@/data/relatorio-visual";
+import { limparCopy, limparLista } from "@/lib/client-copy";
+import { runPhase1ContentAudit } from "@/lib/phase1-content-audit";
 import { BrandLogo } from "./brand";
 import {
   Compass,
