@@ -216,4 +216,9 @@ export type CaseData = {
   alerta: CaseAlerta;
   conta: CaseConta;
   governanca: CaseGovernanca;
+  /** Estados operacionais de procuração (visão interna). */
+  procuracoes?: CaseProcuracoes;
+  /** Contrato e formalização do caso (visão interna). */
+  contrato?: CaseContrato;
+
 };
