@@ -22,6 +22,7 @@ import {
 import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneamento";
 import { GoLiveDesk } from "./desk-go-live";
 import { KitContratual } from "./kit-contratual";
+import { TimelineContratualDesk } from "./timeline-contratual";
 import {
   LayoutGrid,
   Users,
@@ -238,6 +239,8 @@ function Formalizacao() {
           ))}
         </ul>
       </section>
+
+      <TimelineContratualDesk caso={caso} />
 
       <KitContratual />
 

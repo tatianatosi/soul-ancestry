@@ -1342,6 +1342,7 @@ function ContaScreen({ caso }: { caso: CaseData }) {
       </section>
 
       <ContaContrato caso={caso} />
+      <TimelineContratualCliente caso={caso} />
       <ContaProduto caso={caso} />
       <ContaPagamentos caso={caso} />
       <ContaDespesas caso={caso} />
