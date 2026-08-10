@@ -65,12 +65,34 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
   const r = relatorioByCaso(caso);
   const [modal, setModal] = useState(false);
 
-  const resumo = [
-    ["Pessoa-foco", r.pessoaFoco],
-    ["Ancestral mais antigo localizado", r.ancestralMaisAntigo],
-    ["Gerações identificadas", r.numeroGeracoes],
-    ["Localidades principais", r.localidadesPrincipais],
-  ] as const;
+  const linhaPrincipal = r.linhaPrincipal
+    .map((g) => ({ nome: limparCopy(g.nome), eventos: limparCopy(g.eventos) }))
+    .filter((g) => g.nome);
+  const documentos = r.documentos
+    .map((d) => ({
+      pessoa: limparCopy(d.pessoa),
+      tipo: limparCopy(d.tipo),
+      local: limparCopy(d.local),
+      observacao: limparCopy(d.observacao),
+    }))
+    .filter((d) => d.tipo);
+  const lacunas = limparLista(r.lacunas);
+  const pontosConfirmar = limparLista(r.pontosConfirmar);
+  const possibilidades = limparLista(r.proximaEtapa.possibilidades);
+
+  const resumo = (
+    [
+      ["Pessoa acompanhada", limparCopy(r.pessoaFoco)],
+      ["Ancestral mais antigo identificado", limparCopy(r.ancestralMaisAntigo)],
+      ["Gerações mapeadas até aqui", limparCopy(r.numeroGeracoes)],
+      ["Localidades principais", limparCopy(r.localidadesPrincipais)],
+    ] as [string, string][]
+  ).filter(([, v]) => v);
+
+  useEffect(() => {
+    const t = setTimeout(() => runPhase1ContentAudit(), 300);
+    return () => clearTimeout(t);
+  }, [caso.id]);
 
   return (
     <div className="space-y-5 p-5 print:p-0" data-tab="relatorio" data-print-area>
@@ -80,7 +102,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
         <div>
           <div className="font-serif text-lg italic text-navy">Clube Ancestral</div>
           <div className="text-[11px] uppercase tracking-widest text-navy/60">
-            Relatório Visual · {caso.id}
+            Diagnóstico inicial
           </div>
         </div>
       </div>
@@ -88,13 +110,15 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="text-[11px] uppercase tracking-widest text-navy/60">
-            Projeto Essencial · {caso.id}
+            Primeira etapa da sua jornada
           </div>
-          <h2 className="font-serif text-2xl text-navy lg:text-3xl">Relatório da sua família</h2>
+          <h2 className="font-serif text-2xl text-navy lg:text-3xl">Diagnóstico inicial</h2>
           <p className="mt-1 text-[13px] italic text-navy/70">
-            Uma síntese viva da pesquisa base — atualizada a cada avanço da jornada.
+            Organizamos os primeiros sinais da sua história familiar e os próximos passos
+            possíveis.
           </p>
         </div>
+
         <button
           onClick={() => window.print()}
           className="inline-flex items-center gap-2 rounded-full border border-navy/25 px-3.5 py-2 text-[12px] font-semibold text-navy transition hover:bg-navy hover:text-cream print:hidden"
