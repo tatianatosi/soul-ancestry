@@ -326,23 +326,25 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
           <div className="grid gap-5 xl:grid-cols-[1.15fr_1fr] xl:items-center">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-gold/80">Continuidade</div>
-              <h3 className="font-serif text-xl italic xl:text-2xl">{r.proximaEtapa.titulo}</h3>
+              <h3 className="font-serif text-xl italic xl:text-2xl">
+                {limparCopy(r.proximaEtapa.titulo) || "Próximo passo recomendado"}
+              </h3>
               <p className="mt-3 text-[13px] leading-relaxed text-cream/85">
-                {r.proximaEtapa.resumo}
+                {limparCopy(r.proximaEtapa.resumo)}
               </p>
               <p className="mt-3 text-[12px] italic text-cream/70">
-                Nossa consultoria acompanha cada família de perto: a proposta é desenhada a partir
-                do que este relatório revelou — no seu tempo, sem pressa e sem etapas
+                O passo seguinte é uma análise de estratégia e documentação, desenhada a partir do
+                que esta primeira leitura mostrou — no seu tempo, sem pressa e sem etapas
                 desnecessárias.
               </p>
             </div>
             <div>
               <div className="rounded-xl bg-navy-soft/60 p-4">
                 <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">
-                  Possibilidades de aprofundamento
+                  O que pode ser aprofundado
                 </div>
                 <ul className="space-y-1.5">
-                  {r.proximaEtapa.possibilidades.map((p) => (
+                  {possibilidades.map((p) => (
                     <li key={p} className="flex items-start gap-2 text-[13px] text-cream/85">
                       <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" />
                       <span>{p}</span>
@@ -350,6 +352,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                   ))}
                 </ul>
               </div>
+
               <button
                 onClick={() => setModal(true)}
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-4 py-3 text-[13px] font-semibold text-navy transition hover:bg-gold/90 print:hidden"
