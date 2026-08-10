@@ -360,7 +360,7 @@ export const CASOS: Caso[] = [
     radar: radar([45, 75, 55, 70, 40, 25]),
     marcosJuridicos: MARCOS_JURIDICOS["Itália"],
     plano: plano("Cidadania Italiana", "Assessoria Completa de Cidadania Italiana", "por etapas", ["CA-CID-023", "CA-CID-002D", "CA-CID-003", "CA-CID-018", "CA-CID-016"], "CA-CID-IT-2026-001"),
-    financeiro: { pagoCliente: 247, desembolsadoClube: 0 },
+    financeiro: { pagoCliente: 0, desembolsadoClube: 0 },
     historico: [
       { t: "📄 Proposta enviada", d: "31 jul 2026" },
       { t: "🌳 Linha paterna Prade conectada", d: "10 ago 2026" },

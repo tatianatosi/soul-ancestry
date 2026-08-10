@@ -27,6 +27,8 @@ import {
   FALLBACK,
   STATUS_CASO_LABEL,
   lista,
+  PROCURACAO_TEXTO_CLIENTE,
+  REFERENCIA_CLIENTE,
   paisesComAderencia,
   preenchido,
   referenciaVisivel,
@@ -743,6 +745,9 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
             Também registrado como: {variantes.join(", ")}
           </div>
         )}
+        {preenchido(pessoa.observacao) && (
+          <div className="mt-1 text-[11px] leading-snug text-navy/60">{pessoa.observacao}</div>
+        )}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <EvidenceTag status={pessoa.status_evidencia} />
           {ref && (
@@ -773,6 +778,16 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
 
       <div className="rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
+          {f.pai_de_alessandro && preenchido(f.pai_de_alessandro.nome) && (
+            <>
+              <Gen label="Geração anterior">
+                <div className="mx-auto max-w-[260px]">
+                  <No pessoa={f.pai_de_alessandro} papel="Pai do bisavô" />
+                </div>
+              </Gen>
+              <Connector />
+            </>
+          )}
           <Gen label="Bisavós paternos">
             <div className="grid grid-cols-2 gap-2">
               <No pessoa={f.bisavo_paterno} papel="Bisavô" destaque />
@@ -936,9 +951,12 @@ function DocsTab({ caso }: { caso: CaseData }) {
         </Bloco>
       ))}
 
-      <p className="rounded-xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
-        Referências de árvores colaborativas ajudam a orientar a pesquisa, mas não substituem certidões oficiais.
-      </p>
+      <div className="rounded-xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
+        <p>{PROCURACAO_TEXTO_CLIENTE}</p>
+        <p className="mt-2">
+          Referências genealógicas ajudam a orientar a pesquisa, mas não substituem certidões oficiais.
+        </p>
+      </div>
     </div>
   );
 }
