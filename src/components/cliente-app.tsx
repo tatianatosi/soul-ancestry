@@ -1333,6 +1333,11 @@ function ContaScreen({ caso }: { caso: CaseData }) {
         </div>
       </section>
 
+      <ContaContrato caso={caso} />
+      <ContaProduto caso={caso} />
+      <ContaPagamentos caso={caso} />
+      <ContaDespesas caso={caso} />
+
       <section className="rounded-2xl border border-navy/20 bg-navy p-5 text-cream">
         <div className="text-[11px] uppercase tracking-widest text-gold/80">Produto atual</div>
         <div className="font-serif text-lg italic text-gold">
@@ -1356,6 +1361,7 @@ function ContaScreen({ caso }: { caso: CaseData }) {
           </div>
         </div>
       </section>
+
 
       {historico.length > 0 && (
         <Bloco titulo="Histórico da jornada">
