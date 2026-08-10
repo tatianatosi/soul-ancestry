@@ -125,3 +125,96 @@ export function paisesComAderencia(caso: CaseData): { pais: string; aderencia: n
     { pais: caso.rota.pais_terciario, aderencia: caso.rota.aderencia_terciaria },
   ].filter((p) => preenchido(p.pais));
 }
+
+/* ---------------- Kit contratual: rótulos e visibilidade ---------------- */
+
+import type {
+  CaseContratacao,
+  PoliticaDespesas,
+  StatusContratoBase,
+  StatusDespesas,
+  StatusOrdemServico,
+} from "@/types/case";
+
+export const CONTRATO_BASE_LABEL: Record<StatusContratoBase, string> = {
+  nao_enviado: "Ainda não enviado",
+  aguardando_aceite: "Aguardando seu aceite",
+  aceito: "Aceito",
+  arquivado: "Arquivado",
+};
+
+export const ORDEM_SERVICO_LABEL: Record<StatusOrdemServico, string> = {
+  nao_criada: "Ainda não criada",
+  rascunho: "Em preparação",
+  aguardando_aceite: "Aguardando seu aceite",
+  aceita: "Aceita",
+  arquivada: "Arquivada",
+};
+
+/** Linguagem simples de despesas para a cliente. */
+export const DESPESAS_LABEL_CLIENTE: Record<StatusDespesas, string> = {
+  nao_aplicavel: "Não se aplica neste momento",
+  estimativa: "Em estimativa",
+  incluida_no_orcamento: "Previstas no orçamento",
+  antecipada_pelo_clube: "Antecipadas pelo Clube",
+  aguardando_comprovante: "Comprovante em organização",
+  ajuste_pendente: "Aguardando sua aprovação",
+  aprovada_pela_cliente: "Aprovadas por você",
+  reembolsada: "Comprovante disponível",
+};
+
+/** Rótulo interno, mais detalhado. */
+export const DESPESAS_LABEL_INTERNO: Record<StatusDespesas, string> = {
+  nao_aplicavel: "Não aplicável",
+  estimativa: "Estimativa",
+  incluida_no_orcamento: "Incluída no orçamento",
+  antecipada_pelo_clube: "Antecipada pelo Clube",
+  aguardando_comprovante: "Aguardando comprovante",
+  ajuste_pendente: "Ajuste pendente",
+  aprovada_pela_cliente: "Aprovada pela cliente",
+  reembolsada: "Reembolsada",
+};
+
+export const POLITICA_DESPESAS_LABEL: Record<PoliticaDespesas, string> = {
+  nao_definida: "Não definida",
+  incluida_no_orcamento: "Incluída no orçamento consolidado",
+  antecipacao_parcial_pelo_clube: "Antecipação parcial pelo Clube",
+  antecipacao_total_pelo_clube: "Antecipação total pelo Clube",
+  pagamento_direto_pela_cliente: "Pagamento direto pela cliente",
+};
+
+/** Texto institucional padrão sobre despesas externas (cliente). */
+export const DESPESAS_TEXTO_CLIENTE =
+  "Algumas despesas externas, como certidões, traduções, apostilas e taxas administrativas, podem integrar o orçamento consolidado. Caso seja necessário um ajuste fora do previsto, você receberá uma solicitação de aprovação antes da contratação.";
+
+/** Fallbacks da área Minha Conta. */
+export const CONTA_FALLBACK = {
+  contrato: "Seu contrato está em fase de formalização.",
+  produto: "O produto será confirmado após o aceite da Ordem de Serviço.",
+  pagamento: "Os dados de pagamento serão disponibilizados após a formalização da contratação.",
+  despesas: "As despesas externas ainda estão sendo estimadas.",
+} as const;
+
+/** Link só aparece com documento realmente disponível e URL segura. */
+export function documentoVisivel(d?: { documento_disponivel?: boolean; secure_url?: string }) {
+  return Boolean(d?.documento_disponivel && preenchido(d?.secure_url));
+}
+
+/** Produto só é "contratado" com Ordem de Serviço aceita. */
+export function produtoContratado(c?: CaseContratacao) {
+  return c?.ordem_servico.status === "aceita";
+}
+
+/** Próxima etapa da cliente derivada dos estados contratuais. */
+export function proximaEtapaCliente(caso: CaseData): string {
+  const c = caso.contratacao;
+  if (!c) return FALLBACK.proximaEtapa;
+  if (c.contrato_base.status === "aguardando_aceite") return "Formalizar a contratação.";
+  if (c.contrato_base.status === "aceito" && caso.geral.status_caso !== "em_documentos")
+    return "Enviar os documentos iniciais.";
+  if (caso.geral.status_caso === "em_documentos")
+    return "Aguardar a organização e a leitura documental.";
+  if (c.ordem_servico.status === "aguardando_aceite")
+    return "Revisar e aceitar a Ordem de Serviço.";
+  return "Estamos preparando a formalização da sua contratação.";
+}
