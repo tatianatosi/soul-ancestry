@@ -1,4 +1,4 @@
-import type { CaseData, EvidenceStatus, StatusCaso } from "@/types/case";
+import type { CaseData, EvidenceStatus, StatusCaso, StatusContrato, StatusProcuracao } from "@/types/case";
 
 /**
  * Textos institucionais de fallback — nunca usar "erro", "sem dados",
@@ -6,13 +6,44 @@ import type { CaseData, EvidenceStatus, StatusCaso } from "@/types/case";
  */
 export const FALLBACK = {
   atualizacao: "Em atualização documental",
-  aguardando: "Aguardando documento",
+  aguardando: "Aguardando confirmação",
   referencia: "Referência localizada",
   validacao: "Em validação documental",
-  proximaEtapa: "Nova etapa será liberada após a confirmação dos registros",
-  semArquivo: "Ainda não há um arquivo associado a este item",
+  proximaEtapa: "Próxima etapa liberada após a confirmação dos registros",
+  semArquivo: "Documento ainda não vinculado",
   semDescoberta: "A próxima descoberta será adicionada após a validação da pesquisa",
+  naoIniciada: "Ação ainda não iniciada",
 } as const;
+
+/** Rótulos internos dos estados de procuração. */
+export const PROCURACAO_LABEL: Record<StatusProcuracao, string> = {
+  nao_iniciada: "Não iniciada",
+  rascunho_em_preparacao: "Rascunho em preparação",
+  aguardando_revisao_interna: "Aguardando revisão interna",
+  aguardando_assinatura_cliente: "Aguardando assinatura da cliente",
+  assinada: "Assinada",
+  enviada: "Enviada",
+  respondida: "Respondida",
+};
+
+export const CONTRATO_LABEL: Record<StatusContrato, string> = {
+  aguardando_confirmacao: "Aguardando confirmação",
+  confirmado: "Confirmado",
+  nao_aplicavel: "Não aplicável",
+};
+
+/** Frase única exibida à cliente sobre consultas externas/procurações. */
+export const PROCURACAO_TEXTO_CLIENTE =
+  "Estamos organizando a documentação necessária para as próximas consultas.";
+
+/** Bloco cliente-facing para referências genealógicas (sem link ou ID). */
+export const REFERENCIA_CLIENTE = {
+  titulo: "Referência genealógica localizada",
+  texto:
+    "Encontramos uma referência que ajuda a conectar este ramo da família. Agora seguimos para a validação por documentos oficiais.",
+  etiqueta: "Em validação documental",
+} as const;
+
 
 /** Rótulo humano de cada status de evidência (linguagem para a cliente). */
 export const EVIDENCE_LABEL: Record<EvidenceStatus, string> = {
