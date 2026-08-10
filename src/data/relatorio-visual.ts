@@ -150,61 +150,74 @@ function modelo(caso: Caso): RelatorioVisual {
 }
 
 
-/** Relatórios já preenchidos (exemplo estruturado — substituir por dados reais). */
+/** Ajustes editoriais por caso — apenas dados confirmados pela consultoria. */
 export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
   "CA-CID-IT-2026-001": {
     sobrenomeFamilia: "Prade",
-    pessoaFoco: "Giovanna Prade",
-    ancestralMaisAntigo: "Antonio Prade (n. 1868, Vêneto)",
-    numeroGeracoes: "4",
-    localidadesPrincipais: "Vêneto (IT) · Caxias do Sul (RS)",
+    pessoaFoco: "Giovanna da Veiga Prade",
+    ancestralMaisAntigo: "Paolo Prade — em validação documental",
+    numeroGeracoes: "5",
+    localidadesPrincipais: "Rodeio e Timbó (SC) · Itália (origem em validação)",
     linhaPrincipal: [
-      { nome: "Antonio Prade", eventos: "n. 1868 · casamento 1892 · emigração 1895" },
-      { nome: "Luigi Prade", eventos: "n. 1897 (RS) · casamento 1921 · óbito 1974" },
-      { nome: "Vitorio Prade", eventos: "n. 1930 · casamento 1955" },
-      { nome: "Giovanna Prade", eventos: "n. 1994 · pessoa-foco do processo" },
+      { nome: "Paolo Prade", eventos: "Geração anterior — em validação documental" },
+      { nome: "Alessandro Prade", eventos: "1874 — 1926" },
+      { nome: "Erwin Prade", eventos: "1917 — 1969 · também registrado como Ervino Prade e Erwin Prada" },
+      { nome: "Péricles Luiz Medeiros Prade", eventos: "Em atualização documental" },
+      { nome: "Giovanna da Veiga Prade", eventos: "Pessoa-foco do processo" },
     ],
     documentos: [
-      { pessoa: "Antonio Prade", tipo: "Certidão de nascimento", local: "Comune (IT)", observacao: "Confirma origem italiana" },
-      { pessoa: "Luigi Prade", tipo: "Certidão de casamento", local: "Cartório · Caxias do Sul", observacao: "Liga geração 1 e 2" },
-      { pessoa: "Vitorio Prade", tipo: "Certidão de nascimento", local: "Cartório · RS", observacao: "Confirma continuidade da linha" },
+      {
+        pessoa: "Erwin Prade",
+        tipo: "Referência genealógica localizada",
+        local: "Rodeio (SC)",
+        observacao: "Referência de pesquisa — validação por documento oficial em andamento.",
+      },
+      {
+        pessoa: "Alessandro Prade",
+        tipo: "Referência genealógica localizada",
+        local: "Em validação documental",
+        observacao: "Referência de pesquisa — origem ainda não confirmada por documento.",
+      },
+      {
+        pessoa: "Margherita Maiocchi",
+        tipo: "Referência genealógica localizada",
+        local: "Em validação documental",
+        observacao: "Referência de pesquisa — validação por documento oficial em andamento.",
+      },
     ],
-    quantidadeRegistros: "11",
+    quantidadeRegistros: "3",
     lacunas: [
-      "Registro de óbito de Antonio Prade ainda não localizado",
-      "Documento de desembarque no porto de entrada",
-      "Certidão de casamento italiana em cópia integral",
+      "Certidões brasileiras da cadeia Alessandro → Erwin → Péricles → Giovanna",
+      "Ato de nascimento italiano de Alessandro Prade",
+      "Verificação de eventual registro na Comune ou no Consulado",
     ],
-    pontosConfirmar: ["Grafia do sobrenome nos registros brasileiros", "Data exata de emigração"],
+    pontosConfirmar: [
+      "Grafias do nome do avô (Erwin, Ervino, Erwin Prada)",
+      "Município de nascimento de Giovanna",
+      "Geração anterior a Alessandro (Paolo Prade)",
+    ],
     meta: {
-      etapaAtual: "Projeto Essencial · pesquisa base concluída",
-      ultimaAtualizacao: "12 de março de 2026",
-      status: "entregue",
-      versao: "v2",
+      etapaAtual: "Diagnóstico inicial · leitura da linha paterna Prade",
+      ultimaAtualizacao: "10 de agosto de 2026",
+      status: "em_elaboracao",
+      versao: "v1",
       responsavel: "Consultoria Clube Ancestral",
-      proximaRevisao: "Abril de 2026",
+      proximaRevisao: "A combinar com a sua consultoria",
     },
     entregas: [
       {
         id: "CA-CID-IT-2026-001-rel-essencial",
-        titulo: "Relatório Visual · Projeto Essencial",
-        data: "12 de março de 2026",
-        etapa: "Projeto Essencial",
-        status: "entregue",
-        descricao: "Síntese da pesquisa base da família Prade: 4 gerações, 11 registros localizados.",
+        titulo: "Diagnóstico inicial da sua família",
+        data: "10 de agosto de 2026",
+        etapa: "Diagnóstico inicial",
+        status: "em_elaboracao",
+        descricao: "Primeira leitura da linha paterna Prade: pessoas conectadas, referências e pontos em aberto.",
         abreRelatorio: true,
-      },
-      {
-        id: "CA-CID-IT-2026-001-dossie-inicial",
-        titulo: "Dossiê inicial de documentos",
-        data: "28 de janeiro de 2026",
-        etapa: "Diagnóstico",
-        status: "arquivado",
-        descricao: "Primeira triagem documental e definição da linha a ser pesquisada.",
       },
     ],
   },
 };
+
 
 export function relatorioByCaso(caso: Caso): RelatorioVisual {
   return { ...modelo(caso), ...(RELATORIOS[caso.id] ?? {}) };
