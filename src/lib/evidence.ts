@@ -112,9 +112,10 @@ export function referenciaVisivel(
 
 /** Aderência de rota — leitura interna de pesquisa, nunca confirmação jurídica. */
 export function rotaLabel(caso: CaseData): string {
-  return caso.rota.status_hipotese === "confirmado_documentalmente"
-    ? texto(caso.rota.pais_principal, FALLBACK.validacao)
-    : "Rota em validação documental";
+  if (caso.rota.status_hipotese === "confirmado_documentalmente")
+    return texto(caso.rota.pais_principal, FALLBACK.validacao);
+  if (caso.rota.via_provavel === "judicial") return "via judicial (em confirmação documental)";
+  return "Rota em validação documental";
 }
 
 /** Países com dados reais — usado para não renderizar cards vazios. */

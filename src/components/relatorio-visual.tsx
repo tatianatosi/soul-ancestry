@@ -357,7 +357,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                 onClick={() => setModal(true)}
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-4 py-3 text-[13px] font-semibold text-navy transition hover:bg-gold/90 print:hidden"
               >
-                Ver proposta da próxima etapa
+                {limparCopy(r.proximaEtapa.ctaPrimaria) || "Ver proposta da próxima etapa"}
                 <ArrowRight className="h-4 w-4" />
               </button>
               <div className="mt-2 text-center text-[11px] text-cream/60 print:hidden">

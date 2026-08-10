@@ -410,6 +410,7 @@ function HomeTab({
 }) {
   const idx = ETAPAS_CASO.indexOf(caso.geral.status_caso);
   const paises = paisesComAderencia(caso);
+  const judicial = caso.rota.via_provavel === "judicial";
   const destaques = caso.descobertas.slice(0, 3);
 
   return (
@@ -577,8 +578,16 @@ function HomeTab({
           >
             <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 02</div>
             <div className="font-serif text-lg leading-snug text-navy">
-              Relatório completo de pesquisa
+              {judicial
+                ? "Assessoria completa — Cidadania Italiana (via judicial)"
+                : "Relatório completo de pesquisa"}
             </div>
+            {judicial && (
+              <div className="mt-1 text-[12px] leading-relaxed text-navy/70">
+                Organização documental, coordenação de retificações, intermediação com advogado na
+                Itália e acompanhamento do processo judicial até o reconhecimento.
+              </div>
+            )}
             <div className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-navy">
               {fase02Status}
             </div>

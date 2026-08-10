@@ -59,12 +59,25 @@ export type RelatorioVisual = {
   lacunas: string[]; // {{LACUNA_N}}
   pontosConfirmar: string[]; // {{PONTO_CONFIRMAR_N}}
   /* --- próxima etapa --- */
-  proximaEtapa: { titulo: string; resumo: string; possibilidades: string[] };
+  proximaEtapa: {
+    titulo: string;
+    resumo: string;
+    possibilidades: string[];
+    /** Rótulo da CTA primária — varia conforme a via provável do caso. */
+    ctaPrimaria?: string;
+  };
   /* --- metadados --- */
   meta: RelatorioMeta;
   /* --- entregas da jornada (Legado) --- */
   entregas: EntregaJornada[];
 };
+
+export const POSSIBILIDADES_VIA_JUDICIAL = [
+  "Organização e auditoria da documentação da linha",
+  "Coordenação de retificações, traduções e apostilamentos",
+  "Intermediação com advogado parceiro na Itália",
+  "Protocolo e acompanhamento do processo judicial até a sentença",
+];
 
 export const POSSIBILIDADES_APROFUNDAMENTO = [
   "Novas gerações e documentos",
@@ -120,13 +133,23 @@ function modelo(caso: Caso): RelatorioVisual {
     quantidadeRegistros: confirmados.length ? String(confirmados.length) : "",
     lacunas: limparLista(pendentes.map((d) => d.item)),
     pontosConfirmar: limparLista(emConferencia.map((d) => d.item)),
-    proximaEtapa: {
-      titulo: "Próximo passo recomendado",
-      resumo:
-        `Com a primeira leitura organizada, a família ${sobrenome} já tem um ponto de partida seguro. ` +
-        "O passo seguinte é uma análise de estratégia e documentação: aprofundar as gerações, esclarecer os pontos em aberto e definir, com calma, o melhor caminho a percorrer.",
-      possibilidades: POSSIBILIDADES_APROFUNDAMENTO,
-    },
+    proximaEtapa:
+      caso.viaSugerida === "judicial"
+        ? {
+            titulo: "Próximo passo recomendado",
+            resumo:
+              `Com a primeira leitura organizada, a família ${sobrenome} já tem um ponto de partida seguro. ` +
+              "Pela distância geracional até o ascendente italiano, a hipótese mais provável é a via judicial: o passo seguinte é a assessoria completa de cidadania italiana, começando pela organização documental, com coordenação de retificações, traduções e apostilamentos, intermediação com advogado parceiro na Itália e acompanhamento do processo até a sentença.",
+            possibilidades: POSSIBILIDADES_VIA_JUDICIAL,
+            ctaPrimaria: "Quero saber mais sobre a assessoria completa",
+          }
+        : {
+            titulo: "Próximo passo recomendado",
+            resumo:
+              `Com a primeira leitura organizada, a família ${sobrenome} já tem um ponto de partida seguro. ` +
+              "O passo seguinte é uma análise de estratégia e documentação: aprofundar as gerações, esclarecer os pontos em aberto e definir, com calma, o melhor caminho a percorrer.",
+            possibilidades: POSSIBILIDADES_APROFUNDAMENTO,
+          },
     meta: {
       etapaAtual: "Diagnóstico inicial · primeira leitura da história familiar",
       ultimaAtualizacao: primeiroOuMensagem(

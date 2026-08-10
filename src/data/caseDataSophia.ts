@@ -82,20 +82,22 @@ export const caseDataSophia: CaseData = {
     hipotese_principal:
       "Cidadania italiana por descendência a partir de Ângelo Piccoli — potencial em análise.",
     status_hipotese: "pendente_validacao",
+    via_provavel: "judicial",
     resumo_radar:
-      "Linha organizada até o ascendente italiano; a via aplicável só será definida após a confirmação documental completa.",
+      "Linha organizada até o ascendente italiano; pela distância geracional, a hipótese mais provável é a via judicial, a ser confirmada após a análise documental completa.",
   },
   jornada: {
     etapa_atual: "Fase 01 — diagnóstico inicial disponível",
     contexto_resumo:
-      "A leitura inicial organizou a linha Piccoli até Ângelo Piccoli, nascido em Noventa Vicentina (Vicenza), e identificou os nomes e localidades de origem de seus pais no Veneto.",
+      "A leitura inicial organizou a linha Piccoli até Ângelo Piccoli, nascido em Noventa Vicentina (Vicenza), e identificou os nomes e localidades de origem de seus pais no Veneto. Como Ângelo é trisavô da requerente, o caminho técnico mais provável é a via judicial — hipótese sujeita à confirmação documental completa.",
     trilha_origem: "Veneto — Noventa Vicentina, Istrana e Paese",
     trilha_cidadania: "Itália — potencial em análise",
     trilha_memoria: "Grafias Piccoli e Picoli ao longo das gerações brasileiras",
     jornada_ancestral_1: "1872 — nascimento de Ângelo Piccoli em Noventa Vicentina (VI)",
     jornada_cliente_1: "2006 — nascimento de Sophia Piccoli Santiago",
     jornada_intersecao_1: "A família mantém a memória da origem vêneta e a grafia do sobrenome",
-    jornada_intersecao_2: "A pesquisa documental na Itália é o próximo elo entre as duas pontas",
+    jornada_intersecao_2:
+      "A assessoria completa por via judicial é o próximo elo entre as duas pontas, começando pela organização documental",
   },
   descobertas: [
     {
@@ -159,7 +161,7 @@ export const caseDataSophia: CaseData = {
   alerta: {
     titulo: "Diagnóstico inicial disponível",
     texto:
-      "Esta é uma leitura inicial da sua linha familiar. Ainda não há documento localizado, elegibilidade confirmada ou via definida — o próximo passo é a pesquisa documental na Itália.",
+      "Esta é uma leitura inicial da sua linha familiar. Ainda não há documento localizado nem elegibilidade confirmada — o próximo passo é iniciar a assessoria completa de cidadania italiana por via judicial, começando pela organização documental.",
     nivel: "informativo",
     ativo: true,
   },
@@ -172,7 +174,7 @@ export const caseDataSophia: CaseData = {
       "09/08/2026 — Diagnóstico inicial da linha Piccoli disponível",
     ],
     texto_upgrade:
-      "O próximo passo recomendado é a pesquisa documental completa na Itália. A equipe está preparando a proposta com escopo e prazo.",
+      "O próximo passo recomendado é a assessoria completa de cidadania italiana por via judicial: organização documental, coordenação de retificações, traduções e apostilamentos, intermediação com advogado parceiro na Itália e acompanhamento do processo até a sentença. A equipe está preparando a proposta com escopo e prazo.",
   },
   governanca: {
     responsavel_caso: "Tatiana",
