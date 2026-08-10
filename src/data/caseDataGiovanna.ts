@@ -11,7 +11,7 @@ export const caseDataGiovanna: CaseData = {
     cidade_cliente: "São Paulo",
     estado_cliente: "SP",
     status_caso: "em_leitura",
-    produto_atual: "Fase 1 — Diagnóstico e Checklist Inicial",
+    produto_atual: "CA-CID-023 — Assessoria Completa de Cidadania Italiana",
     data_abertura: "2026-08-10",
     ultima_atualizacao: "Linha Prade conectada até os bisavós paternos",
   },
@@ -44,7 +44,8 @@ export const caseDataGiovanna: CaseData = {
     avo_paterno: {
       nome: "Erwin Prade",
       nascimento: "16 de agosto de 1917",
-      batismo: "19 de agosto de 1917 — Paróquia de São Francisco de Assis, Rodeio, Santa Catarina, Brasil",
+      batismo:
+        "19 de agosto de 1917 — Paróquia de São Francisco de Assis, Rodeio, Santa Catarina, Brasil",
       falecimento: "11 de abril de 1969",
       sepultamento: "Cemitério Luterano Centro, Timbó, Santa Catarina, Brasil",
       local_relevante: "Rodeio, Santa Catarina, Brasil",
@@ -96,9 +97,22 @@ export const caseDataGiovanna: CaseData = {
       observacoes: "",
       status_evidencia: "relato_familiar",
     },
+    pai_de_alessandro: {
+      nome: "Paolo Prade",
+      nascimento: "",
+      falecimento: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "relato_familiar",
+      observacao:
+        "Informação atual a validar por documento oficial ou fonte genealógica compatível.",
+    },
   },
   arvore: {
-    linha_prioritaria: "Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
+    linha_prioritaria:
+      "Paolo Prade → Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
+
     pessoas_conectadas: 26,
     geracoes_lidas: 4,
     conexao_chave:
@@ -202,7 +216,7 @@ export const caseDataGiovanna: CaseData = {
       "Solicitar certidão de nascimento de Giovanna",
       "Solicitar comprovante de residência atualizado",
       "Verificar documentos, passaportes ou registros antigos da família",
-      "Preparar procurações após formalização da contratação",
+      "Confirmar a formalização do contrato antes de qualquer consulta externa",
     ],
     documentos_em_validacao: [],
   },
@@ -222,7 +236,7 @@ export const caseDataGiovanna: CaseData = {
     ativo: true,
   },
   conta: {
-    produto_atual: "Fase 1 — Diagnóstico e Checklist Inicial",
+    produto_atual: "CA-CID-023 — Assessoria Completa de Cidadania Italiana",
     status_jornada: "origem em análise; linha Prade mapeada; documentos oficiais pendentes",
     ultima_atualizacao: "Erwin Prade foi conectado a Alessandro Prade e Margherita Maiocchi",
     historico: [
@@ -232,6 +246,52 @@ export const caseDataGiovanna: CaseData = {
     ],
     texto_upgrade:
       "Após a validação documental da Fase 1, a próxima etapa poderá organizar a estratégia de rota, a busca de certidões e as ações necessárias para o caso.",
+  },
+  procuracoes: {
+    portugues: {
+      status: "nao_iniciada",
+      finalidade: "Consulta documental e comunicação com órgãos brasileiros, quando aplicável",
+      data_assinatura: "",
+      data_envio: "",
+      observacao: "Preparar somente após revisão do escopo documental e aprovação interna.",
+    },
+    italiano: {
+      status: "nao_iniciada",
+      finalidade: "Consulta documental e comunicação com órgãos italianos, quando aplicável",
+      data_assinatura: "",
+      data_envio: "",
+      observacao:
+        "Não preparar, assinar ou enviar antes de confirmar a Comune ou o órgão competente.",
+    },
+  },
+  contrato: {
+    produto_sku: "CA-CID-023",
+    produto_nome: "Assessoria Completa de Cidadania Italiana",
+    status: "aguardando_confirmacao",
+    arquivo_url: "",
+    proposta_final_url: "",
+    data_assinatura: "",
+    pagamento_status: "aguardando_confirmacao",
+    observacao:
+      "A Fase 1 integra a Assessoria Completa e não deve ser cadastrada como produto avulso.",
+    checklist: [
+      { item: "Proposta comercial final revisada", feito: false },
+      { item: "Contrato correto identificado", feito: false },
+      { item: "Contrato vinculado ao caso CA-CID-IT-2026-001", feito: false },
+      {
+        item: "Produto contratado confirmado: CA-CID-023 — Assessoria Completa de Cidadania Italiana",
+        feito: false,
+      },
+      { item: "Nome civil da cliente conferido no contrato", feito: false },
+      { item: "CPF e documento de identidade conferidos no contrato", feito: false },
+      { item: "Escopo da Fase 1 descrito corretamente", feito: false },
+      { item: "Regra sobre despesas externas revisada", feito: false },
+      { item: "Assinatura da cliente confirmada", feito: false },
+      { item: "Assinatura/aceite do Clube Ancestral confirmado", feito: false },
+      { item: "Comprovante ou condição de pagamento verificada", feito: false },
+      { item: "Pasta de contrato vinculada ao dossiê", feito: false },
+      { item: "Cliente recebeu confirmação de abertura do caso", feito: false },
+    ],
   },
   governanca: {
     responsavel_caso: "Equipe Clube Ancestral",

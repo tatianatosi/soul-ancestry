@@ -27,6 +27,8 @@ import {
   FALLBACK,
   STATUS_CASO_LABEL,
   lista,
+  PROCURACAO_TEXTO_CLIENTE,
+  REFERENCIA_CLIENTE,
   paisesComAderencia,
   preenchido,
   referenciaVisivel,
@@ -59,7 +61,17 @@ import {
   Compass,
 } from "lucide-react";
 
-type Tab = "home" | "jornada" | "entrega" | "relatorio" | "fase02" | "radar" | "arvore" | "docs" | "biblio" | "conta";
+type Tab =
+  | "home"
+  | "jornada"
+  | "entrega"
+  | "relatorio"
+  | "fase02"
+  | "radar"
+  | "arvore"
+  | "docs"
+  | "biblio"
+  | "conta";
 
 const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as const;
 
@@ -96,7 +108,10 @@ export function ClienteApp() {
       <header className="flex items-center justify-between border-b border-border/60 bg-navy px-5 py-4 text-cream">
         {showConta ? (
           <>
-            <button onClick={() => setShowConta(false)} className="flex items-center gap-2 text-sm text-cream/80">
+            <button
+              onClick={() => setShowConta(false)}
+              className="flex items-center gap-2 text-sm text-cream/80"
+            >
               <ArrowLeft className="h-4 w-4" /> Voltar
             </button>
             <div className="font-serif text-lg italic text-gold">Minha Conta</div>
@@ -109,7 +124,10 @@ export function ClienteApp() {
               <div className="min-w-0">
                 <div className="text-[11px] uppercase tracking-widest text-gold/80">Bem-vinda</div>
                 <div className="truncate font-serif text-lg italic">
-                  {texto(caso.geral.cliente_nome_exibicao || caso.geral.cliente_nome, "Sua jornada")}
+                  {texto(
+                    caso.geral.cliente_nome_exibicao || caso.geral.cliente_nome,
+                    "Sua jornada",
+                  )}
                 </div>
               </div>
             </div>
@@ -150,14 +168,31 @@ export function ClienteApp() {
               />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
-            {tab === "entrega" &&
-              (modelo ? <EntregaModeloTab modelo={modelo} /> : <EntregaConsultivaTab caso={casoJornada} />)}
-            {tab === "relatorio" && <RelatorioVisualTab caso={casoJornada} />}
-            {tab === "fase02" && <RelatorioFase02 registro={registro} />}
+            {tab === "entrega" && (
+              <PainelExpandido caso={caso} area="entrega">
+                {modelo ? (
+                  <EntregaModeloTab modelo={modelo} />
+                ) : (
+                  <EntregaConsultivaTab caso={casoJornada} />
+                )}
+              </PainelExpandido>
+            )}
+            {tab === "relatorio" && (
+              <PainelExpandido caso={caso} area="fase1">
+                <RelatorioVisualTab caso={casoJornada} />
+              </PainelExpandido>
+            )}
+            {tab === "fase02" && (
+              <PainelExpandido caso={caso} area="fase2">
+                <RelatorioFase02 registro={registro} />
+              </PainelExpandido>
+            )}
             {tab === "radar" && <RotaTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
-            {tab === "biblio" && <DescobertasTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />}
+            {tab === "biblio" && (
+              <DescobertasTab caso={caso} onOpenRelatorio={() => setTab("relatorio")} />
+            )}
           </>
         )}
       </main>
@@ -184,7 +219,8 @@ export function ClienteApp() {
               ["conta", User, "Conta"],
             ] as const
           ).map(([id, Icon, label]) => {
-            const isActive = id === "conta" ? showConta || tab === "conta" : !showConta && tab === id;
+            const isActive =
+              id === "conta" ? showConta || tab === "conta" : !showConta && tab === id;
             return (
               <button
                 key={id}
@@ -208,10 +244,98 @@ export function ClienteApp() {
   );
 }
 
+/* -------- PAINEL EXPANDIDO (somente Entregas, Fase 1 e Fase 2 em >=1024px) -------- */
+function PainelExpandido({
+  caso,
+  area,
+  children,
+}: {
+  caso: CaseData;
+  area: "entrega" | "fase1" | "fase2";
+  children: React.ReactNode;
+}) {
+  const pendentes = lista(caso.documentos.documentos_pendentes);
+  const solicitados = lista(caso.documentos.proximas_solicitacoes);
+  const localizados = lista(caso.documentos.documentos_localizados);
+  const emValidacao = lista(caso.documentos.documentos_em_validacao);
+
+  const blocos =
+    area === "fase2"
+      ? [
+          { titulo: "Rota em leitura", itens: [rotaLabel(caso)] },
+          { titulo: "Dependências", itens: pendentes },
+          { titulo: "Próximos marcos", itens: solicitados },
+        ]
+      : area === "fase1"
+        ? [
+            { titulo: "Já localizados", itens: localizados },
+            { titulo: "Em validação", itens: emValidacao },
+            { titulo: "Ainda precisamos confirmar", itens: pendentes },
+          ]
+        : [
+            {
+              titulo: "Entregáveis em preparação",
+              itens: [texto(caso.documentos.documento_principal, FALLBACK.semArquivo)],
+            },
+            { titulo: "Próximo passo", itens: solicitados },
+          ];
+
+  const visiveis = blocos.filter((b) => b.itens.length > 0);
+
+  return (
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6 lg:p-5">
+      <div className="min-w-0">{children}</div>
+
+      <aside data-print-hide className="space-y-4 p-5 lg:sticky lg:top-[76px] lg:p-0">
+        <div className="rounded-2xl border border-navy/20 bg-navy p-4 text-cream">
+          <div className="text-[11px] uppercase tracking-widest text-gold/80">
+            Resumo do acompanhamento
+          </div>
+          <div className="mt-1 font-serif text-lg italic text-gold">
+            {texto(caso.jornada.etapa_atual, FALLBACK.atualizacao)}
+          </div>
+          <div className="mt-3 rounded-lg bg-navy-soft/70 p-3 text-[12px]">
+            <div className="text-cream/70">Pendência principal</div>
+            <div className="font-semibold text-cream">
+              {texto(caso.documentos.pendencia_principal, FALLBACK.atualizacao)}
+            </div>
+          </div>
+        </div>
+
+        {visiveis.map((b) => (
+          <div key={b.titulo} className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">{b.titulo}</div>
+            <ul className="mt-2 space-y-2">
+              {b.itens.map((i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-[12px] leading-snug text-navy/80"
+                >
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                  {i}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <p className="rounded-2xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
+          {PROCURACAO_TEXTO_CLIENTE}
+        </p>
+      </aside>
+    </div>
+  );
+}
+
 /* -------- componentes auxiliares -------- */
 function EvidenceTag({ status }: { status: PessoaBase["status_evidencia"] }) {
   return (
-    <span className={cn("inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold", EVIDENCE_TOM[status])}>
+    <span
+      className={cn(
+        "inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+        EVIDENCE_TOM[status],
+      )}
+    >
       {EVIDENCE_LABEL[status]}
     </span>
   );
@@ -228,7 +352,9 @@ function Bloco({
 }) {
   return (
     <section>
-      {eyebrow && <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">{eyebrow}</div>}
+      {eyebrow && (
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">{eyebrow}</div>
+      )}
       <h3 className="mb-3 font-serif text-xl text-navy">{titulo}</h3>
       {children}
     </section>
@@ -262,7 +388,9 @@ function HomeTab({
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-widest text-gold/80">Seu acompanhamento</div>
+            <div className="text-[11px] uppercase tracking-widest text-gold/80">
+              Seu acompanhamento
+            </div>
             <div className="font-serif text-xl italic">{ficha.conta_produto_atual}</div>
             <div className="text-[11px] text-cream/70">Rota provável: {ficha.rota_provavel}</div>
           </div>
@@ -272,7 +400,9 @@ function HomeTab({
         </div>
 
         <div className="mt-5 rounded-xl bg-navy-soft/60 p-3">
-          <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">Hoje você está aqui</div>
+          <div className="mb-2 text-[11px] uppercase tracking-widest text-gold/80">
+            Hoje você está aqui
+          </div>
           <div className="flex items-center justify-between gap-1">
             {ETAPAS_CASO.map((s, i) => {
               const done = i < idx;
@@ -333,8 +463,12 @@ function HomeTab({
 
       {preenchido(caso.jornada.contexto_resumo) && (
         <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Onde seu caso está</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.jornada.contexto_resumo}</p>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            Onde seu caso está
+          </div>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.jornada.contexto_resumo}
+          </p>
         </section>
       )}
 
@@ -353,7 +487,10 @@ function HomeTab({
                       <span className="text-[12px] text-navy/70">%</span>
                     </div>
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-gold" style={{ width: `${p.aderencia}%` }} />
+                      <div
+                        className="h-full rounded-full bg-gold"
+                        style={{ width: `${p.aderencia}%` }}
+                      />
                     </div>
                   </>
                 )}
@@ -376,15 +513,23 @@ function HomeTab({
           <Sparkles className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Entrega · leitura inicial</div>
-          <div className="font-serif text-xl leading-tight text-navy">Seu caso e o próximo passo</div>
-          <div className="text-[12px] text-navy/70">Leitura da linha familiar e checklist mínimo.</div>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            Entrega · leitura inicial
+          </div>
+          <div className="font-serif text-xl leading-tight text-navy">
+            Seu caso e o próximo passo
+          </div>
+          <div className="text-[12px] text-navy/70">
+            Leitura da linha familiar e checklist mínimo.
+          </div>
         </div>
         <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
       </button>
 
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="text-[11px] uppercase tracking-widest text-terracotta">Entregas da jornada</div>
+        <div className="text-[11px] uppercase tracking-widest text-terracotta">
+          Entregas da jornada
+        </div>
         <h3 className="font-serif text-xl text-navy">Suas fases de entrega</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <button
@@ -393,14 +538,18 @@ function HomeTab({
           >
             <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 01</div>
             <div className="font-serif text-lg leading-snug text-navy">Diagnóstico inicial</div>
-            <div className="mt-1 text-[12px] text-navy/70">Leitura da família e primeiros caminhos.</div>
+            <div className="mt-1 text-[12px] text-navy/70">
+              Leitura da família e primeiros caminhos.
+            </div>
           </button>
           <button
             onClick={onOpenFase02}
             className="rounded-xl border border-navy/20 bg-cream/60 p-4 text-left transition hover:bg-areia/70"
           >
             <div className="text-[10px] uppercase tracking-widest text-navy/50">Fase 02</div>
-            <div className="font-serif text-lg leading-snug text-navy">Relatório completo de pesquisa</div>
+            <div className="font-serif text-lg leading-snug text-navy">
+              Relatório completo de pesquisa
+            </div>
             <div className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2 py-0.5 text-[10px] font-semibold text-navy">
               {fase02Status}
             </div>
@@ -411,13 +560,19 @@ function HomeTab({
       <Bloco titulo="Documentos em foco" eyebrow="Documentos">
         <div className="space-y-2.5">
           <div className="rounded-xl border border-navy/25 bg-card p-4">
-            <div className="text-[11px] uppercase tracking-widest text-navy/60">Peça de trabalho atual</div>
+            <div className="text-[11px] uppercase tracking-widest text-navy/60">
+              Peça de trabalho atual
+            </div>
             <div className="text-sm font-medium text-navy">{ficha.documento_foco}</div>
           </div>
           {preenchido(caso.documentos.pendencia_principal) && (
             <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
-              <div className="text-[11px] uppercase tracking-widest text-terracotta">Pendência principal</div>
-              <div className="text-sm font-medium text-navy">{caso.documentos.pendencia_principal}</div>
+              <div className="text-[11px] uppercase tracking-widest text-terracotta">
+                Pendência principal
+              </div>
+              <div className="text-sm font-medium text-navy">
+                {caso.documentos.pendencia_principal}
+              </div>
             </div>
           )}
           <button
@@ -439,7 +594,9 @@ function HomeTab({
             <div className="text-xs uppercase tracking-wide text-navy/70">Pessoas conectadas</div>
             <div className="font-serif text-2xl text-navy">
               {caso.arvore.pessoas_conectadas}{" "}
-              <span className="text-[13px] text-navy/70">em {caso.arvore.geracoes_lidas} gerações lidas</span>
+              <span className="text-[13px] text-navy/70">
+                em {caso.arvore.geracoes_lidas} gerações lidas
+              </span>
             </div>
           </div>
         </section>
@@ -453,10 +610,15 @@ function HomeTab({
         ) : (
           <div className="space-y-2.5">
             {destaques.map((x) => (
-              <div key={x.titulo} className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4">
+              <div
+                key={x.titulo}
+                className="rounded-xl border border-border border-l-4 border-l-gold bg-card p-4"
+              >
                 <div className="mb-1 flex items-center gap-2">
                   <Search className="h-3.5 w-3.5 text-gold" />
-                  <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
+                  <span className="text-[11px] uppercase tracking-widest text-terracotta">
+                    Achado
+                  </span>
                 </div>
                 <div className="text-sm text-navy">{x.titulo}</div>
                 {preenchido(x.pessoa_relacionada) && (
@@ -498,7 +660,9 @@ function JornadaTab({ caso }: { caso: CaseData }) {
       {preenchido(caso.jornada.etapa_atual) && (
         <div className="rounded-2xl border border-gold/40 bg-white p-5 shadow-sm">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">Etapa atual</div>
-          <div className="mt-0.5 font-serif text-lg leading-snug text-navy">{caso.jornada.etapa_atual}</div>
+          <div className="mt-0.5 font-serif text-lg leading-snug text-navy">
+            {caso.jornada.etapa_atual}
+          </div>
         </div>
       )}
 
@@ -507,7 +671,9 @@ function JornadaTab({ caso }: { caso: CaseData }) {
           <div className="space-y-3">
             {trilhas.map((t) => (
               <div key={t.titulo} className="rounded-xl border border-navy/25 bg-areia p-4">
-                <div className="text-[11px] uppercase tracking-widest text-terracotta">{t.titulo}</div>
+                <div className="text-[11px] uppercase tracking-widest text-terracotta">
+                  {t.titulo}
+                </div>
                 <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{t.texto}</p>
               </div>
             ))}
@@ -519,13 +685,18 @@ function JornadaTab({ caso }: { caso: CaseData }) {
         <div className="grid grid-cols-2 gap-4">
           {ancestral.length > 0 && (
             <div>
-              <div className="mb-3 text-[11px] uppercase tracking-widest text-terracotta">Linha Ancestral</div>
+              <div className="mb-3 text-[11px] uppercase tracking-widest text-terracotta">
+                Linha Ancestral
+              </div>
               <div className="relative pl-4">
                 <div className="absolute bottom-1 left-1 top-1 w-px bg-gold/40" />
                 {ancestral.map((t) => (
                   <div key={t} className="relative mb-4">
                     <div className="absolute -left-3 top-4 h-3 w-3 rounded-full bg-gold" />
-                    <div data-audit="jornada-card" className="rounded-xl border border-navy/30 bg-areia p-3">
+                    <div
+                      data-audit="jornada-card"
+                      className="rounded-xl border border-navy/30 bg-areia p-3"
+                    >
                       <div className="text-[12px] leading-relaxed text-navy/80">{t}</div>
                     </div>
                   </div>
@@ -541,7 +712,10 @@ function JornadaTab({ caso }: { caso: CaseData }) {
                 {cliente.map((t) => (
                   <div key={t} className="relative mb-4">
                     <div className="absolute -left-3 top-4 h-3 w-3 rounded-full bg-navy" />
-                    <div data-audit="jornada-card" className="rounded-xl border border-navy/30 bg-areia p-3">
+                    <div
+                      data-audit="jornada-card"
+                      className="rounded-xl border border-navy/30 bg-areia p-3"
+                    >
                       <div className="text-[12px] leading-relaxed text-navy/80">{t}</div>
                     </div>
                   </div>
@@ -554,7 +728,9 @@ function JornadaTab({ caso }: { caso: CaseData }) {
 
       {intersecoes.length > 0 && (
         <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Momentos de encontro</div>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            Momentos de encontro
+          </div>
           <ul className="mt-2 space-y-2">
             {intersecoes.map((t) => (
               <li key={t} className="text-sm italic leading-relaxed text-navy">
@@ -568,7 +744,9 @@ function JornadaTab({ caso }: { caso: CaseData }) {
       {preenchido(caso.conta.texto_upgrade) && (
         <div className="rounded-2xl border border-plum/30 bg-plum/5 p-5">
           <div className="text-[11px] uppercase tracking-widest text-plum">Continuidade</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.conta.texto_upgrade}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.conta.texto_upgrade}
+          </p>
         </div>
       )}
     </div>
@@ -593,7 +771,9 @@ function RotaTab({ caso }: { caso: CaseData }) {
         </div>
         <div className="mt-1 font-serif text-xl text-navy">{rotaLabel(caso)}</div>
         {preenchido(caso.rota.hipotese_principal) && (
-          <p className="mt-2 text-[13px] leading-relaxed text-navy/75">{caso.rota.hipotese_principal}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-navy/75">
+            {caso.rota.hipotese_principal}
+          </p>
         )}
         <div className="mt-3">
           <EvidenceTag status={caso.rota.status_hipotese} />
@@ -612,7 +792,10 @@ function RotaTab({ caso }: { caso: CaseData }) {
                     <span className="text-[12px] text-navy/70">%</span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-gold" style={{ width: `${p.aderencia}%` }} />
+                    <div
+                      className="h-full rounded-full bg-gold"
+                      style={{ width: `${p.aderencia}%` }}
+                    />
                   </div>
                 </>
               )}
@@ -623,7 +806,9 @@ function RotaTab({ caso }: { caso: CaseData }) {
 
       {preenchido(caso.rota.resumo_radar) && (
         <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Resumo da leitura</div>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            Resumo da leitura
+          </div>
           <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.rota.resumo_radar}</p>
         </div>
       )}
@@ -720,7 +905,15 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
   const ocultar = caso.governanca.dados_sensiveis_ocultos;
   const f = caso.familia_direta;
 
-  const No = ({ pessoa, papel, destaque }: { pessoa: PessoaBase; papel: string; destaque?: boolean }) => {
+  const No = ({
+    pessoa,
+    papel,
+    destaque,
+  }: {
+    pessoa: PessoaBase;
+    papel: string;
+    destaque?: boolean;
+  }) => {
     if (!preenchido(pessoa.nome)) return null;
     const variantes = lista(pessoa.variantes_nome);
     const ref = referenciaVisivel(pessoa, ocultar);
@@ -743,6 +936,9 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
             Também registrado como: {variantes.join(", ")}
           </div>
         )}
+        {preenchido(pessoa.observacao) && (
+          <div className="mt-1 text-[11px] leading-snug text-navy/60">{pessoa.observacao}</div>
+        )}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <EvidenceTag status={pessoa.status_evidencia} />
           {ref && (
@@ -761,18 +957,48 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
     <div className="space-y-5 p-5" data-tab="arvore">
       <div>
         <h2 className="font-serif text-2xl text-navy">Árvore Familiar</h2>
-        <p className="mt-1 text-[13px] italic text-navy/70">A linha prioritária aparece em destaque.</p>
+        <p className="mt-1 text-[13px] italic text-navy/70">
+          A linha prioritária aparece em destaque.
+        </p>
       </div>
 
       {preenchido(caso.arvore.linha_prioritaria) && (
         <div className="rounded-2xl border border-gold bg-gold/10 p-4">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Linha prioritária</div>
-          <div className="mt-1 text-[13px] font-medium leading-relaxed text-navy">{caso.arvore.linha_prioritaria}</div>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            Linha prioritária
+          </div>
+          <div className="mt-1 text-[13px] font-medium leading-relaxed text-navy">
+            {caso.arvore.linha_prioritaria}
+          </div>
+        </div>
+      )}
+
+      {ocultar && (
+        <div className="rounded-2xl border border-gold/40 bg-white p-4 shadow-sm">
+          <div className="font-serif text-lg leading-snug text-navy">
+            {REFERENCIA_CLIENTE.titulo}
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-navy/70">
+            {REFERENCIA_CLIENTE.texto}
+          </p>
+          <span className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+            {REFERENCIA_CLIENTE.etiqueta}
+          </span>
         </div>
       )}
 
       <div className="rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
+          {f.pai_de_alessandro && preenchido(f.pai_de_alessandro.nome) && (
+            <>
+              <Gen label="Geração anterior">
+                <div className="mx-auto max-w-[260px]">
+                  <No pessoa={f.pai_de_alessandro} papel="Pai do bisavô" />
+                </div>
+              </Gen>
+              <Connector />
+            </>
+          )}
           <Gen label="Bisavós paternos">
             <div className="grid grid-cols-2 gap-2">
               <No pessoa={f.bisavo_paterno} papel="Bisavô" destaque />
@@ -812,19 +1038,27 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
       {preenchido(caso.arvore.conexao_chave) && (
         <div className="rounded-xl border border-navy/25 bg-card p-4">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">Conexão-chave</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.arvore.conexao_chave}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.arvore.conexao_chave}
+          </p>
         </div>
       )}
       {preenchido(caso.arvore.conexao_territorial) && (
         <div className="rounded-xl border border-navy/25 bg-card p-4">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">Território</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.arvore.conexao_territorial}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.arvore.conexao_territorial}
+          </p>
         </div>
       )}
       {preenchido(caso.arvore.lacuna_critica) && (
         <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">O que ainda falta</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.arvore.lacuna_critica}</p>
+          <div className="text-[11px] uppercase tracking-widest text-terracotta">
+            O que ainda falta
+          </div>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.arvore.lacuna_critica}
+          </p>
         </div>
       )}
 
@@ -832,7 +1066,10 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
         <Bloco titulo="Ramos relacionados">
           <div className="flex flex-wrap gap-2">
             {colaterais.map((p) => (
-              <span key={p} className="rounded-full border border-border bg-white px-3 py-1 text-[11px] text-navy/70">
+              <span
+                key={p}
+                className="rounded-full border border-border bg-white px-3 py-1 text-[11px] text-navy/70"
+              >
                 {p}
               </span>
             ))}
@@ -842,8 +1079,12 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
 
       {caso.arvore.pessoas_conectadas > 0 && (
         <div className="rounded-xl border border-gold/40 bg-gold/10 p-4 text-center">
-          <div className="font-serif text-xl text-navy">{caso.arvore.pessoas_conectadas} pessoas conectadas</div>
-          <div className="text-[12px] text-navy/70">{caso.arvore.geracoes_lidas} gerações lidas até aqui</div>
+          <div className="font-serif text-xl text-navy">
+            {caso.arvore.pessoas_conectadas} pessoas conectadas
+          </div>
+          <div className="text-[12px] text-navy/70">
+            {caso.arvore.geracoes_lidas} gerações lidas até aqui
+          </div>
         </div>
       )}
     </div>
@@ -894,17 +1135,23 @@ function DocsTab({ caso }: { caso: CaseData }) {
     <div className="space-y-6 p-5" data-tab="docs">
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
-        <p className="mt-1 text-[13px] italic text-navy/70">{texto(caso.documentos.status_documental, FALLBACK.atualizacao)}</p>
+        <p className="mt-1 text-[13px] italic text-navy/70">
+          {texto(caso.documentos.status_documental, FALLBACK.atualizacao)}
+        </p>
       </div>
 
       <div className="rounded-2xl border border-gold/40 bg-white p-5 shadow-sm">
-        <div className="text-[11px] uppercase tracking-widest text-terracotta">Peça de trabalho atual</div>
+        <div className="text-[11px] uppercase tracking-widest text-terracotta">
+          Peça de trabalho atual
+        </div>
         <div className="font-serif text-lg leading-snug text-navy">
           {texto(caso.documentos.documento_principal, FALLBACK.semArquivo)}
         </div>
         {preenchido(caso.documentos.pendencia_principal) && (
           <div className="mt-3 rounded-xl border border-terracotta/40 bg-terracotta/5 p-3">
-            <div className="text-[11px] uppercase tracking-widest text-terracotta">Pendência principal</div>
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">
+              Pendência principal
+            </div>
             <div className="text-[13px] text-navy">{caso.documentos.pendencia_principal}</div>
           </div>
         )}
@@ -925,8 +1172,16 @@ function DocsTab({ caso }: { caso: CaseData }) {
         <Bloco key={g.titulo} titulo={g.titulo}>
           <div className="space-y-2.5">
             {g.itens.map((item) => (
-              <div key={item} className="flex items-start gap-3 rounded-xl border border-navy/25 bg-white p-4 shadow-sm">
-                <div className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full border", g.tom)}>
+              <div
+                key={item}
+                className="flex items-start gap-3 rounded-xl border border-navy/25 bg-white p-4 shadow-sm"
+              >
+                <div
+                  className={cn(
+                    "grid h-7 w-7 shrink-0 place-items-center rounded-full border",
+                    g.tom,
+                  )}
+                >
                   <g.Icone className="h-3.5 w-3.5" />
                 </div>
                 <div className="flex-1 text-sm leading-snug text-navy">{item}</div>
@@ -936,22 +1191,35 @@ function DocsTab({ caso }: { caso: CaseData }) {
         </Bloco>
       ))}
 
-      <p className="rounded-xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
-        Referências de árvores colaborativas ajudam a orientar a pesquisa, mas não substituem certidões oficiais.
-      </p>
+      <div className="rounded-xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
+        <p>{PROCURACAO_TEXTO_CLIENTE}</p>
+        <p className="mt-2">
+          Referências genealógicas ajudam a orientar a pesquisa, mas não substituem certidões
+          oficiais.
+        </p>
+      </div>
     </div>
   );
 }
 
 /* -------- DESCOBERTAS / LEGADO -------- */
-function DescobertasTab({ caso, onOpenRelatorio }: { caso: CaseData; onOpenRelatorio: () => void }) {
+function DescobertasTab({
+  caso,
+  onOpenRelatorio,
+}: {
+  caso: CaseData;
+  onOpenRelatorio: () => void;
+}) {
   return (
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
-        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">Biblioteca da jornada</div>
+        <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">
+          Biblioteca da jornada
+        </div>
         <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
         <p className="mt-1 text-[12px] italic text-navy/70">
-          Cada descoberta validada fica registrada aqui, com a pessoa relacionada e o estágio da evidência.
+          Cada descoberta validada fica registrada aqui, com a pessoa relacionada e o estágio da
+          evidência.
         </p>
 
         <div className="mt-4 space-y-3">
@@ -965,7 +1233,9 @@ function DescobertasTab({ caso, onOpenRelatorio }: { caso: CaseData; onOpenRelat
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-gold" />
-                  <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
+                  <span className="text-[11px] uppercase tracking-widest text-terracotta">
+                    Achado
+                  </span>
                 </div>
                 {preenchido(x.data) && (
                   <span className="inline-flex items-center gap-1 text-[11px] text-navy/70">
@@ -975,7 +1245,9 @@ function DescobertasTab({ caso, onOpenRelatorio }: { caso: CaseData; onOpenRelat
                 )}
               </div>
               <div className="font-serif text-lg leading-snug text-navy">{x.titulo}</div>
-              {preenchido(x.texto) && <p className="mt-1.5 text-[12px] leading-relaxed text-navy/70">{x.texto}</p>}
+              {preenchido(x.texto) && (
+                <p className="mt-1.5 text-[12px] leading-relaxed text-navy/70">{x.texto}</p>
+              )}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {preenchido(x.pessoa_relacionada) && (
                   <span className="rounded-full border border-navy/15 bg-areia px-2.5 py-0.5 text-[11px] text-navy/70">
@@ -998,7 +1270,9 @@ function DescobertasTab({ caso, onOpenRelatorio }: { caso: CaseData; onOpenRelat
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">Fase 01</div>
-          <div className="font-serif text-xl leading-tight text-navy">Abrir o diagnóstico inicial</div>
+          <div className="font-serif text-xl leading-tight text-navy">
+            Abrir o diagnóstico inicial
+          </div>
         </div>
         <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
       </button>
@@ -1007,7 +1281,9 @@ function DescobertasTab({ caso, onOpenRelatorio }: { caso: CaseData; onOpenRelat
         <section className="relative overflow-hidden rounded-2xl border border-plum/40 bg-gradient-to-br from-plum via-plum to-[#5B3877] p-6 text-cream">
           <div
             className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)" }}
+            style={{
+              backgroundImage: "radial-gradient(circle at 20% 20%, #C9A84C 0%, transparent 40%)",
+            }}
           />
           <div className="relative">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-widest text-cream">
@@ -1043,10 +1319,14 @@ function ContaScreen({ caso }: { caso: CaseData }) {
           <div className="min-w-0">
             <div className="truncate font-serif text-xl text-navy">{caso.geral.cliente_nome}</div>
             {preenchido(caso.cliente.endereco_resumido) && (
-              <div className="truncate text-[12px] text-navy/70">{caso.cliente.endereco_resumido}</div>
+              <div className="truncate text-[12px] text-navy/70">
+                {caso.cliente.endereco_resumido}
+              </div>
             )}
             {preenchido(caso.governanca.responsavel_caso) && (
-              <div className="text-[12px] text-navy/70">Acompanhamento {caso.governanca.responsavel_caso}</div>
+              <div className="text-[12px] text-navy/70">
+                Acompanhamento {caso.governanca.responsavel_caso}
+              </div>
             )}
           </div>
         </div>
@@ -1060,12 +1340,17 @@ function ContaScreen({ caso }: { caso: CaseData }) {
         <div className="mt-4 space-y-3 text-[12px]">
           <div className="rounded-lg bg-navy-soft/70 p-3">
             <div className="text-cream/70">Status da jornada</div>
-            <div className="font-semibold text-cream">{texto(caso.conta.status_jornada, FALLBACK.atualizacao)}</div>
+            <div className="font-semibold text-cream">
+              {texto(caso.conta.status_jornada, FALLBACK.atualizacao)}
+            </div>
           </div>
           <div className="rounded-lg bg-navy-soft/70 p-3">
             <div className="text-cream/70">Última atualização</div>
             <div className="font-semibold text-cream">
-              {texto(caso.conta.ultima_atualizacao || caso.geral.ultima_atualizacao, FALLBACK.atualizacao)}
+              {texto(
+                caso.conta.ultima_atualizacao || caso.geral.ultima_atualizacao,
+                FALLBACK.atualizacao,
+              )}
             </div>
           </div>
         </div>
@@ -1077,7 +1362,10 @@ function ContaScreen({ caso }: { caso: CaseData }) {
             {historico.map((h, i) => (
               <div
                 key={h}
-                className={cn("flex items-start gap-3 p-4", i < historico.length - 1 && "border-b border-border")}
+                className={cn(
+                  "flex items-start gap-3 p-4",
+                  i < historico.length - 1 && "border-b border-border",
+                )}
               >
                 <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold" />
                 <div className="text-sm leading-relaxed text-navy">{h}</div>
@@ -1090,7 +1378,9 @@ function ContaScreen({ caso }: { caso: CaseData }) {
       {preenchido(caso.conta.texto_upgrade) && (
         <section className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">Próxima etapa</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.conta.texto_upgrade}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+            {caso.conta.texto_upgrade}
+          </p>
         </section>
       )}
     </div>

@@ -24,6 +24,8 @@ export type PessoaBase = {
   nascimento?: string;
   falecimento?: string;
   observacoes?: string;
+  /** Observação curta de validação (exibida como nota da pessoa). */
+  observacao?: string;
   batismo?: string;
   sepultamento?: string;
   local_relevante?: string;
@@ -33,6 +35,46 @@ export type PessoaBase = {
   familysearch_id?: string;
   familysearch_url?: string;
   status_evidencia: EvidenceStatus;
+};
+
+/** Estados operacionais de uma procuração (uso interno). */
+export type StatusProcuracao =
+  | "nao_iniciada"
+  | "rascunho_em_preparacao"
+  | "aguardando_revisao_interna"
+  | "aguardando_assinatura_cliente"
+  | "assinada"
+  | "enviada"
+  | "respondida";
+
+export type Procuracao = {
+  status: StatusProcuracao;
+  finalidade: string;
+  data_assinatura: string;
+  data_envio: string;
+  observacao: string;
+};
+
+export type CaseProcuracoes = {
+  portugues: Procuracao;
+  italiano: Procuracao;
+};
+
+export type StatusContrato = "aguardando_confirmacao" | "confirmado" | "nao_aplicavel";
+
+export type ItemChecklist = { item: string; feito: boolean };
+
+export type CaseContrato = {
+  produto_sku: string;
+  produto_nome: string;
+  status: StatusContrato;
+  arquivo_url: string;
+  proposta_final_url: string;
+  data_assinatura: string;
+  pagamento_status: StatusContrato;
+  observacao: string;
+  /** Checklist "Formalização e contrato" (operacional, visão interna). */
+  checklist: ItemChecklist[];
 };
 
 export type CaseGeral = {
@@ -70,6 +112,8 @@ export type CaseFamiliaDireta = {
   bisavo_paterna: PessoaBase;
   avo_materno: PessoaBase;
   avo_materna: PessoaBase;
+  /** Geração anterior ao bisavô paterno (exibida na árvore expandida). */
+  pai_de_alessandro?: PessoaBase;
 };
 
 export type CaseArvore = {
@@ -170,4 +214,8 @@ export type CaseData = {
   alerta: CaseAlerta;
   conta: CaseConta;
   governanca: CaseGovernanca;
+  /** Estados operacionais de procuração (visão interna). */
+  procuracoes?: CaseProcuracoes;
+  /** Contrato e formalização do caso (visão interna). */
+  contrato?: CaseContrato;
 };
