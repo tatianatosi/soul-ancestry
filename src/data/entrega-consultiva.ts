@@ -429,7 +429,7 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
     clientFirstName: caso.cliente.split(" ")[0],
     country: caso.pais,
     citizenshipType: caso.tipoProcesso,
-    suggestedRoute: via,
+    suggestedRoute: viaExibida,
     routeDisclaimer: ROUTE_DISCLAIMER,
     stage1Status: pago ? "ETAPA_02_EM_ANDAMENTO" : "ETAPA_02_PENDENTE",
     stage1DeliveredAt: caso.dataInicio,
@@ -437,7 +437,7 @@ export function entregaByCaso(caso: Caso): EntregaConsultiva {
     initialReading: `${regra.transmissao} ${regra.atencao}`,
     eligibilitySummary: {
       viable: true,
-      scenario: `Cenário mais provável: ${VIA_LABEL[via]}`,
+      scenario: `Cenário mais provável: ${VIA_LABEL[viaExibida]}`,
       text: `Pela leitura inicial da sua linha (${caso.tipoProcesso}), há viabilidade para seguir. ${regra.atencao}`,
     },
     documentChecklist: [
