@@ -108,7 +108,9 @@ export const caseDataGiovanna: CaseData = {
     },
   },
   arvore: {
-    linha_prioritaria: "Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
+    linha_prioritaria:
+      "Paolo Prade → Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
+
     pessoas_conectadas: 26,
     geracoes_lidas: 4,
     conexao_chave:
