@@ -46,7 +46,7 @@ import {
   FileSignature,
   Link2,
 } from "lucide-react";
-import { activeCase } from "@/data/activeCase";
+import { useActiveCase } from "@/lib/useActiveCase";
 import {
   CONTRATO_LABEL,
   FALLBACK,
@@ -158,7 +158,7 @@ export function DeskApp() {
 
 /* --- Formalização: contrato, procurações e fontes internas --- */
 function Formalizacao() {
-  const caso = activeCase;
+  const caso = useActiveCase();
   const contrato = caso.contrato;
   const procuracoes = caso.procuracoes;
   const f = caso.familia_direta;

@@ -9,7 +9,7 @@ import { EntregaModeloTab } from "./entrega-modelo";
 import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
-import { CASOS } from "@/data/casos";
+import { casoById } from "@/data/casos";
 
 /**
  * App Cliente — orientado por dados.
@@ -19,7 +19,8 @@ import { CASOS } from "@/data/casos";
  * Para publicar outro cliente, duplique `src/data/caseTemplate.ts`, preencha e
  * troque a linha final de `src/data/activeCase.ts`.
  */
-import { activeCase } from "@/data/activeCase";
+import { useActiveCase } from "@/lib/useActiveCase";
+import { CASOS_DISPONIVEIS } from "@/data/case-directory";
 import { toFichaPiloto } from "@/lib/caseAdapter";
 import { limparLista } from "@/lib/client-copy";
 import {
@@ -89,11 +90,11 @@ const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as con
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
-  const caso = activeCase;
+  const caso = useActiveCase();
   const ficha = toFichaPiloto(caso);
 
   /** Casos legados da jornada seguem alimentando as fases 01 e 02. */
-  const casoJornada = CASOS.find((c) => c.id === caso.geral.case_id) ?? CASOS[0];
+  const casoJornada = casoById(caso.geral.case_id);
   const modelo = modeloByCaso(casoJornada.id);
   const registro = registroOuFallback(
     casoJornada.id,
