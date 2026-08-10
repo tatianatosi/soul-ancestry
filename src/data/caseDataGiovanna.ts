@@ -1,0 +1,244 @@
+import type { CaseData } from "@/types/case";
+
+/** Primeiro preenchimento real do modelo — caso piloto. */
+export const caseDataGiovanna: CaseData = {
+  geral: {
+    case_id: "CA-CID-IT-2026-001",
+    case_nome: "Caso Giovanna Prade — linha paterna Prade",
+    cliente_nome: "Giovanna da Veiga Prade",
+    cliente_nome_exibicao: "Giovanna",
+    ano_nascimento_cliente: 1985,
+    cidade_cliente: "São Paulo",
+    estado_cliente: "SP",
+    status_caso: "em_leitura",
+    produto_atual: "Fase 1 — Diagnóstico e Checklist Inicial",
+    data_abertura: "2026-08-10",
+    ultima_atualizacao: "Linha Prade conectada até os bisavós paternos",
+  },
+  cliente: {
+    nome_completo: "Giovanna da Veiga Prade",
+    ano_nascimento: 1985,
+    municipio_nascimento: "",
+    estado_nascimento: "",
+    estado_civil: "",
+    possui_filhos: null,
+    endereco_resumido: "São Paulo, SP",
+    email: "",
+    telefone: "",
+  },
+  familia_direta: {
+    pai: {
+      nome: "Péricles Luiz Medeiros Prade",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "relato_familiar",
+    },
+    mae: {
+      nome: "Arminda Souza da Veiga e Medeiros Prade",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "relato_familiar",
+    },
+    avo_paterno: {
+      nome: "Erwin Prade",
+      nascimento: "16 de agosto de 1917",
+      batismo: "19 de agosto de 1917 — Paróquia de São Francisco de Assis, Rodeio, Santa Catarina, Brasil",
+      falecimento: "11 de abril de 1969",
+      sepultamento: "Cemitério Luterano Centro, Timbó, Santa Catarina, Brasil",
+      local_relevante: "Rodeio, Santa Catarina, Brasil",
+      ocupacao: "indador — transcrição a confirmar",
+      variantes_nome: ["Ervino Prade", "Erwin Prada"],
+      familysearch_id: "LBK7-D99",
+      familysearch_url: "https://www.familysearch.org/pt/tree/pedigree/landscape/LBK7-D99",
+      status_evidencia: "referencia_localizada",
+    },
+    avo_paterna: {
+      nome: "Áurea Medeiros",
+      nascimento: "",
+      falecimento: "",
+      variantes_nome: [],
+      familysearch_id: "GZ1D-YYB",
+      familysearch_url: "https://www.familysearch.org/pt/tree/person/GZ1D-YYB",
+      status_evidencia: "referencia_localizada",
+    },
+    bisavo_paterno: {
+      nome: "Alessandro Prade",
+      nascimento: "1874",
+      falecimento: "1926",
+      origem_hipotese: "Origem italiana a confirmar por documentação oficial",
+      variantes_nome: [],
+      familysearch_id: "LBK7-47N",
+      familysearch_url: "https://www.familysearch.org/pt/tree/person/LBK7-47N",
+      status_evidencia: "referencia_localizada",
+    },
+    bisavo_paterna: {
+      nome: "Margherita Maiocchi",
+      nascimento: "1877",
+      falecimento: "1962",
+      variantes_nome: ["Margarida"],
+      familysearch_id: "LBK7-CT5",
+      familysearch_url: "https://www.familysearch.org/pt/tree/person/LBK7-CT5",
+      status_evidencia: "referencia_localizada",
+    },
+    avo_materno: {
+      nome: "Martinho Cardoso da Veiga",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "relato_familiar",
+    },
+    avo_materna: {
+      nome: "Jacyna de Souza Veiga",
+      nascimento: "",
+      falecimento: "",
+      observacoes: "",
+      status_evidencia: "relato_familiar",
+    },
+  },
+  arvore: {
+    linha_prioritaria: "Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
+    pessoas_conectadas: 26,
+    geracoes_lidas: 4,
+    conexao_chave:
+      "A linha paterna foi conectada de Giovanna até Alessandro Prade por meio de Péricles e Erwin Prade.",
+    conexao_territorial:
+      "Rodeio e Timbó, em Santa Catarina, concentram referências para Erwin Prade; a origem italiana de Alessandro segue em validação.",
+    lacuna_critica:
+      "Faltam os documentos oficiais que comprovem a cadeia entre Alessandro, Erwin, Péricles e Giovanna, além da confirmação de eventual registro italiano.",
+    pessoas_colaterais: [
+      "Hermenegilda Prade",
+      "Maria Prade",
+      "Justina Prade",
+      "Anna Prade",
+      "Gelmira Prade",
+      "Adolfo Prade",
+      "Paulo Prade Neto",
+      "Paulina Prade",
+      "Tranquila Prade",
+      "Alexandre Medeiros Prade",
+      "Luana Medeiros Prade",
+      "Camila da Veiga Prade",
+      "Priscila Medeiros Prade",
+      "Armando Medeiros Prade",
+      "Glacir Medeiros Prade",
+      "Umberto Medeiros Prade",
+      "Maria Margarida Medeiros Prade",
+    ],
+  },
+  rota: {
+    pais_principal: "Itália",
+    aderencia_principal: 88,
+    pais_secundario: "",
+    aderencia_secundaria: null,
+    pais_terciario: "",
+    aderencia_terciaria: null,
+    hipotese_principal:
+      "Há forte aderência à rota italiana pelo ramo paterno Prade, ainda dependente de validação documental.",
+    status_hipotese: "pendente_validacao",
+    resumo_radar:
+      "A Itália lidera pela linha Prade e pelas referências familiares conectadas. A rota final depende da validação dos atos italianos e brasileiros.",
+  },
+  jornada: {
+    etapa_atual: "linha Prade mapeada; validação documental em preparação",
+    contexto_resumo:
+      "Giovanna da Veiga Prade, nascida em 1985, é filha de Péricles Luiz Medeiros Prade e Arminda Souza da Veiga e Medeiros Prade. A linha paterna alcançou Alessandro Prade e Margherita Maiocchi. A próxima etapa é validar os documentos e investigar a situação registral na Itália.",
+    trilha_origem:
+      "A árvore paterna alcançou Alessandro Prade e Margherita Maiocchi. A pesquisa agora busca comprovar a origem e a rota migratória.",
+    trilha_cidadania:
+      "A prioridade é validar a cadeia Alessandro → Erwin → Péricles → Giovanna e verificar a existência de eventual registro na Comune ou no Consulado.",
+    trilha_memoria:
+      "O ramo Prade reúne uma história familiar ampla em Santa Catarina e abre caminho para reconstruir as raízes da família.",
+    jornada_ancestral_1:
+      "Erwin Prade, nascido em Rodeio em 1917, foi conectado a Alessandro Prade e Margherita Maiocchi.",
+    jornada_cliente_1:
+      "O caso começou com o desejo de compreender a própria história e avaliar a possibilidade de cidadania italiana.",
+    jornada_intersecao_1:
+      "A identificação de Erwin conecta a memória familiar à primeira trilha documental verificável da linha Prade.",
+    jornada_intersecao_2:
+      "A localização do ato italiano de Alessandro poderá definir o próximo passo documental da jornada.",
+  },
+  descobertas: [
+    {
+      titulo: "A linha Prade alcançou os bisavós paternos",
+      texto:
+        "Alessandro Prade e Margherita Maiocchi foram conectados à linha paterna de Giovanna por meio de Erwin Prade.",
+      pessoa_relacionada: "Alessandro Prade e Margherita Maiocchi",
+      tipo_evidencia: "referencia_localizada",
+      destaque: true,
+      data: "2026-08-10",
+    },
+    {
+      titulo: "Registro de Erwin Prade localizado",
+      texto:
+        "Há referência de nascimento em 16 de agosto de 1917, em Rodeio, Santa Catarina, e batismo em 19 de agosto de 1917.",
+      pessoa_relacionada: "Erwin Prade",
+      tipo_evidencia: "referencia_localizada",
+      destaque: true,
+      data: "2026-08-10",
+    },
+  ],
+  documentos: {
+    documento_principal: "Diagnóstico Inicial — Linha Prade",
+    pendencia_principal: "Ato de nascimento italiano de Alessandro Prade",
+    status_documental: "3 referências-chave localizadas; certidões oficiais pendentes",
+    documentos_localizados: [
+      "Referência FamilySearch de Erwin Prade",
+      "Referência FamilySearch de Alessandro Prade",
+      "Referência FamilySearch de Margherita Maiocchi",
+    ],
+    documentos_pendentes: [
+      "Certidão de nascimento de Giovanna",
+      "Certidão de nascimento de Péricles Luiz Medeiros Prade",
+      "Certidão de casamento de Péricles e Arminda, se existente",
+      "Certidão de nascimento e casamento de Erwin Prade",
+      "Ato italiano de nascimento de Alessandro Prade",
+      "Ato de casamento de Alessandro Prade e Margherita Maiocchi",
+      "Verificação de eventual registro de Giovanna na Comune ou Consulado",
+    ],
+    proximas_solicitacoes: [
+      "Confirmar município de nascimento de Giovanna",
+      "Solicitar certidão de nascimento de Giovanna",
+      "Solicitar comprovante de residência atualizado",
+      "Verificar documentos, passaportes ou registros antigos da família",
+      "Preparar procurações após formalização da contratação",
+    ],
+    documentos_em_validacao: [],
+  },
+  fontes: {
+    base_1_url: "https://www.familysearch.org/pt/tree/pedigree/landscape/LBK7-D99",
+    base_2_url: "https://www.familysearch.org/pt/tree/person/LBK7-47N",
+    base_3_url: "https://www.familysearch.org/pt/tree/person/LBK7-CT5",
+    links_extras: ["https://www.familysearch.org/pt/tree/person/GZ1D-YYB"],
+    pasta_documentos_url: "",
+    pasta_imagens_url: "",
+  },
+  alerta: {
+    titulo: "Um novo ramo da sua história foi conectado",
+    texto:
+      "Localizamos referências para seu avô Erwin Prade e conectamos seus pais, Alessandro Prade e Margherita Maiocchi. Agora vamos validar os documentos que ligam essa história à sua rota italiana.",
+    nivel: "informativo",
+    ativo: true,
+  },
+  conta: {
+    produto_atual: "Fase 1 — Diagnóstico e Checklist Inicial",
+    status_jornada: "origem em análise; linha Prade mapeada; documentos oficiais pendentes",
+    ultima_atualizacao: "Erwin Prade foi conectado a Alessandro Prade e Margherita Maiocchi",
+    historico: [
+      "Linha Prade atualizada até os bisavós paternos.",
+      "Referências FamilySearch adicionadas ao dossiê interno.",
+      "Próxima etapa: validar atos civis, eclesiásticos e eventual registro italiano.",
+    ],
+    texto_upgrade:
+      "Após a validação documental da Fase 1, a próxima etapa poderá organizar a estratégia de rota, a busca de certidões e as ações necessárias para o caso.",
+  },
+  governanca: {
+    responsavel_caso: "Equipe Clube Ancestral",
+    observacoes_internas:
+      "Não apresentar origem italiana, Belluno, Comune, cidadania ou rota jurídica como fatos definitivos antes de validação oficial.",
+    dados_sensiveis_ocultos: true,
+    regra_input_output:
+      "Input registra fatos brutos, fontes, links, dados familiares e documentos. Output traduz apenas informações adequadas à cliente, com linguagem acolhedora, clara e sem promessa de resultado jurídico.",
+  },
+};
