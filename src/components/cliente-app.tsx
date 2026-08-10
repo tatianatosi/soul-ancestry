@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { runCanvasAudit } from "@/lib/canvas-audit";
 
 import { cn } from "@/lib/utils";
@@ -9,7 +10,7 @@ import { EntregaModeloTab } from "./entrega-modelo";
 import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
-import { CASOS } from "@/data/casos";
+import { casoById } from "@/data/casos";
 
 /**
  * App Cliente — orientado por dados.
@@ -19,7 +20,8 @@ import { CASOS } from "@/data/casos";
  * Para publicar outro cliente, duplique `src/data/caseTemplate.ts`, preencha e
  * troque a linha final de `src/data/activeCase.ts`.
  */
-import { activeCase } from "@/data/activeCase";
+import { useActiveCase } from "@/lib/useActiveCase";
+import { CASOS_DISPONIVEIS } from "@/data/case-directory";
 import { toFichaPiloto } from "@/lib/caseAdapter";
 import { limparLista } from "@/lib/client-copy";
 import {
@@ -89,11 +91,12 @@ const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as con
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
-  const caso = activeCase;
+  const navigate = useNavigate();
+  const caso = useActiveCase();
   const ficha = toFichaPiloto(caso);
 
   /** Casos legados da jornada seguem alimentando as fases 01 e 02. */
-  const casoJornada = CASOS.find((c) => c.id === caso.geral.case_id) ?? CASOS[0];
+  const casoJornada = casoById(caso.geral.case_id);
   const modelo = modeloByCaso(casoJornada.id);
   const registro = registroOuFallback(
     casoJornada.id,
@@ -155,12 +158,27 @@ export function ClienteApp() {
 
       <div data-print-hide className="border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 text-[11px] text-navy/70">Painel individual da sua jornada</div>
+          <label className="flex min-w-0 items-center gap-2 text-[11px] text-navy/70">
+            <span className="shrink-0">Caso</span>
+            <select
+              value={caso.geral.case_id}
+              onChange={(e) => navigate({ to: "/", search: { caso: e.target.value } })}
+              className="min-w-0 truncate rounded-full border border-navy/20 bg-cream px-2 py-1 text-[11px] text-navy"
+              aria-label="Selecionar caso do cliente"
+            >
+              {CASOS_DISPONIVEIS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+          </label>
           <span className="shrink-0 rounded-full border border-navy/25 px-3 py-1 text-[11px] font-semibold text-navy">
             {STATUS_CASO_LABEL[caso.geral.status_caso]}
           </span>
         </div>
       </div>
+
 
       <main className="flex-1 overflow-y-auto pb-28">
         {showConta || tab === "conta" ? (

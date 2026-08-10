@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { activeCase } from "@/data/activeCase";
+import { useActiveCase } from "@/lib/useActiveCase";
 import { cn } from "@/lib/utils";
 import {
   CONTRATO_BASE_LABEL,
@@ -189,7 +189,7 @@ function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumen
 type AreaId = "visao" | string;
 
 export function KitContratual() {
-  const caso = activeCase;
+  const caso = useActiveCase();
   const c = caso.contratacao;
   const [area, setArea] = useState<AreaId>("visao");
   const itens = cards(
@@ -320,7 +320,7 @@ export function KitContratual() {
 }
 
 function HistoricoContratual() {
-  const caso = activeCase;
+  const caso = useActiveCase();
   const etapas = caso.contratacao?.timeline ?? [];
   return (
     <div className="rounded-xl border border-border bg-cream/40 p-4">
@@ -392,7 +392,7 @@ const TITULOS: Record<ModeloId, string> = {
 };
 
 function ModeloCorpo({ id }: { id: ModeloId }) {
-  const caso = activeCase;
+  const caso = useActiveCase();
   const c = caso.contratacao;
 
   return (
@@ -573,7 +573,7 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
 }
 
 function ProcuracaoPreview({ italiana }: { italiana: boolean }) {
-  const c = activeCase.contratacao;
+  const c = useActiveCase().contratacao;
   const p = italiana ? c?.autorizacoes.procuracao_italiana : c?.autorizacoes.procuracao_brasileira;
   const orgao = preenchido(p?.orgao_destinatario)
     ? p!.orgao_destinatario
