@@ -96,6 +96,16 @@ export const caseDataGiovanna: CaseData = {
       observacoes: "",
       status_evidencia: "relato_familiar",
     },
+    pai_de_alessandro: {
+      nome: "Paolo Prade",
+      nascimento: "",
+      falecimento: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "relato_familiar",
+      observacao: "Informação atual a validar por documento oficial ou fonte genealógica compatível.",
+    },
   },
   arvore: {
     linha_prioritaria: "Alessandro Prade → Erwin Prade → Péricles Luiz Medeiros Prade → Giovanna da Veiga Prade",
