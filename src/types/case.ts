@@ -343,5 +343,44 @@ export type CaseContratacao = {
     procuracao_italiana: ProcuracaoDocumento;
   };
   alteracoes_escopo: AlteracaoEscopo[];
+  /** Timeline contratual do caso (Desk completo, resumo na área da cliente). */
+  timeline?: EtapaContratual[];
 };
+
+/* ---------------- Timeline contratual ---------------- */
+
+export type StatusEtapa =
+  | "concluido"
+  | "em_andamento"
+  | "aguardando"
+  | "bloqueado"
+  | "nao_iniciado";
+
+export type VisibilidadeEtapa = "cliente" | "interna" | "ambas";
+
+export type EtapaContratual = {
+  id: string;
+  titulo: string;
+  status: StatusEtapa;
+  /** Só preencher com data real; vazio nunca gera data fictícia. */
+  data: string;
+  responsavel: string;
+  descricao: string;
+  proxima_acao: string;
+  visibilidade: VisibilidadeEtapa;
+  /** Observação exibida quando o status é "bloqueado". */
+  motivo_bloqueio?: string;
+};
+
+/* ---------------- Estados de documento ---------------- */
+
+export type EstadoDocumento =
+  | "nao_criado"
+  | "rascunho"
+  | "aguardando_revisao"
+  | "aguardando_aceite"
+  | "aceito"
+  | "arquivado"
+  | "indisponivel";
+
 
