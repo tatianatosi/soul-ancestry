@@ -18,12 +18,14 @@ import { GoLiveDesk } from "./desk-go-live";
 import {
   LayoutGrid, Users, ListChecks, Radar as RadarIcon, Bell, Library,
   TrendingUp, DollarSign, Send, AlertTriangle, CheckCircle2, Circle, Clock,
-  Scale, Wallet, Plug, Smartphone, FileText, Rocket,
+  Scale, Wallet, Plug, Smartphone, FileText, Rocket, FileSignature, Link2,
 } from "lucide-react";
+import { activeCase } from "@/data/activeCase";
+import { CONTRATO_LABEL, FALLBACK, PROCURACAO_LABEL, lista, preenchido, texto } from "@/lib/evidence";
 
 type Section =
   | "overview" | "casos" | "checklist" | "juridica" | "radar" | "alertas" | "biblio"
-  | "financeiro" | "appcliente" | "integracoes" | "propostas" | "golive";
+  | "financeiro" | "appcliente" | "integracoes" | "propostas" | "golive" | "formalizacao";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
@@ -32,6 +34,7 @@ export function DeskApp() {
     ["casos", Users, "Casos 360"],
     ["propostas", FileText, "Propostas"],
     ["golive", Rocket, "Go-live"],
+    ["formalizacao", FileSignature, "Formalização"],
     ["appcliente", Smartphone, "Checklist AppCliente"],
     ["financeiro", Wallet, "Financeiro"],
     ["checklist", ListChecks, "Checklist semanal"],
@@ -91,6 +94,7 @@ export function DeskApp() {
           {sec === "casos" && <Casos />}
           {sec === "propostas" && <Propostas />}
           {sec === "golive" && <GoLiveDesk />}
+          {sec === "formalizacao" && <Formalizacao />}
 
 
           {sec === "appcliente" && <ChecklistAppCliente />}
@@ -103,6 +107,163 @@ export function DeskApp() {
           {sec === "biblio" && <BiblioMestre />}
         </div>
       </main>
+    </div>
+  );
+}
+
+
+/* --- Formalização: contrato, procurações e fontes internas --- */
+function Formalizacao() {
+  const caso = activeCase;
+  const contrato = caso.contrato;
+  const procuracoes = caso.procuracoes;
+  const f = caso.familia_direta;
+
+  const pessoas = [
+    { papel: "Bisavô paterno", p: f.bisavo_paterno },
+    { papel: "Bisavó paterna", p: f.bisavo_paterna },
+    { papel: "Avô paterno", p: f.avo_paterno },
+    { papel: "Avó paterna", p: f.avo_paterna },
+    { papel: "Pai do bisavô", p: f.pai_de_alessandro },
+  ].filter((x) => x.p && preenchido(x.p.nome));
+
+  return (
+    <div className="space-y-8">
+      <header>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Visão interna · {caso.geral.case_id}</div>
+        <h1 className="font-serif text-3xl italic text-navy">Formalização e fontes</h1>
+        <p className="mt-1 text-sm text-navy/70">{caso.geral.case_nome}</p>
+      </header>
+
+      {/* contrato */}
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">Produto contratado</div>
+            <div className="font-serif text-xl text-navy">
+              {contrato ? `${contrato.produto_sku} — ${contrato.produto_nome}` : FALLBACK.aguardando}
+            </div>
+          </div>
+          <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta">
+            {contrato ? CONTRATO_LABEL[contrato.status] : FALLBACK.aguardando}
+          </span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            ["Arquivo do contrato", contrato?.arquivo_url],
+            ["Proposta final", contrato?.proposta_final_url],
+            ["Data de assinatura", contrato?.data_assinatura],
+          ].map(([l, v]) => (
+            <div key={l as string} className="rounded-xl border border-border bg-cream/60 p-3 text-sm">
+              <div className="text-[11px] uppercase tracking-wide text-navy/60">{l}</div>
+              <div className="font-medium text-navy">{texto(v as string, "Documento ainda não vinculado")}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 rounded-xl border border-gold/40 bg-gold/10 p-3 text-sm text-navy">
+          Pagamento: {contrato ? CONTRATO_LABEL[contrato.pagamento_status] : FALLBACK.aguardando}
+        </div>
+        {contrato && preenchido(contrato.observacao) && (
+          <p className="mt-3 text-[12px] italic text-navy/70">{contrato.observacao}</p>
+        )}
+
+        <h3 className="mt-6 font-serif text-lg text-navy">Formalização e contrato</h3>
+        <ul className="mt-2 space-y-2">
+          {(contrato?.checklist ?? []).map((c) => (
+            <li key={c.item} className="flex items-start gap-2 rounded-lg border border-border bg-cream/40 p-2.5 text-sm text-navy">
+              {c.feito ? (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+              ) : (
+                <Circle className="mt-0.5 h-4 w-4 shrink-0 text-navy/30" />
+              )}
+              <span className="min-w-0">{c.item}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* procurações */}
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="font-serif text-xl text-navy">Procurações</h3>
+        <p className="mt-1 text-[12px] text-navy/70">
+          A etapa de consulta externa depende de revisão documental e autorização formal.
+        </p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {([
+            ["Procuração em português", procuracoes?.portugues],
+            ["Procuração em italiano", procuracoes?.italiano],
+          ] as const).map(([label, proc]) => (
+            <div key={label} className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-semibold text-navy">{label}</div>
+                <span className="rounded-full border border-terracotta/40 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-terracotta">
+                  {proc ? PROCURACAO_LABEL[proc.status] : "Não iniciada"}
+                </span>
+              </div>
+              <div className="mt-2 text-[12px] text-navy/75">{texto(proc?.finalidade, FALLBACK.atualizacao)}</div>
+              <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-navy/70">
+                <div>Assinatura: {texto(proc?.data_assinatura, "Ação ainda não iniciada")}</div>
+                <div>Envio: {texto(proc?.data_envio, "Ação ainda não iniciada")}</div>
+              </div>
+              {proc && preenchido(proc.observacao) && (
+                <p className="mt-2 text-[11px] italic text-navy/70">{proc.observacao}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* fontes internas */}
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="font-serif text-xl text-navy">Referências de pesquisa (uso interno)</h3>
+        <p className="mt-1 text-[12px] text-navy/70">
+          FamilySearch é referência de pesquisa. Nunca é prova documental final e não confirma sozinho vínculo
+          familiar, origem, Comune ou rota jurídica.
+        </p>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[820px] text-left text-sm">
+            <thead className="text-[11px] uppercase tracking-wide text-navy/60">
+              <tr>
+                <th className="p-2">Pessoa</th>
+                <th className="p-2">Papel</th>
+                <th className="p-2">ID / URL</th>
+                <th className="p-2">Evidência</th>
+                <th className="p-2">Documento necessário</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pessoas.map(({ papel, p }) => (
+                <tr key={papel} className="border-t border-border align-top">
+                  <td className="p-2 font-medium text-navy">{p!.nome}</td>
+                  <td className="p-2 text-navy/70">{papel}</td>
+                  <td className="p-2 text-navy/70">
+                    {preenchido(p!.familysearch_id) ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Link2 className="h-3 w-3 text-gold" /> FamilySearch | {p!.familysearch_id}
+                      </span>
+                    ) : (
+                      "Documento ainda não vinculado"
+                    )}
+                  </td>
+                  <td className="p-2 text-navy/70">
+                    {p!.status_evidencia === "referencia_localizada" ? "Referência localizada" : "Em validação documental"}
+                  </td>
+                  <td className="p-2 text-navy/70">Certidão oficial correspondente</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-3 text-[11px] text-navy/60">
+          Responsável pela validação: {texto(caso.governanca.responsavel_caso, FALLBACK.aguardando)} · Inclusão:{" "}
+          {texto(caso.geral.data_abertura, FALLBACK.aguardando)}
+        </div>
+        {lista(caso.documentos.documentos_pendentes).length > 0 && (
+          <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-[12px] text-navy">
+            Documentos oficiais necessários: {lista(caso.documentos.documentos_pendentes).join(" · ")}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
