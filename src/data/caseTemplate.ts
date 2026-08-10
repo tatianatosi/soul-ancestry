@@ -144,6 +144,21 @@ export const caseTemplate: CaseData = {
     historico: [],
     texto_upgrade: "",
   },
+  procuracoes: {
+    portugues: { status: "nao_iniciada", finalidade: "", data_assinatura: "", data_envio: "", observacao: "" },
+    italiano: { status: "nao_iniciada", finalidade: "", data_assinatura: "", data_envio: "", observacao: "" },
+  },
+  contrato: {
+    produto_sku: "",
+    produto_nome: "",
+    status: "aguardando_confirmacao",
+    arquivo_url: "",
+    proposta_final_url: "",
+    data_assinatura: "",
+    pagamento_status: "aguardando_confirmacao",
+    observacao: "",
+    checklist: [],
+  },
   governanca: {
     responsavel_caso: "",
     observacoes_internas: "",
