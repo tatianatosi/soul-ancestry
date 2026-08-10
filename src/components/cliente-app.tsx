@@ -10,6 +10,7 @@ import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
 import { entregasByCaso, STATUS_LABEL } from "@/data/relatorio-visual";
+import { limparCopy, limparLista } from "@/lib/client-copy";
 
 
 import {
@@ -573,7 +574,7 @@ function HomeTab({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-navy">{limparCopy(it.titulo)}</div>
-                <div className="text-[12px] text-navy/70">{it.sub}</div>
+                <div className="text-[12px] text-navy/70">{limparCopy(it.sub)}</div>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
             </div>
@@ -602,7 +603,7 @@ function HomeTab({
                 <Search className="h-3.5 w-3.5 text-gold" />
                 <span className="text-[11px] uppercase tracking-widest text-terracotta">Achado</span>
               </div>
-              <div className="text-sm text-navy">{x.titulo}</div>
+              <div className="text-sm text-navy">{limparCopy(x.titulo)}</div>
               <div className="mt-1 text-[12px] text-navy/70">{x.data}</div>
             </div>
           ))}
@@ -994,7 +995,7 @@ function DocsTab({ caso }: { caso: Caso }) {
                 <CheckCircle2 className="h-5 w-5 text-emerald-700" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-navy">{d.titulo}</div>
+                <div className="truncate text-sm font-medium text-navy">{limparCopy(d.titulo)}</div>
                 <div className="text-[12px] text-navy/70">{d.data}</div>
               </div>
               <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
