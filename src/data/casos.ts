@@ -52,7 +52,10 @@ export type Caso = {
   tipoProcesso: string; // PARAMETROS / CASOS
   pais: Pais;
   baseJuridica: string; // CASOS.Pais/Base Juridica + MARCOS_JURIDICOS_SYNC
+  /** Via mais provável para o caso — define o produto/SKU/preço da Etapa 02. */
+  viaSugerida?: "administrativa" | "judicial" | "a-definir";
   responsavel: string;
+
   status: StatusCaso;
   dataInicio: string;
   etapaAtual: EtapaKey;
