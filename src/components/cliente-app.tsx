@@ -21,6 +21,7 @@ import { CASOS } from "@/data/casos";
  */
 import { activeCase } from "@/data/activeCase";
 import { toFichaPiloto } from "@/lib/caseAdapter";
+import { limparLista } from "@/lib/client-copy";
 import {
   EVIDENCE_LABEL,
   EVIDENCE_TOM,
