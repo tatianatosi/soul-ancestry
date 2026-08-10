@@ -1,0 +1,153 @@
+import type { CaseData } from "@/types/case";
+
+/**
+ * MODELO VAZIO REUTILIZÁVEL.
+ *
+ * Como cadastrar o próximo caso:
+ * 1. Copie este arquivo como `src/data/caseData<Nome>.ts`.
+ * 2. Renomeie a constante e preencha somente o que já for conhecido.
+ *    Campos vazios são ocultados automaticamente na interface.
+ * 3. Aponte `src/data/activeCase.ts` para a nova constante.
+ * Nenhum componente visual precisa ser alterado.
+ */
+export const caseTemplate: CaseData = {
+  geral: {
+    case_id: "",
+    case_nome: "",
+    cliente_nome: "",
+    cliente_nome_exibicao: "",
+    ano_nascimento_cliente: null,
+    cidade_cliente: "",
+    estado_cliente: "",
+    status_caso: "novo",
+    produto_atual: "",
+    data_abertura: "",
+    ultima_atualizacao: "",
+  },
+  cliente: {
+    nome_completo: "",
+    ano_nascimento: null,
+    municipio_nascimento: "",
+    estado_nascimento: "",
+    estado_civil: "",
+    possui_filhos: null,
+    endereco_resumido: "",
+    email: "",
+    telefone: "",
+  },
+  familia_direta: {
+    pai: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+    mae: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+    avo_paterno: {
+      nome: "",
+      nascimento: "",
+      batismo: "",
+      falecimento: "",
+      sepultamento: "",
+      local_relevante: "",
+      ocupacao: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "pendente_validacao",
+    },
+    avo_paterna: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "pendente_validacao",
+    },
+    bisavo_paterno: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      origem_hipotese: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "pendente_validacao",
+    },
+    bisavo_paterna: {
+      nome: "",
+      nascimento: "",
+      falecimento: "",
+      variantes_nome: [],
+      familysearch_id: "",
+      familysearch_url: "",
+      status_evidencia: "pendente_validacao",
+    },
+    avo_materno: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+    avo_materna: { nome: "", nascimento: "", falecimento: "", observacoes: "", status_evidencia: "pendente_validacao" },
+  },
+  arvore: {
+    linha_prioritaria: "",
+    pessoas_conectadas: 0,
+    geracoes_lidas: 0,
+    conexao_chave: "",
+    conexao_territorial: "",
+    lacuna_critica: "",
+    pessoas_colaterais: [],
+  },
+  rota: {
+    pais_principal: "",
+    aderencia_principal: null,
+    pais_secundario: "",
+    aderencia_secundaria: null,
+    pais_terciario: "",
+    aderencia_terciaria: null,
+    hipotese_principal: "",
+    status_hipotese: "pendente_validacao",
+    resumo_radar: "",
+  },
+  jornada: {
+    etapa_atual: "",
+    contexto_resumo: "",
+    trilha_origem: "",
+    trilha_cidadania: "",
+    trilha_memoria: "",
+    jornada_ancestral_1: "",
+    jornada_cliente_1: "",
+    jornada_intersecao_1: "",
+    jornada_intersecao_2: "",
+  },
+  descobertas: [],
+  documentos: {
+    documento_principal: "",
+    pendencia_principal: "",
+    status_documental: "",
+    documentos_localizados: [],
+    documentos_pendentes: [],
+    proximas_solicitacoes: [],
+    documentos_em_validacao: [],
+  },
+  fontes: {
+    base_1_url: "",
+    base_2_url: "",
+    base_3_url: "",
+    links_extras: [],
+    pasta_documentos_url: "",
+    pasta_imagens_url: "",
+  },
+  alerta: {
+    titulo: "",
+    texto: "",
+    nivel: "informativo",
+    ativo: true,
+  },
+  conta: {
+    produto_atual: "",
+    status_jornada: "",
+    ultima_atualizacao: "",
+    historico: [],
+    texto_upgrade: "",
+  },
+  governanca: {
+    responsavel_caso: "",
+    observacoes_internas: "",
+    dados_sensiveis_ocultos: true,
+    regra_input_output: "",
+  },
+};
