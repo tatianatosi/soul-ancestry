@@ -72,60 +72,82 @@ export const POSSIBILIDADES_APROFUNDAMENTO = [
   "Investigação de lacunas específicas",
 ];
 
-/** Modelo base — usado quando o caso ainda não tem relatório dedicado. */
+/** Rótulo cliente-facing do estágio da Fase 1. */
+export const FASE1_STATUS_LABEL: Record<RelatorioMeta["status"], string> = {
+  em_elaboracao: "Em diagnóstico",
+  em_revisao: "Em diagnóstico",
+  entregue: "Primeira leitura concluída",
+  arquivado: "Primeira leitura concluída",
+};
+
+const OBS_DOC: Record<string, string> = {
+  ok: "Registro localizado e conferido pela consultoria.",
+  parcial: "Registro localizado, em conferência de dados.",
+  pendente: "Ainda em busca — sem confirmação até o momento.",
+};
+
+/** Modelo base — derivado dos dados reais do caso, sem placeholders técnicos. */
 function modelo(caso: Caso): RelatorioVisual {
-  const sobrenome = caso.cliente.split(" ").slice(-1)[0];
+  const sobrenome = limparCopy(caso.cliente.split(" ").slice(-1)[0]) || "da família";
+  const linha = caso.linhaAncestral ?? [];
+  const docs = caso.checklistDocs ?? [];
+  const confirmados = docs.filter((d) => d.status === "ok" || d.status === "parcial");
+  const pendentes = docs.filter((d) => d.status === "pendente");
+  const emConferencia = docs.filter((d) => d.status === "parcial");
+  const ultimoRegistro = caso.historico?.[0]?.d;
+
   return {
     casoId: caso.id,
     sobrenomeFamilia: sobrenome,
-    pessoaFoco: caso.cliente,
-    ancestralMaisAntigo: caso.linhaAncestral[0]
-      ? `${caso.linhaAncestral[0].texto} (${caso.linhaAncestral[0].ano})`
-      : "{{ANCESTRAL_MAIS_ANTIGO}}",
-    numeroGeracoes: String(Math.max(4, caso.linhaAncestral.length)),
-    localidadesPrincipais: `${caso.pais} · Brasil`,
-    linhaPrincipal: [
-      { nome: "{{GERACAO_1_NOME}}", eventos: "{{GERACAO_1_EVENTOS}}" },
-      { nome: "{{GERACAO_2_NOME}}", eventos: "{{GERACAO_2_EVENTOS}}" },
-      { nome: "{{GERACAO_3_NOME}}", eventos: "{{GERACAO_3_EVENTOS}}" },
-      { nome: "{{GERACAO_4_NOME}}", eventos: "{{GERACAO_4_EVENTOS}}" },
-    ],
-    documentos: [
-      { pessoa: "{{DOC1_PESSOA}}", tipo: "{{DOC1_TIPO}}", local: "{{DOC1_LOCAL}}", observacao: "{{DOC1_OBSERVACAO}}" },
-      { pessoa: "{{DOC2_PESSOA}}", tipo: "{{DOC2_TIPO}}", local: "{{DOC2_LOCAL}}", observacao: "{{DOC2_OBSERVACAO}}" },
-      { pessoa: "{{DOC3_PESSOA}}", tipo: "{{DOC3_TIPO}}", local: "{{DOC3_LOCAL}}", observacao: "{{DOC3_OBSERVACAO}}" },
-    ],
-    quantidadeRegistros: "{{QUANTIDADE_REGISTROS}}",
-    lacunas: ["{{LACUNA_1}}", "{{LACUNA_2}}", "{{LACUNA_3}}"],
-    pontosConfirmar: ["{{PONTO_CONFIRMAR_1}}", "{{PONTO_CONFIRMAR_2}}"],
+    pessoaFoco: limparCopy(caso.cliente),
+    ancestralMaisAntigo: primeiroOuMensagem(
+      [linha[0] ? `${linha[0].texto} · ${linha[0].ano}` : ""],
+      "Em identificação nesta primeira leitura",
+    ),
+    numeroGeracoes: linha.length ? String(linha.length) : "",
+    localidadesPrincipais: limparLista([caso.pais, "Brasil"]).join(" · "),
+    linhaPrincipal: limparLista(linha.map((g) => g.texto)).map((texto, i) => ({
+      nome: texto,
+      eventos: limparCopy(linha[i]?.ano),
+    })),
+    documentos: confirmados.map((d) => ({
+      pessoa: `Linha ${sobrenome}`,
+      tipo: limparCopy(d.item),
+      local: limparLista([caso.pais, "Brasil"]).join(" · "),
+      observacao: OBS_DOC[d.status] ?? OBS_DOC.parcial,
+    })),
+    quantidadeRegistros: confirmados.length ? String(confirmados.length) : "",
+    lacunas: limparLista(pendentes.map((d) => d.item)),
+    pontosConfirmar: limparLista(emConferencia.map((d) => d.item)),
     proximaEtapa: {
-      titulo: "Próxima etapa recomendada",
+      titulo: "Próximo passo recomendado",
       resumo:
-        `Com a base agora estruturada, a família ${sobrenome} já tem um ponto de partida seguro para um estudo mais profundo. ` +
-        "Em uma etapa de aprofundamento, é possível ampliar gerações, esclarecer lacunas, investigar novos ramos e reconstruir com mais riqueza a trajetória da família ao longo do tempo.",
+        `Com a primeira leitura organizada, a família ${sobrenome} já tem um ponto de partida seguro. ` +
+        "O passo seguinte é uma análise de estratégia e documentação: aprofundar as gerações, esclarecer os pontos em aberto e definir, com calma, o melhor caminho a percorrer.",
       possibilidades: POSSIBILIDADES_APROFUNDAMENTO,
     },
     meta: {
-      etapaAtual: "Projeto Essencial · pesquisa base",
-      ultimaAtualizacao: "{{DATA_ULTIMA_ATUALIZACAO}}",
+      etapaAtual: "Diagnóstico inicial · primeira leitura da história familiar",
+      ultimaAtualizacao: primeiroOuMensagem([ultimoRegistro, caso.dataInicio], "Atualizado nesta semana"),
       status: "em_elaboracao",
       versao: "v1",
       responsavel: "Consultoria Clube Ancestral",
-      proximaRevisao: "{{PROXIMA_REVISAO}}",
+      proximaRevisao: "A combinar com a sua consultoria",
     },
     entregas: [
       {
         id: `${caso.id}-rel-essencial`,
-        titulo: "Relatório Visual · Projeto Essencial",
-        data: "{{DATA_ULTIMA_ATUALIZACAO}}",
-        etapa: "Projeto Essencial",
+        titulo: "Diagnóstico inicial da sua família",
+        data: primeiroOuMensagem([ultimoRegistro, caso.dataInicio], "Em andamento"),
+        etapa: "Diagnóstico inicial",
         status: "em_elaboracao",
-        descricao: "Síntese da pesquisa base: linha principal, documentos e pontos em aberto.",
+        descricao: "Primeira leitura da história familiar: linha principal, registros e pontos em aberto.",
         abreRelatorio: true,
       },
     ],
   };
 }
+
 
 /** Relatórios já preenchidos (exemplo estruturado — substituir por dados reais). */
 export const RELATORIOS: Record<string, Partial<RelatorioVisual>> = {
