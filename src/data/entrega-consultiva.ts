@@ -53,91 +53,252 @@ export const VIA_LABEL: Record<ViaProcesso, string> = {
 export const ROUTE_DISCLAIMER =
   "Indicação preliminar: a via definitiva será validada documental e tecnicamente na Etapa 02.";
 
-/* ------------------------- regras por país ------------------------- */
+/* ------------------- regras por país + via sugerida ------------------- */
 
 export type RegraPais = {
   pais: Pais;
+  via: ViaProcesso;
   transmissao: string;
   viaPadrao: ViaProcesso;
   atencao: string;
   docsCriticos: string[];
   produtoEtapa02: string;
   skuEtapa02: string;
+  descricaoEtapa02: string;
   valorEtapa02: number;
+  prazoEtapa02: string;
+  incluiEtapa02: string[];
+  naoIncluiEtapa02: string[];
 };
 
-export const REGRAS_PAIS: Record<string, RegraPais> = {
-  Itália: {
-    pais: "Itália",
-    transmissao: "Transmissão por descendência sem limite de gerações, desde que não haja interrupção da linha.",
-    viaPadrao: "judicial",
-    atencao:
-      "Linhas com transmissão por mulher antes de 1948 e filas consulares longas costumam levar o caso ao Judiciário italiano.",
-    docsCriticos: [
-      "Certidão de nascimento do ancestral italiano",
-      "Certidão de não naturalização",
-      "Certidões brasileiras retificadas",
-    ],
-    produtoEtapa02: "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana",
-    skuEtapa02: "CA-CID-002",
-    valorEtapa02: 1436,
-  },
-  Portugal: {
-    pais: "Portugal",
-    transmissao:
-      "Transmissão por descendência até netos, com exigência de vínculo efetivo à comunidade portuguesa em alguns cenários.",
-    viaPadrao: "administrativa",
-    atencao: "Prazos e exigências de vínculo mudaram nos últimos anos: a leitura documental define o enquadramento correto.",
-    docsCriticos: ["Assento de nascimento português", "Certidões brasileiras integrais", "Comprovação de vínculo (quando exigida)"],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via portuguesa",
-    skuEtapa02: "CA-CID-PT-E02",
-    valorEtapa02: 1290,
-  },
-  Espanha: {
-    pais: "Espanha",
-    transmissao: "Transmissão por descendência com janelas legais específicas (Ley de Memoria Democrática e opções ordinárias).",
-    viaPadrao: "administrativa",
-    atencao: "Vários caminhos possuem prazo de adesão — a definição da janela correta é decisiva.",
-    docsCriticos: ["Certidão espanhola do ancestral", "Documentos de saída/entrada", "Certidões brasileiras atualizadas"],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via espanhola",
-    skuEtapa02: "CA-CID-ES-E02",
-    valorEtapa02: 1190,
-  },
-  Alemanha: {
-    pais: "Alemanha",
-    transmissao:
-      "Transmissão por descendência com regras distintas conforme data de nascimento e perda de nacionalidade do ancestral.",
-    viaPadrao: "administrativa",
-    atencao: "Casos de perda por naturalização ou por regras de gênero anteriores a 1975 exigem enquadramento próprio (StAG).",
-    docsCriticos: ["Registro alemão do ancestral", "Prova de não perda da nacionalidade", "Certidões brasileiras integrais"],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via alemã",
-    skuEtapa02: "CA-CID-DE-E02",
-    valorEtapa02: 1290,
-  },
-  Croácia: {
-    pais: "Croácia",
-    transmissao: "Transmissão por descendência com comprovação da linha e vínculo com a Croácia.",
-    viaPadrao: "administrativa",
-    atencao: "Documentação de origem costuma exigir pesquisa em arquivos locais.",
-    docsCriticos: ["Registro croata do ancestral", "Cadeia completa de certidões", "Tradução juramentada"],
-    produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via croata",
-    skuEtapa02: "CA-CID-HR-E02",
-    valorEtapa02: 1290,
-  },
+/** Escopo padrão do estudo aprofundado (via administrativa / a definir). */
+export const ETAPA02_INCLUI = [
+  "Análise da cadeia documental",
+  "Checklist técnico de pendências",
+  "Leitura de riscos de grafia, datas e naturalização",
+  "Organização inicial da pasta",
+  "Plano de ação priorizado",
+  "Entrega pelo app e PDF em até 10 dias úteis",
+];
+
+export const ETAPA02_NAO_INCLUI = [
+  "Protocolo judicial",
+  "Honorários advocatícios",
+  "Emissão de certidões, traduções, apostilas e retificações",
+  "Taxas públicas",
+  "Acompanhamento completo do processo",
+];
+
+/** Escopo da assessoria completa por via judicial (Itália). */
+export const ETAPA02_JUDICIAL_INCLUI = [
+  "Organização e auditoria completa da cadeia documental",
+  "Coordenação de retificações, traduções juramentadas e apostilamentos",
+  "Intermediação e coordenação com advogado parceiro na Itália",
+  "Preparação e protocolo do processo judicial no tribunal competente",
+  "Acompanhamento do processo até o reconhecimento (sentença)",
+  "Atualizações periódicas pelo app e canal direto com a equipe",
+];
+
+export const ETAPA02_JUDICIAL_NAO_INCLUI = [
+  "Honorários do advogado italiano (contratados à parte, com valor informado antes)",
+  "Taxa judicial e taxa de protocolo no tribunal italiano",
+  "Emolumentos de cartórios, traduções, apostilas e retificações",
+  "Taxas consulares e emissão de passaporte após o reconhecimento",
+  "Despesas de viagem ou representação presencial extraordinária",
+];
+
+type BasePais = Pick<RegraPais, "pais" | "transmissao" | "viaPadrao" | "atencao" | "docsCriticos">;
+type OfertaVia = Pick<
+  RegraPais,
+  "produtoEtapa02" | "skuEtapa02" | "descricaoEtapa02" | "valorEtapa02" | "prazoEtapa02" | "incluiEtapa02" | "naoIncluiEtapa02"
+>;
+
+const estudoAprofundado = (produto: string, sku: string, valor: number): OfertaVia => ({
+  produtoEtapa02: produto,
+  skuEtapa02: sku,
+  descricaoEtapa02:
+    "Conferência técnica da linha familiar, verificação dos documentos disponíveis, mapa de pendências, identificação de divergências, organização inicial da pasta e plano de ação priorizado.",
+  valorEtapa02: valor,
+  prazoEtapa02: "10 dias úteis",
+  incluiEtapa02: ETAPA02_INCLUI,
+  naoIncluiEtapa02: ETAPA02_NAO_INCLUI,
+});
+
+const montar = (base: BasePais, ofertas: Record<ViaProcesso, OfertaVia>): Record<ViaProcesso, RegraPais> => ({
+  administrativa: { ...base, via: "administrativa", ...ofertas.administrativa },
+  judicial: { ...base, via: "judicial", ...ofertas.judicial },
+  "a-definir": { ...base, via: "a-definir", ...ofertas["a-definir"] },
+});
+
+const ITALIA_BASE: BasePais = {
+  pais: "Itália",
+  transmissao: "Transmissão por descendência sem limite de gerações, desde que não haja interrupção da linha.",
+  viaPadrao: "judicial",
+  atencao:
+    "Linhas com transmissão por mulher antes de 1948, gerações mais distantes e filas consulares longas costumam levar o caso ao Judiciário italiano.",
+  docsCriticos: [
+    "Certidão de nascimento do ancestral italiano",
+    "Certidão de não naturalização",
+    "Certidões brasileiras retificadas",
+  ],
+};
+
+const ITALIA_ADMINISTRATIVA = estudoAprofundado(
+  "Etapa 02 — Estudo aprofundado + organização inicial da pasta italiana",
+  "CA-CID-002",
+  1436,
+);
+
+const ITALIA_JUDICIAL: OfertaVia = {
+  produtoEtapa02: "Assessoria Completa de Cidadania Italiana — Via Judicial",
+  skuEtapa02: "CA-CID-023-JUD",
+  descricaoEtapa02:
+    "Condução completa do reconhecimento pela via judicial: auditoria e organização documental, coordenação de retificações, traduções e apostilamentos, intermediação com advogado parceiro na Itália, protocolo do processo judicial e acompanhamento até o reconhecimento.",
+  valorEtapa02: 9800,
+  prazoEtapa02: "início em até 15 dias úteis após a contratação",
+  incluiEtapa02: ETAPA02_JUDICIAL_INCLUI,
+  naoIncluiEtapa02: ETAPA02_JUDICIAL_NAO_INCLUI,
+};
+
+export const REGRAS_PAIS: Record<string, Record<ViaProcesso, RegraPais>> = {
+  Itália: montar(ITALIA_BASE, {
+    administrativa: ITALIA_ADMINISTRATIVA,
+    judicial: ITALIA_JUDICIAL,
+    "a-definir": ITALIA_ADMINISTRATIVA,
+  }),
+  Portugal: montar(
+    {
+      pais: "Portugal",
+      transmissao:
+        "Transmissão por descendência até netos, com exigência de vínculo efetivo à comunidade portuguesa em alguns cenários.",
+      viaPadrao: "administrativa",
+      atencao:
+        "Prazos e exigências de vínculo mudaram nos últimos anos: a leitura documental define o enquadramento correto.",
+      docsCriticos: [
+        "Assento de nascimento português",
+        "Certidões brasileiras integrais",
+        "Comprovação de vínculo (quando exigida)",
+      ],
+    },
+    {
+      administrativa: estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via portuguesa",
+        "CA-CID-PT-E02",
+        1290,
+      ),
+      judicial: estudoAprofundado(
+        "Estudo aprofundado + desenho da via portuguesa com contencioso",
+        "CA-CID-PT-E02-JUD",
+        1690,
+      ),
+      "a-definir": estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via portuguesa",
+        "CA-CID-PT-E02",
+        1290,
+      ),
+    },
+  ),
+  Espanha: montar(
+    {
+      pais: "Espanha",
+      transmissao: "Transmissão por descendência com janelas legais específicas (Ley de Memoria Democrática e opções ordinárias).",
+      viaPadrao: "administrativa",
+      atencao: "Vários caminhos possuem prazo de adesão — a definição da janela correta é decisiva.",
+      docsCriticos: ["Certidão espanhola do ancestral", "Documentos de saída/entrada", "Certidões brasileiras atualizadas"],
+    },
+    {
+      administrativa: estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via espanhola",
+        "CA-CID-ES-E02",
+        1190,
+      ),
+      judicial: estudoAprofundado(
+        "Estudo aprofundado + desenho da via espanhola com contencioso",
+        "CA-CID-ES-E02-JUD",
+        1590,
+      ),
+      "a-definir": estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via espanhola",
+        "CA-CID-ES-E02",
+        1190,
+      ),
+    },
+  ),
+  Alemanha: montar(
+    {
+      pais: "Alemanha",
+      transmissao:
+        "Transmissão por descendência com regras distintas conforme data de nascimento e perda de nacionalidade do ancestral.",
+      viaPadrao: "administrativa",
+      atencao: "Casos de perda por naturalização ou por regras de gênero anteriores a 1975 exigem enquadramento próprio (StAG).",
+      docsCriticos: ["Registro alemão do ancestral", "Prova de não perda da nacionalidade", "Certidões brasileiras integrais"],
+    },
+    {
+      administrativa: estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via alemã",
+        "CA-CID-DE-E02",
+        1290,
+      ),
+      judicial: estudoAprofundado(
+        "Estudo aprofundado + desenho da via alemã com contencioso",
+        "CA-CID-DE-E02-JUD",
+        1690,
+      ),
+      "a-definir": estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via alemã",
+        "CA-CID-DE-E02",
+        1290,
+      ),
+    },
+  ),
+  Croácia: montar(
+    {
+      pais: "Croácia",
+      transmissao: "Transmissão por descendência com comprovação da linha e vínculo com a Croácia.",
+      viaPadrao: "administrativa",
+      atencao: "Documentação de origem costuma exigir pesquisa em arquivos locais.",
+      docsCriticos: ["Registro croata do ancestral", "Cadeia completa de certidões", "Tradução juramentada"],
+    },
+    {
+      administrativa: estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via croata",
+        "CA-CID-HR-E02",
+        1290,
+      ),
+      judicial: estudoAprofundado(
+        "Estudo aprofundado + desenho da via croata com contencioso",
+        "CA-CID-HR-E02-JUD",
+        1690,
+      ),
+      "a-definir": estudoAprofundado(
+        "Estudo aprofundado de elegibilidade + desenho da via croata",
+        "CA-CID-HR-E02",
+        1290,
+      ),
+    },
+  ),
 };
 
 export const REGRA_GENERICA: RegraPais = {
   pais: "Itália",
+  via: "a-definir",
   transmissao: "Transmissão por descendência, com regras específicas do país de origem aplicáveis à sua linha.",
   viaPadrao: "a-definir",
   atencao: "A definição da via depende da leitura documental completa da linha.",
   docsCriticos: ["Registro do ancestral no país de origem", "Cadeia de certidões brasileiras", "Documento de identidade atual"],
-  produtoEtapa02: "Estudo aprofundado de elegibilidade + desenho da via do seu caso",
-  skuEtapa02: "CA-CID-GEN-E02",
-  valorEtapa02: 1290,
+  ...estudoAprofundado("Estudo aprofundado de elegibilidade + desenho da via do seu caso", "CA-CID-GEN-E02", 1290),
 };
 
-export const regraPais = (pais: Pais): RegraPais => REGRAS_PAIS[pais] ?? { ...REGRA_GENERICA, pais };
+/**
+ * Regra aplicável ao caso: depende do país **e** da via sugerida.
+ * Sem via informada, usa a via padrão do país.
+ */
+export const regraPais = (pais: Pais, via?: ViaProcesso): RegraPais => {
+  const porVia = REGRAS_PAIS[pais];
+  if (!porVia) return { ...REGRA_GENERICA, pais, via: via ?? "a-definir" };
+  return porVia[via ?? porVia["a-definir"].viaPadrao];
+};
+
 
 /* --------------------------- modelo de dados --------------------------- */
 
