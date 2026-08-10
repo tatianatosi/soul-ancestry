@@ -256,7 +256,7 @@ function PainelExpandido({
 }) {
   const pendentes = lista(caso.documentos.documentos_pendentes);
   const solicitados = lista(caso.documentos.proximas_solicitacoes);
-  const localizados = lista(caso.documentos.documentos_localizados);
+  const localizados = limparLista(caso.documentos.documentos_localizados);
   const emValidacao = lista(caso.documentos.documentos_em_validacao);
 
   const blocos =
@@ -1107,7 +1107,7 @@ function DocsTab({ caso }: { caso: CaseData }) {
   const grupos = [
     {
       titulo: "Localizados",
-      itens: lista(caso.documentos.documentos_localizados),
+      itens: limparLista(caso.documentos.documentos_localizados),
       tom: "border-sage/40 bg-sage/10 text-sage",
       Icone: CheckCircle2,
     },
@@ -1300,7 +1300,7 @@ function DescobertasTab({
 
 /* -------- CONTA -------- */
 function ContaScreen({ caso }: { caso: CaseData }) {
-  const historico = lista(caso.conta.historico).slice().reverse();
+  const historico = limparLista(caso.conta.historico).slice().reverse();
   const iniciais = caso.geral.cliente_nome
     .split(" ")
     .filter(Boolean)
