@@ -246,7 +246,7 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
           </div>
           <div className="min-w-0">
             <div className="font-serif text-xl text-navy truncate">{caso.cliente}</div>
-            <div className="text-[12px] text-navy/70 truncate">Caso {caso.id}</div>
+            <div className="text-[12px] text-navy/70 truncate">Acompanhamento {caso.responsavel}</div>
             <div className="text-[12px] text-navy/70">{caso.tipoProcesso}</div>
           </div>
         </div>
@@ -296,7 +296,7 @@ function ContaScreen({ caso, caseStatus }: { caso: Caso; caseStatus: CaseStatus 
             <span className="font-semibold text-cream">{proposta.formatoRecomendado}</span>
           </div>
           <div className="mt-2 text-[11px] text-cream/70">
-            SKUs de referência: {proposta.skusPrincipais.map((s) => s.sku).join(" · ") || caso.plano.skus.join(" · ")}
+            Serviços considerados: {limparLista(proposta.skusPrincipais.map((s) => s.nome)).join(" · ")}
           </div>
           <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-3 text-[12px] leading-relaxed text-cream/90">
             O valor total apresentado já inclui as principais despesas de certidões, traduções e apostilas, muitas
@@ -441,7 +441,7 @@ function HomeTab({
       <section className="rounded-2xl bg-gradient-to-br from-navy to-navy-soft p-5 text-cream shadow-lg">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-widest text-gold/80">Seu caso · {caso.id}</div>
+            <div className="text-[11px] uppercase tracking-widest text-gold/80">Seu acompanhamento</div>
             <div className="font-serif text-xl italic">{caso.tipoProcesso}</div>
             <div className="text-[11px] text-cream/70">{caso.baseJuridica}</div>
           </div>
@@ -572,7 +572,7 @@ function HomeTab({
                 {i + 1}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-navy">{it.titulo}</div>
+                <div className="text-sm font-medium text-navy">{limparCopy(it.titulo)}</div>
                 <div className="text-[12px] text-navy/70">{it.sub}</div>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-sage" />
@@ -631,7 +631,7 @@ function JornadaTab({ caso }: { caso: Caso }) {
     <div className="p-5" data-tab="jornada">
       <h2 className="font-serif text-2xl text-navy">Sua Jornada</h2>
       <p className="mt-1 text-[13px] italic text-navy/70">
-        Duas linhas caminham juntas: a história e o seu processo — {caso.id}.
+        Duas linhas caminham juntas: a história da sua família e o seu processo.
       </p>
 
       <div className="mt-6 grid grid-cols-2 gap-4">
@@ -938,7 +938,7 @@ function DocsTab({ caso }: { caso: Caso }) {
       <div>
         <h2 className="font-serif text-2xl text-navy">Documentos</h2>
         <p className="mt-1 text-[13px] italic text-navy/70">
-          Checklist do caso {caso.id} · {caso.tipoProcesso}
+          Checklist do seu processo · {caso.tipoProcesso}
         </p>
       </div>
 
@@ -1152,12 +1152,12 @@ function BiblioTab({
           </div>
           <h3 className="font-serif text-2xl italic">Desbloqueie sua História Familiar</h3>
           <p className="mt-2 text-sm text-cream/80">
-            Upsells mapeados na proposta do caso {proposta.casoId} (Planilha Mestre de Produtos).
+            Possibilidades de aprofundamento pensadas para a sua família.
           </p>
           <ul className="mt-4 space-y-1 text-xs text-cream/80">
             {proposta.upsells.map((u) => (
               <li key={u.sku}>
-                · {u.nome} — {brl(u.valor)}
+                · {limparCopy(u.nome)} — {brl(u.valor)}
               </li>
             ))}
           </ul>
