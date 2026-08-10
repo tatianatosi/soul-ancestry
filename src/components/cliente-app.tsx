@@ -29,6 +29,14 @@ import {
   STATUS_CASO_LABEL,
   lista,
   PROCURACAO_TEXTO_CLIENTE,
+  CONTA_FALLBACK,
+  CONTRATO_BASE_LABEL,
+  DESPESAS_LABEL_CLIENTE,
+  DESPESAS_TEXTO_CLIENTE,
+  ORDEM_SERVICO_LABEL,
+  documentoVisivel,
+  produtoContratado,
+  proximaEtapaCliente,
   REFERENCIA_CLIENTE,
   paisesComAderencia,
   preenchido,
@@ -1395,5 +1403,138 @@ function ContaScreen({ caso }: { caso: CaseData }) {
       </section>
 
     </div>
+  );
+}
+
+/* -------- MINHA CONTA: blocos contratuais (visão cliente) -------- */
+
+function CartaoConta({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div className="text-[11px] uppercase tracking-widest text-terracotta">{titulo}</div>
+      <div className="mt-3 space-y-2 text-sm text-navy">{children}</div>
+    </section>
+  );
+}
+
+function LinhaConta({ l, v }: { l: string; v: string }) {
+  return (
+    <div className="flex flex-wrap justify-between gap-2 border-b border-border pb-2 last:border-0 last:pb-0">
+      <span className="text-[12px] text-navy/60">{l}</span>
+      <span className="max-w-[65%] text-right text-[13px] font-medium text-navy">{v}</span>
+    </div>
+  );
+}
+
+function ContaContrato({ caso }: { caso: CaseData }) {
+  const c = caso.contratacao;
+  const formalizado = c && c.contrato_base.status !== "nao_enviado";
+  return (
+    <CartaoConta titulo="Seu contrato">
+      <LinhaConta l="Código do caso" v={texto(caso.geral.case_id, FALLBACK.atualizacao)} />
+      <LinhaConta
+        l="Status do contrato"
+        v={c ? CONTRATO_BASE_LABEL[c.contrato_base.status] : FALLBACK.aguardando}
+      />
+      <LinhaConta
+        l="Ordem de Serviço"
+        v={c ? ORDEM_SERVICO_LABEL[c.ordem_servico.status] : FALLBACK.aguardando}
+      />
+      {preenchido(c?.contrato_base.data_aceite) && (
+        <LinhaConta l="Data de aceite" v={c!.contrato_base.data_aceite} />
+      )}
+      {documentoVisivel(c?.contrato_base) ? (
+        <a
+          href={c!.contrato_base.secure_url}
+          className="mt-1 block rounded-lg bg-navy px-4 py-2.5 text-center text-[13px] font-semibold text-cream"
+        >
+          Ver contrato
+        </a>
+      ) : (
+        <p className="text-[13px] leading-relaxed text-navy/75">
+          {formalizado ? PROCURACAO_TEXTO_CLIENTE : CONTA_FALLBACK.contrato}
+        </p>
+      )}
+    </CartaoConta>
+  );
+}
+
+function ContaProduto({ caso }: { caso: CaseData }) {
+  const c = caso.contratacao;
+  const os = c?.ordem_servico;
+  const contratado = produtoContratado(c);
+  const entregaveis = lista(os?.entregaveis);
+
+  return (
+    <CartaoConta titulo="Seu produto">
+      {contratado ? (
+        <>
+          <LinhaConta l="Produto contratado" v={texto(os?.produto_nome, FALLBACK.atualizacao)} />
+          <LinhaConta l="Código" v={texto(os?.produto_sku, FALLBACK.atualizacao)} />
+        </>
+      ) : (
+        <p className="text-[13px] leading-relaxed text-navy/75">{CONTA_FALLBACK.produto}</p>
+      )}
+      {preenchido(os?.escopo_resumo) && (
+        <p className="text-[13px] leading-relaxed text-navy/80">{os!.escopo_resumo}</p>
+      )}
+      {preenchido(os?.etapa_inicial) && (
+        <LinhaConta l="Etapa inicial" v={os!.etapa_inicial} />
+      )}
+      {entregaveis.length > 0 && (
+        <ul className="mt-1 space-y-1.5">
+          {entregaveis.map((e) => (
+            <li key={e} className="flex items-start gap-2 text-[13px] text-navy">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sage" />
+              <span>{e}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </CartaoConta>
+  );
+}
+
+function ContaPagamentos({ caso }: { caso: CaseData }) {
+  const os = caso.contratacao?.ordem_servico;
+  const campos = [
+    ["Situação", os?.status === "aceita" ? "Contratação formalizada" : ""],
+    ["Forma de pagamento", os?.meio_pagamento],
+    ["Parcelas ou recorrência", os?.parcelas_ou_recorrencia],
+    ["Próximo vencimento", os?.proximo_vencimento],
+  ].filter(([, v]) => preenchido(v)) as [string, string][];
+
+  return (
+    <CartaoConta titulo="Pagamentos">
+      {campos.length > 0 ? (
+        campos.map(([l, v]) => <LinhaConta key={l} l={l} v={v} />)
+      ) : (
+        <p className="text-[13px] leading-relaxed text-navy/75">{CONTA_FALLBACK.pagamento}</p>
+      )}
+    </CartaoConta>
+  );
+}
+
+function ContaDespesas({ caso }: { caso: CaseData }) {
+  const d = caso.contratacao?.despesas_externas;
+  return (
+    <CartaoConta titulo="Despesas do processo">
+      <LinhaConta
+        l="Situação"
+        v={d ? DESPESAS_LABEL_CLIENTE[d.status] : CONTA_FALLBACK.despesas}
+      />
+      <p className="text-[13px] leading-relaxed text-navy/80">
+        {preenchido(d?.descricao_cliente) ? d!.descricao_cliente : DESPESAS_TEXTO_CLIENTE}
+      </p>
+      {d && d.status !== "nao_aplicavel" && (
+        <p className="text-[12px] italic leading-relaxed text-navy/65">{DESPESAS_TEXTO_CLIENTE}</p>
+      )}
+    </CartaoConta>
   );
 }
