@@ -776,6 +776,16 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
         </div>
       )}
 
+      {ocultar && (
+        <div className="rounded-2xl border border-gold/40 bg-white p-4 shadow-sm">
+          <div className="font-serif text-lg leading-snug text-navy">{REFERENCIA_CLIENTE.titulo}</div>
+          <p className="mt-1 text-[12px] leading-relaxed text-navy/70">{REFERENCIA_CLIENTE.texto}</p>
+          <span className="mt-2 inline-block rounded-full border border-gold/50 bg-gold/15 px-2.5 py-0.5 text-[11px] font-semibold text-navy">
+            {REFERENCIA_CLIENTE.etiqueta}
+          </span>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-border bg-white p-4">
         <div className="space-y-5">
           {f.pai_de_alessandro && preenchido(f.pai_de_alessandro.nome) && (
