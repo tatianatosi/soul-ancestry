@@ -1382,14 +1382,18 @@ function ContaScreen({ caso }: { caso: CaseData }) {
         </Bloco>
       )}
 
-      {preenchido(caso.conta.texto_upgrade) && (
-        <section className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">Próxima etapa</div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
+      <section className="rounded-2xl border border-gold/50 bg-cream p-5 shadow-sm">
+        <div className="text-[11px] uppercase tracking-widest text-terracotta">Próxima etapa</div>
+        <p className="mt-1 text-[13px] font-semibold leading-relaxed text-navy">
+          {proximaEtapaCliente(caso)}
+        </p>
+        {preenchido(caso.conta.texto_upgrade) && (
+          <p className="mt-2 text-[13px] leading-relaxed text-navy/80">
             {caso.conta.texto_upgrade}
           </p>
-        </section>
-      )}
+        )}
+      </section>
+
     </div>
   );
 }
