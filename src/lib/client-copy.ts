@@ -26,7 +26,8 @@ export function limparCopy(valor: unknown): string {
     .replace(/\[\s*\]/g, "")
     .replace(/[[\]{}]/g, "")
     .replace(/\s{2,}/g, " ")
-    .replace(/\s+([,.;:·])/g, "$1")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/·\s*·/g, "·")
     .replace(/^[\s·,;:—-]+|[\s·,;:—-]+$/g, "")
     .trim();
   if (VAZIOS.has(s.toLowerCase())) return "";
