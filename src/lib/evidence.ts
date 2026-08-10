@@ -98,7 +98,7 @@ export function referenciaVisivel(
 ): string | null {
   const temRef = preenchido(pessoa.familysearch_id) || preenchido(pessoa.familysearch_url);
   if (!temRef) return null;
-  if (ocultarSensiveis) return "Árvore de referência localizada";
+  if (ocultarSensiveis) return REFERENCIA_CLIENTE.titulo;
   return `FamilySearch | ID ${pessoa.familysearch_id || "—"} | referência localizada`;
 }
 
