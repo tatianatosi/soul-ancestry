@@ -152,10 +152,21 @@ export function ClienteApp() {
               />
             )}
             {tab === "jornada" && <JornadaTab caso={caso} />}
-            {tab === "entrega" &&
-              (modelo ? <EntregaModeloTab modelo={modelo} /> : <EntregaConsultivaTab caso={casoJornada} />)}
-            {tab === "relatorio" && <RelatorioVisualTab caso={casoJornada} />}
-            {tab === "fase02" && <RelatorioFase02 registro={registro} />}
+            {tab === "entrega" && (
+              <PainelExpandido caso={caso} area="entrega">
+                {modelo ? <EntregaModeloTab modelo={modelo} /> : <EntregaConsultivaTab caso={casoJornada} />}
+              </PainelExpandido>
+            )}
+            {tab === "relatorio" && (
+              <PainelExpandido caso={caso} area="fase1">
+                <RelatorioVisualTab caso={casoJornada} />
+              </PainelExpandido>
+            )}
+            {tab === "fase02" && (
+              <PainelExpandido caso={caso} area="fase2">
+                <RelatorioFase02 registro={registro} />
+              </PainelExpandido>
+            )}
             {tab === "radar" && <RotaTab caso={caso} />}
             {tab === "arvore" && <ArvoreTab caso={caso} />}
             {tab === "docs" && <DocsTab caso={caso} />}
@@ -206,6 +217,82 @@ export function ClienteApp() {
           })}
         </div>
       </nav>
+    </div>
+  );
+}
+
+
+/* -------- PAINEL EXPANDIDO (somente Entregas, Fase 1 e Fase 2 em >=1024px) -------- */
+function PainelExpandido({
+  caso,
+  area,
+  children,
+}: {
+  caso: CaseData;
+  area: "entrega" | "fase1" | "fase2";
+  children: React.ReactNode;
+}) {
+  const pendentes = lista(caso.documentos.documentos_pendentes);
+  const solicitados = lista(caso.documentos.proximas_solicitacoes);
+  const localizados = lista(caso.documentos.documentos_localizados);
+  const emValidacao = lista(caso.documentos.documentos_em_validacao);
+
+  const blocos =
+    area === "fase2"
+      ? [
+          { titulo: "Rota em leitura", itens: [rotaLabel(caso)] },
+          { titulo: "Dependências", itens: pendentes },
+          { titulo: "Próximos marcos", itens: solicitados },
+        ]
+      : area === "fase1"
+        ? [
+            { titulo: "Já localizados", itens: localizados },
+            { titulo: "Em validação", itens: emValidacao },
+            { titulo: "Ainda precisamos confirmar", itens: pendentes },
+          ]
+        : [
+            { titulo: "Entregáveis em preparação", itens: [texto(caso.documentos.documento_principal, FALLBACK.semArquivo)] },
+            { titulo: "Próximo passo", itens: solicitados },
+          ];
+
+  const visiveis = blocos.filter((b) => b.itens.length > 0);
+
+  return (
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6 lg:p-5">
+      <div className="min-w-0">{children}</div>
+
+      <aside data-print-hide className="space-y-4 p-5 lg:sticky lg:top-[76px] lg:p-0">
+        <div className="rounded-2xl border border-navy/20 bg-navy p-4 text-cream">
+          <div className="text-[11px] uppercase tracking-widest text-gold/80">Resumo do acompanhamento</div>
+          <div className="mt-1 font-serif text-lg italic text-gold">
+            {texto(caso.jornada.etapa_atual, FALLBACK.atualizacao)}
+          </div>
+          <div className="mt-3 rounded-lg bg-navy-soft/70 p-3 text-[12px]">
+            <div className="text-cream/70">Pendência principal</div>
+            <div className="font-semibold text-cream">
+              {texto(caso.documentos.pendencia_principal, FALLBACK.atualizacao)}
+            </div>
+          </div>
+        </div>
+
+        {visiveis.map((b) => (
+          <div key={b.titulo} className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div className="text-[11px] uppercase tracking-widest text-terracotta">{b.titulo}</div>
+            <ul className="mt-2 space-y-2">
+              {b.itens.map((i) => (
+                <li key={i} className="flex items-start gap-2 text-[12px] leading-snug text-navy/80">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                  {i}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <p className="rounded-2xl border border-border bg-areia p-4 text-[12px] leading-relaxed text-navy/70">
+          {PROCURACAO_TEXTO_CLIENTE}
+        </p>
+      </aside>
     </div>
   );
 }
