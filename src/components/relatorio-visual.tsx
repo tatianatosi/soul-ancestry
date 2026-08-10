@@ -145,7 +145,7 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
           </div>
           <div>
             <div className="text-[11px] uppercase tracking-widest text-terracotta">
-              Status do relatório
+              Status desta etapa
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span
@@ -155,16 +155,16 @@ export function RelatorioVisualTab({ caso }: { caso: Caso }) {
                 )}
               >
                 <BadgeCheck className="h-3 w-3" />
-                {STATUS_LABEL[r.meta.status]}
+                {FASE1_STATUS_LABEL[r.meta.status]}
               </span>
-              <span className="text-[11px] text-navy/60">{r.meta.versao}</span>
             </div>
           </div>
         </div>
         <div className="mt-3 border-t border-navy/10 pt-2.5 text-[11px] text-navy/60">
-          Acompanhamento: {r.meta.responsavel} · Próxima revisão prevista: {r.meta.proximaRevisao}
+          Acompanhamento: {r.meta.responsavel} · Próxima revisão: {r.meta.proximaRevisao}
         </div>
       </section>
+
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-6">
         {/* Card 1 */}
