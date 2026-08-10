@@ -44,6 +44,8 @@ import {
   rotaLabel,
   texto,
 } from "@/lib/evidence";
+import { documentoVisivelParaCliente, statusClienteAmigavel } from "@/lib/visibilidade";
+import { TimelineContratualCliente } from "./timeline-contratual";
 import type { CaseData, PessoaBase } from "@/types/case";
 
 import {
