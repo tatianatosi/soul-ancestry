@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { activeCase } from "@/data/activeCase";
+import { cn } from "@/lib/utils";
 import {
   CONTRATO_BASE_LABEL,
   DESPESAS_LABEL_INTERNO,
@@ -11,8 +12,14 @@ import {
   preenchido,
   texto,
 } from "@/lib/evidence";
-import type { CaseContratacao } from "@/types/case";
-import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace, X } from "lucide-react";
+import {
+  DOCUMENTO_ESTADO_LABEL,
+  STATUS_ETAPA_LABEL,
+  mensagemDocumento,
+} from "@/lib/visibilidade";
+import type { CaseContratacao, EstadoDocumento } from "@/types/case";
+import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace } from "lucide-react";
+
 
 /**
  * Kit Contratual do Caso — visão interna (desktop).
