@@ -249,15 +249,15 @@ export const CASE_REGISTRY: CaseRecord[] = [
     phase2Status: "Não prevista",
     caseOwner: "Tatiana",
     lastUpdate: "31/07/2026",
-    nextAction: "Aguardando decisão/contratação — escolher formato e assinar procurações",
+    nextAction: "Aguardando formalização do contrato CA-CID-023 — procurações ainda não iniciadas",
     confidenceNote: "Situação de registro familiar/consular a esclarecer antes de qualquer conclusão.",
-    sources: ["Diagnóstico inicial contratado (CA-CID-001)", "Planilha CASOS"],
+    sources: ["Referências genealógicas de pesquisa (validação documental pendente)", "Planilha CASOS"],
     people: [
       { nome: "Giovanna Prade", papel: "Requerente", confianca: "Confirmado" },
       { nome: "Linha paterna", papel: "Linha de trabalho", confianca: "Em análise" },
     ],
     documents: [
-      docLinha("Procurações em português e italiano", "Pendente de documento", "Clube Ancestral", "Emitir após aceite"),
+      docLinha("Procurações em português e italiano", "Pendente de documento", "Clube Ancestral", "Não iniciadas — preparar após definição do órgão competente"),
       docLinha("Relatório de situação e próximos passos", "Em análise", "Interno", "Consolidar leitura do diagnóstico"),
       docLinha("Documentação não disponível com a cliente", "Pendente de documento", "Cartórios / consulado", "Localizar antes da execução"),
     ],
@@ -265,7 +265,7 @@ export const CASE_REGISTRY: CaseRecord[] = [
     reports: [
       { id: "REL-GIO-F1", tipo: "Fase 01 — Relatório Visual", titulo: "Diagnóstico inicial — Giovanna Prade", status: "Entregue", versao: "v1.0", atualizadoEm: "31/07/2026", responsavel: "Tatiana" },
     ],
-    proposalSummary: "Assessoria Completa de Cidadania Italiana + pasta e AIRE — aguardando escolha do formato de contratação.",
+    proposalSummary: "CA-CID-023 — Assessoria Completa de Cidadania Italiana. A Fase 1 integra a assessoria e não é produto avulso.",
     paymentUrl: "",
     casoJornadaId: "CA-CID-IT-2026-001",
     internalNotes: ["Jornada inicial: Diagnóstico → Pendências → Execução → Complementos → Continuidade."],
