@@ -1532,9 +1532,6 @@ function ContaDespesas({ caso }: { caso: CaseData }) {
       <p className="text-[13px] leading-relaxed text-navy/80">
         {preenchido(d?.descricao_cliente) ? d!.descricao_cliente : DESPESAS_TEXTO_CLIENTE}
       </p>
-      {preenchido(d?.descricao_cliente) && (
-        <p className="text-[12px] italic leading-relaxed text-navy/65">{DESPESAS_TEXTO_CLIENTE}</p>
-      )}
     </CartaoConta>
   );
 }
