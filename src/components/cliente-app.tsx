@@ -255,7 +255,7 @@ function HomeTab({
 }) {
   const idx = ETAPAS_CASO.indexOf(caso.geral.status_caso);
   const paises = paisesComAderencia(caso);
-  const destaques = caso.descobertas.filter((d) => d.destaque || true).slice(0, 3);
+  const destaques = caso.descobertas.slice(0, 3);
 
   return (
     <div className="space-y-5 p-5" data-tab="home">
