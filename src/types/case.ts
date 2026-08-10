@@ -136,6 +136,8 @@ export type CaseRota = {
   hipotese_principal: string;
   status_hipotese: EvidenceStatus;
   resumo_radar: string;
+  /** Hipótese de caminho técnico — muda apenas a redação cliente-facing. */
+  via_provavel?: "administrativa" | "judicial";
 };
 
 export type CaseJornada = {
