@@ -344,6 +344,7 @@ export function ClientResearchOnePageModal({
         orientation: "portrait",
         unit: "pt",
         format: [largura, altura],
+        compress: true,
       });
       pdf.addImage(url, "JPEG", 0, 0, largura, altura);
       pdf.save(nomeArquivo("pdf"));
