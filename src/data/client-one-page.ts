@@ -112,8 +112,84 @@ export const ONE_PAGE_SOPHIA: ClientOnePageData = {
   visibility: "internal_preview",
 };
 
+export const ONE_PAGE_GUILHERME: ClientOnePageData = {
+  clientId: "CA-ITA-GUILH-CERONATTO",
+  displayName: "Guilherme Antonio da Silva",
+  title: "Resultado Inicial de Pesquisa",
+  subtitle: "Guilherme Antonio da Silva · Linha familiar italiana Ceronatto em análise",
+  readingIntro:
+    "Organizamos os sinais iniciais da linha Ceronatto da sua família. Esta é uma leitura preliminar: os dados foram reunidos a partir de informações compartilhadas por você e de pesquisa inicial, e ainda não há conclusão sobre cidadania ou caminho possível. A continuidade depende de confirmação por documentos oficiais. Essa organização ajuda tanto a entender a origem da família quanto a preparar uma validação documental segura.",
+  findings: [
+    {
+      title: "Identificação familiar",
+      detail:
+        "Guilherme Antonio da Silva, filho de Marilda Ceronatto da Silva, de Curitiba, e Antônio Vieira da Silva, de Bateias.",
+      status: "informação compartilhada pela família",
+    },
+    {
+      title: "Avós maternos",
+      detail: "Maria de Lurdes Paulin Ceronatto e Natal Ceronatto, de Curitiba.",
+      status: "informação compartilhada pela família",
+    },
+    {
+      title: "Ascendente italiano",
+      detail:
+        "Gaetano Ceronatto, identificado na pesquisa inicial como possível ascendente de origem italiana ligado à linha materna.",
+      status: "dado de pesquisa inicial",
+    },
+    {
+      title: "Localidade de origem",
+      detail: "Montecchio Precalcino, Vicenza, no Vêneto — localidade inicial a confirmar documentalmente.",
+      status: "dado de pesquisa inicial",
+    },
+    {
+      title: "Referências familiares",
+      detail: "Maria Luisa Budel e Bortolo Ceronato aparecem como referências familiares iniciais.",
+      status: "dado de pesquisa inicial",
+    },
+    {
+      title: "Cadeia familiar inicial",
+      detail:
+        "Possível linhagem em organização: Gaetano → Bortolo → Natal → Marilda → Guilherme.",
+      status: "dado de pesquisa inicial",
+    },
+    {
+      title: "Variações de grafia",
+      detail: "Ceronatto / Ceronato / Seronato é um ponto de atenção documental entre registros.",
+      status: "em validação documental",
+    },
+  ],
+  confirmations: [
+    "Certidão italiana de nascimento de Gaetano Ceronatto",
+    "Registros necessários da geração anterior a Gaetano, se aplicável",
+    "Certidões brasileiras da cadeia Bortolo → Natal → Marilda → Guilherme",
+    "Grafias, variações e eventos civis relevantes em cada geração",
+    "Continuidade documental entre cada geração, sem lacunas",
+  ],
+  relevanceText:
+    "A linha em organização oferece um ponto de partida concreto para a pesquisa — tanto para resgatar a história da sua família quanto para, no futuro, avaliar caminhos possíveis. Já é possível começar a visualizar a estrutura familiar e identificar os principais pontos de confirmação. No entanto, a continuidade entre gerações e os documentos oficiais precisam ser confirmados antes de definir qualquer estratégia. No seu tempo, sem etapas desnecessárias.",
+  recommendedNextStep: {
+    title: "Estratégia e validação documental",
+    description:
+      "Uma etapa de aprofundamento da linha familiar para confirmar a cadeia familiar, organizar documentos, investigar lacunas e avaliar os caminhos possíveis a partir de evidências oficiais.",
+    items: [
+      "Organização da cadeia documental",
+      "Pesquisa de registros prioritários",
+      "Validação de grafias e vínculos",
+      "Mapa de pendências",
+      "Análise humana de estratégia após evidências suficientes",
+    ],
+  },
+  footer: RODAPE_PADRAO,
+  whatsappIntro:
+    "Guilherme, organizamos uma leitura inicial da linha Ceronatto da sua família. É um ponto de partida, ainda sem conclusão.",
+  whatsappFollowUp: "Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.",
+  visibility: "internal_preview",
+};
+
 export const CLIENT_ONE_PAGES: Record<string, ClientOnePageData> = {
   [ONE_PAGE_SOPHIA.clientId]: ONE_PAGE_SOPHIA,
+  [ONE_PAGE_GUILHERME.clientId]: ONE_PAGE_GUILHERME,
 };
 
 export const onePageByCaso = (id?: string): ClientOnePageData | undefined =>

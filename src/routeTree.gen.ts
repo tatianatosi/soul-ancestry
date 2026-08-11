@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
+import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
   path: '/studio-devolutivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevolutivaRoute = DevolutivaRouteImport.update({
+  id: '/devolutiva',
+  path: '/devolutiva',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +31,31 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/studio-devolutivas'
+  fullPaths: '/' | '/devolutiva' | '/studio-devolutivas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/studio-devolutivas'
-  id: '__root__' | '/' | '/studio-devolutivas'
+  to: '/' | '/devolutiva' | '/studio-devolutivas'
+  id: '__root__' | '/' | '/devolutiva' | '/studio-devolutivas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevolutivaRoute: typeof DevolutivaRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/studio-devolutivas'
       fullPath: '/studio-devolutivas'
       preLoaderRoute: typeof StudioDevolutivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devolutiva': {
+      id: '/devolutiva'
+      path: '/devolutiva'
+      fullPath: '/devolutiva'
+      preLoaderRoute: typeof DevolutivaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevolutivaRoute: DevolutivaRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
 }
 export const routeTree = rootRouteImport
