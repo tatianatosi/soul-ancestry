@@ -184,7 +184,21 @@ export function ClienteApp() {
             {STATUS_CASO_LABEL[caso.geral.status_caso]}
           </span>
         </div>
+        {onePage && (
+          <button
+            type="button"
+            onClick={() => setShowOnePage(true)}
+            className="mt-2 w-full rounded-full border border-navy/20 bg-cream px-3 py-1.5 text-[11px] font-medium text-navy transition hover:bg-navy/5"
+          >
+            Ver devolutiva inicial
+          </button>
+        )}
       </div>
+
+      {onePage && showOnePage && (
+        <ClientResearchOnePageModal data={onePage} onClose={() => setShowOnePage(false)} />
+      )}
+
 
 
       <main className="flex-1 overflow-y-auto pb-28">
