@@ -11,6 +11,9 @@ import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
 import { casoById } from "@/data/casos";
+import { onePageByCaso } from "@/data/client-one-page";
+import { ClientResearchOnePageModal } from "./client-research-one-page";
+
 
 /**
  * App Cliente — orientado por dados.
@@ -92,9 +95,12 @@ const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as con
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
+  const [showOnePage, setShowOnePage] = useState(false);
   const navigate = useNavigate();
   const caso = useActiveCase();
   const ficha = toFichaPiloto(caso);
+  const onePage = onePageByCaso(caso.geral.case_id);
+
 
   /** Casos legados da jornada seguem alimentando as fases 01 e 02. */
   const casoJornada = casoById(caso.geral.case_id);
@@ -178,7 +184,21 @@ export function ClienteApp() {
             {STATUS_CASO_LABEL[caso.geral.status_caso]}
           </span>
         </div>
+        {onePage && (
+          <button
+            type="button"
+            onClick={() => setShowOnePage(true)}
+            className="mt-2 w-full rounded-full border border-navy/20 bg-cream px-3 py-1.5 text-[11px] font-medium text-navy transition hover:bg-navy/5"
+          >
+            Ver devolutiva inicial
+          </button>
+        )}
       </div>
+
+      {onePage && showOnePage && (
+        <ClientResearchOnePageModal data={onePage} onClose={() => setShowOnePage(false)} />
+      )}
+
 
 
       <main className="flex-1 overflow-y-auto pb-28">

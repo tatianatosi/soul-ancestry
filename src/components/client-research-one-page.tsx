@@ -1,0 +1,242 @@
+import { useState } from "react";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BrandLogo } from "./brand";
+import { limparCopy, limparLista } from "@/lib/client-copy";
+import type { ClientOnePageData, OnePageStatus } from "@/data/client-one-page";
+
+/**
+ * ClientResearchOnePage — devolutiva inicial cliente-facing, vertical.
+ * Template puro: todo conteúdo vem de `data` (ver `src/data/client-one-page.ts`).
+ */
+
+const STATUS_TOM: Record<string, string> = {
+  "informação compartilhada pela família": "border-sage/40 bg-sage/10 text-sage",
+  "dado de pesquisa inicial": "border-plum/40 bg-plum/10 text-plum",
+  "em validação documental": "border-gold/50 bg-gold/15 text-navy",
+  "em confirmação": "border-navy/20 bg-navy/5 text-navy/70",
+};
+
+const statusLabel = (s?: OnePageStatus) => limparCopy(s) || "em confirmação";
+
+export function ClientResearchOnePage({
+  data,
+  className,
+}: {
+  data: ClientOnePageData;
+  className?: string;
+}) {
+  const [modal, setModal] = useState(false);
+
+  const nome = limparCopy(data.displayName);
+  if (!nome) return null;
+
+  const titulo = limparCopy(data.title);
+  const subtitulo = limparCopy(data.subtitle);
+  const intro = limparCopy(data.readingIntro);
+  const relevancia = limparCopy(data.relevanceText);
+  const rodape = limparCopy(data.footer);
+
+  const achados = (data.findings ?? [])
+    .map((f) => ({
+      title: limparCopy(f.title),
+      detail: limparCopy(f.detail),
+      status: statusLabel(f.status),
+    }))
+    .filter((f) => f.title || f.detail)
+    .slice(0, 5);
+
+  const pendencias = limparLista(data.confirmations ?? []).slice(0, 5);
+
+  const etapa = data.recommendedNextStep;
+  const etapaTitulo = limparCopy(etapa?.title);
+  const etapaDesc = limparCopy(etapa?.description);
+  const etapaItens = limparLista(etapa?.items ?? []);
+
+  return (
+    <div className={cn("mx-auto w-full max-w-md bg-cream", className)}>
+      <div className="flex flex-col gap-7 px-6 py-8">
+        {/* 1. Cabeçalho */}
+        <header className="flex items-center justify-between gap-3">
+          <BrandLogo size={34} showText={false} />
+          <span className="rounded-full border border-navy/20 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-navy/70">
+            Leitura inicial
+          </span>
+        </header>
+
+        {/* 2. Título */}
+        <div className="border-l-2 border-gold pl-4">
+          {titulo && <h1 className="font-serif text-2xl italic leading-tight text-navy">{titulo}</h1>}
+          {subtitulo && <p className="mt-2 text-sm leading-relaxed text-navy/70">{subtitulo}</p>}
+        </div>
+
+        {/* 3. Leitura inicial */}
+        {intro && (
+          <section className="rounded-2xl border border-navy/10 bg-areia/60 p-5">
+            <p className="text-[13.5px] leading-relaxed text-navy/85">{intro}</p>
+          </section>
+        )}
+
+        {/* 4. O que já identificamos */}
+        {achados.length > 0 && (
+          <section className="flex flex-col gap-3">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/60">
+              O que já identificamos
+            </h2>
+            {achados.map((f, i) => (
+              <article
+                key={i}
+                className="rounded-2xl border border-navy/10 bg-white/70 p-4 shadow-[0_1px_0_rgba(27,43,75,0.04)]"
+              >
+                {f.title && (
+                  <h3 className="font-serif text-base italic leading-snug text-navy">{f.title}</h3>
+                )}
+                {f.detail && (
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-navy/75">{f.detail}</p>
+                )}
+                <span
+                  className={cn(
+                    "mt-3 inline-block rounded-full border px-2.5 py-1 text-[10.5px] font-medium",
+                    STATUS_TOM[f.status] ?? STATUS_TOM["em confirmação"],
+                  )}
+                >
+                  {f.status}
+                </span>
+              </article>
+            ))}
+          </section>
+        )}
+
+        {/* 5. O que ainda precisamos confirmar */}
+        {pendencias.length > 0 && (
+          <section>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/60">
+              O que ainda precisamos confirmar
+            </h2>
+            <ol className="mt-3 flex flex-col gap-2.5">
+              {pendencias.map((p, i) => (
+                <li key={i} className="flex gap-3 text-[13px] leading-relaxed text-navy/80">
+                  <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-gold/60 text-[11px] font-semibold text-navy">
+                    {i + 1}
+                  </span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {/* 6. Por que isso é relevante */}
+        {relevancia && (
+          <section className="rounded-2xl border border-gold/40 bg-gold/10 p-5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/70">
+              Por que isso é relevante
+            </h2>
+            <p className="mt-2 text-[13.5px] leading-relaxed text-navy/85">{relevancia}</p>
+          </section>
+        )}
+
+        {/* 7. Próxima etapa recomendada */}
+        {(etapaTitulo || etapaDesc || etapaItens.length > 0) && (
+          <section className="rounded-2xl bg-navy p-5 text-cream">
+            <div className="text-[10.5px] uppercase tracking-[0.18em] text-gold/80">
+              Próxima etapa recomendada
+            </div>
+            {etapaTitulo && (
+              <h2 className="mt-2 font-serif text-lg italic leading-snug text-cream">{etapaTitulo}</h2>
+            )}
+            {etapaDesc && (
+              <p className="mt-2 text-[13px] leading-relaxed text-cream/80">{etapaDesc}</p>
+            )}
+            {etapaItens.length > 0 && (
+              <ul className="mt-4 flex flex-col gap-2">
+                {etapaItens.map((it, i) => (
+                  <li key={i} className="flex gap-2.5 text-[13px] leading-relaxed text-cream/90">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {/* 8. CTA neutro */}
+        <section className="text-center">
+          <p className="text-[13.5px] leading-relaxed text-navy/80">
+            Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.
+          </p>
+          <button
+            type="button"
+            onClick={() => setModal(true)}
+            className="mt-4 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/90"
+          >
+            Quero entender a próxima etapa
+          </button>
+        </section>
+
+        {/* 9. Rodapé */}
+        {rodape && (
+          <footer className="border-t border-navy/10 pt-5">
+            <p className="text-[11.5px] leading-relaxed text-navy/60">{rodape}</p>
+          </footer>
+        )}
+      </div>
+
+      {modal && (
+        <div
+          className="fixed inset-0 z-[70] grid place-items-center bg-navy/60 p-6"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setModal(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-cream p-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm leading-relaxed text-navy">
+              Fale com sua consultoria para receber o escopo da próxima etapa.
+            </p>
+            <button
+              type="button"
+              onClick={() => setModal(false)}
+              className="mt-5 rounded-full border border-navy/20 px-5 py-2 text-sm text-navy"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Preview interno em modal — usado pelo botão “Ver devolutiva inicial”. */
+export function ClientResearchOnePageModal({
+  data,
+  onClose,
+}: {
+  data: ClientOnePageData;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-navy/70 p-0 sm:p-6">
+      <div className="mx-auto w-full max-w-md overflow-hidden rounded-none bg-cream sm:rounded-3xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-navy/10 bg-cream/95 px-5 py-3 backdrop-blur">
+          <span className="text-[11px] uppercase tracking-[0.16em] text-navy/60">
+            Devolutiva inicial
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar devolutiva"
+            className="grid h-8 w-8 place-items-center rounded-full border border-navy/15 text-navy"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <ClientResearchOnePage data={data} />
+      </div>
+    </div>
+  );
+}
