@@ -11,6 +11,9 @@ import { modeloByCaso } from "@/data/caso-sophia";
 import { RelatorioFase02 } from "./relatorio-fase02";
 import { registroOuFallback } from "@/data/case-registry";
 import { casoById } from "@/data/casos";
+import { onePageByCaso } from "@/data/client-one-page";
+import { ClientResearchOnePageModal } from "./client-research-one-page";
+
 
 /**
  * App Cliente — orientado por dados.
