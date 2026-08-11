@@ -278,10 +278,80 @@ export function ClientResearchOnePageModal({
 }) {
   const [formato, setFormato] = useState<OnePageFormato>("whatsapp");
   const [aviso, setAviso] = useState<string>("");
+  const [ocupado, setOcupado] = useState(false);
+  const areaRef = useRef<HTMLDivElement>(null);
 
   const notificar = (msg: string) => {
     setAviso(msg);
-    window.setTimeout(() => setAviso(""), 2600);
+    window.setTimeout(() => setAviso(""), 3200);
+  };
+
+  const nomeArquivo = (ext: string) =>
+    `devolutiva-inicial-${limparCopy(data.displayName).toLowerCase().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}-${formato}.${ext}`;
+
+  const baixar = (href: string, nome: string) => {
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const capturar = async () => {
+    const node = areaRef.current;
+    if (!node) throw new Error("sem area");
+    const { toPng } = await import("html-to-image");
+    return toPng(node, {
+      pixelRatio: 2,
+      cacheBust: true,
+      backgroundColor: "#F5F0E8",
+      width: node.offsetWidth,
+      height: node.offsetHeight,
+    });
+  };
+
+  const exportarPng = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    try {
+      const url = await capturar();
+      baixar(url, nomeArquivo("png"));
+      notificar("Imagem PNG baixada.");
+    } catch {
+      notificar("Não foi possível gerar a imagem.");
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const exportarPdf = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    try {
+      const url = await capturar();
+      const img = new Image();
+      img.src = url;
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+      });
+      const { jsPDF } = await import("jspdf");
+      const largura = 420;
+      const altura = (img.height / img.width) * largura;
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: [largura, altura],
+      });
+      pdf.addImage(url, "PNG", 0, 0, largura, altura);
+      pdf.save(nomeArquivo("pdf"));
+      notificar("PDF baixado.");
+    } catch {
+      notificar("Não foi possível gerar o PDF.");
+    } finally {
+      setOcupado(false);
+    }
   };
 
   const copiarWhatsapp = async () => {
