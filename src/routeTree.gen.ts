@@ -9,8 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as IndexRouteImport } from './routes/index'
 
+const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
+  id: '/studio-devolutivas',
+  path: '/studio-devolutivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +25,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/studio-devolutivas': typeof StudioDevolutivasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/studio-devolutivas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/studio-devolutivas'
+  id: '__root__' | '/' | '/studio-devolutivas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  StudioDevolutivasRoute: typeof StudioDevolutivasRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studio-devolutivas': {
+      id: '/studio-devolutivas'
+      path: '/studio-devolutivas'
+      fullPath: '/studio-devolutivas'
+      preLoaderRoute: typeof StudioDevolutivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +70,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  StudioDevolutivasRoute: StudioDevolutivasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
