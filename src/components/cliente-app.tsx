@@ -92,9 +92,12 @@ const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as con
 export function ClienteApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
+  const [showOnePage, setShowOnePage] = useState(false);
   const navigate = useNavigate();
   const caso = useActiveCase();
   const ficha = toFichaPiloto(caso);
+  const onePage = onePageByCaso(caso.geral.case_id);
+
 
   /** Casos legados da jornada seguem alimentando as fases 01 e 02. */
   const casoJornada = casoById(caso.geral.case_id);
