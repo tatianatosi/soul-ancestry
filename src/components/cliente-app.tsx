@@ -793,63 +793,76 @@ function JornadaTab({ caso }: { caso: CaseData }) {
 
 /* -------- ROTA / RADAR -------- */
 function RotaTab({ caso }: { caso: CaseData }) {
-  const paises = paisesComAderencia(caso);
+  const eixos = eixosRadar(caso);
+  const iconePorEixo = {
+    historia: Users,
+    documentos: FileText,
+    estrategia: Compass,
+    proximos: ArrowRight,
+  } as const;
+
   return (
     <div className="space-y-6 p-5" data-tab="radar">
       <div>
-        <h2 className="font-serif text-2xl text-navy">Radar de Origem</h2>
+        <h2 className="font-serif text-2xl text-navy">Radar da Jornada</h2>
         <p className="mt-1 text-[13px] italic text-navy/70">
-          Leitura interna da pesquisa — não substitui a confirmação documental.
+          Uma leitura em quatro eixos do momento atual da sua pesquisa.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-gold/40 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-terracotta">
-          <Compass className="h-3.5 w-3.5" /> Rota provável
-        </div>
-        <div className="mt-1 font-serif text-xl text-navy">{rotaLabel(caso)}</div>
-        {preenchido(caso.rota.hipotese_principal) && (
-          <p className="mt-2 text-[13px] leading-relaxed text-navy/75">
-            {caso.rota.hipotese_principal}
-          </p>
-        )}
-        <div className="mt-3">
-          <EvidenceTag status={caso.rota.status_hipotese} />
-        </div>
-      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {eixos.map((eixo) => {
+          const Icone = iconePorEixo[eixo.id];
+          return (
+            <div
+              key={eixo.id}
+              data-eixo={eixo.id}
+              className="rounded-2xl border border-border bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy/5 text-navy">
+                    <Icone className="h-4 w-4" />
+                  </span>
+                  <h3 className="font-serif text-lg leading-tight text-navy">{eixo.titulo}</h3>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-wide",
+                    ESTADO_EIXO_TOM[eixo.estado],
+                  )}
+                >
+                  {ESTADO_EIXO_LABEL[eixo.estado]}
+                </span>
+              </div>
 
-      {paises.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
-          {paises.map((p) => (
-            <div key={p.pais} className="rounded-xl border border-navy/25 bg-card p-3">
-              <div className="text-[11px] uppercase tracking-wide text-navy/70">{p.pais}</div>
-              {preenchido(p.aderencia) && (
-                <>
-                  <div className="mt-1 flex items-baseline gap-1">
-                    <span className="font-serif text-2xl text-navy">{p.aderencia}</span>
-                    <span className="text-[12px] text-navy/70">%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-gold"
-                      style={{ width: `${p.aderencia}%` }}
-                    />
-                  </div>
-                </>
+              <p className="mt-2 text-[13px] leading-relaxed text-navy/75">{eixo.resumo}</p>
+
+              {eixo.itens.length > 0 ? (
+                <ul className="mt-3 space-y-2 border-l-2 border-gold/50 pl-3">
+                  {eixo.itens.map((i) => (
+                    <li key={i.rotulo}>
+                      <div className="text-[10px] uppercase tracking-widest text-terracotta">
+                        {i.rotulo}
+                      </div>
+                      <div className="text-[13px] leading-relaxed text-navy/85">{i.valor}</div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 rounded-xl bg-cream/60 p-3 text-[12px] leading-relaxed text-navy/70">
+                  {eixo.mensagemVazio}
+                </p>
               )}
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {preenchido(caso.rota.resumo_radar) && (
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <div className="text-[11px] uppercase tracking-widest text-terracotta">
-            Resumo da leitura
-          </div>
-          <p className="mt-1 text-[13px] leading-relaxed text-navy/80">{caso.rota.resumo_radar}</p>
-        </div>
-      )}
+      <p className="rounded-2xl border border-navy/15 bg-cream/50 p-4 text-[12px] leading-relaxed text-navy/70">
+        Este radar acompanha o andamento da pesquisa. Cada ponto depende de evidências e segue em
+        confirmação documental.
+      </p>
     </div>
   );
 }
