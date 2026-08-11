@@ -412,20 +412,19 @@ export function ClientResearchOnePageModal({
             </button>
             <button
               type="button"
-              onClick={() => notificar("Exportação PNG preparada: capture a área da devolutiva.")}
-              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+              disabled={ocupado}
+              onClick={exportarPng}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5 disabled:opacity-50"
             >
-              Preparar exportação PNG
+              {ocupado ? "Gerando…" : "Baixar PNG"}
             </button>
             <button
               type="button"
-              onClick={() => {
-                setFormato("pdf");
-                notificar("Exportação PDF preparada no formato condensado.");
-              }}
-              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+              disabled={ocupado}
+              onClick={exportarPdf}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5 disabled:opacity-50"
             >
-              Preparar exportação PDF
+              {ocupado ? "Gerando…" : "Baixar PDF"}
             </button>
           </div>
 
@@ -437,8 +436,11 @@ export function ClientResearchOnePageModal({
           )}
         </div>
 
-        <ClientResearchOnePageExport data={data} formato={formato} />
+        <div ref={areaRef}>
+          <ClientResearchOnePageExport data={data} formato={formato} />
+        </div>
       </div>
+
     </div>
   );
 }
