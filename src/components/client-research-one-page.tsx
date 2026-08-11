@@ -298,24 +298,25 @@ export function ClientResearchOnePageModal({
     a.remove();
   };
 
-  const capturar = async () => {
+  const capturar = async (tipo: "png" | "jpeg") => {
     const node = areaRef.current;
     if (!node) throw new Error("sem area");
-    const { toPng } = await import("html-to-image");
-    return toPng(node, {
+    const lib = await import("html-to-image");
+    const opts = {
       pixelRatio: 2,
       cacheBust: true,
       backgroundColor: "#F5F0E8",
       width: node.offsetWidth,
       height: node.offsetHeight,
-    });
+    };
+    return tipo === "png" ? lib.toPng(node, opts) : lib.toJpeg(node, { ...opts, quality: 0.92 });
   };
 
   const exportarPng = async () => {
     if (ocupado) return;
     setOcupado(true);
     try {
-      const url = await capturar();
+      const url = await capturar("png");
       baixar(url, nomeArquivo("png"));
       notificar("Imagem PNG baixada.");
     } catch {
@@ -329,7 +330,7 @@ export function ClientResearchOnePageModal({
     if (ocupado) return;
     setOcupado(true);
     try {
-      const url = await capturar();
+      const url = await capturar("jpeg");
       const img = new Image();
       img.src = url;
       await new Promise((res, rej) => {
@@ -344,7 +345,7 @@ export function ClientResearchOnePageModal({
         unit: "pt",
         format: [largura, altura],
       });
-      pdf.addImage(url, "PNG", 0, 0, largura, altura);
+      pdf.addImage(url, "JPEG", 0, 0, largura, altura);
       pdf.save(nomeArquivo("pdf"));
       notificar("PDF baixado.");
     } catch {
