@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { limparCopy, limparLista } from "@/lib/client-copy";
@@ -10,21 +10,39 @@ import type { ClientOnePageData, OnePageStatus } from "@/data/client-one-page";
  * Template puro: todo conteúdo vem de `data` (ver `src/data/client-one-page.ts`).
  */
 
-const STATUS_TOM: Record<string, string> = {
-  "informação compartilhada pela família": "border-sage/40 bg-sage/10 text-sage",
-  "dado de pesquisa inicial": "border-plum/40 bg-plum/10 text-plum",
-  "em validação documental": "border-gold/50 bg-gold/15 text-navy",
-  "em confirmação": "border-navy/20 bg-navy/5 text-navy/70",
+/** Badges simplificados (rótulos curtos aprovados). */
+const STATUS_BADGE: Record<string, string> = {
+  "informação compartilhada pela família": "Informação familiar",
+  "dado de pesquisa inicial": "Pesquisa inicial",
+  "em validação documental": "Em validação documental",
+  "em confirmação": "Em validação documental",
 };
 
-const statusLabel = (s?: OnePageStatus) => limparCopy(s) || "em confirmação";
+const STATUS_TOM: Record<string, string> = {
+  "Informação familiar": "border-sage/40 bg-sage/10 text-sage",
+  "Pesquisa inicial": "border-plum/40 bg-plum/10 text-plum",
+  "Em validação documental": "border-gold/50 bg-gold/15 text-navy",
+};
+
+const statusLabel = (s?: OnePageStatus) => {
+  const bruto = limparCopy(s).toLowerCase();
+  return STATUS_BADGE[bruto] ?? "Em validação documental";
+};
+
+export type OnePageFormato = "whatsapp" | "pdf";
 
 export function ClientResearchOnePage({
   data,
   className,
+  formato = "whatsapp",
+  exportMode = false,
 }: {
   data: ClientOnePageData;
   className?: string;
+  /** whatsapp: vertical completo · pdf: condensado (3 achados / 3 pendências) */
+  formato?: OnePageFormato;
+  /** Sem CTA interativo e sem qualquer elemento de navegação. */
+  exportMode?: boolean;
 }) {
   const [modal, setModal] = useState(false);
 
@@ -44,9 +62,9 @@ export function ClientResearchOnePage({
       status: statusLabel(f.status),
     }))
     .filter((f) => f.title || f.detail)
-    .slice(0, 5);
+    .slice(0, formato === "pdf" ? 3 : 5);
 
-  const pendencias = limparLista(data.confirmations ?? []).slice(0, 5);
+  const pendencias = limparLista(data.confirmations ?? []).slice(0, formato === "pdf" ? 3 : 5);
 
   const etapa = data.recommendedNextStep;
   const etapaTitulo = limparCopy(etapa?.title);
@@ -166,13 +184,15 @@ export function ClientResearchOnePage({
           <p className="text-[13.5px] leading-relaxed text-navy/80">
             Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.
           </p>
-          <button
-            type="button"
-            onClick={() => setModal(true)}
-            className="mt-4 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/90"
-          >
-            Quero entender a próxima etapa
-          </button>
+          {!exportMode && (
+            <button
+              type="button"
+              onClick={() => setModal(true)}
+              className="mt-4 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/90"
+            >
+              Quero entender a próxima etapa
+            </button>
+          )}
         </section>
 
         {/* 9. Rodapé */}
@@ -183,7 +203,7 @@ export function ClientResearchOnePage({
         )}
       </div>
 
-      {modal && (
+      {!exportMode && modal && (
         <div
           className="fixed inset-0 z-[70] grid place-items-center bg-navy/60 p-6"
           role="dialog"
