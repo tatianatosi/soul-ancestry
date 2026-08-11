@@ -41,12 +41,12 @@ const RODAPE_PADRAO =
   "Esta é uma leitura inicial baseada nas informações disponíveis até aqui. A continuidade da pesquisa e qualquer estratégia dependem de validação documental e análise humana.";
 
 const RELEVANCIA_PADRAO =
-  "A linha organizada oferece um ponto de partida concreto para a pesquisa. Já é possível visualizar a estrutura familiar e identificar os principais pontos de confirmação. No entanto, a continuidade entre gerações e os documentos oficiais precisam ser confirmados antes de definir qualquer estratégia de cidadania. No seu tempo, sem etapas desnecessárias.";
+  "A linha organizada cria um ponto de partida para a pesquisa. Agora, precisamos confirmar os documentos e vínculos entre as gerações.";
 
 const PROXIMA_ETAPA_PADRAO = {
   title: "Estratégia e validação documental da linha familiar",
   description:
-    "Uma etapa de aprofundamento para confirmar a cadeia familiar, organizar documentos, investigar lacunas e avaliar os caminhos possíveis a partir de evidências oficiais.",
+    "Vamos organizar a cadeia familiar, investigar registros prioritários e entender os próximos caminhos a partir de evidências oficiais.",
   items: [
     "Organização da cadeia documental",
     "Pesquisa de registros prioritários",
@@ -62,7 +62,7 @@ export const ONE_PAGE_SOPHIA: ClientOnePageData = {
   title: "Resultado Inicial de Pesquisa",
   subtitle: "Sophia Piccoli Santiago · Linha familiar italiana em análise",
   readingIntro:
-    "Organizamos os sinais iniciais da linha Piccoli da sua família. Esta é uma leitura preliminar: os dados foram reunidos a partir de informações compartilhadas e de pesquisa inicial, e ainda não há conclusão sobre cidadania ou caminho possível. A continuidade depende de confirmação por documentos oficiais.",
+    "Organizamos os primeiros sinais da linha Piccoli da sua família. Esta leitura ainda depende de confirmação por documentos oficiais antes de indicar qualquer estratégia.",
   findings: [
     {
       title: "Ascendente familiar associado à origem italiana",
