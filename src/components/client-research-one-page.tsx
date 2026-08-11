@@ -231,6 +231,43 @@ export function ClientResearchOnePage({
   );
 }
 
+/** Texto plano para envio manual no WhatsApp (sem link, preço ou código). */
+function textoWhatsapp(data: ClientOnePageData, formato: OnePageFormato): string {
+  const lim = formato === "pdf" ? 3 : 5;
+  const linhas: string[] = [];
+  const intro = limparCopy(data.whatsappIntro) || limparCopy(data.readingIntro);
+  if (intro) linhas.push(intro, "");
+  const achados = (data.findings ?? [])
+    .map((f) => `• ${limparCopy(f.title)}${limparCopy(f.detail) ? ` — ${limparCopy(f.detail)}` : ""}`)
+    .filter((l) => l.length > 2)
+    .slice(0, lim);
+  if (achados.length) linhas.push("O que já identificamos:", ...achados, "");
+  const pend = limparLista(data.confirmations ?? []).slice(0, lim);
+  if (pend.length) linhas.push("O que ainda precisamos confirmar:", ...pend.map((p) => `• ${p}`), "");
+  const seg = limparCopy(data.whatsappFollowUp);
+  if (seg) linhas.push(seg, "");
+  const rodape = limparCopy(data.footer);
+  if (rodape) linhas.push(rodape);
+  return linhas.join("\n").trim();
+}
+
+/** Render limpo para captura/exportação: sem barra, sem título, sem X, sem moldura. */
+export function ClientResearchOnePageExport({
+  data,
+  formato = "whatsapp",
+  className,
+}: {
+  data: ClientOnePageData;
+  formato?: OnePageFormato;
+  className?: string;
+}) {
+  return (
+    <div data-export-area data-formato={formato} className={cn("bg-cream", className)}>
+      <ClientResearchOnePage data={data} formato={formato} exportMode />
+    </div>
+  );
+}
+
 /** Preview interno em modal — usado pelo botão “Ver devolutiva inicial”. */
 export function ClientResearchOnePageModal({
   data,
@@ -239,24 +276,100 @@ export function ClientResearchOnePageModal({
   data: ClientOnePageData;
   onClose: () => void;
 }) {
+  const [formato, setFormato] = useState<OnePageFormato>("whatsapp");
+  const [aviso, setAviso] = useState<string>("");
+
+  const notificar = (msg: string) => {
+    setAviso(msg);
+    window.setTimeout(() => setAviso(""), 2600);
+  };
+
+  const copiarWhatsapp = async () => {
+    const texto = textoWhatsapp(data, formato);
+    try {
+      await navigator.clipboard.writeText(texto);
+      notificar("Texto copiado para a área de transferência.");
+    } catch {
+      notificar("Não foi possível copiar automaticamente.");
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[60] overflow-y-auto bg-navy/70 p-0 sm:p-6">
       <div className="mx-auto w-full max-w-md overflow-hidden rounded-none bg-cream sm:rounded-3xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-navy/10 bg-cream/95 px-5 py-3 backdrop-blur">
-          <span className="text-[11px] uppercase tracking-[0.16em] text-navy/60">
-            Devolutiva inicial
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar devolutiva"
-            className="grid h-8 w-8 place-items-center rounded-full border border-navy/15 text-navy"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        {/* Barra e ações: uso interno, nunca entram na exportação */}
+        <div
+          data-print-hide
+          className="sticky top-0 z-10 border-b border-navy/10 bg-cream/95 px-5 py-3 backdrop-blur"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] uppercase tracking-[0.16em] text-navy/60">
+              Devolutiva inicial
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar devolutiva"
+              className="grid h-8 w-8 place-items-center rounded-full border border-navy/15 text-navy"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-3 flex gap-1 rounded-full border border-navy/15 bg-white/60 p-1">
+            {(["whatsapp", "pdf"] as OnePageFormato[]).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFormato(f)}
+                className={cn(
+                  "flex-1 rounded-full px-3 py-1.5 text-[11px] font-medium transition",
+                  formato === f ? "bg-navy text-cream" : "text-navy/70 hover:bg-navy/5",
+                )}
+              >
+                {f === "whatsapp" ? "WhatsApp vertical" : "PDF condensado"}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              onClick={copiarWhatsapp}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+            >
+              Copiar texto WhatsApp
+            </button>
+            <button
+              type="button"
+              onClick={() => notificar("Exportação PNG preparada: capture a área da devolutiva.")}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+            >
+              Preparar exportação PNG
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFormato("pdf");
+                notificar("Exportação PDF preparada no formato condensado.");
+              }}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+            >
+              Preparar exportação PDF
+            </button>
+          </div>
+
+          {aviso && (
+            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-sage">
+              <Check className="h-3.5 w-3.5" />
+              {aviso}
+            </p>
+          )}
         </div>
-        <ClientResearchOnePage data={data} />
+
+        <ClientResearchOnePageExport data={data} formato={formato} />
       </div>
     </div>
   );
 }
+
