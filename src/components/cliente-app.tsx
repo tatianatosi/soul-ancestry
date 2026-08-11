@@ -47,6 +47,7 @@ import {
   texto,
 } from "@/lib/evidence";
 import { documentoVisivelParaCliente, statusClienteAmigavel } from "@/lib/visibilidade";
+import { eixosRadar, ESTADO_EIXO_LABEL, ESTADO_EIXO_TOM } from "@/lib/radar-eixos";
 import { TimelineContratualCliente } from "./timeline-contratual";
 import type { CaseData, PessoaBase } from "@/types/case";
 
