@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
@@ -278,10 +278,82 @@ export function ClientResearchOnePageModal({
 }) {
   const [formato, setFormato] = useState<OnePageFormato>("whatsapp");
   const [aviso, setAviso] = useState<string>("");
+  const [ocupado, setOcupado] = useState(false);
+  const areaRef = useRef<HTMLDivElement>(null);
 
   const notificar = (msg: string) => {
     setAviso(msg);
-    window.setTimeout(() => setAviso(""), 2600);
+    window.setTimeout(() => setAviso(""), 3200);
+  };
+
+  const nomeArquivo = (ext: string) =>
+    `devolutiva-inicial-${limparCopy(data.displayName).toLowerCase().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}-${formato}.${ext}`;
+
+  const baixar = (href: string, nome: string) => {
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const capturar = async (tipo: "png" | "jpeg") => {
+    const node = areaRef.current;
+    if (!node) throw new Error("sem area");
+    const lib = await import("html-to-image");
+    const opts = {
+      pixelRatio: 2,
+      cacheBust: true,
+      backgroundColor: "#F5F0E8",
+      width: node.offsetWidth,
+      height: node.offsetHeight,
+    };
+    return tipo === "png" ? lib.toPng(node, opts) : lib.toJpeg(node, { ...opts, quality: 0.92 });
+  };
+
+  const exportarPng = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    try {
+      const url = await capturar("png");
+      baixar(url, nomeArquivo("png"));
+      notificar("Imagem PNG baixada.");
+    } catch {
+      notificar("Não foi possível gerar a imagem.");
+    } finally {
+      setOcupado(false);
+    }
+  };
+
+  const exportarPdf = async () => {
+    if (ocupado) return;
+    setOcupado(true);
+    try {
+      const url = await capturar("jpeg");
+      const img = new Image();
+      img.src = url;
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+      });
+      const { jsPDF } = await import("jspdf");
+      const largura = 420;
+      const altura = (img.height / img.width) * largura;
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: [largura, altura],
+        compress: true,
+      });
+      pdf.addImage(url, "JPEG", 0, 0, largura, altura);
+      pdf.save(nomeArquivo("pdf"));
+      notificar("PDF baixado.");
+    } catch {
+      notificar("Não foi possível gerar o PDF.");
+    } finally {
+      setOcupado(false);
+    }
   };
 
   const copiarWhatsapp = async () => {
@@ -342,20 +414,19 @@ export function ClientResearchOnePageModal({
             </button>
             <button
               type="button"
-              onClick={() => notificar("Exportação PNG preparada: capture a área da devolutiva.")}
-              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+              disabled={ocupado}
+              onClick={exportarPng}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5 disabled:opacity-50"
             >
-              Preparar exportação PNG
+              {ocupado ? "Gerando…" : "Baixar PNG"}
             </button>
             <button
               type="button"
-              onClick={() => {
-                setFormato("pdf");
-                notificar("Exportação PDF preparada no formato condensado.");
-              }}
-              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5"
+              disabled={ocupado}
+              onClick={exportarPdf}
+              className="rounded-full border border-navy/20 px-2 py-1.5 text-[10.5px] font-medium text-navy transition hover:bg-navy/5 disabled:opacity-50"
             >
-              Preparar exportação PDF
+              {ocupado ? "Gerando…" : "Baixar PDF"}
             </button>
           </div>
 
@@ -367,8 +438,11 @@ export function ClientResearchOnePageModal({
           )}
         </div>
 
-        <ClientResearchOnePageExport data={data} formato={formato} />
+        <div ref={areaRef}>
+          <ClientResearchOnePageExport data={data} formato={formato} />
+        </div>
       </div>
+
     </div>
   );
 }
