@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
