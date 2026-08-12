@@ -191,6 +191,9 @@ export const ONE_PAGE_GUILHERME: ClientOnePageData = {
       "Análise humana de estratégia após evidências suficientes",
     ],
   },
+  closingInvite:
+    "Se quiser, conversamos por alguns minutos para eu te mostrar essa linha com calma e explicar como seria a etapa de confirmação. Sem compromisso — você decide o ritmo.",
+  ctaLabel: "Quero conversar sobre a minha linha familiar",
   footer: RODAPE_PADRAO,
   whatsappIntro:
     "Guilherme, organizamos uma leitura inicial da linha Ceronatto da sua família. É um ponto de partida, ainda sem conclusão.",
