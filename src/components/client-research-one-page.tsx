@@ -95,9 +95,45 @@ export function ClientResearchOnePage({
         </div>
 
         {/* 3. Leitura inicial */}
-        {intro && (
+        {(saudacao || intro) && (
           <section className="rounded-2xl border border-navy/10 bg-areia/60 p-5">
-            <p className="text-[13.5px] leading-relaxed text-navy/85">{intro}</p>
+            {saudacao && (
+              <p className="font-serif text-[15px] italic leading-snug text-navy">{saudacao}</p>
+            )}
+            {intro && (
+              <p className={cn("text-[13.5px] leading-relaxed text-navy/85", saudacao && "mt-3")}>
+                {intro}
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* 3b. Linha familiar em organização */}
+        {cadeia.length > 1 && (
+          <section>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/60">
+              A linha que estamos organizando
+            </h2>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2">
+              {cadeia.map((n, i) => (
+                <span key={i} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-[12px] font-medium",
+                      i === cadeia.length - 1
+                        ? "border-navy bg-navy text-cream"
+                        : "border-gold/50 bg-gold/10 text-navy",
+                    )}
+                  >
+                    {n}
+                  </span>
+                  {i < cadeia.length - 1 && <span className="text-navy/35">→</span>}
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 text-[11.5px] leading-relaxed text-navy/60">
+              Sequência inicial em organização, ainda a confirmar por documentos oficiais.
+            </p>
           </section>
         )}
 
