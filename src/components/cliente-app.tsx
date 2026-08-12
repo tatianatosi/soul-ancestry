@@ -184,15 +184,24 @@ export function ClienteApp() {
             {STATUS_CASO_LABEL[caso.geral.status_caso]}
           </span>
         </div>
-        {onePage && (
-          <button
-            type="button"
-            onClick={() => setShowOnePage(true)}
-            className="mt-2 w-full rounded-full border border-navy/20 bg-cream px-3 py-1.5 text-[11px] font-medium text-navy transition hover:bg-navy/5"
+        <div className="mt-2 flex gap-2">
+          {onePage && (
+            <button
+              type="button"
+              onClick={() => setShowOnePage(true)}
+              className="flex-1 rounded-full border border-navy/20 bg-cream px-3 py-1.5 text-[11px] font-medium text-navy transition hover:bg-navy/5"
+            >
+              Ver devolutiva inicial
+            </button>
+          )}
+          <a
+            href="/devolutiva?cliente=CA-ITA-GUILH-CERONATTO"
+            className="flex-1 rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-center text-[11px] font-medium text-navy transition hover:bg-gold/20"
           >
-            Ver devolutiva inicial
-          </button>
-        )}
+            Devolutivas (interno)
+          </a>
+        </div>
+
       </div>
 
       {onePage && showOnePage && (
