@@ -284,6 +284,8 @@ function textoWhatsapp(data: ClientOnePageData, formato: OnePageFormato): string
   const linhas: string[] = [];
   const intro = limparCopy(data.whatsappIntro) || limparCopy(data.readingIntro);
   if (intro) linhas.push(intro, "");
+  const cadeia = limparLista(data.lineageChain ?? []);
+  if (cadeia.length > 1) linhas.push(`Linha em organização: ${cadeia.join(" → ")}`, "");
   const achados = (data.findings ?? [])
     .map((f) => `• ${limparCopy(f.title)}${limparCopy(f.detail) ? ` — ${limparCopy(f.detail)}` : ""}`)
     .filter((l) => l.length > 2)
