@@ -222,19 +222,24 @@ export function ClientResearchOnePage({
         )}
 
         {/* 8. CTA neutro */}
-        <section className="text-center">
-          <p className="text-[13.5px] leading-relaxed text-navy/80">
-            Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.
-          </p>
-          {!exportMode && (
+        <section className="rounded-2xl border border-navy/10 bg-white/70 p-5 text-center">
+          <p className="text-[13.5px] leading-relaxed text-navy/80">{convite}</p>
+          {exportMode ? (
+            <p className="mt-4 inline-block rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy">
+              {ctaLabel}
+            </p>
+          ) : (
             <button
               type="button"
               onClick={() => setModal(true)}
               className="mt-4 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/90"
             >
-              Quero entender a próxima etapa
+              {ctaLabel}
             </button>
           )}
+          <p className="mt-3 text-[11.5px] leading-relaxed text-navy/55">
+            Basta responder por aqui mesmo — seguimos no seu tempo.
+          </p>
         </section>
 
         {/* 9. Rodapé */}
