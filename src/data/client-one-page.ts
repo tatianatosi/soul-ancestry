@@ -125,6 +125,9 @@ export const ONE_PAGE_GUILHERME: ClientOnePageData = {
   displayName: "Guilherme Antonio da Silva",
   title: "Resultado Inicial de Pesquisa",
   subtitle: "Guilherme Antonio da Silva · Linha familiar italiana Ceronatto em análise",
+  greeting:
+    "Guilherme, este é o retrato inicial da sua família — organizado a partir do que você compartilhou e da nossa primeira pesquisa.",
+  lineageChain: ["Gaetano", "Bortolo", "Natal", "Marilda", "Guilherme"],
   readingIntro:
     "Organizamos os sinais iniciais da linha Ceronatto da sua família. Esta é uma leitura preliminar: os dados foram reunidos a partir de informações compartilhadas por você e de pesquisa inicial, e ainda não há conclusão sobre cidadania ou caminho possível. A continuidade depende de confirmação por documentos oficiais. Essa organização ajuda tanto a entender a origem da família quanto a preparar uma validação documental segura.",
   findings: [
