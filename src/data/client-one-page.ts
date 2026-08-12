@@ -26,11 +26,19 @@ export type ClientOnePageData = {
   displayName: string;
   title: string;
   subtitle: string;
+  /** Saudação curta e pessoal, no topo da leitura. */
+  greeting?: string;
   readingIntro: string;
+  /** Cadeia familiar em organização, do ascendente até o cliente. */
+  lineageChain?: string[];
   findings: OnePageFinding[];
   confirmations: string[];
   relevanceText: string;
   recommendedNextStep: { title: string; description: string; items: string[] };
+  /** Convite final acolhedor, imediatamente antes do CTA. */
+  closingInvite?: string;
+  /** Rótulo do CTA visual. */
+  ctaLabel?: string;
   footer: string;
   whatsappIntro: string;
   whatsappFollowUp: string;
