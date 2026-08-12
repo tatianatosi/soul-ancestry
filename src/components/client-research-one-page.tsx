@@ -51,6 +51,12 @@ export function ClientResearchOnePage({
 
   const titulo = limparCopy(data.title);
   const subtitulo = limparCopy(data.subtitle);
+  const saudacao = limparCopy(data.greeting);
+  const cadeia = limparLista(data.lineageChain ?? []);
+  const convite =
+    limparCopy(data.closingInvite) ||
+    "Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.";
+  const ctaLabel = limparCopy(data.ctaLabel) || "Quero entender a próxima etapa";
   const intro = limparCopy(data.readingIntro);
   const relevancia = limparCopy(data.relevanceText);
   const rodape = limparCopy(data.footer);
