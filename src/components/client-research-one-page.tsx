@@ -51,6 +51,12 @@ export function ClientResearchOnePage({
 
   const titulo = limparCopy(data.title);
   const subtitulo = limparCopy(data.subtitle);
+  const saudacao = limparCopy(data.greeting);
+  const cadeia = limparLista(data.lineageChain ?? []);
+  const convite =
+    limparCopy(data.closingInvite) ||
+    "Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.";
+  const ctaLabel = limparCopy(data.ctaLabel) || "Quero entender a próxima etapa";
   const intro = limparCopy(data.readingIntro);
   const relevancia = limparCopy(data.relevanceText);
   const rodape = limparCopy(data.footer);
@@ -89,9 +95,45 @@ export function ClientResearchOnePage({
         </div>
 
         {/* 3. Leitura inicial */}
-        {intro && (
+        {(saudacao || intro) && (
           <section className="rounded-2xl border border-navy/10 bg-areia/60 p-5">
-            <p className="text-[13.5px] leading-relaxed text-navy/85">{intro}</p>
+            {saudacao && (
+              <p className="font-serif text-[15px] italic leading-snug text-navy">{saudacao}</p>
+            )}
+            {intro && (
+              <p className={cn("text-[13.5px] leading-relaxed text-navy/85", saudacao && "mt-3")}>
+                {intro}
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* 3b. Linha familiar em organização */}
+        {cadeia.length > 1 && (
+          <section>
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/60">
+              A linha que estamos organizando
+            </h2>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2">
+              {cadeia.map((n, i) => (
+                <span key={i} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-[12px] font-medium",
+                      i === cadeia.length - 1
+                        ? "border-navy bg-navy text-cream"
+                        : "border-gold/50 bg-gold/10 text-navy",
+                    )}
+                  >
+                    {n}
+                  </span>
+                  {i < cadeia.length - 1 && <span className="text-navy/35">→</span>}
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 text-[11.5px] leading-relaxed text-navy/60">
+              Sequência inicial em organização, ainda a confirmar por documentos oficiais.
+            </p>
           </section>
         )}
 
@@ -180,19 +222,24 @@ export function ClientResearchOnePage({
         )}
 
         {/* 8. CTA neutro */}
-        <section className="text-center">
-          <p className="text-[13.5px] leading-relaxed text-navy/80">
-            Se fizer sentido, posso te explicar como funcionaria esta próxima etapa.
-          </p>
-          {!exportMode && (
+        <section className="rounded-2xl border border-navy/10 bg-white/70 p-5 text-center">
+          <p className="text-[13.5px] leading-relaxed text-navy/80">{convite}</p>
+          {exportMode ? (
+            <p className="mt-4 inline-block rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy">
+              {ctaLabel}
+            </p>
+          ) : (
             <button
               type="button"
               onClick={() => setModal(true)}
               className="mt-4 w-full rounded-full bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-gold/90"
             >
-              Quero entender a próxima etapa
+              {ctaLabel}
             </button>
           )}
+          <p className="mt-3 text-[11.5px] leading-relaxed text-navy/55">
+            Basta responder por aqui mesmo — seguimos no seu tempo.
+          </p>
         </section>
 
         {/* 9. Rodapé */}
@@ -237,6 +284,8 @@ function textoWhatsapp(data: ClientOnePageData, formato: OnePageFormato): string
   const linhas: string[] = [];
   const intro = limparCopy(data.whatsappIntro) || limparCopy(data.readingIntro);
   if (intro) linhas.push(intro, "");
+  const cadeia = limparLista(data.lineageChain ?? []);
+  if (cadeia.length > 1) linhas.push(`Linha em organização: ${cadeia.join(" → ")}`, "");
   const achados = (data.findings ?? [])
     .map((f) => `• ${limparCopy(f.title)}${limparCopy(f.detail) ? ` — ${limparCopy(f.detail)}` : ""}`)
     .filter((l) => l.length > 2)

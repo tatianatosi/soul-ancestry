@@ -26,11 +26,19 @@ export type ClientOnePageData = {
   displayName: string;
   title: string;
   subtitle: string;
+  /** Saudação curta e pessoal, no topo da leitura. */
+  greeting?: string;
   readingIntro: string;
+  /** Cadeia familiar em organização, do ascendente até o cliente. */
+  lineageChain?: string[];
   findings: OnePageFinding[];
   confirmations: string[];
   relevanceText: string;
   recommendedNextStep: { title: string; description: string; items: string[] };
+  /** Convite final acolhedor, imediatamente antes do CTA. */
+  closingInvite?: string;
+  /** Rótulo do CTA visual. */
+  ctaLabel?: string;
   footer: string;
   whatsappIntro: string;
   whatsappFollowUp: string;
@@ -117,6 +125,9 @@ export const ONE_PAGE_GUILHERME: ClientOnePageData = {
   displayName: "Guilherme Antonio da Silva",
   title: "Resultado Inicial de Pesquisa",
   subtitle: "Guilherme Antonio da Silva · Linha familiar italiana Ceronatto em análise",
+  greeting:
+    "Guilherme, este é o retrato inicial da sua família — organizado a partir do que você compartilhou e da nossa primeira pesquisa.",
+  lineageChain: ["Gaetano", "Bortolo", "Natal", "Marilda", "Guilherme"],
   readingIntro:
     "Organizamos os sinais iniciais da linha Ceronatto da sua família. Esta é uma leitura preliminar: os dados foram reunidos a partir de informações compartilhadas por você e de pesquisa inicial, e ainda não há conclusão sobre cidadania ou caminho possível. A continuidade depende de confirmação por documentos oficiais. Essa organização ajuda tanto a entender a origem da família quanto a preparar uma validação documental segura.",
   findings: [
@@ -180,6 +191,9 @@ export const ONE_PAGE_GUILHERME: ClientOnePageData = {
       "Análise humana de estratégia após evidências suficientes",
     ],
   },
+  closingInvite:
+    "Se quiser, conversamos por alguns minutos para eu te mostrar essa linha com calma e explicar como seria a etapa de confirmação. Sem compromisso — você decide o ritmo.",
+  ctaLabel: "Quero conversar sobre a minha linha familiar",
   footer: RODAPE_PADRAO,
   whatsappIntro:
     "Guilherme, organizamos uma leitura inicial da linha Ceronatto da sua família. É um ponto de partida, ainda sem conclusão.",
