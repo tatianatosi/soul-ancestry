@@ -1,100 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  meusPapeis,
+  podeAtivar,
+  podeValidar,
+  registrar,
+  resolverOrganizacao,
+  type CheckAtivacao,
+  type EventoOnboarding,
+  type Papel,
+  type SupabaseCliente,
+} from "@/lib/onboarding-regras";
 
-/**
- * Onboarding e ativação de casos.
- *
- * Nenhuma trava aqui é decorativa: o banco repete todas elas
- * (triggers fn_activation_check_guard, fn_guard_ativacao, fn_estado_caso).
- * A interface apenas explica o bloqueio — nunca o contorna.
- */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type SupabaseCliente = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
-
-export type Papel = "admin" | "operacoes" | "pesquisador" | "comercial" | "financeiro" | "leitura";
-
-export type CheckAtivacao = {
-  id: string;
-  check_key: string;
-  label: string;
-  dominio: "operacional" | "comercial" | "contratual" | "financeiro";
-  obrigatorio: boolean;
-  status: "pendente" | "validado" | "isento" | "nao_aplicavel";
-  validado_em: string | null;
-  validado_por: string | null;
-  observacao: string | null;
-  origem_validacao: string | null;
-  isencao_motivo: string | null;
-  isencao_autorizada_por: string | null;
-  isencao_autorizada_em: string | null;
-  isencao_expira_em: string | null;
-};
-
-export type EventoOnboarding = {
-  id: string;
-  acao: string;
-  entidade: string;
-  quando: string;
-  detalhe: string;
-};
-
-const RESPONSAVEL_POR_DOMINIO: Record<string, string> = {
-  operacional: "Operações ou admin",
-  comercial: "Comercial, operações ou admin",
-  contratual: "Operações ou admin (isenção somente admin)",
-  financeiro: "Financeiro ou admin (isenção somente admin)",
-};
-
-export function responsavelDoCheck(dominio: string) {
-  return RESPONSAVEL_POR_DOMINIO[dominio] ?? "Admin";
-}
-
-export function podeValidar(papeis: Papel[], dominio: string, alvo: string) {
-  if (papeis.includes("admin")) return true;
-  if (alvo === "isento" || alvo === "nao_aplicavel") return false;
-  if (papeis.includes("leitura") && papeis.length === 1) return false;
-  if (papeis.includes("pesquisador") && papeis.length === 1) return false;
-  if (dominio === "financeiro") return papeis.includes("financeiro");
-  if (dominio === "comercial") return papeis.includes("comercial") || papeis.includes("operacoes");
-  if (dominio === "contratual") return papeis.includes("operacoes");
-  return papeis.some((p) => p === "operacoes" || p === "comercial" || p === "financeiro");
-}
-
-export function podeAtivar(papeis: Papel[]) {
-  return papeis.includes("admin") || papeis.includes("operacoes");
-}
-
-async function resolverOrganizacao(supabase: SupabaseCliente) {
-  const membro = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .is("archived_at", null)
-    .maybeSingle();
-  if (!membro.data?.organization_id) throw new Error("Acesso não autorizado.");
-  return membro.data.organization_id as string;
-}
-
-async function meusPapeis(supabase: SupabaseCliente, organizationId: string): Promise<Papel[]> {
-  const { data } = await supabase.from("user_roles").select("role").eq("organization_id", organizationId);
-  return ((data ?? []) as { role: Papel }[]).map((r) => r.role);
-}
-
-async function registrar(
-  supabase: SupabaseCliente,
-  organizationId: string,
-  acao: string,
-  casoId: string,
-  metadados: Record<string, unknown>,
-) {
-  await supabase.from("audit_logs").insert({
-    organization_id: organizationId,
-    acao,
-    entidade: "crm_casos",
-    entidade_id: casoId,
-    metadados,
-  });
-}
+export type { CheckAtivacao, EventoOnboarding, Papel } from "@/lib/onboarding-regras";
 
 export const obterOnboarding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -130,7 +48,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(200);
 
-    const linha = (caso.data ?? {}) as Record<string, unknown>;
+    const linha = (caso.data ?? {}) as Record<string, string | number | boolean | null>;
     const listaChecks = ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) =>
       a.check_key.localeCompare(b.check_key),
     );
@@ -157,7 +75,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       caso: linha,
       papeis,
       checks: listaChecks,
-      pendencias: ((pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[]) ?? [],
+      pendencias: (pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
