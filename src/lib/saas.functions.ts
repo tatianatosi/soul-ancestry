@@ -1,6 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { ESTADOS, transicaoPermitida, type Dominio } from "@/lib/estados";
+import {
+  validarEstadoInicial,
+  validarRegrasNegocio,
+  validarTransicao,
+} from "@/lib/estados";
 
 /**
  * Camada de acesso do SaaS Clube Ancestral.
