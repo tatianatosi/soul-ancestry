@@ -1,0 +1,159 @@
+/**
+ * Helpers server-only da autenticação da EQUIPE INTERNA.
+ *
+ * Regras invioláveis:
+ * - equipe usa e-mail + senha do Supabase Auth; nenhuma senha, hash ou token
+ *   é gravado em tabelas próprias;
+ * - não existe auto-cadastro: somente admin convida;
+ * - papel e organização são derivados no servidor a partir de staff_access;
+ * - nenhuma resposta revela se um e-mail pertence à equipe;
+ * - auditoria com metadados mínimos: nunca senha, token ou URL de redefinição.
+ */
+import { createHash } from "crypto";
+import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const adminClient = supabaseAdmin as any;
+
+export type PapelEquipe = "admin" | "operacoes" | "pesquisador" | "comercial" | "financeiro" | "leitura";
+export type StatusEquipe = "invited" | "active" | "suspended" | "revoked";
+
+export const PAPEIS: PapelEquipe[] = [
+  "admin",
+  "operacoes",
+  "pesquisador",
+  "comercial",
+  "financeiro",
+  "leitura",
+];
+
+export function normalizarEmail(email: string) {
+  return String(email ?? "").trim().toLowerCase();
+}
+
+export function emailValido(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
+export function senhaValida(senha: string) {
+  return typeof senha === "string" && senha.length >= 12 && /[A-Za-z]/.test(senha) && /[0-9]/.test(senha);
+}
+
+/** Identificador embaralhado: o e-mail nunca é gravado em texto no controle de tentativas. */
+function hashAssunto(valor: string) {
+  return createHash("sha256")
+    .update(`${process.env["SUPABASE_URL"] ?? "ca"}::${normalizarEmail(valor)}`)
+    .digest("hex");
+}
+
+/** Rate limit simples por escopo (login / recuperação). */
+export async function limiteExcedido(scope: string, assunto: string, maximo: number, minutos: number) {
+  const desde = new Date(Date.now() - minutos * 60_000).toISOString();
+  const subject_hash = hashAssunto(assunto);
+  const { count } = await adminClient
+    .from("auth_throttle")
+    .select("id", { count: "exact", head: true })
+    .eq("scope", scope)
+    .eq("subject_hash", subject_hash)
+    .gte("occurred_at", desde);
+  if ((count ?? 0) >= maximo) return true;
+  await adminClient.from("auth_throttle").insert({ scope, subject_hash });
+  return false;
+}
+
+export async function registrarAuditoria(params: {
+  organizationId: string;
+  userId?: string | null;
+  acao: string;
+  entidadeId?: string | null;
+  metadados?: Record<string, unknown>;
+}) {
+  await adminClient.from("audit_logs").insert({
+    organization_id: params.organizationId,
+    user_id: params.userId ?? null,
+    acao: params.acao,
+    entidade: "staff_access",
+    entidade_id: params.entidadeId ?? null,
+    metadados: params.metadados ?? {},
+  });
+}
+
+export async function staffPorEmail(email: string) {
+  const { data } = await adminClient
+    .from("staff_access")
+    .select("id, organization_id, auth_user_id, email, full_name, role, status, invitation_expires_at, archived_at")
+    .eq("email", normalizarEmail(email))
+    .is("archived_at", null)
+    .limit(1);
+  return (data ?? [])[0] ?? null;
+}
+
+export async function staffPorUsuario(userId: string) {
+  const { data } = await adminClient
+    .from("staff_access")
+    .select("id, organization_id, auth_user_id, email, full_name, role, status, archived_at")
+    .eq("auth_user_id", userId)
+    .is("archived_at", null)
+    .limit(1);
+  return (data ?? [])[0] ?? null;
+}
+
+/** Sincroniza vínculo e papel a partir de staff_access (nunca do front-end). */
+export async function sincronizarVinculo(staff: any, userId: string) {
+  await adminClient
+    .from("organization_members")
+    .upsert(
+      { organization_id: staff.organization_id, user_id: userId, archived_at: null },
+      { onConflict: "organization_id,user_id" },
+    );
+  await adminClient
+    .from("user_roles")
+    .delete()
+    .eq("organization_id", staff.organization_id)
+    .eq("user_id", userId)
+    .neq("role", staff.role);
+  await adminClient
+    .from("user_roles")
+    .upsert(
+      { organization_id: staff.organization_id, user_id: userId, role: staff.role },
+      { onConflict: "organization_id,user_id,role" },
+    );
+  await adminClient
+    .from("profiles")
+    .upsert({ id: userId, email: staff.email, nome: staff.full_name }, { onConflict: "id" });
+}
+
+/** Remove vínculos operacionais quando o acesso deixa de estar ativo. */
+export async function revogarVinculo(staff: any) {
+  if (!staff.auth_user_id) return;
+  await adminClient
+    .from("user_roles")
+    .delete()
+    .eq("organization_id", staff.organization_id)
+    .eq("user_id", staff.auth_user_id);
+}
+
+/** Cliente publishable no servidor: usado só para disparar e-mails de autenticação. */
+export function clientePublico() {
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  return createClient(process.env["SUPABASE_URL"]!, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input: any, init: any) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        h.set("apikey", key);
+        return fetch(input, { ...init, headers: h });
+      },
+    },
+  });
+}
+
+/** Exige admin de equipe ativo. Organização derivada do banco. */
+export async function exigirAdminEquipe(userId: string) {
+  const staff = await staffPorUsuario(userId);
+  if (!staff || staff.status !== "active") throw new Error("Acesso não autorizado.");
+  if (staff.role !== "admin") throw new Error("Apenas administradores podem gerenciar a equipe.");
+  return staff;
+}

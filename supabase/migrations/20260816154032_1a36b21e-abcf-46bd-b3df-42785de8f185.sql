@@ -1,0 +1,12 @@
+GRANT EXECUTE ON FUNCTION public.is_org_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_org_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_write(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.can_write_financeiro(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_staff_ativo(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.staff_meu_papel(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.portal_meu_acesso() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.portal_meu_cliente() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.portal_meu_nivel() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.portal_minha_org() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.portal_caso_permitido(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.bootstrap_minha_organizacao(text) TO authenticated;

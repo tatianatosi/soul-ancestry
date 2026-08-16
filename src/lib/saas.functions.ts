@@ -82,15 +82,39 @@ async function resolverOrganizacao(supabase: SupabaseCliente) {
     .is("archived_at", null)
     .maybeSingle();
   if (membro.data?.organization_id) return membro.data.organization_id as string;
+  // Quem já possui acesso de equipe (pendente/suspenso/revogado) nunca cria nova organização.
+  const staff = await supabase.from("staff_access").select("id,status").limit(1).maybeSingle();
+  if (staff.data) throw new Error("Acesso não autorizado.");
   const criada = await supabase.rpc("bootstrap_minha_organizacao", {});
   if (criada.error) throw new Error(criada.error.message);
   return criada.data as string;
+
 }
 
 export const getContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
+
+    // Autorização interna vem sempre de staff_access (nunca do front-end).
+    const staff = await supabase
+      .from("staff_access")
+      .select("id,role,status,organization_id,full_name")
+      .eq("auth_user_id", context.userId)
+      .is("archived_at", null)
+      .maybeSingle();
+
+    if (staff.data && staff.data.status !== "active") {
+      return {
+        userId: context.userId as string,
+        organizationId: null,
+        organizacao: null,
+        perfil: null,
+        papeis: [] as Papel[],
+        staff: { status: staff.data.status as string, papel: staff.data.role as Papel },
+      };
+    }
+
     const organizationId = await resolverOrganizacao(supabase);
 
     const [org, perfil, papeis] = await Promise.all([
@@ -101,12 +125,16 @@ export const getContexto = createServerFn({ method: "GET" })
 
     return {
       userId: context.userId as string,
-      organizationId,
+      organizationId: organizationId as string | null,
       organizacao: (org.data ?? null) as { id: string; nome: string; slug: string; demo: boolean } | null,
       perfil: (perfil.data ?? null) as { id: string; nome: string | null; email: string | null } | null,
       papeis: ((papeis.data ?? []) as { role: Papel }[]).map((p) => p.role),
+      staff: staff.data
+        ? { status: staff.data.status as string, papel: staff.data.role as Papel }
+        : { status: "active", papel: "admin" as Papel },
     };
   });
+
 
 export const listarRegistros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
