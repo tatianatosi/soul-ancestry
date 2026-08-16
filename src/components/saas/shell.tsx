@@ -73,6 +73,7 @@ const NAV = [
 
   { to: "/casos", label: "Casos", icon: FolderOpen },
   { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
+  { to: "/pesquisa-modulo", label: "Pesquisa e evidências", icon: FileSearch },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
   { to: "/tarefas", label: "Tarefas", icon: ListChecks },
   { to: "/ops", label: "Desk Operacional", icon: ClipboardList },
