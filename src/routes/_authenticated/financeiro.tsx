@@ -349,7 +349,9 @@ function FinanceiroPage() {
                   Registrar ajuste
                 </button>
                 <ul className="mt-4 space-y-2 text-sm">
-                  {((qAjustes.data ?? []) as Linha[]).map((a) => (
+                  {((qAjustes.data ?? []) as Linha[])
+                    .filter((a) => a["invoice_id"] === detalhe["id"])
+                    .map((a) => (
                     <li key={String(a["id"])} className="rounded-lg border border-navy/10 px-3 py-2">
                       {moeda(a["valor"], detalhe["moeda"])} — {String(a["motivo"] ?? "")}{" "}
                       <span className="text-navy/50">{dataBr(a["created_at"])}</span>
