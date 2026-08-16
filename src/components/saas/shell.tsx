@@ -71,6 +71,8 @@ const NAV = [
   { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
   { to: "/tarefas", label: "Tarefas", icon: ListChecks },
+  { to: "/ops", label: "Desk Operacional", icon: ClipboardList },
+  { to: "/ops-excecoes", label: "Exceções operacionais", icon: ShieldCheck },
   { to: "/propostas", label: "Propostas", icon: FileText },
   { to: "/contratos", label: "Contratos", icon: FileSignature },
   { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
