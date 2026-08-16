@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      artifact_register: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          backup_historico: string | null
+          case_id: string | null
+          change_resumo: string | null
+          classificacao: string
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          dominio: string
+          fonte_primaria: string | null
+          id: string
+          knowledge_item_id: string | null
+          lacuna: string | null
+          localizacao: string | null
+          nivel_acesso: string
+          nome_original: string
+          organization_id: string
+          origem: string | null
+          proxima_acao: string | null
+          relacao_operacional: string | null
+          responsavel_nome: string | null
+          responsavel_user_id: string | null
+          status_recuperacao: string
+          sucessor_id: string | null
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          backup_historico?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          classificacao?: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          dominio?: string
+          fonte_primaria?: string | null
+          id?: string
+          knowledge_item_id?: string | null
+          lacuna?: string | null
+          localizacao?: string | null
+          nivel_acesso?: string
+          nome_original: string
+          organization_id: string
+          origem?: string | null
+          proxima_acao?: string | null
+          relacao_operacional?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          status_recuperacao?: string
+          sucessor_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          backup_historico?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          classificacao?: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          dominio?: string
+          fonte_primaria?: string | null
+          id?: string
+          knowledge_item_id?: string | null
+          lacuna?: string | null
+          localizacao?: string | null
+          nivel_acesso?: string
+          nome_original?: string
+          organization_id?: string
+          origem?: string | null
+          proxima_acao?: string | null
+          relacao_operacional?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          status_recuperacao?: string
+          sucessor_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artifact_register_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifact_register_knowledge_item_id_fkey"
+            columns: ["knowledge_item_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifact_register_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifact_register_sucessor_id_fkey"
+            columns: ["sucessor_id"]
+            isOneToOne: false
+            referencedRelation: "artifact_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           acao: string
@@ -433,6 +558,56 @@ export type Database = {
           via?: string
         }
         Relationships: []
+      }
+      change_log: {
+        Row: {
+          autor_user_id: string | null
+          created_at: string
+          entidade: string
+          entidade_id: string
+          id: string
+          organization_id: string
+          resumo: string | null
+          snapshot_anterior: Json
+          titulo: string | null
+          versao_anterior: number | null
+          versao_nova: number | null
+        }
+        Insert: {
+          autor_user_id?: string | null
+          created_at?: string
+          entidade: string
+          entidade_id: string
+          id?: string
+          organization_id: string
+          resumo?: string | null
+          snapshot_anterior?: Json
+          titulo?: string | null
+          versao_anterior?: number | null
+          versao_nova?: number | null
+        }
+        Update: {
+          autor_user_id?: string | null
+          created_at?: string
+          entidade?: string
+          entidade_id?: string
+          id?: string
+          organization_id?: string
+          resumo?: string | null
+          snapshot_anterior?: Json
+          titulo?: string | null
+          versao_anterior?: number | null
+          versao_nova?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_access_events: {
         Row: {
@@ -2269,6 +2444,121 @@ export type Database = {
           },
         ]
       }
+      decisions: {
+        Row: {
+          alternativas: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          change_resumo: string | null
+          contexto: string | null
+          created_at: string
+          created_by: string | null
+          data_decisao: string | null
+          decisao: string | null
+          dominio: string
+          evidencias: Json
+          id: string
+          impacto: string | null
+          nivel_acesso: string
+          organization_id: string
+          responsavel_nome: string | null
+          responsavel_user_id: string | null
+          status: string
+          substitui_ids: string[]
+          substituida_por: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+          versao: number
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          alternativas?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          contexto?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_decisao?: string | null
+          decisao?: string | null
+          dominio?: string
+          evidencias?: Json
+          id?: string
+          impacto?: string | null
+          nivel_acesso?: string
+          organization_id: string
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          substitui_ids?: string[]
+          substituida_por?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          alternativas?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          contexto?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_decisao?: string | null
+          decisao?: string | null
+          dominio?: string
+          evidencias?: Json
+          id?: string
+          impacto?: string | null
+          nivel_acesso?: string
+          organization_id?: string
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          substitui_ids?: string[]
+          substituida_por?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_substituida_por_fkey"
+            columns: ["substituida_por"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archive_motivo: string | null
@@ -3118,6 +3408,105 @@ export type Database = {
             columns: ["service_order_id"]
             isOneToOne: false
             referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_items: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          change_resumo: string | null
+          created_at: string
+          created_by: string | null
+          dominio: string
+          fonte: string | null
+          id: string
+          link_url: string | null
+          nivel_acesso: string
+          organization_id: string
+          owner_nome: string | null
+          owner_user_id: string | null
+          processo: string | null
+          resumo: string | null
+          status: string
+          storage_path: string | null
+          tipo: string
+          titulo: string
+          ultima_revisao_em: string | null
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          created_at?: string
+          created_by?: string | null
+          dominio?: string
+          fonte?: string | null
+          id?: string
+          link_url?: string | null
+          nivel_acesso?: string
+          organization_id: string
+          owner_nome?: string | null
+          owner_user_id?: string | null
+          processo?: string | null
+          resumo?: string | null
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo: string
+          ultima_revisao_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          change_resumo?: string | null
+          created_at?: string
+          created_by?: string | null
+          dominio?: string
+          fonte?: string | null
+          id?: string
+          link_url?: string | null
+          nivel_acesso?: string
+          organization_id?: string
+          owner_nome?: string | null
+          owner_user_id?: string | null
+          processo?: string | null
+          resumo?: string | null
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo?: string
+          ultima_revisao_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

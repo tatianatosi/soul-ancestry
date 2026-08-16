@@ -18,6 +18,7 @@ import {
   ClipboardList,
   ShieldCheck,
   KeyRound,
+  Library,
   UsersRound,
   MessagesSquare,
   Plug,
@@ -84,6 +85,7 @@ const NAV = [
   { to: "/atendimento", label: "Atendimento ao cliente", icon: MessagesSquare },
   { to: "/qualidade", label: "Qualidade", icon: BadgeCheck },
   { to: "/integracoes", label: "Integrações", icon: Plug },
+  { to: "/biblioteca", label: "Governança e biblioteca", icon: Library },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
