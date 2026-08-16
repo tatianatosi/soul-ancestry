@@ -27,6 +27,7 @@ import { Route as EquipeEsqueciMinhaSenhaRouteImport } from './routes/equipe.esq
 import { Route as EquipeEntrarRouteImport } from './routes/equipe.entrar'
 import { Route as EquipeDiagnosticoRotasRouteImport } from './routes/equipe.diagnostico-rotas'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
+import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
@@ -146,6 +147,11 @@ const EquipeDiagnosticoRotasRoute = EquipeDiagnosticoRotasRouteImport.update({
 const CanvasTokenRoute = CanvasTokenRouteImport.update({
   id: '/canvas/$token',
   path: '/canvas/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPesquisaAssistenteRoute = ApiPesquisaAssistenteRouteImport.update({
+  id: '/api/pesquisa-assistente',
+  path: '/api/pesquisa-assistente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcessoSemPermissaoRoute = AcessoSemPermissaoRouteImport.update({
@@ -346,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
+  '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/pesquisa-assistente'
     | '/canvas/$token'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/pesquisa-assistente'
     | '/canvas/$token'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
@@ -599,6 +610,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
+    | '/api/pesquisa-assistente'
     | '/canvas/$token'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
@@ -629,6 +641,7 @@ export interface RootRouteChildren {
   DevolutivaRoute: typeof DevolutivaRoute
   PrototipoRoute: typeof PrototipoRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
+  ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoRotasRoute: typeof EquipeDiagnosticoRotasRoute
   EquipeEntrarRoute: typeof EquipeEntrarRoute
@@ -763,6 +776,13 @@ declare module '@tanstack/react-router' {
       path: '/canvas/$token'
       fullPath: '/canvas/$token'
       preLoaderRoute: typeof CanvasTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pesquisa-assistente': {
+      id: '/api/pesquisa-assistente'
+      path: '/api/pesquisa-assistente'
+      fullPath: '/api/pesquisa-assistente'
+      preLoaderRoute: typeof ApiPesquisaAssistenteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/acesso/sem-permissao': {
@@ -1092,6 +1112,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevolutivaRoute: DevolutivaRoute,
   PrototipoRoute: PrototipoRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
+  ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoRotasRoute: EquipeDiagnosticoRotasRoute,
   EquipeEntrarRoute: EquipeEntrarRoute,
