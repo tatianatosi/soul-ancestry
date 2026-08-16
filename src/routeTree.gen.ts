@@ -55,6 +55,7 @@ import { Route as AuthenticatedPrivacidadeIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedPesquisaModuloIndexRouteImport } from './routes/_authenticated/pesquisa-modulo.index'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
+import { Route as AuthenticatedContratoParametrosIndexRouteImport } from './routes/_authenticated/contrato-parametros.index'
 import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
@@ -62,6 +63,7 @@ import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
+import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -302,6 +304,12 @@ const AuthenticatedContratosIndexRoute =
     path: '/contratos/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContratoParametrosIndexRoute =
+  AuthenticatedContratoParametrosIndexRouteImport.update({
+    id: '/contrato-parametros/',
+    path: '/contrato-parametros/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const PortalMensagensIdRoute = PortalMensagensIdRouteImport.update({
   id: '/mensagens/$id',
   path: '/mensagens/$id',
@@ -339,6 +347,12 @@ const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/contratos/$id',
     path: '/contratos/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContratoParametrosIdRoute =
+  AuthenticatedContratoParametrosIdRouteImport.update({
+    id: '/contrato-parametros/$id',
+    path: '/contrato-parametros/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -384,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -391,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
+  '/contrato-parametros/': typeof AuthenticatedContratoParametrosIndexRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
@@ -437,6 +453,7 @@ export interface FileRoutesByTo {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
+  '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -444,6 +461,7 @@ export interface FileRoutesByTo {
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
+  '/contrato-parametros': typeof AuthenticatedContratoParametrosIndexRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
   '/pesquisa-modulo': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
@@ -493,6 +511,7 @@ export interface FileRoutesById {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -500,6 +519,7 @@ export interface FileRoutesById {
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
+  '/_authenticated/contrato-parametros/': typeof AuthenticatedContratoParametrosIndexRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
   '/_authenticated/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
@@ -549,6 +569,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
@@ -556,6 +577,7 @@ export interface FileRouteTypes {
     | '/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
+    | '/contrato-parametros/'
     | '/contratos/'
     | '/pesquisa-modulo/'
     | '/pesquisa/'
@@ -602,6 +624,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal'
+    | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
@@ -609,6 +632,7 @@ export interface FileRouteTypes {
     | '/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
+    | '/contrato-parametros'
     | '/contratos'
     | '/pesquisa-modulo'
     | '/pesquisa'
@@ -657,6 +681,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-modulo/$id'
@@ -664,6 +689,7 @@ export interface FileRouteTypes {
     | '/_authenticated/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
+    | '/_authenticated/contrato-parametros/'
     | '/_authenticated/contratos/'
     | '/_authenticated/pesquisa-modulo/'
     | '/_authenticated/pesquisa/'
@@ -1012,6 +1038,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contrato-parametros/': {
+      id: '/_authenticated/contrato-parametros/'
+      path: '/contrato-parametros'
+      fullPath: '/contrato-parametros/'
+      preLoaderRoute: typeof AuthenticatedContratoParametrosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/portal/mensagens/$id': {
       id: '/portal/mensagens/$id'
       path: '/mensagens/$id'
@@ -1061,6 +1094,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contrato-parametros/$id': {
+      id: '/_authenticated/contrato-parametros/$id'
+      path: '/contrato-parametros/$id'
+      fullPath: '/contrato-parametros/$id'
+      preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1086,11 +1126,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
   AuthenticatedPrivacidadeIdRoute: typeof AuthenticatedPrivacidadeIdRoute
+  AuthenticatedContratoParametrosIndexRoute: typeof AuthenticatedContratoParametrosIndexRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
   AuthenticatedPesquisaModuloIndexRoute: typeof AuthenticatedPesquisaModuloIndexRoute
   AuthenticatedPesquisaIndexRoute: typeof AuthenticatedPesquisaIndexRoute
@@ -1119,11 +1161,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedContratoParametrosIdRoute:
+    AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaModuloIdRoute: AuthenticatedPesquisaModuloIdRoute,
   AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
   AuthenticatedPrivacidadeIdRoute: AuthenticatedPrivacidadeIdRoute,
+  AuthenticatedContratoParametrosIndexRoute:
+    AuthenticatedContratoParametrosIndexRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
   AuthenticatedPesquisaModuloIndexRoute: AuthenticatedPesquisaModuloIndexRoute,
   AuthenticatedPesquisaIndexRoute: AuthenticatedPesquisaIndexRoute,

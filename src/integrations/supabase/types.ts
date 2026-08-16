@@ -1345,6 +1345,124 @@ export type Database = {
           },
         ]
       }
+      contract_case_parameters: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueio_motivo: string | null
+          case_id: string
+          completude_pct: number
+          contract_id: string | null
+          contract_template_id: string | null
+          contract_template_version: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          observacoes_internas: string | null
+          organization_id: string
+          proposal_id: string | null
+          revisao_humana_em: string | null
+          revisao_humana_por: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_motivo?: string | null
+          case_id: string
+          completude_pct?: number
+          contract_id?: string | null
+          contract_template_id?: string | null
+          contract_template_version?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observacoes_internas?: string | null
+          organization_id: string
+          proposal_id?: string | null
+          revisao_humana_em?: string | null
+          revisao_humana_por?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_motivo?: string | null
+          case_id?: string
+          completude_pct?: number
+          contract_id?: string | null
+          contract_template_id?: string | null
+          contract_template_version?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observacoes_internas?: string | null
+          organization_id?: string
+          proposal_id?: string | null
+          revisao_humana_em?: string | null
+          revisao_humana_por?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_case_parameters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_case_parameters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_case_parameters_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_case_parameters_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_case_parameters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_case_parameters_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_clause_overrides: {
         Row: {
           action: string
@@ -1523,6 +1641,189 @@ export type Database = {
             columns: ["service_order_id"]
             isOneToOne: false
             referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_parameter_previews: {
+        Row: {
+          anexos: Json
+          aprovado_em: string | null
+          aprovado_por: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          congelado_em: string
+          conteudo: Json
+          created_at: string
+          created_by: string | null
+          gerado_por: string | null
+          html: string
+          id: string
+          organization_id: string
+          parameters_id: string
+          placeholders_pendentes: Json
+          template_code: string | null
+          template_version: number | null
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          anexos?: Json
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          congelado_em?: string
+          conteudo?: Json
+          created_at?: string
+          created_by?: string | null
+          gerado_por?: string | null
+          html?: string
+          id?: string
+          organization_id: string
+          parameters_id: string
+          placeholders_pendentes?: Json
+          template_code?: string | null
+          template_version?: number | null
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao: number
+        }
+        Update: {
+          anexos?: Json
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          congelado_em?: string
+          conteudo?: Json
+          created_at?: string
+          created_by?: string | null
+          gerado_por?: string | null
+          html?: string
+          id?: string
+          organization_id?: string
+          parameters_id?: string
+          placeholders_pendentes?: Json
+          template_code?: string | null
+          template_version?: number | null
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_parameter_previews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parameter_previews_parameters_id_fkey"
+            columns: ["parameters_id"]
+            isOneToOne: false
+            referencedRelation: "contract_case_parameters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_parameter_values: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          atualizado_em: string | null
+          atualizado_por: string | null
+          campo: string
+          conflito: Json
+          created_at: string
+          created_by: string | null
+          grupo: string
+          id: string
+          justificativa: string | null
+          label: string
+          obrigatorio: boolean
+          ordem: number
+          organization_id: string
+          origem: string | null
+          origem_detalhe: string | null
+          parameters_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          campo: string
+          conflito?: Json
+          created_at?: string
+          created_by?: string | null
+          grupo: string
+          id?: string
+          justificativa?: string | null
+          label: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id: string
+          origem?: string | null
+          origem_detalhe?: string | null
+          parameters_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          campo?: string
+          conflito?: Json
+          created_at?: string
+          created_by?: string | null
+          grupo?: string
+          id?: string
+          justificativa?: string | null
+          label?: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id?: string
+          origem?: string | null
+          origem_detalhe?: string | null
+          parameters_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_parameter_values_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parameter_values_parameters_id_fkey"
+            columns: ["parameters_id"]
+            isOneToOne: false
+            referencedRelation: "contract_case_parameters"
             referencedColumns: ["id"]
           },
         ]
@@ -7443,6 +7744,30 @@ export type Database = {
       consentimento_dispensado: {
         Args: { _case: string; _client: string }
         Returns: boolean
+      }
+      contract_parameter_confianca: {
+        Args: { _origem: string }
+        Returns: number
+      }
+      contract_parameter_definicoes: {
+        Args: never
+        Returns: {
+          campo: string
+          grupo: string
+          label: string
+          obrigatorio: boolean
+          ordem: number
+        }[]
+      }
+      contract_parameters_completude: { Args: { _id: string }; Returns: Json }
+      contract_parameters_pendencias: {
+        Args: { _id: string }
+        Returns: {
+          campo: string
+          grupo: string
+          label: string
+          motivo: string
+        }[]
       }
       contract_pode_aprovar: { Args: { _org: string }; Returns: boolean }
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
