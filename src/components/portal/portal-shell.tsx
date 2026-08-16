@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { FolderOpen, FileText, Receipt, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,13 @@ export function PortalShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
-  const { data } = usePortal();
+  const { data, isSuccess } = usePortal();
+
+  useEffect(() => {
+    if (isSuccess && data && !data.autorizado) {
+      navigate({ to: "/acesso/sem-permissao", replace: true });
+    }
+  }, [isSuccess, data, navigate]);
 
   const nav =
     data?.nivel === "client_workspace"
