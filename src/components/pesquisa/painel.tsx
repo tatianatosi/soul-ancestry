@@ -23,7 +23,9 @@ const ABAS = [
   { id: "evidencias", rotulo: "Evidências" },
   { id: "linha", rotulo: "Linha do tempo" },
   { id: "pendencias", rotulo: "Tarefas" },
+  { id: "assistente", rotulo: "Assistente IA" },
   { id: "relatorio", rotulo: "Relatório" },
+
 ] as const;
 
 const STATUS_EVIDENCIA: Record<string, string> = {
