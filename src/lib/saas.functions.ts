@@ -23,9 +23,16 @@ export type Papel =
 export type Entidade =
   | "leads"
   | "clientes"
+  | "client_contacts"
   | "crm_casos"
+  | "case_members"
   | "evidencias"
   | "tarefas"
+  | "documents"
+  | "consent_records"
+  | "proposals"
+  | "invoices"
+  | "payments"
   | "eventos_financeiros";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,19 +41,54 @@ type Linha = Record<string, any>;
 const ENTIDADES: Entidade[] = [
   "leads",
   "clientes",
+  "client_contacts",
   "crm_casos",
+  "case_members",
   "evidencias",
   "tarefas",
+  "documents",
+  "consent_records",
+  "proposals",
+  "invoices",
+  "payments",
   "eventos_financeiros",
 ];
 
+/** Campo de status controlado por entidade (quando existe máquina de estados). */
+const DOMINIO_ESTADO: Partial<Record<Entidade, { dominio: Dominio; campo: string }>> = {
+  leads: { dominio: "lead", campo: "estagio" },
+  clientes: { dominio: "cliente", campo: "status" },
+  crm_casos: { dominio: "caso", campo: "status" },
+  tarefas: { dominio: "tarefa", campo: "status" },
+  evidencias: { dominio: "evidencia", campo: "status" },
+};
+
 const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
   leads: ["nome", "email", "telefone", "origem", "estagio", "pais_interesse", "observacoes"],
-  clientes: ["nome", "email", "telefone", "documento", "pais_interesse", "status", "observacoes"],
+  clientes: [
+    "nome",
+    "nome_social",
+    "email",
+    "telefone",
+    "documento",
+    "origem",
+    "pais_interesse",
+    "status",
+    "observacoes",
+  ],
+  client_contacts: ["client_id", "nome", "relacao", "email", "telefone", "principal", "observacoes"],
   crm_casos: [
     "cliente_id",
     "codigo",
     "titulo",
+    "tipo_servico",
+    "fase",
+    "responsavel_id",
+    "prioridade",
+    "data_entrada",
+    "resumo",
+    "risco",
+    "proxima_acao",
     "pais",
     "via",
     "status",
@@ -55,10 +97,90 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "pagamento_confirmado",
     "documentos_minimos_ok",
   ],
-  evidencias: ["caso_id", "titulo", "tipo", "status", "visibilidade", "descricao", "storage_path"],
-  tarefas: ["caso_id", "titulo", "descricao", "prioridade", "status", "prazo"],
+  case_members: [
+    "case_id",
+    "nome",
+    "parentesco",
+    "data_nascimento",
+    "local_nascimento",
+    "observacoes_protegidas",
+  ],
+  evidencias: [
+    "caso_id",
+    "titulo",
+    "tipo",
+    "status",
+    "visibilidade",
+    "descricao",
+    "storage_path",
+    "pessoa_relacionada",
+    "local_relacionado",
+    "periodo",
+    "fonte",
+    "grau_confianca",
+    "observacao",
+  ],
+  tarefas: [
+    "caso_id",
+    "titulo",
+    "descricao",
+    "responsavel_id",
+    "prioridade",
+    "status",
+    "prazo",
+    "bloqueio",
+    "motivo_bloqueio",
+  ],
+  documents: ["case_id", "client_id", "titulo", "tipo", "storage_path", "status", "liberado_cliente", "observacoes"],
+  consent_records: [
+    "client_id",
+    "tipo_consentimento",
+    "versao_texto",
+    "status",
+    "coletado_em",
+    "evidencia_consentimento",
+    "revogado_em",
+  ],
+  proposals: [
+    "lead_id",
+    "client_id",
+    "versao",
+    "status",
+    "valor",
+    "moeda",
+    "escopo",
+    "validade",
+    "enviada_em",
+    "aprovada_em",
+    "recusada_em",
+  ],
+  invoices: [
+    "client_id",
+    "case_id",
+    "contract_id",
+    "service_order_id",
+    "numero",
+    "valor",
+    "moeda",
+    "vencimento",
+    "status",
+    "referencia_externa",
+    "conciliacao_status",
+  ],
+  payments: [
+    "invoice_id",
+    "valor",
+    "moeda",
+    "vencimento",
+    "pago_em",
+    "metodo",
+    "status",
+    "referencia_externa",
+    "conciliacao_status",
+  ],
   eventos_financeiros: ["caso_id", "tipo", "descricao", "valor", "moeda", "status", "vencimento"],
 };
+
 
 function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
