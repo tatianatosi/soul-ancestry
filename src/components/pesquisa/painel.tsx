@@ -481,7 +481,10 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
         </Painel>
       )}
 
+      {aba === "assistente" && <AssistentePesquisa casoId={casoId} />}
+
       {aba === "relatorio" && (
+
         <Painel titulo="Relatório interno de andamento">
           <p className="mb-2 text-xs text-navy/60">
             Gerado a partir dos registros atuais. Não é enviado ao cliente automaticamente.
