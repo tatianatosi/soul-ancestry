@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
           });
 
-        const ACOES = ["salvar_rascunho", "preencher_dados", "encerrar"] as const;
+        const ACOES = ["salvar_rascunho", "preencher_dados"] as const;
 
         const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
         const anon =
