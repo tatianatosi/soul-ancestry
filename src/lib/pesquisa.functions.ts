@@ -114,6 +114,10 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
 
     const alvo = TABELA[data.bloco];
     const dados = limparCampos(alvo.campos, data.dados);
+    if (data.bloco === "evidencias" && !dados["pesquisador_id"]) {
+      // O responsável pela evidência é sempre quem registra, exigência da trava do banco.
+      dados["pesquisador_id"] = userId;
+    }
 
     if (data.id) {
       const { error } = await supabase

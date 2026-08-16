@@ -26,7 +26,7 @@ function PesquisaIndex() {
   const q = useQuery({ queryKey: ["pesquisa", "casos"], queryFn: () => carregar() });
 
   return (
-    <SaasShell>
+    <SaasShell titulo="Pesquisa genealógica" descricao="Selecione um caso para abrir o dossiê de pesquisa.">
       <Painel titulo="Pesquisa genealógica por caso">
         {q.isLoading && <p className="text-sm text-navy/60">Carregando casos…</p>}
         {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
