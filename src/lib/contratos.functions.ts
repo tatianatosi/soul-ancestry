@@ -1,0 +1,832 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+/**
+ * Motor contratual — camada de servidor.
+ *
+ * Regras invioláveis (também aplicadas por RLS e triggers no banco):
+ * - organização vem sempre do usuário autenticado, nunca da interface;
+ * - nenhum texto gerado é aprovado, enviado ou assinado automaticamente;
+ * - versão congelada não é editada: cria-se nova versão de trabalho;
+ * - arquivos ficam em bucket privado, isolados por organização, sem URL pública;
+ * - envio, assinatura, cobrança, pesquisa externa e ativação exigem gatilhos próprios;
+ * - sem exclusão física: apenas arquivamento com motivo, data e responsável.
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export type TipoInstrumento = "contract_base" | "contract_complement" | "amendment";
+
+type Sb = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
+
+async function contexto(supabase: Sb, userId: string) {
+  const { data, error } = await supabase
+    .from("staff_access")
+    .select("organization_id,role,status")
+    .eq("auth_user_id", userId)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data || data.status !== "active") throw new Error("Acesso interno não autorizado.");
+  return { organizationId: data.organization_id as string, papel: data.role as string };
+}
+
+const PREPARA = ["admin", "operacoes", "comercial", "financeiro"];
+const JURIDICO = ["admin", "operacoes"];
+const FINANCEIRO = ["admin", "financeiro"];
+
+function exigir(papel: string, permitidos: string[], mensagem: string) {
+  if (!permitidos.includes(papel)) throw new Error(mensagem);
+}
+
+async function evento(
+  supabase: Sb,
+  organizationId: string,
+  contractId: string,
+  tipo: string,
+  metadata: Record<string, unknown> = {},
+  versionId?: string | null,
+) {
+  await supabase.from("contract_review_events").insert({
+    organization_id: organizationId,
+    contract_id: contractId,
+    contract_version_id: versionId ?? null,
+    event_type: tipo,
+    metadata,
+  });
+}
+
+/* ============================ LEITURA ============================ */
+
+export const listarContratos = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { tipo?: string; status?: string; busca?: string; incluirArquivados?: boolean } = {}) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+
+    let q = supabase
+      .from("contracts")
+      .select(
+        "id,contract_number,contract_type,title,status,relationship_type,case_id,client_id,parent_contract_id,financial_change_status,financial_gate_status,research_gate_status,review_owner_user_id,current_version_id,archived_at,updated_at,demo",
+      )
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false });
+
+    if (!data.incluirArquivados) q = q.is("archived_at", null);
+    if (data.tipo) q = q.eq("contract_type", data.tipo);
+    if (data.status) q = q.eq("status", data.status);
+    if (data.busca) q = q.ilike("title", `%${data.busca}%`);
+
+    const { data: linhas, error } = await q;
+    if (error) throw new Error(error.message);
+    return { papel, contratos: (linhas ?? []) as any[] };
+  });
+
+export const obterContrato = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+
+    const base = { organization_id: organizationId, contract_id: data.id };
+    const tabela = (nome: string, ordem: string) =>
+      supabase.from(nome).select("*").match(base).order(ordem, { ascending: true });
+
+    const [contrato, partes, escopo, clausulas, anexos, fontes, versoes, validacoes, eventos, ordens, excecoes] =
+      await Promise.all([
+        supabase.from("contracts").select("*").eq("organization_id", organizationId).eq("id", data.id).maybeSingle(),
+        tabela("contract_parties", "display_order"),
+        tabela("contract_scope_items", "display_order"),
+        tabela("contract_clause_overrides", "clause_code"),
+        tabela("contract_annexes", "annex_code"),
+        tabela("contract_source_links", "created_at"),
+        supabase
+          .from("contract_versions")
+          .select("*")
+          .match(base)
+          .order("version_number", { ascending: false }),
+        supabase.from("contract_validation_results").select("*").match(base).order("severity", { ascending: true }),
+        supabase
+          .from("contract_review_events")
+          .select("id,event_type,occurred_at,actor_user_id,metadata,contract_version_id")
+          .match(base)
+          .order("occurred_at", { ascending: false })
+          .limit(80),
+        supabase.from("service_orders").select("*").match(base).order("created_at", { ascending: false }),
+        supabase.from("contract_exceptions").select("*").match(base).order("authorized_at", { ascending: false }),
+      ]);
+
+    if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
+
+    let contratoBase: any = null;
+    if (contrato.data.parent_contract_id) {
+      const r = await supabase
+        .from("contracts")
+        .select("id,contract_number,title,status,contract_type")
+        .eq("organization_id", organizationId)
+        .eq("id", contrato.data.parent_contract_id)
+        .maybeSingle();
+      contratoBase = r.data ?? null;
+    }
+
+    return {
+      papel,
+      contrato: contrato.data,
+      contratoBase,
+      partes: partes.data ?? [],
+      escopo: escopo.data ?? [],
+      clausulas: clausulas.data ?? [],
+      anexos: anexos.data ?? [],
+      fontes: fontes.data ?? [],
+      versoes: versoes.data ?? [],
+      validacoes: validacoes.data ?? [],
+      eventos: eventos.data ?? [],
+      ordens: ordens.data ?? [],
+      excecoes: excecoes.data ?? [],
+    };
+  });
+
+/** Painel de completude: bloqueios, revisões pendentes, anexos ausentes e OSs impedidas. */
+export const painelContratual = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+    const org = { organization_id: organizationId };
+
+    const [contratos, validacoes, anexos, ordens, excecoes] = await Promise.all([
+      supabase
+        .from("contracts")
+        .select("id,contract_number,title,contract_type,status,review_owner_user_id,financial_gate_status")
+        .match(org)
+        .is("archived_at", null),
+      supabase
+        .from("contract_validation_results")
+        .select("id,contract_id,validation_key,label,severity,status")
+        .match(org)
+        .eq("status", "open"),
+      supabase
+        .from("contract_annexes")
+        .select("id,contract_id,annex_code,title,status,required_for_contract")
+        .match(org)
+        .eq("required_for_contract", true)
+        .is("archived_at", null),
+      supabase
+        .from("service_orders")
+        .select("id,contract_id,service_order_number,status,start_condition_status")
+        .match(org)
+        .is("archived_at", null),
+      supabase.from("contract_exceptions").select("*").match(org).is("archived_at", null),
+    ]);
+
+    const listaContratos = (contratos.data ?? []) as any[];
+    const abertas = (validacoes.data ?? []) as any[];
+    const anexosPendentes = ((anexos.data ?? []) as any[]).filter(
+      (a) => !["ready_for_review", "approved", "attached", "not_applicable"].includes(a.status),
+    );
+    const ordensImpedidas = ((ordens.data ?? []) as any[]).filter((o) =>
+      ["draft", "pending_approval", "approved", "paused"].includes(o.status),
+    );
+    const agora = Date.now();
+
+    return {
+      contratos: listaContratos,
+      bloqueios: abertas.filter((v) => v.severity === "blocking"),
+      pendencias: abertas.filter((v) => v.severity !== "blocking"),
+      revisaoPendente: listaContratos.filter((c) =>
+        ["ready_for_review", "under_human_review"].includes(c.status),
+      ),
+      anexosAusentes: anexosPendentes,
+      ordensImpedidas,
+      excecoesExpiradas: ((excecoes.data ?? []) as any[]).filter(
+        (e) => e.expires_at && new Date(e.expires_at).getTime() < agora,
+      ),
+      excecoesVigentes: ((excecoes.data ?? []) as any[]).filter(
+        (e) => !e.revoked_at && (!e.expires_at || new Date(e.expires_at).getTime() >= agora),
+      ),
+    };
+  });
+
+/* ============================ ESCRITA ============================ */
+
+export const criarInstrumento = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      contract_type: TipoInstrumento;
+      title: string;
+      purpose_summary?: string;
+      parent_contract_id?: string | null;
+      base_contract_reference?: string | null;
+      case_id?: string | null;
+      client_id?: string | null;
+      template_id?: string | null;
+    }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite criar instrumentos contratuais.");
+
+    const derivado = data.contract_type !== "contract_base";
+    const { data: novo, error } = await supabase
+      .from("contracts")
+      .insert({
+        organization_id: organizationId,
+        contract_number: "auto",
+        contract_type: data.contract_type,
+        title: data.title,
+        purpose_summary: data.purpose_summary ?? null,
+        parent_contract_id: derivado ? data.parent_contract_id ?? null : null,
+        base_contract_reference: derivado ? data.base_contract_reference ?? null : null,
+        relationship_type: derivado
+          ? data.contract_type === "amendment"
+            ? "amendment"
+            : "complement"
+          : "independent",
+        case_id: data.case_id ?? null,
+        client_id: data.client_id ?? null,
+        template_id: data.template_id ?? null,
+        status: "draft",
+      })
+      .select("id,contract_number")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await evento(supabase, organizationId, novo.id, "created", { tipo: data.contract_type });
+    return novo as { id: string; contract_number: string };
+  });
+
+const CAMPOS_GERAIS = [
+  "title",
+  "purpose_summary",
+  "scope_summary",
+  "exclusions_summary",
+  "no_exclusions_confirmed",
+  "effective_start_date",
+  "effective_end_date",
+  "effective_rule",
+  "privacy_terms_status",
+  "review_owner_user_id",
+  "internal_notes",
+  "base_contract_reference",
+  "case_id",
+  "client_id",
+];
+const CAMPOS_FINANCEIROS = [
+  "financial_change_status",
+  "external_expense_status",
+  "financial_gate_status",
+  "invoice_reference",
+  "payment_reference",
+];
+
+export const atualizarContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; patch: Record<string, unknown> }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite editar instrumentos.");
+
+    const patch: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data.patch)) {
+      if (CAMPOS_FINANCEIROS.includes(k)) {
+        exigir(papel, FINANCEIRO, "Somente financeiro ou admin altera condições financeiras.");
+        patch[k] = v;
+      } else if (CAMPOS_GERAIS.includes(k)) {
+        if (["scope_summary", "exclusions_summary", "no_exclusions_confirmed"].includes(k)) {
+          exigir(papel, JURIDICO, "Somente operações ou admin altera escopo e exclusões.");
+        }
+        patch[k] = v === "" ? null : v;
+      }
+    }
+    if (!Object.keys(patch).length) return { ok: true };
+
+    const { error } = await supabase
+      .from("contracts")
+      .update(patch)
+      .eq("organization_id", organizationId)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+type Filho = "contract_parties" | "contract_scope_items" | "contract_clause_overrides" | "contract_annexes" | "contract_source_links";
+
+const CAMPOS_FILHO: Record<Filho, string[]> = {
+  contract_parties: [
+    "role",
+    "client_id",
+    "person_name",
+    "preferred_name",
+    "document_type",
+    "document_number",
+    "email",
+    "phone",
+    "address",
+    "relationship_to_case",
+    "legal_capacity_status",
+    "represented_by_party_id",
+    "signature_required",
+    "display_order",
+    "active",
+  ],
+  contract_scope_items: [
+    "category",
+    "title",
+    "description",
+    "status",
+    "source_type",
+    "source_reference",
+    "display_order",
+    "requires_human_validation",
+  ],
+  contract_clause_overrides: [
+    "contract_version_id",
+    "clause_code",
+    "clause_title",
+    "action",
+    "base_contract_clause_reference",
+    "clause_text",
+    "change_reason",
+    "precedence_statement",
+  ],
+  contract_annexes: [
+    "contract_version_id",
+    "annex_code",
+    "title",
+    "annex_type",
+    "required_for_contract",
+    "status",
+    "source_reference",
+    "reason_not_applicable",
+    "internal_notes",
+  ],
+  contract_source_links: ["source_type", "source_id", "source_reference", "access_level", "verified", "notes"],
+};
+
+const PAPEIS_FILHO: Record<Filho, string[]> = {
+  contract_parties: ["admin", "operacoes", "comercial"],
+  contract_scope_items: JURIDICO.concat("comercial"),
+  contract_clause_overrides: JURIDICO,
+  contract_annexes: ["admin", "operacoes", "financeiro"],
+  contract_source_links: ["admin", "operacoes", "comercial", "financeiro"],
+};
+
+function sanitizarFilho(tabela: Filho, dados: Record<string, unknown>) {
+  const saida: Record<string, unknown> = {};
+  for (const c of CAMPOS_FILHO[tabela]) if (dados[c] !== undefined) saida[c] = dados[c] === "" ? null : dados[c];
+  return saida;
+}
+
+export const salvarItemContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { tabela: Filho; contract_id: string; id?: string; dados: Record<string, unknown> }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PAPEIS_FILHO[data.tabela], "Seu papel não permite alterar este bloco do instrumento.");
+
+    const dados = sanitizarFilho(data.tabela, data.dados);
+    if (data.id) {
+      const { error } = await supabase
+        .from(data.tabela)
+        .update(dados)
+        .eq("organization_id", organizationId)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase.from(data.tabela).insert({
+        ...dados,
+        organization_id: organizationId,
+        contract_id: data.contract_id,
+      });
+      if (error) throw new Error(error.message);
+    }
+    await evento(supabase, organizationId, data.contract_id, "version_created", {
+      bloco: data.tabela,
+      operacao: data.id ? "atualizado" : "criado",
+    });
+    return { ok: true };
+  });
+
+export const arquivarItemContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { tabela: Filho; contract_id: string; id: string; motivo: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PAPEIS_FILHO[data.tabela], "Seu papel não permite arquivar este item.");
+    if (!data.motivo?.trim()) throw new Error("Arquivamento exige motivo.");
+
+    const { error } = await supabase
+      .from(data.tabela)
+      .update({ archived_at: new Date().toISOString(), archive_reason: data.motivo })
+      .eq("organization_id", organizationId)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await evento(supabase, organizationId, data.contract_id, "archived", { bloco: data.tabela });
+    return { ok: true };
+  });
+
+/* ==================== VERSÕES, VALIDAÇÃO E REVISÃO ==================== */
+
+export const gerarRascunhoInterno = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; change_summary?: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite gerar rascunhos.");
+
+    const helpers = await import("./contratos.server");
+    const base = { organization_id: organizationId, contract_id: data.contract_id };
+    const [contrato, partes, escopo, clausulas, anexos, ultima] = await Promise.all([
+      supabase
+        .from("contracts")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("id", data.contract_id)
+        .maybeSingle(),
+      supabase.from("contract_parties").select("*").match(base).is("archived_at", null),
+      supabase.from("contract_scope_items").select("*").match(base).is("archived_at", null),
+      supabase.from("contract_clause_overrides").select("*").match(base).is("archived_at", null),
+      supabase.from("contract_annexes").select("*").match(base).is("archived_at", null),
+      supabase
+        .from("contract_versions")
+        .select("id,version_number")
+        .match(base)
+        .order("version_number", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
+    if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
+
+    let contratoBase: any = null;
+    if (contrato.data.parent_contract_id) {
+      const r = await supabase
+        .from("contracts")
+        .select("id,contract_number")
+        .eq("organization_id", organizationId)
+        .eq("id", contrato.data.parent_contract_id)
+        .maybeSingle();
+      contratoBase = r.data ?? null;
+    }
+
+    const conteudo = helpers.montarRascunho({
+      contrato: contrato.data,
+      partes: partes.data ?? [],
+      escopo: escopo.data ?? [],
+      clausulas: clausulas.data ?? [],
+      anexos: anexos.data ?? [],
+      contratoBase,
+    });
+
+    const proxima = (ultima.data?.version_number ?? 0) + 1;
+    if (proxima > 1 && !data.change_summary?.trim()) {
+      throw new Error("A partir da versão 2 informe o resumo das alterações.");
+    }
+
+    const { data: versao, error } = await supabase
+      .from("contract_versions")
+      .insert({
+        organization_id: organizationId,
+        contract_id: data.contract_id,
+        version_number: proxima,
+        status: "working",
+        generated_content: { ...conteudo, html: undefined },
+        source_template_id: contrato.data.template_id,
+        change_summary: data.change_summary ?? null,
+        created_from_version_id: ultima.data?.id ?? null,
+      })
+      .select("id,version_number")
+      .single();
+    if (error) throw new Error(error.message);
+
+    // Arquivo privado, isolado por organização e por versão. Nunca sobrescreve caminho anterior.
+    let caminho: string | null = null;
+    let hash: string | null = null;
+    let falha: string | null = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      caminho = helpers.caminhoVersao(organizationId, data.contract_id, versao.version_number);
+      hash = await helpers.hashConteudo(conteudo.html);
+      const up = await supabaseAdmin.storage
+        .from(helpers.BUCKET_CONTRATOS)
+        .upload(caminho, new Blob([conteudo.html], { type: "text/html" }), { upsert: false });
+      if (up.error) throw new Error(up.error.message);
+      await supabase
+        .from("contract_versions")
+        .update({ rendered_file_path: caminho, rendered_file_hash: hash })
+        .eq("organization_id", organizationId)
+        .eq("id", versao.id);
+    } catch (e) {
+      falha = e instanceof Error ? e.message : "falha na renderização";
+      await supabase
+        .from("contract_versions")
+        .update({ status: "validation_failed", render_error: falha })
+        .eq("organization_id", organizationId)
+        .eq("id", versao.id);
+      await evento(supabase, organizationId, data.contract_id, "render_failed", { etapa: "upload" }, versao.id);
+    }
+
+    await supabase
+      .from("contracts")
+      .update({ current_version_id: versao.id, status: "pending_data" })
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id);
+
+    await evento(
+      supabase,
+      organizationId,
+      data.contract_id,
+      "version_created",
+      { versao: versao.version_number, arquivo_registrado: Boolean(caminho && !falha) },
+      versao.id,
+    );
+
+    return { versionId: versao.id as string, versao: versao.version_number as number, falhaRenderizacao: falha };
+  });
+
+export const executarValidacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; version_id?: string | null }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    await contexto(supabase, context.userId as string);
+    const { data: linhas, error } = await supabase.rpc("validate_contract_readiness", {
+      _contract_id: data.contract_id,
+      _version_id: data.version_id ?? null,
+    });
+    if (error) throw new Error(error.message);
+    const resultados = (linhas ?? []) as any[];
+    return {
+      resultados,
+      bloqueios: resultados.filter((r) => r.status === "open" && r.severity === "blocking").length,
+      abertas: resultados.filter((r) => r.status === "open").length,
+    };
+  });
+
+export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PREPARA, "Seu papel não permite solicitar revisão.");
+
+    const { data: linhas, error } = await supabase.rpc("validate_contract_readiness", {
+      _contract_id: data.contract_id,
+      _version_id: null,
+    });
+    if (error) throw new Error(error.message);
+    const bloqueios = ((linhas ?? []) as any[]).filter((r) => r.status === "open" && r.severity === "blocking");
+    if (bloqueios.length) {
+      await evento(supabase, organizationId, data.contract_id, "send_blocked", { bloqueios: bloqueios.length });
+      return { ok: false, bloqueios: bloqueios.map((b) => b.label as string) };
+    }
+
+    const up = await supabase
+      .from("contracts")
+      .update({ status: "ready_for_review" })
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id);
+    if (up.error) throw new Error(up.error.message);
+    await evento(supabase, organizationId, data.contract_id, "review_requested", {});
+    return { ok: true, bloqueios: [] as string[] };
+  });
+
+export const registrarDecisaoRevisao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { contract_id: string; version_id: string; decisao: "approved" | "changes_requested" | "rejected"; notas?: string }) =>
+      data,
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin"], "Somente admin conclui a revisão humana.");
+
+    const agora = new Date().toISOString();
+    await supabase
+      .from("contract_versions")
+      .update({
+        review_decision: data.decisao,
+        review_notes: data.notas ?? null,
+        reviewed_at: agora,
+        reviewed_by: context.userId,
+        status: data.decisao === "approved" ? "ready_for_review" : "working",
+      })
+      .eq("organization_id", organizationId)
+      .eq("id", data.version_id);
+
+    const status =
+      data.decisao === "approved" ? "under_human_review" : data.decisao === "rejected" ? "rejected" : "pending_data";
+    await supabase
+      .from("contracts")
+      .update({ status })
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id);
+
+    await evento(
+      supabase,
+      organizationId,
+      data.contract_id,
+      data.decisao === "changes_requested" ? "changes_requested" : "review_started",
+      { decisao: data.decisao },
+      data.version_id,
+    );
+    return { ok: true };
+  });
+
+export const aprovarParaEnvio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; version_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin"], "Somente admin aprova instrumentos para envio futuro.");
+
+    const [{ data: versao }, { data: linhas, error }] = await Promise.all([
+      supabase
+        .from("contract_versions")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("id", data.version_id)
+        .maybeSingle(),
+      supabase.rpc("validate_contract_readiness", { _contract_id: data.contract_id, _version_id: data.version_id }),
+    ]);
+    if (error) throw new Error(error.message);
+    if (!versao) throw new Error("Versão não encontrada.");
+
+    const impedimentos: string[] = ((linhas ?? []) as any[])
+      .filter((r) => r.status === "open" && ["blocking", "high"].includes(r.severity))
+      .map((r) => r.label as string);
+    if (versao.review_decision !== "approved") impedimentos.push("Revisão humana ainda não aprovada");
+    if (!versao.rendered_file_path || !versao.rendered_file_hash)
+      impedimentos.push("Arquivo privado renderizado e hash registrado");
+
+    if (impedimentos.length) {
+      await evento(supabase, organizationId, data.contract_id, "send_blocked", { itens: impedimentos.length }, data.version_id);
+      return { ok: false, impedimentos };
+    }
+
+    const agora = new Date().toISOString();
+    await supabase
+      .from("contract_versions")
+      .update({ status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId })
+      .eq("organization_id", organizationId)
+      .eq("id", data.version_id);
+    await supabase
+      .from("contracts")
+      .update({ status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora })
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id);
+    await evento(supabase, organizationId, data.contract_id, "approved_for_send", {}, data.version_id);
+    return { ok: true, impedimentos: [] as string[] };
+  });
+
+/** Nesta fase envio e assinatura são desabilitados: a tentativa é bloqueada e auditada. */
+export const tentarEtapaExterna = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; etapa: "envio" | "assinatura" | "cobranca" | "pesquisa_externa" }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+    await evento(supabase, organizationId, data.contract_id, "send_blocked", { etapa: data.etapa, motivo: "fase_sem_integracao" });
+    return {
+      ok: false,
+      mensagem:
+        "Etapa desabilitada nesta fase. Envio, assinatura, cobrança e pesquisa externa exigem configuração de integração e aprovação humana específica.",
+    };
+  });
+
+export const arquivarContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; motivo: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin", "operacoes"], "Seu papel não permite arquivar instrumentos.");
+    if (!data.motivo?.trim()) throw new Error("Arquivamento exige motivo.");
+
+    const { error } = await supabase
+      .from("contracts")
+      .update({ status: "archived", archived_at: new Date().toISOString(), archive_reason: data.motivo })
+      .eq("organization_id", organizationId)
+      .eq("id", data.contract_id);
+    if (error) throw new Error(error.message);
+    await evento(supabase, organizationId, data.contract_id, "archived", {});
+    return { ok: true };
+  });
+
+/* ==================== ORDENS DE SERVIÇO E EXCEÇÕES ==================== */
+
+export const salvarOrdemServico = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      id?: string;
+      contract_id: string;
+      case_id?: string | null;
+      scope_summary?: string;
+      deliverable_summary?: string;
+      status?: string;
+    }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin", "operacoes"], "Seu papel não permite preparar ordens de serviço.");
+    if (data.status === "active") exigir(papel, ["admin"], "Somente admin tenta ativar uma ordem de serviço.");
+
+    const corpo = {
+      scope_summary: data.scope_summary ?? null,
+      deliverable_summary: data.deliverable_summary ?? null,
+      case_id: data.case_id ?? null,
+      ...(data.status ? { status: data.status } : {}),
+    };
+
+    if (data.id) {
+      const { error } = await supabase
+        .from("service_orders")
+        .update(corpo)
+        .eq("organization_id", organizationId)
+        .eq("id", data.id);
+      if (error) return { ok: false, mensagem: error.message };
+    } else {
+      const { error } = await supabase.from("service_orders").insert({
+        ...corpo,
+        organization_id: organizationId,
+        contract_id: data.contract_id,
+        service_order_number: "auto",
+      });
+      if (error) return { ok: false, mensagem: error.message };
+    }
+    return { ok: true, mensagem: "Ordem de serviço registrada." };
+  });
+
+export const criarExcecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      contract_id: string;
+      service_order_id?: string | null;
+      scope: "financial_gate" | "activation_gate" | "validation_waiver" | "other";
+      reason: string;
+      impact: string;
+      expires_at?: string | null;
+    }) => data,
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, ["admin"], "Somente admin registra exceções.");
+    if (!data.reason?.trim() || !data.impact?.trim()) throw new Error("Exceção exige motivo e impacto.");
+
+    const { error } = await supabase.from("contract_exceptions").insert({
+      organization_id: organizationId,
+      contract_id: data.contract_id,
+      service_order_id: data.service_order_id ?? null,
+      scope: data.scope,
+      reason: data.reason,
+      impact: data.impact,
+      authorized_by: context.userId,
+      expires_at: data.expires_at ?? null,
+    });
+    if (error) throw new Error(error.message);
+    await evento(supabase, organizationId, data.contract_id, "exception_created", { escopo: data.scope });
+    return { ok: true };
+  });
+
+/** Download interno auditado: URL assinada de curta duração, nunca registrada em log. */
+export const baixarVersaoInterna = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; version_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    if (papel === "leitura") throw new Error("Papel de leitura não baixa arquivos restritos.");
+
+    const { data: versao } = await supabase
+      .from("contract_versions")
+      .select("id,rendered_file_path,version_number")
+      .eq("organization_id", organizationId)
+      .eq("id", data.version_id)
+      .maybeSingle();
+    if (!versao?.rendered_file_path) throw new Error("Versão sem arquivo renderizado.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const helpers = await import("./contratos.server");
+    const { data: assinada, error } = await supabaseAdmin.storage
+      .from(helpers.BUCKET_CONTRATOS)
+      .createSignedUrl(versao.rendered_file_path, 60);
+    if (error || !assinada) throw new Error("Não foi possível preparar o arquivo.");
+
+    await evento(supabase, organizationId, data.contract_id, "document_downloaded", { versao: versao.version_number }, versao.id);
+    return { url: assinada.signedUrl as string };
+  });

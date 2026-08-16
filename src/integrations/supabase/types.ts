@@ -450,6 +450,1129 @@ export type Database = {
           },
         ]
       }
+      contract_annexes: {
+        Row: {
+          annex_code: string
+          annex_type: string
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          created_by: string | null
+          file_hash: string | null
+          file_path: string | null
+          id: string
+          internal_notes: string | null
+          organization_id: string
+          prepared_by: string | null
+          reason_not_applicable: string | null
+          required_for_contract: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_reference: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          annex_code: string
+          annex_type: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          internal_notes?: string | null
+          organization_id: string
+          prepared_by?: string | null
+          reason_not_applicable?: string | null
+          required_for_contract?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_reference?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          annex_code?: string
+          annex_type?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          id?: string
+          internal_notes?: string | null
+          organization_id?: string
+          prepared_by?: string | null
+          reason_not_applicable?: string | null
+          required_for_contract?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_reference?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_annexes_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_annexes_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_annexes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_clause_overrides: {
+        Row: {
+          action: string
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          base_contract_clause_reference: string | null
+          change_reason: string | null
+          clause_code: string
+          clause_text: string | null
+          clause_title: string
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          precedence_statement: string | null
+          requires_human_review: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          action: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          base_contract_clause_reference?: string | null
+          change_reason?: string | null
+          clause_code: string
+          clause_text?: string | null
+          clause_title: string
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          precedence_statement?: string | null
+          requires_human_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          action?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          base_contract_clause_reference?: string | null
+          change_reason?: string | null
+          clause_code?: string
+          clause_text?: string | null
+          clause_title?: string
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          precedence_statement?: string | null
+          requires_human_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_clause_overrides_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_clause_overrides_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_clause_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_exceptions: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          authorized_at: string
+          authorized_by: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          expires_at: string | null
+          id: string
+          impact: string
+          organization_id: string
+          reason: string
+          revoked_at: string | null
+          scope: string
+          service_order_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          authorized_at?: string
+          authorized_by?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          expires_at?: string | null
+          id?: string
+          impact: string
+          organization_id: string
+          reason: string
+          revoked_at?: string | null
+          scope: string
+          service_order_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          authorized_at?: string
+          authorized_by?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          expires_at?: string | null
+          id?: string
+          impact?: string
+          organization_id?: string
+          reason?: string
+          revoked_at?: string | null
+          scope?: string
+          service_order_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_exceptions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_exceptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_exceptions_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_parties: {
+        Row: {
+          active: boolean
+          address: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_id: string | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          document_number: string | null
+          document_type: string | null
+          email: string | null
+          id: string
+          legal_capacity_status: string
+          organization_id: string
+          person_name: string
+          phone: string | null
+          preferred_name: string | null
+          relationship_to_case: string | null
+          represented_by_party_id: string | null
+          role: string
+          signature_required: boolean
+          signature_status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          document_number?: string | null
+          document_type?: string | null
+          email?: string | null
+          id?: string
+          legal_capacity_status?: string
+          organization_id: string
+          person_name: string
+          phone?: string | null
+          preferred_name?: string | null
+          relationship_to_case?: string | null
+          represented_by_party_id?: string | null
+          role: string
+          signature_required?: boolean
+          signature_status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          document_number?: string | null
+          document_type?: string | null
+          email?: string | null
+          id?: string
+          legal_capacity_status?: string
+          organization_id?: string
+          person_name?: string
+          phone?: string | null
+          preferred_name?: string | null
+          relationship_to_case?: string | null
+          represented_by_party_id?: string | null
+          role?: string
+          signature_required?: boolean
+          signature_status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_parties_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_represented_by_party_id_fkey"
+            columns: ["represented_by_party_id"]
+            isOneToOne: false
+            referencedRelation: "contract_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_review_events: {
+        Row: {
+          actor_user_id: string | null
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_review_events_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_review_events_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_review_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_scope_items: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          category: string
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          id: string
+          organization_id: string
+          requires_human_validation: boolean
+          source_reference: string | null
+          source_type: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          category: string
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          organization_id: string
+          requires_human_validation?: boolean
+          source_reference?: string | null
+          source_type?: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          category?: string
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          organization_id?: string
+          requires_human_validation?: boolean
+          source_reference?: string | null
+          source_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_scope_items_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_scope_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_source_links: {
+        Row: {
+          access_level: string
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          source_id: string | null
+          source_reference: string
+          source_type: string
+          updated_at: string
+          updated_by: string | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          access_level?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          source_id?: string | null
+          source_reference: string
+          source_type: string
+          updated_at?: string
+          updated_by?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          access_level?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          source_id?: string | null
+          source_reference?: string
+          source_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_source_links_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_source_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_templates: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          body_schema: Json
+          code: string
+          created_at: string
+          created_by: string | null
+          default_clauses: Json
+          demo: boolean
+          description: string | null
+          effective_from: string | null
+          effective_until: string | null
+          id: string
+          instrument_type: string
+          legal_owner_user_id: string | null
+          name: string
+          notes_internal: string | null
+          organization_id: string
+          permitted_case_contexts: Json
+          required_fields: Json
+          requires_human_review: boolean
+          status: string
+          template_version: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          body_schema?: Json
+          code: string
+          created_at?: string
+          created_by?: string | null
+          default_clauses?: Json
+          demo?: boolean
+          description?: string | null
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          instrument_type: string
+          legal_owner_user_id?: string | null
+          name: string
+          notes_internal?: string | null
+          organization_id: string
+          permitted_case_contexts?: Json
+          required_fields?: Json
+          requires_human_review?: boolean
+          status?: string
+          template_version?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          body_schema?: Json
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          default_clauses?: Json
+          demo?: boolean
+          description?: string | null
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          instrument_type?: string
+          legal_owner_user_id?: string | null
+          name?: string
+          notes_internal?: string | null
+          organization_id?: string
+          permitted_case_contexts?: Json
+          required_fields?: Json
+          requires_human_review?: boolean
+          status?: string
+          template_version?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_validation_results: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          created_by: string | null
+          details: string | null
+          id: string
+          label: string
+          organization_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source_field: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          validation_key: string
+          waived_by: string | null
+          waiver_reason: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          label: string
+          organization_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          source_field?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validation_key: string
+          waived_by?: string | null
+          waiver_reason?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          label?: string
+          organization_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_field?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validation_key?: string
+          waived_by?: string | null
+          waiver_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_validation_results_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_validation_results_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_validation_results_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_versions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          change_summary: string | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          created_from_version_id: string | null
+          frozen_at: string | null
+          frozen_by: string | null
+          generated_content: Json
+          id: string
+          organization_id: string
+          render_error: string | null
+          rendered_file_hash: string | null
+          rendered_file_path: string | null
+          review_decision: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_template_id: string | null
+          status: string
+          superseded_at: string | null
+          superseded_by_version_id: string | null
+          updated_at: string
+          updated_by: string | null
+          version_number: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          change_summary?: string | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          created_from_version_id?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
+          generated_content?: Json
+          id?: string
+          organization_id: string
+          render_error?: string | null
+          rendered_file_hash?: string | null
+          rendered_file_path?: string | null
+          review_decision?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_template_id?: string | null
+          status?: string
+          superseded_at?: string | null
+          superseded_by_version_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version_number: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          change_summary?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_from_version_id?: string | null
+          frozen_at?: string | null
+          frozen_by?: string | null
+          generated_content?: Json
+          id?: string
+          organization_id?: string
+          render_error?: string | null
+          rendered_file_hash?: string | null
+          rendered_file_path?: string | null
+          review_decision?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_template_id?: string | null
+          status?: string
+          superseded_at?: string | null
+          superseded_by_version_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_created_from_version_id_fkey"
+            columns: ["created_from_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_superseded_by_version_id_fkey"
+            columns: ["superseded_by_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          approved_for_send_at: string | null
+          approved_for_send_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          base_contract_reference: string | null
+          cancellation_reason: string | null
+          case_id: string | null
+          client_id: string | null
+          contract_number: string
+          contract_type: string
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          demo: boolean
+          effective_end_date: string | null
+          effective_rule: string | null
+          effective_start_date: string | null
+          exclusions_summary: string | null
+          external_expense_status: string
+          financial_change_status: string
+          financial_gate_status: string
+          id: string
+          internal_notes: string | null
+          invoice_reference: string | null
+          no_exclusions_confirmed: boolean
+          organization_id: string
+          parent_contract_id: string | null
+          payment_reference: string | null
+          privacy_terms_status: string
+          proposal_id: string | null
+          provider_envelope_id: string | null
+          purpose_summary: string | null
+          relationship_type: string
+          research_gate_status: string
+          review_owner_user_id: string | null
+          scope_summary: string | null
+          signature_provider: string
+          signature_reference: string | null
+          signed_at: string | null
+          signed_source: string | null
+          status: string
+          template_id: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approved_for_send_at?: string | null
+          approved_for_send_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          base_contract_reference?: string | null
+          cancellation_reason?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          contract_number: string
+          contract_type: string
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          demo?: boolean
+          effective_end_date?: string | null
+          effective_rule?: string | null
+          effective_start_date?: string | null
+          exclusions_summary?: string | null
+          external_expense_status?: string
+          financial_change_status?: string
+          financial_gate_status?: string
+          id?: string
+          internal_notes?: string | null
+          invoice_reference?: string | null
+          no_exclusions_confirmed?: boolean
+          organization_id: string
+          parent_contract_id?: string | null
+          payment_reference?: string | null
+          privacy_terms_status?: string
+          proposal_id?: string | null
+          provider_envelope_id?: string | null
+          purpose_summary?: string | null
+          relationship_type?: string
+          research_gate_status?: string
+          review_owner_user_id?: string | null
+          scope_summary?: string | null
+          signature_provider?: string
+          signature_reference?: string | null
+          signed_at?: string | null
+          signed_source?: string | null
+          status?: string
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approved_for_send_at?: string | null
+          approved_for_send_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          base_contract_reference?: string | null
+          cancellation_reason?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          demo?: boolean
+          effective_end_date?: string | null
+          effective_rule?: string | null
+          effective_start_date?: string | null
+          exclusions_summary?: string | null
+          external_expense_status?: string
+          financial_change_status?: string
+          financial_gate_status?: string
+          id?: string
+          internal_notes?: string | null
+          invoice_reference?: string | null
+          no_exclusions_confirmed?: boolean
+          organization_id?: string
+          parent_contract_id?: string | null
+          payment_reference?: string | null
+          privacy_terms_status?: string
+          proposal_id?: string | null
+          provider_envelope_id?: string | null
+          purpose_summary?: string | null
+          relationship_type?: string
+          research_gate_status?: string
+          review_owner_user_id?: string | null
+          scope_summary?: string | null
+          signature_provider?: string
+          signature_reference?: string | null
+          signed_at?: string | null
+          signed_source?: string | null
+          status?: string
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_parent_contract_id_fkey"
+            columns: ["parent_contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_casos: {
         Row: {
           app_access_status: string
@@ -1025,6 +2148,116 @@ export type Database = {
         }
         Relationships: []
       }
+      service_orders: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          client_visible_summary: string | null
+          contract_id: string
+          contract_version_id: string | null
+          created_at: string
+          created_by: string | null
+          deliverable_summary: string | null
+          demo: boolean
+          end_date: string | null
+          id: string
+          internal_notes: string | null
+          organization_id: string
+          responsible_user_id: string | null
+          scope_summary: string | null
+          service_order_number: string
+          start_condition_notes: string | null
+          start_condition_status: string
+          start_date: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_visible_summary?: string | null
+          contract_id: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deliverable_summary?: string | null
+          demo?: boolean
+          end_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          organization_id: string
+          responsible_user_id?: string | null
+          scope_summary?: string | null
+          service_order_number: string
+          start_condition_notes?: string | null
+          start_condition_status?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_visible_summary?: string | null
+          contract_id?: string
+          contract_version_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deliverable_summary?: string | null
+          demo?: boolean
+          end_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          organization_id?: string
+          responsible_user_id?: string | null
+          scope_summary?: string | null
+          service_order_number?: string
+          start_condition_notes?: string | null
+          start_condition_status?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_contract_version_id_fkey"
+            columns: ["contract_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_regras: {
         Row: {
           aplica_a: string
@@ -1331,6 +2564,10 @@ export type Database = {
       }
       can_write: { Args: { _org: string }; Returns: boolean }
       can_write_financeiro: { Args: { _org: string }; Returns: boolean }
+      contract_pode_aprovar: { Args: { _org: string }; Returns: boolean }
+      contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
+      contract_pode_ler: { Args: { _org: string }; Returns: boolean }
+      contract_pode_preparar: { Args: { _org: string }; Returns: boolean }
       has_org_role: {
         Args: { _org: string; _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -1348,6 +2585,16 @@ export type Database = {
       staff_meu_papel: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      validate_contract_readiness: {
+        Args: { _contract_id: string; _version_id?: string }
+        Returns: {
+          details: string
+          label: string
+          severity: string
+          status: string
+          validation_key: string
+        }[]
       }
     }
     Enums: {

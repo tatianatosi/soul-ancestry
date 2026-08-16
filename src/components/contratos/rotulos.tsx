@@ -1,0 +1,103 @@
+export const ROTULO_TIPO_INSTRUMENTO: Record<string, string> = {
+  contract_base: "Contrato-base",
+  contract_complement: "Contrato complementar",
+  amendment: "Aditivo",
+};
+
+export const ROTULO_STATUS_CONTRATO: Record<string, string> = {
+  draft: "Rascunho",
+  pending_data: "Dados pendentes",
+  ready_for_review: "Pronto para revisão",
+  under_human_review: "Em revisão humana",
+  approved_for_send: "Aprovado para envio (envio desabilitado)",
+  sent: "Enviado",
+  signed: "Assinado",
+  rejected: "Rejeitado",
+  cancelled: "Cancelado",
+  archived: "Arquivado",
+};
+
+export const ROTULO_STATUS_VERSAO: Record<string, string> = {
+  working: "Versão de trabalho",
+  validation_failed: "Falha de validação",
+  ready_for_review: "Pronta para revisão",
+  under_review: "Em revisão",
+  approved_for_send: "Congelada e aprovada",
+  superseded: "Superada",
+  signed_snapshot: "Registro de assinatura",
+  archived: "Arquivada",
+};
+
+export const ROTULO_PAPEL_PARTE: Record<string, string> = {
+  provider: "Prestador",
+  contracting_client: "Contratante",
+  co_contractor: "Cocontratante",
+  legal_representative: "Representante legal",
+  dependent: "Dependente",
+  witness: "Testemunha",
+  authorized_payer: "Pagador autorizado",
+  third_party_reference: "Terceiro referenciado",
+};
+
+export const ROTULO_CATEGORIA_ESCOPO: Record<string, string> = {
+  contracted_scope: "Escopo contratado",
+  deliverable: "Entrega",
+  operational_condition: "Condição operacional",
+  customer_obligation: "Obrigação do contratante",
+  club_obligation: "Obrigação do Clube",
+  exclusion: "Exclusão",
+  dependency: "Dependência",
+  external_expense: "Despesa de terceiros",
+};
+
+export const ROTULO_TIPO_ANEXO: Record<string, string> = {
+  scope: "Escopo e entregas",
+  service_order: "Ordem de serviço",
+  financial_schedule: "Condições financeiras",
+  external_expenses: "Despesas de terceiros",
+  privacy_data: "Privacidade e dados",
+  family_structure: "Estrutura familiar",
+  document_list: "Lista documental",
+  authorization: "Autorização de pesquisa",
+  other: "Outro anexo controlado",
+};
+
+export const ROTULO_STATUS_ANEXO: Record<string, string> = {
+  missing: "Ausente",
+  drafting: "Em preparação",
+  ready_for_review: "Pronto para revisão",
+  approved: "Aprovado",
+  attached: "Anexado",
+  signed_with_contract: "Assinado com o contrato",
+  not_applicable: "Não aplicável",
+  archived: "Arquivado",
+};
+
+export function Selo({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "alerta" | "ok" }) {
+  const cores =
+    tom === "alerta"
+      ? "border-terracotta/40 bg-terracotta/10 text-terracotta"
+      : tom === "ok"
+        ? "border-gold/50 bg-gold/15 text-navy"
+        : "border-navy/15 bg-navy/5 text-navy/80";
+  return <span className={`inline-block rounded-full border px-2 py-0.5 text-xs ${cores}`}>{texto}</span>;
+}
+
+export function AvisoInstrumento({ tipo, status }: { tipo: string; status: string }) {
+  const avisos = ["RASCUNHO INTERNO — NÃO ENVIAR / NÃO ASSINAR"];
+  if (tipo === "contract_complement") avisos.push("INSTRUMENTO COMPLEMENTAR — NÃO SUBSTITUI O CONTRATO-BASE");
+  if (tipo === "amendment") avisos.push("ADITIVO — ALTERA SOMENTE AS CLÁUSULAS EXPRESSAMENTE INDICADAS");
+  if (status === "signed") return null;
+  return (
+    <div className="space-y-1">
+      {avisos.map((a) => (
+        <p
+          key={a}
+          className="rounded-md border-2 border-terracotta/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-widest text-terracotta"
+        >
+          {a}
+        </p>
+      ))}
+    </div>
+  );
+}
