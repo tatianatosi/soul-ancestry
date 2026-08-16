@@ -8,12 +8,9 @@ import {
   atualizarCheckAtivacao,
   ativarCasoComChecks,
   obterOnboarding,
-  podeValidar,
-  responsavelDoCheck,
   suspenderCaso,
-  type CheckAtivacao,
-  type Papel,
 } from "@/lib/onboarding.functions";
+import { podeValidar, responsavelDoCheck, type CheckAtivacao, type Papel } from "@/lib/onboarding-regras";
 
 export const Route = createFileRoute("/_authenticated/onboarding/$id")({
   head: () => ({
