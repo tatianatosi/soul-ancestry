@@ -45,6 +45,7 @@ import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
+import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
@@ -241,6 +242,11 @@ const AuthenticatedCasosRoute = AuthenticatedCasosRouteImport.update({
   path: '/casos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/casos': typeof AuthenticatedCasosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/acessos-portal'
     | '/atendimento'
     | '/auditoria'
+    | '/biblioteca'
     | '/casos'
     | '/clientes'
     | '/configuracoes'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/acessos-portal'
     | '/atendimento'
     | '/auditoria'
+    | '/biblioteca'
     | '/casos'
     | '/clientes'
     | '/configuracoes'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/_authenticated/acessos-portal'
     | '/_authenticated/atendimento'
     | '/_authenticated/auditoria'
+    | '/_authenticated/biblioteca'
     | '/_authenticated/casos'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
@@ -879,6 +891,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/biblioteca': {
+      id: '/_authenticated/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/auditoria': {
       id: '/_authenticated/auditoria'
       path: '/auditoria'
@@ -970,6 +989,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
@@ -999,6 +1019,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedCasosRoute: AuthenticatedCasosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
