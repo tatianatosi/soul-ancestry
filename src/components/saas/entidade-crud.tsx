@@ -24,7 +24,10 @@ export type Campo = {
   estado?: boolean;
   /** Não editável depois de criado. */
   somenteCriacao?: boolean;
+  /** Preenche o select com registros de outra entidade da mesma organização. */
+  origem?: { entidade: Entidade; rotuloChave: string };
 };
+
 
 export type Coluna = {
   chave: string;
