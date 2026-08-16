@@ -63,6 +63,7 @@ import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
+import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -348,6 +349,12 @@ const AuthenticatedContratosIdRoute =
     path: '/contratos/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContratoParametrosIdRoute =
+  AuthenticatedContratoParametrosIdRouteImport.update({
+    id: '/contrato-parametros/$id',
+    path: '/contrato-parametros/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -391,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -445,6 +453,7 @@ export interface FileRoutesByTo {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
+  '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -502,6 +511,7 @@ export interface FileRoutesById {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -559,6 +569,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
@@ -613,6 +624,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal'
+    | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
@@ -669,6 +681,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-modulo/$id'
@@ -1081,6 +1094,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contrato-parametros/$id': {
+      id: '/_authenticated/contrato-parametros/$id'
+      path: '/contrato-parametros/$id'
+      fullPath: '/contrato-parametros/$id'
+      preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1106,6 +1126,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
@@ -1140,6 +1161,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedContratoParametrosIdRoute:
+    AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaModuloIdRoute: AuthenticatedPesquisaModuloIdRoute,
