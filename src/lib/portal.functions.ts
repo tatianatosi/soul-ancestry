@@ -120,9 +120,9 @@ export const portalContexto = createServerFn({ method: "GET" })
     }
 
     const [cliente, casos] = await Promise.all([
-      supabase.from("clientes").select("id, nome, pais_interesse").eq("id", acesso.data.client_id).maybeSingle(),
+      supabase.from("portal_meu_cadastro").select("id, nome, pais_interesse").maybeSingle(),
       supabase
-        .from("crm_casos")
+        .from("portal_casos")
         .select("id, codigo, titulo, pais, via, status, ativo, updated_at")
         .order("created_at", { ascending: false }),
     ]);
@@ -142,7 +142,7 @@ export const portalCaso = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const [caso, evidencias] = await Promise.all([
       supabase
-        .from("crm_casos")
+        .from("portal_casos")
         .select("id, codigo, titulo, pais, via, status, ativo, updated_at")
         .eq("id", data.id)
         .maybeSingle(),
@@ -192,7 +192,7 @@ export const portalProposta = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const supabase = context.supabase as any;
     const [casos, faturas] = await Promise.all([
-      supabase.from("crm_casos").select("id, codigo, titulo, pais, via, status"),
+      supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
       supabase
         .from("eventos_financeiros")
         .select("id, descricao, valor, moeda, status, vencimento")

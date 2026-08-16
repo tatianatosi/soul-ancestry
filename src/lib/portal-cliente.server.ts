@@ -125,7 +125,7 @@ export async function acessoDoCliente(supabase: Sb, userId: string) {
  */
 export async function casoAutorizado(supabase: Sb, casoId: string) {
   const { data } = await supabase
-    .from("crm_casos")
+    .from("portal_casos")
     .select("id, organization_id, cliente_id, codigo, titulo, pais, via, status, ativo, suspenso_em, updated_at")
     .eq("id", casoId)
     .maybeSingle();

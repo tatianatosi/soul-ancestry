@@ -20,7 +20,7 @@ export const meusCasos = createServerFn({ method: "GET" })
 
     const [casos, pendencias] = await Promise.all([
       supabase
-        .from("crm_casos")
+        .from("portal_casos")
         .select("id, codigo, titulo, pais, via, status, ativo, suspenso_em, updated_at")
         .order("updated_at", { ascending: false }),
       supabase.from("portal_document_requests").select("case_id, status").in("status", ["aguardando", "recusado"]),
@@ -387,7 +387,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
         .from("documents")
         .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
         .order("created_at", { ascending: false }),
-      supabase.from("crm_casos").select("id, titulo"),
+      supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     const lista = (docs.data ?? []) as any[];
@@ -427,7 +427,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
         .from("invoices")
         .select("id, case_id, numero, descricao, valor, moeda, vencimento, status")
         .order("vencimento", { ascending: true }),
-      supabase.from("crm_casos").select("id, titulo"),
+      supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
     return ((faturas.data ?? []) as any[]).map((f) => ({
