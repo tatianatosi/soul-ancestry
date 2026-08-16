@@ -14,6 +14,8 @@ import {
   Settings,
   ShieldCheck,
   KeyRound,
+  UsersRound,
+
 
   LogOut,
   Menu,
@@ -109,7 +111,14 @@ export function SaasShell({
 
 
 
-  const itens = ehAdmin ? [...NAV, { to: "/auditoria", label: "Auditoria", icon: ShieldCheck } as const] : NAV;
+  const itens = ehAdmin
+    ? [
+        ...NAV,
+        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound } as const,
+        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck } as const,
+      ]
+    : NAV;
+
 
   return (
     <div className="flex min-h-screen bg-cream text-navy">
