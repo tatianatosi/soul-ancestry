@@ -24,6 +24,7 @@ import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authentic
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -100,12 +101,18 @@ const AuthenticatedCasosRoute = AuthenticatedCasosRouteImport.update({
   path: '/casos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/casos': typeof AuthenticatedCasosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/auditoria'
     | '/casos'
     | '/clientes'
     | '/configuracoes'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/auditoria'
     | '/casos'
     | '/clientes'
     | '/configuracoes'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/_authenticated/auditoria'
     | '/_authenticated/casos'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
@@ -319,10 +331,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
@@ -335,6 +355,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedCasosRoute: AuthenticatedCasosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
