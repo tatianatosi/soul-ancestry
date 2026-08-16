@@ -159,7 +159,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             model: MODELO_PESQUISA,
             stream: true,
             messages: [
-              { role: "system", content: PROMPT_MESTRE },
+              { role: "system", content: sistema },
               { role: "user", content: dossie },
             ],
           }),
