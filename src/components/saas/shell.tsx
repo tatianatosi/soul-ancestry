@@ -12,6 +12,7 @@ import {
   FileSignature,
   Wallet,
   BarChart3,
+  BadgeCheck,
   Settings,
   FileText,
   ClipboardList,
