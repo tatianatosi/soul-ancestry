@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          acao: string
+          created_at: string
+          entidade: string
+          entidade_id: string | null
+          id: string
+          metadados: Json | null
+          organization_id: string
+          user_id: string | null
+          valores_anteriores: Json | null
+          valores_posteriores: Json | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+          metadados?: Json | null
+          organization_id: string
+          user_id?: string | null
+          valores_anteriores?: Json | null
+          valores_posteriores?: Json | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          metadados?: Json | null
+          organization_id?: string
+          user_id?: string | null
+          valores_anteriores?: Json | null
+          valores_posteriores?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casos: {
         Row: {
           canvas_publicado: boolean
@@ -71,6 +118,421 @@ export type Database = {
         }
         Relationships: []
       }
+      clientes: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          documento: string | null
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          pais_interesse: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          documento?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          pais_interesse?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          documento?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          pais_interesse?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_casos: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          ativado_em: string | null
+          ativado_por: string | null
+          ativo: boolean
+          cliente_id: string | null
+          codigo: string
+          condicoes_verificadas_em: string | null
+          condicoes_verificadas_por: string | null
+          contrato_assinado: boolean
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          documentos_minimos_ok: boolean
+          hipotese_elegibilidade: string | null
+          id: string
+          organization_id: string
+          pagamento_confirmado: boolean
+          pais: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          via: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativado_em?: string | null
+          ativado_por?: string | null
+          ativo?: boolean
+          cliente_id?: string | null
+          codigo: string
+          condicoes_verificadas_em?: string | null
+          condicoes_verificadas_por?: string | null
+          contrato_assinado?: boolean
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          documentos_minimos_ok?: boolean
+          hipotese_elegibilidade?: string | null
+          id?: string
+          organization_id: string
+          pagamento_confirmado?: boolean
+          pais?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          via?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativado_em?: string | null
+          ativado_por?: string | null
+          ativo?: boolean
+          cliente_id?: string | null
+          codigo?: string
+          condicoes_verificadas_em?: string | null
+          condicoes_verificadas_por?: string | null
+          contrato_assinado?: boolean
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          documentos_minimos_ok?: boolean
+          hipotese_elegibilidade?: string | null
+          id?: string
+          organization_id?: string
+          pagamento_confirmado?: boolean
+          pais?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          via?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_casos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_casos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos_financeiros: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          caso_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          descricao: string
+          id: string
+          moeda: string
+          organization_id: string
+          status: string
+          tipo: string
+          updated_at: string
+          valor: number
+          vencimento: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao: string
+          id?: string
+          moeda?: string
+          organization_id: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          valor?: number
+          vencimento?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string
+          id?: string
+          moeda?: string
+          organization_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          valor?: number
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_financeiros_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_financeiros_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidencia_acessos: {
+        Row: {
+          acao: string
+          created_at: string
+          evidencia_id: string
+          id: string
+          metadados: Json | null
+          organization_id: string
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          evidencia_id: string
+          id?: string
+          metadados?: Json | null
+          organization_id: string
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          evidencia_id?: string
+          id?: string
+          metadados?: Json | null
+          organization_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidencia_acessos_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencia_acessos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidencias: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          caso_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          descricao: string | null
+          id: string
+          organization_id: string
+          status: string
+          storage_path: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          visibilidade: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          id?: string
+          organization_id: string
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          visibilidade?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          id?: string
+          organization_id?: string
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          visibilidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidencias_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          email: string | null
+          estagio: string
+          id: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          origem: string | null
+          pais_interesse: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email?: string | null
+          estagio?: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          origem?: string | null
+          pais_interesse?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email?: string | null
+          estagio?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          origem?: string | null
+          pais_interesse?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       microentregas: {
         Row: {
           caso_id: string
@@ -120,6 +582,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organization_members: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          demo: boolean
+          id: string
+          nome: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          demo?: boolean
+          id?: string
+          nome: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          demo?: boolean
+          id?: string
+          nome?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       planner_tarefas: {
         Row: {
@@ -174,6 +713,30 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sla_regras: {
         Row: {
           aplica_a: string
@@ -206,6 +769,81 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tarefas: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          caso_id: string | null
+          concluida_em: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          descricao: string | null
+          id: string
+          organization_id: string
+          prazo: string | null
+          prioridade: string
+          responsavel_id: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          concluida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          id?: string
+          organization_id: string
+          prazo?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string | null
+          concluida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          id?: string
+          organization_id?: string
+          prazo?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       touchpoints: {
         Row: {
@@ -263,15 +901,60 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      bootstrap_minha_organizacao: { Args: { _nome?: string }; Returns: string }
+      can_write: { Args: { _org: string }; Returns: boolean }
+      can_write_financeiro: { Args: { _org: string }; Returns: boolean }
+      has_org_role: {
+        Args: { _org: string; _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
+      is_org_member: { Args: { _org: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "operacoes"
+        | "pesquisador"
+        | "comercial"
+        | "financeiro"
+        | "leitura"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -398,6 +1081,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "admin",
+        "operacoes",
+        "pesquisador",
+        "comercial",
+        "financeiro",
+        "leitura",
+      ],
+    },
   },
 } as const
