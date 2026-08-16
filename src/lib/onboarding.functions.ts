@@ -130,7 +130,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(200);
 
-    const linha = (caso.data ?? {}) as Record<string, unknown>;
+    const linha = (caso.data ?? {}) as Record<string, string | number | boolean | null>;
     const listaChecks = ((checks.data ?? []) as CheckAtivacao[]).sort((a, b) =>
       a.check_key.localeCompare(b.check_key),
     );
@@ -157,7 +157,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       caso: linha,
       papeis,
       checks: listaChecks,
-      pendencias: ((pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[]) ?? [],
+      pendencias: (pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
