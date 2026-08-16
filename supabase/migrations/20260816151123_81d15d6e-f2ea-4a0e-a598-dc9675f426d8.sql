@@ -1,0 +1,10 @@
+revoke all on function public.is_org_member(uuid) from public, anon, authenticated;
+revoke all on function public.has_org_role(uuid, public.app_role) from public, anon, authenticated;
+revoke all on function public.can_write(uuid) from public, anon, authenticated;
+revoke all on function public.can_write_financeiro(uuid) from public, anon, authenticated;
+revoke all on function public.fn_audit() from public, anon, authenticated;
+revoke all on function public.fn_block_delete() from public, anon, authenticated;
+revoke all on function public.fn_archive_meta() from public, anon, authenticated;
+revoke all on function public.fn_guard_ativacao() from public, anon, authenticated;
+revoke all on function public.bootstrap_minha_organizacao(text) from public, anon;
+grant execute on function public.bootstrap_minha_organizacao(text) to authenticated;
