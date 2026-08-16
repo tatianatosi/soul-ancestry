@@ -26,38 +26,40 @@ function TarefasPage() {
         entidade="tarefas"
         titulo="Tarefas"
         podeEscrever={podeEscrever}
+        dominio="tarefa"
         colunas={[
           { chave: "titulo", rotulo: "Título" },
           { chave: "prioridade", rotulo: "Prioridade" },
-          { chave: "status", rotulo: "Status" },
+          { chave: "status", rotulo: "Status", render: (l) => rotuloEstado("tarefa", l["status"]) },
+          {
+            chave: "motivo_bloqueio",
+            rotulo: "Bloqueio",
+            render: (l) => (l["bloqueio"] ? String(l["motivo_bloqueio"] ?? "bloqueada") : "—"),
+          },
           { chave: "prazo", rotulo: "Prazo" },
         ]}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
           { chave: "descricao", rotulo: "Descrição", tipo: "area" },
           {
-            chave: "prioridade",
-            rotulo: "Prioridade",
+            chave: "caso_id",
+            rotulo: "Caso vinculado",
             tipo: "select",
-            opcoes: [
-              { valor: "alta", rotulo: "Alta" },
-              { valor: "media", rotulo: "Média" },
-              { valor: "baixa", rotulo: "Baixa" },
-            ],
+            origem: { entidade: "crm_casos", rotuloChave: "titulo" },
           },
+          { chave: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: PRIORIDADES },
           {
             chave: "status",
             rotulo: "Status",
             tipo: "select",
-            opcoes: [
-              { valor: "aberta", rotulo: "Aberta" },
-              { valor: "em_andamento", rotulo: "Em andamento" },
-              { valor: "concluida", rotulo: "Concluída" },
-            ],
+            estado: true,
+            opcoes: ESTADOS.tarefa,
           },
+          { chave: "motivo_bloqueio", rotulo: "Motivo do bloqueio", tipo: "area" },
           { chave: "prazo", rotulo: "Prazo", tipo: "data" },
         ]}
       />
+
     </SaasShell>
   );
 }
