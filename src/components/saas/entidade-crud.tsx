@@ -242,53 +242,75 @@ export function EntidadeCrud({
       {form ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
           <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5">
-            <h2 className="font-serif text-xl">Novo registro — {titulo}</h2>
+            <h2 className="font-serif text-xl">
+              {editandoId ? "Editar registro" : "Novo registro"} — {titulo}
+            </h2>
             <p className="mt-1 text-xs text-navy/60">
               Informação registrada como hipótese ou pendência; não representa conclusão jurídica.
             </p>
             <div className="mt-4 space-y-3">
-              {campos.map((campo) => (
-                <label key={campo.chave} className="block text-sm">
-                  <span className="mb-1 block text-navy/70">
-                    {campo.rotulo}
-                    {campo.obrigatorio ? " *" : ""}
-                  </span>
-                  {campo.tipo === "area" ? (
-                    <textarea
-                      rows={3}
-                      value={form[campo.chave] ?? ""}
-                      onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
-                      className="w-full rounded-lg border border-navy/20 px-3 py-2"
-                    />
-                  ) : campo.tipo === "select" ? (
-                    <select
-                      value={form[campo.chave] ?? ""}
-                      onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
-                      className="w-full rounded-lg border border-navy/20 px-3 py-2"
-                    >
-                      <option value="">Selecione…</option>
-                      {(campo.opcoes ?? []).map((o) => (
-                        <option key={o.valor} value={o.valor}>
-                          {o.rotulo}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text"}
-                      value={form[campo.chave] ?? ""}
-                      onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
-                      className="w-full rounded-lg border border-navy/20 px-3 py-2"
-                    />
-                  )}
-                </label>
-              ))}
+              {campos.map((campo) => {
+                const travado = Boolean(editandoId && campo.somenteCriacao);
+                return (
+                  <label key={campo.chave} className="block text-sm">
+                    <span className="mb-1 block text-navy/70">
+                      {campo.rotulo}
+                      {campo.obrigatorio ? " *" : ""}
+                      {travado ? " (não editável)" : ""}
+                    </span>
+                    {campo.tipo === "area" ? (
+                      <textarea
+                        rows={3}
+                        disabled={travado}
+                        value={form[campo.chave] ?? ""}
+                        onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
+                        className="w-full rounded-lg border border-navy/20 px-3 py-2 disabled:bg-navy/5"
+                      />
+                    ) : campo.tipo === "select" ? (
+                      <select
+                        disabled={travado}
+                        value={form[campo.chave] ?? ""}
+                        onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
+                        className="w-full rounded-lg border border-navy/20 px-3 py-2 disabled:bg-navy/5"
+                      >
+                        <option value="">Selecione…</option>
+                        {opcoesCampo(campo).map((o) => (
+                          <option key={o.valor} value={o.valor}>
+                            {o.rotulo}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={campo.tipo === "numero" ? "number" : campo.tipo === "data" ? "date" : "text"}
+                        disabled={travado}
+                        value={form[campo.chave] ?? ""}
+                        onChange={(e) => setForm({ ...form, [campo.chave]: e.target.value })}
+                        className="w-full rounded-lg border border-navy/20 px-3 py-2 disabled:bg-navy/5"
+                      />
+                    )}
+                  </label>
+                );
+              })}
             </div>
+            {campos.some((c) => c.estado) && dominio && editandoId ? (
+              <p className="mt-3 rounded-lg bg-navy/5 px-3 py-2 text-xs text-navy/60">
+                Só aparecem os estados permitidos a partir do estado atual. Transições fora da sequência são
+                recusadas também no banco.
+              </p>
+            ) : null}
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setForm(null)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
+              <button
+                onClick={() => {
+                  setForm(null);
+                  setEditandoId(null);
+                }}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
+              >
                 Cancelar
               </button>
               <button
+                disabled={mCriar.isPending || mAtualizar.isPending}
                 onClick={() => {
                   const faltando = campos
                     .filter((c) => c.obrigatorio && !form[c.chave])
@@ -297,11 +319,55 @@ export function EntidadeCrud({
                     setErro(`Preencha os itens pendentes: ${faltando.join(", ")}.`);
                     return;
                   }
-                  mCriar.mutate(form);
+                  if (editandoId) {
+                    const dados: Record<string, string> = {};
+                    for (const campo of campos) {
+                      if (campo.somenteCriacao) continue;
+                      dados[campo.chave] = form[campo.chave] ?? "";
+                    }
+                    mAtualizar.mutate({ id: editandoId, dados });
+                  } else {
+                    mCriar.mutate(form);
+                  }
                 }}
-                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
+                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
               >
                 Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {arquivando ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-5">
+            <h2 className="font-serif text-xl">Arquivar registro</h2>
+            <p className="mt-1 text-xs text-navy/60">
+              Não há exclusão neste sistema. O registro fica arquivado, com autor, data e motivo.
+            </p>
+            <label className="mt-4 block text-sm">
+              <span className="mb-1 block text-navy/70">Motivo do arquivamento * (mínimo 5 caracteres)</span>
+              <textarea
+                rows={3}
+                value={arquivando.motivo}
+                onChange={(e) => setArquivando({ ...arquivando, motivo: e.target.value })}
+                className="w-full rounded-lg border border-navy/20 px-3 py-2"
+              />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setArquivando(null)}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={arquivando.motivo.trim().length < 5 || mArquivar.isPending}
+                onClick={() => mArquivar.mutate({ id: arquivando.id, motivo: arquivando.motivo.trim() })}
+                className="rounded-lg bg-terracotta px-3 py-2 text-sm text-cream disabled:opacity-50"
+              >
+                Arquivar
               </button>
             </div>
           </div>
@@ -310,3 +376,4 @@ export function EntidadeCrud({
     </div>
   );
 }
+
