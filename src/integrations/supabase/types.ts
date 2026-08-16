@@ -114,6 +114,77 @@ export type Database = {
           },
         ]
       }
+      case_activation_checks: {
+        Row: {
+          case_id: string
+          check_key: string
+          created_at: string
+          dominio: string
+          id: string
+          isencao_autorizada_em: string | null
+          isencao_autorizada_por: string | null
+          isencao_expira_em: string | null
+          isencao_motivo: string | null
+          label: string
+          obrigatorio: boolean
+          observacao: string | null
+          organization_id: string
+          origem_validacao: string | null
+          status: string
+          updated_at: string
+          validado_em: string | null
+          validado_por: string | null
+        }
+        Insert: {
+          case_id: string
+          check_key: string
+          created_at?: string
+          dominio?: string
+          id?: string
+          isencao_autorizada_em?: string | null
+          isencao_autorizada_por?: string | null
+          isencao_expira_em?: string | null
+          isencao_motivo?: string | null
+          label: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          organization_id: string
+          origem_validacao?: string | null
+          status?: string
+          updated_at?: string
+          validado_em?: string | null
+          validado_por?: string | null
+        }
+        Update: {
+          case_id?: string
+          check_key?: string
+          created_at?: string
+          dominio?: string
+          id?: string
+          isencao_autorizada_em?: string | null
+          isencao_autorizada_por?: string | null
+          isencao_expira_em?: string | null
+          isencao_motivo?: string | null
+          label?: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          organization_id?: string
+          origem_validacao?: string | null
+          status?: string
+          updated_at?: string
+          validado_em?: string | null
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_activation_checks_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_members: {
         Row: {
           archive_motivo: string | null
@@ -1830,6 +1901,9 @@ export type Database = {
           resumo: string | null
           risco: string | null
           status: string
+          suspenso_em: string | null
+          suspenso_motivo: string | null
+          suspenso_por: string | null
           tipo_servico: string | null
           titulo: string
           updated_at: string
@@ -1870,6 +1944,9 @@ export type Database = {
           resumo?: string | null
           risco?: string | null
           status?: string
+          suspenso_em?: string | null
+          suspenso_motivo?: string | null
+          suspenso_por?: string | null
           tipo_servico?: string | null
           titulo: string
           updated_at?: string
@@ -1910,6 +1987,9 @@ export type Database = {
           resumo?: string | null
           risco?: string | null
           status?: string
+          suspenso_em?: string | null
+          suspenso_motivo?: string | null
+          suspenso_por?: string | null
           tipo_servico?: string | null
           titulo?: string
           updated_at?: string
@@ -3195,6 +3275,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activation_check_definicoes: {
+        Args: never
+        Returns: {
+          check_key: string
+          dominio: string
+          label: string
+          obrigatorio: boolean
+        }[]
+      }
       bootstrap_minha_organizacao: { Args: { _nome?: string }; Returns: string }
       bootstrap_permitido: { Args: never; Returns: boolean }
       bootstrap_primeiro_admin: {
@@ -3208,6 +3297,14 @@ export type Database = {
       }
       can_write: { Args: { _org: string }; Returns: boolean }
       can_write_financeiro: { Args: { _org: string }; Returns: boolean }
+      case_activation_pendencias: {
+        Args: { _case: string }
+        Returns: {
+          check_key: string
+          label: string
+          motivo: string
+        }[]
+      }
       contract_pode_aprovar: { Args: { _org: string }; Returns: boolean }
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
       contract_pode_ler: { Args: { _org: string }; Returns: boolean }
