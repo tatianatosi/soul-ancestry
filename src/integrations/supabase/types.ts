@@ -2281,6 +2281,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          entrega_cliente: boolean
           file_hash: string | null
           id: string
           liberado_cliente: boolean
@@ -2290,7 +2291,12 @@ export type Database = {
           nome_arquivo: string | null
           observacoes: string | null
           organization_id: string
+          origem: string
+          revisado_em: string | null
+          revisado_por: string | null
+          revisao_motivo: string | null
           sensibilidade: string
+          solicitacao_id: string | null
           status: string
           storage_path: string | null
           tamanho_bytes: number | null
@@ -2312,6 +2318,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          entrega_cliente?: boolean
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
@@ -2321,7 +2328,12 @@ export type Database = {
           nome_arquivo?: string | null
           observacoes?: string | null
           organization_id: string
+          origem?: string
+          revisado_em?: string | null
+          revisado_por?: string | null
+          revisao_motivo?: string | null
           sensibilidade?: string
+          solicitacao_id?: string | null
           status?: string
           storage_path?: string | null
           tamanho_bytes?: number | null
@@ -2343,6 +2355,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          entrega_cliente?: boolean
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
@@ -2352,7 +2365,12 @@ export type Database = {
           nome_arquivo?: string | null
           observacoes?: string | null
           organization_id?: string
+          origem?: string
+          revisado_em?: string | null
+          revisado_por?: string | null
+          revisao_motivo?: string | null
           sensibilidade?: string
+          solicitacao_id?: string | null
           status?: string
           storage_path?: string | null
           tamanho_bytes?: number | null
@@ -2724,6 +2742,9 @@ export type Database = {
           descricao: string | null
           emitida_em: string | null
           id: string
+          liberada_cliente: boolean
+          liberada_em: string | null
+          liberada_por: string | null
           moeda: string
           numero: string | null
           organization_id: string
@@ -2751,6 +2772,9 @@ export type Database = {
           descricao?: string | null
           emitida_em?: string | null
           id?: string
+          liberada_cliente?: boolean
+          liberada_em?: string | null
+          liberada_por?: string | null
           moeda?: string
           numero?: string | null
           organization_id: string
@@ -2778,6 +2802,9 @@ export type Database = {
           descricao?: string | null
           emitida_em?: string | null
           id?: string
+          liberada_cliente?: boolean
+          liberada_em?: string | null
+          liberada_por?: string | null
           moeda?: string
           numero?: string | null
           organization_id?: string
@@ -3377,6 +3404,249 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_document_requests: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          document_id: string | null
+          id: string
+          motivo_recusa: string | null
+          obrigatorio: boolean
+          organization_id: string
+          prazo: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          document_id?: string | null
+          id?: string
+          motivo_recusa?: string | null
+          obrigatorio?: boolean
+          organization_id: string
+          prazo?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          document_id?: string | null
+          id?: string
+          motivo_recusa?: string | null
+          obrigatorio?: boolean
+          organization_id?: string
+          prazo?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_document_requests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_document_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_document_requests_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_document_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_ticket_messages: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          autor_tipo: string
+          autor_user_id: string | null
+          corpo: string
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          ticket_id: string
+          updated_at: string
+          updated_by: string | null
+          visivel_cliente: boolean
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          autor_tipo: string
+          autor_user_id?: string | null
+          corpo: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          ticket_id: string
+          updated_at?: string
+          updated_by?: string | null
+          visivel_cliente?: boolean
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          autor_tipo?: string
+          autor_user_id?: string | null
+          corpo?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          ticket_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_ticket_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "portal_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_tickets: {
+        Row: {
+          aberto_por: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          assunto: string
+          case_id: string
+          categoria: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          origem: string
+          responsavel_id: string | null
+          status: string
+          ultima_mensagem_em: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          aberto_por?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assunto: string
+          case_id: string
+          categoria?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          origem?: string
+          responsavel_id?: string | null
+          status?: string
+          ultima_mensagem_em?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          aberto_por?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assunto?: string
+          case_id?: string
+          categoria?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          origem?: string
+          responsavel_id?: string | null
+          status?: string
+          ultima_mensagem_em?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_tickets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_tickets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

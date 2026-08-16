@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
+import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
 import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
 import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
@@ -44,10 +45,12 @@ import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authen
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedPrivacidadeIndexRouteImport } from './routes/_authenticated/privacidade.index'
 import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
+import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
@@ -101,6 +104,11 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
 const PortalPropostaRoute = PortalPropostaRouteImport.update({
   id: '/proposta',
   path: '/proposta',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalFaturasRoute = PortalFaturasRouteImport.update({
+  id: '/faturas',
+  path: '/faturas',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
@@ -231,6 +239,12 @@ const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   path: '/auditoria',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAtendimentoRoute =
+  AuthenticatedAtendimentoRouteImport.update({
+    id: '/atendimento',
+    path: '/atendimento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAcessosPortalRoute =
   AuthenticatedAcessosPortalRouteImport.update({
     id: '/acessos-portal',
@@ -255,6 +269,11 @@ const AuthenticatedContratosIndexRoute =
     path: '/contratos/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const PortalMensagensIdRoute = PortalMensagensIdRouteImport.update({
+  id: '/mensagens/$id',
+  path: '/mensagens/$id',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
 const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   id: '/casos/$id',
   path: '/casos/$id',
@@ -293,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -318,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -325,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -337,6 +359,7 @@ export interface FileRoutesByTo {
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -362,6 +385,7 @@ export interface FileRoutesByTo {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -369,6 +393,7 @@ export interface FileRoutesByTo {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
@@ -384,6 +409,7 @@ export interface FileRoutesById {
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/casos': typeof AuthenticatedCasosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
@@ -409,6 +435,7 @@ export interface FileRoutesById {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -416,6 +443,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -431,6 +459,7 @@ export interface FileRouteTypes {
     | '/prototipo'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/atendimento'
     | '/auditoria'
     | '/casos'
     | '/clientes'
@@ -456,6 +485,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
     | '/contratos/$id'
@@ -463,6 +493,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/contratos/'
     | '/pesquisa/'
     | '/privacidade/'
@@ -475,6 +506,7 @@ export interface FileRouteTypes {
     | '/prototipo'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/atendimento'
     | '/auditoria'
     | '/casos'
     | '/clientes'
@@ -500,6 +532,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal'
     | '/contratos/$id'
@@ -507,6 +540,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/contratos'
     | '/pesquisa'
     | '/privacidade'
@@ -521,6 +555,7 @@ export interface FileRouteTypes {
     | '/prototipo'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/atendimento'
     | '/_authenticated/auditoria'
     | '/_authenticated/casos'
     | '/_authenticated/clientes'
@@ -546,6 +581,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
     | '/_authenticated/contratos/$id'
@@ -553,6 +589,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/_authenticated/contratos/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
@@ -645,6 +682,13 @@ declare module '@tanstack/react-router' {
       path: '/proposta'
       fullPath: '/portal/proposta'
       preLoaderRoute: typeof PortalPropostaRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/faturas': {
+      id: '/portal/faturas'
+      path: '/faturas'
+      fullPath: '/portal/faturas'
+      preLoaderRoute: typeof PortalFaturasRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/documentos': {
@@ -822,6 +866,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/atendimento': {
+      id: '/_authenticated/atendimento'
+      path: '/atendimento'
+      fullPath: '/atendimento'
+      preLoaderRoute: typeof AuthenticatedAtendimentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/acessos-portal': {
       id: '/_authenticated/acessos-portal'
       path: '/acessos-portal'
@@ -849,6 +900,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contratos/'
       preLoaderRoute: typeof AuthenticatedContratosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/portal/mensagens/$id': {
+      id: '/portal/mensagens/$id'
+      path: '/mensagens/$id'
+      fullPath: '/portal/mensagens/$id'
+      preLoaderRoute: typeof PortalMensagensIdRouteImport
+      parentRoute: typeof PortalRouteRoute
     }
     '/portal/casos/$id': {
       id: '/portal/casos/$id'
@@ -890,6 +948,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
@@ -917,6 +976,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedCasosRoute: AuthenticatedCasosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
@@ -947,16 +1007,20 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface PortalRouteRouteChildren {
   PortalDocumentosRoute: typeof PortalDocumentosRoute
+  PortalFaturasRoute: typeof PortalFaturasRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalCasosIdRoute: typeof PortalCasosIdRoute
+  PortalMensagensIdRoute: typeof PortalMensagensIdRoute
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalDocumentosRoute: PortalDocumentosRoute,
+  PortalFaturasRoute: PortalFaturasRoute,
   PortalPropostaRoute: PortalPropostaRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCasosIdRoute: PortalCasosIdRoute,
+  PortalMensagensIdRoute: PortalMensagensIdRoute,
 }
 
 const PortalRouteRouteWithChildren = PortalRouteRoute._addFileChildren(

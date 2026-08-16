@@ -39,6 +39,7 @@ export function PortalShell({
       ? [
           { to: "/portal", label: "Meus casos", icon: FolderOpen },
           { to: "/portal/documentos", label: "Documentos", icon: FileText },
+          { to: "/portal/faturas", label: "Faturas", icon: Receipt },
           { to: "/portal/proposta", label: "Proposta", icon: Receipt },
         ]
       : [{ to: "/portal/proposta", label: "Proposta", icon: Receipt }];

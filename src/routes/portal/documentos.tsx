@@ -1,17 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Download } from "lucide-react";
+import { useState } from "react";
 
 import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
-import { portalDocumentos } from "@/lib/portal.functions";
+import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/documentos")({
   head: () => ({
     meta: [
       { title: "Documentos — Portal Clube Ancestral" },
-      { name: "description", content: "Documentos e certidões liberados para o seu acompanhamento." },
+      { name: "description", content: "Entregas liberadas pela equipe e situação dos documentos que você enviou." },
       { property: "og:title", content: "Documentos — Portal Clube Ancestral" },
-      { property: "og:description", content: "Documentos liberados do seu caso." },
+      { property: "og:description", content: "Entregas liberadas e seus envios." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -21,24 +23,91 @@ export const Route = createFileRoute("/portal/documentos")({
 });
 
 function DocumentosPage() {
-  const carregar = useServerFn(portalDocumentos);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-documentos"], queryFn: () => carregar({}) });
+  const carregar = useServerFn(minhasEntregas);
+  const baixar = useServerFn(baixarEntrega);
+  const [erro, setErro] = useState<string | null>(null);
+  const { data, isLoading } = useQuery({ queryKey: ["portal-entregas"], queryFn: () => carregar({}) });
+
+  async function abrir(id: string) {
+    setErro(null);
+    try {
+      const r = await baixar({ data: { documentoId: id } });
+      window.open(r.url, "_blank", "noopener");
+    } catch (e) {
+      setErro((e as Error).message);
+    }
+  }
 
   return (
-    <PortalShell titulo="Documentos" descricao="Apenas documentos liberados pela equipe.">
+    <PortalShell titulo="Documentos" descricao="Você baixa apenas o que a equipe liberou para o seu acesso.">
+      {erro ? (
+        <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          {erro}
+        </p>
+      ) : null}
+
       {isLoading ? (
         <PortalVazio mensagem="Carregando…" />
-      ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem="Nenhum documento liberado para você até o momento." />
       ) : (
-        <ul className="space-y-3">
-          {data.map((d) => (
-            <li key={d.id} className="rounded-xl border border-navy/10 bg-white p-4">
-              <p className="font-medium">{d.titulo}</p>
-              <p className="mt-1 text-sm text-navy/60">{[d.tipo, d.status].filter(Boolean).join(" · ")}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-8">
+          <section>
+            <h2 className="font-serif text-xl">Entregas liberadas</h2>
+            {!data || data.entregas.length === 0 ? (
+              <div className="mt-3">
+                <PortalVazio mensagem="Nenhuma entrega liberada até o momento." />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {data.entregas.map((d) => (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
+                  >
+                    <div>
+                      <p className="font-medium">{d.titulo}</p>
+                      <p className="text-xs text-navy/50">{d.caso}</p>
+                    </div>
+                    <button
+                      onClick={() => abrir(d.id)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm"
+                    >
+                      <Download className="h-4 w-4" /> Baixar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h2 className="font-serif text-xl">Meus envios</h2>
+            {!data || data.envios.length === 0 ? (
+              <div className="mt-3">
+                <PortalVazio mensagem="Você ainda não enviou documentos." />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {data.envios.map((d) => (
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
+                  >
+                    <div>
+                      <p className="font-medium">{d.titulo}</p>
+                      <p className="text-xs text-navy/50">
+                        {d.caso} · enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
+                      </p>
+                      {d.motivo ? <p className="mt-1 text-sm text-navy/70">{d.motivo}</p> : null}
+                    </div>
+                    <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
+                      {d.statusRotulo}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       )}
     </PortalShell>
   );
