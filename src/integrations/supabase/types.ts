@@ -7265,6 +7265,7 @@ export type Database = {
         Args: { _alerta_em: string; _prazo_em: string; _status: string }
         Returns: string
       }
+      pode_iniciar_pesquisa_externa: { Args: { _rc: string }; Returns: Json }
       pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
       portal_meu_acesso: { Args: never; Returns: string }
@@ -7287,6 +7288,14 @@ export type Database = {
         }[]
       }
       quality_sync_checklist: { Args: { _case: string }; Returns: number }
+      research_quality_scan: {
+        Args: { _org: string }
+        Returns: {
+          abertas: number
+          criadas: number
+          sanadas: number
+        }[]
+      }
       rg_admin: { Args: { _org: string }; Returns: boolean }
       rg_editar: { Args: { _org: string }; Returns: boolean }
       rg_ler_detalhe: { Args: { _org: string }; Returns: boolean }
@@ -7294,6 +7303,11 @@ export type Database = {
       rg_papel: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      rg_pode_editar_caso: { Args: { _rc: string }; Returns: boolean }
+      rg_tem_evidencia_validada: {
+        Args: { _id: string; _tipo: string }
+        Returns: boolean
       }
       staff_meu_papel: {
         Args: { _org: string }
