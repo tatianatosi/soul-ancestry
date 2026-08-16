@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { sanitizarRotuloCliente } from "@/lib/canvas-sanitize";
 
 /**
  * CRM vivo — leitura e escrita da base de casos já migrada.
