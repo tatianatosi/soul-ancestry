@@ -114,6 +114,80 @@ function EntrarEquipe() {
       <p className="mt-5 text-xs text-navy/50">
         Não há autocadastro: contas internas são criadas apenas por um administrador.
       </p>
+      <PrimeiroAcesso />
     </EquipeMoldura>
   );
 }
+
+/** Aparece apenas enquanto a instância não tem nenhum acesso interno cadastrado. */
+function PrimeiroAcesso() {
+  const verificar = useServerFn(precisaProvisionamento);
+  const criar = useServerFn(criarPrimeiroAdmin);
+  const navigate = useNavigate();
+  const q = useQuery({ queryKey: ["provisionamento-equipe"], queryFn: () => verificar({}), retry: false });
+  const [form, setForm] = useState({ organizacao: "", nome: "", email: "", senha: "" });
+  const [erro, setErro] = useState<string | null>(null);
+  const [carregando, setCarregando] = useState(false);
+
+  if (!q.data?.pendente) return null;
+
+  async function criarConta(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    setCarregando(true);
+    try {
+      await criar({ data: form });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: form.email.trim().toLowerCase(),
+        password: form.senha,
+      });
+      if (error) {
+        setErro("Conta criada. Entre com o e-mail e a senha definidos.");
+        return;
+      }
+      navigate({ to: "/painel", replace: true });
+    } catch (err) {
+      setErro((err as Error).message);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={criarConta} className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
+      <p className="text-sm font-medium text-navy">Primeiro acesso da organização</p>
+      <p className="text-xs text-navy/60">
+        Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador. Depois disso, novos
+        membros só entram por convite.
+      </p>
+      {(
+        [
+          ["organizacao", "Nome da organização", "text"],
+          ["nome", "Seu nome", "text"],
+          ["email", "Seu e-mail", "email"],
+          ["senha", "Senha (mín. 10 caracteres)", "password"],
+        ] as const
+      ).map(([campo, rotulo, tipo]) => (
+        <label key={campo} className="block text-xs text-navy/70">
+          {rotulo}
+          <input
+            type={tipo}
+            required
+            value={form[campo]}
+            onChange={(e) => setForm((f) => ({ ...f, [campo]: e.target.value }))}
+            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+          />
+        </label>
+      ))}
+      {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
+      <button
+        type="submit"
+        disabled={carregando}
+        className="w-full rounded-lg bg-gold px-4 py-2 text-sm font-medium text-navy disabled:opacity-60"
+      >
+        {carregando ? "Criando…" : "Criar organização e administrador"}
+      </button>
+    </form>
+  );
+}
+
