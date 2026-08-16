@@ -6,6 +6,7 @@ import { useState } from "react";
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
+import { ESTADOS, rotuloEstado } from "@/lib/estados";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
   head: () => ({
@@ -44,14 +45,24 @@ function EvidenciasPage() {
         entidade="evidencias"
         titulo="Evidências"
         podeEscrever={podeEscrever}
+        dominio="evidencia"
         colunas={[
           { chave: "titulo", rotulo: "Título" },
           { chave: "tipo", rotulo: "Tipo" },
-          { chave: "status", rotulo: "Status" },
+          { chave: "status", rotulo: "Status", render: (l) => rotuloEstado("evidencia", l["status"]) },
+          { chave: "pessoa_relacionada", rotulo: "Pessoa" },
+          { chave: "periodo", rotulo: "Período" },
+          { chave: "grau_confianca", rotulo: "Confiança" },
           { chave: "visibilidade", rotulo: "Visibilidade" },
         ]}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
+          {
+            chave: "caso_id",
+            rotulo: "Caso vinculado",
+            tipo: "select",
+            origem: { entidade: "crm_casos", rotuloChave: "titulo" },
+          },
           {
             chave: "tipo",
             rotulo: "Tipo",
@@ -67,10 +78,21 @@ function EvidenciasPage() {
             chave: "status",
             rotulo: "Status",
             tipo: "select",
+            estado: true,
+            opcoes: ESTADOS.evidencia,
+          },
+          { chave: "pessoa_relacionada", rotulo: "Pessoa relacionada" },
+          { chave: "local_relacionado", rotulo: "Local relacionado" },
+          { chave: "periodo", rotulo: "Período" },
+          { chave: "fonte", rotulo: "Fonte" },
+          {
+            chave: "grau_confianca",
+            rotulo: "Grau de confiança",
+            tipo: "select",
             opcoes: [
-              { valor: "pendente", rotulo: "Pendente" },
-              { valor: "recebida", rotulo: "Recebida" },
-              { valor: "validada", rotulo: "Validada" },
+              { valor: "alta", rotulo: "Alta" },
+              { valor: "media", rotulo: "Média" },
+              { valor: "baixa", rotulo: "Baixa" },
             ],
           },
           {
@@ -83,7 +105,9 @@ function EvidenciasPage() {
             ],
           },
           { chave: "descricao", rotulo: "Descrição", tipo: "area" },
+          { chave: "observacao", rotulo: "Observação interna", tipo: "area" },
         ]}
+
         extra={(linha) => (
           <button
             onClick={async () => {

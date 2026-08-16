@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { ESTADOS, rotuloEstado } from "@/lib/estados";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -26,32 +27,35 @@ function ClientesPage() {
         entidade="clientes"
         titulo="Clientes"
         podeEscrever={podeEscrever}
+        dominio="cliente"
         colunas={[
           { chave: "nome", rotulo: "Nome" },
+          { chave: "nome_social", rotulo: "Nome social" },
           { chave: "email", rotulo: "E-mail" },
           { chave: "telefone", rotulo: "Telefone" },
+          { chave: "origem", rotulo: "Origem" },
           { chave: "pais_interesse", rotulo: "País" },
-          { chave: "status", rotulo: "Status" },
+          { chave: "status", rotulo: "Status", render: (l) => rotuloEstado("cliente", l["status"]) },
         ]}
         campos={[
           { chave: "nome", rotulo: "Nome", obrigatorio: true },
+          { chave: "nome_social", rotulo: "Nome social" },
           { chave: "email", rotulo: "E-mail" },
           { chave: "telefone", rotulo: "Telefone" },
           { chave: "documento", rotulo: "Documento" },
+          { chave: "origem", rotulo: "Origem do relacionamento" },
           { chave: "pais_interesse", rotulo: "País de interesse" },
           {
             chave: "status",
             rotulo: "Status",
             tipo: "select",
-            opcoes: [
-              { valor: "prospeccao", rotulo: "Prospecção" },
-              { valor: "ativo", rotulo: "Ativo" },
-              { valor: "pausado", rotulo: "Pausado" },
-            ],
+            estado: true,
+            opcoes: ESTADOS.cliente,
           },
           { chave: "observacoes", rotulo: "Observações", tipo: "area" },
         ]}
       />
+
     </SaasShell>
   );
 }

@@ -1,5 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  validarEstadoInicial,
+  validarRegrasNegocio,
+  validarTransicao,
+} from "@/lib/estados";
 
 /**
  * Camada de acesso do SaaS Clube Ancestral.
@@ -23,9 +28,16 @@ export type Papel =
 export type Entidade =
   | "leads"
   | "clientes"
+  | "client_contacts"
   | "crm_casos"
+  | "case_members"
   | "evidencias"
   | "tarefas"
+  | "documents"
+  | "consent_records"
+  | "proposals"
+  | "invoices"
+  | "payments"
   | "eventos_financeiros";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,19 +46,46 @@ type Linha = Record<string, any>;
 const ENTIDADES: Entidade[] = [
   "leads",
   "clientes",
+  "client_contacts",
   "crm_casos",
+  "case_members",
   "evidencias",
   "tarefas",
+  "documents",
+  "consent_records",
+  "proposals",
+  "invoices",
+  "payments",
   "eventos_financeiros",
 ];
 
+
 const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
   leads: ["nome", "email", "telefone", "origem", "estagio", "pais_interesse", "observacoes"],
-  clientes: ["nome", "email", "telefone", "documento", "pais_interesse", "status", "observacoes"],
+  clientes: [
+    "nome",
+    "nome_social",
+    "email",
+    "telefone",
+    "documento",
+    "origem",
+    "pais_interesse",
+    "status",
+    "observacoes",
+  ],
+  client_contacts: ["client_id", "nome", "relacao", "email", "telefone", "principal", "observacoes"],
   crm_casos: [
     "cliente_id",
     "codigo",
     "titulo",
+    "tipo_servico",
+    "fase",
+    "responsavel_id",
+    "prioridade",
+    "data_entrada",
+    "resumo",
+    "risco",
+    "proxima_acao",
     "pais",
     "via",
     "status",
@@ -55,10 +94,90 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "pagamento_confirmado",
     "documentos_minimos_ok",
   ],
-  evidencias: ["caso_id", "titulo", "tipo", "status", "visibilidade", "descricao", "storage_path"],
-  tarefas: ["caso_id", "titulo", "descricao", "prioridade", "status", "prazo"],
+  case_members: [
+    "case_id",
+    "nome",
+    "parentesco",
+    "data_nascimento",
+    "local_nascimento",
+    "observacoes_protegidas",
+  ],
+  evidencias: [
+    "caso_id",
+    "titulo",
+    "tipo",
+    "status",
+    "visibilidade",
+    "descricao",
+    "storage_path",
+    "pessoa_relacionada",
+    "local_relacionado",
+    "periodo",
+    "fonte",
+    "grau_confianca",
+    "observacao",
+  ],
+  tarefas: [
+    "caso_id",
+    "titulo",
+    "descricao",
+    "responsavel_id",
+    "prioridade",
+    "status",
+    "prazo",
+    "bloqueio",
+    "motivo_bloqueio",
+  ],
+  documents: ["case_id", "client_id", "titulo", "tipo", "storage_path", "status", "liberado_cliente", "observacoes"],
+  consent_records: [
+    "client_id",
+    "tipo_consentimento",
+    "versao_texto",
+    "status",
+    "coletado_em",
+    "evidencia_consentimento",
+    "revogado_em",
+  ],
+  proposals: [
+    "lead_id",
+    "client_id",
+    "versao",
+    "status",
+    "valor",
+    "moeda",
+    "escopo",
+    "validade",
+    "enviada_em",
+    "aprovada_em",
+    "recusada_em",
+  ],
+  invoices: [
+    "client_id",
+    "case_id",
+    "contract_id",
+    "service_order_id",
+    "numero",
+    "valor",
+    "moeda",
+    "vencimento",
+    "status",
+    "referencia_externa",
+    "conciliacao_status",
+  ],
+  payments: [
+    "invoice_id",
+    "valor",
+    "moeda",
+    "vencimento",
+    "pago_em",
+    "metodo",
+    "status",
+    "referencia_externa",
+    "conciliacao_status",
+  ],
   eventos_financeiros: ["caso_id", "tipo", "descricao", "valor", "moeda", "status", "vencimento"],
 };
+
 
 function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
@@ -166,6 +285,8 @@ export const criarRegistro = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
     const payload = { ...sanitizar(data.entidade, data.dados), organization_id: organizationId };
+    validarEstadoInicial(data.entidade, payload);
+    validarRegrasNegocio(data.entidade, payload);
     const { data: linha, error } = await supabase.from(data.entidade).insert(payload).select("id").maybeSingle();
     if (error) throw new Error(error.message);
     return { id: linha?.id as string | undefined };
@@ -180,14 +301,30 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
+
+    const atual = await supabase
+      .from(data.entidade)
+      .select("*")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!atual.data) throw new Error("Registro não encontrado nesta organização.");
+    if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
+
+    const alteracoes = sanitizar(data.entidade, data.dados);
+    const combinado = { ...(atual.data as Record<string, unknown>), ...alteracoes };
+    validarTransicao(data.entidade, atual.data as Record<string, unknown>, alteracoes);
+    validarRegrasNegocio(data.entidade, combinado);
+
     const { error } = await supabase
       .from(data.entidade)
-      .update(sanitizar(data.entidade, data.dados))
+      .update(alteracoes)
       .eq("id", data.id)
       .eq("organization_id", organizationId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const arquivarRegistro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -114,6 +114,75 @@ export type Database = {
           },
         ]
       }
+      case_members: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          data_nascimento: string | null
+          id: string
+          local_nascimento: string | null
+          nome: string
+          observacoes_protegidas: string | null
+          organization_id: string
+          parentesco: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          data_nascimento?: string | null
+          id?: string
+          local_nascimento?: string | null
+          nome: string
+          observacoes_protegidas?: string | null
+          organization_id: string
+          parentesco: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_nascimento?: string | null
+          id?: string
+          local_nascimento?: string | null
+          nome?: string
+          observacoes_protegidas?: string | null
+          organization_id?: string
+          parentesco?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_members_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casos: {
         Row: {
           canvas_publicado: boolean
@@ -215,6 +284,78 @@ export type Database = {
           },
           {
             foreignKeyName: "client_access_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_contacts: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          principal: boolean
+          relacao: string | null
+          telefone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          principal?: boolean
+          relacao?: string | null
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          principal?: boolean
+          relacao?: string | null
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contacts_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -397,12 +538,15 @@ export type Database = {
           email: string | null
           id: string
           nome: string
+          nome_social: string | null
           observacoes: string | null
           organization_id: string
+          origem: string | null
           pais_interesse: string | null
           status: string
           telefone: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           archive_motivo?: string | null
@@ -415,12 +559,15 @@ export type Database = {
           email?: string | null
           id?: string
           nome: string
+          nome_social?: string | null
           observacoes?: string | null
           organization_id: string
+          origem?: string | null
           pais_interesse?: string | null
           status?: string
           telefone?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           archive_motivo?: string | null
@@ -433,16 +580,91 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string
+          nome_social?: string | null
           observacoes?: string | null
           organization_id?: string
+          origem?: string | null
           pais_interesse?: string | null
           status?: string
           telefone?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "clientes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_records: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_id: string
+          coletado_em: string | null
+          created_at: string
+          created_by: string | null
+          evidencia_consentimento: string | null
+          id: string
+          organization_id: string
+          revogado_em: string | null
+          status: string
+          tipo_consentimento: string
+          updated_at: string
+          updated_by: string | null
+          versao_texto: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id: string
+          coletado_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidencia_consentimento?: string | null
+          id?: string
+          organization_id: string
+          revogado_em?: string | null
+          status?: string
+          tipo_consentimento: string
+          updated_at?: string
+          updated_by?: string | null
+          versao_texto: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string
+          coletado_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidencia_consentimento?: string | null
+          id?: string
+          organization_id?: string
+          revogado_em?: string | null
+          status?: string
+          tipo_consentimento?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao_texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_records_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1591,17 +1813,27 @@ export type Database = {
           contrato_assinado: boolean
           created_at: string
           created_by: string | null
+          data_ativacao: string | null
+          data_entrada: string
           demo: boolean
           documentos_minimos_ok: boolean
+          fase: string | null
           hipotese_elegibilidade: string | null
           id: string
           info_cliente_liberada: boolean
           organization_id: string
           pagamento_confirmado: boolean
           pais: string | null
+          prioridade: string
+          proxima_acao: string | null
+          responsavel_id: string | null
+          resumo: string | null
+          risco: string | null
           status: string
+          tipo_servico: string | null
           titulo: string
           updated_at: string
+          updated_by: string | null
           via: string
         }
         Insert: {
@@ -1621,17 +1853,27 @@ export type Database = {
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
+          data_ativacao?: string | null
+          data_entrada?: string
           demo?: boolean
           documentos_minimos_ok?: boolean
+          fase?: string | null
           hipotese_elegibilidade?: string | null
           id?: string
           info_cliente_liberada?: boolean
           organization_id: string
           pagamento_confirmado?: boolean
           pais?: string | null
+          prioridade?: string
+          proxima_acao?: string | null
+          responsavel_id?: string | null
+          resumo?: string | null
+          risco?: string | null
           status?: string
+          tipo_servico?: string | null
           titulo: string
           updated_at?: string
+          updated_by?: string | null
           via?: string
         }
         Update: {
@@ -1651,17 +1893,27 @@ export type Database = {
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
+          data_ativacao?: string | null
+          data_entrada?: string
           demo?: boolean
           documentos_minimos_ok?: boolean
+          fase?: string | null
           hipotese_elegibilidade?: string | null
           id?: string
           info_cliente_liberada?: boolean
           organization_id?: string
           pagamento_confirmado?: boolean
           pais?: string | null
+          prioridade?: string
+          proxima_acao?: string | null
+          responsavel_id?: string | null
+          resumo?: string | null
+          risco?: string | null
           status?: string
+          tipo_servico?: string | null
           titulo?: string
           updated_at?: string
+          updated_by?: string | null
           via?: string
         }
         Relationships: [
@@ -1674,6 +1926,91 @@ export type Database = {
           },
           {
             foreignKeyName: "crm_casos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          file_hash: string | null
+          id: string
+          liberado_cliente: boolean
+          observacoes: string | null
+          organization_id: string
+          status: string
+          storage_path: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          id?: string
+          liberado_cliente?: boolean
+          observacoes?: string | null
+          organization_id: string
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          id?: string
+          liberado_cliente?: boolean
+          observacoes?: string | null
+          organization_id?: string
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1811,15 +2148,22 @@ export type Database = {
           created_by: string | null
           demo: boolean
           descricao: string | null
+          fonte: string | null
+          grau_confianca: string | null
           id: string
           liberada_cliente: boolean
+          local_relacionado: string | null
+          observacao: string | null
           organization_id: string
           origem: string
+          periodo: string | null
+          pessoa_relacionada: string | null
           status: string
           storage_path: string | null
           tipo: string
           titulo: string
           updated_at: string
+          updated_by: string | null
           visibilidade: string
         }
         Insert: {
@@ -1831,15 +2175,22 @@ export type Database = {
           created_by?: string | null
           demo?: boolean
           descricao?: string | null
+          fonte?: string | null
+          grau_confianca?: string | null
           id?: string
           liberada_cliente?: boolean
+          local_relacionado?: string | null
+          observacao?: string | null
           organization_id: string
           origem?: string
+          periodo?: string | null
+          pessoa_relacionada?: string | null
           status?: string
           storage_path?: string | null
           tipo?: string
           titulo: string
           updated_at?: string
+          updated_by?: string | null
           visibilidade?: string
         }
         Update: {
@@ -1851,15 +2202,22 @@ export type Database = {
           created_by?: string | null
           demo?: boolean
           descricao?: string | null
+          fonte?: string | null
+          grau_confianca?: string | null
           id?: string
           liberada_cliente?: boolean
+          local_relacionado?: string | null
+          observacao?: string | null
           organization_id?: string
           origem?: string
+          periodo?: string | null
+          pessoa_relacionada?: string | null
           status?: string
           storage_path?: string | null
           tipo?: string
           titulo?: string
           updated_at?: string
+          updated_by?: string | null
           visibilidade?: string
         }
         Relationships: [
@@ -1875,6 +2233,111 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          client_id: string | null
+          conciliacao_status: string
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          moeda: string
+          numero: string | null
+          organization_id: string
+          referencia_externa: string | null
+          service_order_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: number
+          vencimento: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          conciliacao_status?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          moeda?: string
+          numero?: string | null
+          organization_id: string
+          referencia_externa?: string | null
+          service_order_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          vencimento?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          conciliacao_status?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          moeda?: string
+          numero?: string | null
+          organization_id?: string
+          referencia_externa?: string | null
+          service_order_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1897,6 +2360,7 @@ export type Database = {
           pais_interesse: string | null
           telefone: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           archive_motivo?: string | null
@@ -1915,6 +2379,7 @@ export type Database = {
           pais_interesse?: string | null
           telefone?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           archive_motivo?: string | null
@@ -1933,6 +2398,7 @@ export type Database = {
           pais_interesse?: string | null
           telefone?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2071,6 +2537,84 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          conciliacao_status: string
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string | null
+          metodo: string | null
+          moeda: string
+          organization_id: string
+          pago_em: string | null
+          referencia_externa: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor: number
+          vencimento: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          conciliacao_status?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          metodo?: string | null
+          moeda?: string
+          organization_id: string
+          pago_em?: string | null
+          referencia_externa?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          vencimento?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          conciliacao_status?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          metodo?: string | null
+          moeda?: string
+          organization_id?: string
+          pago_em?: string | null
+          referencia_externa?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planner_tarefas: {
         Row: {
           caso_id: string
@@ -2147,6 +2691,97 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      proposals: {
+        Row: {
+          aprovada_em: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          enviada_em: string | null
+          escopo: string | null
+          id: string
+          lead_id: string | null
+          moeda: string
+          organization_id: string
+          recusada_em: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          validade: string | null
+          valor: number
+          versao: number
+        }
+        Insert: {
+          aprovada_em?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enviada_em?: string | null
+          escopo?: string | null
+          id?: string
+          lead_id?: string | null
+          moeda?: string
+          organization_id: string
+          recusada_em?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validade?: string | null
+          valor?: number
+          versao?: number
+        }
+        Update: {
+          aprovada_em?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          enviada_em?: string | null
+          escopo?: string | null
+          id?: string
+          lead_id?: string | null
+          moeda?: string
+          organization_id?: string
+          recusada_em?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validade?: string | null
+          valor?: number
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_orders: {
         Row: {
@@ -2388,6 +3023,7 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          bloqueio: boolean
           caso_id: string | null
           concluida_em: string | null
           created_at: string
@@ -2395,6 +3031,7 @@ export type Database = {
           demo: boolean
           descricao: string | null
           id: string
+          motivo_bloqueio: string | null
           organization_id: string
           prazo: string | null
           prioridade: string
@@ -2402,11 +3039,13 @@ export type Database = {
           status: string
           titulo: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bloqueio?: boolean
           caso_id?: string | null
           concluida_em?: string | null
           created_at?: string
@@ -2414,6 +3053,7 @@ export type Database = {
           demo?: boolean
           descricao?: string | null
           id?: string
+          motivo_bloqueio?: string | null
           organization_id: string
           prazo?: string | null
           prioridade?: string
@@ -2421,11 +3061,13 @@ export type Database = {
           status?: string
           titulo: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bloqueio?: boolean
           caso_id?: string | null
           concluida_em?: string | null
           created_at?: string
@@ -2433,6 +3075,7 @@ export type Database = {
           demo?: boolean
           descricao?: string | null
           id?: string
+          motivo_bloqueio?: string | null
           organization_id?: string
           prazo?: string | null
           prioridade?: string
@@ -2440,6 +3083,7 @@ export type Database = {
           status?: string
           titulo?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2585,6 +3229,10 @@ export type Database = {
       staff_meu_papel: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      transicao_permitida: {
+        Args: { _de: string; _entidade: string; _para: string }
+        Returns: boolean
       }
       validate_contract_readiness: {
         Args: { _contract_id: string; _version_id?: string }
