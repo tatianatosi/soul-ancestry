@@ -1,0 +1,171 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+
+import { SaasShell } from "@/components/saas/shell";
+import { Painel, Selo } from "@/components/comercial/base";
+import { rotulo } from "@/components/pesquisa/modulo-campos";
+import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
+
+export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
+  head: () => ({
+    meta: [
+      { title: "Módulo de pesquisa e evidências — Clube Ancestral" },
+      {
+        name: "description",
+        content: "Pesquisas genealógicas por caso: pessoas, evidências, pendências e travas de pesquisa externa.",
+      },
+      { property: "og:title", content: "Módulo de pesquisa e evidências — Clube Ancestral" },
+      {
+        property: "og:description",
+        content: "Pesquisas genealógicas por caso: pessoas, evidências, pendências e travas de pesquisa externa.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: Index,
+});
+
+function Index() {
+  const carregar = useServerFn(painelPesquisaModulo);
+  const criar = useServerFn(criarPesquisaParaCaso);
+  const scan = useServerFn(rodarScanPesquisa);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [casoId, setCasoId] = useState("");
+  const [objetivo, setObjetivo] = useState("");
+
+  const q = useQuery({ queryKey: ["pesquisa-modulo", "painel"], queryFn: () => carregar() });
+
+  const mCriar = useMutation({
+    mutationFn: () => criar({ data: { casoId, objetivo } }),
+    onSuccess: (r) => {
+      toast.success(r.jaExistia ? "Este caso já possuía pesquisa." : "Pesquisa criada.");
+      navigate({ to: "/pesquisa-modulo/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mScan = useMutation({
+    mutationFn: () => scan(),
+    onSuccess: (r) => {
+      toast.success(`Verificação concluída: ${r.criadas} novas, ${r.sanadas} sanadas, ${r.abertas} abertas.`);
+      qc.invalidateQueries({ queryKey: ["pesquisa-modulo", "painel"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const d = q.data;
+
+  return (
+    <SaasShell
+      titulo="Pesquisa e evidências"
+      descricao="Pesquisas por caso, com pendências, evidências e travas de pesquisa externa."
+    >
+      {q.isLoading && <p className="text-sm text-navy/60">Carregando painel…</p>}
+      {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
+
+      {d && (
+        <div className="space-y-4">
+          <Painel titulo="Pesquisas em andamento">
+            <button
+              className="mb-3 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
+              onClick={() => mScan.mutate()}
+            >
+              Rodar verificação de qualidade da pesquisa
+            </button>
+            <div className="space-y-2">
+              {d.pesquisas.map((p: any) => (
+                <Link
+                  key={p["id"]}
+                  to="/pesquisa-modulo/$id"
+                  params={{ id: p["id"] }}
+                  className="block rounded-xl border border-navy/10 bg-white p-3 hover:border-navy/30"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <strong className="text-sm">{String(p.caso?.codigo ?? "caso")}</strong>
+                    <span className="text-sm text-navy/70">{String(p.caso?.titulo ?? "")}</span>
+                    <Selo texto={rotulo(p["status"])} />
+                    {p["pendencias_criticas"] > 0 && (
+                      <Selo texto={`${p["pendencias_criticas"]} pendência(s) crítica(s)`} tom="erro" />
+                    )}
+                    {p["pendencias_vencidas"] > 0 && (
+                      <Selo texto={`${p["pendencias_vencidas"]} vencida(s)`} tom="alerta" />
+                    )}
+                    {p["evidencias_revisao"] > 0 && (
+                      <Selo texto={`${p["evidencias_revisao"]} evidência(s) em revisão`} tom="alerta" />
+                    )}
+                  </div>
+                  <p className="text-xs text-navy/50">{String(p["research_objective"] ?? "objetivo não descrito")}</p>
+                </Link>
+              ))}
+              {d.pesquisas.length === 0 && <p className="text-sm text-navy/60">Nenhuma pesquisa criada ainda.</p>}
+            </div>
+          </Painel>
+
+          <Painel titulo="Abrir pesquisa para um caso existente">
+            <form
+              className="grid gap-3 md:grid-cols-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                mCriar.mutate();
+              }}
+            >
+              <label className="text-xs text-navy/70">
+                Caso
+                <select
+                  value={casoId}
+                  onChange={(e) => setCasoId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+                >
+                  <option value="">Selecione…</option>
+                  {d.casosSemPesquisa.map((c: any) => (
+                    <option key={c["id"]} value={c["id"]}>
+                      {String(c["codigo"])} — {String(c["titulo"])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs text-navy/70 md:col-span-2">
+                Objetivo da pesquisa
+                <textarea
+                  rows={2}
+                  value={objetivo}
+                  onChange={(e) => setObjetivo(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+                  placeholder="Ex.: reconstruir a linha paterna até o ancestral emigrado e localizar registros civis correspondentes."
+                />
+              </label>
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  disabled={!casoId || mCriar.isPending}
+                  className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-50"
+                >
+                  {mCriar.isPending ? "Criando…" : "Criar pesquisa"}
+                </button>
+              </div>
+            </form>
+          </Painel>
+
+          <Painel titulo="Inconsistências de pesquisa em aberto">
+            {d.inconsistencias.length === 0 && <p className="text-sm text-navy/60">Nenhuma inconsistência aberta.</p>}
+            <ul className="space-y-1 text-sm text-navy/70">
+              {d.inconsistencias.map((i: any) => (
+                <li key={i["id"]}>
+                  <Selo texto={String(i["severidade"])} tom={i["severidade"] === "critica" ? "erro" : "alerta"} />{" "}
+                  {String(i["titulo"])}
+                </li>
+              ))}
+            </ul>
+          </Painel>
+        </div>
+      )}
+    </SaasShell>
+  );
+}

@@ -4968,6 +4968,533 @@ export type Database = {
           },
         ]
       }
+      research_audit_events: {
+        Row: {
+          actor_user_id: string | null
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          id: string
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          research_case_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          research_case_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          research_case_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_case_events: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          confidence_level: string
+          country_context: string | null
+          created_at: string
+          created_by: string | null
+          event_date: string | null
+          event_date_precision: string
+          event_type: string
+          id: string
+          location_text: string | null
+          notes_internal: string | null
+          organization_id: string
+          person_id: string | null
+          research_case_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          confidence_level?: string
+          country_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_date?: string | null
+          event_date_precision?: string
+          event_type?: string
+          id?: string
+          location_text?: string | null
+          notes_internal?: string | null
+          organization_id: string
+          person_id?: string | null
+          research_case_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          confidence_level?: string
+          country_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_date?: string | null
+          event_date_precision?: string
+          event_type?: string
+          id?: string
+          location_text?: string | null
+          notes_internal?: string | null
+          organization_id?: string
+          person_id?: string | null
+          research_case_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_case_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_events_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_case_hypotheses: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          category: string
+          client_visibility: string
+          closure_reason: string | null
+          confidence_level: string
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          related_event_id: string | null
+          related_person_id: string | null
+          related_relationship_id: string | null
+          research_case_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          statement: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          category?: string
+          client_visibility?: string
+          closure_reason?: string | null
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          related_event_id?: string | null
+          related_person_id?: string | null
+          related_relationship_id?: string | null
+          research_case_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          statement?: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          category?: string
+          client_visibility?: string
+          closure_reason?: string | null
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          related_event_id?: string | null
+          related_person_id?: string | null
+          related_relationship_id?: string | null
+          research_case_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          statement?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_case_hypotheses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_hypotheses_related_event_id_fkey"
+            columns: ["related_event_id"]
+            isOneToOne: false
+            referencedRelation: "research_case_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_hypotheses_related_person_id_fkey"
+            columns: ["related_person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_hypotheses_related_relationship_id_fkey"
+            columns: ["related_relationship_id"]
+            isOneToOne: false
+            referencedRelation: "research_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_case_hypotheses_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_cases: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          assigned_researcher_user_id: string | null
+          case_id: string
+          client_summary_status: string
+          confidence_level: string
+          country_context: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          external_research_authorization_status: string
+          external_research_gate_status: string
+          family_line_summary_internal: string | null
+          id: string
+          internal_risk_summary: string | null
+          next_research_action: string | null
+          next_research_action_due_at: string | null
+          organization_id: string
+          research_objective: string
+          research_scope_summary: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assigned_researcher_user_id?: string | null
+          case_id: string
+          client_summary_status?: string
+          confidence_level?: string
+          country_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          external_research_authorization_status?: string
+          external_research_gate_status?: string
+          family_line_summary_internal?: string | null
+          id?: string
+          internal_risk_summary?: string | null
+          next_research_action?: string | null
+          next_research_action_due_at?: string | null
+          organization_id: string
+          research_objective?: string
+          research_scope_summary?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assigned_researcher_user_id?: string | null
+          case_id?: string
+          client_summary_status?: string
+          confidence_level?: string
+          country_context?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          external_research_authorization_status?: string
+          external_research_gate_status?: string
+          family_line_summary_internal?: string | null
+          id?: string
+          internal_risk_summary?: string | null
+          next_research_action?: string | null
+          next_research_action_due_at?: string | null
+          organization_id?: string
+          research_objective?: string
+          research_scope_summary?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_cases_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_cases_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_client_summaries: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          released_at: string | null
+          released_by: string | null
+          research_case_id: string
+          status: string
+          summary_client_facing: string
+          title_client_facing: string
+          updated_at: string
+          updated_by: string | null
+          validated_facts_only: boolean
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          released_at?: string | null
+          released_by?: string | null
+          research_case_id: string
+          status?: string
+          summary_client_facing?: string
+          title_client_facing: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_facts_only?: boolean
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          released_at?: string | null
+          released_by?: string | null
+          research_case_id?: string
+          status?: string
+          summary_client_facing?: string
+          title_client_facing?: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_facts_only?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_client_summaries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_client_summaries_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_document_requests: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_visible: boolean
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          external_action_required: boolean
+          external_gate_status: string
+          id: string
+          notes_internal: string | null
+          organization_id: string
+          person_id: string | null
+          received_at: string | null
+          request_type: string
+          requested_at: string | null
+          requested_document_type: string
+          research_case_id: string
+          responsible_user_id: string | null
+          status: string
+          target_institution: string | null
+          target_location: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          external_action_required?: boolean
+          external_gate_status?: string
+          id?: string
+          notes_internal?: string | null
+          organization_id: string
+          person_id?: string | null
+          received_at?: string | null
+          request_type?: string
+          requested_at?: string | null
+          requested_document_type: string
+          research_case_id: string
+          responsible_user_id?: string | null
+          status?: string
+          target_institution?: string | null
+          target_location?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          external_action_required?: boolean
+          external_gate_status?: string
+          id?: string
+          notes_internal?: string | null
+          organization_id?: string
+          person_id?: string | null
+          received_at?: string | null
+          request_type?: string
+          requested_at?: string | null
+          requested_document_type?: string
+          research_case_id?: string
+          responsible_user_id?: string | null
+          status?: string
+          target_institution?: string | null
+          target_location?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_document_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_document_requests_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_document_requests_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_events: {
         Row: {
           archive_motivo: string | null
@@ -5079,6 +5606,227 @@ export type Database = {
           },
         ]
       }
+      research_evidence_items: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_visibility: string
+          confidence_level: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discard_reason: string | null
+          document_id: string | null
+          event_id: string | null
+          evidence_status: string
+          evidence_type: string
+          external_reference: string | null
+          fornecida_pelo_cliente: boolean
+          id: string
+          organization_id: string
+          origem_externa: boolean
+          person_id: string | null
+          relationship_id: string | null
+          research_case_id: string
+          responsible_user_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sensitivity_level: string
+          source_id: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          validated_at: string | null
+          validated_by: string | null
+          validation_rationale: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_visibility?: string
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discard_reason?: string | null
+          document_id?: string | null
+          event_id?: string | null
+          evidence_status?: string
+          evidence_type?: string
+          external_reference?: string | null
+          fornecida_pelo_cliente?: boolean
+          id?: string
+          organization_id: string
+          origem_externa?: boolean
+          person_id?: string | null
+          relationship_id?: string | null
+          research_case_id: string
+          responsible_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sensitivity_level?: string
+          source_id?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_rationale?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_visibility?: string
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discard_reason?: string | null
+          document_id?: string | null
+          event_id?: string | null
+          evidence_status?: string
+          evidence_type?: string
+          external_reference?: string | null
+          fornecida_pelo_cliente?: boolean
+          id?: string
+          organization_id?: string
+          origem_externa?: boolean
+          person_id?: string | null
+          relationship_id?: string | null
+          research_case_id?: string
+          responsible_user_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sensitivity_level?: string
+          source_id?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_rationale?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_evidence_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "research_case_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "research_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_evidence_links: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          evidence_item_id: string
+          id: string
+          link_role: string
+          notes: string | null
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          evidence_item_id: string
+          id?: string
+          link_role?: string
+          notes?: string | null
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          evidence_item_id?: string
+          id?: string
+          link_role?: string
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_evidence_links_evidence_item_id_fkey"
+            columns: ["evidence_item_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_evidence_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_hypotheses: {
         Row: {
           archive_motivo: string | null
@@ -5163,6 +5911,575 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_name_variants: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          person_id: string
+          source_evidence_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          variant_name: string
+          variant_type: string
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          person_id: string
+          source_evidence_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          variant_name: string
+          variant_type?: string
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          person_id?: string
+          source_evidence_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          variant_name?: string
+          variant_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_name_variants_evidence_fkey"
+            columns: ["source_evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_name_variants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_name_variants_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_pending_items: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          blocking_reason: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          organization_id: string
+          research_case_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responsible_user_id: string | null
+          severity: string
+          status: string
+          tarefa_id: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          blocking_reason?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          organization_id: string
+          research_case_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responsible_user_id?: string | null
+          severity?: string
+          status?: string
+          tarefa_id?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          blocking_reason?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          organization_id?: string
+          research_case_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responsible_user_id?: string | null
+          severity?: string
+          status?: string
+          tarefa_id?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_pending_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_pending_items_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_pending_items_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_pending_items_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "v_ops_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_people: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          birth_date: string | null
+          birth_date_precision: string
+          birth_place: string | null
+          canonical_name: string
+          created_at: string
+          created_by: string | null
+          death_date: string | null
+          death_date_precision: string | null
+          death_place: string | null
+          gender_or_descriptor: string | null
+          id: string
+          identity_status: string
+          is_minor: boolean
+          living_status: string
+          nationality_context: string | null
+          notes_internal: string | null
+          organization_id: string
+          person_status: string
+          preferred_display_name: string | null
+          research_case_id: string
+          sensitivity_level: string
+          updated_at: string
+          updated_by: string | null
+          visible_to_client_summary: boolean
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          birth_date?: string | null
+          birth_date_precision?: string
+          birth_place?: string | null
+          canonical_name: string
+          created_at?: string
+          created_by?: string | null
+          death_date?: string | null
+          death_date_precision?: string | null
+          death_place?: string | null
+          gender_or_descriptor?: string | null
+          id?: string
+          identity_status?: string
+          is_minor?: boolean
+          living_status?: string
+          nationality_context?: string | null
+          notes_internal?: string | null
+          organization_id: string
+          person_status?: string
+          preferred_display_name?: string | null
+          research_case_id: string
+          sensitivity_level?: string
+          updated_at?: string
+          updated_by?: string | null
+          visible_to_client_summary?: boolean
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          birth_date?: string | null
+          birth_date_precision?: string
+          birth_place?: string | null
+          canonical_name?: string
+          created_at?: string
+          created_by?: string | null
+          death_date?: string | null
+          death_date_precision?: string | null
+          death_place?: string | null
+          gender_or_descriptor?: string | null
+          id?: string
+          identity_status?: string
+          is_minor?: boolean
+          living_status?: string
+          nationality_context?: string | null
+          notes_internal?: string | null
+          organization_id?: string
+          person_status?: string
+          preferred_display_name?: string | null
+          research_case_id?: string
+          sensitivity_level?: string
+          updated_at?: string
+          updated_by?: string | null
+          visible_to_client_summary?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_people_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_people_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_relationships: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          confidence_level: string
+          created_at: string
+          created_by: string | null
+          directionality: string
+          id: string
+          notes_internal: string | null
+          organization_id: string
+          person_a_id: string
+          person_b_id: string
+          relationship_type: string
+          research_case_id: string
+          status: string
+          supporting_evidence_count: number
+          updated_at: string
+          updated_by: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          directionality?: string
+          id?: string
+          notes_internal?: string | null
+          organization_id: string
+          person_a_id: string
+          person_b_id: string
+          relationship_type?: string
+          research_case_id: string
+          status?: string
+          supporting_evidence_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          directionality?: string
+          id?: string
+          notes_internal?: string | null
+          organization_id?: string
+          person_a_id?: string
+          person_b_id?: string
+          relationship_type?: string
+          research_case_id?: string
+          status?: string
+          supporting_evidence_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_relationships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_relationships_person_a_id_fkey"
+            columns: ["person_a_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_relationships_person_b_id_fkey"
+            columns: ["person_b_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_relationships_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_reports: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          client_release_authorized_at: string | null
+          client_release_authorized_by: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          file_hash: string | null
+          file_path: string | null
+          generated_from_snapshot_at: string | null
+          id: string
+          organization_id: string
+          report_type: string
+          research_case_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_release_authorized_at?: string | null
+          client_release_authorized_by?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          generated_from_snapshot_at?: string | null
+          id?: string
+          organization_id: string
+          report_type?: string
+          research_case_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          client_release_authorized_at?: string | null
+          client_release_authorized_by?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          file_hash?: string | null
+          file_path?: string | null
+          generated_from_snapshot_at?: string | null
+          id?: string
+          organization_id?: string
+          report_type?: string
+          research_case_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_reports_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_sources: {
+        Row: {
+          access_date: string | null
+          access_level: string
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          citation_text: string | null
+          created_at: string
+          created_by: string | null
+          external_source: boolean
+          id: string
+          notes_internal: string | null
+          organization_id: string
+          publication_or_record_date: string | null
+          repository_or_institution: string | null
+          research_case_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_status: string
+          source_type: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          url: string | null
+        }
+        Insert: {
+          access_date?: string | null
+          access_level?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          citation_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_source?: boolean
+          id?: string
+          notes_internal?: string | null
+          organization_id: string
+          publication_or_record_date?: string | null
+          repository_or_institution?: string | null
+          research_case_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_status?: string
+          source_type?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+        }
+        Update: {
+          access_date?: string | null
+          access_level?: string
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          citation_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_source?: boolean
+          id?: string
+          notes_internal?: string | null
+          organization_id?: string
+          publication_or_record_date?: string | null
+          repository_or_institution?: string | null
+          research_case_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_status?: string
+          source_type?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_sources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_sources_research_case_id_fkey"
+            columns: ["research_case_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
             referencedColumns: ["id"]
           },
         ]
@@ -5948,6 +7265,7 @@ export type Database = {
         Args: { _alerta_em: string; _prazo_em: string; _status: string }
         Returns: string
       }
+      pode_iniciar_pesquisa_externa: { Args: { _rc: string }; Returns: Json }
       pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
       portal_meu_acesso: { Args: never; Returns: string }
@@ -5970,6 +7288,27 @@ export type Database = {
         }[]
       }
       quality_sync_checklist: { Args: { _case: string }; Returns: number }
+      research_quality_scan: {
+        Args: { _org: string }
+        Returns: {
+          abertas: number
+          criadas: number
+          sanadas: number
+        }[]
+      }
+      rg_admin: { Args: { _org: string }; Returns: boolean }
+      rg_editar: { Args: { _org: string }; Returns: boolean }
+      rg_ler_detalhe: { Args: { _org: string }; Returns: boolean }
+      rg_ler_resumo: { Args: { _org: string }; Returns: boolean }
+      rg_papel: {
+        Args: { _org: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      rg_pode_editar_caso: { Args: { _rc: string }; Returns: boolean }
+      rg_tem_evidencia_validada: {
+        Args: { _id: string; _tipo: string }
+        Returns: boolean
+      }
       staff_meu_papel: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
