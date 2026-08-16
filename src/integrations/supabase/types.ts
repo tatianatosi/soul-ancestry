@@ -61,6 +61,27 @@ export type Database = {
           },
         ]
       }
+      auth_throttle: {
+        Row: {
+          id: string
+          occurred_at: string
+          scope: string
+          subject_hash: string
+        }
+        Insert: {
+          id?: string
+          occurred_at?: string
+          scope: string
+          subject_hash: string
+        }
+        Update: {
+          id?: string
+          occurred_at?: string
+          scope?: string
+          subject_hash?: string
+        }
+        Relationships: []
+      }
       casos: {
         Row: {
           canvas_publicado: boolean
@@ -1005,6 +1026,98 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_access: {
+        Row: {
+          activated_at: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          auth_user_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          email: string
+          full_name: string | null
+          id: string
+          invitation_expires_at: string | null
+          invited_at: string
+          invited_by: string | null
+          last_login_at: string | null
+          organization_id: string
+          reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["staff_status"]
+          suspended_at: string | null
+          suspended_by: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email: string
+          full_name?: string | null
+          id?: string
+          invitation_expires_at?: string | null
+          invited_at?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          organization_id: string
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["staff_status"]
+          suspended_at?: string | null
+          suspended_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          auth_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email?: string
+          full_name?: string | null
+          id?: string
+          invitation_expires_at?: string | null
+          invited_at?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          organization_id?: string
+          reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["staff_status"]
+          suspended_at?: string | null
+          suspended_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_access_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tarefas: {
         Row: {
           archive_motivo: string | null
@@ -1181,6 +1294,7 @@ export type Database = {
         Returns: boolean
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
+      is_staff_ativo: { Args: { _org: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
       portal_meu_acesso: { Args: never; Returns: string }
       portal_meu_cliente: { Args: never; Returns: string }
@@ -1189,6 +1303,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["portal_access_level"]
       }
       portal_minha_org: { Args: never; Returns: string }
+      staff_meu_papel: {
+        Args: { _org: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
     }
     Enums: {
       app_role:
@@ -1220,6 +1338,7 @@ export type Database = {
         | "case_access_granted"
         | "case_access_revoked"
         | "session_expired"
+      staff_status: "invited" | "active" | "suspended" | "revoked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1379,6 +1498,7 @@ export const Constants = {
         "case_access_revoked",
         "session_expired",
       ],
+      staff_status: ["invited", "active", "suspended", "revoked"],
     },
   },
 } as const
