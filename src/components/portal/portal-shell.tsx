@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { FolderOpen, FileText, Receipt, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLogo } from "@/components/brand";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
 
