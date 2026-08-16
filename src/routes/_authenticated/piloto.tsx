@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -105,6 +105,13 @@ function Conteudo({ dados }: { dados: any }) {
           {caso["codigo"]} — {dados.cliente?.nome ?? "Cliente não vinculado"}
         </h2>
         <p className="mt-0.5 font-mono text-[11px] text-cream/70">case_id: {caso["id"]}</p>
+        <Link
+          to="/casos/$caseId/contrato/preparar"
+          params={{ caseId: String(caso["id"]) }}
+          className="mt-2 inline-block rounded-lg bg-gold px-3 py-1.5 text-xs font-semibold text-navy"
+        >
+          Abrir ficha e prévia contratual
+        </Link>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           <Selo texto={`Aceite comercial: ${caso["aceite_comercial_em"] ?? "não registrado"}`} tom="ok" />
           <Selo texto={`Preparação: ${caso["preparacao_status"]}`} tom="alerta" />
