@@ -373,7 +373,7 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
     const email = h.normalizarEmail(data.email);
     if (!h.emailValido(email)) throw new Error("E-mail inválido.");
 
-    const existentes = await h.adminClient.from("staff_access").select("id").limit(1);
+    const existentes = await h.adminClient.from("staff_access").select("id").is("archived_at", null).limit(1);
     if ((existentes.data ?? []).length > 0) {
       throw new Error("Provisionamento inicial já concluído. Solicite um convite a um administrador.");
     }
@@ -435,6 +435,6 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
 /** Indica se a instância ainda não tem nenhum acesso de equipe. */
 export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(async () => {
   const h = await import("./equipe.server");
-  const { data } = await h.adminClient.from("staff_access").select("id").limit(1);
+  const { data } = await h.adminClient.from("staff_access").select("id").is("archived_at", null).limit(1);
   return { pendente: (data ?? []).length === 0 };
 });
