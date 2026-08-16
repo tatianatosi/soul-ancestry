@@ -2864,6 +2864,224 @@ export type Database = {
           },
         ]
       }
+      ops_excecoes: {
+        Row: {
+          autorizado_em: string
+          autorizado_por: string | null
+          caso_id: string | null
+          consumida_em: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          motivo: string
+          organization_id: string
+          referencia_entidade: string | null
+          referencia_id: string | null
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          valido_ate: string | null
+        }
+        Insert: {
+          autorizado_em?: string
+          autorizado_por?: string | null
+          caso_id?: string | null
+          consumida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo: string
+          organization_id: string
+          referencia_entidade?: string | null
+          referencia_id?: string | null
+          tipo: string
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate?: string | null
+        }
+        Update: {
+          autorizado_em?: string
+          autorizado_por?: string | null
+          caso_id?: string | null
+          consumida_em?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo?: string
+          organization_id?: string
+          referencia_entidade?: string | null
+          referencia_id?: string | null
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_excecoes_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_excecoes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_microentregas: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          caso_id: string
+          concluida_em: string | null
+          concluida_por: string | null
+          created_at: string
+          created_by: string | null
+          criterio_aceite: string | null
+          descricao: string | null
+          evidencia_descricao: string | null
+          evidencia_url: string | null
+          excecao_id: string | null
+          fase: string
+          id: string
+          justificativa_sem_evidencia: string | null
+          organization_id: string
+          prazo: string | null
+          prioridade: string
+          responsavel_id: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id: string
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          criterio_aceite?: string | null
+          descricao?: string | null
+          evidencia_descricao?: string | null
+          evidencia_url?: string | null
+          excecao_id?: string | null
+          fase?: string
+          id?: string
+          justificativa_sem_evidencia?: string | null
+          organization_id: string
+          prazo?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          caso_id?: string
+          concluida_em?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          criterio_aceite?: string | null
+          descricao?: string | null
+          evidencia_descricao?: string | null
+          evidencia_url?: string | null
+          excecao_id?: string | null
+          fase?: string
+          id?: string
+          justificativa_sem_evidencia?: string | null
+          organization_id?: string
+          prazo?: string | null
+          prioridade?: string
+          responsavel_id?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_microentregas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_microentregas_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ops_sla_regras: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          created_by: string | null
+          horas_alerta: number
+          horas_alvo: number
+          id: string
+          observacoes: string | null
+          organization_id: string
+          prioridade: string
+          tipo_tarefa: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          horas_alerta?: number
+          horas_alvo?: number
+          id?: string
+          observacoes?: string | null
+          organization_id: string
+          prioridade?: string
+          tipo_tarefa?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          horas_alerta?: number
+          horas_alvo?: number
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          prioridade?: string
+          tipo_tarefa?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_sla_regras_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           archive_motivo: string | null
@@ -3730,12 +3948,16 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          bloqueado_em: string | null
           bloqueio: boolean
           caso_id: string | null
           concluida_em: string | null
           created_at: string
           created_by: string | null
           demo: boolean
+          desbloqueado_em: string | null
+          desbloqueio_justificativa: string | null
+          desbloqueio_por: string | null
           descricao: string | null
           evidencia_id: string | null
           hypothesis_id: string | null
@@ -3746,7 +3968,11 @@ export type Database = {
           prazo: string | null
           prioridade: string
           responsavel_id: string | null
+          sla_alerta_em: string | null
+          sla_horas: number | null
+          sla_prazo_em: string | null
           status: string
+          tipo: string
           titulo: string
           updated_at: string
           updated_by: string | null
@@ -3755,12 +3981,16 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bloqueado_em?: string | null
           bloqueio?: boolean
           caso_id?: string | null
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
           demo?: boolean
+          desbloqueado_em?: string | null
+          desbloqueio_justificativa?: string | null
+          desbloqueio_por?: string | null
           descricao?: string | null
           evidencia_id?: string | null
           hypothesis_id?: string | null
@@ -3771,7 +4001,11 @@ export type Database = {
           prazo?: string | null
           prioridade?: string
           responsavel_id?: string | null
+          sla_alerta_em?: string | null
+          sla_horas?: number | null
+          sla_prazo_em?: string | null
           status?: string
+          tipo?: string
           titulo: string
           updated_at?: string
           updated_by?: string | null
@@ -3780,12 +4014,16 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          bloqueado_em?: string | null
           bloqueio?: boolean
           caso_id?: string | null
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
           demo?: boolean
+          desbloqueado_em?: string | null
+          desbloqueio_justificativa?: string | null
+          desbloqueio_por?: string | null
           descricao?: string | null
           evidencia_id?: string | null
           hypothesis_id?: string | null
@@ -3796,7 +4034,11 @@ export type Database = {
           prazo?: string | null
           prioridade?: string
           responsavel_id?: string | null
+          sla_alerta_em?: string | null
+          sla_horas?: number | null
+          sla_prazo_em?: string | null
           status?: string
+          tipo?: string
           titulo?: string
           updated_at?: string
           updated_by?: string | null
@@ -3929,7 +4171,130 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_ops_microentregas: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          caso_codigo: string | null
+          caso_id: string | null
+          caso_status: string | null
+          caso_titulo: string | null
+          concluida_em: string | null
+          concluida_por: string | null
+          created_at: string | null
+          created_by: string | null
+          criterio_aceite: string | null
+          descricao: string | null
+          evidencia_descricao: string | null
+          evidencia_url: string | null
+          excecao_id: string | null
+          fase: string | null
+          id: string | null
+          justificativa_sem_evidencia: string | null
+          organization_id: string | null
+          prazo: string | null
+          prazo_status: string | null
+          prioridade: string | null
+          responsavel_id: string | null
+          status: string | null
+          titulo: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ops_microentregas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_microentregas_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_ops_tarefas: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueado_em: string | null
+          bloqueio: boolean | null
+          caso_codigo: string | null
+          caso_id: string | null
+          caso_status: string | null
+          caso_titulo: string | null
+          concluida_em: string | null
+          created_at: string | null
+          created_by: string | null
+          demo: boolean | null
+          desbloqueado_em: string | null
+          desbloqueio_justificativa: string | null
+          desbloqueio_por: string | null
+          descricao: string | null
+          evidencia_id: string | null
+          hypothesis_id: string | null
+          id: string | null
+          motivo_bloqueio: string | null
+          organization_id: string | null
+          person_id: string | null
+          prazo: string | null
+          prioridade: string | null
+          responsavel_id: string | null
+          sla_alerta_em: string | null
+          sla_horas: number | null
+          sla_prazo_em: string | null
+          sla_status: string | null
+          status: string | null
+          tipo: string | null
+          titulo: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_hypothesis_id_fkey"
+            columns: ["hypothesis_id"]
+            isOneToOne: false
+            referencedRelation: "research_hypotheses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activation_check_definicoes: {
@@ -3980,6 +4345,11 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       is_staff_ativo: { Args: { _org: string }; Returns: boolean }
+      ops_painel: { Args: { _org: string }; Returns: Json }
+      ops_sla_status: {
+        Args: { _alerta_em: string; _prazo_em: string; _status: string }
+        Returns: string
+      }
       pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
       portal_meu_acesso: { Args: never; Returns: string }
