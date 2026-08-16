@@ -82,9 +82,13 @@ async function resolverOrganizacao(supabase: SupabaseCliente) {
     .is("archived_at", null)
     .maybeSingle();
   if (membro.data?.organization_id) return membro.data.organization_id as string;
+  // Quem já possui acesso de equipe (pendente/suspenso/revogado) nunca cria nova organização.
+  const staff = await supabase.from("staff_access").select("id,status").limit(1).maybeSingle();
+  if (staff.data) throw new Error("Acesso não autorizado.");
   const criada = await supabase.rpc("bootstrap_minha_organizacao", {});
   if (criada.error) throw new Error(criada.error.message);
   return criada.data as string;
+
 }
 
 export const getContexto = createServerFn({ method: "GET" })
