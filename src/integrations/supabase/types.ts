@@ -1698,6 +1698,9 @@ export type Database = {
           effective_start_date: string | null
           exclusions_summary: string | null
           external_expense_status: string
+          external_signature_approved_at: string | null
+          external_signature_approved_by: string | null
+          external_signature_justification: string | null
           financial_change_status: string
           financial_gate_status: string
           id: string
@@ -1746,6 +1749,9 @@ export type Database = {
           effective_start_date?: string | null
           exclusions_summary?: string | null
           external_expense_status?: string
+          external_signature_approved_at?: string | null
+          external_signature_approved_by?: string | null
+          external_signature_justification?: string | null
           financial_change_status?: string
           financial_gate_status?: string
           id?: string
@@ -1794,6 +1800,9 @@ export type Database = {
           effective_start_date?: string | null
           exclusions_summary?: string | null
           external_expense_status?: string
+          external_signature_approved_at?: string | null
+          external_signature_approved_by?: string | null
+          external_signature_justification?: string | null
           financial_change_status?: string
           financial_gate_status?: string
           id?: string
@@ -2317,6 +2326,69 @@ export type Database = {
           },
         ]
       }
+      invoice_adjustments: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          motivo: string
+          organization_id: string
+          referencia_externa: string | null
+          updated_at: string
+          updated_by: string | null
+          valor: number
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          motivo: string
+          organization_id: string
+          referencia_externa?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor: number
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          motivo?: string
+          organization_id?: string
+          referencia_externa?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_adjustments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_adjustments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           archive_motivo: string | null
@@ -2328,16 +2400,21 @@ export type Database = {
           contract_id: string | null
           created_at: string
           created_by: string | null
+          descricao: string | null
+          emitida_em: string | null
           id: string
           moeda: string
           numero: string | null
           organization_id: string
+          paga_em: string | null
+          proposal_id: string | null
           referencia_externa: string | null
           service_order_id: string | null
           status: string
           updated_at: string
           updated_by: string | null
           valor: number
+          valor_pago: number
           vencimento: string | null
         }
         Insert: {
@@ -2350,16 +2427,21 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          descricao?: string | null
+          emitida_em?: string | null
           id?: string
           moeda?: string
           numero?: string | null
           organization_id: string
+          paga_em?: string | null
+          proposal_id?: string | null
           referencia_externa?: string | null
           service_order_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
           valor?: number
+          valor_pago?: number
           vencimento?: string | null
         }
         Update: {
@@ -2372,16 +2454,21 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          descricao?: string | null
+          emitida_em?: string | null
           id?: string
           moeda?: string
           numero?: string | null
           organization_id?: string
+          paga_em?: string | null
+          proposal_id?: string | null
           referencia_externa?: string | null
           service_order_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
           valor?: number
+          valor_pago?: number
           vencimento?: string | null
         }
         Relationships: [
@@ -2411,6 +2498,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
           {
@@ -2778,20 +2872,30 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          case_id: string | null
           client_id: string | null
           created_at: string
           created_by: string | null
           enviada_em: string | null
           escopo: string | null
+          exclusoes: string | null
+          forma_pagamento: string | null
           id: string
           lead_id: string | null
           moeda: string
+          observacoes_cliente: string | null
+          observacoes_internas: string | null
           organization_id: string
           recusada_em: string | null
           status: string
+          substituida_em: string | null
+          substituida_por_id: string | null
           updated_at: string
           updated_by: string | null
           validade: string | null
+          validade_renovada_em: string | null
+          validade_renovada_motivo: string | null
+          validade_renovada_por: string | null
           valor: number
           versao: number
         }
@@ -2800,20 +2904,30 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          case_id?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          exclusoes?: string | null
+          forma_pagamento?: string | null
           id?: string
           lead_id?: string | null
           moeda?: string
+          observacoes_cliente?: string | null
+          observacoes_internas?: string | null
           organization_id: string
           recusada_em?: string | null
           status?: string
+          substituida_em?: string | null
+          substituida_por_id?: string | null
           updated_at?: string
           updated_by?: string | null
           validade?: string | null
+          validade_renovada_em?: string | null
+          validade_renovada_motivo?: string | null
+          validade_renovada_por?: string | null
           valor?: number
           versao?: number
         }
@@ -2822,24 +2936,41 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          case_id?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          exclusoes?: string | null
+          forma_pagamento?: string | null
           id?: string
           lead_id?: string | null
           moeda?: string
+          observacoes_cliente?: string | null
+          observacoes_internas?: string | null
           organization_id?: string
           recusada_em?: string | null
           status?: string
+          substituida_em?: string | null
+          substituida_por_id?: string | null
           updated_at?: string
           updated_by?: string | null
           validade?: string | null
+          validade_renovada_em?: string | null
+          validade_renovada_motivo?: string | null
+          validade_renovada_por?: string | null
           valor?: number
           versao?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "proposals_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "proposals_client_id_fkey"
             columns: ["client_id"]
@@ -2859,6 +2990,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_substituida_por_id_fkey"
+            columns: ["substituida_por_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]

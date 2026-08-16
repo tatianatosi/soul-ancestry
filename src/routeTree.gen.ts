@@ -30,7 +30,9 @@ import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-perm
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
@@ -149,11 +151,22 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
+  id: '/propostas',
+  path: '/propostas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrdensServicoRoute =
+  AuthenticatedOrdensServicoRouteImport.update({
+    id: '/ordens-servico',
+    path: '/ordens-servico',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -242,7 +255,9 @@ export interface FileRoutesByFullPath {
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
+  '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/propostas': typeof AuthenticatedPropostasRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -277,7 +292,9 @@ export interface FileRoutesByTo {
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
+  '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/propostas': typeof AuthenticatedPropostasRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -315,7 +332,9 @@ export interface FileRoutesById {
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
+  '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -353,7 +372,9 @@ export interface FileRouteTypes {
     | '/evidencias'
     | '/financeiro'
     | '/leads'
+    | '/ordens-servico'
     | '/painel'
+    | '/propostas'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -388,7 +409,9 @@ export interface FileRouteTypes {
     | '/evidencias'
     | '/financeiro'
     | '/leads'
+    | '/ordens-servico'
     | '/painel'
+    | '/propostas'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -425,7 +448,9 @@ export interface FileRouteTypes {
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
     | '/_authenticated/leads'
+    | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
+    | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
@@ -611,11 +636,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/propostas': {
+      id: '/_authenticated/propostas'
+      path: '/propostas'
+      fullPath: '/propostas'
+      preLoaderRoute: typeof AuthenticatedPropostasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ordens-servico': {
+      id: '/_authenticated/ordens-servico'
+      path: '/ordens-servico'
+      fullPath: '/ordens-servico'
+      preLoaderRoute: typeof AuthenticatedOrdensServicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads': {
@@ -722,7 +761,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
+  AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
@@ -740,7 +781,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
+  AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
