@@ -703,20 +703,107 @@ export type Database = {
           },
         ]
       }
+      consent_exceptions: {
+        Row: {
+          aprovado_em: string
+          aprovado_por: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          motivo: string
+          organization_id: string
+          revogado_em: string | null
+          updated_at: string
+          updated_by: string | null
+          valido_ate: string | null
+        }
+        Insert: {
+          aprovado_em?: string
+          aprovado_por: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo: string
+          organization_id: string
+          revogado_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate?: string | null
+        }
+        Update: {
+          aprovado_em?: string
+          aprovado_por?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo?: string
+          organization_id?: string
+          revogado_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_exceptions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_exceptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_exceptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_records: {
         Row: {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          case_id: string | null
           client_id: string
           coletado_em: string | null
           created_at: string
           created_by: string | null
+          documento_id: string | null
+          escopo_compartilhamento: string | null
           evidencia_consentimento: string | null
+          evidencia_id: string | null
           id: string
+          metodo_coleta: string | null
           organization_id: string
+          revogacao_motivo: string | null
           revogado_em: string | null
+          revogado_por: string | null
           status: string
+          texto_aceito: string | null
           tipo_consentimento: string
           updated_at: string
           updated_by: string | null
@@ -726,15 +813,23 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          case_id?: string | null
           client_id: string
           coletado_em?: string | null
           created_at?: string
           created_by?: string | null
+          documento_id?: string | null
+          escopo_compartilhamento?: string | null
           evidencia_consentimento?: string | null
+          evidencia_id?: string | null
           id?: string
+          metodo_coleta?: string | null
           organization_id: string
+          revogacao_motivo?: string | null
           revogado_em?: string | null
+          revogado_por?: string | null
           status?: string
+          texto_aceito?: string | null
           tipo_consentimento: string
           updated_at?: string
           updated_by?: string | null
@@ -744,15 +839,23 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          case_id?: string | null
           client_id?: string
           coletado_em?: string | null
           created_at?: string
           created_by?: string | null
+          documento_id?: string | null
+          escopo_compartilhamento?: string | null
           evidencia_consentimento?: string | null
+          evidencia_id?: string | null
           id?: string
+          metodo_coleta?: string | null
           organization_id?: string
+          revogacao_motivo?: string | null
           revogado_em?: string | null
+          revogado_por?: string | null
           status?: string
+          texto_aceito?: string | null
           tipo_consentimento?: string
           updated_at?: string
           updated_by?: string | null
@@ -760,10 +863,31 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "consent_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "consent_records_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_records_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_records_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
             referencedColumns: ["id"]
           },
           {
@@ -2059,61 +2183,94 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          carregado_em: string | null
+          carregado_por: string | null
           case_id: string | null
+          categoria: string
           client_id: string | null
           created_at: string
           created_by: string | null
           file_hash: string | null
           id: string
           liberado_cliente: boolean
+          liberado_em: string | null
+          liberado_por: string | null
+          mime_type: string | null
+          nome_arquivo: string | null
           observacoes: string | null
           organization_id: string
+          sensibilidade: string
           status: string
           storage_path: string | null
+          tamanho_bytes: number | null
           tipo: string
           titulo: string
           updated_at: string
           updated_by: string | null
+          versao: number
+          visibilidade: string
         }
         Insert: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          carregado_em?: string | null
+          carregado_por?: string | null
           case_id?: string | null
+          categoria?: string
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
+          liberado_em?: string | null
+          liberado_por?: string | null
+          mime_type?: string | null
+          nome_arquivo?: string | null
           observacoes?: string | null
           organization_id: string
+          sensibilidade?: string
           status?: string
           storage_path?: string | null
+          tamanho_bytes?: number | null
           tipo?: string
           titulo: string
           updated_at?: string
           updated_by?: string | null
+          versao?: number
+          visibilidade?: string
         }
         Update: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          carregado_em?: string | null
+          carregado_por?: string | null
           case_id?: string | null
+          categoria?: string
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
+          liberado_em?: string | null
+          liberado_por?: string | null
+          mime_type?: string | null
+          nome_arquivo?: string | null
           observacoes?: string | null
           organization_id?: string
+          sensibilidade?: string
           status?: string
           storage_path?: string | null
+          tamanho_bytes?: number | null
           tipo?: string
           titulo?: string
           updated_at?: string
           updated_by?: string | null
+          versao?: number
+          visibilidade?: string
         }
         Relationships: [
           {
@@ -2911,6 +3068,80 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      privacy_alerts: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          consent_id: string | null
+          created_at: string
+          id: string
+          mensagem: string
+          organization_id: string
+          resolvido_em: string | null
+          resolvido_por: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          consent_id?: string | null
+          created_at?: string
+          id?: string
+          mensagem: string
+          organization_id: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          consent_id?: string | null
+          created_at?: string
+          id?: string
+          mensagem?: string
+          organization_id?: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privacy_alerts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privacy_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privacy_alerts_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consent_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privacy_alerts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3730,6 +3961,14 @@ export type Database = {
           label: string
           motivo: string
         }[]
+      }
+      consentimento_ativo: {
+        Args: { _case: string; _client: string }
+        Returns: boolean
+      }
+      consentimento_dispensado: {
+        Args: { _case: string; _client: string }
+        Returns: boolean
       }
       contract_pode_aprovar: { Args: { _org: string }; Returns: boolean }
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
