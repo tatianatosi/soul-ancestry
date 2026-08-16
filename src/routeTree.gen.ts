@@ -48,6 +48,7 @@ import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authen
 import { Route as AuthenticatedPrivacidadeIndexRouteImport } from './routes/_authenticated/privacidade.index'
 import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
+import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
@@ -255,6 +256,11 @@ const AuthenticatedContratosIndexRoute =
     path: '/contratos/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const PortalMensagensIdRoute = PortalMensagensIdRouteImport.update({
+  id: '/mensagens/$id',
+  path: '/mensagens/$id',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
 const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   id: '/casos/$id',
   path: '/casos/$id',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
@@ -463,6 +472,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/contratos/'
     | '/pesquisa/'
     | '/privacidade/'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/contratos'
     | '/pesquisa'
     | '/privacidade'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/privacidade/$id'
     | '/portal/casos/$id'
+    | '/portal/mensagens/$id'
     | '/_authenticated/contratos/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
@@ -850,6 +862,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/portal/mensagens/$id': {
+      id: '/portal/mensagens/$id'
+      path: '/mensagens/$id'
+      fullPath: '/portal/mensagens/$id'
+      preLoaderRoute: typeof PortalMensagensIdRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/portal/casos/$id': {
       id: '/portal/casos/$id'
       path: '/casos/$id'
@@ -950,6 +969,7 @@ interface PortalRouteRouteChildren {
   PortalPropostaRoute: typeof PortalPropostaRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalCasosIdRoute: typeof PortalCasosIdRoute
+  PortalMensagensIdRoute: typeof PortalMensagensIdRoute
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
@@ -957,6 +977,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalPropostaRoute: PortalPropostaRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCasosIdRoute: PortalCasosIdRoute,
+  PortalMensagensIdRoute: PortalMensagensIdRoute,
 }
 
 const PortalRouteRouteWithChildren = PortalRouteRoute._addFileChildren(
