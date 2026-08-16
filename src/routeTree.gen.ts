@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
+import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
 import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
 import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
@@ -102,6 +103,11 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
 const PortalPropostaRoute = PortalPropostaRouteImport.update({
   id: '/proposta',
   path: '/proposta',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalFaturasRoute = PortalFaturasRouteImport.update({
+  id: '/faturas',
+  path: '/faturas',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -417,6 +425,7 @@ export interface FileRoutesById {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -465,6 +474,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
     | '/contratos/$id'
@@ -510,6 +520,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal'
     | '/contratos/$id'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/documentos'
+    | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
     | '/_authenticated/contratos/$id'
@@ -657,6 +669,13 @@ declare module '@tanstack/react-router' {
       path: '/proposta'
       fullPath: '/portal/proposta'
       preLoaderRoute: typeof PortalPropostaRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/faturas': {
+      id: '/portal/faturas'
+      path: '/faturas'
+      fullPath: '/portal/faturas'
+      preLoaderRoute: typeof PortalFaturasRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/documentos': {
@@ -966,6 +985,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface PortalRouteRouteChildren {
   PortalDocumentosRoute: typeof PortalDocumentosRoute
+  PortalFaturasRoute: typeof PortalFaturasRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalCasosIdRoute: typeof PortalCasosIdRoute
@@ -974,6 +994,7 @@ interface PortalRouteRouteChildren {
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalDocumentosRoute: PortalDocumentosRoute,
+  PortalFaturasRoute: PortalFaturasRoute,
   PortalPropostaRoute: PortalPropostaRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCasosIdRoute: PortalCasosIdRoute,
