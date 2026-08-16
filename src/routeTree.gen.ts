@@ -33,6 +33,7 @@ import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
+import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenticated/ops-excecoes'
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
@@ -172,6 +173,12 @@ const AuthenticatedOrdensServicoRoute =
     path: '/ordens-servico',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOpsExcecoesRoute =
+  AuthenticatedOpsExcecoesRouteImport.update({
+    id: '/ops-excecoes',
+    path: '/ops-excecoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOpsRoute = AuthenticatedOpsRouteImport.update({
   id: '/ops',
   path: '/ops',
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
+  '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/propostas': typeof AuthenticatedPropostasRoute
@@ -331,6 +339,7 @@ export interface FileRoutesByTo {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
+  '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/propostas': typeof AuthenticatedPropostasRoute
@@ -376,6 +385,7 @@ export interface FileRoutesById {
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
+  '/_authenticated/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
@@ -421,6 +431,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/leads'
     | '/ops'
+    | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
     | '/propostas'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/leads'
     | '/ops'
+    | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
     | '/propostas'
@@ -507,6 +519,7 @@ export interface FileRouteTypes {
     | '/_authenticated/financeiro'
     | '/_authenticated/leads'
     | '/_authenticated/ops'
+    | '/_authenticated/ops-excecoes'
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
     | '/_authenticated/propostas'
@@ -720,6 +733,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdensServicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ops-excecoes': {
+      id: '/_authenticated/ops-excecoes'
+      path: '/ops-excecoes'
+      fullPath: '/ops-excecoes'
+      preLoaderRoute: typeof AuthenticatedOpsExcecoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ops': {
       id: '/_authenticated/ops'
       path: '/ops'
@@ -860,6 +880,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
+  AuthenticatedOpsExcecoesRoute: typeof AuthenticatedOpsExcecoesRoute
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
@@ -885,6 +906,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
+  AuthenticatedOpsExcecoesRoute: AuthenticatedOpsExcecoesRoute,
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
