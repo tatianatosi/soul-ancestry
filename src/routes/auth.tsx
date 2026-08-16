@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -67,15 +66,6 @@ function AuthPage() {
     }
   }
 
-  async function google() {
-    setErro(null);
-    try {
-      await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Falha ao entrar com Google.");
-    }
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-navy px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-cream p-7 shadow-xl">
@@ -128,13 +118,6 @@ function AuthPage() {
             {modo === "entrar" ? "Entrar" : "Criar conta"}
           </button>
         </form>
-
-        <button
-          onClick={google}
-          className="mt-3 w-full rounded-lg border border-navy/20 bg-white px-3 py-2.5 text-sm font-medium text-navy"
-        >
-          Continuar com Google
-        </button>
 
         <button
           onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}
