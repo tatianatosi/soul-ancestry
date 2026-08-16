@@ -15,8 +15,22 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         const body = (await request.json().catch(() => ({}))) as {
           casoId?: string;
           complemento?: string;
+          /** Só verifica o caso e a suficiência dos dados; não chama a IA. */
+          verificar?: boolean;
+          /** Deve repetir exatamente o case_id exibido na tela. */
+          casoIdConfirmado?: string;
+          /** Único caminho para analisar o caso de demonstração. */
+          executarDemonstracao?: boolean;
         };
         if (!body.casoId) return new Response("Informe o caso.", { status: 400 });
+
+        const json = (corpo: unknown, status: number) =>
+          new Response(JSON.stringify(corpo), {
+            status,
+            headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+          });
+
+        const ACOES = ["salvar_rascunho", "preencher_dados", "encerrar"] as const;
 
         const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
         const anon =
