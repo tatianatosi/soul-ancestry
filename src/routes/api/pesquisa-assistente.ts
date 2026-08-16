@@ -154,7 +154,8 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             {
               ...identificacao,
               erro: "analysis_blocked_insufficient_case_data",
-              mensagem: "Não há dados suficientes para análise deste caso.",
+              mensagem: MENSAGEM_DADOS_INSUFICIENTES,
+              orientacao: ORIENTACAO_DADOS_INSUFICIENTES,
               lacunas,
               acoes: ACOES,
             },
