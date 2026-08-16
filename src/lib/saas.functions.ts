@@ -59,14 +59,6 @@ const ENTIDADES: Entidade[] = [
   "eventos_financeiros",
 ];
 
-/** Campo de status controlado por entidade (quando existe máquina de estados). */
-const DOMINIO_ESTADO: Partial<Record<Entidade, { dominio: Dominio; campo: string }>> = {
-  leads: { dominio: "lead", campo: "estagio" },
-  clientes: { dominio: "cliente", campo: "status" },
-  crm_casos: { dominio: "caso", campo: "status" },
-  tarefas: { dominio: "tarefa", campo: "status" },
-  evidencias: { dominio: "evidencia", campo: "status" },
-};
 
 const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
   leads: ["nome", "email", "telefone", "origem", "estagio", "pais_interesse", "observacoes"],
