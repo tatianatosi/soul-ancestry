@@ -20,6 +20,7 @@ import {
   KeyRound,
   UsersRound,
   MessagesSquare,
+  Plug,
 
 
   LogOut,
