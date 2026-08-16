@@ -42,6 +42,7 @@ import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
+import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
@@ -211,6 +212,12 @@ const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   path: '/casos/$id',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const AuthenticatedOnboardingIdRoute =
+  AuthenticatedOnboardingIdRouteImport.update({
+    id: '/onboarding/$id',
+    path: '/onboarding/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/contratos/$id',
@@ -250,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
 }
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
 }
@@ -321,6 +330,7 @@ export interface FileRoutesById {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
 }
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/contratos/$id'
+    | '/onboarding/$id'
     | '/portal/casos/$id'
     | '/contratos/'
   fileRoutesByTo: FileRoutesByTo
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal'
     | '/contratos/$id'
+    | '/onboarding/$id'
     | '/portal/casos/$id'
     | '/contratos'
   id:
@@ -428,6 +440,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/_authenticated/contratos/$id'
+    | '/_authenticated/onboarding/$id'
     | '/portal/casos/$id'
     | '/_authenticated/contratos/'
   fileRoutesById: FileRoutesById
@@ -682,6 +695,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCasosIdRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/_authenticated/onboarding/$id': {
+      id: '/_authenticated/onboarding/$id'
+      path: '/onboarding/$id'
+      fullPath: '/onboarding/$id'
+      preLoaderRoute: typeof AuthenticatedOnboardingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contratos/$id': {
       id: '/_authenticated/contratos/$id'
       path: '/contratos/$id'
@@ -706,6 +726,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
+  AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
 }
 
@@ -723,6 +744,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
+  AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
 }
 
