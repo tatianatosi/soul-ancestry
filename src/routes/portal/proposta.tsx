@@ -1,0 +1,82 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { portalProposta } from "@/lib/portal.functions";
+
+export const Route = createFileRoute("/portal/proposta")({
+  head: () => ({
+    meta: [
+      { title: "Proposta — Portal Clube Ancestral" },
+      { name: "description", content: "Sua proposta de pesquisa genealógica e condições comerciais." },
+      { property: "og:title", content: "Proposta — Portal Clube Ancestral" },
+      { property: "og:description", content: "Condições e etapas da sua proposta." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: PropostaPage,
+});
+
+function formatarValor(v: number, moeda: string) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda || "BRL" }).format(Number(v ?? 0));
+}
+
+function PropostaPage() {
+  const carregar = useServerFn(portalProposta);
+  const { data, isLoading } = useQuery({ queryKey: ["portal-proposta"], queryFn: () => carregar({}) });
+
+  return (
+    <PortalShell titulo="Proposta" descricao="Resumo do que foi apresentado pela equipe.">
+      {isLoading ? (
+        <PortalVazio mensagem="Carregando…" />
+      ) : (
+        <div className="space-y-6">
+          <section>
+            <h2 className="font-serif text-xl">Escopo</h2>
+            {!data?.casos.length ? (
+              <div className="mt-3">
+                <PortalVazio mensagem="Nenhum escopo liberado para você até o momento." />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {data.casos.map((c) => (
+                  <li key={c.id} className="rounded-xl border border-navy/10 bg-white p-4">
+                    <p className="font-medium">{c.titulo}</p>
+                    <p className="mt-1 text-sm text-navy/60">{[c.pais, c.via].filter(Boolean).join(" · ")}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h2 className="font-serif text-xl">Condições</h2>
+            {!data?.faturas.length ? (
+              <div className="mt-3">
+                <PortalVazio mensagem="Nenhuma condição financeira liberada para você." />
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {data.faturas.map((f) => (
+                  <li key={f.id} className="flex items-center justify-between rounded-xl border border-navy/10 bg-white p-4">
+                    <div>
+                      <p className="font-medium">{f.descricao}</p>
+                      <p className="text-sm text-navy/60">
+                        {f.status}
+                        {f.vencimento ? ` · vence em ${new Date(f.vencimento).toLocaleDateString("pt-BR")}` : ""}
+                      </p>
+                    </div>
+                    <p className="font-serif text-lg">{formatarValor(f.valor, f.moeda)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+    </PortalShell>
+  );
+}
