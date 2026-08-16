@@ -269,14 +269,14 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       metadados: { case_id: registro.case_id, nota_tamanho: nota.length, status: registro.status },
     });
 
-    const { error } = await supabase
-      .from("contract_case_parameters")
-      .update({ status: "em_revisao", revisao_humana_nota: nota, updated_by: userId })
-      .eq("id", registro.id);
-    if (error) {
-      // Coluna de nota pode não existir no schema atual: o pedido fica registrado na auditoria.
-      await supabase.from("contract_case_parameters").update({ status: "em_revisao", updated_by: userId }).eq("id", registro.id);
+    if (["rascunho", "em_validacao"].includes(registro.status)) {
+      const { error } = await supabase
+        .from("contract_case_parameters")
+        .update({ status: "em_validacao", updated_by: userId })
+        .eq("id", registro.id);
+      if (error) throw new Error(error.message);
     }
+
     return { ok: true };
   });
 
