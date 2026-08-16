@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
-import { ativarCaso, verificarCondicoesCaso } from "@/lib/saas.functions";
+import { verificarCondicoesCaso } from "@/lib/saas.functions";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 
 export const Route = createFileRoute("/_authenticated/casos")({
@@ -26,14 +26,10 @@ export const Route = createFileRoute("/_authenticated/casos")({
 function CasosPage() {
   const { podeEscrever } = useSaas();
   const verificar = useServerFn(verificarCondicoesCaso);
-  const ativar = useServerFn(ativarCaso);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const mVerificar = useMutation({
     mutationFn: (id: string) => verificar({ data: { id } }),
-  });
-  const mAtivar = useMutation({
-    mutationFn: (id: string) => ativar({ data: { id } }),
   });
 
   return (
@@ -137,33 +133,24 @@ function CasosPage() {
 
         extra={(linha, recarregar) => (
           <div className="flex flex-wrap justify-end gap-2">
+            <Link
+              to="/onboarding/$id"
+              params={{ id: String(linha["id"]) }}
+              className="rounded-md border border-gold/50 px-2 py-1 text-xs text-navy hover:bg-gold/10"
+            >
+              Pronto para ativar?
+            </Link>
             {podeEscrever && !linha["ativo"] ? (
-              <>
-                <button
-                  onClick={async () => {
-                    await mVerificar.mutateAsync(String(linha["id"]));
-                    setAviso("Condições verificadas e registradas. Agora é possível tentar a ativação.");
-                    recarregar();
-                  }}
-                  className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
-                >
-                  Verificar condições
-                </button>
-                <button
-                  onClick={async () => {
-                    const r = await mAtivar.mutateAsync(String(linha["id"]));
-                    setAviso(
-                      r.ok
-                        ? "Caso ativado."
-                        : `Ativação bloqueada. Pendências: ${r.pendencias.join(", ")}.`,
-                    );
-                    recarregar();
-                  }}
-                  className="rounded-md bg-navy px-2 py-1 text-xs text-cream"
-                >
-                  Ativar caso
-                </button>
-              </>
+              <button
+                onClick={async () => {
+                  await mVerificar.mutateAsync(String(linha["id"]));
+                  setAviso("Condições verificadas e registradas. A ativação ocorre no painel de onboarding.");
+                  recarregar();
+                }}
+                className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+              >
+                Verificar condições
+              </button>
             ) : null}
           </div>
         )}
