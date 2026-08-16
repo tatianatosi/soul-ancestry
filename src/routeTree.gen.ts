@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
+import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 
@@ -59,6 +60,11 @@ const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEvidenciasRoute = AuthenticatedEvidenciasRouteImport.update({
+  id: '/evidencias',
+  path: '/evidencias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/casos': typeof AuthenticatedCasosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/canvas/$token': typeof CanvasTokenRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/studio-devolutivas'
     | '/casos'
     | '/clientes'
+    | '/evidencias'
     | '/leads'
     | '/painel'
     | '/canvas/$token'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/studio-devolutivas'
     | '/casos'
     | '/clientes'
+    | '/evidencias'
     | '/leads'
     | '/painel'
     | '/canvas/$token'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/studio-devolutivas'
     | '/_authenticated/casos'
     | '/_authenticated/clientes'
+    | '/_authenticated/evidencias'
     | '/_authenticated/leads'
     | '/_authenticated/painel'
     | '/canvas/$token'
@@ -209,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/evidencias': {
+      id: '/_authenticated/evidencias'
+      path: '/evidencias'
+      fullPath: '/evidencias'
+      preLoaderRoute: typeof AuthenticatedEvidenciasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clientes': {
       id: '/_authenticated/clientes'
       path: '/clientes'
@@ -229,6 +248,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
@@ -236,6 +256,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCasosRoute: AuthenticatedCasosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
