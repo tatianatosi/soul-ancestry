@@ -54,7 +54,6 @@ import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
-import { Route as ApiPublicDemoAdminRouteImport } from './routes/api/public/demo-admin'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
@@ -293,11 +292,6 @@ const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   path: '/casos/$id',
   getParentRoute: () => PortalRouteRoute,
 } as any)
-const ApiPublicDemoAdminRoute = ApiPublicDemoAdminRouteImport.update({
-  id: '/api/public/demo-admin',
-  path: '/api/public/demo-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedPrivacidadeIdRoute =
   AuthenticatedPrivacidadeIdRouteImport.update({
     id: '/privacidade/$id',
@@ -366,7 +360,6 @@ export interface FileRoutesByFullPath {
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
-  '/api/public/demo-admin': typeof ApiPublicDemoAdminRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
@@ -416,7 +409,6 @@ export interface FileRoutesByTo {
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
-  '/api/public/demo-admin': typeof ApiPublicDemoAdminRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
@@ -469,7 +461,6 @@ export interface FileRoutesById {
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
-  '/api/public/demo-admin': typeof ApiPublicDemoAdminRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
@@ -522,7 +513,6 @@ export interface FileRouteTypes {
     | '/onboarding/$id'
     | '/pesquisa/$id'
     | '/privacidade/$id'
-    | '/api/public/demo-admin'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/contratos/'
@@ -572,7 +562,6 @@ export interface FileRouteTypes {
     | '/onboarding/$id'
     | '/pesquisa/$id'
     | '/privacidade/$id'
-    | '/api/public/demo-admin'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/contratos'
@@ -624,7 +613,6 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/privacidade/$id'
-    | '/api/public/demo-admin'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/_authenticated/contratos/'
@@ -647,7 +635,6 @@ export interface RootRouteChildren {
   EquipeEsqueciMinhaSenhaRoute: typeof EquipeEsqueciMinhaSenhaRoute
   EquipeRedefinirSenhaRoute: typeof EquipeRedefinirSenhaRoute
   EquipeSemPermissaoRoute: typeof EquipeSemPermissaoRoute
-  ApiPublicDemoAdminRoute: typeof ApiPublicDemoAdminRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -967,13 +954,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCasosIdRouteImport
       parentRoute: typeof PortalRouteRoute
     }
-    '/api/public/demo-admin': {
-      id: '/api/public/demo-admin'
-      path: '/api/public/demo-admin'
-      fullPath: '/api/public/demo-admin'
-      preLoaderRoute: typeof ApiPublicDemoAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/privacidade/$id': {
       id: '/_authenticated/privacidade/$id'
       path: '/privacidade/$id'
@@ -1118,7 +1098,6 @@ const rootRouteChildren: RootRouteChildren = {
   EquipeEsqueciMinhaSenhaRoute: EquipeEsqueciMinhaSenhaRoute,
   EquipeRedefinirSenhaRoute: EquipeRedefinirSenhaRoute,
   EquipeSemPermissaoRoute: EquipeSemPermissaoRoute,
-  ApiPublicDemoAdminRoute: ApiPublicDemoAdminRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

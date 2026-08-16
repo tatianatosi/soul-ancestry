@@ -36,6 +36,9 @@ function Home() {
     <div className="min-h-screen bg-cream">
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-navy px-4 py-2 text-center text-[11px] uppercase tracking-widest text-cream/80">
         <span>Demonstração / dados não operacionais</span>
+        <Link to="/painel" className="text-gold underline-offset-2 hover:underline">
+          Módulos internos (novos)
+        </Link>
         <Link to="/equipe/entrar" className="text-gold underline-offset-2 hover:underline">
           Acesso da equipe
         </Link>
@@ -43,6 +46,7 @@ function Home() {
           Acesso do cliente
         </Link>
       </div>
+
       <AppSwitcher current={app} onChange={setApp} />
       {app === "cliente" ? <ClienteApp /> : <DeskApp />}
     </div>
