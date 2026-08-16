@@ -125,7 +125,24 @@ export function EntidadeCrud({
     ? ((q.data ?? []) as Record<string, unknown>[]).find((l) => String(l["id"]) === editandoId)
     : undefined;
 
+  const origens = campos.filter((c) => c.origem);
+  const qOrigens = useQueries({
+    queries: origens.map((c) => ({
+      queryKey: ["saas", c.origem!.entidade, false],
+      queryFn: () => carregar({ data: { entidade: c.origem!.entidade, incluirArquivados: false } }),
+      staleTime: 30_000,
+    })),
+  });
+
   const opcoesCampo = (campo: Campo) => {
+    if (campo.origem) {
+      const idx = origens.findIndex((c) => c.chave === campo.chave);
+      const linhas = (qOrigens[idx]?.data ?? []) as Record<string, unknown>[];
+      return linhas.map((l) => ({
+        valor: String(l["id"]),
+        rotulo: String(l[campo.origem!.rotuloChave] ?? l["id"]),
+      }));
+    }
     if (campo.estado && dominio) {
       if (!editandoId) return (campo.opcoes ?? []).length ? campo.opcoes! : [];
       const atual = linhaEmEdicao?.[campoEstado];
@@ -138,6 +155,7 @@ export function EntidadeCrud({
     }
     return campo.opcoes ?? [];
   };
+
 
 
   const linhas = (q.data ?? []) as Record<string, unknown>[];
