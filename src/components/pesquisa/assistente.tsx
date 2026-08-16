@@ -10,10 +10,20 @@ type Verificacao = {
   case_id: string;
   codigo: string;
   titulo: string;
+  cliente: string;
   demo: boolean;
   lacunas: Lacuna[];
   suficiente: boolean;
+  mensagem?: string;
+  orientacao?: string;
 };
+
+const SELO_DEMO = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
+const MENSAGEM_BLOQUEIO = "Não há dados suficientes para analisar este caso.";
+const ORIENTACAO_BLOQUEIO =
+  "Este caso ainda não possui dados suficientes para uma análise responsável. " +
+  "Preencha ou vincule informações verificáveis a este mesmo caso antes de solicitar uma análise. " +
+  "Nenhum outro caso será usado como substituto.";
 
 /**
  * Assistente de Pesquisa Genealógica: aplica o prompt mestre ao dossiê DESTE caso.
@@ -30,7 +40,6 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
   const [demoConfirmada, setDemoConfirmada] = useState(false);
   const [bloqueio, setBloqueio] = useState<{ mensagem: string; lacunas: Lacuna[] } | null>(null);
   const [rascunho, setRascunho] = useState(false);
-  const [encerrado, setEncerrado] = useState(false);
   const abortar = useRef<AbortController | null>(null);
 
   const token = useCallback(async () => {
@@ -133,8 +142,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
     confirmado &&
     suficiente &&
     (!verificacao?.demo || demoConfirmada) &&
-    !rodando &&
-    !encerrado;
+    !rodando;
 
   return (
     <Painel titulo="Assistente de pesquisa genealógica">
@@ -145,14 +153,15 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
 
       {verificacao && (
         <div className="rounded-lg border border-navy/15 bg-cream/60 p-3 text-xs text-navy/80">
-          <p className="font-medium">Caso que será analisado</p>
+          <p className="rounded-md border-2 border-gold bg-navy px-3 py-2 text-sm font-semibold text-cream">
+            Caso em análise: {verificacao.case_id} — {verificacao.cliente}
+          </p>
           <p className="mt-1">
             <strong>{verificacao.codigo}</strong> — {verificacao.titulo}
           </p>
-          <p className="mt-0.5 font-mono text-[11px] text-navy/60">case_id: {verificacao.case_id}</p>
           {verificacao.demo && (
             <p className="mt-2 inline-flex rounded-full bg-terracotta px-2 py-0.5 text-[11px] font-semibold text-cream">
-              DEMO — DADOS FICTÍCIOS
+              {SELO_DEMO}
             </p>
           )}
           <label className="mt-2 flex items-start gap-2">
@@ -180,8 +189,9 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
 
       {verificacao && !suficiente && (
         <div className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-xs text-terracotta">
-          <p className="font-semibold">Não há dados suficientes para análise deste caso.</p>
-          <p className="mt-1 font-medium">Campos faltantes:</p>
+          <p className="font-semibold">{verificacao.mensagem ?? MENSAGEM_BLOQUEIO}</p>
+          <p className="mt-1">{verificacao.orientacao ?? ORIENTACAO_BLOQUEIO}</p>
+          <p className="mt-2 font-medium">Campos faltantes:</p>
           <ul className="mt-1 list-disc pl-4">
             {verificacao.lacunas.map((l) => (
               <li key={l.campo}>
@@ -200,36 +210,13 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
               Salvar rascunho
             </button>
             <button onClick={() => void verificar()} className="rounded-lg border border-terracotta/40 px-3 py-1">
-              Preencher dados e reverificar
-            </button>
-            <button
-              onClick={() => {
-                setEncerrado(true);
-                setVerificacao(null);
-              }}
-              className="rounded-lg border border-terracotta/40 px-3 py-1"
-            >
-              Encerrar
+              Preencher dados
             </button>
           </div>
           {rascunho && <p className="mt-2">Rascunho mantido. Nenhuma análise foi executada.</p>}
         </div>
       )}
 
-      {encerrado && (
-        <p className="mt-3 text-xs text-navy/60">
-          Análise encerrada sem execução.{" "}
-          <button
-            className="underline"
-            onClick={() => {
-              setEncerrado(false);
-              void verificar();
-            }}
-          >
-            Retomar
-          </button>
-        </p>
-      )}
 
       <label className="mt-3 block text-xs text-navy/70">
         Complemento para esta análise (opcional): dados trazidos pela família, restrições de acervo, dúvidas
@@ -282,6 +269,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
       {bloqueio && (
         <div className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-xs text-terracotta">
           <p className="font-semibold">{bloqueio.mensagem}</p>
+          <p className="mt-1">{ORIENTACAO_BLOQUEIO}</p>
           {bloqueio.lacunas.length > 0 && (
             <ul className="mt-1 list-disc pl-4">
               {bloqueio.lacunas.map((l) => (
@@ -291,7 +279,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
               ))}
             </ul>
           )}
-          <p className="mt-1">Ações disponíveis: salvar rascunho, preencher dados ou encerrar.</p>
+          <p className="mt-1">Ações disponíveis: salvar rascunho ou preencher dados.</p>
         </div>
       )}
 
@@ -301,7 +289,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
         <>
           {verificacao?.demo && (
             <p className="mt-4 inline-flex rounded-full bg-terracotta px-2 py-0.5 text-[11px] font-semibold text-cream">
-              DEMO — DADOS FICTÍCIOS
+              {SELO_DEMO}
             </p>
           )}
           <pre
@@ -310,6 +298,7 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
               rodando && "border-gold",
             )}
           >
+            {verificacao?.demo && saida ? `${SELO_DEMO}\n\n` : ""}
             {saida || "Lendo o dossiê e organizando a triagem…"}
           </pre>
         </>

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
           });
 
-        const ACOES = ["salvar_rascunho", "preencher_dados", "encerrar"] as const;
+        const ACOES = ["salvar_rascunho", "preencher_dados"] as const;
 
         const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
         const anon =
@@ -66,9 +66,26 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         ]);
         if (!caso.data) return new Response("Caso não encontrado ou sem permissão.", { status: 403 });
 
-        const { MODELO_PESQUISA, PROMPT_MESTRE, AVISO_DEMO, avaliarSuficiencia, montarDossie } = await import(
-          "@/lib/pesquisa-ia.server"
-        );
+        const {
+          MODELO_PESQUISA,
+          PROMPT_MESTRE,
+          AVISO_DEMO,
+          MENSAGEM_DADOS_INSUFICIENTES,
+          ORIENTACAO_DADOS_INSUFICIENTES,
+          avaliarSuficiencia,
+          montarDossie,
+        } = await import("@/lib/pesquisa-ia.server");
+
+        // Nome do cliente do PRÓPRIO caso; nenhuma outra origem é consultada.
+        let nomeCliente = "Cliente não vinculado";
+        if (caso.data["cliente_id"]) {
+          const { data: cli } = await supabase
+            .from("clientes")
+            .select("nome")
+            .eq("id", caso.data["cliente_id"])
+            .maybeSingle();
+          if (cli?.["nome"]) nomeCliente = cli["nome"] as string;
+        }
 
         const entrada = {
           caso: caso.data,
@@ -84,12 +101,24 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
           case_id: caso.data["id"] as string,
           codigo: caso.data["codigo"] as string,
           titulo: caso.data["titulo"] as string,
+          cliente: nomeCliente,
           demo: ehDemo,
         };
 
         // Etapa 1: a interface confere qual case_id será analisado antes de executar.
         if (body.verificar) {
-          return json({ ...identificacao, lacunas, suficiente: lacunas.length === 0, acoes: ACOES }, 200);
+          return json(
+            {
+              ...identificacao,
+              lacunas,
+              suficiente: lacunas.length === 0,
+              acoes: ACOES,
+              ...(lacunas.length > 0
+                ? { mensagem: MENSAGEM_DADOS_INSUFICIENTES, orientacao: ORIENTACAO_DADOS_INSUFICIENTES }
+                : {}),
+            },
+            200,
+          );
         }
 
         // O case_id exibido precisa ser confirmado; nunca há troca ou fallback de caso.
@@ -136,7 +165,8 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
             {
               ...identificacao,
               erro: "analysis_blocked_insufficient_case_data",
-              mensagem: "Não há dados suficientes para análise deste caso.",
+              mensagem: MENSAGEM_DADOS_INSUFICIENTES,
+              orientacao: ORIENTACAO_DADOS_INSUFICIENTES,
               lacunas,
               acoes: ACOES,
             },
