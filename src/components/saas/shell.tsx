@@ -72,6 +72,7 @@ const NAV = [
   { to: "/acessos-portal", label: "Acessos ao portal", icon: KeyRound },
 
   { to: "/casos", label: "Casos", icon: FolderOpen },
+  { to: "/piloto", label: "Piloto real", icon: ShieldCheck },
   { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
   { to: "/pesquisa-modulo", label: "Pesquisa e evidências", icon: FileSearch },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
