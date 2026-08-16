@@ -54,11 +54,17 @@ function Landing() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button
-              onClick={() => navigate({ to: autenticado ? "/painel" : "/auth" })}
+              onClick={() => navigate({ to: autenticado ? "/painel" : "/equipe/entrar" })}
               className="rounded-lg bg-gold px-5 py-3 text-sm font-medium text-navy"
             >
-              {autenticado ? "Ir para o painel" : "Entrar na plataforma"}
+              {autenticado ? "Ir para o painel" : "Acesso da equipe"}
             </button>
+            <Link
+              to="/acesso"
+              className="rounded-lg border border-cream/30 px-5 py-3 text-sm font-medium text-cream"
+            >
+              Acesso do cliente
+            </Link>
             <Link
               to="/prototipo"
               className="rounded-lg border border-cream/30 px-5 py-3 text-sm font-medium text-cream"
@@ -66,6 +72,7 @@ function Landing() {
               Ver protótipo visual
             </Link>
           </div>
+
         </div>
       </section>
 
