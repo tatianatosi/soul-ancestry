@@ -79,8 +79,8 @@ function FinanceiroPage() {
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}), enabled: podeFinanceiro });
   const qAjustes = useQuery({
-    queryKey: ["ajustes", String(detalhe?.["id"] ?? "")],
-    queryFn: () => ajustes({ data: { invoiceId: String(detalhe?.["id"]) } }),
+    queryKey: ["ajustes"],
+    queryFn: () => ajustes({}),
     enabled: aba === "faturas" && Boolean(detalhe?.["id"]),
   });
 
@@ -102,7 +102,7 @@ function FinanceiroPage() {
     onError: (e: Error) => setErro(e.message),
   });
   const mConciliar = useMutation({
-    mutationFn: (v: { id: string; data_pagamento: string; valor: string; referencia: string }) =>
+    mutationFn: (v: { id: string; pago_em: string; valor: number; referencia_externa: string }) =>
       conciliar({ data: v }),
     onSuccess: () => {
       setErro(null);
@@ -113,7 +113,7 @@ function FinanceiroPage() {
     onError: (e: Error) => setErro(e.message),
   });
   const mAjuste = useMutation({
-    mutationFn: (v: { invoiceId: string; valor: string; motivo: string }) => ajustar({ data: v }),
+    mutationFn: (v: { invoice_id: string; valor: number; motivo: string }) => ajustar({ data: v }),
     onSuccess: () => {
       setErro(null);
       setAjuste({ valor: "", motivo: "" });
@@ -213,7 +213,7 @@ function FinanceiroPage() {
                       {aba === "faturas" ? nomeCliente(l["client_id"]) : String(l["referencia_externa"] ?? "—")}
                     </td>
                     <td className="px-4 py-3">{moeda(l["valor"], l["moeda"])}</td>
-                    <td className="px-4 py-3">{dataBr(l[aba === "faturas" ? "vencimento" : "data_pagamento"])}</td>
+                    <td className="px-4 py-3">{dataBr(l[aba === "faturas" ? "vencimento" : "pago_em"])}</td>
                     <td className="px-4 py-3 space-x-1">
                       <Selo
                         texto={rotulos[String(l["status"])] ?? String(l["status"])}
@@ -227,11 +227,11 @@ function FinanceiroPage() {
                       />
                       {aba === "pagamentos" ? (
                         <Selo
-                          texto={ROTULO_CONCILIACAO[String(l["conciliacao"])] ?? String(l["conciliacao"] ?? "—")}
+                          texto={ROTULO_CONCILIACAO[String(l["conciliacao_status"])] ?? String(l["conciliacao_status"] ?? "—")}
                           tom={
-                            l["conciliacao"] === "conciliado"
+                            l["conciliacao_status"] === "conciliado"
                               ? "ok"
-                              : l["conciliacao"] === "divergente"
+                              : l["conciliacao_status"] === "divergente"
                                 ? "erro"
                                 : "neutro"
                           }
@@ -288,7 +288,7 @@ function FinanceiroPage() {
                   </div>
                   <div>
                     <dt className="text-navy/60">Conciliação</dt>
-                    <dd>{ROTULO_CONCILIACAO[String(detalhe["conciliacao"])] ?? "—"}</dd>
+                    <dd>{ROTULO_CONCILIACAO[String(detalhe["conciliacao_status"])] ?? "—"}</dd>
                   </div>
                 </>
               )}
@@ -338,7 +338,11 @@ function FinanceiroPage() {
                 <button
                   disabled={mAjuste.isPending}
                   onClick={() =>
-                    mAjuste.mutate({ invoiceId: String(detalhe["id"]), valor: ajuste.valor, motivo: ajuste.motivo })
+                    mAjuste.mutate({
+                      invoice_id: String(detalhe["id"]),
+                      valor: Number(ajuste.valor),
+                      motivo: ajuste.motivo,
+                    })
                   }
                   className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
                 >
@@ -390,9 +394,9 @@ function FinanceiroPage() {
                 onClick={() =>
                   mConciliar.mutate({
                     id: String(detalhe["id"]),
-                    data_pagamento: conc.data,
-                    valor: conc.valor,
-                    referencia: conc.referencia,
+                    pago_em: conc.data,
+                    valor: Number(conc.valor),
+                    referencia_externa: conc.referencia,
                   })
                 }
                 className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
@@ -504,8 +508,8 @@ function FinanceiroPage() {
                 <input
                   type="date"
                   className={inputCls}
-                  value={form["data_pagamento"] ?? ""}
-                  onChange={(e) => setForm({ ...form, data_pagamento: e.target.value })}
+                  value={form["pago_em"] ?? ""}
+                  onChange={(e) => setForm({ ...form, pago_em: e.target.value })}
                 />
               </Campo>
               <Campo rotulo="Referência externa">
