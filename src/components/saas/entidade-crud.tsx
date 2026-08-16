@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Archive, Plus, Lock } from "lucide-react";
+import { Archive, Plus, Lock, Pencil } from "lucide-react";
 
 import {
   arquivarRegistro,
+  atualizarRegistro,
   criarRegistro,
   listarRegistros,
   type Entidade,
 } from "@/lib/saas.functions";
+import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
 import { EstadoVazio, useSaas } from "./shell";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +20,10 @@ export type Campo = {
   tipo?: "texto" | "area" | "numero" | "data" | "select";
   opcoes?: { valor: string; rotulo: string }[];
   obrigatorio?: boolean;
+  /** Campo controlado pela máquina de estados: opções variam conforme o estado atual. */
+  estado?: boolean;
+  /** Não editável depois de criado. */
+  somenteCriacao?: boolean;
 };
 
 export type Coluna = {
@@ -32,6 +38,8 @@ export function EntidadeCrud({
   colunas,
   campos,
   podeEscrever,
+  dominio,
+  campoEstado = "status",
   extra,
 }: {
   entidade: Entidade;
@@ -39,17 +47,22 @@ export function EntidadeCrud({
   colunas: Coluna[];
   campos: Campo[];
   podeEscrever: boolean;
+  dominio?: Dominio;
+  campoEstado?: string;
   extra?: (linha: Record<string, unknown>, recarregar: () => void) => React.ReactNode;
 }) {
   const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
   const carregar = useServerFn(listarRegistros);
   const criar = useServerFn(criarRegistro);
+  const atualizar = useServerFn(atualizarRegistro);
   const arquivar = useServerFn(arquivarRegistro);
 
   const [incluirArquivados, setIncluirArquivados] = useState(false);
   const [form, setForm] = useState<Record<string, string> | null>(null);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [arquivando, setArquivando] = useState<{ id: string; motivo: string } | null>(null);
 
   const chave = ["saas", entidade, incluirArquivados];
   const q = useQuery({
@@ -71,12 +84,58 @@ export function EntidadeCrud({
     onError: (e: Error) => setErro(e.message),
   });
 
+  const mAtualizar = useMutation({
+    mutationFn: (v: { id: string; dados: Record<string, unknown> }) =>
+      atualizar({ data: { entidade, id: v.id, dados: v.dados } }),
+    onSuccess: () => {
+      setForm(null);
+      setEditandoId(null);
+      setErro(null);
+      recarregar();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+
   const mArquivar = useMutation({
     mutationFn: (v: { id: string; motivo: string }) =>
       arquivar({ data: { entidade, id: v.id, motivo: v.motivo } }),
-    onSuccess: recarregar,
+    onSuccess: () => {
+      setArquivando(null);
+      setErro(null);
+      recarregar();
+    },
     onError: (e: Error) => setErro(e.message),
   });
+
+  const abrirEdicao = (linha: Record<string, unknown>) => {
+    const inicial: Record<string, string> = {};
+    for (const campo of campos) {
+      const v = linha[campo.chave];
+      inicial[campo.chave] = v === null || v === undefined ? "" : String(v);
+    }
+    setEditandoId(String(linha["id"]));
+    setForm(inicial);
+    setErro(null);
+  };
+
+  const linhaEmEdicao = editandoId
+    ? ((q.data ?? []) as Record<string, unknown>[]).find((l) => String(l["id"]) === editandoId)
+    : undefined;
+
+  const opcoesCampo = (campo: Campo) => {
+    if (campo.estado && dominio) {
+      if (!editandoId) return (campo.opcoes ?? []).length ? campo.opcoes! : [];
+      const atual = linhaEmEdicao?.[campoEstado];
+      const destinos = transicoesDe(dominio, atual);
+      const atualStr = typeof atual === "string" ? atual : "";
+      return [
+        ...(atualStr ? [{ valor: atualStr, rotulo: `${rotuloEstado(dominio, atualStr)} (atual)` }] : []),
+        ...destinos,
+      ];
+    }
+    return campo.opcoes ?? [];
+  };
+
 
   const linhas = (q.data ?? []) as Record<string, unknown>[];
 
