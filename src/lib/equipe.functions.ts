@@ -360,8 +360,27 @@ export const arquivarMembroEquipe = createServerFn({ method: "POST" })
 
 /**
  * Primeiro acesso da instância: cria a organização fundadora e o primeiro admin.
- * Só funciona enquanto não existir nenhum acesso de equipe — depois, apenas convite por admin.
+ * Regras (não remover):
+ * - Só é permitido enquanto NÃO existir nenhum registro em staff_access e nenhuma trava de bootstrap.
+ * - A criação é atômica no banco (função `bootstrap_primeiro_admin`, com advisory lock).
+ * - Após o primeiro admin, o bootstrap é bloqueado em definitivo — não reabre por suspensão,
+ *   revogação ou arquivamento do admin. Nesses casos, use recuperação administrativa controlada.
+ * - organization_id, papel e status nunca vêm do front-end: o papel é sempre 'admin' e a
+ *   organização é criada pelo próprio banco.
+ * - Auditoria: bootstrap_success (no banco) e bootstrap_denied, sem senha, token ou link.
  */
+async function registrarBootstrapNegado(h: typeof import("./equipe.server"), motivo: string) {
+  const trava = await h.adminClient.from("bootstrap_lock").select("organization_id").limit(1).maybeSingle();
+  const organizationId = trava.data?.organization_id as string | undefined;
+  if (!organizationId) return;
+  await h.adminClient.from("audit_logs").insert({
+    organization_id: organizationId,
+    acao: "bootstrap_denied",
+    entidade: "staff_access",
+    metadados: { motivo },
+  });
+}
+
 export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: { email: string; senha: string; nome: string; organizacao: string }) => {
     if (!data.senha || data.senha.length < 10) throw new Error("A senha deve ter ao menos 10 caracteres.");
@@ -373,8 +392,16 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
     const email = h.normalizarEmail(data.email);
     if (!h.emailValido(email)) throw new Error("E-mail inválido.");
 
-    const existentes = await h.adminClient.from("staff_access").select("id").is("archived_at", null).limit(1);
-    if ((existentes.data ?? []).length > 0) {
+    const bloqueadoPorTentativas = await h.limiteExcedido("staff_bootstrap", email, 5, 30);
+    if (bloqueadoPorTentativas) {
+      await registrarBootstrapNegado(h, "limite_de_tentativas");
+      throw new Error("Muitas tentativas. Tente novamente mais tarde.");
+    }
+
+    const permitido = await h.adminClient.rpc("bootstrap_permitido");
+    if (permitido.error) throw new Error(permitido.error.message);
+    if (permitido.data !== true) {
+      await registrarBootstrapNegado(h, "bootstrap_ja_concluido");
       throw new Error("Provisionamento inicial já concluído. Solicite um convite a um administrador.");
     }
 
@@ -387,54 +414,29 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
     if (criado.error) throw new Error(criado.error.message);
     const userId = criado.data.user.id as string;
 
-    const slug =
-      data.organizacao
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
-        .slice(0, 40) || `org-${Date.now()}`;
-
-    const org = await h.adminClient
-      .from("organizations")
-      .insert({ nome: data.organizacao.trim(), slug, demo: false })
-      .select("id")
-      .maybeSingle();
-    if (org.error) throw new Error(org.error.message);
-    const organizationId = org.data.id as string;
-
-    await h.adminClient.from("profiles").upsert({ id: userId, nome: data.nome?.trim() || null, email });
-    await h.adminClient.from("organization_members").insert({ organization_id: organizationId, user_id: userId });
-    await h.adminClient.from("user_roles").insert({ organization_id: organizationId, user_id: userId, role: "admin" });
-    const staff = await h.adminClient
-      .from("staff_access")
-      .insert({
-        organization_id: organizationId,
-        auth_user_id: userId,
-        email,
-        full_name: data.nome?.trim() || null,
-        role: "admin",
-        status: "active",
-        activated_at: new Date().toISOString(),
-        created_by: userId,
-      })
-      .select("id")
-      .maybeSingle();
-
-    await h.registrarAuditoria({
-      organizationId,
-      userId,
-      acao: "equipe_provisionamento_inicial",
-      entidadeId: staff.data?.id ?? null,
+    // Transação única no banco: organização + vínculo + papel + staff ativo + trava + auditoria.
+    const rpc = await h.adminClient.rpc("bootstrap_primeiro_admin", {
+      _user_id: userId,
+      _email: email,
+      _nome: data.nome?.trim() || null,
+      _organizacao: data.organizacao.trim(),
     });
+
+    if (rpc.error) {
+      // desfaz o usuário recém-criado para não deixar conta órfã
+      await h.adminClient.auth.admin.deleteUser(userId).catch(() => undefined);
+      await registrarBootstrapNegado(h, "corrida_ou_bloqueio");
+      throw new Error("Provisionamento inicial já concluído. Solicite um convite a um administrador.");
+    }
+
     return { ok: true };
   });
 
-/** Indica se a instância ainda não tem nenhum acesso de equipe. */
+/** Indica se o provisionamento inicial ainda está disponível (bloqueio definitivo após o primeiro admin). */
 export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(async () => {
   const h = await import("./equipe.server");
-  const { data } = await h.adminClient.from("staff_access").select("id").is("archived_at", null).limit(1);
-  return { pendente: (data ?? []).length === 0 };
+  const { data, error } = await h.adminClient.rpc("bootstrap_permitido");
+  if (error) return { pendente: false };
+  return { pendente: data === true };
 });
+

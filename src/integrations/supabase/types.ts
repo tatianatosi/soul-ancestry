@@ -82,6 +82,38 @@ export type Database = {
         }
         Relationships: []
       }
+      bootstrap_lock: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          created_at: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bootstrap_lock_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       casos: {
         Row: {
           canvas_publicado: boolean
@@ -1287,6 +1319,16 @@ export type Database = {
     }
     Functions: {
       bootstrap_minha_organizacao: { Args: { _nome?: string }; Returns: string }
+      bootstrap_permitido: { Args: never; Returns: boolean }
+      bootstrap_primeiro_admin: {
+        Args: {
+          _email: string
+          _nome: string
+          _organizacao: string
+          _user_id: string
+        }
+        Returns: string
+      }
       can_write: { Args: { _org: string }; Returns: boolean }
       can_write_financeiro: { Args: { _org: string }; Returns: boolean }
       has_org_role: {
