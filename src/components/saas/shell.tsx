@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   KeyRound,
   UsersRound,
+  MessagesSquare,
 
 
   LogOut,
