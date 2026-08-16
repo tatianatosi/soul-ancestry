@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { AssistentePesquisa } from "@/components/pesquisa/assistente";
+
 import {
   arquivarPesquisa,
   carregarPesquisa,
