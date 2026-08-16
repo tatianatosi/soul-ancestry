@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLogo } from "@/components/brand";
 import { confirmarAcessoPortal } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/acesso/confirmar")({
