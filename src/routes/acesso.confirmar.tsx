@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLogo } from "@/components/brand";
 import { confirmarAcessoPortal } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/acesso/confirmar")({
@@ -56,6 +57,8 @@ function ConfirmarPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-navy px-4">
       <div className="w-full max-w-md rounded-2xl bg-cream p-8 text-center shadow-xl">
+        <BrandLogo size={44} variant="client-light" showText={false} className="mb-4 justify-center" />
+
         {estado === "validando" ? (
           <>
             <h1 className="font-serif text-2xl text-navy">Validando seu acesso…</h1>

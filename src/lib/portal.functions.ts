@@ -152,9 +152,29 @@ export const portalCaso = createServerFn({ method: "GET" })
         .eq("caso_id", data.id)
         .order("updated_at", { ascending: false }),
     ]);
-    if (!caso.data) return { caso: null, evidencias: [] };
+    if (!caso.data) {
+      // Acesso indevido a um caso não autorizado: registrar evento de auditoria
+      // sem gravar identificador de caso nem dado pessoal nos metadados.
+      const helpers = await import("./portal.server");
+      const acesso = await supabase
+        .from("client_portal_access")
+        .select("id, organization_id")
+        .eq("auth_user_id", context.userId)
+        .maybeSingle();
+      if (acesso.data) {
+        await helpers.registrarEvento({
+          organizationId: acesso.data.organization_id,
+          acessoId: acesso.data.id,
+          authUserId: context.userId as string,
+          tipo: "access_denied",
+          metadata: { motivo: "caso_nao_autorizado", superficie: "portal_caso" },
+        });
+      }
+      return { caso: null, evidencias: [] };
+    }
     return { caso: caso.data as any, evidencias: (evidencias.data ?? []) as any[] };
   });
+
 
 export const portalDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

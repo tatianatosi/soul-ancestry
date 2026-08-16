@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { FolderOpen, FileText, Receipt, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLogo } from "@/components/brand";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
 
@@ -47,12 +48,16 @@ export function PortalShell({
     <div className="min-h-screen bg-cream text-navy">
       <header className="border-b border-navy/10 bg-navy px-4 py-4 text-cream lg:px-8">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
-            <p className="truncate text-[11px] uppercase tracking-widest text-cream/60">
-              {data?.cliente?.nome ?? "Portal do cliente"}
-            </p>
+          <div className="flex min-w-0 items-center gap-3">
+            <BrandLogo size={36} variant="client-dark" showText={false} />
+            <div className="min-w-0">
+              <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
+              <p className="truncate text-[11px] uppercase tracking-widest text-cream/60">
+                {data?.cliente?.nome ?? "Portal do cliente"}
+              </p>
+            </div>
           </div>
+
           <button onClick={sair} className="flex items-center gap-2 rounded-lg border border-cream/25 px-3 py-1.5 text-xs">
             <LogOut className="h-3.5 w-3.5" /> Sair
           </button>

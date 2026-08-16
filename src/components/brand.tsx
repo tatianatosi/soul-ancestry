@@ -1,44 +1,79 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/clube-ancestral-logo.svg.asset.json";
+import { BRAND_ASSET_PENDENTE, BRAND_LOGO_URL, BRAND_NAME } from "@/lib/brand-asset";
 
-const LOGO_URL = logoAsset.url;
+export type BrandLogoVariant = "client-light" | "client-dark" | "internal-minimal";
 
 interface LogoProps {
+  /** Altura do logo em px. Proporção sempre preservada. */
   size?: number;
   className?: string;
   showText?: boolean;
   textColor?: string;
+  variant?: BrandLogoVariant;
 }
 
-export function BrandLogo({ size = 40, className, showText = true, textColor }: LogoProps) {
+const VARIANT_TEXT: Record<BrandLogoVariant, string> = {
+  "client-light": "#1B2B4B",
+  "client-dark": "#ECDFCD",
+  "internal-minimal": "#C9A84C",
+};
+
+export function BrandLogo({
+  size = 40,
+  className,
+  showText = true,
+  textColor,
+  variant = "client-dark",
+}: LogoProps) {
+  const minimal = variant === "internal-minimal";
+  const cor = textColor ?? VARIANT_TEXT[variant];
+  const alturaLogo = minimal ? Math.round(size * 0.8) : size;
+
+  // Sem asset oficial: placeholder neutro, sem inventar marca.
+  if (!BRAND_LOGO_URL) {
+    return (
+      <span
+        className={cn("font-serif tracking-wide", className)}
+        style={{ fontSize: Math.round(size * 0.5), color: cor }}
+        data-brand-pending={BRAND_ASSET_PENDENTE ?? undefined}
+      >
+        {BRAND_NAME}
+      </span>
+    );
+  }
+
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <img
-        src={LOGO_URL}
-        alt="Clube Ancestral"
+        src={BRAND_LOGO_URL}
+        alt={BRAND_NAME}
+        loading="lazy"
+        decoding="async"
         style={{
-          height: size,
+          height: alturaLogo,
           width: "auto",
           objectFit: "contain",
           background: "transparent",
+          padding: Math.max(2, Math.round(alturaLogo * 0.06)),
         }}
       />
-      {showText && (
+      {showText && !minimal && (
         <span
           className="italic leading-none tracking-wide"
           style={{
             fontFamily: '"Great Vibes","Dancing Script","Cormorant Garamond",cursive',
             fontSize: Math.round(size * 0.7),
-            color: textColor ?? "#ECDFCD",
+            color: cor,
           }}
         >
-          Clube Ancestral
+          {BRAND_NAME}
         </span>
       )}
     </div>
   );
 }
+
 
 export function AppSwitcher({
   current,

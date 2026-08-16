@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { BrandLogo } from "@/components/brand";
 import { solicitarLinkAcesso } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/acesso")({
@@ -43,8 +44,10 @@ function AcessoPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-navy px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-cream p-8 shadow-xl">
+        <BrandLogo size={44} variant="client-light" showText={false} className="mb-4" />
         <p className="text-[11px] uppercase tracking-[0.3em] text-navy/50">Clube Ancestral</p>
         <h1 className="mt-2 font-serif text-3xl text-navy">Acesso do cliente</h1>
+
         <p className="mt-3 text-sm text-navy/70">
           O acesso é feito por link enviado ao seu e-mail. Não usamos senha e não é possível criar conta por conta
           própria: o e-mail precisa ter sido autorizado previamente pela nossa equipe.
