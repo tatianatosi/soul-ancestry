@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { ESTADOS, rotuloEstado } from "@/lib/estados";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
