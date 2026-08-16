@@ -118,3 +118,65 @@ export function transicaoPermitida(dominio: Dominio, de: string, para: string): 
   if (de === para) return true;
   return (TRANSICOES[dominio][de] ?? []).includes(para);
 }
+
+/** Tabela operacional -> domínio de estado (espelho de `fn_estado_*` no banco). */
+export const DOMINIO_POR_TABELA: Record<string, { dominio: Dominio; campo: string }> = {
+  leads: { dominio: "lead", campo: "estagio" },
+  clientes: { dominio: "cliente", campo: "status" },
+  crm_casos: { dominio: "caso", campo: "status" },
+  tarefas: { dominio: "tarefa", campo: "status" },
+  evidencias: { dominio: "evidencia", campo: "status" },
+};
+
+/** Estado inicial precisa pertencer ao vocabulário oficial. */
+export function validarEstadoInicial(tabela: string, dados: Record<string, unknown>) {
+  const mapa = DOMINIO_POR_TABELA[tabela];
+  if (!mapa) return;
+  const valor = dados[mapa.campo];
+  if (valor === undefined || valor === null || valor === "") return;
+  const valido = ESTADOS[mapa.dominio].some((e) => e.valor === valor);
+  if (!valido) throw new Error(`Estado inválido para ${tabela}: ${String(valor)}.`);
+}
+
+/** Bloqueia transições fora da máquina de estados. */
+export function validarTransicao(
+  tabela: string,
+  atual: Record<string, unknown>,
+  alteracoes: Record<string, unknown>,
+) {
+  const mapa = DOMINIO_POR_TABELA[tabela];
+  if (!mapa) return;
+  const novo = alteracoes[mapa.campo];
+  if (novo === undefined || novo === null || novo === "") return;
+  const de = String(atual[mapa.campo] ?? "");
+  const para = String(novo);
+  if (!ESTADOS[mapa.dominio].some((e) => e.valor === para)) {
+    throw new Error(`Estado inválido para ${tabela}: ${para}.`);
+  }
+  if (!transicaoPermitida(mapa.dominio, de, para)) {
+    throw new Error(
+      `Transição não permitida: ${rotuloEstado(mapa.dominio, de)} → ${rotuloEstado(mapa.dominio, para)}.`,
+    );
+  }
+}
+
+/** Regras de integridade obrigatórias (também aplicadas por trigger no banco). */
+export function validarRegrasNegocio(tabela: string, registro: Record<string, unknown>) {
+  const vazio = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
+
+  if (tabela === "crm_casos" && registro["status"] === "ativo") {
+    if (vazio(registro["cliente_id"])) throw new Error("Caso ativo exige cliente vinculado.");
+    if (vazio(registro["responsavel_id"])) throw new Error("Caso ativo exige responsável.");
+    if (vazio(registro["tipo_servico"])) throw new Error("Caso ativo exige tipo de serviço.");
+  }
+
+  if (tabela === "tarefas") {
+    const bloqueada = registro["status"] === "bloqueada" || registro["bloqueio"] === true;
+    if (registro["status"] === "bloqueada" && vazio(registro["motivo_bloqueio"])) {
+      throw new Error("Tarefa bloqueada exige motivo do bloqueio.");
+    }
+    if (registro["status"] === "concluida" && bloqueada) {
+      throw new Error("Tarefa bloqueada não pode ser concluída. Desbloqueie antes.");
+    }
+  }
+}
