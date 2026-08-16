@@ -24,7 +24,7 @@ import {
   renovarValidadeProposta,
   salvarProposta,
 } from "@/lib/comercial.functions";
-import { FLUXO } from "@/lib/comercial.server";
+import { FLUXO } from "@/lib/comercial-fluxo";
 
 export const Route = createFileRoute("/_authenticated/propostas")({
   head: () => ({
