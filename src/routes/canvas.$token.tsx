@@ -58,9 +58,6 @@ function CanvasPorToken() {
                 {data.pais && (
                   <span className="rounded-full bg-navy px-3 py-1 text-cream">{data.pais}</span>
                 )}
-                {data.status && (
-                  <span className="rounded-full bg-gold/20 px-3 py-1 text-navy">{data.status}</span>
-                )}
               </div>
               {data.ultima_atualizacao && (
                 <p className="mt-3 text-[11px] text-navy/55">
