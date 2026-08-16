@@ -175,3 +175,86 @@ export function montarDossie(d: Dossie, complemento?: string) {
       : "### Complemento informado pela equipe\n(nenhum)",
   ].join("\n\n");
 }
+
+/* ------------------------------------------------------------------ *
+ * Trava de suficiência: o assistente só analisa o caso solicitado.
+ * Sem dados mínimos, nada é inferido e nenhum outro caso é usado.
+ * ------------------------------------------------------------------ */
+
+const PLACEHOLDERS = [
+  /\[[^\]]*\]/,
+  /\bex\.:/i,
+  /\bpreencher\b/i,
+  /\bpendente de preenchimento\b/i,
+  /\blorem ipsum\b/i,
+  /\bxxx+\b/i,
+  /\bteste\b/i,
+];
+
+export function temPlaceholder(valor: unknown) {
+  if (typeof valor !== "string") return false;
+  const t = valor.trim();
+  if (!t) return false;
+  return PLACEHOLDERS.some((r) => r.test(t));
+}
+
+export type Lacuna = { campo: string; motivo: string };
+
+/**
+ * Campos mínimos para rodar a análise. Ausência, valor vazio ou placeholder
+ * bloqueia a execução — nunca é preenchido por inferência.
+ */
+export function avaliarSuficiencia(d: Dossie, complemento?: string): Lacuna[] {
+  const lacunas: Lacuna[] = [];
+  const caso = d.caso ?? {};
+
+  const exigir = (campo: string, rotuloCampo: string, valor: unknown) => {
+    if (valor === null || valor === undefined || String(valor).trim() === "") {
+      lacunas.push({ campo: rotuloCampo, motivo: "não informado" });
+      return;
+    }
+    if (temPlaceholder(valor)) {
+      lacunas.push({ campo: rotuloCampo, motivo: "contém texto de exemplo/placeholder" });
+    }
+    void campo;
+  };
+
+  exigir("titulo", "Finalidade da pesquisa (título do caso)", caso["titulo"]);
+  exigir("via", "Via / linha de ascendência", caso["via"]);
+  exigir("pais", "País e localidades relacionados", caso["pais"]);
+
+  if (!d.pessoas.length) {
+    lacunas.push({ campo: "Pessoa-chave", motivo: "nenhuma pessoa cadastrada no caso" });
+  } else {
+    const requerente = d.pessoas.find((p) => p["requerente"]) ?? d.pessoas[0];
+    if (!requerente?.["nome"] || temPlaceholder(requerente["nome"])) {
+      lacunas.push({ campo: "Pessoa-chave (nome)", motivo: "sem nome válido" });
+    }
+    const comData = d.pessoas.some(
+      (p) => p["data_nascimento"] || p["data_obito"] || p["local_nascimento"] || p["local_obito"],
+    );
+    if (!comData) {
+      lacunas.push({
+        campo: "Dados conhecidos (datas ou locais)",
+        motivo: "nenhuma pessoa possui data ou local registrado",
+      });
+    }
+  }
+
+  if (!d.evidencias.length && !d.eventos.length && !d.hipoteses.length) {
+    lacunas.push({
+      campo: "Documentos, eventos ou hipóteses",
+      motivo: "o caso não possui nenhum registro de pesquisa para analisar",
+    });
+  }
+
+  if (temPlaceholder(complemento)) {
+    lacunas.push({ campo: "Complemento informado", motivo: "contém texto de exemplo/placeholder" });
+  }
+
+  return lacunas;
+}
+
+export const AVISO_DEMO =
+  "ATENÇÃO: este é o caso de DEMONSTRAÇÃO com DADOS FICTÍCIOS. Inicie a resposta com a linha " +
+  "'DEMO — DADOS FICTÍCIOS' e não trate nenhum dado como real.";
