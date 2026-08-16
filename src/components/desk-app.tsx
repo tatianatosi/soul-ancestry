@@ -21,6 +21,7 @@ import {
 } from "@/data/propostas";
 import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneamento";
 import { GoLiveDesk } from "./desk-go-live";
+import { DeskCrm } from "./desk-crm";
 import { KitContratual } from "./kit-contratual";
 import { TimelineContratualDesk } from "./timeline-contratual";
 import {
@@ -38,6 +39,7 @@ import {
   Circle,
   Clock,
   Scale,
+  Radio,
   Wallet,
   Plug,
   Smartphone,
@@ -69,12 +71,14 @@ type Section =
   | "integracoes"
   | "propostas"
   | "golive"
-  | "formalizacao";
+  | "formalizacao"
+  | "crm";
 
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
   const nav = [
     ["overview", LayoutGrid, "Visão Geral"],
+    ["crm", Radio, "CRM vivo"],
     ["casos", Users, "Casos 360"],
     ["propostas", FileText, "Propostas"],
     ["golive", Rocket, "Go-live"],
@@ -137,6 +141,7 @@ export function DeskApp() {
       <main className="flex-1 overflow-x-hidden px-5 py-8 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-6xl">
           {sec === "overview" && <Overview />}
+          {sec === "crm" && <DeskCrm />}
           {sec === "casos" && <Casos />}
           {sec === "propostas" && <Propostas />}
           {sec === "golive" && <GoLiveDesk />}
