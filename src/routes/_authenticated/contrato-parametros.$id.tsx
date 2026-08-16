@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo, inputCls } from "@/components/comercial/base";
-import { LinhaParametro, ROTULO_ORIGEM } from "@/components/contrato/linha-parametro";
+import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { SaasShell } from "@/components/saas/shell";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
 import {
