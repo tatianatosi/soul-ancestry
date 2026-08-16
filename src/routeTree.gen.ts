@@ -40,6 +40,7 @@ import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
+import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -198,6 +199,12 @@ const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   path: '/casos/$id',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const AuthenticatedContratosIdRoute =
+  AuthenticatedContratosIdRouteImport.update({
+    id: '/contratos/$id',
+    path: '/contratos/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
 }
@@ -259,6 +267,7 @@ export interface FileRoutesByTo {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
+  '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
 }
@@ -293,6 +302,7 @@ export interface FileRoutesById {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
 }
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal/'
+    | '/contratos/$id'
     | '/portal/casos/$id'
     | '/contratos/'
   fileRoutesByTo: FileRoutesByTo
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal'
+    | '/contratos/$id'
     | '/portal/casos/$id'
     | '/contratos'
   id:
@@ -391,6 +403,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal/'
+    | '/_authenticated/contratos/$id'
     | '/portal/casos/$id'
     | '/_authenticated/contratos/'
   fileRoutesById: FileRoutesById
@@ -630,6 +643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCasosIdRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/_authenticated/contratos/$id': {
+      id: '/_authenticated/contratos/$id'
+      path: '/contratos/$id'
+      fullPath: '/contratos/$id'
+      preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -646,6 +666,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
 }
 
@@ -662,6 +683,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
 }
 
