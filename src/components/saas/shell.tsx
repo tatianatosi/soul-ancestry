@@ -78,6 +78,7 @@ const NAV = [
   { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/privacidade", label: "Privacidade e documentos", icon: ShieldCheck },
+  { to: "/qualidade", label: "Qualidade", icon: BadgeCheck },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;

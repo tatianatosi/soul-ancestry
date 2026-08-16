@@ -30,6 +30,7 @@ import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-perm
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
@@ -155,6 +156,11 @@ const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
+  id: '/qualidade',
+  path: '/qualidade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -343,6 +350,7 @@ export interface FileRoutesByTo {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -389,6 +397,7 @@ export interface FileRoutesById {
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
+  '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -435,6 +444,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/propostas'
+    | '/qualidade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/propostas'
+    | '/qualidade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -523,6 +534,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
     | '/_authenticated/propostas'
+    | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
@@ -712,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/qualidade': {
+      id: '/_authenticated/qualidade'
+      path: '/qualidade'
+      fullPath: '/qualidade'
+      preLoaderRoute: typeof AuthenticatedQualidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/propostas': {
       id: '/_authenticated/propostas'
       path: '/propostas'
@@ -884,6 +903,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
+  AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
@@ -910,6 +930,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
+  AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
