@@ -20,6 +20,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
+import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
+import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
+import { Route as EquipeEsqueciMinhaSenhaRouteImport } from './routes/equipe.esqueci-minha-senha'
+import { Route as EquipeEntrarRouteImport } from './routes/equipe.entrar'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
@@ -88,6 +92,26 @@ const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
   getParentRoute: () => PortalRouteRoute,
+} as any)
+const EquipeSemPermissaoRoute = EquipeSemPermissaoRouteImport.update({
+  id: '/equipe/sem-permissao',
+  path: '/equipe/sem-permissao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeRedefinirSenhaRoute = EquipeRedefinirSenhaRouteImport.update({
+  id: '/equipe/redefinir-senha',
+  path: '/equipe/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeEsqueciMinhaSenhaRoute = EquipeEsqueciMinhaSenhaRouteImport.update({
+  id: '/equipe/esqueci-minha-senha',
+  path: '/equipe/esqueci-minha-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeEntrarRoute = EquipeEntrarRouteImport.update({
+  id: '/equipe/entrar',
+  path: '/equipe/entrar',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasTokenRoute = CanvasTokenRouteImport.update({
   id: '/canvas/$token',
@@ -183,6 +207,10 @@ export interface FileRoutesByFullPath {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/entrar': typeof EquipeEntrarRoute
+  '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
+  '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
+  '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
@@ -208,6 +236,10 @@ export interface FileRoutesByTo {
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/entrar': typeof EquipeEntrarRoute
+  '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
+  '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
+  '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
@@ -236,6 +268,10 @@ export interface FileRoutesById {
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/entrar': typeof EquipeEntrarRoute
+  '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
+  '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
+  '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
@@ -264,6 +300,10 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/canvas/$token'
+    | '/equipe/entrar'
+    | '/equipe/esqueci-minha-senha'
+    | '/equipe/redefinir-senha'
+    | '/equipe/sem-permissao'
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal/'
@@ -289,6 +329,10 @@ export interface FileRouteTypes {
     | '/tarefas'
     | '/acesso/confirmar'
     | '/canvas/$token'
+    | '/equipe/entrar'
+    | '/equipe/esqueci-minha-senha'
+    | '/equipe/redefinir-senha'
+    | '/equipe/sem-permissao'
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal'
@@ -316,6 +360,10 @@ export interface FileRouteTypes {
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/canvas/$token'
+    | '/equipe/entrar'
+    | '/equipe/esqueci-minha-senha'
+    | '/equipe/redefinir-senha'
+    | '/equipe/sem-permissao'
     | '/portal/documentos'
     | '/portal/proposta'
     | '/portal/'
@@ -332,6 +380,10 @@ export interface RootRouteChildren {
   PrototipoRoute: typeof PrototipoRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
+  EquipeEntrarRoute: typeof EquipeEntrarRoute
+  EquipeEsqueciMinhaSenhaRoute: typeof EquipeEsqueciMinhaSenhaRoute
+  EquipeRedefinirSenhaRoute: typeof EquipeRedefinirSenhaRoute
+  EquipeSemPermissaoRoute: typeof EquipeSemPermissaoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -412,6 +464,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/documentos'
       preLoaderRoute: typeof PortalDocumentosRouteImport
       parentRoute: typeof PortalRouteRoute
+    }
+    '/equipe/sem-permissao': {
+      id: '/equipe/sem-permissao'
+      path: '/equipe/sem-permissao'
+      fullPath: '/equipe/sem-permissao'
+      preLoaderRoute: typeof EquipeSemPermissaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe/redefinir-senha': {
+      id: '/equipe/redefinir-senha'
+      path: '/equipe/redefinir-senha'
+      fullPath: '/equipe/redefinir-senha'
+      preLoaderRoute: typeof EquipeRedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe/esqueci-minha-senha': {
+      id: '/equipe/esqueci-minha-senha'
+      path: '/equipe/esqueci-minha-senha'
+      fullPath: '/equipe/esqueci-minha-senha'
+      preLoaderRoute: typeof EquipeEsqueciMinhaSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe/entrar': {
+      id: '/equipe/entrar'
+      path: '/equipe/entrar'
+      fullPath: '/equipe/entrar'
+      preLoaderRoute: typeof EquipeEntrarRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/canvas/$token': {
       id: '/canvas/$token'
@@ -584,6 +664,10 @@ const rootRouteChildren: RootRouteChildren = {
   PrototipoRoute: PrototipoRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   CanvasTokenRoute: CanvasTokenRoute,
+  EquipeEntrarRoute: EquipeEntrarRoute,
+  EquipeEsqueciMinhaSenhaRoute: EquipeEsqueciMinhaSenhaRoute,
+  EquipeRedefinirSenhaRoute: EquipeRedefinirSenhaRoute,
+  EquipeSemPermissaoRoute: EquipeSemPermissaoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
