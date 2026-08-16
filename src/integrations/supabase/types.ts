@@ -2397,11 +2397,14 @@ export type Database = {
       }
       crm_casos: {
         Row: {
+          aceite_comercial_em: string | null
+          aceite_comercial_registrado_por: string | null
           app_access_status: string
           app_visibility_level: string
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          ativacao_operacional: string | null
           ativado_em: string | null
           ativado_por: string | null
           ativo: boolean
@@ -2424,11 +2427,14 @@ export type Database = {
           organization_id: string
           pagamento_confirmado: boolean
           pais: string | null
+          piloto: boolean
+          preparacao_status: string | null
           prioridade: string
           proxima_acao: string | null
           responsavel_id: string | null
           resumo: string | null
           risco: string | null
+          selo_interno: string | null
           status: string
           suspenso_em: string | null
           suspenso_motivo: string | null
@@ -2440,11 +2446,14 @@ export type Database = {
           via: string
         }
         Insert: {
+          aceite_comercial_em?: string | null
+          aceite_comercial_registrado_por?: string | null
           app_access_status?: string
           app_visibility_level?: string
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          ativacao_operacional?: string | null
           ativado_em?: string | null
           ativado_por?: string | null
           ativo?: boolean
@@ -2467,11 +2476,14 @@ export type Database = {
           organization_id: string
           pagamento_confirmado?: boolean
           pais?: string | null
+          piloto?: boolean
+          preparacao_status?: string | null
           prioridade?: string
           proxima_acao?: string | null
           responsavel_id?: string | null
           resumo?: string | null
           risco?: string | null
+          selo_interno?: string | null
           status?: string
           suspenso_em?: string | null
           suspenso_motivo?: string | null
@@ -2483,11 +2495,14 @@ export type Database = {
           via?: string
         }
         Update: {
+          aceite_comercial_em?: string | null
+          aceite_comercial_registrado_por?: string | null
           app_access_status?: string
           app_visibility_level?: string
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          ativacao_operacional?: string | null
           ativado_em?: string | null
           ativado_por?: string | null
           ativo?: boolean
@@ -2510,11 +2525,14 @@ export type Database = {
           organization_id?: string
           pagamento_confirmado?: boolean
           pais?: string | null
+          piloto?: boolean
+          preparacao_status?: string | null
           prioridade?: string
           proxima_acao?: string | null
           responsavel_id?: string | null
           resumo?: string | null
           risco?: string | null
+          selo_interno?: string | null
           status?: string
           suspenso_em?: string | null
           suspenso_motivo?: string | null
@@ -4170,6 +4188,182 @@ export type Database = {
           },
           {
             foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      piloto_bloqueios: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          chave: string
+          created_at: string
+          created_by: string | null
+          criticidade: string
+          descricao: string
+          id: string
+          justificativa: string | null
+          organization_id: string
+          resolvido_em: string | null
+          resolvido_por: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          chave: string
+          created_at?: string
+          created_by?: string | null
+          criticidade?: string
+          descricao: string
+          id?: string
+          justificativa?: string | null
+          organization_id: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          chave?: string
+          created_at?: string
+          created_by?: string | null
+          criticidade?: string
+          descricao?: string
+          id?: string
+          justificativa?: string | null
+          organization_id?: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "piloto_bloqueios_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piloto_bloqueios_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piloto_bloqueios_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      piloto_conferencia: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          campo: string
+          case_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          obrigatorio: boolean
+          observacao: string | null
+          organization_id: string
+          origem: string | null
+          origem_detalhe: string | null
+          secao: string
+          updated_at: string
+          updated_by: string | null
+          valor: string | null
+          verificado: boolean
+          verificado_em: string | null
+          verificado_por: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campo: string
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          organization_id: string
+          origem?: string | null
+          origem_detalhe?: string | null
+          secao: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: string | null
+          verificado?: boolean
+          verificado_em?: string | null
+          verificado_por?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campo?: string
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          organization_id?: string
+          origem?: string | null
+          origem_detalhe?: string | null
+          secao?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor?: string | null
+          verificado?: boolean
+          verificado_em?: string | null
+          verificado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "piloto_conferencia_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piloto_conferencia_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "piloto_conferencia_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
