@@ -37,15 +37,20 @@ export const PAPEL_LABEL: Record<Papel, string> = {
 
 export function useSaas() {
   const carregar = useServerFn(getContexto);
-  const q = useQuery({ queryKey: ["saas-contexto"], queryFn: () => carregar({}) });
+  const q = useQuery({ queryKey: ["saas-contexto"], queryFn: () => carregar({}), retry: false });
   const papeis = q.data?.papeis ?? [];
+  const statusStaff = q.data?.staff?.status ?? null;
   return {
     ...q,
     contexto: q.data,
     papeis,
+    statusStaff,
+    autorizado: statusStaff === "active" && papeis.length > 0,
     ehAdmin: papeis.includes("admin"),
     podeEscrever: papeis.some((p) => PAPEIS_ESCRITA.includes(p)),
     podeFinanceiro: papeis.includes("admin") || papeis.includes("financeiro"),
+    podeComercial: papeis.includes("admin") || papeis.includes("comercial") || papeis.includes("operacoes"),
+    podePesquisa: papeis.includes("admin") || papeis.includes("operacoes") || papeis.includes("pesquisador"),
     somenteLeitura: papeis.length > 0 && !papeis.some((p) => PAPEIS_ESCRITA.includes(p)),
   };
 }
@@ -75,18 +80,33 @@ export function SaasShell({
   acoes?: ReactNode;
   children: ReactNode;
 }) {
-  const { contexto, papeis, ehAdmin } = useSaas();
+  const { contexto, papeis, ehAdmin, isLoading, isError, autorizado } = useSaas();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const [aberto, setAberto] = useState(false);
+  const registrarSaida = useServerFn(registrarLogoutEquipe);
+
+  // Sessão autenticada sem autorização interna ativa não permanece na área protegida.
+  useEffect(() => {
+    if (!isLoading && (isError || !autorizado)) {
+      navigate({ to: "/equipe/sem-permissao", replace: true });
+    }
+  }, [isLoading, isError, autorizado, navigate]);
 
   async function sair() {
+    try {
+      await registrarSaida({});
+    } catch {
+      /* auditoria de logout é best-effort */
+    }
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/equipe/entrar", replace: true });
   }
+
+
 
   const itens = ehAdmin ? [...NAV, { to: "/auditoria", label: "Auditoria", icon: ShieldCheck } as const] : NAV;
 
