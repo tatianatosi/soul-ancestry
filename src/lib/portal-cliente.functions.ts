@@ -203,7 +203,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
         tipo: "envio_cliente",
         categoria: "interno",
         sensibilidade: "normal",
-        visibilidade: "interno",
+        visibilidade: "interno_restrito",
         origem: "cliente",
         solicitacao_id: data.solicitacaoId ?? null,
         storage_path: data.caminho,
@@ -373,4 +373,71 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
     });
     if (r.error) throw new Error(r.error.message);
     return { ok: true };
+  });
+
+/** Entregas liberadas em todos os casos autorizados. */
+export const minhasEntregas = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    await h.acessoDoCliente(supabase, context.userId as string);
+    const [docs, casos] = await Promise.all([
+      supabase
+        .from("documents")
+        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
+        .order("created_at", { ascending: false }),
+      supabase.from("crm_casos").select("id, titulo"),
+    ]);
+    const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
+    const lista = (docs.data ?? []) as any[];
+    return {
+      entregas: lista
+        .filter((d) => d.liberado_cliente === true)
+        .map((d) => ({ id: d.id, titulo: d.titulo, caso: nome.get(d.case_id) ?? "", liberadoEm: d.liberado_em })),
+      envios: lista
+        .filter((d) => d.origem === "cliente")
+        .map((d) => ({
+          id: d.id,
+          titulo: d.titulo,
+          caso: nome.get(d.case_id) ?? "",
+          enviadoEm: d.created_at,
+          statusRotulo:
+            d.status === "pendente_de_revisao"
+              ? "Pendente de revisão"
+              : d.status === "recusado"
+                ? "Precisa reenviar"
+                : d.status === "em_revisao"
+                  ? "Em revisão"
+                  : "Aceito",
+          motivo: d.revisao_motivo as string | null,
+        })),
+    };
+  });
+
+/** Faturas liberadas para visualização, em todos os casos autorizados. */
+export const minhasFaturas = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    await h.acessoDoCliente(supabase, context.userId as string);
+    const [faturas, casos] = await Promise.all([
+      supabase
+        .from("invoices")
+        .select("id, case_id, numero, descricao, valor, moeda, vencimento, status")
+        .order("vencimento", { ascending: true }),
+      supabase.from("crm_casos").select("id, titulo"),
+    ]);
+    const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
+    return ((faturas.data ?? []) as any[]).map((f) => ({
+      id: f.id as string,
+      numero: f.numero as string | null,
+      descricao: f.descricao as string | null,
+      caso: nome.get(f.case_id) ?? "",
+      valor: Number(f.valor ?? 0),
+      moeda: (f.moeda as string) ?? "BRL",
+      vencimento: f.vencimento as string | null,
+      statusRotulo: h.STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto",
+    }));
   });
