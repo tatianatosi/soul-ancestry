@@ -117,6 +117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "artifact_register_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "artifact_register_knowledge_item_id_fkey"
             columns: ["knowledge_item_id"]
             isOneToOne: false
@@ -308,6 +315,13 @@ export type Database = {
             referencedRelation: "crm_casos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "case_activation_checks_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       case_checklist_items: {
@@ -383,6 +397,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_checklist_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -477,6 +498,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_members_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -724,6 +752,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_contacts_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -820,6 +855,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_portal_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_portal_access_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -877,6 +919,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_case_access_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -1033,10 +1082,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "consent_exceptions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "consent_exceptions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_exceptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -1136,10 +1199,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "consent_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "consent_records_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -1541,6 +1618,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_parties_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -2261,10 +2345,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contracts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contracts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -2436,6 +2534,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "crm_casos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "crm_casos_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -2541,6 +2646,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -2680,10 +2792,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "documents_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -2759,6 +2885,13 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_financeiros_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -2930,6 +3063,13 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -3376,10 +3516,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -3500,6 +3654,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -3690,6 +3851,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ops_excecoes_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ops_excecoes_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -3783,6 +3951,13 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_microentregas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -4125,10 +4300,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "portal_document_requests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "portal_document_requests_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_document_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -4283,10 +4472,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "portal_tickets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "portal_tickets_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -4350,10 +4553,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "privacy_alerts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "privacy_alerts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privacy_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -4502,10 +4719,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "proposals_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "proposals_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -4722,6 +4953,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "quality_issues_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quality_issues_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -4809,6 +5047,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -4907,6 +5152,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "research_hypotheses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "research_hypotheses_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
@@ -5000,6 +5252,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -5259,6 +5518,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tarefas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tarefas_evidencia_id_fkey"
             columns: ["evidencia_id"]
             isOneToOne: false
@@ -5378,6 +5644,117 @@ export type Database = {
       }
     }
     Views: {
+      portal_casos: {
+        Row: {
+          app_access_status: string | null
+          ativo: boolean | null
+          cliente_id: string | null
+          codigo: string | null
+          created_at: string | null
+          id: string | null
+          organization_id: string | null
+          pais: string | null
+          status: string | null
+          suspenso_em: string | null
+          titulo: string | null
+          updated_at: string | null
+          via: string | null
+        }
+        Insert: {
+          app_access_status?: string | null
+          ativo?: boolean | null
+          cliente_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          id?: string | null
+          organization_id?: string | null
+          pais?: string | null
+          status?: string | null
+          suspenso_em?: string | null
+          titulo?: string | null
+          updated_at?: string | null
+          via?: string | null
+        }
+        Update: {
+          app_access_status?: string | null
+          ativo?: boolean | null
+          cliente_id?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          id?: string | null
+          organization_id?: string | null
+          pais?: string | null
+          status?: string | null
+          suspenso_em?: string | null
+          titulo?: string | null
+          updated_at?: string | null
+          via?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_casos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_casos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_casos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_meu_cadastro: {
+        Row: {
+          email: string | null
+          id: string | null
+          nome: string | null
+          nome_social: string | null
+          organization_id: string | null
+          pais_interesse: string | null
+          status: string | null
+          telefone: string | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          nome_social?: string | null
+          organization_id?: string | null
+          pais_interesse?: string | null
+          status?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string | null
+          nome?: string | null
+          nome_social?: string | null
+          organization_id?: string | null
+          pais_interesse?: string | null
+          status?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_ops_microentregas: {
         Row: {
           archive_motivo: string | null
@@ -5415,6 +5792,13 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ops_microentregas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
@@ -5470,6 +5854,13 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
           {
