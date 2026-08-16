@@ -185,6 +185,97 @@ export type Database = {
           },
         ]
       }
+      case_checklist_items: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          concluido_em: string | null
+          concluido_por: string | null
+          created_at: string
+          evidencia_url: string | null
+          fase: string
+          id: string
+          item_key: string
+          label: string
+          obrigatorio: boolean
+          observacao: string | null
+          ordem: number
+          organization_id: string
+          status: string
+          template_id: string | null
+          tipo_servico: string
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          concluido_em?: string | null
+          concluido_por?: string | null
+          created_at?: string
+          evidencia_url?: string | null
+          fase?: string
+          id?: string
+          item_key: string
+          label: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          ordem?: number
+          organization_id: string
+          status?: string
+          template_id?: string | null
+          tipo_servico?: string
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          concluido_em?: string | null
+          concluido_por?: string | null
+          created_at?: string
+          evidencia_url?: string | null
+          fase?: string
+          id?: string
+          item_key?: string
+          label?: string
+          obrigatorio?: boolean
+          observacao?: string | null
+          ordem?: number
+          organization_id?: string
+          status?: string
+          template_id?: string | null
+          tipo_servico?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_checklist_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_checklist_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "quality_checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_members: {
         Row: {
           archive_motivo: string | null
@@ -3523,6 +3614,205 @@ export type Database = {
           },
         ]
       }
+      quality_checklist_templates: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          fase: string
+          id: string
+          item_key: string
+          label: string
+          obrigatorio: boolean
+          ordem: number
+          organization_id: string
+          tipo_servico: string
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          fase?: string
+          id?: string
+          item_key: string
+          label: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id: string
+          tipo_servico?: string
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          fase?: string
+          id?: string
+          item_key?: string
+          label?: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id?: string
+          tipo_servico?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_checklist_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_exports: {
+        Row: {
+          campos: string[]
+          conjunto: string
+          exportado_em: string
+          exportado_por: string
+          filtros: Json
+          id: string
+          linhas: number
+          organization_id: string
+        }
+        Insert: {
+          campos: string[]
+          conjunto: string
+          exportado_em?: string
+          exportado_por: string
+          filtros?: Json
+          id?: string
+          linhas?: number
+          organization_id: string
+        }
+        Update: {
+          campos?: string[]
+          conjunto?: string
+          exportado_em?: string
+          exportado_por?: string
+          filtros?: Json
+          id?: string
+          linhas?: number
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_exports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_issues: {
+        Row: {
+          bloqueia_ativacao: boolean
+          case_id: string | null
+          created_at: string
+          detalhe: string | null
+          detectada_em: string
+          dominio: string
+          entidade: string
+          entidade_id: string
+          exige_suspensao: boolean
+          id: string
+          organization_id: string
+          reconhecida_em: string | null
+          reconhecida_por: string | null
+          regra_key: string
+          resolucao_comentario: string | null
+          resolucao_evidencia: string | null
+          resolvida_em: string | null
+          resolvida_por: string | null
+          sanada_em: string | null
+          severidade: string
+          status: string
+          titulo: string
+          updated_at: string
+          vista_em: string | null
+        }
+        Insert: {
+          bloqueia_ativacao?: boolean
+          case_id?: string | null
+          created_at?: string
+          detalhe?: string | null
+          detectada_em?: string
+          dominio: string
+          entidade: string
+          entidade_id: string
+          exige_suspensao?: boolean
+          id?: string
+          organization_id: string
+          reconhecida_em?: string | null
+          reconhecida_por?: string | null
+          regra_key: string
+          resolucao_comentario?: string | null
+          resolucao_evidencia?: string | null
+          resolvida_em?: string | null
+          resolvida_por?: string | null
+          sanada_em?: string | null
+          severidade: string
+          status?: string
+          titulo: string
+          updated_at?: string
+          vista_em?: string | null
+        }
+        Update: {
+          bloqueia_ativacao?: boolean
+          case_id?: string | null
+          created_at?: string
+          detalhe?: string | null
+          detectada_em?: string
+          dominio?: string
+          entidade?: string
+          entidade_id?: string
+          exige_suspensao?: boolean
+          id?: string
+          organization_id?: string
+          reconhecida_em?: string | null
+          reconhecida_por?: string | null
+          regra_key?: string
+          resolucao_comentario?: string | null
+          resolucao_evidencia?: string | null
+          resolvida_em?: string | null
+          resolvida_por?: string | null
+          sanada_em?: string | null
+          severidade?: string
+          status?: string
+          titulo?: string
+          updated_at?: string
+          vista_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_issues_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_issues_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_events: {
         Row: {
           archive_motivo: string | null
@@ -4359,6 +4649,19 @@ export type Database = {
         Returns: Database["public"]["Enums"]["portal_access_level"]
       }
       portal_minha_org: { Args: never; Returns: string }
+      quality_relatorio_semanal: {
+        Args: { _inicio?: string; _org: string }
+        Returns: Json
+      }
+      quality_scan: {
+        Args: { _org: string }
+        Returns: {
+          abertas: number
+          criadas: number
+          sanadas: number
+        }[]
+      }
+      quality_sync_checklist: { Args: { _case: string }; Returns: number }
       staff_meu_papel: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
