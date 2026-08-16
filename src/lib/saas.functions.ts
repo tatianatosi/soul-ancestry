@@ -28,6 +28,9 @@ export type Entidade =
   | "tarefas"
   | "eventos_financeiros";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Linha = Record<string, any>;
+
 const ENTIDADES: Entidade[] = [
   "leads",
   "clientes",
@@ -122,7 +125,7 @@ export const listarRegistros = createServerFn({ method: "GET" })
     if (!data.incluirArquivados) q = q.is("archived_at", null);
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
-    return (linhas ?? []) as Record<string, unknown>[];
+    return (linhas ?? []) as Linha[];
   });
 
 export const criarRegistro = createServerFn({ method: "POST" })
@@ -278,7 +281,7 @@ export const listarAuditoria = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
-    return (data ?? []) as Record<string, unknown>[];
+    return (data ?? []) as Linha[];
   });
 
 export const listarUsuarios = createServerFn({ method: "GET" })
