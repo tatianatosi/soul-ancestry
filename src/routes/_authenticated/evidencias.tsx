@@ -6,6 +6,7 @@ import { useState } from "react";
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
+import { ESTADOS, rotuloEstado } from "@/lib/estados";
 
 export const Route = createFileRoute("/_authenticated/evidencias")({
   head: () => ({
