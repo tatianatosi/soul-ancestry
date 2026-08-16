@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
@@ -55,6 +56,11 @@ const CanvasTokenRoute = CanvasTokenRouteImport.update({
 const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/leads'
     | '/painel'
+    | '/relatorios'
     | '/tarefas'
     | '/canvas/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/leads'
     | '/painel'
+    | '/relatorios'
     | '/tarefas'
     | '/canvas/$token'
   id:
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/financeiro'
     | '/_authenticated/leads'
     | '/_authenticated/painel'
+    | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/canvas/$token'
   fileRoutesById: FileRoutesById
@@ -238,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTarefasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
@@ -290,6 +309,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
 }
 
@@ -300,6 +320,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
 }
 
