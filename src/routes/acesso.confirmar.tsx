@@ -57,6 +57,8 @@ function ConfirmarPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-navy px-4">
       <div className="w-full max-w-md rounded-2xl bg-cream p-8 text-center shadow-xl">
+        <BrandLogo size={44} variant="client-light" showText={false} className="mb-4 justify-center" />
+
         {estado === "validando" ? (
           <>
             <h1 className="font-serif text-2xl text-navy">Validando seu acesso…</h1>
