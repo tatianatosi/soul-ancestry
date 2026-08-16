@@ -13,6 +13,8 @@ import {
   BarChart3,
   Settings,
   ShieldCheck,
+  KeyRound,
+
   LogOut,
   Menu,
 } from "lucide-react";
@@ -52,6 +54,8 @@ const NAV = [
   { to: "/painel", label: "Visão geral", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/clientes", label: "Clientes", icon: UserCheck },
+  { to: "/acessos-portal", label: "Acessos ao portal", icon: KeyRound },
+
   { to: "/casos", label: "Casos", icon: FolderOpen },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
   { to: "/tarefas", label: "Tarefas", icon: ListChecks },

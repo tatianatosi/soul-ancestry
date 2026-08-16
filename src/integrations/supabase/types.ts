@@ -118,6 +118,220 @@ export type Database = {
         }
         Relationships: []
       }
+      client_access_events: {
+        Row: {
+          actor_user_id: string | null
+          auth_user_id: string | null
+          client_portal_access_id: string | null
+          created_at: string
+          event_type: Database["public"]["Enums"]["portal_event_type"]
+          id: string
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          auth_user_id?: string | null
+          client_portal_access_id?: string | null
+          created_at?: string
+          event_type: Database["public"]["Enums"]["portal_event_type"]
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          auth_user_id?: string | null
+          client_portal_access_id?: string | null
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["portal_event_type"]
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_access_events_client_portal_access_id_fkey"
+            columns: ["client_portal_access_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_access"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_access_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_access: {
+        Row: {
+          access_level: Database["public"]["Enums"]["portal_access_level"]
+          access_status: Database["public"]["Enums"]["portal_access_status"]
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          auth_user_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          email: string
+          first_authenticated_at: string | null
+          id: string
+          invitation_expires_at: string | null
+          invited_at: string | null
+          invited_by: string | null
+          last_authenticated_at: string | null
+          notes_internal: string | null
+          organization_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["portal_access_level"]
+          access_status?: Database["public"]["Enums"]["portal_access_status"]
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          auth_user_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email: string
+          first_authenticated_at?: string | null
+          id?: string
+          invitation_expires_at?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
+          last_authenticated_at?: string | null
+          notes_internal?: string | null
+          organization_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["portal_access_level"]
+          access_status?: Database["public"]["Enums"]["portal_access_status"]
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          auth_user_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          email?: string
+          first_authenticated_at?: string | null
+          id?: string
+          invitation_expires_at?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
+          last_authenticated_at?: string | null
+          notes_internal?: string | null
+          organization_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_access_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_case_access: {
+        Row: {
+          access_status: Database["public"]["Enums"]["portal_case_status"]
+          case_id: string
+          client_portal_access_id: string
+          created_at: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          organization_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_status?: Database["public"]["Enums"]["portal_case_status"]
+          case_id: string
+          client_portal_access_id: string
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_status?: Database["public"]["Enums"]["portal_case_status"]
+          case_id?: string
+          client_portal_access_id?: string
+          created_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_case_access_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_case_access_client_portal_access_id_fkey"
+            columns: ["client_portal_access_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_access"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_case_access_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           archive_motivo: string | null
@@ -185,6 +399,8 @@ export type Database = {
       }
       crm_casos: {
         Row: {
+          app_access_status: string
+          app_visibility_level: string
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
@@ -195,6 +411,7 @@ export type Database = {
           codigo: string
           condicoes_verificadas_em: string | null
           condicoes_verificadas_por: string | null
+          consentimento_compartilhamento: boolean
           contrato_assinado: boolean
           created_at: string
           created_by: string | null
@@ -202,6 +419,7 @@ export type Database = {
           documentos_minimos_ok: boolean
           hipotese_elegibilidade: string | null
           id: string
+          info_cliente_liberada: boolean
           organization_id: string
           pagamento_confirmado: boolean
           pais: string | null
@@ -211,6 +429,8 @@ export type Database = {
           via: string
         }
         Insert: {
+          app_access_status?: string
+          app_visibility_level?: string
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -221,6 +441,7 @@ export type Database = {
           codigo: string
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
+          consentimento_compartilhamento?: boolean
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
@@ -228,6 +449,7 @@ export type Database = {
           documentos_minimos_ok?: boolean
           hipotese_elegibilidade?: string | null
           id?: string
+          info_cliente_liberada?: boolean
           organization_id: string
           pagamento_confirmado?: boolean
           pais?: string | null
@@ -237,6 +459,8 @@ export type Database = {
           via?: string
         }
         Update: {
+          app_access_status?: string
+          app_visibility_level?: string
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -247,6 +471,7 @@ export type Database = {
           codigo?: string
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
+          consentimento_compartilhamento?: boolean
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
@@ -254,6 +479,7 @@ export type Database = {
           documentos_minimos_ok?: boolean
           hipotese_elegibilidade?: string | null
           id?: string
+          info_cliente_liberada?: boolean
           organization_id?: string
           pagamento_confirmado?: boolean
           pais?: string | null
@@ -290,6 +516,7 @@ export type Database = {
           demo: boolean
           descricao: string
           id: string
+          liberada_cliente: boolean
           moeda: string
           organization_id: string
           status: string
@@ -308,6 +535,7 @@ export type Database = {
           demo?: boolean
           descricao: string
           id?: string
+          liberada_cliente?: boolean
           moeda?: string
           organization_id: string
           status?: string
@@ -326,6 +554,7 @@ export type Database = {
           demo?: boolean
           descricao?: string
           id?: string
+          liberada_cliente?: boolean
           moeda?: string
           organization_id?: string
           status?: string
@@ -407,7 +636,9 @@ export type Database = {
           demo: boolean
           descricao: string | null
           id: string
+          liberada_cliente: boolean
           organization_id: string
+          origem: string
           status: string
           storage_path: string | null
           tipo: string
@@ -425,7 +656,9 @@ export type Database = {
           demo?: boolean
           descricao?: string | null
           id?: string
+          liberada_cliente?: boolean
           organization_id: string
+          origem?: string
           status?: string
           storage_path?: string | null
           tipo?: string
@@ -443,7 +676,9 @@ export type Database = {
           demo?: boolean
           descricao?: string | null
           id?: string
+          liberada_cliente?: boolean
           organization_id?: string
+          origem?: string
           status?: string
           storage_path?: string | null
           tipo?: string
@@ -946,6 +1181,14 @@ export type Database = {
         Returns: boolean
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
+      portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
+      portal_meu_acesso: { Args: never; Returns: string }
+      portal_meu_cliente: { Args: never; Returns: string }
+      portal_meu_nivel: {
+        Args: never
+        Returns: Database["public"]["Enums"]["portal_access_level"]
+      }
+      portal_minha_org: { Args: never; Returns: string }
     }
     Enums: {
       app_role:
@@ -955,6 +1198,28 @@ export type Database = {
         | "comercial"
         | "financeiro"
         | "leitura"
+      portal_access_level: "proposal_portal" | "client_workspace"
+      portal_access_status:
+        | "pending"
+        | "invited"
+        | "active"
+        | "suspended"
+        | "revoked"
+        | "expired"
+      portal_case_status: "active" | "suspended" | "revoked"
+      portal_event_type:
+        | "invite_created"
+        | "invite_resent"
+        | "magic_link_requested"
+        | "magic_link_sent"
+        | "authenticated"
+        | "authentication_denied"
+        | "access_denied"
+        | "access_revoked"
+        | "access_suspended"
+        | "case_access_granted"
+        | "case_access_revoked"
+        | "session_expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1089,6 +1354,30 @@ export const Constants = {
         "comercial",
         "financeiro",
         "leitura",
+      ],
+      portal_access_level: ["proposal_portal", "client_workspace"],
+      portal_access_status: [
+        "pending",
+        "invited",
+        "active",
+        "suspended",
+        "revoked",
+        "expired",
+      ],
+      portal_case_status: ["active", "suspended", "revoked"],
+      portal_event_type: [
+        "invite_created",
+        "invite_resent",
+        "magic_link_requested",
+        "magic_link_sent",
+        "authenticated",
+        "authentication_denied",
+        "access_denied",
+        "access_revoked",
+        "access_suspended",
+        "case_access_granted",
+        "case_access_revoked",
+        "session_expired",
       ],
     },
   },
