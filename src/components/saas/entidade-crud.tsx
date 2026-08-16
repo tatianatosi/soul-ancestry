@@ -210,16 +210,25 @@ export function EntidadeCrud({
                             Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
                           </span>
                         ) : podeEscrever ? (
-                          <button
-                            onClick={() => {
-                              const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):");
-                              if (motivo) mArquivar.mutate({ id: String(linha["id"]), motivo });
-                            }}
-                            className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
-                          >
-                            <Archive className="h-3.5 w-3.5" /> Arquivar
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => abrirEdicao(linha)}
+                              className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+                            >
+                              <Pencil className="h-3.5 w-3.5" /> Editar
+                            </button>
+                            <button
+                              onClick={() => {
+                                setErro(null);
+                                setArquivando({ id: String(linha["id"]), motivo: "" });
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+                            >
+                              <Archive className="h-3.5 w-3.5" /> Arquivar
+                            </button>
+                          </div>
                         ) : null}
+
                       </div>
                     </td>
                   </tr>
