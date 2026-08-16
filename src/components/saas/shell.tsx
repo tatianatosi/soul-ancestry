@@ -18,6 +18,7 @@ import {
   ClipboardList,
   ShieldCheck,
   KeyRound,
+  Library,
   UsersRound,
   MessagesSquare,
   Plug,
