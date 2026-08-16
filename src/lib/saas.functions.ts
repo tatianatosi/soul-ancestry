@@ -289,6 +289,8 @@ export const criarRegistro = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
     const payload = { ...sanitizar(data.entidade, data.dados), organization_id: organizationId };
+    validarEstadoInicial(data.entidade, payload);
+    validarRegrasNegocio(data.entidade, payload);
     const { data: linha, error } = await supabase.from(data.entidade).insert(payload).select("id").maybeSingle();
     if (error) throw new Error(error.message);
     return { id: linha?.id as string | undefined };
@@ -303,14 +305,30 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
+
+    const atual = await supabase
+      .from(data.entidade)
+      .select("*")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!atual.data) throw new Error("Registro não encontrado nesta organização.");
+    if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
+
+    const alteracoes = sanitizar(data.entidade, data.dados);
+    const combinado = { ...(atual.data as Record<string, unknown>), ...alteracoes };
+    validarTransicao(data.entidade, atual.data as Record<string, unknown>, alteracoes);
+    validarRegrasNegocio(data.entidade, combinado);
+
     const { error } = await supabase
       .from(data.entidade)
-      .update(sanitizar(data.entidade, data.dados))
+      .update(alteracoes)
       .eq("id", data.id)
       .eq("organization_id", organizationId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const arquivarRegistro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
