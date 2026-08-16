@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
+import { Route as PrototipoRouteImport } from './routes/prototipo'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -29,6 +30,11 @@ import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authentica
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
   path: '/studio-devolutivas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrototipoRoute = PrototipoRouteImport.update({
+  id: '/prototipo',
+  path: '/prototipo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/casos': typeof AuthenticatedCasosRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/casos': typeof AuthenticatedCasosRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/devolutiva'
+    | '/prototipo'
     | '/studio-devolutivas'
     | '/auditoria'
     | '/casos'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/devolutiva'
+    | '/prototipo'
     | '/studio-devolutivas'
     | '/auditoria'
     | '/casos'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/devolutiva'
+    | '/prototipo'
     | '/studio-devolutivas'
     | '/_authenticated/auditoria'
     | '/_authenticated/casos'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  PrototipoRoute: typeof PrototipoRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
 }
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/studio-devolutivas'
       fullPath: '/studio-devolutivas'
       preLoaderRoute: typeof StudioDevolutivasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prototipo': {
+      id: '/prototipo'
+      path: '/prototipo'
+      fullPath: '/prototipo'
+      preLoaderRoute: typeof PrototipoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devolutiva': {
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  PrototipoRoute: PrototipoRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   CanvasTokenRoute: CanvasTokenRoute,
 }
