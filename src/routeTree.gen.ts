@@ -42,6 +42,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedPrivacidadeIndexRouteImport } from './routes/_authenticated/privacidade.index'
 import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
@@ -217,6 +218,12 @@ const AuthenticatedAcessosPortalRoute =
     path: '/acessos-portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPrivacidadeIndexRoute =
+  AuthenticatedPrivacidadeIndexRouteImport.update({
+    id: '/privacidade/',
+    path: '/privacidade/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPesquisaIndexRoute =
   AuthenticatedPesquisaIndexRouteImport.update({
     id: '/pesquisa/',
@@ -298,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
+  '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -338,6 +346,7 @@ export interface FileRoutesByTo {
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
+  '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -381,6 +390,7 @@ export interface FileRoutesById {
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
+  '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/portal/casos/$id'
     | '/contratos/'
     | '/pesquisa/'
+    | '/privacidade/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/portal/casos/$id'
     | '/contratos'
     | '/pesquisa'
+    | '/privacidade'
   id:
     | '__root__'
     | '/'
@@ -506,6 +518,7 @@ export interface FileRouteTypes {
     | '/portal/casos/$id'
     | '/_authenticated/contratos/'
     | '/_authenticated/pesquisa/'
+    | '/_authenticated/privacidade/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -758,6 +771,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/privacidade/': {
+      id: '/_authenticated/privacidade/'
+      path: '/privacidade'
+      fullPath: '/privacidade/'
+      preLoaderRoute: typeof AuthenticatedPrivacidadeIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/pesquisa/': {
       id: '/_authenticated/pesquisa/'
       path: '/pesquisa'
@@ -831,6 +851,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPrivacidadeIdRoute: typeof AuthenticatedPrivacidadeIdRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
   AuthenticatedPesquisaIndexRoute: typeof AuthenticatedPesquisaIndexRoute
+  AuthenticatedPrivacidadeIndexRoute: typeof AuthenticatedPrivacidadeIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -854,6 +875,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPrivacidadeIdRoute: AuthenticatedPrivacidadeIdRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
   AuthenticatedPesquisaIndexRoute: AuthenticatedPesquisaIndexRoute,
+  AuthenticatedPrivacidadeIndexRoute: AuthenticatedPrivacidadeIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
