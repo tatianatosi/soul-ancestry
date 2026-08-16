@@ -66,9 +66,26 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         ]);
         if (!caso.data) return new Response("Caso não encontrado ou sem permissão.", { status: 403 });
 
-        const { MODELO_PESQUISA, PROMPT_MESTRE, AVISO_DEMO, avaliarSuficiencia, montarDossie } = await import(
-          "@/lib/pesquisa-ia.server"
-        );
+        const {
+          MODELO_PESQUISA,
+          PROMPT_MESTRE,
+          AVISO_DEMO,
+          MENSAGEM_DADOS_INSUFICIENTES,
+          ORIENTACAO_DADOS_INSUFICIENTES,
+          avaliarSuficiencia,
+          montarDossie,
+        } = await import("@/lib/pesquisa-ia.server");
+
+        // Nome do cliente do PRÓPRIO caso; nenhuma outra origem é consultada.
+        let nomeCliente = "Cliente não vinculado";
+        if (caso.data["cliente_id"]) {
+          const { data: cli } = await supabase
+            .from("clientes")
+            .select("nome")
+            .eq("id", caso.data["cliente_id"])
+            .maybeSingle();
+          if (cli?.["nome"]) nomeCliente = cli["nome"] as string;
+        }
 
         const entrada = {
           caso: caso.data,
