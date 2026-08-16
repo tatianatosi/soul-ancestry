@@ -38,6 +38,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
@@ -186,6 +187,12 @@ const AuthenticatedAcessosPortalRoute =
     path: '/acessos-portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContratosIndexRoute =
+  AuthenticatedContratosIndexRouteImport.update({
+    id: '/contratos/',
+    path: '/contratos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   id: '/casos/$id',
   path: '/casos/$id',
@@ -222,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/contratos/': typeof AuthenticatedContratosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -252,6 +260,7 @@ export interface FileRoutesByTo {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/contratos': typeof AuthenticatedContratosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -285,6 +294,7 @@ export interface FileRoutesById {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
+  '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/portal/casos/$id'
+    | '/contratos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal'
     | '/portal/casos/$id'
+    | '/contratos'
   id:
     | '__root__'
     | '/'
@@ -380,6 +392,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/portal/casos/$id'
+    | '/_authenticated/contratos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -603,6 +616,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contratos/': {
+      id: '/_authenticated/contratos/'
+      path: '/contratos'
+      fullPath: '/contratos/'
+      preLoaderRoute: typeof AuthenticatedContratosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/portal/casos/$id': {
       id: '/portal/casos/$id'
       path: '/casos/$id'
@@ -626,6 +646,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -641,6 +662,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
