@@ -42,8 +42,10 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated/contratos.index'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
+import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 
@@ -214,6 +216,12 @@ const AuthenticatedAcessosPortalRoute =
     path: '/acessos-portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPesquisaIndexRoute =
+  AuthenticatedPesquisaIndexRouteImport.update({
+    id: '/pesquisa/',
+    path: '/pesquisa/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContratosIndexRoute =
   AuthenticatedContratosIndexRouteImport.update({
     id: '/contratos/',
@@ -224,6 +232,11 @@ const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   id: '/casos/$id',
   path: '/casos/$id',
   getParentRoute: () => PortalRouteRoute,
+} as any)
+const AuthenticatedPesquisaIdRoute = AuthenticatedPesquisaIdRouteImport.update({
+  id: '/pesquisa/$id',
+  path: '/pesquisa/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingIdRoute =
   AuthenticatedOnboardingIdRouteImport.update({
@@ -273,8 +286,10 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
+  '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -310,8 +325,10 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
+  '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -350,8 +367,10 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
+  '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -390,8 +409,10 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/contratos/$id'
     | '/onboarding/$id'
+    | '/pesquisa/$id'
     | '/portal/casos/$id'
     | '/contratos/'
+    | '/pesquisa/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -427,8 +448,10 @@ export interface FileRouteTypes {
     | '/portal'
     | '/contratos/$id'
     | '/onboarding/$id'
+    | '/pesquisa/$id'
     | '/portal/casos/$id'
     | '/contratos'
+    | '/pesquisa'
   id:
     | '__root__'
     | '/'
@@ -466,8 +489,10 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/onboarding/$id'
+    | '/_authenticated/pesquisa/$id'
     | '/portal/casos/$id'
     | '/_authenticated/contratos/'
+    | '/_authenticated/pesquisa/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -720,6 +745,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pesquisa/': {
+      id: '/_authenticated/pesquisa/'
+      path: '/pesquisa'
+      fullPath: '/pesquisa/'
+      preLoaderRoute: typeof AuthenticatedPesquisaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contratos/': {
       id: '/_authenticated/contratos/'
       path: '/contratos'
@@ -733,6 +765,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/casos/$id'
       preLoaderRoute: typeof PortalCasosIdRouteImport
       parentRoute: typeof PortalRouteRoute
+    }
+    '/_authenticated/pesquisa/$id': {
+      id: '/_authenticated/pesquisa/$id'
+      path: '/pesquisa/$id'
+      fullPath: '/pesquisa/$id'
+      preLoaderRoute: typeof AuthenticatedPesquisaIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding/$id': {
       id: '/_authenticated/onboarding/$id'
@@ -768,7 +807,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
+  AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
+  AuthenticatedPesquisaIndexRoute: typeof AuthenticatedPesquisaIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -788,7 +829,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
+  AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
   AuthenticatedContratosIndexRoute: AuthenticatedContratosIndexRoute,
+  AuthenticatedPesquisaIndexRoute: AuthenticatedPesquisaIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

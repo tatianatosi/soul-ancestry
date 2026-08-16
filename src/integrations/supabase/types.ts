@@ -194,12 +194,18 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_nascimento: string | null
+          data_obito: string | null
           id: string
           local_nascimento: string | null
+          local_obito: string | null
+          mae_id: string | null
+          nacionalidade: string | null
           nome: string
           observacoes_protegidas: string | null
           organization_id: string
+          pai_id: string | null
           parentesco: string
+          requerente: boolean
           updated_at: string
           updated_by: string | null
         }
@@ -211,12 +217,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_nascimento?: string | null
+          data_obito?: string | null
           id?: string
           local_nascimento?: string | null
+          local_obito?: string | null
+          mae_id?: string | null
+          nacionalidade?: string | null
           nome: string
           observacoes_protegidas?: string | null
           organization_id: string
+          pai_id?: string | null
           parentesco: string
+          requerente?: boolean
           updated_at?: string
           updated_by?: string | null
         }
@@ -228,12 +240,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_nascimento?: string | null
+          data_obito?: string | null
           id?: string
           local_nascimento?: string | null
+          local_obito?: string | null
+          mae_id?: string | null
+          nacionalidade?: string | null
           nome?: string
           observacoes_protegidas?: string | null
           organization_id?: string
+          pai_id?: string | null
           parentesco?: string
+          requerente?: boolean
           updated_at?: string
           updated_by?: string | null
         }
@@ -246,10 +264,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "case_members_mae_id_fkey"
+            columns: ["mae_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "case_members_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_members_pai_id_fkey"
+            columns: ["pai_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
             referencedColumns: ["id"]
           },
         ]
@@ -2235,24 +2267,33 @@ export type Database = {
           caso_id: string | null
           created_at: string
           created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
           demo: boolean
           descricao: string | null
           fonte: string | null
           grau_confianca: string | null
+          hypothesis_id: string | null
           id: string
+          justificativa: string | null
           liberada_cliente: boolean
           local_relacionado: string | null
           observacao: string | null
           organization_id: string
           origem: string
           periodo: string | null
+          person_id: string | null
+          pesquisador_id: string | null
           pessoa_relacionada: string | null
+          relacao_hipotese: string | null
+          revisado_em: string | null
           status: string
           storage_path: string | null
           tipo: string
           titulo: string
           updated_at: string
           updated_by: string | null
+          url: string | null
           visibilidade: string
         }
         Insert: {
@@ -2262,24 +2303,33 @@ export type Database = {
           caso_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           demo?: boolean
           descricao?: string | null
           fonte?: string | null
           grau_confianca?: string | null
+          hypothesis_id?: string | null
           id?: string
+          justificativa?: string | null
           liberada_cliente?: boolean
           local_relacionado?: string | null
           observacao?: string | null
           organization_id: string
           origem?: string
           periodo?: string | null
+          person_id?: string | null
+          pesquisador_id?: string | null
           pessoa_relacionada?: string | null
+          relacao_hipotese?: string | null
+          revisado_em?: string | null
           status?: string
           storage_path?: string | null
           tipo?: string
           titulo: string
           updated_at?: string
           updated_by?: string | null
+          url?: string | null
           visibilidade?: string
         }
         Update: {
@@ -2289,24 +2339,33 @@ export type Database = {
           caso_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           demo?: boolean
           descricao?: string | null
           fonte?: string | null
           grau_confianca?: string | null
+          hypothesis_id?: string | null
           id?: string
+          justificativa?: string | null
           liberada_cliente?: boolean
           local_relacionado?: string | null
           observacao?: string | null
           organization_id?: string
           origem?: string
           periodo?: string | null
+          person_id?: string | null
+          pesquisador_id?: string | null
           pessoa_relacionada?: string | null
+          relacao_hipotese?: string | null
+          revisado_em?: string | null
           status?: string
           storage_path?: string | null
           tipo?: string
           titulo?: string
           updated_at?: string
           updated_by?: string | null
+          url?: string | null
           visibilidade?: string
         }
         Relationships: [
@@ -2318,10 +2377,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "evidencias_hypothesis_id_fkey"
+            columns: ["hypothesis_id"]
+            isOneToOne: false
+            referencedRelation: "research_hypotheses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "evidencias_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
             referencedColumns: ["id"]
           },
         ]
@@ -3001,6 +3074,191 @@ export type Database = {
           },
         ]
       }
+      research_events: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          confirmado: boolean
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          demo: boolean
+          descricao: string | null
+          evidencia_id: string | null
+          hypothesis_id: string | null
+          id: string
+          local: string | null
+          organization_id: string
+          periodo_texto: string | null
+          person_id: string | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          confirmado?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          demo?: boolean
+          descricao?: string | null
+          evidencia_id?: string | null
+          hypothesis_id?: string | null
+          id?: string
+          local?: string | null
+          organization_id: string
+          periodo_texto?: string | null
+          person_id?: string | null
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          confirmado?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          demo?: boolean
+          descricao?: string | null
+          evidencia_id?: string | null
+          hypothesis_id?: string | null
+          id?: string
+          local?: string | null
+          organization_id?: string
+          periodo_texto?: string | null
+          person_id?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_events_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_events_hypothesis_id_fkey"
+            columns: ["hypothesis_id"]
+            isOneToOne: false
+            referencedRelation: "research_hypotheses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_hypotheses: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          descricao: string | null
+          grau_confianca: string
+          id: string
+          justificativa: string | null
+          organization_id: string
+          person_id: string | null
+          pesquisador_id: string | null
+          revisado_em: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          grau_confianca?: string
+          id?: string
+          justificativa?: string | null
+          organization_id: string
+          person_id?: string | null
+          pesquisador_id?: string | null
+          revisado_em?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string | null
+          grau_confianca?: string
+          id?: string
+          justificativa?: string | null
+          organization_id?: string
+          person_id?: string | null
+          pesquisador_id?: string | null
+          revisado_em?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_hypotheses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_hypotheses_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_orders: {
         Row: {
           archive_reason: string | null
@@ -3248,9 +3506,12 @@ export type Database = {
           created_by: string | null
           demo: boolean
           descricao: string | null
+          evidencia_id: string | null
+          hypothesis_id: string | null
           id: string
           motivo_bloqueio: string | null
           organization_id: string
+          person_id: string | null
           prazo: string | null
           prioridade: string
           responsavel_id: string | null
@@ -3270,9 +3531,12 @@ export type Database = {
           created_by?: string | null
           demo?: boolean
           descricao?: string | null
+          evidencia_id?: string | null
+          hypothesis_id?: string | null
           id?: string
           motivo_bloqueio?: string | null
           organization_id: string
+          person_id?: string | null
           prazo?: string | null
           prioridade?: string
           responsavel_id?: string | null
@@ -3292,9 +3556,12 @@ export type Database = {
           created_by?: string | null
           demo?: boolean
           descricao?: string | null
+          evidencia_id?: string | null
+          hypothesis_id?: string | null
           id?: string
           motivo_bloqueio?: string | null
           organization_id?: string
+          person_id?: string | null
           prazo?: string | null
           prioridade?: string
           responsavel_id?: string | null
@@ -3312,10 +3579,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tarefas_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_hypothesis_id_fkey"
+            columns: ["hypothesis_id"]
+            isOneToOne: false
+            referencedRelation: "research_hypotheses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tarefas_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
             referencedColumns: ["id"]
           },
         ]
@@ -3453,6 +3741,7 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       is_staff_ativo: { Args: { _org: string }; Returns: boolean }
+      pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
       portal_meu_acesso: { Args: never; Returns: string }
       portal_meu_cliente: { Args: never; Returns: string }
