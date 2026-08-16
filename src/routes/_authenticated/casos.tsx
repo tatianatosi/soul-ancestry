@@ -48,12 +48,14 @@ function CasosPage() {
         entidade="crm_casos"
         titulo="Casos"
         podeEscrever={podeEscrever}
+        dominio="caso"
         colunas={[
           { chave: "codigo", rotulo: "Código" },
           { chave: "titulo", rotulo: "Título" },
-          { chave: "pais", rotulo: "País" },
-          { chave: "via", rotulo: "Via" },
-          { chave: "status", rotulo: "Status" },
+          { chave: "tipo_servico", rotulo: "Tipo de serviço" },
+          { chave: "fase", rotulo: "Fase" },
+          { chave: "prioridade", rotulo: "Prioridade" },
+          { chave: "status", rotulo: "Status", render: (l) => rotuloEstado("caso", l["status"]) },
           {
             chave: "hipotese_elegibilidade",
             rotulo: "Hipótese",
@@ -63,6 +65,7 @@ function CasosPage() {
               </span>
             ),
           },
+          { chave: "proxima_acao", rotulo: "Próxima ação" },
           {
             chave: "ativo",
             rotulo: "Ativação",
@@ -72,6 +75,39 @@ function CasosPage() {
         campos={[
           { chave: "codigo", rotulo: "Código interno" },
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
+          {
+            chave: "cliente_id",
+            rotulo: "Cliente vinculado",
+            tipo: "select",
+            origem: { entidade: "clientes", rotuloChave: "nome" },
+          },
+          {
+            chave: "status",
+            rotulo: "Status do caso",
+            tipo: "select",
+            estado: true,
+            opcoes: ESTADOS.caso,
+          },
+          {
+            chave: "tipo_servico",
+            rotulo: "Tipo de serviço",
+            tipo: "select",
+            opcoes: [
+              { valor: "pesquisa", rotulo: "Pesquisa genealógica" },
+              { valor: "cidadania", rotulo: "Cidadania" },
+              { valor: "documentacao", rotulo: "Documentação" },
+              { valor: "consultoria", rotulo: "Consultoria" },
+            ],
+          },
+          { chave: "fase", rotulo: "Fase atual" },
+          { chave: "responsavel_id", rotulo: "Responsável (identificador interno)" },
+          {
+            chave: "prioridade",
+            rotulo: "Prioridade",
+            tipo: "select",
+            opcoes: PRIORIDADES,
+          },
+          { chave: "data_entrada", rotulo: "Data de entrada", tipo: "data" },
           { chave: "pais", rotulo: "País" },
           {
             chave: "via",
@@ -93,7 +129,11 @@ function CasosPage() {
               { valor: "improvavel", rotulo: "Improvável (hipótese)" },
             ],
           },
+          { chave: "resumo", rotulo: "Resumo interno", tipo: "area" },
+          { chave: "risco", rotulo: "Risco identificado", tipo: "area" },
+          { chave: "proxima_acao", rotulo: "Próxima ação" },
         ]}
+
         extra={(linha, recarregar) => (
           <div className="flex flex-wrap justify-end gap-2">
             {podeEscrever && !linha["ativo"] ? (
