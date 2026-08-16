@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -28,35 +29,49 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CanvasTokenRoute = CanvasTokenRouteImport.update({
+  id: '/canvas/$token',
+  path: '/canvas/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/devolutiva' | '/studio-devolutivas'
+  fullPaths: '/' | '/devolutiva' | '/studio-devolutivas' | '/canvas/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/devolutiva' | '/studio-devolutivas'
-  id: '__root__' | '/' | '/devolutiva' | '/studio-devolutivas'
+  to: '/' | '/devolutiva' | '/studio-devolutivas' | '/canvas/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/devolutiva'
+    | '/studio-devolutivas'
+    | '/canvas/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevolutivaRoute: typeof DevolutivaRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
+  CanvasTokenRoute: typeof CanvasTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +97,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/canvas/$token': {
+      id: '/canvas/$token'
+      path: '/canvas/$token'
+      fullPath: '/canvas/$token'
+      preLoaderRoute: typeof CanvasTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +111,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevolutivaRoute: DevolutivaRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
+  CanvasTokenRoute: CanvasTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

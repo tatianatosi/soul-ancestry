@@ -14,7 +14,255 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      casos: {
+        Row: {
+          canvas_publicado: boolean
+          canvas_token: string
+          case_id: string
+          case_nome: string | null
+          cliente_nome: string
+          created_at: string
+          dados_sensiveis_ocultos: boolean
+          id: string
+          pais: string | null
+          produto_nome: string | null
+          produto_sku: string | null
+          responsavel: string | null
+          status: string
+          ultima_atualizacao: string | null
+          updated_at: string
+          via: string
+        }
+        Insert: {
+          canvas_publicado?: boolean
+          canvas_token?: string
+          case_id: string
+          case_nome?: string | null
+          cliente_nome: string
+          created_at?: string
+          dados_sensiveis_ocultos?: boolean
+          id?: string
+          pais?: string | null
+          produto_nome?: string | null
+          produto_sku?: string | null
+          responsavel?: string | null
+          status?: string
+          ultima_atualizacao?: string | null
+          updated_at?: string
+          via?: string
+        }
+        Update: {
+          canvas_publicado?: boolean
+          canvas_token?: string
+          case_id?: string
+          case_nome?: string | null
+          cliente_nome?: string
+          created_at?: string
+          dados_sensiveis_ocultos?: boolean
+          id?: string
+          pais?: string | null
+          produto_nome?: string | null
+          produto_sku?: string | null
+          responsavel?: string | null
+          status?: string
+          ultima_atualizacao?: string | null
+          updated_at?: string
+          via?: string
+        }
+        Relationships: []
+      }
+      microentregas: {
+        Row: {
+          caso_id: string
+          created_at: string
+          descricao: string | null
+          entregue_em: string | null
+          id: string
+          prazo: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          visivel_cliente: boolean
+        }
+        Insert: {
+          caso_id: string
+          created_at?: string
+          descricao?: string | null
+          entregue_em?: string | null
+          id?: string
+          prazo?: string | null
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          visivel_cliente?: boolean
+        }
+        Update: {
+          caso_id?: string
+          created_at?: string
+          descricao?: string | null
+          entregue_em?: string | null
+          id?: string
+          prazo?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "microentregas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planner_tarefas: {
+        Row: {
+          caso_id: string
+          concluida_em: string | null
+          created_at: string
+          etapa: string
+          id: string
+          observacao: string | null
+          prazo: string | null
+          prioridade: string
+          responsavel: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          caso_id: string
+          concluida_em?: string | null
+          created_at?: string
+          etapa?: string
+          id?: string
+          observacao?: string | null
+          prazo?: string | null
+          prioridade?: string
+          responsavel?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          caso_id?: string
+          concluida_em?: string | null
+          created_at?: string
+          etapa?: string
+          id?: string
+          observacao?: string | null
+          prazo?: string | null
+          prioridade?: string
+          responsavel?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_tarefas_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_regras: {
+        Row: {
+          aplica_a: string
+          chave: string
+          created_at: string
+          descricao: string | null
+          horas_alvo: number
+          id: string
+          rotulo: string
+          updated_at: string
+        }
+        Insert: {
+          aplica_a?: string
+          chave: string
+          created_at?: string
+          descricao?: string | null
+          horas_alvo: number
+          id?: string
+          rotulo: string
+          updated_at?: string
+        }
+        Update: {
+          aplica_a?: string
+          chave?: string
+          created_at?: string
+          descricao?: string | null
+          horas_alvo?: number
+          id?: string
+          rotulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      touchpoints: {
+        Row: {
+          aguardando_resposta: boolean
+          autor: string | null
+          canal: string
+          caso_id: string
+          conteudo: string | null
+          created_at: string
+          direcao: string
+          id: string
+          interno: boolean
+          ocorrido_em: string
+          resumo: string
+          transcricao: string | null
+          updated_at: string
+        }
+        Insert: {
+          aguardando_resposta?: boolean
+          autor?: string | null
+          canal: string
+          caso_id: string
+          conteudo?: string | null
+          created_at?: string
+          direcao?: string
+          id?: string
+          interno?: boolean
+          ocorrido_em?: string
+          resumo: string
+          transcricao?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aguardando_resposta?: boolean
+          autor?: string | null
+          canal?: string
+          caso_id?: string
+          conteudo?: string | null
+          created_at?: string
+          direcao?: string
+          id?: string
+          interno?: boolean
+          ocorrido_em?: string
+          resumo?: string
+          transcricao?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "touchpoints_caso_id_fkey"
+            columns: ["caso_id"]
+            isOneToOne: false
+            referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
