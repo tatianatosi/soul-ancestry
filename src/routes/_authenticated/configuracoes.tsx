@@ -1,0 +1,85 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
+
+export const Route = createFileRoute("/_authenticated/configuracoes")({
+  head: () => ({
+    meta: [
+      { title: "Usuários e papéis — Clube Ancestral" },
+      { name: "description", content: "Administração de membros e papéis dentro da organização." },
+      { property: "og:title", content: "Usuários e papéis — Clube Ancestral" },
+      { property: "og:description", content: "Administração de acesso no Clube Ancestral." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: ConfiguracoesPage,
+});
+
+const PAPEIS = Object.keys(PAPEL_LABEL) as Papel[];
+
+function ConfiguracoesPage() {
+  const { ehAdmin } = useSaas();
+  const queryClient = useQueryClient();
+  const listar = useServerFn(listarUsuarios);
+  const definir = useServerFn(definirPapel);
+
+  const q = useQuery({
+    queryKey: ["saas", "usuarios"],
+    queryFn: () => listar(),
+    enabled: ehAdmin,
+  });
+
+  const m = useMutation({
+    mutationFn: (v: { userId: string; papel: Papel; conceder: boolean }) => definir({ data: v }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["saas", "usuarios"] }),
+  });
+
+  return (
+    <SaasShell titulo="Usuários e papéis" descricao="Somente administradores da organização.">
+      {!ehAdmin ? (
+        <EstadoVazio mensagem="Acesso restrito a administradores da organização." />
+      ) : q.isLoading ? (
+        <EstadoVazio mensagem="Carregando membros…" />
+      ) : (q.data ?? []).length === 0 ? (
+        <EstadoVazio mensagem="Nenhum membro nesta organização ainda." />
+      ) : (
+        <div className="space-y-3">
+          {(q.data ?? []).map((u) => (
+            <div key={u.userId} className="rounded-xl border border-navy/10 bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-navy">{u.nome ?? u.email ?? "Membro"}</p>
+                  <p className="text-xs text-navy/50">{u.email ?? u.userId}</p>
+                </div>
+                {u.arquivado ? <span className="text-xs text-navy/50">Arquivado</span> : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {PAPEIS.map((papel) => {
+                  const ativo = u.papeis.includes(papel);
+                  return (
+                    <button
+                      key={papel}
+                      onClick={() => m.mutate({ userId: u.userId, papel, conceder: !ativo })}
+                      className={
+                        ativo
+                          ? "rounded-full bg-navy px-3 py-1 text-xs text-cream"
+                          : "rounded-full border border-navy/20 px-3 py-1 text-xs text-navy/60 hover:bg-navy/5"
+                      }
+                    >
+                      {PAPEL_LABEL[papel]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </SaasShell>
+  );
+}

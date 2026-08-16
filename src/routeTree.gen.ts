@@ -10,18 +10,45 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
+import { Route as PrototipoRouteImport } from './routes/prototipo'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
+import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
+import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
+import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
   path: '/studio-devolutivas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototipoRoute = PrototipoRouteImport.update({
+  id: '/prototipo',
+  path: '/prototipo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
   id: '/devolutiva',
   path: '/devolutiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,42 +61,178 @@ const CanvasTokenRoute = CanvasTokenRouteImport.update({
   path: '/canvas/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
+  id: '/tarefas',
+  path: '/tarefas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEvidenciasRoute = AuthenticatedEvidenciasRouteImport.update({
+  id: '/evidencias',
+  path: '/evidencias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCasosRoute = AuthenticatedCasosRouteImport.update({
+  id: '/casos',
+  path: '/casos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/casos': typeof AuthenticatedCasosRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/evidencias': typeof AuthenticatedEvidenciasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/leads': typeof AuthenticatedLeadsRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/casos': typeof AuthenticatedCasosRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/evidencias': typeof AuthenticatedEvidenciasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/leads': typeof AuthenticatedLeadsRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/casos': typeof AuthenticatedCasosRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
+  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/leads': typeof AuthenticatedLeadsRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/canvas/$token': typeof CanvasTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/devolutiva' | '/studio-devolutivas' | '/canvas/$token'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/devolutiva'
+    | '/prototipo'
+    | '/studio-devolutivas'
+    | '/auditoria'
+    | '/casos'
+    | '/clientes'
+    | '/configuracoes'
+    | '/evidencias'
+    | '/financeiro'
+    | '/leads'
+    | '/painel'
+    | '/relatorios'
+    | '/tarefas'
+    | '/canvas/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/devolutiva' | '/studio-devolutivas' | '/canvas/$token'
+  to:
+    | '/'
+    | '/auth'
+    | '/devolutiva'
+    | '/prototipo'
+    | '/studio-devolutivas'
+    | '/auditoria'
+    | '/casos'
+    | '/clientes'
+    | '/configuracoes'
+    | '/evidencias'
+    | '/financeiro'
+    | '/leads'
+    | '/painel'
+    | '/relatorios'
+    | '/tarefas'
+    | '/canvas/$token'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/devolutiva'
+    | '/prototipo'
     | '/studio-devolutivas'
+    | '/_authenticated/auditoria'
+    | '/_authenticated/casos'
+    | '/_authenticated/clientes'
+    | '/_authenticated/configuracoes'
+    | '/_authenticated/evidencias'
+    | '/_authenticated/financeiro'
+    | '/_authenticated/leads'
+    | '/_authenticated/painel'
+    | '/_authenticated/relatorios'
+    | '/_authenticated/tarefas'
     | '/canvas/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  PrototipoRoute: typeof PrototipoRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
 }
@@ -83,11 +246,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioDevolutivasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototipo': {
+      id: '/prototipo'
+      path: '/prototipo'
+      fullPath: '/prototipo'
+      preLoaderRoute: typeof PrototipoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devolutiva': {
       id: '/devolutiva'
       path: '/devolutiva'
       fullPath: '/devolutiva'
       preLoaderRoute: typeof DevolutivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,12 +288,114 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CanvasTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tarefas': {
+      id: '/_authenticated/tarefas'
+      path: '/tarefas'
+      fullPath: '/tarefas'
+      preLoaderRoute: typeof AuthenticatedTarefasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads': {
+      id: '/_authenticated/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof AuthenticatedLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financeiro': {
+      id: '/_authenticated/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/evidencias': {
+      id: '/_authenticated/evidencias'
+      path: '/evidencias'
+      fullPath: '/evidencias'
+      preLoaderRoute: typeof AuthenticatedEvidenciasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/casos': {
+      id: '/_authenticated/casos'
+      path: '/casos'
+      fullPath: '/casos'
+      preLoaderRoute: typeof AuthenticatedCasosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
+  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedCasosRoute: AuthenticatedCasosRoute,
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
+  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  PrototipoRoute: PrototipoRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   CanvasTokenRoute: CanvasTokenRoute,
 }
