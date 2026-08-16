@@ -124,19 +124,21 @@ export function DeskApp() {
 
       {/* mobile nav */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t border-border bg-navy text-cream md:hidden">
-        {nav.map(([id, Icon]) => (
+        {nav.map(([id, Icon, label]) => (
           <button
             key={id}
             onClick={() => setSec(id)}
             className={cn(
-              "flex min-w-[56px] flex-1 flex-col items-center gap-1 py-2 text-[11px]",
+              "flex min-w-[72px] shrink-0 flex-col items-center gap-1 px-2 py-2 text-[10px] leading-tight",
               sec === id ? "text-gold" : "text-cream/70",
             )}
           >
             <Icon className="h-4 w-4" />
+            <span className="whitespace-nowrap">{label}</span>
           </button>
         ))}
       </div>
+
 
       <main className="flex-1 overflow-x-hidden px-5 py-8 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-6xl">
