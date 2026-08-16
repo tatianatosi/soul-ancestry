@@ -70,7 +70,7 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
         evidencias_revisao: listaEvid.filter(
           (x) => x["research_case_id"] === p["id"] && x["evidence_status"] === "under_review",
         ).length,
-      };
+      } as Record<string, any>;
     });
 
     return {
