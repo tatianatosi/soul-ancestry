@@ -66,18 +66,87 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
         ]);
         if (!caso.data) return new Response("Caso não encontrado ou sem permissão.", { status: 403 });
 
-        const { MODELO_PESQUISA, PROMPT_MESTRE, montarDossie } = await import("@/lib/pesquisa-ia.server");
-        const dossie = montarDossie(
-          {
-            caso: caso.data,
-            pessoas: pessoas.data ?? [],
-            hipoteses: hipoteses.data ?? [],
-            evidencias: evidencias.data ?? [],
-            eventos: eventos.data ?? [],
-            pendencias: pendencias.data ?? [],
-          },
-          body.complemento,
+        const { MODELO_PESQUISA, PROMPT_MESTRE, AVISO_DEMO, avaliarSuficiencia, montarDossie } = await import(
+          "@/lib/pesquisa-ia.server"
         );
+
+        const entrada = {
+          caso: caso.data,
+          pessoas: pessoas.data ?? [],
+          hipoteses: hipoteses.data ?? [],
+          evidencias: evidencias.data ?? [],
+          eventos: eventos.data ?? [],
+          pendencias: pendencias.data ?? [],
+        };
+        const ehDemo = Boolean(caso.data["demo"]);
+        const lacunas = avaliarSuficiencia(entrada, body.complemento);
+        const identificacao = {
+          case_id: caso.data["id"] as string,
+          codigo: caso.data["codigo"] as string,
+          titulo: caso.data["titulo"] as string,
+          demo: ehDemo,
+        };
+
+        // Etapa 1: a interface confere qual case_id será analisado antes de executar.
+        if (body.verificar) {
+          return json({ ...identificacao, lacunas, suficiente: lacunas.length === 0, acoes: ACOES }, 200);
+        }
+
+        // O case_id exibido precisa ser confirmado; nunca há troca ou fallback de caso.
+        if (body.casoIdConfirmado !== body.casoId) {
+          return json(
+            {
+              ...identificacao,
+              erro: "confirmacao_case_id_ausente",
+              mensagem: "Confirme que o caso exibido é o caso correto antes de executar a análise.",
+            },
+            409,
+          );
+        }
+
+        if (ehDemo && !body.executarDemonstracao) {
+          return json(
+            {
+              ...identificacao,
+              erro: "demo_requer_selecao_explicita",
+              mensagem:
+                "Este é o caso de demonstração. Ele só é analisado com a opção “Executar demonstração” selecionada.",
+            },
+            409,
+          );
+        }
+
+        if (lacunas.length > 0) {
+          await supabase
+            .from("audit_logs")
+            .insert({
+              organization_id: caso.data["organization_id"],
+              user_id: userData.user.id,
+              acao: "analysis_blocked_insufficient_case_data",
+              entidade: "crm_casos",
+              entidade_id: caso.data["id"],
+              metadados: { case_id: caso.data["id"], codigo: caso.data["codigo"], lacunas },
+            })
+            .then(
+              () => undefined,
+              () => undefined,
+            );
+
+          return json(
+            {
+              ...identificacao,
+              erro: "analysis_blocked_insufficient_case_data",
+              mensagem: "Não há dados suficientes para análise deste caso.",
+              lacunas,
+              acoes: ACOES,
+            },
+            422,
+          );
+        }
+
+        const dossie = montarDossie(entrada, body.complemento);
+        const sistema = ehDemo ? `${PROMPT_MESTRE}\n\n${AVISO_DEMO}` : PROMPT_MESTRE;
+
 
         const ia = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
