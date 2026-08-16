@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Campo, Gaveta, Painel, Selo, inputCls } from "@/components/comercial/base";
+import { AssistentePesquisa } from "@/components/pesquisa/assistente";
+
 import {
   arquivarPesquisa,
   carregarPesquisa,
@@ -23,7 +25,9 @@ const ABAS = [
   { id: "evidencias", rotulo: "Evidências" },
   { id: "linha", rotulo: "Linha do tempo" },
   { id: "pendencias", rotulo: "Tarefas" },
+  { id: "assistente", rotulo: "Assistente IA" },
   { id: "relatorio", rotulo: "Relatório" },
+
 ] as const;
 
 const STATUS_EVIDENCIA: Record<string, string> = {
@@ -479,7 +483,10 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
         </Painel>
       )}
 
+      {aba === "assistente" && <AssistentePesquisa casoId={casoId} />}
+
       {aba === "relatorio" && (
+
         <Painel titulo="Relatório interno de andamento">
           <p className="mb-2 text-xs text-navy/60">
             Gerado a partir dos registros atuais. Não é enviado ao cliente automaticamente.
