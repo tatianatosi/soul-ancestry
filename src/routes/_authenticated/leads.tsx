@@ -26,12 +26,14 @@ function LeadsPage() {
         entidade="leads"
         titulo="Leads"
         podeEscrever={podeEscrever}
+        dominio="lead"
+        campoEstado="estagio"
         colunas={[
           { chave: "nome", rotulo: "Nome" },
           { chave: "email", rotulo: "E-mail" },
           { chave: "telefone", rotulo: "Telefone" },
           { chave: "origem", rotulo: "Origem" },
-          { chave: "estagio", rotulo: "Estágio" },
+          { chave: "estagio", rotulo: "Estágio", render: (l) => rotuloEstado("lead", l["estagio"]) },
           { chave: "pais_interesse", rotulo: "País" },
         ]}
         campos={[
@@ -43,17 +45,14 @@ function LeadsPage() {
             chave: "estagio",
             rotulo: "Estágio",
             tipo: "select",
-            opcoes: [
-              { valor: "novo", rotulo: "Novo" },
-              { valor: "qualificado", rotulo: "Qualificado" },
-              { valor: "em_conversa", rotulo: "Em conversa" },
-              { valor: "perdido", rotulo: "Perdido" },
-            ],
+            estado: true,
+            opcoes: ESTADOS.lead,
           },
           { chave: "pais_interesse", rotulo: "País de interesse" },
           { chave: "observacoes", rotulo: "Observações", tipo: "area" },
         ]}
       />
+
     </SaasShell>
   );
 }
