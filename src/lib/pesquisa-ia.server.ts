@@ -255,6 +255,18 @@ export function avaliarSuficiencia(d: Dossie, complemento?: string): Lacuna[] {
   return lacunas;
 }
 
+export const SELO_DEMO = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
+
 export const AVISO_DEMO =
-  "ATENÇÃO: este é o caso de DEMONSTRAÇÃO com DADOS FICTÍCIOS. Inicie a resposta com a linha " +
-  "'DEMO — DADOS FICTÍCIOS' e não trate nenhum dado como real.";
+  `ATENÇÃO: este é o caso de DEMONSTRAÇÃO com DADOS FICTÍCIOS. Inicie a resposta com a linha ` +
+  `'${SELO_DEMO}', repita esse selo ao final e não trate nenhum dado como real. ` +
+  `O conteúdo não pode alimentar métricas, qualidade, SLA, financeiro, contratos, portal, propostas, ` +
+  `onboarding ou ativação, nem ser vinculado a clientes ou casos reais.`;
+
+/** Texto único exibido quando a análise é bloqueada por dados insuficientes. */
+export const MENSAGEM_DADOS_INSUFICIENTES = "Não há dados suficientes para analisar este caso.";
+
+export const ORIENTACAO_DADOS_INSUFICIENTES =
+  "Este caso ainda não possui dados suficientes para uma análise responsável. " +
+  "Preencha ou vincule informações verificáveis a este mesmo caso antes de solicitar uma análise. " +
+  "Nenhum outro caso será usado como substituto.";
