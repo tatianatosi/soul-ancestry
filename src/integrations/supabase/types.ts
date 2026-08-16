@@ -2665,6 +2665,264 @@ export type Database = {
           },
         ]
       }
+      integration_review_queue: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          id: string
+          integration_id: string
+          motivo: string
+          organization_id: string
+          resolucao: string | null
+          resolvido_em: string | null
+          resolvido_por: string | null
+          run_id: string | null
+          status: string
+          tentativas: number
+          updated_at: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          id?: string
+          integration_id: string
+          motivo: string
+          organization_id: string
+          resolucao?: string | null
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          run_id?: string | null
+          status?: string
+          tentativas?: number
+          updated_at?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          id?: string
+          integration_id?: string
+          motivo?: string
+          organization_id?: string
+          resolucao?: string | null
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          run_id?: string | null
+          status?: string
+          tentativas?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_review_queue_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_review_queue_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_review_queue_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "integration_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_runs: {
+        Row: {
+          ambiente: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          duracao_ms: number | null
+          efeito_local: string | null
+          id: string
+          integration_id: string
+          mensagem: string | null
+          operacao: string
+          organization_id: string
+          payload_mascarado: Json
+          resposta_mascarada: Json
+          resultado: string
+          tentativa: number
+        }
+        Insert: {
+          ambiente?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          duracao_ms?: number | null
+          efeito_local?: string | null
+          id?: string
+          integration_id: string
+          mensagem?: string | null
+          operacao: string
+          organization_id: string
+          payload_mascarado?: Json
+          resposta_mascarada?: Json
+          resultado: string
+          tentativa?: number
+        }
+        Update: {
+          ambiente?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          duracao_ms?: number | null
+          efeito_local?: string | null
+          id?: string
+          integration_id?: string
+          mensagem?: string | null
+          operacao?: string
+          organization_id?: string
+          payload_mascarado?: Json
+          resposta_mascarada?: Json
+          resultado?: string
+          tentativa?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_runs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          ativacao_confirmacao: string | null
+          ativada_em: string | null
+          ativada_por: string | null
+          campos_obrigatorios: string[]
+          categoria: string
+          chave: string
+          config: Json
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          falhas_consecutivas: number
+          field_map: Json
+          id: string
+          modo_simulado: boolean
+          nome: string
+          organization_id: string
+          owner_nome: string | null
+          owner_user_id: string | null
+          pausa_motivo: string | null
+          provedor: string | null
+          retry_backoff_seg: number
+          retry_max: number
+          status: string
+          ultima_execucao_em: string | null
+          ultima_execucao_status: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativacao_confirmacao?: string | null
+          ativada_em?: string | null
+          ativada_por?: string | null
+          campos_obrigatorios?: string[]
+          categoria: string
+          chave: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          falhas_consecutivas?: number
+          field_map?: Json
+          id?: string
+          modo_simulado?: boolean
+          nome: string
+          organization_id: string
+          owner_nome?: string | null
+          owner_user_id?: string | null
+          pausa_motivo?: string | null
+          provedor?: string | null
+          retry_backoff_seg?: number
+          retry_max?: number
+          status?: string
+          ultima_execucao_em?: string | null
+          ultima_execucao_status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativacao_confirmacao?: string | null
+          ativada_em?: string | null
+          ativada_por?: string | null
+          campos_obrigatorios?: string[]
+          categoria?: string
+          chave?: string
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          falhas_consecutivas?: number
+          field_map?: Json
+          id?: string
+          modo_simulado?: boolean
+          nome?: string
+          organization_id?: string
+          owner_nome?: string | null
+          owner_user_id?: string | null
+          pausa_motivo?: string | null
+          provedor?: string | null
+          retry_backoff_seg?: number
+          retry_max?: number
+          status?: string
+          ultima_execucao_em?: string | null
+          ultima_execucao_status?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_adjustments: {
         Row: {
           archive_motivo: string | null
