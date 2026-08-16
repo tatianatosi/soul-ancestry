@@ -1,10 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { confirmarSessaoEquipe, prepararLoginEquipe } from "@/lib/equipe.functions";
+import {
+  confirmarSessaoEquipe,
+  criarPrimeiroAdmin,
+  precisaProvisionamento,
+  prepararLoginEquipe,
+} from "@/lib/equipe.functions";
 import { EquipeMoldura } from "@/components/equipe/moldura";
+
 
 export const Route = createFileRoute("/equipe/entrar")({
   head: () => ({
