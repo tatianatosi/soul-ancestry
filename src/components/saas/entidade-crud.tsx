@@ -152,7 +152,11 @@ export function EntidadeCrud({
         </label>
         {podeEscrever ? (
           <button
-            onClick={() => setForm({})}
+            onClick={() => {
+              setEditandoId(null);
+              setErro(null);
+              setForm({});
+            }}
             className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
           >
             <Plus className="h-4 w-4" /> Novo registro
