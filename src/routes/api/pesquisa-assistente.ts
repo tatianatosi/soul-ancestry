@@ -101,6 +101,7 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
           case_id: caso.data["id"] as string,
           codigo: caso.data["codigo"] as string,
           titulo: caso.data["titulo"] as string,
+          cliente: nomeCliente,
           demo: ehDemo,
         };
 
