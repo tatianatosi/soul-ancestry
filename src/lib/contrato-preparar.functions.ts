@@ -1,0 +1,297 @@
+import { createServerFn } from "@tanstack/react-start";
+
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+type Sb = any;
+
+async function orgDoUsuario(supabase: Sb, userId: string) {
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const org = data?.organization_id as string | undefined;
+  if (!org) throw new Error("Usuário sem organização.");
+  return org;
+}
+
+/** Auditoria sem dados sensíveis completos: só identificadores, contagens e rótulos. */
+async function auditar(
+  supabase: Sb,
+  input: { org: string; userId: string; acao: string; entidadeId: string; metadados?: Record<string, unknown> },
+) {
+  await supabase.from("audit_logs").insert({
+    organization_id: input.org,
+    user_id: input.userId,
+    acao: input.acao,
+    entidade: "contract_case_parameters",
+    entidade_id: input.entidadeId,
+    metadados: input.metadados ?? {},
+  });
+}
+
+/**
+ * Abre a preparação contratual de UM caseId, reaproveitando obrigatoriamente
+ * a ficha mestre, a proposta vinculada, o MODELO ESTUDO ativo e a base v2.
+ * Nunca usa DEMO, fallback, outro caso ou inferência.
+ */
+export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const org = await orgDoUsuario(supabase, userId);
+
+    const { data: caso } = await supabase
+      .from("crm_casos")
+      .select("id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at")
+      .eq("id", data.caseId)
+      .maybeSingle();
+    if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
+    if (caso.archived_at) throw new Error("Caso arquivado: preparação bloqueada.");
+    if (caso.demo) throw new Error("Casos de demonstração não alimentam o motor contratual real.");
+
+    const cliente = caso.cliente_id
+      ? (
+          await supabase
+            .from("clientes")
+            .select("id,nome,email,telefone,demo")
+            .eq("id", caso.cliente_id)
+            .maybeSingle()
+        ).data
+      : null;
+    if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
+
+    const [{ data: proposta }, { data: modelo }, { data: base }, { data: membros }] = await Promise.all([
+      supabase
+        .from("proposals")
+        .select("id,versao,status,valor,moeda,forma_pagamento,escopo,exclusoes,validade")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("versao", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("contract_templates")
+        .select("id,code,name,template_version,status")
+        .eq("organization_id", org)
+        .eq("code", "MODELO-ESTUDO")
+        .eq("status", "active")
+        .maybeSingle(),
+      supabase
+        .from("contract_templates")
+        .select("id,code,name,template_version,status")
+        .eq("organization_id", org)
+        .eq("code", "BASE-GEN-V2")
+        .eq("status", "active")
+        .maybeSingle(),
+      supabase
+        .from("case_members")
+        .select("id,nome,parentesco,requerente,nacionalidade")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    // Ficha única por caso: reaproveita se já existir, nunca duplica.
+    let { data: registro } = await supabase
+      .from("contract_case_parameters")
+      .select("*")
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .maybeSingle();
+
+    let fichaCriada = false;
+    if (!registro) {
+      const { data: novo, error } = await supabase
+        .from("contract_case_parameters")
+        .insert({
+          organization_id: org,
+          case_id: caso.id,
+          proposal_id: proposta?.id ?? null,
+          contract_template_id: modelo?.id ?? null,
+          contract_template_version: modelo?.template_version ?? null,
+          created_by: userId,
+          updated_by: userId,
+        })
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message);
+      registro = novo;
+      fichaCriada = true;
+    } else if (!registro.proposal_id && proposta?.id) {
+      const { data: atualizado } = await supabase
+        .from("contract_case_parameters")
+        .update({ proposal_id: proposta.id, updated_by: userId })
+        .eq("id", registro.id)
+        .select("*")
+        .single();
+      registro = atualizado ?? registro;
+    }
+
+    const [{ data: valores }, { data: previas }, completude, pendencias] = await Promise.all([
+      supabase
+        .from("contract_parameter_values")
+        .select("id,grupo,campo,label,obrigatorio,ordem,valor,origem,origem_detalhe,status,conflito,justificativa")
+        .eq("parameters_id", registro.id)
+        .is("archived_at", null)
+        .order("grupo", { ascending: true })
+        .order("ordem", { ascending: true }),
+      supabase
+        .from("contract_parameter_previews")
+        .select("id,versao,tipo,placeholders_pendentes,anexos,congelado_em,aprovado_em,aprovado_por,template_code,template_version")
+        .eq("parameters_id", registro.id)
+        .is("archived_at", null)
+        .order("versao", { ascending: false }),
+      supabase.rpc("contract_parameters_completude", { _id: registro.id }),
+      supabase.rpc("contract_parameters_pendencias", { _id: registro.id }),
+    ]);
+
+    const contrato = registro.contract_id
+      ? (
+          await supabase
+            .from("contracts")
+            .select("id,contract_number,status,signed_at,signature_reference,signed_source")
+            .eq("id", registro.contract_id)
+            .maybeSingle()
+        ).data
+      : null;
+
+    const lista = (valores ?? []) as any[];
+    const pegar = (campo: string) => lista.find((v) => v.campo === campo)?.valor ?? null;
+    const anexos = anexosPorRegra({
+      produto: pegar("produto_sku"),
+      pais: pegar("pais_rota") ?? caso.pais,
+      membros: pegar("beneficiarios") ?? (membros ?? []).map((m: any) => m.nome).join(", "),
+    });
+
+    const finalAprovada = (previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
+
+    // Gates de bloqueio — nenhuma geração final/envio sem todos resolvidos.
+    const bloqueios: { chave: string; motivo: string }[] = [];
+    if (!proposta) bloqueios.push({ chave: "proposta", motivo: "Nenhuma proposta vinculada ao caso." });
+    else if (proposta.status !== "aprovada")
+      bloqueios.push({ chave: "condicao_comercial", motivo: `Proposta v${proposta.versao} não está aprovada (${proposta.status}).` });
+    if (!modelo) bloqueios.push({ chave: "template", motivo: "MODELO ESTUDO ativo não localizado." });
+    if (!base) bloqueios.push({ chave: "anexo", motivo: "Contrato-base genérico v2 ativo não localizado." });
+    if (!anexos.length) bloqueios.push({ chave: "anexo", motivo: "Nenhum anexo aplicável pelas regras existentes." });
+
+    const obrigatoriosVazios = lista.filter((v) => v.obrigatorio && !v.valor);
+    if (obrigatoriosVazios.length)
+      bloqueios.push({ chave: "campo_obrigatorio", motivo: `${obrigatoriosVazios.length} campo(s) obrigatório(s) vazio(s).` });
+
+    const naoValidados = lista.filter((v) => v.obrigatorio && v.valor && v.status !== "validado");
+    if (naoValidados.length)
+      bloqueios.push({ chave: "revisao_campo", motivo: `${naoValidados.length} campo(s) obrigatório(s) ainda a confirmar.` });
+
+    const comPlaceholder = lista.filter((v) => v.valor && PLACEHOLDER_PARAM.test(v.valor));
+    if (comPlaceholder.length)
+      bloqueios.push({ chave: "placeholder", motivo: `${comPlaceholder.length} campo(s) com placeholder remanescente.` });
+
+    const conflitantes = lista.filter((v) => (v.conflito ?? []).length > 0);
+    if (conflitantes.length) bloqueios.push({ chave: "conflito", motivo: `${conflitantes.length} conflito(s) de origem não resolvido(s).` });
+
+    const signatarios = lista.filter((v) => v.grupo === "partes" && v.obrigatorio);
+    if (signatarios.some((v) => !v.valor || v.status !== "validado"))
+      bloqueios.push({ chave: "signatario", motivo: "Qualificação de parte/signatário obrigatória incompleta." });
+
+    if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
+
+    await auditar(supabase, {
+      org,
+      userId,
+      acao: fichaCriada ? "contrato_preparacao_ficha_criada" : "contrato_preparacao_aberta",
+      entidadeId: registro.id,
+      metadados: {
+        case_id: caso.id,
+        caso_codigo: caso.codigo,
+        proposta_id: proposta?.id ?? null,
+        template_code: modelo?.code ?? null,
+        campos_carregados: lista.filter((v) => v.valor).length,
+        bloqueios: bloqueios.map((b) => b.chave),
+      },
+    });
+
+    return {
+      caso: {
+        id: caso.id,
+        codigo: caso.codigo,
+        titulo: caso.titulo,
+        pais: caso.pais,
+        via: caso.via,
+        status: caso.status,
+        contrato_assinado: caso.contrato_assinado,
+      },
+      cliente: cliente ? { id: cliente.id, nome: cliente.nome, email: cliente.email, telefone: cliente.telefone } : null,
+      registro,
+      proposta: proposta ?? null,
+      modelo: modelo ?? null,
+      base: base ?? null,
+      membros: membros ?? [],
+      contrato,
+      valores: lista,
+      previas: previas ?? [],
+      anexos,
+      completude: (completude as any).data ?? null,
+      pendencias: (pendencias as any).data ?? [],
+      bloqueios,
+      revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
+    };
+  });
+
+/** Registra o pedido de revisão humana enquanto houver bloqueios. */
+export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; nota: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const nota = String(data.nota ?? "").trim();
+    if (!nota) throw new Error("Descreva o que precisa de revisão humana.");
+    if (nota.length > 500) throw new Error("A nota de revisão excede 500 caracteres.");
+
+    const { data: registro } = await supabase
+      .from("contract_case_parameters")
+      .select("id,organization_id,case_id,status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!registro) throw new Error("Ficha de parâmetros não encontrada.");
+
+    await auditar(supabase, {
+      org: registro.organization_id,
+      userId,
+      acao: "contrato_revisao_humana_solicitada",
+      entidadeId: registro.id,
+      metadados: { case_id: registro.case_id, nota_tamanho: nota.length, status: registro.status },
+    });
+
+    if (["rascunho", "em_validacao"].includes(registro.status)) {
+      const { error } = await supabase
+        .from("contract_case_parameters")
+        .update({ status: "em_validacao", updated_by: userId })
+        .eq("id", registro.id);
+      if (error) throw new Error(error.message);
+    }
+
+    return { ok: true };
+  });
+
+/** Auditoria da preparação, sem expor conteúdo sensível. */
+export const auditoriaPreparacao = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const { data: eventos } = await supabase
+      .from("audit_logs")
+      .select("id,acao,created_at,metadados")
+      .eq("entidade", "contract_case_parameters")
+      .eq("entidade_id", data.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    return { eventos: eventos ?? [] };
+  });

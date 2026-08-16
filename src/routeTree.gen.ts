@@ -65,6 +65,7 @@ import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
+import { Route as AuthenticatedCasosCaseIdContratoPrepararRouteImport } from './routes/_authenticated/casos.$caseId.contrato.preparar'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -362,6 +363,12 @@ const AuthenticatedContratoParametrosIdRoute =
     path: '/contrato-parametros/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCasosCaseIdContratoPrepararRoute =
+  AuthenticatedCasosCaseIdContratoPrepararRouteImport.update({
+    id: '/$caseId/contrato/preparar',
+    path: '/$caseId/contrato/preparar',
+    getParentRoute: () => AuthenticatedCasosRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -375,7 +382,7 @@ export interface FileRoutesByFullPath {
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
-  '/casos': typeof AuthenticatedCasosRoute
+  '/casos': typeof AuthenticatedCasosRouteWithChildren
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -419,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -431,7 +439,7 @@ export interface FileRoutesByTo {
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
-  '/casos': typeof AuthenticatedCasosRoute
+  '/casos': typeof AuthenticatedCasosRouteWithChildren
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -475,6 +483,7 @@ export interface FileRoutesByTo {
   '/pesquisa-modulo': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
+  '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -490,7 +499,7 @@ export interface FileRoutesById {
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
-  '/_authenticated/casos': typeof AuthenticatedCasosRoute
+  '/_authenticated/casos': typeof AuthenticatedCasosRouteWithChildren
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
@@ -534,6 +543,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/_authenticated/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -593,6 +603,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo/'
     | '/pesquisa/'
     | '/privacidade/'
+    | '/casos/$caseId/contrato/preparar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo'
     | '/pesquisa'
     | '/privacidade'
+    | '/casos/$caseId/contrato/preparar'
   id:
     | '__root__'
     | '/'
@@ -707,6 +719,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa-modulo/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
+    | '/_authenticated/casos/$caseId/contrato/preparar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1121,15 +1134,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/casos/$caseId/contrato/preparar': {
+      id: '/_authenticated/casos/$caseId/contrato/preparar'
+      path: '/$caseId/contrato/preparar'
+      fullPath: '/casos/$caseId/contrato/preparar'
+      preLoaderRoute: typeof AuthenticatedCasosCaseIdContratoPrepararRouteImport
+      parentRoute: typeof AuthenticatedCasosRoute
+    }
   }
 }
+
+interface AuthenticatedCasosRouteChildren {
+  AuthenticatedCasosCaseIdContratoPrepararRoute: typeof AuthenticatedCasosCaseIdContratoPrepararRoute
+}
+
+const AuthenticatedCasosRouteChildren: AuthenticatedCasosRouteChildren = {
+  AuthenticatedCasosCaseIdContratoPrepararRoute:
+    AuthenticatedCasosCaseIdContratoPrepararRoute,
+}
+
+const AuthenticatedCasosRouteWithChildren =
+  AuthenticatedCasosRoute._addFileChildren(AuthenticatedCasosRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
-  AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
+  AuthenticatedCasosRoute: typeof AuthenticatedCasosRouteWithChildren
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
@@ -1165,7 +1197,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
-  AuthenticatedCasosRoute: AuthenticatedCasosRoute,
+  AuthenticatedCasosRoute: AuthenticatedCasosRouteWithChildren,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
