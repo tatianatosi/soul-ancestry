@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { BrandLogo } from "@/components/brand";
 import { solicitarLinkAcesso } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/acesso")({
