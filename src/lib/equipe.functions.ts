@@ -357,3 +357,84 @@ export const arquivarMembroEquipe = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/**
+ * Primeiro acesso da instância: cria a organização fundadora e o primeiro admin.
+ * Só funciona enquanto não existir nenhum acesso de equipe — depois, apenas convite por admin.
+ */
+export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
+  .inputValidator((data: { email: string; senha: string; nome: string; organizacao: string }) => {
+    if (!data.senha || data.senha.length < 10) throw new Error("A senha deve ter ao menos 10 caracteres.");
+    if (!data.organizacao?.trim()) throw new Error("Informe o nome da organização.");
+    return data;
+  })
+  .handler(async ({ data }) => {
+    const h = await import("./equipe.server");
+    const email = h.normalizarEmail(data.email);
+    if (!h.emailValido(email)) throw new Error("E-mail inválido.");
+
+    const existentes = await h.adminClient.from("staff_access").select("id").limit(1);
+    if ((existentes.data ?? []).length > 0) {
+      throw new Error("Provisionamento inicial já concluído. Solicite um convite a um administrador.");
+    }
+
+    const criado = await h.adminClient.auth.admin.createUser({
+      email,
+      password: data.senha,
+      email_confirm: true,
+      user_metadata: { nome: data.nome?.trim() || null },
+    });
+    if (criado.error) throw new Error(criado.error.message);
+    const userId = criado.data.user.id as string;
+
+    const slug =
+      data.organizacao
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
+        .slice(0, 40) || `org-${Date.now()}`;
+
+    const org = await h.adminClient
+      .from("organizations")
+      .insert({ nome: data.organizacao.trim(), slug, demo: false })
+      .select("id")
+      .maybeSingle();
+    if (org.error) throw new Error(org.error.message);
+    const organizationId = org.data.id as string;
+
+    await h.adminClient.from("profiles").upsert({ id: userId, nome: data.nome?.trim() || null, email });
+    await h.adminClient.from("organization_members").insert({ organization_id: organizationId, user_id: userId });
+    await h.adminClient.from("user_roles").insert({ organization_id: organizationId, user_id: userId, role: "admin" });
+    const staff = await h.adminClient
+      .from("staff_access")
+      .insert({
+        organization_id: organizationId,
+        auth_user_id: userId,
+        email,
+        full_name: data.nome?.trim() || null,
+        role: "admin",
+        status: "active",
+        activated_at: new Date().toISOString(),
+        created_by: userId,
+      })
+      .select("id")
+      .maybeSingle();
+
+    await h.registrarAuditoria({
+      organizationId,
+      userId,
+      acao: "equipe_provisionamento_inicial",
+      entidadeId: staff.data?.id ?? null,
+    });
+    return { ok: true };
+  });
+
+/** Indica se a instância ainda não tem nenhum acesso de equipe. */
+export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(async () => {
+  const h = await import("./equipe.server");
+  const { data } = await h.adminClient.from("staff_access").select("id").limit(1);
+  return { pendente: (data ?? []).length === 0 };
+});
