@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import {
@@ -190,9 +190,8 @@ function InventarioPage() {
               </thead>
               <tbody>
                 {filtrados.map((a) => (
-                  <>
+                  <Fragment key={a.id}>
                     <tr
-                      key={a.id}
                       className="cursor-pointer border-b align-top hover:bg-muted/50"
                       onClick={() => setAberto(aberto === a.id ? null : a.id)}
                     >
@@ -209,7 +208,7 @@ function InventarioPage() {
                       <td className="py-2 pr-3">{a.decisao}</td>
                     </tr>
                     {aberto === a.id && (
-                      <tr key={`${a.id}-det`} className="border-b bg-muted/30">
+                      <tr className="border-b bg-muted/30">
                         <td colSpan={7} className="p-4 text-sm">
                           <dl className="grid gap-2 sm:grid-cols-2">
                             <div>
@@ -232,7 +231,7 @@ function InventarioPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
