@@ -107,7 +107,18 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
 
         // Etapa 1: a interface confere qual case_id será analisado antes de executar.
         if (body.verificar) {
-          return json({ ...identificacao, lacunas, suficiente: lacunas.length === 0, acoes: ACOES }, 200);
+          return json(
+            {
+              ...identificacao,
+              lacunas,
+              suficiente: lacunas.length === 0,
+              acoes: ACOES,
+              ...(lacunas.length > 0
+                ? { mensagem: MENSAGEM_DADOS_INSUFICIENTES, orientacao: ORIENTACAO_DADOS_INSUFICIENTES }
+                : {}),
+            },
+            200,
+          );
         }
 
         // O case_id exibido precisa ser confirmado; nunca há troca ou fallback de caso.
