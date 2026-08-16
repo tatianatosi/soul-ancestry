@@ -18,6 +18,7 @@ import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedCasosRouteImport } from './routes/_authenticated/casos'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
   id: '/studio-devolutivas',
@@ -63,12 +64,18 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCasosRoute = AuthenticatedCasosRouteImport.update({
+  id: '/casos',
+  path: '/casos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/casos': typeof AuthenticatedCasosRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
+  '/_authenticated/casos': typeof AuthenticatedCasosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/casos'
     | '/clientes'
     | '/leads'
     | '/painel'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/casos'
     | '/clientes'
     | '/leads'
     | '/painel'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/studio-devolutivas'
+    | '/_authenticated/casos'
     | '/_authenticated/clientes'
     | '/_authenticated/leads'
     | '/_authenticated/painel'
@@ -204,16 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/casos': {
+      id: '/_authenticated/casos'
+      path: '/casos'
+      fullPath: '/casos'
+      preLoaderRoute: typeof AuthenticatedCasosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCasosRoute: typeof AuthenticatedCasosRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCasosRoute: AuthenticatedCasosRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
