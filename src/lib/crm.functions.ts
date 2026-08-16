@@ -226,10 +226,23 @@ export const getCanvasPorToken = createServerFn({ method: "GET" })
       cliente_nome: row.cliente_nome,
       pais: row.pais,
       via: row.via,
-      status: row.status,
-      produto_nome: row.produto_nome,
+      status: sanitizarRotuloCliente(row.status),
+      produto_nome: sanitizarRotuloCliente(row.produto_nome),
       ultima_atualizacao: row.ultima_atualizacao,
-      entregas: (entregas.data ?? []) as unknown as {
+      entregas: (entregas.data ?? []).map((e) => {
+        const item = e as unknown as {
+          id: string;
+          titulo: string;
+          descricao: string | null;
+          status: string | null;
+          entregue_em: string | null;
+        };
+        return {
+          ...item,
+          titulo: sanitizarRotuloCliente(item.titulo) ?? item.titulo,
+          descricao: sanitizarRotuloCliente(item.descricao),
+        };
+      }) as {
         id: string;
         titulo: string;
         descricao: string | null;
