@@ -46,10 +46,26 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const userId = context.userId as string;
     const org = await orgDoUsuario(supabase, userId);
 
+    // Referência recebida pode ser o case_id canônico ou um código legado (alias
+    // histórico). O alias nunca abre fluxo novo: resolve para o caso canônico,
+    // sem copiar, migrar ou duplicar dados.
+    const ehUuid = /^[0-9a-f-]{36}$/i.test(data.caseId);
+    let aliasDe: string | null = null;
+    let idCanonico = data.caseId;
+    if (!ehUuid) {
+      const { data: resolvido } = await supabase.rpc("resolver_case_canonico", { _ref: data.caseId });
+      const linha = Array.isArray(resolvido) ? resolvido[0] : resolvido;
+      if (!linha) throw new Error("Referência de caso não encontrada nesta organização.");
+      idCanonico = linha.case_id;
+      if (linha.alias) aliasDe = data.caseId;
+    }
+
     const { data: caso } = await supabase
       .from("crm_casos")
-      .select("id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at")
-      .eq("id", data.caseId)
+      .select(
+        "id,codigo,titulo,pais,via,status,demo,cliente_id,organization_id,contrato_assinado,archived_at,codigos_legados",
+      )
+      .eq("id", idCanonico)
       .maybeSingle();
     if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
     if (caso.archived_at) throw new Error("Caso arquivado: preparação bloqueada.");
