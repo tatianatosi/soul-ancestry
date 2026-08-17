@@ -18,6 +18,7 @@ export const GRUPOS: { chave: string; titulo: string }[] = [
 ];
 
 export const ORIGENS_PARAM = [
+  "planejador",
   "crm",
   "proposta",
   "formulario",
@@ -29,7 +30,9 @@ export const ORIGENS_PARAM = [
 ] as const;
 export type OrigemParam = (typeof ORIGENS_PARAM)[number];
 
+/** Ordem de confiança: Planejador homologado acima de qualquer outra fonte. */
 const CONFIANCA: Record<string, number> = {
+  planejador: 6,
   documento: 5,
   crm: 4,
   proposta: 4,
@@ -43,6 +46,7 @@ const CONFIANCA: Record<string, number> = {
 export function confianca(origem?: string | null) {
   return CONFIANCA[origem ?? ""] ?? 0;
 }
+
 
 export const PLACEHOLDER_PARAM = /(\[ex\.|lorem ipsum|preencher|placeholder|xxxx|a definir|tbd|<[^>]*>)/i;
 
