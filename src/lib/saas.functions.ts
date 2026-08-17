@@ -179,11 +179,25 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
 };
 
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
   const saida: Record<string, unknown> = {};
   for (const chave of permitidos) {
     if (dados[chave] !== undefined && dados[chave] !== "") saida[chave] = dados[chave];
+  }
+  // campos de referência só aceitam identificador válido (nunca nome digitado)
+  for (const chave of Object.keys(saida)) {
+    if (!chave.endsWith("_id")) continue;
+    const valor = saida[chave];
+    if (valor === null) continue;
+    if (typeof valor !== "string" || !UUID_RE.test(valor.trim())) {
+      throw new Error(
+        `Campo "${chave}" precisa do identificador do registro relacionado, não de um texto livre.`,
+      );
+    }
+    saida[chave] = valor.trim();
   }
   // blindagem: campos de organização/auditoria jamais vêm do front-end
   delete saida["organization_id"];
@@ -191,6 +205,7 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   delete saida["archived_at"];
   return saida;
 }
+
 
 type SupabaseCliente = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
 
