@@ -30,8 +30,8 @@ type ConvencaoPlanejador = {
   pais: string;
   rota: string;
   estruturaFamiliar: string;
-  sku: string;
-  skuNome: string;
+  sku: string | null;
+  skuNome: string | null;
   etapas: string[];
   gates: string[];
   responsavel: string;
