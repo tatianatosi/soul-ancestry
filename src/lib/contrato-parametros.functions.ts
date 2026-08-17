@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib/contrato-parametros.server";
+import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -197,13 +199,13 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     const propostaAprovada = proposta && proposta.status === "aprovada" ? proposta : null;
 
+    // Ordem de confiança do pré-carregamento:
+    // 1) Planejador homologado, 2) proposta aprovada, 3) CRM confirmado,
+    // 4) documento conferido, 5) importado a confirmar.
+    const planejador = parametrosDoPlanejador(caso.codigo);
+
     const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
-      { campo: "contratante_nome", valor: cliente?.nome, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_contato", valor: [cliente?.email, cliente?.telefone].filter(Boolean).join(" · "), origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_documento", valor: (cliente as any)?.documento, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_endereco", valor: (cliente as any)?.endereco, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "objeto_contrato", valor: caso.titulo, origem: "crm", detalhe: `Caso ${caso.codigo}` },
-      { campo: "pais_rota", valor: [caso.pais, caso.via].filter(Boolean).join(" / "), origem: "crm", detalhe: `Caso ${caso.codigo}` },
+      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
       { campo: "escopo_resumo", valor: propostaAprovada?.escopo, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
       { campo: "servicos_excluidos", valor: propostaAprovada?.exclusoes, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
       {
@@ -213,7 +215,14 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         detalhe: `Proposta v${propostaAprovada?.versao ?? ""}`,
       },
       { campo: "forma_pagamento", valor: propostaAprovada?.forma_pagamento, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
+      { campo: "contratante_nome", valor: cliente?.nome, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_contato", valor: [cliente?.email, cliente?.telefone].filter(Boolean).join(" · "), origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_documento", valor: (cliente as any)?.documento, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_endereco", valor: (cliente as any)?.endereco, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "objeto_contrato", valor: caso.titulo, origem: "crm", detalhe: `Caso ${caso.codigo}` },
+      { campo: "pais_rota", valor: [caso.pais, caso.via].filter(Boolean).join(" / "), origem: "crm", detalhe: `Caso ${caso.codigo}` },
     ];
+
 
     const { data: valores } = await supabase
       .from("contract_parameter_values")
@@ -232,24 +241,18 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
 
       if (atual.valor && atual.valor.trim() === texto) continue;
 
-      if (atual.status === "validado" && atual.valor) {
-        if (confianca(c.origem) > confianca(atual.origem)) {
-          conflitos.push({
-            campo: c.campo,
-            atual: atual.valor,
-            origem_atual: atual.origem,
-            candidato: texto,
-            origem_candidata: c.origem,
-          });
-        } else if (atual.valor !== texto) {
-          conflitos.push({
-            campo: c.campo,
-            atual: atual.valor,
-            origem_atual: atual.origem,
-            candidato: texto,
-            origem_candidata: c.origem,
-          });
-        }
+      // Fonte de menor confiança nunca sobrescreve valor já carregado
+      // (o Planejador homologado é a fonte mais confiável): vira conflito.
+      const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
+
+      if ((atual.status === "validado" && atual.valor) || menorConfianca) {
+        conflitos.push({
+          campo: c.campo,
+          atual: atual.valor,
+          origem_atual: atual.origem,
+          candidato: texto,
+          origem_candidata: c.origem,
+        });
         await supabase
           .from("contract_parameter_values")
           .update({
@@ -268,11 +271,29 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
           status: "importado_a_confirmar",
         })
         .eq("id", atual.id);
-      if (!error) importados += 1;
+      if (!error) {
+        importados += 1;
+        // mantém o estado local coerente para os próximos candidatos do mesmo campo
+        atual.valor = texto;
+        atual.origem = c.origem;
+        atual.origem_detalhe = c.detalhe;
+        atual.status = "importado_a_confirmar";
+      }
     }
 
-    return { importados, conflitos, propostaAprovada: Boolean(propostaAprovada) };
+    return {
+      importados,
+      conflitos,
+      propostaAprovada: Boolean(propostaAprovada),
+      planejador: {
+        convencao: planejador.convencao?.prefixo ?? null,
+        versao: planejador.versao,
+        homologadoEm: planejador.homologadoEm,
+        campos: planejador.parametros.length,
+      },
+    };
   });
+
 
 /** Grava um parâmetro com origem obrigatória. */
 export const salvarParametro = createServerFn({ method: "POST" })

@@ -187,7 +187,7 @@ export const ATIVOS: Ativo[] = [
     dependencias: ["clientes", "organizations", "gates de contrato/pagamento"],
     dados: "Caso canônico: fase, prioridade, gates, selo, piloto, aceite comercial",
     status: "ativo",
-    evidencia: "2 casos: CA-DEMO-IT-2026-001 (demo) e CA-2026-ANA-001 (piloto real)",
+    evidencia: "2 casos: CA-DEMO-IT-2026-001 (demo) e CA-CID-AT-FAM-2026-001 (piloto real, alias legado CA-2026-ANA-001)",
     risco: "crítico",
     decisao: "preservar",
   },
@@ -402,7 +402,7 @@ export const ATIVOS: Ativo[] = [
     dependencias: ["crm_casos", "fn_piloto_dado_guard"],
     dados: "18 campos de conferência com origem obrigatória",
     status: "parcialmente ativo",
-    evidencia: "18 linhas do caso CA-2026-ANA-001, todas com valor vazio, origem nula e verificado=false",
+    evidencia: "18 linhas do caso CA-CID-AT-FAM-2026-001, todas com valor vazio, origem nula e verificado=false",
     risco: "crítico",
     decisao: "reconectar",
   },
@@ -778,7 +778,7 @@ export interface ItemAna {
 export const ANA_LUIZA: ItemAna[] = [
   {
     item: "case_id canônico",
-    situacao: "CA-2026-ANA-001 — 'Projeto familiar — Ana Luiza (piloto real)'",
+    situacao: "CA-CID-AT-FAM-2026-001 — 'Projeto familiar — Ana Luiza (piloto real)'",
     localizado: true,
     evidencia: "crm_casos: demo=false, piloto=true, selo 'PILOTO REAL — DADOS REAIS — ACESSO RESTRITO'",
   },
@@ -918,7 +918,7 @@ export interface AcaoPlano {
 export const PLANO: AcaoPlano[] = [
   {
     prioridade: "P0",
-    acao: "Criar o registro mestre de parâmetros do caso CA-2026-ANA-001 a partir de fontes reais aprovadas",
+    acao: "Criar o registro mestre de parâmetros do caso CA-CID-AT-FAM-2026-001 a partir de fontes reais aprovadas",
     motivo: "Sem contract_case_parameters não há contrato, assinatura nem financeiro para o piloto",
     requerAprovacao: true,
   },

@@ -9,7 +9,9 @@ import { ORIGENS_PARAM } from "@/lib/contrato-parametros.server";
 import { definirStatusParametro, salvarParametro } from "@/lib/contrato-parametros.functions";
 
 export const ROTULO_ORIGEM: Record<string, string> = {
+  planejador: "Planejador homologado",
   crm: "CRM",
+
   proposta: "Proposta",
   formulario: "Formulário",
   whatsapp: "WhatsApp",

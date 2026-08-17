@@ -258,7 +258,7 @@ function InventarioPage() {
 
         <Secao titulo={`Ana Luiza — ativos localizados e lacunas (${lacunasAna.length} lacunas)`}>
           <p className="mb-3 text-sm text-muted-foreground">
-            Caso canônico CA-2026-ANA-001. Itens não localizados são registrados como lacuna, com a fonte onde
+            Caso canônico CA-CID-AT-FAM-2026-001. Itens não localizados são registrados como lacuna, com a fonte onde
             deveriam estar. Nenhum dado fictício foi criado para preencher lacunas.
           </p>
           <ul className="space-y-2 text-sm">
