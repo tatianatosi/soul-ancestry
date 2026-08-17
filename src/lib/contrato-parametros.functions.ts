@@ -197,13 +197,13 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     const propostaAprovada = proposta && proposta.status === "aprovada" ? proposta : null;
 
+    // Ordem de confiança do pré-carregamento:
+    // 1) Planejador homologado, 2) proposta aprovada, 3) CRM confirmado,
+    // 4) documento conferido, 5) importado a confirmar.
+    const planejador = parametrosDoPlanejador(caso.codigo);
+
     const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
-      { campo: "contratante_nome", valor: cliente?.nome, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_contato", valor: [cliente?.email, cliente?.telefone].filter(Boolean).join(" · "), origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_documento", valor: (cliente as any)?.documento, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_endereco", valor: (cliente as any)?.endereco, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "objeto_contrato", valor: caso.titulo, origem: "crm", detalhe: `Caso ${caso.codigo}` },
-      { campo: "pais_rota", valor: [caso.pais, caso.via].filter(Boolean).join(" / "), origem: "crm", detalhe: `Caso ${caso.codigo}` },
+      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
       { campo: "escopo_resumo", valor: propostaAprovada?.escopo, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
       { campo: "servicos_excluidos", valor: propostaAprovada?.exclusoes, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
       {
@@ -213,7 +213,14 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         detalhe: `Proposta v${propostaAprovada?.versao ?? ""}`,
       },
       { campo: "forma_pagamento", valor: propostaAprovada?.forma_pagamento, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
+      { campo: "contratante_nome", valor: cliente?.nome, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_contato", valor: [cliente?.email, cliente?.telefone].filter(Boolean).join(" · "), origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_documento", valor: (cliente as any)?.documento, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "contratante_endereco", valor: (cliente as any)?.endereco, origem: "crm", detalhe: "Cadastro do cliente" },
+      { campo: "objeto_contrato", valor: caso.titulo, origem: "crm", detalhe: `Caso ${caso.codigo}` },
+      { campo: "pais_rota", valor: [caso.pais, caso.via].filter(Boolean).join(" / "), origem: "crm", detalhe: `Caso ${caso.codigo}` },
     ];
+
 
     const { data: valores } = await supabase
       .from("contract_parameter_values")
