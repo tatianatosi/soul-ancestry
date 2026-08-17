@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
+import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { SaasShell } from "@/components/saas/shell";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
@@ -223,6 +224,12 @@ function Pagina() {
             </button>
           </div>
         </Painel>
+
+        <ConflitoCoerencia
+          coerencia={d.coerencia}
+          valorPaisRota={(d.valores ?? []).find((v: any) => v.campo === "pais_rota") ?? null}
+          aoCorrigir={invalidar}
+        />
 
         <Painel titulo={`Gates de envio (${bloqueios.length} bloqueio(s))`}>
           {bloqueado ? (
