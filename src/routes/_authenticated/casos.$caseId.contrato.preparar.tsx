@@ -76,7 +76,11 @@ function Pagina() {
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id: registroId as string } }),
     onSuccess: (r: any) => {
-      toast.success(`${r.importados} campo(s) carregados como “a confirmar”${r.conflitos.length ? ` · ${r.conflitos.length} conflito(s)` : ""}.`);
+      toast.success(
+        `${r.importados} campo(s) carregados como “a confirmar”${r.conflitos.length ? ` · ${r.conflitos.length} conflito(s)` : ""}${
+          r.limpos?.length ? ` · ${r.limpos.length} valor(es) fora da convenção homologada devolvidos a pendência` : ""
+        }.`,
+      );
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
