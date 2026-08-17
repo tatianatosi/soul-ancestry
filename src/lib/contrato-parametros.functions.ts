@@ -233,14 +233,15 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       if (!revogado && !incoerente) continue;
       const { error } = await supabase
         .from("contract_parameter_values")
-        .update({ valor: "", status: "pendente", origem: "pendente", origem_detalhe: null, conflito: [] })
+        .update({ valor: "", status: "vazio", origem: null, origem_detalhe: null, conflito: [] })
         .eq("id", v.id);
       if (!error) {
         limpos.push({ campo: v.campo, valor: v.valor });
         v.valor = "";
-        v.status = "pendente";
-        v.origem = "pendente";
+        v.status = "vazio";
+        v.origem = null;
       }
+
     }
 
 
