@@ -170,9 +170,10 @@ export const painelParametros = createServerFn({ method: "GET" })
   });
 
 /**
- * Pré-preenchimento seguro: só importa dados já existentes com origem rastreável
- * (CRM e proposta aprovada). Nunca sobrescreve validado com origem menor,
- * nunca usa DEMO, outro caso, placeholder ou inferência.
+ * Pré-preenchimento seguro: importa EXCLUSIVAMENTE os parâmetros homologados do
+ * Planejador Universal (origem `planejador`). CRM, proposta, WhatsApp,
+ * transcrição e qualquer outra fonte de menor confiança nunca entram na
+ * pré-carga — só por preenchimento humano registrado na própria ficha.
  */
 export const preencherDeOrigens = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -194,34 +195,15 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    const proposta = registro.proposal_id
-      ? (await supabase.from("proposals").select("*").eq("id", registro.proposal_id).maybeSingle()).data
-      : null;
-    const propostaAprovada = proposta && proposta.status === "aprovada" ? proposta : null;
-
-    // Ordem de confiança do pré-carregamento:
-    // 1) Planejador homologado, 2) proposta aprovada, 3) CRM confirmado,
-    // 4) documento conferido, 5) importado a confirmar.
+    // Fonte única da pré-carga: Planejador Universal homologado.
     const planejador = parametrosDoPlanejador(caso.codigo);
+    if (!planejador.convencao) {
+      throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
+    }
 
-    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
-      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
-      { campo: "escopo_resumo", valor: propostaAprovada?.escopo, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
-      { campo: "servicos_excluidos", valor: propostaAprovada?.exclusoes, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
-      {
-        campo: "valor_total",
-        valor: propostaAprovada?.valor != null ? `${propostaAprovada.moeda ?? "BRL"} ${propostaAprovada.valor}` : null,
-        origem: "proposta",
-        detalhe: `Proposta v${propostaAprovada?.versao ?? ""}`,
-      },
-      { campo: "forma_pagamento", valor: propostaAprovada?.forma_pagamento, origem: "proposta", detalhe: `Proposta v${propostaAprovada?.versao ?? ""}` },
-      { campo: "contratante_nome", valor: cliente?.nome, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_contato", valor: [cliente?.email, cliente?.telefone].filter(Boolean).join(" · "), origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_documento", valor: (cliente as any)?.documento, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "contratante_endereco", valor: (cliente as any)?.endereco, origem: "crm", detalhe: "Cadastro do cliente" },
-      { campo: "objeto_contrato", valor: caso.titulo, origem: "crm", detalhe: `Caso ${caso.codigo}` },
-      { campo: "pais_rota", valor: [caso.pais, caso.via].filter(Boolean).join(" / "), origem: "crm", detalhe: `Caso ${caso.codigo}` },
-    ];
+    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] =
+      planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe }));
+
 
 
     const { data: valores } = await supabase
