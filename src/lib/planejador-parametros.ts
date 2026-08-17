@@ -188,6 +188,30 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
     parametros.unshift({ campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe });
   }
 
+  // Cadastro de partes homologado no Planejador para este caso específico.
+  const cadastro = cadastroDoCodigo(codigoCaso);
+  if (cadastro) {
+    const detalheCadastro = `${detalhe} · cadastro de partes homologado no Planejador`;
+    const c = cadastro.contratante;
+    parametros.push(
+      { campo: "contratante_nome", valor: c.nome, detalhe: detalheCadastro },
+      { campo: "contratante_documento", valor: `${c.documentos} · Estado civil: ${c.estadoCivil}`, detalhe: detalheCadastro },
+      { campo: "contratante_endereco", valor: c.endereco, detalhe: detalheCadastro },
+      { campo: "contratante_contato", valor: c.contato, detalhe: detalheCadastro },
+      {
+        campo: "beneficiarios",
+        valor: [pessoaTexto(c), ...cadastro.beneficiarios.map(pessoaTexto)].join(" || "),
+        detalhe: detalheCadastro,
+      },
+      {
+        campo: "partes_signatarias",
+        valor: [c, ...cadastro.beneficiarios].map((p) => `${p.nome} (${p.papel})`).join(" · "),
+        detalhe: detalheCadastro,
+      },
+      { campo: "representacao_legal", valor: cadastro.observacoes.join(" · "), detalhe: detalheCadastro },
+    );
+  }
+
   // Parâmetro financeiro zerado no Planejador = "preencher manualmente": não é valor homologado.
   if (financeiro && (financeiro.despesas > 0 || financeiro.taxas > 0 || financeiro.honorarios > 0)) {
     parametros.push({
