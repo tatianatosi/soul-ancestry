@@ -95,7 +95,6 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
   const detalhe = `Planejador Universal ${PLANEJADOR_VERSAO} · homologado em ${PLANEJADOR_HOMOLOGADO_EM} · convenção ${convencao.prefixo}`;
 
   const parametros: ParamPlanejador[] = [
-    { campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe },
     { campo: "pais_rota", valor: `${convencao.pais} / ${convencao.rota}`, detalhe },
     { campo: "vinculo_familiar", valor: convencao.estruturaFamiliar, detalhe },
     { campo: "fases_entregas", valor: convencao.etapas.join(" · "), detalhe },
@@ -103,7 +102,14 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
     { campo: "revisor_responsavel", valor: convencao.responsavel, detalhe },
   ];
 
-  if (financeiro) {
+  // SKU só entra quando há SKU homologado para a rota da convenção.
+  // Sem SKU homologado, o campo permanece vazio (pendência), nunca herda SKU de outra cidadania.
+  if (convencao.sku && convencao.skuNome) {
+    parametros.unshift({ campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe });
+  }
+
+  // Parâmetro financeiro zerado no Planejador = "preencher manualmente": não é valor homologado.
+  if (financeiro && (financeiro.despesas > 0 || financeiro.taxas > 0 || financeiro.honorarios > 0)) {
     parametros.push({
       campo: "parcelas",
       valor: `${financeiro.parcelas}x`,
@@ -115,6 +121,7 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
       detalhe: `${detalhe} · parâmetro financeiro homologado`,
     });
   }
+
 
   return { convencao, versao: PLANEJADOR_VERSAO, homologadoEm: PLANEJADOR_HOMOLOGADO_EM, parametros };
 }
