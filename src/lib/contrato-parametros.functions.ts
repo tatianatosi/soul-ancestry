@@ -220,6 +220,30 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     const qualificador = qualificadorPaisDoCodigo(caso.codigo);
     const incoerentes: { campo: string; valor: string; esperado: string }[] = [];
 
+    // Higiene: valor gravado com origem `planejador` que não corresponde mais à
+    // convenção homologada (campo revogado ou país incoerente com o código canônico)
+    // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
+    const camposHomologados = new Set(candidatos.map((c) => c.campo));
+    const limpos: { campo: string; valor: string }[] = [];
+    for (const v of (valores ?? []) as any[]) {
+      if (v.origem !== "planejador" || !v.valor?.trim()) continue;
+      if (temCorrecaoHomologada(v)) continue;
+      const revogado = !camposHomologados.has(v.campo);
+      const incoerente = Boolean(qualificador) && !textoCompativel(v.valor, qualificador!.sigla);
+      if (!revogado && !incoerente) continue;
+      const { error } = await supabase
+        .from("contract_parameter_values")
+        .update({ valor: "", status: "pendente", origem: "pendente", origem_detalhe: null, conflito: [] })
+        .eq("id", v.id);
+      if (!error) {
+        limpos.push({ campo: v.campo, valor: v.valor });
+        v.valor = "";
+        v.status = "pendente";
+        v.origem = "pendente";
+      }
+    }
+
+
     for (const c of candidatos) {
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
