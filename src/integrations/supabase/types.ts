@@ -2192,6 +2192,7 @@ export type Database = {
           template_version: number
           updated_at: string
           updated_by: string | null
+          uso_permitido: string
         }
         Insert: {
           archive_reason?: string | null
@@ -2219,6 +2220,7 @@ export type Database = {
           template_version?: number
           updated_at?: string
           updated_by?: string | null
+          uso_permitido?: string
         }
         Update: {
           archive_reason?: string | null
@@ -2246,6 +2248,7 @@ export type Database = {
           template_version?: number
           updated_at?: string
           updated_by?: string | null
+          uso_permitido?: string
         }
         Relationships: [
           {
@@ -2711,6 +2714,7 @@ export type Database = {
           ativo: boolean
           cliente_id: string | null
           codigo: string
+          codigos_legados: string[]
           condicoes_verificadas_em: string | null
           condicoes_verificadas_por: string | null
           consentimento_compartilhamento: boolean
@@ -2760,6 +2764,7 @@ export type Database = {
           ativo?: boolean
           cliente_id?: string | null
           codigo: string
+          codigos_legados?: string[]
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
           consentimento_compartilhamento?: boolean
@@ -2809,6 +2814,7 @@ export type Database = {
           ativo?: boolean
           cliente_id?: string | null
           codigo?: string
+          codigos_legados?: string[]
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
           consentimento_compartilhamento?: boolean
@@ -7813,6 +7819,14 @@ export type Database = {
           abertas: number
           criadas: number
           sanadas: number
+        }[]
+      }
+      resolver_case_canonico: {
+        Args: { _ref: string }
+        Returns: {
+          alias: boolean
+          case_id: string
+          codigo: string
         }[]
       }
       rg_admin: { Args: { _org: string }; Returns: boolean }
