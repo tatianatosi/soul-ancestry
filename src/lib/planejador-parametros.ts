@@ -42,13 +42,13 @@ type ConvencaoPlanejador = {
 export const CONVENCOES_PLANEJADOR: ConvencaoPlanejador[] = [
   {
     prefixo: "CA-CID-AT-FAM",
-    descricao: "Cidadania — atendimento familiar compartilhado",
-    tipoProcesso: "Cidadania Italiana",
-    pais: "Itália",
-    rota: "Administrativa — reconhecimento por descendência",
+    descricao: "Cidadania austríaca — atendimento familiar compartilhado",
+    tipoProcesso: "Cidadania Austríaca",
+    pais: "Áustria",
+    rota: "Administrativa — reparação histórica (§ 58c StbG)",
     estruturaFamiliar: "Núcleo familiar compartilhado (requerente principal + beneficiários do mesmo ancestral)",
-    sku: "CA-CID-025",
-    skuNome: "Acompanhamento Familiar – Processo Compartilhado",
+    sku: null,
+    skuNome: null,
     etapas: [
       "1. Diagnóstico e checklist inicial",
       "2. Pesquisa genealógica e coleta documental",
@@ -69,6 +69,7 @@ export const CONVENCOES_PLANEJADOR: ConvencaoPlanejador[] = [
     ],
   },
 ];
+
 
 export function convencaoDoCodigo(codigo?: string | null): ConvencaoPlanejador | null {
   const ref = String(codigo ?? "").toUpperCase();
