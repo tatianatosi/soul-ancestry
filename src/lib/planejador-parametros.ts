@@ -126,6 +126,7 @@ export const CADASTRO_PLANEJADOR: CadastroPlanejador[] = [
     observacoes: [
       "Sem alteração de nome de qualquer titular: os nomes seguem exatamente como registrados no Planejador.",
       "Todos os beneficiários são maiores de idade — não há representação legal de menores.",
+      "Documento de identificação de Alice Gomes Silveira ainda não informado no Planejador: pendência de coleta.",
     ],
   },
 ];
