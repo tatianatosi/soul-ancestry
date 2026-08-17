@@ -116,7 +116,7 @@ export const CADASTRO_PLANEJADOR: CadastroPlanejador[] = [
       {
         nome: "Alice Gomes Silveira",
         papel: "Beneficiária do mesmo núcleo familiar",
-        documentos: "Documentos de identificação a confirmar",
+        documentos: "",
         estadoCivil: "Solteira",
         nascimento: "18/03/2006",
         endereco: "Rua N 24, Qd. 21, Lt. 20 — Anápolis City, Anápolis/GO",
@@ -134,7 +134,7 @@ function pessoaTexto(p: PessoaPlanejador) {
   const partes = [
     p.nome,
     p.papel,
-    p.documentos,
+    p.documentos || null,
     `Estado civil: ${p.estadoCivil}`,
     p.nascimento ? `Nascimento: ${p.nascimento}` : null,
     p.endereco,
