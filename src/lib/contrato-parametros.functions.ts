@@ -321,7 +321,9 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       importados,
       conflitos,
       incoerentes,
+      limpos,
       propostaAprovada: false,
+
       planejador: {
         convencao: planejador.convencao?.prefixo ?? null,
         versao: planejador.versao,
