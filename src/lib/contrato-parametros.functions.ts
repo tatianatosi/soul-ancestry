@@ -3,6 +3,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib/contrato-parametros.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
+import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
+import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -215,11 +217,38 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     let importados = 0;
     const conflitos: { campo: string; atual: string; origem_atual: string; candidato: string; origem_candidata: string }[] = [];
 
+    const qualificador = qualificadorPaisDoCodigo(caso.codigo);
+    const incoerentes: { campo: string; valor: string; esperado: string }[] = [];
+
     for (const c of candidatos) {
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
       const atual = (valores ?? []).find((v: any) => v.campo === c.campo);
       if (!atual) continue;
+
+      // Correção humana homologada nunca é sobrescrita pela pré-carga.
+      if (temCorrecaoHomologada(atual)) continue;
+
+      // Coerência com o qualificador de país do código canônico.
+      if (qualificador && !textoCompativel(texto, qualificador.sigla)) {
+        incoerentes.push({ campo: c.campo, valor: texto, esperado: qualificador.pais });
+        await supabase
+          .from("contract_parameter_values")
+          .update({
+            conflito: [
+              {
+                chave: CONFLITO_PAIS_ROTA,
+                origem: c.origem,
+                detalhe: c.detalhe,
+                valor: texto,
+                esperado: qualificador.pais,
+                detectado_em: new Date().toISOString(),
+              },
+            ],
+          })
+          .eq("id", atual.id);
+        continue;
+      }
 
       if (atual.valor && atual.valor.trim() === texto) continue;
 
@@ -266,6 +295,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     return {
       importados,
       conflitos,
+      incoerentes,
       propostaAprovada: false,
       planejador: {
         convencao: planejador.convencao?.prefixo ?? null,
@@ -368,6 +398,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
     ]);
 
     if (!template?.code) throw new Error("Selecione o MODELO ESTUDO ativo antes de gerar a prévia.");
+    if (data.tipo === "final") await exigirCoerencia(supabase, registro);
 
     const cliente = caso?.cliente_id
       ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
@@ -459,6 +490,14 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       throw new Error("Há campos obrigatórios em placeholder. Aprovação bloqueada.");
     }
 
+    const { data: registroAprovacao } = await supabase
+      .from("contract_case_parameters")
+      .select("id,case_id,proposal_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!registroAprovacao) throw new Error("Registro de parâmetros não encontrado.");
+    await exigirCoerencia(supabase, registroAprovacao);
+
     const { error: e1 } = await supabase
       .from("contract_parameter_previews")
       .update({ aprovado_por: context.userId, aprovado_em: new Date().toISOString() })
@@ -498,6 +537,7 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!registro) throw new Error("Registro de parâmetros não encontrado.");
     if (registro.status !== "aprovado") throw new Error("Aprove os parâmetros antes de enviar para assinatura.");
+    await exigirCoerencia(supabase, registro);
 
     const { data: valores } = await supabase
       .from("contract_parameter_values")
@@ -665,4 +705,97 @@ export const destinosParametros = createServerFn({ method: "GET" })
         },
       ],
     };
+  });
+
+
+/**
+ * Correção humana rastreável do parâmetro homologado do Planejador.
+ * Não há substituição automática: exige valor anterior, novo valor,
+ * justificativa, responsável, data/hora e nova versão de homologação.
+ * O histórico anterior fica preservado em audit_logs.
+ */
+export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: { valorId: string; valorAnterior: string; novoValor: string; justificativa: string; versaoHomologacao: string }) => d,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+
+    const novoValor = exigirTexto(data.novoValor, "novo valor", 4000);
+    const justificativa = exigirTexto(data.justificativa, "justificativa", 500);
+    const versao = exigirTexto(data.versaoHomologacao, "nova versão de homologação do Planejador", 120);
+    if (justificativa.length < 10) throw new Error("Justificativa mínima de 10 caracteres.");
+    if (PLACEHOLDER_PARAM.test(novoValor)) throw new Error("Placeholder não é aceito como parâmetro contratual.");
+
+    const { data: valor } = await supabase
+      .from("contract_parameter_values")
+      .select("*")
+      .eq("id", data.valorId)
+      .maybeSingle();
+    if (!valor) throw new Error("Parâmetro não encontrado.");
+
+    const anteriorReal = String(valor.valor ?? "").trim();
+    if (String(data.valorAnterior ?? "").trim() !== anteriorReal) {
+      throw new Error("O valor anterior informado não confere com o valor registrado.");
+    }
+
+    const { data: registro } = await supabase
+      .from("contract_case_parameters")
+      .select("id,organization_id,case_id")
+      .eq("id", valor.parameters_id)
+      .maybeSingle();
+    if (!registro) throw new Error("Ficha de parâmetros não encontrada.");
+
+    // Somente perfil autorizado a preparar/aprovar contrato pode corrigir a fonte.
+    const { data: autorizado } = await supabase.rpc("contract_pode_aprovar", { _org: registro.organization_id });
+    if (!autorizado) throw new Error("Sem permissão para corrigir o parâmetro homologado.");
+
+    const { data: caso } = await supabase.from("crm_casos").select("codigo").eq("id", registro.case_id).maybeSingle();
+    const qualificador = qualificadorPaisDoCodigo(caso?.codigo);
+    if (qualificador && !textoCompativel(novoValor, qualificador.sigla)) {
+      throw new Error(
+        `O novo valor continua incompatível com o código canônico (${qualificador.sigla} — ${qualificador.pais}).`,
+      );
+    }
+
+    const agora = new Date().toISOString();
+    const { error } = await supabase
+      .from("contract_parameter_values")
+      .update({
+        valor: novoValor,
+        origem: "planejador",
+        origem_detalhe: `${MARCA_CORRECAO_PLANEJADOR} · ${versao} · corrigido em ${agora}`,
+        justificativa,
+        status: "validado",
+        conflito: [],
+      })
+      .eq("id", valor.id);
+    if (error) throw new Error(error.message);
+
+    await supabase.from("audit_logs").insert({
+      organization_id: registro.organization_id,
+      entidade: "contract_parameter_values",
+      entidade_id: valor.id,
+      acao: "planejador_parametro_corrigido",
+      user_id: userId,
+      metadados: {
+        conflito: CONFLITO_PAIS_ROTA,
+        parameters_id: registro.id,
+        case_id: registro.case_id,
+        campo: valor.campo,
+        valor_anterior: anteriorReal || null,
+        origem_anterior: valor.origem ?? null,
+        origem_detalhe_anterior: valor.origem_detalhe ?? null,
+        status_anterior: valor.status ?? null,
+        novo_valor: novoValor,
+        versao_homologacao: versao,
+        justificativa,
+        responsavel: userId,
+        corrigido_em: agora,
+      },
+    });
+
+    return { ok: true, corrigidoEm: agora };
   });

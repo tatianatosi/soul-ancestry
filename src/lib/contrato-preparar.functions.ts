@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
+import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -217,6 +219,12 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
 
     if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
 
+    // Validação cruzada: código canônico x Planejador x parâmetros x proposta.
+    const coerencia = await conflitosCoerenciaDoRegistro(supabase, registro);
+    for (const c of coerencia.conflitos) {
+      bloqueios.push({ chave: CONFLITO_PAIS_ROTA, motivo: c.mensagem });
+    }
+
     await auditar(supabase, {
       org,
       userId,
@@ -257,6 +265,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       completude: (completude as any).data ?? null,
       pendencias: (pendencias as any).data ?? [],
       bloqueios,
+      coerencia,
       revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
     };
   });
@@ -278,6 +287,16 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!registro) throw new Error("Ficha de parâmetros não encontrada.");
+
+    const { data: completo } = await supabase
+      .from("contract_case_parameters")
+      .select("id,case_id,proposal_id")
+      .eq("id", registro.id)
+      .maybeSingle();
+    const coerencia = await conflitosCoerenciaDoRegistro(supabase, completo ?? registro);
+    if (coerencia.conflitos.length) {
+      throw new Error(`Conflito crítico (${CONFLITO_PAIS_ROTA}): ${coerencia.conflitos[0].mensagem}`);
+    }
 
     await auditar(supabase, {
       org: registro.organization_id,
