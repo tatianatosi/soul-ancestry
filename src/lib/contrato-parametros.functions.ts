@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib/contrato-parametros.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
-import { CONFLITO_PAIS_ROTA, validarCoerenciaCaso } from "@/lib/coerencia-caso";
+import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo, validarCoerenciaCaso } from "@/lib/coerencia-caso";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -28,6 +28,13 @@ function exigirTexto(v: unknown, campo: string, max = 4000) {
   return s;
 }
 
+export const MARCA_CORRECAO_PLANEJADOR = "correção homologada do Planejador";
+
+/** true quando o parâmetro já recebeu correção humana homologada do Planejador. */
+export function temCorrecaoHomologada(valor: any) {
+  return valor?.origem === "planejador" && String(valor?.origem_detalhe ?? "").includes(MARCA_CORRECAO_PLANEJADOR);
+}
+
 /**
  * Validação cruzada obrigatória: código canônico x Planejador x parâmetros x
  * proposta. Divergência é conflito crítico e bloqueia as transições.
@@ -35,14 +42,16 @@ function exigirTexto(v: unknown, campo: string, max = 4000) {
 export async function conflitosCoerenciaDoRegistro(supabase: Sb, registro: any) {
   const { data: caso } = await supabase.from("crm_casos").select("id,codigo,pais,via").eq("id", registro.case_id).maybeSingle();
   const [{ data: valores }, propostaRes] = await Promise.all([
-    supabase.from("contract_parameter_values").select("campo,valor").eq("parameters_id", registro.id).is("archived_at", null),
+    supabase.from("contract_parameter_values").select("campo,valor,origem,origem_detalhe,status").eq("parameters_id", registro.id).is("archived_at", null),
     registro.proposal_id
       ? supabase.from("proposals").select("escopo,versao").eq("id", registro.proposal_id).maybeSingle()
       : Promise.resolve({ data: null } as any),
   ]);
-  const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
+  const linha = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo) ?? null;
+  const pegar = (campo: string) => linha(campo)?.valor ?? null;
   const planejador = parametrosDoPlanejador(caso?.codigo);
-  const planejadorPais = planejador.parametros.find((p) => p.campo === "pais_rota")?.valor ?? null;
+  const corrigido = temCorrecaoHomologada(linha("pais_rota"));
+  const planejadorPais = corrigido ? null : (planejador.parametros.find((p) => p.campo === "pais_rota")?.valor ?? null);
 
   return validarCoerenciaCaso({
     codigo: caso?.codigo,
@@ -251,11 +260,38 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     let importados = 0;
     const conflitos: { campo: string; atual: string; origem_atual: string; candidato: string; origem_candidata: string }[] = [];
 
+    const qualificador = qualificadorPaisDoCodigo(caso.codigo);
+    const incoerentes: { campo: string; valor: string; esperado: string }[] = [];
+
     for (const c of candidatos) {
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
       const atual = (valores ?? []).find((v: any) => v.campo === c.campo);
       if (!atual) continue;
+
+      // Correção humana homologada nunca é sobrescrita pela pré-carga.
+      if (temCorrecaoHomologada(atual)) continue;
+
+      // Coerência com o qualificador de país do código canônico.
+      if (qualificador && !textoCompativel(texto, qualificador.sigla)) {
+        incoerentes.push({ campo: c.campo, valor: texto, esperado: qualificador.pais });
+        await supabase
+          .from("contract_parameter_values")
+          .update({
+            conflito: [
+              {
+                chave: CONFLITO_PAIS_ROTA,
+                origem: c.origem,
+                detalhe: c.detalhe,
+                valor: texto,
+                esperado: qualificador.pais,
+                detectado_em: new Date().toISOString(),
+              },
+            ],
+          })
+          .eq("id", atual.id);
+        continue;
+      }
 
       if (atual.valor && atual.valor.trim() === texto) continue;
 
@@ -302,6 +338,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     return {
       importados,
       conflitos,
+      incoerentes,
       propostaAprovada: false,
       planejador: {
         convencao: planejador.convencao?.prefixo ?? null,
