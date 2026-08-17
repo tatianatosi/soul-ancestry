@@ -153,7 +153,7 @@ function Pagina() {
               disabled={mImportar.isPending}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
             >
-              Pré-carregar de CRM e proposta aprovada
+              Pré-carregar do Planejador homologado
             </button>
             <button
               onClick={() => mGerar.mutate("rascunho")}
