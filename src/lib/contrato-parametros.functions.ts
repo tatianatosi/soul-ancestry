@@ -233,8 +233,18 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       if (!revogado && !incoerente) continue;
       const { error } = await supabase
         .from("contract_parameter_values")
-        .update({ valor: "", status: "vazio", origem: null, origem_detalhe: null, conflito: [] })
+        .update({
+          valor: "",
+          status: "vazio",
+          origem: null,
+          origem_detalhe: null,
+          conflito: [],
+          justificativa: revogado
+            ? `Parâmetro revogado na convenção homologada ${planejador.convencao?.prefixo} (${planejador.versao}): valor anterior removido e devolvido a pendência.`
+            : `Valor incoerente com o qualificador de país do código canônico (${qualificador?.pais}): removido e devolvido a pendência.`,
+        })
         .eq("id", v.id);
+
       if (!error) {
         limpos.push({ campo: v.campo, valor: v.valor });
         v.valor = "";
