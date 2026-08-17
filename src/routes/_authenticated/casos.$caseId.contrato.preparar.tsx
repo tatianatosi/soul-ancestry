@@ -163,10 +163,12 @@ function Pagina() {
           </div>
           {d.aliasDe && (
             <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
-              Referência <strong>{d.aliasDe}</strong> é alias histórico. Fluxo consolidado no caso canônico{" "}
-              <strong>{d.caso.codigo}</strong> — nada foi copiado nem duplicado.
+              Referência legada/interna corrigida. Este fluxo opera no caso <strong>{d.caso.codigo}</strong>. A referência{" "}
+              <strong>{d.aliasDe}</strong> é interna incorreta: preservada apenas como histórico, sem criar, contratar, assinar,
+              cobrar, pesquisar ou operar por ela — nada foi copiado nem duplicado.
             </p>
           )}
+
           {d.caso.codigos_legados?.length > 0 && (
             <p className="mt-2 text-xs text-navy/60">
               Códigos legados registrados (somente referência): {d.caso.codigos_legados.join(", ")}
