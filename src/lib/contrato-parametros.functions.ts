@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib/contrato-parametros.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
+import { CONFLITO_PAIS_ROTA, validarCoerenciaCaso } from "@/lib/coerencia-caso";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

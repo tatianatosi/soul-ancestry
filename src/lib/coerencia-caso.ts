@@ -46,6 +46,8 @@ export function textoCompativel(texto: string | null | undefined, sigla: string)
   if (!alvo) return true;
   const t = normalizar(texto);
   if (!t.trim()) return true; // vazio é pendência, não divergência
+  const declaraAlgumPais = Object.values(QUALIFICADORES_PAIS).some((q) => q.termos.some((termo) => t.includes(termo)));
+  if (!declaraAlgumPais) return true; // texto não declara país: nada a confrontar
   return alvo.termos.some((termo) => t.includes(termo));
 }
 
