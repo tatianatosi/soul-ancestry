@@ -161,6 +161,17 @@ function Pagina() {
             <Selo texto={`Base: ${d.base?.code ?? "não localizada"}`} tom={d.base ? "ok" : "erro"} />
             {d.contrato && <Selo texto={`Contrato ${d.contrato.contract_number} · ${d.contrato.status}`} tom="neutro" />}
           </div>
+          {d.aliasDe && (
+            <p className="mt-2 rounded border border-gold/50 bg-gold/10 p-2 text-xs text-navy">
+              Referência <strong>{d.aliasDe}</strong> é alias histórico. Fluxo consolidado no caso canônico{" "}
+              <strong>{d.caso.codigo}</strong> — nada foi copiado nem duplicado.
+            </p>
+          )}
+          {d.caso.codigos_legados?.length > 0 && (
+            <p className="mt-2 text-xs text-navy/60">
+              Códigos legados registrados (somente referência): {d.caso.codigos_legados.join(", ")}
+            </p>
+          )}
           <p className="mt-2 text-xs text-navy/60">
             Somente dados deste caseId. Nenhum dado DEMO, de outro caso, placeholder automático ou inferência é utilizado; campo sem
             informação real permanece vazio.
