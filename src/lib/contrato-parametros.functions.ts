@@ -241,24 +241,18 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
 
       if (atual.valor && atual.valor.trim() === texto) continue;
 
-      if (atual.status === "validado" && atual.valor) {
-        if (confianca(c.origem) > confianca(atual.origem)) {
-          conflitos.push({
-            campo: c.campo,
-            atual: atual.valor,
-            origem_atual: atual.origem,
-            candidato: texto,
-            origem_candidata: c.origem,
-          });
-        } else if (atual.valor !== texto) {
-          conflitos.push({
-            campo: c.campo,
-            atual: atual.valor,
-            origem_atual: atual.origem,
-            candidato: texto,
-            origem_candidata: c.origem,
-          });
-        }
+      // Fonte de menor confiança nunca sobrescreve valor já carregado
+      // (o Planejador homologado é a fonte mais confiável): vira conflito.
+      const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
+
+      if ((atual.status === "validado" && atual.valor) || menorConfianca) {
+        conflitos.push({
+          campo: c.campo,
+          atual: atual.valor,
+          origem_atual: atual.origem,
+          candidato: texto,
+          origem_candidata: c.origem,
+        });
         await supabase
           .from("contract_parameter_values")
           .update({
@@ -277,11 +271,29 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
           status: "importado_a_confirmar",
         })
         .eq("id", atual.id);
-      if (!error) importados += 1;
+      if (!error) {
+        importados += 1;
+        // mantém o estado local coerente para os próximos candidatos do mesmo campo
+        atual.valor = texto;
+        atual.origem = c.origem;
+        atual.origem_detalhe = c.detalhe;
+        atual.status = "importado_a_confirmar";
+      }
     }
 
-    return { importados, conflitos, propostaAprovada: Boolean(propostaAprovada) };
+    return {
+      importados,
+      conflitos,
+      propostaAprovada: Boolean(propostaAprovada),
+      planejador: {
+        convencao: planejador.convencao?.prefixo ?? null,
+        versao: planejador.versao,
+        homologadoEm: planejador.homologadoEm,
+        campos: planejador.parametros.length,
+      },
+    };
   });
+
 
 /** Grava um parâmetro com origem obrigatória. */
 export const salvarParametro = createServerFn({ method: "POST" })
