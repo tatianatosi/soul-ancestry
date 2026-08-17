@@ -47,8 +47,8 @@ export const CONVENCOES_PLANEJADOR: ConvencaoPlanejador[] = [
     pais: "Áustria",
     rota: "Administrativa — reparação histórica (§ 58c StbG)",
     estruturaFamiliar: "Núcleo familiar compartilhado (requerente principal + beneficiários do mesmo ancestral)",
-    sku: null,
-    skuNome: null,
+    sku: "CA-CID-AT-001",
+    skuNome: "Cidadania austríaca — atendimento familiar (§ 58c StbG)",
     etapas: [
       "1. Diagnóstico e checklist inicial",
       "2. Pesquisa genealógica e coleta documental",
@@ -69,6 +69,87 @@ export const CONVENCOES_PLANEJADOR: ConvencaoPlanejador[] = [
     ],
   },
 ];
+
+/**
+ * Cadastro de partes homologado no Planejador Universal por caso.
+ * Só entra na ficha contratual quando o código do caso está registrado aqui.
+ * Nada é inferido: nomes, documentos, endereços e contatos são exatamente os
+ * informados no Planejador, sem alteração de nome de qualquer titular.
+ */
+type PessoaPlanejador = {
+  nome: string;
+  papel: string;
+  documentos: string;
+  estadoCivil: string;
+  nascimento?: string;
+  endereco: string;
+  contato: string;
+};
+
+type CadastroPlanejador = {
+  codigos: string[];
+  contratante: PessoaPlanejador;
+  beneficiarios: PessoaPlanejador[];
+  observacoes: string[];
+};
+
+export const CADASTRO_PLANEJADOR: CadastroPlanejador[] = [
+  {
+    codigos: ["CA-CID-AT-FAM-2026-001", "CA-2026-ANA-001"],
+    contratante: {
+      nome: "Ana Luiza Gomes Silveira Rodrigues",
+      papel: "Requerente principal / contratante",
+      documentos: "CPF 037.795.711-96 · RG 5163875 SSP/GO",
+      estadoCivil: "Casada",
+      endereco: "Rua N 24, Qd. 21, Lt. 21 — Anápolis City, Anápolis/GO, CEP 75094-290",
+      contato: "analuizabox@gmail.com · (62) 98158-4015",
+    },
+    beneficiarios: [
+      {
+        nome: "Adair Pinto Silveira Júnior",
+        papel: "Beneficiário do mesmo núcleo familiar",
+        documentos: "CPF 774.227.321-72 · RG 3184582 SSP/GO",
+        estadoCivil: "Casado",
+        endereco: "Rua N 24, Qd. 21, Lt. 20 — Anápolis City, Anápolis/GO",
+        contato: "adair@apsrepresentacoes.com.br · (62) 99134-5298",
+      },
+      {
+        nome: "Alice Gomes Silveira",
+        papel: "Beneficiária do mesmo núcleo familiar",
+        documentos: "",
+        estadoCivil: "Solteira",
+        nascimento: "18/03/2006",
+        endereco: "Rua N 24, Qd. 21, Lt. 20 — Anápolis City, Anápolis/GO",
+        contato: "alicegomessilveira@gmail.com · (62) 99951-5298",
+      },
+    ],
+    observacoes: [
+      "Sem alteração de nome de qualquer titular: os nomes seguem exatamente como registrados no Planejador.",
+      "Todos os beneficiários são maiores de idade — não há representação legal de menores.",
+      "Documento de identificação de Alice Gomes Silveira ainda não informado no Planejador: pendência de coleta.",
+    ],
+  },
+];
+
+function pessoaTexto(p: PessoaPlanejador) {
+  const partes = [
+    p.nome,
+    p.papel,
+    p.documentos || null,
+    `Estado civil: ${p.estadoCivil}`,
+    p.nascimento ? `Nascimento: ${p.nascimento}` : null,
+    p.endereco,
+    p.contato,
+  ].filter(Boolean);
+  return partes.join(" · ");
+}
+
+export function cadastroDoCodigo(codigo?: string | null): CadastroPlanejador | null {
+  const ref = String(codigo ?? "").trim().toUpperCase();
+  if (!ref) return null;
+  return CADASTRO_PLANEJADOR.find((c) => c.codigos.includes(ref)) ?? null;
+}
+
 
 
 export function convencaoDoCodigo(codigo?: string | null): ConvencaoPlanejador | null {
@@ -106,6 +187,30 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
   // Sem SKU homologado, o campo permanece vazio (pendência), nunca herda SKU de outra cidadania.
   if (convencao.sku && convencao.skuNome) {
     parametros.unshift({ campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe });
+  }
+
+  // Cadastro de partes homologado no Planejador para este caso específico.
+  const cadastro = cadastroDoCodigo(codigoCaso);
+  if (cadastro) {
+    const detalheCadastro = `${detalhe} · cadastro de partes homologado no Planejador`;
+    const c = cadastro.contratante;
+    parametros.push(
+      { campo: "contratante_nome", valor: c.nome, detalhe: detalheCadastro },
+      { campo: "contratante_documento", valor: `${c.documentos} · Estado civil: ${c.estadoCivil}`, detalhe: detalheCadastro },
+      { campo: "contratante_endereco", valor: c.endereco, detalhe: detalheCadastro },
+      { campo: "contratante_contato", valor: c.contato, detalhe: detalheCadastro },
+      {
+        campo: "beneficiarios",
+        valor: [pessoaTexto(c), ...cadastro.beneficiarios.map(pessoaTexto)].join(" || "),
+        detalhe: detalheCadastro,
+      },
+      {
+        campo: "partes_signatarias",
+        valor: [c, ...cadastro.beneficiarios].map((p) => `${p.nome} (${p.papel})`).join(" · "),
+        detalhe: detalheCadastro,
+      },
+      { campo: "representacao_legal", valor: cadastro.observacoes.join(" · "), detalhe: detalheCadastro },
+    );
   }
 
   // Parâmetro financeiro zerado no Planejador = "preencher manualmente": não é valor homologado.
