@@ -8,7 +8,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { verificarCondicoesCaso } from "@/lib/saas.functions";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 
-export const Route = createFileRoute("/_authenticated/casos")({
+export const Route = createFileRoute("/_authenticated/casos/")({
   head: () => ({
     meta: [
       { title: "Casos — Clube Ancestral" },
