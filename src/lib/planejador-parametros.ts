@@ -47,8 +47,8 @@ export const CONVENCOES_PLANEJADOR: ConvencaoPlanejador[] = [
     pais: "Áustria",
     rota: "Administrativa — reparação histórica (§ 58c StbG)",
     estruturaFamiliar: "Núcleo familiar compartilhado (requerente principal + beneficiários do mesmo ancestral)",
-    sku: null,
-    skuNome: null,
+    sku: "CA-CID-AT-001",
+    skuNome: "Cidadania austríaca — atendimento familiar (§ 58c StbG)",
     etapas: [
       "1. Diagnóstico e checklist inicial",
       "2. Pesquisa genealógica e coleta documental",
