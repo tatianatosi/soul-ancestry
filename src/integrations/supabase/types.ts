@@ -5124,6 +5124,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          derivada_de_id: string | null
           enviada_em: string | null
           escopo: string | null
           exclusoes: string | null
@@ -5135,6 +5136,9 @@ export type Database = {
           observacoes_internas: string | null
           organization_id: string
           recusada_em: string | null
+          restauracao_motivo: string | null
+          restaurado_em: string | null
+          restaurado_por: string | null
           status: string
           substituida_em: string | null
           substituida_por_id: string | null
@@ -5156,6 +5160,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
           exclusoes?: string | null
@@ -5167,6 +5172,9 @@ export type Database = {
           observacoes_internas?: string | null
           organization_id: string
           recusada_em?: string | null
+          restauracao_motivo?: string | null
+          restaurado_em?: string | null
+          restaurado_por?: string | null
           status?: string
           substituida_em?: string | null
           substituida_por_id?: string | null
@@ -5188,6 +5196,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
           exclusoes?: string | null
@@ -5199,6 +5208,9 @@ export type Database = {
           observacoes_internas?: string | null
           organization_id?: string
           recusada_em?: string | null
+          restauracao_motivo?: string | null
+          restaurado_em?: string | null
+          restaurado_por?: string | null
           status?: string
           substituida_em?: string | null
           substituida_por_id?: string | null
@@ -5238,6 +5250,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_derivada_de_id_fkey"
+            columns: ["derivada_de_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
           {

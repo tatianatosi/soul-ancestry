@@ -6,10 +6,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
+import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
+import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
+import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
+
 import {
   aprovarParametros,
   enviarParaAssinatura,
@@ -152,8 +156,13 @@ function Pagina() {
   const d = q.data as any;
   const bloqueios = d.bloqueios as { chave: string; motivo: string }[];
   const bloqueado = bloqueios.length > 0;
+  const resolutivos = bloqueiosResolutivos(bloqueios, (d.valores ?? []) as any);
+  const impeditivos = resolutivos.filter((b) => b.impeditivo);
+  const revisaoTravada = temBloqueioImpeditivo(resolutivos);
+  const eventos = agruparAuditoria((qa.data?.eventos ?? []) as any[]);
   const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final");
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
+
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
@@ -229,53 +238,44 @@ function Pagina() {
           </div>
         </Painel>
 
+        <div id="coerencia">
         <ConflitoCoerencia
           coerencia={d.coerencia}
           valorPaisRota={(d.valores ?? []).find((v: any) => v.campo === "pais_rota") ?? null}
           aoCorrigir={invalidar}
         />
+        </div>
 
-        <Painel titulo={`Gates de envio (${bloqueios.length} bloqueio(s))`}>
-          {bloqueado ? (
-            <ul className="space-y-1 text-sm text-terracotta">
-              {bloqueios.map((b, i) => (
-                <li key={`${b.chave}-${i}`}>
-                  <strong>{b.chave}</strong> — {b.motivo}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-navy/70">Sem bloqueios: geração final e solicitação de assinatura liberadas.</p>
-          )}
-          {d.pendencias.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-navy/70">
-              {d.pendencias.map((p: any) => (
-                <li key={p.campo}>
-                  {p.label} <span className="text-navy/50">({p.grupo})</span> — {p.motivo}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Painel>
+        <div id="bloqueios">
+          <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
+        </div>
 
-        {SECOES.map((s) => (
-          <Painel key={s.chave} titulo={s.titulo}>
-            <div className="space-y-3">
-              {s.grupos.flatMap((g) => {
-                const itens = (d.valores as any[]).filter((v) => v.grupo === g);
-                const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
-                return [
-                  <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
-                    {titulo}
-                  </p>,
-                  ...itens.map((v) => <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />),
-                ];
-              })}
-            </div>
-          </Painel>
-        ))}
+        <div id="anexos">
+          <AnexosAplicaveis valores={d.valores ?? []} anexosGerados={d.anexos ?? []} />
+        </div>
+
+        <div id="ficha" className="space-y-4">
+          {SECOES.map((s) => (
+            <Painel key={s.chave} titulo={s.titulo}>
+              <div className="space-y-3">
+                {s.grupos.flatMap((g) => {
+                  const itens = (d.valores as any[]).filter((v) => v.grupo === g);
+                  const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
+                  return [
+                    <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
+                      {titulo}
+                    </p>,
+                    ...itens.map((v) => <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />),
+                  ];
+                })}
+              </div>
+            </Painel>
+          ))}
+        </div>
+
 
         <Painel titulo="Prévia contratual versionada">
+          <div id="previas" />
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => mGerar.mutate("rascunho")}
@@ -354,7 +354,14 @@ function Pagina() {
                 />
                 <button
                   onClick={() => mRevisar.mutate()}
-                  disabled={mRevisar.isPending || !nota.trim()}
+                  disabled={mRevisar.isPending || !nota.trim() || revisaoTravada}
+                  title={
+                    revisaoTravada
+                      ? `Indisponível: ${impeditivos.length} bloqueio(s) impeditivo(s) — ${impeditivos
+                          .map((b) => b.titulo)
+                          .join("; ")}`
+                      : "Registra o pedido de revisão humana em auditoria."
+                  }
                   className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
                 >
                   Solicitar revisão humana
@@ -418,13 +425,16 @@ function Pagina() {
 
         <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
           <ul className="space-y-1 text-xs text-navy/70">
-            {(qa.data?.eventos ?? []).map((e: any) => (
+            {eventos.map((e) => (
               <li key={e.id}>
                 {new Date(e.created_at).toLocaleString("pt-BR")} — <strong>{e.acao}</strong>
+                {e.ocorrencias > 1
+                  ? ` · ${e.ocorrencias}x em até 30 min (último às ${new Date(e.ultimo_em).toLocaleTimeString("pt-BR")})`
+                  : ""}
                 {e.metadados?.bloqueios?.length ? ` · bloqueios: ${e.metadados.bloqueios.join(", ")}` : ""}
               </li>
             ))}
-            {(qa.data?.eventos ?? []).length === 0 && <li>Sem eventos registrados ainda.</li>}
+            {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
           </ul>
         </Painel>
       </div>

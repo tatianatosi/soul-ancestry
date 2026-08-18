@@ -6,12 +6,14 @@ export const FLUXO: Record<string, Record<string, string[]>> = {
   proposals: {
     rascunho: ["em_revisao", "enviada", "recusada"],
     em_revisao: ["rascunho", "enviada", "recusada"],
-    enviada: ["aprovada", "recusada", "expirada"],
+    enviada: ["em_negociacao", "aprovada", "recusada", "expirada"],
+    em_negociacao: ["enviada", "aprovada", "recusada", "expirada", "substituida"],
     aprovada: ["substituida"],
-    recusada: ["rascunho"],
-    expirada: ["em_revisao", "enviada", "aprovada"],
+    recusada: ["rascunho", "substituida"],
+    expirada: ["em_revisao", "enviada", "aprovada", "substituida"],
     substituida: [],
   },
+
   service_orders: {
     draft: ["approved", "cancelled"],
     pending_approval: ["approved", "cancelled"],

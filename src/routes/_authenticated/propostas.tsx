@@ -18,13 +18,18 @@ import {
 } from "@/components/comercial/base";
 import {
   arquivarComercial,
+  criarVersaoAjusteProposta,
   listarComercial,
+  restaurarProposta,
   listarVinculos,
   mudarStatusProposta,
   renovarValidadeProposta,
   salvarProposta,
 } from "@/lib/comercial.functions";
 import { FLUXO } from "@/lib/comercial-fluxo";
+import { CAT_ESTADO_PROPOSTA, CAT_FORMA_PAGAMENTO, CAT_MOTIVO_ARQUIVAMENTO } from "@/lib/parametros-catalogos";
+
+const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
 export const Route = createFileRoute("/_authenticated/propostas")({
   head: () => ({
@@ -52,16 +57,22 @@ function PropostasPage() {
   const mudar = useServerFn(mudarStatusProposta);
   const renovar = useServerFn(renovarValidadeProposta);
   const arquivar = useServerFn(arquivarComercial);
+  const versionar = useServerFn(criarVersaoAjusteProposta);
+  const restaurar = useServerFn(restaurarProposta);
 
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
   const [form, setForm] = useState<Record<string, string> | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [renovacao, setRenovacao] = useState({ validade: "", motivo: "" });
+  const [visao, setVisao] = useState<"ativas" | "arquivadas">("ativas");
 
   const q = useQuery({
-    queryKey: ["propostas", status],
-    queryFn: () => listar({ data: { recurso: "proposals", status: status || undefined } }),
+    queryKey: ["propostas", status, visao],
+    queryFn: () =>
+      listar({
+        data: { recurso: "proposals", status: status || undefined, apenasArquivados: visao === "arquivadas" },
+      }),
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}) });
 
@@ -93,6 +104,24 @@ function PropostasPage() {
     onSuccess: () => {
       setErro(null);
       setRenovacao({ validade: "", motivo: "" });
+      setDetalhe(null);
+      recarregar();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+  const mVersionar = useMutation({
+    mutationFn: (v: { id: string; motivo: string }) => versionar({ data: v }),
+    onSuccess: () => {
+      setErro(null);
+      setDetalhe(null);
+      recarregar();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+  const mRestaurar = useMutation({
+    mutationFn: (v: { id: string; motivo: string }) => restaurar({ data: v }),
+    onSuccess: () => {
+      setErro(null);
       setDetalhe(null);
       recarregar();
     },
@@ -132,7 +161,19 @@ function PropostasPage() {
       }
     >
       <div className="space-y-4">
-        <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />
+        <div className="flex flex-wrap items-center gap-2">
+          <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />
+          <button
+            onClick={() => setVisao(visao === "ativas" ? "arquivadas" : "ativas")}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
+          >
+            {visao === "ativas" ? "Ver arquivadas (recuperáveis)" : "Ver ativas"}
+          </button>
+        </div>
+        <p className="text-xs text-navy/60">
+          Somente proposta ativa e aceita satisfaz o gate de geração contratual. Proposta arquivada ou substituída fica preservada no
+          histórico e não gera contrato.
+        </p>
 
         {erro ? (
           <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
@@ -171,6 +212,7 @@ function PropostasPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Selo
+                          title={AJUDA_PROPOSTA[String(l["status"])]}
                           texto={ROTULO_PROPOSTA[String(l["status"])] ?? String(l["status"])}
                           tom={l["status"] === "aprovada" ? "ok" : l["status"] === "recusada" ? "alerta" : "neutro"}
                         />
@@ -242,6 +284,7 @@ function PropostasPage() {
                     <button
                       key={destino}
                       disabled={mStatus.isPending}
+                      title={AJUDA_PROPOSTA[destino]}
                       onClick={() => mStatus.mutate({ id: String(detalhe["id"]), status: destino })}
                       className="rounded-lg border border-navy/20 px-3 py-2 text-sm hover:bg-navy/5"
                     >
@@ -315,12 +358,43 @@ function PropostasPage() {
                 </button>
                 <button
                   onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres)") ?? "";
+                    const motivo =
+                      window.prompt(
+                        `Motivo do arquivamento (mínimo 5 caracteres). Sugestões: ${CAT_MOTIVO_ARQUIVAMENTO.map((m) => m.rotulo).join(" · ")}`,
+                      ) ?? "";
                     if (motivo.trim().length >= 5) mArquivar.mutate({ id: String(detalhe["id"]), motivo });
                   }}
                   className="ml-2 rounded-lg border border-navy/20 px-3 py-2 text-sm"
                 >
                   Arquivar
+                </button>
+                {detalhe["archived_at"] ? (
+                  <button
+                    onClick={() => {
+                      const motivo = window.prompt("Motivo da restauração (mínimo 5 caracteres)") ?? "";
+                      if (motivo.trim().length >= 5) mRestaurar.mutate({ id: String(detalhe["id"]), motivo });
+                    }}
+                    className="ml-2 rounded-lg border border-gold/60 px-3 py-2 text-sm text-navy"
+                  >
+                    Restaurar
+                  </button>
+                ) : null}
+              </Painel>
+
+              <Painel titulo="Criar versão para ajuste">
+                <p className="text-sm text-navy/70">
+                  Duplica esta proposta como rascunho editável e marca a atual como substituída. Nada é excluído: a versão anterior
+                  permanece no histórico e deixa de valer para gerar contrato.
+                </p>
+                <button
+                  disabled={mVersionar.isPending || String(detalhe["status"]) === "substituida"}
+                  onClick={() => {
+                    const motivo = window.prompt("Motivo do ajuste (mínimo 5 caracteres)") ?? "";
+                    if (motivo.trim().length >= 5) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
+                  }}
+                  className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
+                >
+                  Criar versão para ajuste
                 </button>
               </Painel>
             </>
@@ -384,11 +458,21 @@ function PropostasPage() {
               </select>
             </Campo>
             <Campo rotulo="Forma de pagamento">
-              <input
+              <select
                 className={inputCls}
                 value={form["forma_pagamento"] ?? ""}
                 onChange={(e) => setForm({ ...form, forma_pagamento: e.target.value })}
-              />
+              >
+                <option value="">Selecione…</option>
+                {form["forma_pagamento"] && !CAT_FORMA_PAGAMENTO.some((o) => o.valor === form["forma_pagamento"]) ? (
+                  <option value={form["forma_pagamento"]}>{form["forma_pagamento"]} (valor legado)</option>
+                ) : null}
+                {CAT_FORMA_PAGAMENTO.map((o) => (
+                  <option key={o.valor} value={o.valor} title={o.ajuda}>
+                    {o.rotulo}
+                  </option>
+                ))}
+              </select>
             </Campo>
             <Campo rotulo="Validade">
               <input

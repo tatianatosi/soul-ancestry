@@ -51,7 +51,12 @@ export function confianca(origem?: string | null) {
 export const PLACEHOLDER_PARAM = /(\[ex\.|lorem ipsum|preencher|placeholder|xxxx|a definir|tbd|<[^>]*>)/i;
 
 /** Anexos exigidos pela regra de produto/escopo — nunca escolhidos manualmente. */
-export function anexosPorRegra(input: { produto?: string | null; pais?: string | null; membros?: string | null }) {
+export function anexosPorRegra(input: {
+  produto?: string | null;
+  pais?: string | null;
+  membros?: string | null;
+  representacao?: string | null;
+}) {
   const anexos: { codigo: string; titulo: string; motivo: string }[] = [
     { codigo: "ANX-ESCOPO", titulo: "Anexo de escopo e entregas", motivo: "Obrigatório em todo MODELO ESTUDO" },
     { codigo: "ANX-PRIVACIDADE", titulo: "Anexo de privacidade e tratamento de dados", motivo: "Obrigatório em todo MODELO ESTUDO" },
@@ -69,10 +74,22 @@ export function anexosPorRegra(input: { produto?: string | null; pais?: string |
     anexos.push({ codigo: "ANX-PT", titulo: "Anexo de rota portuguesa", motivo: "País/rota declarada: Portugal" });
   }
   if ((input.membros ?? "").trim()) {
-    anexos.push({ codigo: "ANX-MEMBROS", titulo: "Anexo de membros e beneficiários", motivo: "Há beneficiários parametrizados" });
+    anexos.push({
+      codigo: "ANX-INDIVIDUAL",
+      titulo: "Anexo de processo individual por beneficiário",
+      motivo: "Há mais de uma pessoa vinculada ao mesmo instrumento",
+    });
+  }
+  if ((input.representacao ?? "").trim()) {
+    anexos.push({
+      codigo: "ANX-REPRESENTACAO",
+      titulo: "Anexo de representação legal",
+      motivo: "Há representante legal declarado nos parâmetros",
+    });
   }
   return anexos;
 }
+
 
 function esc(v: unknown) {
   return String(v ?? "")
@@ -113,6 +130,8 @@ export function montarPrevia(input: {
     produto: pegar("produto_sku"),
     pais: pegar("pais_rota"),
     membros: pegar("beneficiarios"),
+    representacao: pegar("representacao_legal"),
+
   });
 
   const selo = tipo === "final" ? SELO_FINAL_PARAM : SELO_RASCUNHO_PARAM;
