@@ -66,10 +66,12 @@ export function dataBr(valor: unknown) {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("pt-BR");
 }
 
-export function Selo({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "ok" | "alerta" | "erro" }) {
+export function Selo({ texto, tom = "neutro", title }: { texto: string; tom?: "neutro" | "ok" | "alerta" | "erro"; title?: string }) {
   return (
     <span
+      title={title}
       className={cn(
+
         "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
         tom === "ok" && "bg-gold/20 text-navy",
         tom === "alerta" && "bg-terracotta/15 text-terracotta",
