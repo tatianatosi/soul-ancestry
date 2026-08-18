@@ -75,6 +75,31 @@ export function EstruturaFamiliar({ codigoCaso, caseId }: { codigoCaso?: string 
           </p>
         </div>
       </div>
+
+      {conf && (
+        <div className="mt-4 border-t border-navy/10 pt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">
+            Conferência dos critérios de aceite — dados reais do caso
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {conf.criterios.map((c) => (
+              <li key={c.criterio} className={c.ok ? "text-navy/80" : "text-terracotta"}>
+                <strong>{c.ok ? "Atende" : "Pendente"}:</strong> {c.criterio}
+                <span className="block text-xs text-navy/60">{c.evidencia}</span>
+              </li>
+            ))}
+          </ul>
+          {conf.nucleo && (
+            <p className="mt-2 text-xs text-navy/60">
+              Núcleo: {conf.nucleo.nome} · membros:{" "}
+              {conf.membros.map((m) => `${m.nome} (${m.papel === "dependente" ? "dependente" : "signatário"})`).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+      {q.isError && (
+        <p className="mt-3 text-xs text-terracotta">Não foi possível conferir a estrutura familiar deste caso agora.</p>
+      )}
     </Painel>
   );
 }
