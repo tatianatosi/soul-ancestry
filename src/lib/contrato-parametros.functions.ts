@@ -14,6 +14,8 @@ import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
 import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
+import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
+
 
 
 
@@ -216,6 +218,36 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] =
       planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe }));
 
+    // Exceção controlada (somente domínio comercial): quando o Planejador não
+    // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
+    // ativa e aprovada pré-carrega os campos comerciais como
+    // `importado_a_confirmar`. Planejador continua tendo precedência: se ele
+    // homologou o campo, a proposta só pode gerar conflito, nunca sobrescrever.
+    const { data: propostaCaso } = await supabase
+      .from("proposals")
+      .select("id,versao,status,archived_at,valor,moeda,forma_pagamento,escopo,exclusoes")
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const propostaApta = propostaAptaParaPrecarga(propostaCaso as any);
+    const camposDoPlanejador = new Set(candidatos.map((c) => c.campo));
+    const conflitosProposta: { campo: string; proposta: string; planejador: string }[] = [];
+    const candidatosProposta = candidatosComerciaisDaProposta(propostaCaso as any);
+    for (const c of candidatosProposta) {
+      const homologado = candidatos.find((p) => p.campo === c.campo);
+      if (homologado) {
+        if (String(homologado.valor ?? "").trim() !== c.valor) {
+          conflitosProposta.push({ campo: c.campo, proposta: c.valor, planejador: String(homologado.valor ?? "") });
+        }
+        continue;
+      }
+      candidatos.push({ campo: c.campo, valor: c.valor, origem: "proposta", detalhe: c.detalhe });
+    }
+
+
 
 
     const { data: valores } = await supabase
@@ -295,13 +327,31 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         continue;
       }
 
-      if (atual.valor && atual.valor.trim() === texto) continue;
+      if (atual.valor && atual.valor.trim() === texto) {
+        // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
+        // aprovada como fonte, preservando a origem anterior na auditoria.
+        if (c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
+          await supabase
+            .from("contract_parameter_values")
+            .update({
+              origem: "proposta",
+              origem_detalhe: c.detalhe,
+              justificativa: `Origem corrigida para proposta aprovada após conferência; origem anterior: ${atual.origem ?? "não informada"}.`,
+            })
+            .eq("id", atual.id);
+          atual.origem = "proposta";
+        }
+        continue;
+      }
 
       // Fonte de menor confiança nunca sobrescreve valor já carregado
       // (o Planejador homologado é a fonte mais confiável): vira conflito.
+      // A proposta também nunca sobrescreve valor já presente: só abre conflito.
       const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
+      const propostaSobreValorExistente = c.origem === "proposta" && Boolean(atual.valor?.trim());
 
-      if ((atual.status === "validado" && atual.valor) || menorConfianca) {
+      if ((atual.status === "validado" && atual.valor) || menorConfianca || propostaSobreValorExistente) {
+
         conflitos.push({
           campo: c.campo,
           atual: atual.valor,
@@ -342,7 +392,16 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       conflitos,
       incoerentes,
       limpos,
-      propostaAprovada: false,
+      propostaAprovada: propostaApta,
+      proposta: propostaApta
+        ? {
+            id: String((propostaCaso as any).id),
+            versao: Number((propostaCaso as any).versao ?? 1),
+            campos: candidatosProposta.map((c) => c.campo),
+            conflitos: conflitosProposta,
+          }
+        : null,
+
 
       planejador: {
         convencao: planejador.convencao?.prefixo ?? null,

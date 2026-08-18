@@ -83,8 +83,13 @@ function Pagina() {
       toast.success(
         `${r.importados} campo(s) carregados como “a confirmar”${r.conflitos.length ? ` · ${r.conflitos.length} conflito(s)` : ""}${
           r.limpos?.length ? ` · ${r.limpos.length} valor(es) fora da convenção homologada devolvidos a pendência` : ""
-        }.`,
+        }${
+          r.proposta?.campos?.length
+            ? ` · ${r.proposta.campos.length} campo(s) comercial(is) da proposta aprovada v${r.proposta.versao}`
+            : ""
+        }${r.proposta?.conflitos?.length ? ` · ${r.proposta.conflitos.length} divergência(s) proposta × Planejador` : ""}.`,
       );
+
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -250,9 +255,15 @@ function Pagina() {
               disabled={mImportar.isPending}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
             >
-              Pré-carregar do Planejador homologado (fonte única, sem redigitação)
+              Pré-carregar do Planejador homologado (sem redigitação)
             </button>
+            <p className="mt-2 text-xs text-navy/60">
+              O Planejador continua sendo a fonte de maior precedência. Quando não há parâmetro financeiro homologado para a rota, os
+              campos comerciais (valor total, forma de pagamento, parcelas e despesas externas) vêm da proposta aprovada vinculada,
+              sempre como “importado — a confirmar”. Datas de vencimento nunca são inferidas: dependem de condição formal registrada.
+            </p>
           </div>
+
         </Painel>
 
         <div id="coerencia">
