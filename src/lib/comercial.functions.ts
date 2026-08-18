@@ -17,7 +17,7 @@ import {
 /** Lista um recurso comercial/financeiro com filtro por status. */
 export const listarComercial = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { recurso: Recurso; status?: string; incluirArquivados?: boolean }) => {
+  .inputValidator((data: { recurso: Recurso; status?: string; incluirArquivados?: boolean; apenasArquivados?: boolean }) => {
     if (!RECURSOS.includes(data.recurso)) throw new Error("Recurso inválido.");
     return data;
   })
@@ -33,7 +33,9 @@ export const listarComercial = createServerFn({ method: "GET" })
       .eq("organization_id", organizationId)
       .order("created_at", { ascending: false });
     if (data.status) q = q.eq("status", data.status);
-    if (!data.incluirArquivados) q = q.is("archived_at", null);
+    if (data.apenasArquivados) q = q.not("archived_at", "is", null);
+    else if (!data.incluirArquivados) q = q.is("archived_at", null);
+
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
     return (linhas ?? []) as Record<string, any>[];
