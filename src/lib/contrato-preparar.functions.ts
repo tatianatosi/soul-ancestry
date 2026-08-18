@@ -227,6 +227,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       produto: pegar("produto_sku"),
       pais: pegar("pais_rota") ?? caso.pais,
       membros: pegar("beneficiarios") ?? (membros ?? []).map((m: any) => m.nome).join(", "),
+      representacao: pegar("representacao_legal"),
     });
 
     const finalAprovada = (previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
@@ -272,6 +273,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       userId,
       acao: fichaCriada ? "contrato_preparacao_ficha_criada" : "contrato_preparacao_aberta",
       entidadeId: registro.id,
+      consolidar: !fichaCriada,
       metadados: {
         case_id: caso.id,
         caso_codigo: caso.codigo,
