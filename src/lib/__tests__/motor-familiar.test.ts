@@ -108,7 +108,7 @@ describe("campos parametrizáveis e propostas", () => {
   it("bloqueia salvamento sem justificativa quando a regra exige", () => {
     const r = validarValorCampo({ campo: "despesas_externas", valor: "estimada", origem: "proposta" });
     expect(r.ok).toBe(false);
-    expect(String(r.erro)).toMatch(/justificativa/i);
+    expect(r.ok === false ? r.erro : "").toMatch(/justificativa/i);
   });
 
   it("mantém nome civil como texto livre", () => {
