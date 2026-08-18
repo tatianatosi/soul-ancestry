@@ -325,13 +325,31 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         continue;
       }
 
-      if (atual.valor && atual.valor.trim() === texto) continue;
+      if (atual.valor && atual.valor.trim() === texto) {
+        // Mesmo valor, origem diferente: a ficha passa a registrar a proposta
+        // aprovada como fonte, preservando a origem anterior na auditoria.
+        if (c.origem === "proposta" && atual.origem !== "proposta" && atual.status !== "validado") {
+          await supabase
+            .from("contract_parameter_values")
+            .update({
+              origem: "proposta",
+              origem_detalhe: c.detalhe,
+              justificativa: `Origem corrigida para proposta aprovada após conferência; origem anterior: ${atual.origem ?? "não informada"}.`,
+            })
+            .eq("id", atual.id);
+          atual.origem = "proposta";
+        }
+        continue;
+      }
 
       // Fonte de menor confiança nunca sobrescreve valor já carregado
       // (o Planejador homologado é a fonte mais confiável): vira conflito.
+      // A proposta também nunca sobrescreve valor já presente: só abre conflito.
       const menorConfianca = Boolean(atual.valor) && confianca(c.origem) < confianca(atual.origem);
+      const propostaSobreValorExistente = c.origem === "proposta" && Boolean(atual.valor?.trim());
 
-      if ((atual.status === "validado" && atual.valor) || menorConfianca) {
+      if ((atual.status === "validado" && atual.valor) || menorConfianca || propostaSobreValorExistente) {
+
         conflitos.push({
           campo: c.campo,
           atual: atual.valor,
