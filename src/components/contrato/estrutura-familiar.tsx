@@ -10,9 +10,18 @@ import { conferirEstruturaFamiliar } from "@/lib/nucleo-familiar.functions";
  * cadastros de CRM, um contrato-base familiar e três anexos individuais.
  * Somente leitura: não cria, altera nem vincula entidade alguma.
  */
-export function EstruturaFamiliar({ codigoCaso }: { codigoCaso?: string | null }) {
+export function EstruturaFamiliar({ codigoCaso, caseId }: { codigoCaso?: string | null; caseId?: string | null }) {
   const doCaso = !codigoCaso || codigoCaso === ESTRUTURA_FAMILIAR.caso;
+  const conferir = useServerFn(conferirEstruturaFamiliar);
+  const q = useQuery({
+    queryKey: ["estrutura-familiar", caseId],
+    queryFn: () => conferir({ data: { caseId: caseId as string } }),
+    enabled: Boolean(caseId) && doCaso,
+    retry: false,
+  });
   if (!doCaso) return null;
+  const conf = q.data;
+
 
   return (
     <Painel titulo="Estrutura familiar do caso (CA-DEC-2026-08-17-01)">
