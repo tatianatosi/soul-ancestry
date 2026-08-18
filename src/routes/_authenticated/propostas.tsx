@@ -418,11 +418,15 @@ function PropostasPage() {
 
               <Painel titulo="Criar versão para ajuste">
                 <p className="text-sm text-navy/70">
-                  Duplica esta proposta como rascunho editável e marca a atual como substituída. Nada é excluído: a versão anterior
-                  permanece no histórico e deixa de valer para gerar contrato.
+                  Duplica esta proposta como rascunho editável. Nada é excluído: a versão anterior permanece no histórico e deixa de
+                  valer para gerar contrato.
+                  {detalhe["archived_at"]
+                    ? " Proposta arquivada continua arquivada e recuperável — o ajuste nasce como rascunho novo."
+                    : " A proposta atual é marcada como substituída."}
                 </p>
                 <button
                   disabled={mVersionar.isPending || String(detalhe["status"]) === "substituida"}
+
                   onClick={() => {
                     const motivo = window.prompt("Motivo do ajuste (mínimo 5 caracteres)") ?? "";
                     if (motivo.trim().length >= 5) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
