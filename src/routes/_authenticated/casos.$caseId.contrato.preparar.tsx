@@ -235,45 +235,33 @@ function Pagina() {
           aoCorrigir={invalidar}
         />
 
-        <Painel titulo={`Gates de envio (${bloqueios.length} bloqueio(s))`}>
-          {bloqueado ? (
-            <ul className="space-y-1 text-sm text-terracotta">
-              {bloqueios.map((b, i) => (
-                <li key={`${b.chave}-${i}`}>
-                  <strong>{b.chave}</strong> — {b.motivo}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-navy/70">Sem bloqueios: geração final e solicitação de assinatura liberadas.</p>
-          )}
-          {d.pendencias.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-navy/70">
-              {d.pendencias.map((p: any) => (
-                <li key={p.campo}>
-                  {p.label} <span className="text-navy/50">({p.grupo})</span> — {p.motivo}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Painel>
+        <div id="bloqueios">
+          <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
+        </div>
 
-        {SECOES.map((s) => (
-          <Painel key={s.chave} titulo={s.titulo}>
-            <div className="space-y-3">
-              {s.grupos.flatMap((g) => {
-                const itens = (d.valores as any[]).filter((v) => v.grupo === g);
-                const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
-                return [
-                  <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
-                    {titulo}
-                  </p>,
-                  ...itens.map((v) => <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />),
-                ];
-              })}
-            </div>
-          </Painel>
-        ))}
+        <div id="anexos">
+          <AnexosAplicaveis valores={d.valores ?? []} anexosGerados={d.anexos ?? []} />
+        </div>
+
+        <div id="ficha" className="space-y-4">
+          {SECOES.map((s) => (
+            <Painel key={s.chave} titulo={s.titulo}>
+              <div className="space-y-3">
+                {s.grupos.flatMap((g) => {
+                  const itens = (d.valores as any[]).filter((v) => v.grupo === g);
+                  const titulo = GRUPOS.find((x) => x.chave === g)?.titulo ?? g;
+                  return [
+                    <p key={`t-${g}`} className="text-xs uppercase tracking-wide text-navy/50">
+                      {titulo}
+                    </p>,
+                    ...itens.map((v) => <LinhaParametro key={v.id} valor={v} aoMudar={invalidar} />),
+                  ];
+                })}
+              </div>
+            </Painel>
+          ))}
+        </div>
+
 
         <Painel titulo="Prévia contratual versionada">
           <div className="flex flex-wrap gap-2">
