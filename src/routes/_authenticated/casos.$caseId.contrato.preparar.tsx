@@ -238,11 +238,13 @@ function Pagina() {
           </div>
         </Painel>
 
+        <div id="coerencia">
         <ConflitoCoerencia
           coerencia={d.coerencia}
           valorPaisRota={(d.valores ?? []).find((v: any) => v.campo === "pais_rota") ?? null}
           aoCorrigir={invalidar}
         />
+        </div>
 
         <div id="bloqueios">
           <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
@@ -273,6 +275,7 @@ function Pagina() {
 
 
         <Painel titulo="Prévia contratual versionada">
+          <div id="previas" />
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => mGerar.mutate("rascunho")}
@@ -351,7 +354,14 @@ function Pagina() {
                 />
                 <button
                   onClick={() => mRevisar.mutate()}
-                  disabled={mRevisar.isPending || !nota.trim()}
+                  disabled={mRevisar.isPending || !nota.trim() || revisaoTravada}
+                  title={
+                    revisaoTravada
+                      ? `Indisponível: ${impeditivos.length} bloqueio(s) impeditivo(s) — ${impeditivos
+                          .map((b) => b.titulo)
+                          .join("; ")}`
+                      : "Registra o pedido de revisão humana em auditoria."
+                  }
                   className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
                 >
                   Solicitar revisão humana
@@ -415,13 +425,16 @@ function Pagina() {
 
         <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
           <ul className="space-y-1 text-xs text-navy/70">
-            {(qa.data?.eventos ?? []).map((e: any) => (
+            {eventos.map((e) => (
               <li key={e.id}>
                 {new Date(e.created_at).toLocaleString("pt-BR")} — <strong>{e.acao}</strong>
+                {e.ocorrencias > 1
+                  ? ` · ${e.ocorrencias}x em até 30 min (último às ${new Date(e.ultimo_em).toLocaleTimeString("pt-BR")})`
+                  : ""}
                 {e.metadados?.bloqueios?.length ? ` · bloqueios: ${e.metadados.bloqueios.join(", ")}` : ""}
               </li>
             ))}
-            {(qa.data?.eventos ?? []).length === 0 && <li>Sem eventos registrados ainda.</li>}
+            {eventos.length === 0 && <li>Sem eventos registrados ainda.</li>}
           </ul>
         </Painel>
       </div>
