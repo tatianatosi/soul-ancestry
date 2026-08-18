@@ -11,8 +11,10 @@ import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
+import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
+import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
 
 import {
   aprovarParametros,
