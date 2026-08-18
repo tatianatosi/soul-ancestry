@@ -90,6 +90,8 @@ const NAV = [
   { to: "/integracoes", label: "Integrações", icon: Plug },
   { to: "/biblioteca", label: "Governança e biblioteca", icon: Library },
   { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação", icon: Library },
+  { to: "/governanca/decisoes", label: "Decisões operacionais", icon: Library },
+
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;

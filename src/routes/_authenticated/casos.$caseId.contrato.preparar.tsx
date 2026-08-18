@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
+import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
@@ -215,6 +216,8 @@ function Pagina() {
             informação real permanece vazio.
           </p>
         </Painel>
+
+        <EstruturaFamiliar codigoCaso={d.caso?.codigo} />
 
         <Painel titulo="Entidades reaproveitadas (nada é duplicado)">
           <ul className="space-y-1 text-sm text-navy/80">
