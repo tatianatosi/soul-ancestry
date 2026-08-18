@@ -20,20 +20,62 @@ async function orgDoUsuario(supabase: Sb, userId: string) {
   return org;
 }
 
-/** Auditoria sem dados sensíveis completos: só identificadores, contagens e rótulos. */
+/**
+ * Auditoria sem dados sensíveis completos: só identificadores, contagens e rótulos.
+ * Eventos repetitivos (abertura de tela) são consolidados em janela de 30 minutos:
+ * em vez de nova linha, incrementa o contador de ocorrências do evento existente.
+ */
 async function auditar(
   supabase: Sb,
-  input: { org: string; userId: string; acao: string; entidadeId: string; metadados?: Record<string, unknown> },
+  input: {
+    org: string;
+    userId: string;
+    acao: string;
+    entidadeId: string;
+    metadados?: Record<string, unknown>;
+    consolidar?: boolean;
+  },
 ) {
+  if (input.consolidar) {
+    const desde = new Date(Date.now() - 30 * 60_000).toISOString();
+    const { data: recente } = await supabase
+      .from("audit_logs")
+      .select("id,metadados")
+      .eq("entidade", "contract_case_parameters")
+      .eq("entidade_id", input.entidadeId)
+      .eq("acao", input.acao)
+      .eq("user_id", input.userId)
+      .gte("created_at", desde)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (recente) {
+      const anterior = (recente.metadados ?? {}) as Record<string, unknown>;
+      await supabase
+        .from("audit_logs")
+        .update({
+          metadados: {
+            ...anterior,
+            ...(input.metadados ?? {}),
+            ocorrencias: Number(anterior.ocorrencias ?? 1) + 1,
+            ultima_ocorrencia_em: new Date().toISOString(),
+          },
+        })
+        .eq("id", recente.id);
+      return;
+    }
+  }
+
   await supabase.from("audit_logs").insert({
     organization_id: input.org,
     user_id: input.userId,
     acao: input.acao,
     entidade: "contract_case_parameters",
     entidade_id: input.entidadeId,
-    metadados: input.metadados ?? {},
+    metadados: { ...(input.metadados ?? {}), ...(input.consolidar ? { ocorrencias: 1 } : {}) },
   });
 }
+
 
 /**
  * Abre a preparação contratual de UM caseId, reaproveitando obrigatoriamente
