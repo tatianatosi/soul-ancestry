@@ -6,10 +6,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
+import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
+import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
+import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
+
 import {
   aprovarParametros,
   enviarParaAssinatura,
