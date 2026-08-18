@@ -5,6 +5,8 @@ import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
+import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
+
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -344,7 +346,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
   });
 
 
-/** Grava um parâmetro com origem obrigatória. */
+/** Grava um parâmetro com origem obrigatória e valor dentro do dicionário. */
 export const salvarParametro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; valor: string; origem: string; origemDetalhe?: string; justificativa?: string }) => d)
@@ -354,6 +356,22 @@ export const salvarParametro = createServerFn({ method: "POST" })
     if (valor && !ORIGENS_PARAM.includes(data.origem as any)) throw new Error("Origem inválida.");
     if (valor.length > 4000) throw new Error("Valor excede 4000 caracteres.");
     if (valor && PLACEHOLDER_PARAM.test(valor)) throw new Error("Placeholder não é aceito como parâmetro contratual.");
+
+    const { data: linha } = await supabase
+      .from("contract_parameter_values")
+      .select("id,campo,valor")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!linha) throw new Error("Parâmetro não encontrado.");
+
+    const check = validarValorCampo({
+      campo: linha.campo,
+      valor,
+      origem: data.origem,
+      justificativa: data.justificativa,
+      valorAtual: linha.valor,
+    });
+    if (!check.ok) throw new Error(check.erro);
 
     const { error } = await supabase
       .from("contract_parameter_values")
@@ -369,6 +387,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 /** Confirmação humana de um parâmetro (ou bloqueio explícito). */
 export const definirStatusParametro = createServerFn({ method: "POST" })
@@ -391,7 +410,14 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
           "Dado de WhatsApp/transcrição não pode ser validado diretamente: confirme com documento, proposta ou preenchimento humano.",
         );
       }
+      const def = definicaoCampo(atual.campo);
+      if (confianca(atual.origem) < def.confiancaMinima) {
+        throw new Error(
+          `Confiança insuficiente para validar “${atual.label}”: este campo exige origem de confiança ${def.confiancaMinima} ou superior.`,
+        );
+      }
     }
+
     if (data.status === "bloqueado") exigirTexto(data.justificativa, "justificativa do bloqueio");
 
     const { error } = await supabase
