@@ -7286,6 +7286,202 @@ export type Database = {
           },
         ]
       }
+      sku_catalog: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          ativo: boolean
+          condicao_pagamento: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          entrada: number | null
+          fonte: string
+          homologado: boolean
+          homologado_em: string | null
+          homologado_por: string | null
+          id: string
+          moeda: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          parcelas: number | null
+          preco_total: number | null
+          sku: string
+          updated_at: string
+          updated_by: string | null
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativo?: boolean
+          condicao_pagamento?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          entrada?: number | null
+          fonte?: string
+          homologado?: boolean
+          homologado_em?: string | null
+          homologado_por?: string | null
+          id?: string
+          moeda?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          parcelas?: number | null
+          preco_total?: number | null
+          sku: string
+          updated_at?: string
+          updated_by?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativo?: boolean
+          condicao_pagamento?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          entrada?: number | null
+          fonte?: string
+          homologado?: boolean
+          homologado_em?: string | null
+          homologado_por?: string | null
+          id?: string
+          moeda?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          parcelas?: number | null
+          preco_total?: number | null
+          sku?: string
+          updated_at?: string
+          updated_by?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sku_catalog_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sku_price_exceptions: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          condicao_pagamento: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          id: string
+          moeda: string
+          motivo: string
+          organization_id: string
+          preco_total: number | null
+          responsavel: string
+          sku: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valido_ate: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          condicao_pagamento?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          id?: string
+          moeda?: string
+          motivo: string
+          organization_id: string
+          preco_total?: number | null
+          responsavel: string
+          sku: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          condicao_pagamento?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          id?: string
+          moeda?: string
+          motivo?: string
+          organization_id?: string
+          preco_total?: number | null
+          responsavel?: string
+          sku?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valido_ate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sku_price_exceptions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sku_price_exceptions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sku_price_exceptions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sku_price_exceptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sla_regras: {
         Row: {
           aplica_a: string
@@ -7552,6 +7748,129 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      third_party_expenses: {
+        Row: {
+          aprovacao_evidencia: string | null
+          aprovado_pelo_cliente_em: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          categoria: string | null
+          comunicado_em: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          demo: boolean
+          descricao: string
+          estado: string
+          estimativa_max: number | null
+          estimativa_min: number | null
+          excecao_id: string | null
+          executado_em: string | null
+          id: string
+          moeda: string
+          observacoes: string | null
+          organization_id: string
+          pagador: string
+          updated_at: string
+          updated_by: string | null
+          valor_pago: number | null
+        }
+        Insert: {
+          aprovacao_evidencia?: string | null
+          aprovado_pelo_cliente_em?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          categoria?: string | null
+          comunicado_em?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao: string
+          estado?: string
+          estimativa_max?: number | null
+          estimativa_min?: number | null
+          excecao_id?: string | null
+          executado_em?: string | null
+          id?: string
+          moeda?: string
+          observacoes?: string | null
+          organization_id: string
+          pagador?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_pago?: number | null
+        }
+        Update: {
+          aprovacao_evidencia?: string | null
+          aprovado_pelo_cliente_em?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          categoria?: string | null
+          comunicado_em?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo?: boolean
+          descricao?: string
+          estado?: string
+          estimativa_max?: number | null
+          estimativa_min?: number | null
+          excecao_id?: string | null
+          executado_em?: string | null
+          id?: string
+          moeda?: string
+          observacoes?: string | null
+          organization_id?: string
+          pagador?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_pago?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "third_party_expenses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_expenses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_expenses_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_expenses_excecao_id_fkey"
+            columns: ["excecao_id"]
+            isOneToOne: false
+            referencedRelation: "contract_exceptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -8025,6 +8344,10 @@ export type Database = {
       rg_tem_evidencia_validada: {
         Args: { _id: string; _tipo: string }
         Returns: boolean
+      }
+      sku_preco_homologado: {
+        Args: { _org: string; _sku: string }
+        Returns: Json
       }
       staff_meu_papel: {
         Args: { _org: string }
