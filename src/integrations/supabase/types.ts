@@ -1655,11 +1655,15 @@ export type Database = {
           archived_by: string | null
           congelado_em: string
           conteudo: Json
+          conteudo_hash: string | null
           created_at: string
           created_by: string | null
+          estado: string
+          evento: string | null
           gerado_por: string | null
           html: string
           id: string
+          motivo: string | null
           organization_id: string
           parameters_id: string
           placeholders_pendentes: Json
@@ -1679,11 +1683,15 @@ export type Database = {
           archived_by?: string | null
           congelado_em?: string
           conteudo?: Json
+          conteudo_hash?: string | null
           created_at?: string
           created_by?: string | null
+          estado?: string
+          evento?: string | null
           gerado_por?: string | null
           html?: string
           id?: string
+          motivo?: string | null
           organization_id: string
           parameters_id: string
           placeholders_pendentes?: Json
@@ -1703,11 +1711,15 @@ export type Database = {
           archived_by?: string | null
           congelado_em?: string
           conteudo?: Json
+          conteudo_hash?: string | null
           created_at?: string
           created_by?: string | null
+          estado?: string
+          evento?: string | null
           gerado_por?: string | null
           html?: string
           id?: string
+          motivo?: string | null
           organization_id?: string
           parameters_id?: string
           placeholders_pendentes?: Json

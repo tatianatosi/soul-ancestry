@@ -1,7 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { ORIGENS_PARAM, PLACEHOLDER_PARAM, confianca, montarPrevia } from "@/lib/contrato-parametros.server";
+import {
+  EVENTOS_SNAPSHOT,
+  ORIGENS_PARAM,
+  PLACEHOLDER_PARAM,
+  confianca,
+  hashConteudo,
+  montarPrevia,
+  type EventoSnapshot,
+} from "@/lib/contrato-parametros.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
@@ -433,53 +441,183 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
   });
 
 /** Gera uma prévia imutável versionada a partir dos parâmetros. */
+/**
+ * Monta o conteúdo da prévia a partir dos parâmetros do registro mestre.
+ * Não grava nada: quem grava decide se é rascunho editável ou snapshot.
+ */
+async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "final") {
+  const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
+  if (!registro) throw new Error("Registro de parâmetros não encontrado.");
+
+  const [{ data: valores }, { data: caso }, { data: template }] = await Promise.all([
+    supabase
+      .from("contract_parameter_values")
+      .select("*")
+      .eq("parameters_id", id)
+      .is("archived_at", null)
+      .order("grupo")
+      .order("ordem"),
+    supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle(),
+    registro.contract_template_id
+      ? supabase.from("contract_templates").select("code,template_version").eq("id", registro.contract_template_id).maybeSingle()
+      : Promise.resolve({ data: null } as any),
+  ]);
+
+  if (!template?.code) throw new Error("Selecione o MODELO ESTUDO ativo antes de gerar a prévia.");
+  if (!["MODELO-ESTUDO", "BASE-GEN-V2"].includes(template.code)) {
+    throw new Error("Modelo histórico não pode gerar prévia. Use MODELO-ESTUDO + BASE-GEN-V2.");
+  }
+
+  const cliente = caso?.cliente_id
+    ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
+    : null;
+
+  const previa = montarPrevia({
+    tipo,
+    caso,
+    cliente,
+    templateCode: template.code,
+    templateVersion: template.template_version ?? null,
+    valores: (valores ?? []) as any,
+  });
+
+  return { registro, template, previa };
+}
+
+async function atualizarCompletude(supabase: Sb, id: string) {
+  const completude = await supabase.rpc("contract_parameters_completude", { _id: id });
+  await supabase
+    .from("contract_case_parameters")
+    .update({ completude_pct: (completude.data as any)?.pct ?? 0 })
+    .eq("id", id);
+}
+
+/**
+ * Rascunho de trabalho: UM por case_id + modelo ativo. Salvar atualiza o mesmo
+ * rascunho; conteúdo idêntico não gera nem versão nem novo registro.
+ */
 export const gerarPrevia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; tipo: "rascunho" | "final" }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-
-    const { data: registro } = await supabase
-      .from("contract_case_parameters")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (!registro) throw new Error("Registro de parâmetros não encontrado.");
-
-    const [{ data: valores }, { data: caso }, { data: template }] = await Promise.all([
-      supabase
-        .from("contract_parameter_values")
-        .select("*")
-        .eq("parameters_id", data.id)
-        .is("archived_at", null)
-        .order("grupo")
-        .order("ordem"),
-      supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle(),
-      registro.contract_template_id
-        ? supabase.from("contract_templates").select("code,template_version").eq("id", registro.contract_template_id).maybeSingle()
-        : Promise.resolve({ data: null } as any),
-    ]);
-
-    if (!template?.code) throw new Error("Selecione o MODELO ESTUDO ativo antes de gerar a prévia.");
+    const { registro, template, previa } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") await exigirCoerencia(supabase, registro);
 
-    const cliente = caso?.cliente_id
-      ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
-      : null;
+    const hash = hashConteudo(previa.conteudo);
 
-    const previa = montarPrevia({
-      tipo: data.tipo,
-      caso,
-      cliente,
-      templateCode: template.code,
-      templateVersion: template.template_version ?? null,
-      valores: (valores ?? []) as any,
-    });
+    const { data: rascunho } = await supabase
+      .from("contract_parameter_previews")
+      .select("id,versao,conteudo_hash")
+      .eq("parameters_id", data.id)
+      .eq("estado", "rascunho_editavel")
+      .is("archived_at", null)
+      .maybeSingle();
 
-    if (data.tipo === "final" && previa.placeholdersPendentes.length > 0) {
+    if (rascunho) {
+      if (rascunho.conteudo_hash === hash) {
+        await supabase
+          .from("contract_parameter_previews")
+          .update({ updated_by: context.userId })
+          .eq("id", rascunho.id);
+        await atualizarCompletude(supabase, data.id);
+        return {
+          previaId: rascunho.id as string,
+          versao: rascunho.versao as number,
+          identico: true,
+          rascunho: true,
+          pendentes: previa.placeholdersPendentes,
+        };
+      }
+      const { error } = await supabase
+        .from("contract_parameter_previews")
+        .update({
+          conteudo: previa.conteudo,
+          html: previa.html,
+          anexos: previa.anexos,
+          placeholders_pendentes: previa.placeholdersPendentes,
+          conteudo_hash: hash,
+          evento: "rascunho_atualizado",
+          template_code: template.code,
+          template_version: template.template_version ?? null,
+          gerado_por: context.userId,
+          updated_by: context.userId,
+        })
+        .eq("id", rascunho.id);
+      if (error) throw new Error(error.message);
+      await atualizarCompletude(supabase, data.id);
+      return {
+        previaId: rascunho.id as string,
+        versao: rascunho.versao as number,
+        identico: false,
+        rascunho: true,
+        pendentes: previa.placeholdersPendentes,
+      };
+    }
+
+    const { data: nova, error } = await supabase
+      .from("contract_parameter_previews")
+      .insert({
+        organization_id: registro.organization_id,
+        parameters_id: data.id,
+        versao: 0,
+        tipo: "rascunho",
+        estado: "rascunho_editavel",
+        evento: "rascunho_atualizado",
+        motivo: "Rascunho de trabalho do caso",
+        conteudo: previa.conteudo,
+        conteudo_hash: hash,
+        html: previa.html,
+        anexos: previa.anexos,
+        placeholders_pendentes: previa.placeholdersPendentes,
+        template_code: template.code,
+        template_version: template.template_version ?? null,
+        gerado_por: context.userId,
+        created_by: context.userId,
+        updated_by: context.userId,
+      })
+      .select("id,versao")
+      .single();
+    if (error) throw new Error(error.message);
+    await atualizarCompletude(supabase, data.id);
+    return { previaId: nova.id as string, versao: 0, identico: false, rascunho: true, pendentes: previa.placeholdersPendentes };
+  });
+
+/**
+ * Snapshot imutável. Só existe em evento de governança: pedido de revisão,
+ * retorno para ajuste, aprovação, envio para assinatura e assinatura registrada.
+ */
+export const congelarPrevia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; evento: EventoSnapshot; motivo: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    if (!EVENTOS_SNAPSHOT.includes(data.evento)) throw new Error("Evento inválido para congelar versão.");
+    const motivo = exigirTexto(data.motivo, "Motivo da versão", 500);
+    if (motivo.length < 5) throw new Error("Descreva o motivo da versão (mínimo 5 caracteres).");
+
+    const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
+    const { registro, template, previa } = await montarDoRegistro(supabase, data.id, tipo as any);
+    if (tipo === "final") await exigirCoerencia(supabase, registro);
+    if (tipo === "final" && previa.placeholdersPendentes.length > 0) {
       throw new Error(
         `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
       );
+    }
+
+    const hash = hashConteudo(previa.conteudo);
+
+    const { data: iguais } = await supabase
+      .from("contract_parameter_previews")
+      .select("id,versao,evento")
+      .eq("parameters_id", data.id)
+      .eq("estado", "congelado")
+      .eq("conteudo_hash", hash)
+      .eq("evento", data.evento)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (iguais) {
+      return { previaId: iguais.id as string, versao: iguais.versao as number, duplicada: true, pendentes: previa.placeholdersPendentes };
     }
 
     const { data: ultima } = await supabase
@@ -496,8 +634,12 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         organization_id: registro.organization_id,
         parameters_id: data.id,
         versao: (ultima?.versao ?? 0) + 1,
-        tipo: data.tipo,
+        tipo,
+        estado: "congelado",
+        evento: data.evento,
+        motivo,
         conteudo: previa.conteudo,
+        conteudo_hash: hash,
         html: previa.html,
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
@@ -510,14 +652,8 @@ export const gerarPrevia = createServerFn({ method: "POST" })
       .select("id,versao")
       .single();
     if (error) throw new Error(error.message);
-
-    const completude = await supabase.rpc("contract_parameters_completude", { _id: data.id });
-    await supabase
-      .from("contract_case_parameters")
-      .update({ completude_pct: (completude.data as any)?.pct ?? 0 })
-      .eq("id", data.id);
-
-    return { previaId: nova.id as string, versao: nova.versao as number, pendentes: previa.placeholdersPendentes };
+    await atualizarCompletude(supabase, data.id);
+    return { previaId: nova.id as string, versao: nova.versao as number, duplicada: false, pendentes: previa.placeholdersPendentes };
   });
 
 /** HTML de uma prévia congelada (visualização interna). */
@@ -528,7 +664,7 @@ export const lerPrevia = createServerFn({ method: "GET" })
     const supabase = context.supabase as Sb;
     const { data: previa } = await supabase
       .from("contract_parameter_previews")
-      .select("id,versao,tipo,html,anexos,placeholders_pendentes")
+      .select("id,versao,tipo,estado,evento,motivo,html,anexos,placeholders_pendentes,template_code,template_version,congelado_em,gerado_por")
       .eq("id", data.previaId)
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");

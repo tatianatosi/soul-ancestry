@@ -65,13 +65,19 @@ function PropostasPage() {
   const [form, setForm] = useState<Record<string, string> | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [renovacao, setRenovacao] = useState({ validade: "", motivo: "" });
-  const [visao, setVisao] = useState<"ativas" | "arquivadas">("ativas");
+  const [visao, setVisao] = useState<"ativas" | "todas" | "arquivadas">("ativas");
+  const [busca, setBusca] = useState("");
 
   const q = useQuery({
     queryKey: ["propostas", status, visao],
     queryFn: () =>
       listar({
-        data: { recurso: "proposals", status: status || undefined, apenasArquivados: visao === "arquivadas" },
+        data: {
+          recurso: "proposals",
+          status: status || undefined,
+          apenasArquivados: visao === "arquivadas",
+          incluirArquivados: visao === "todas",
+        },
       }),
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}) });
@@ -140,7 +146,23 @@ function PropostasPage() {
   const clientes = qv.data?.clientes ?? [];
   const casos = qv.data?.casos ?? [];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
-  const linhas = (q.data ?? []) as Linha[];
+  const codigoCaso = (id: unknown) => {
+    const c = casos.find((x) => x.id === id);
+    return c ? `${c.codigo ?? ""} ${c.titulo}` : "";
+  };
+  const termo = busca.trim().toLowerCase();
+  const linhas = ((q.data ?? []) as Linha[]).filter((l) => {
+    if (!termo) return true;
+    const alvo = [
+      nomeCliente(l["client_id"]),
+      codigoCaso(l["case_id"]),
+      String(l["case_id"] ?? ""),
+      String(l["id"] ?? ""),
+    ]
+      .join(" ")
+      .toLowerCase();
+    return alvo.includes(termo);
+  });
 
   return (
     <SaasShell
@@ -163,16 +185,29 @@ function PropostasPage() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />
-          <button
-            onClick={() => setVisao(visao === "ativas" ? "arquivadas" : "ativas")}
-            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-          >
-            {visao === "ativas" ? "Ver arquivadas (recuperáveis)" : "Ver ativas"}
-          </button>
+          {(["ativas", "todas", "arquivadas"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setVisao(v)}
+              className={`rounded-lg border px-3 py-1.5 text-xs ${
+                visao === v ? "border-navy bg-navy text-cream" : "border-navy/20 text-navy/80"
+              }`}
+            >
+              {v === "ativas" ? "Ativas" : v === "todas" ? "Todas" : "Arquivadas"}
+            </button>
+          ))}
+          <input
+            className={`${inputCls} md:w-64`}
+            value={busca}
+            maxLength={120}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por cliente ou case_id/código do caso"
+          />
         </div>
         <p className="text-xs text-navy/60">
-          Somente proposta ativa e aceita satisfaz o gate de geração contratual. Proposta arquivada ou substituída fica preservada no
-          histórico e não gera contrato.
+          Somente proposta ativa e aceita satisfaz o gate de geração contratual. Proposta arquivada ou substituída sai do filtro padrão
+          Ativas, mas continua em Todas, Arquivadas e na busca — com conteúdo, versão, anexos, vínculo, autor, data e auditoria
+          preservados, e apta a “Criar versão para ajuste”.
         </p>
 
         {erro ? (

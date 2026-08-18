@@ -12,10 +12,11 @@ import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
-import { GRUPOS } from "@/lib/contrato-parametros.server";
+import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 
 import {
   aprovarParametros,
+  congelarPrevia,
   enviarParaAssinatura,
   gerarPrevia,
   lerPrevia,
@@ -28,10 +29,11 @@ const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
 
 const SECOES: { chave: string; titulo: string; grupos: string[] }[] = [
-  { chave: "A", titulo: "A. Partes e assinaturas", grupos: ["partes", "membros"] },
-  { chave: "B", titulo: "B. Escopo", grupos: ["objeto", "servicos"] },
-  { chave: "C", titulo: "C. Comercial", grupos: ["comerciais"] },
-  { chave: "D", titulo: "D. Controle", grupos: ["assinatura"] },
+  { chave: "A", titulo: "A. Núcleo familiar e caso", grupos: ["objeto"] },
+  { chave: "B", titulo: "B. Requerentes e signatários", grupos: ["partes"] },
+  { chave: "C", titulo: "C. Dependente e representação", grupos: ["membros"] },
+  { chave: "D", titulo: "D. Linha e dossiê compartilhado", grupos: ["servicos"] },
+  { chave: "E", titulo: "E. Contrato, anexos, comercial e gates", grupos: ["comerciais", "assinatura"] },
 ];
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
@@ -58,6 +60,7 @@ function Pagina() {
   const abrir = useServerFn(abrirPreparacaoContrato);
   const importar = useServerFn(preencherDeOrigens);
   const gerar = useServerFn(gerarPrevia);
+  const congelar = useServerFn(congelarPrevia);
   const aprovar = useServerFn(aprovarParametros);
   const enviar = useServerFn(enviarParaAssinatura);
   const assinar = useServerFn(registrarAssinatura);
@@ -92,7 +95,19 @@ function Pagina() {
   const mGerar = useMutation({
     mutationFn: (tipo: "rascunho" | "final") => gerar({ data: { id: registroId as string, tipo } }),
     onSuccess: (r: any) => {
-      toast.success(`Prévia v${r.versao} gerada pelo MODELO ESTUDO.`);
+      toast.success(
+        r.identico
+          ? "Rascunho já estava idêntico: nada mudou, nenhuma versão nova foi criada."
+          : "Rascunho de trabalho atualizado (versão nova só em evento de governança).",
+      );
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mCongelar = useMutation({
+    mutationFn: (v: { evento: any; motivo: string }) => congelar({ data: { id: registroId as string, ...v } }),
+    onSuccess: (r: any) => {
+      toast.success(r.duplicada ? `Conteúdo idêntico à v${r.versao}: versão reaproveitada.` : `Versão v${r.versao} congelada.`);
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -106,7 +121,11 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
   const mRevisar = useMutation({
-    mutationFn: () => revisar({ data: { id: registroId as string, nota } }),
+    mutationFn: async () => {
+      const r = await revisar({ data: { id: registroId as string, nota } });
+      await congelar({ data: { id: registroId as string, evento: "revisao_solicitada", motivo: nota } });
+      return r;
+    },
     onSuccess: () => {
       toast.success("Revisão humana solicitada e registrada em auditoria.");
       setNota("");
@@ -160,7 +179,8 @@ function Pagina() {
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
   const revisaoTravada = temBloqueioImpeditivo(resolutivos);
   const eventos = agruparAuditoria((qa.data?.eventos ?? []) as any[]);
-  const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final");
+  const rascunhoAtual = (d.previas ?? []).find((p: any) => p.estado === "rascunho_editavel");
+  const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
 
 
@@ -251,7 +271,16 @@ function Pagina() {
         </div>
 
         <div id="anexos">
-          <AnexosAplicaveis valores={d.valores ?? []} anexosGerados={d.anexos ?? []} />
+          <AnexosAplicaveis
+            valores={d.valores ?? []}
+            anexosGerados={d.anexos ?? []}
+            aoVerPrevia={(codigo) => {
+              const alvo = rascunhoAtual ?? (d.previas ?? [])[0];
+              if (alvo) mVer.mutate(alvo.id);
+              else toast.info(`Gere o rascunho de trabalho para visualizar a instância de ${codigo}.`);
+              document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
         </div>
 
         <div id="ficha" className="space-y-4">
@@ -282,28 +311,51 @@ function Pagina() {
               disabled={mGerar.isPending}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
             >
-              Gerar prévia de rascunho
+              Salvar rascunho de trabalho
             </button>
             <button
-              onClick={() => mGerar.mutate("final")}
-              disabled={mGerar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
+              onClick={() => {
+                const motivo = window.prompt("Motivo do retorno para ajuste (mínimo 5 caracteres)") ?? "";
+                if (motivo.trim().length >= 5) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
+              }}
+              disabled={mCongelar.isPending || !rascunhoAtual}
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
+            >
+              Congelar retorno para ajuste
+            </button>
+            <button
+              onClick={() => {
+                const motivo = window.prompt("Motivo da versão final (mínimo 5 caracteres)") ?? "";
+                if (motivo.trim().length >= 5) mCongelar.mutate({ evento: "aprovacao", motivo });
+              }}
+              disabled={mCongelar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
             >
-              Gerar versão final
+              Congelar versão final
             </button>
           </div>
           <p className="mt-2 text-xs text-navy/60">
-            A prévia é montada exclusivamente pelo MODELO ESTUDO + base v2 + anexos aplicáveis, vinculada a este caseId, à proposta e à
-            versão do template. Cláusulas e anexos não podem ser colados manualmente.
+            Um único rascunho editável por caso + modelo ativo: salvar atualiza esse rascunho e conteúdo idêntico não vira versão nova.
+            Versão imutável só nasce em evento de governança — pedido de revisão, retorno para ajuste, aprovação, envio para assinatura e
+            assinatura registrada. Nada é excluído: todo o histórico permanece.
           </p>
           <div className="mt-3 space-y-2">
             {(d.previas as any[]).map((p) => (
               <div key={p.id} className="rounded-lg border border-navy/15 bg-white p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm text-navy">
-                    v{p.versao} · {p.tipo} · {p.template_code} v{p.template_version} · caso {d.caso.codigo} · proposta{" "}
-                    {d.registro.proposal_id ? "vinculada" : "ausente"}
-                  </p>
+                  <div>
+                    <p className="text-sm text-navy">
+                      {p.estado === "rascunho_editavel" ? "Rascunho de trabalho (editável)" : `Versão v${p.versao} (congelada)`} ·{" "}
+                      {p.template_code} v{p.template_version} · caso {d.caso.codigo} · proposta{" "}
+                      {d.registro.proposal_id ? "vinculada" : "ausente"}
+                    </p>
+                    <p className="text-xs text-navy/60">
+                      {ROTULO_EVENTO_PREVIA[p.evento ?? ""] ?? "Evento não registrado"} ·{" "}
+                      {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")} · autor {p.gerado_por ? "registrado" : "—"} ·{" "}
+                      {(p.anexos ?? []).length} anexo(s) · {(p.conteudo?.valores ?? []).length} parâmetro(s)
+                    </p>
+                    {p.motivo && <p className="text-xs text-navy/60">Motivo: {p.motivo}</p>}
+                  </div>
                   <div className="flex items-center gap-2">
                     <Selo
                       texto={
