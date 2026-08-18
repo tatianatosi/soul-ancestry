@@ -1,5 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
 import { Painel } from "@/components/comercial/base";
 import { ESTRUTURA_FAMILIAR } from "@/lib/decisoes-operacionais";
+import { conferirEstruturaFamiliar } from "@/lib/nucleo-familiar.functions";
 
 /**
  * Explica, dentro da preparação contratual, por que existe um único caso, três
