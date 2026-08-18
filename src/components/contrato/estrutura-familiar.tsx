@@ -1,14 +1,27 @@
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
 import { Painel } from "@/components/comercial/base";
 import { ESTRUTURA_FAMILIAR } from "@/lib/decisoes-operacionais";
+import { conferirEstruturaFamiliar } from "@/lib/nucleo-familiar.functions";
 
 /**
  * Explica, dentro da preparação contratual, por que existe um único caso, três
  * cadastros de CRM, um contrato-base familiar e três anexos individuais.
  * Somente leitura: não cria, altera nem vincula entidade alguma.
  */
-export function EstruturaFamiliar({ codigoCaso }: { codigoCaso?: string | null }) {
+export function EstruturaFamiliar({ codigoCaso, caseId }: { codigoCaso?: string | null; caseId?: string | null }) {
   const doCaso = !codigoCaso || codigoCaso === ESTRUTURA_FAMILIAR.caso;
+  const conferir = useServerFn(conferirEstruturaFamiliar);
+  const q = useQuery({
+    queryKey: ["estrutura-familiar", caseId],
+    queryFn: () => conferir({ data: { caseId: caseId as string } }),
+    enabled: Boolean(caseId) && doCaso,
+    retry: false,
+  });
   if (!doCaso) return null;
+  const conf = q.data;
+
 
   return (
     <Painel titulo="Estrutura familiar do caso (CA-DEC-2026-08-17-01)">
@@ -62,6 +75,31 @@ export function EstruturaFamiliar({ codigoCaso }: { codigoCaso?: string | null }
           </p>
         </div>
       </div>
+
+      {conf && (
+        <div className="mt-4 border-t border-navy/10 pt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-navy/50">
+            Conferência dos critérios de aceite — dados reais do caso
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {conf.criterios.map((c) => (
+              <li key={c.criterio} className={c.ok ? "text-navy/80" : "text-terracotta"}>
+                <strong>{c.ok ? "Atende" : "Pendente"}:</strong> {c.criterio}
+                <span className="block text-xs text-navy/60">{c.evidencia}</span>
+              </li>
+            ))}
+          </ul>
+          {conf.nucleo && (
+            <p className="mt-2 text-xs text-navy/60">
+              Núcleo: {conf.nucleo.nome} · membros:{" "}
+              {conf.membros.map((m) => `${m.nome} (${m.papel === "dependente" ? "dependente" : "signatário"})`).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+      {q.isError && (
+        <p className="mt-3 text-xs text-terracotta">Não foi possível conferir a estrutura familiar deste caso agora.</p>
+      )}
     </Painel>
   );
 }

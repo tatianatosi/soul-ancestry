@@ -4127,6 +4127,159 @@ export type Database = {
           },
         ]
       }
+      nucleo_membros: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          cliente_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nome: string
+          nucleo_id: string
+          ordem: number
+          organization_id: string
+          papel: string
+          processo: string | null
+          updated_at: string
+          updated_by: string | null
+          vinculo: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome: string
+          nucleo_id: string
+          ordem?: number
+          organization_id: string
+          papel: string
+          processo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vinculo?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nome?: string
+          nucleo_id?: string
+          ordem?: number
+          organization_id?: string
+          papel?: string
+          processo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vinculo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nucleo_membros_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleo_membros_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleo_membros_nucleo_id_fkey"
+            columns: ["nucleo_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleo_membros_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nucleos_familiares: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nucleos_familiares_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleos_familiares_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleos_familiares_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ops_excecoes: {
         Row: {
           autorizado_em: string

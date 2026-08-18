@@ -217,7 +217,7 @@ function Pagina() {
           </p>
         </Painel>
 
-        <EstruturaFamiliar codigoCaso={d.caso?.codigo} />
+        <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
 
         <Painel titulo="Entidades reaproveitadas (nada é duplicado)">
           <ul className="space-y-1 text-sm text-navy/80">
