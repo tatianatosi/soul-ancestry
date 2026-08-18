@@ -251,7 +251,10 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    const permiteSubstituir = ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
+    // Proposta arquivada permanece arquivada: o rascunho derivado nasce novo, sem alterar o histórico.
+    const permiteSubstituir =
+      !atual.data.archived_at && ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
+
     if (permiteSubstituir) {
       const { error: e2 } = await supabase
         .from("proposals")
