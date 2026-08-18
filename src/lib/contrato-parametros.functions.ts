@@ -216,6 +216,36 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] =
       planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe }));
 
+    // Exceção controlada (somente domínio comercial): quando o Planejador não
+    // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
+    // ativa e aprovada pré-carrega os campos comerciais como
+    // `importado_a_confirmar`. Planejador continua tendo precedência: se ele
+    // homologou o campo, a proposta só pode gerar conflito, nunca sobrescrever.
+    const { data: propostaCaso } = await supabase
+      .from("proposals")
+      .select("id,versao,status,archived_at,valor,moeda,forma_pagamento,escopo,exclusoes")
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const propostaApta = propostaAptaParaPrecarga(propostaCaso as any);
+    const camposDoPlanejador = new Set(candidatos.map((c) => c.campo));
+    const conflitosProposta: { campo: string; proposta: string; planejador: string }[] = [];
+    const candidatosProposta = candidatosComerciaisDaProposta(propostaCaso as any);
+    for (const c of candidatosProposta) {
+      const homologado = candidatos.find((p) => p.campo === c.campo);
+      if (homologado) {
+        if (String(homologado.valor ?? "").trim() !== c.valor) {
+          conflitosProposta.push({ campo: c.campo, proposta: c.valor, planejador: String(homologado.valor ?? "") });
+        }
+        continue;
+      }
+      candidatos.push({ campo: c.campo, valor: c.valor, origem: "proposta", detalhe: c.detalhe });
+    }
+
+
 
 
     const { data: valores } = await supabase
