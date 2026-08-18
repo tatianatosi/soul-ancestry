@@ -203,9 +203,12 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .order("ordem", { ascending: true }),
       supabase
         .from("contract_parameter_previews")
-        .select("id,versao,tipo,placeholders_pendentes,anexos,congelado_em,aprovado_em,aprovado_por,template_code,template_version")
+        .select(
+          "id,versao,tipo,estado,evento,motivo,conteudo,placeholders_pendentes,anexos,congelado_em,created_at,gerado_por,aprovado_em,aprovado_por,template_code,template_version",
+        )
         .eq("parameters_id", registro.id)
         .is("archived_at", null)
+        .order("estado", { ascending: true })
         .order("versao", { ascending: false }),
       supabase.rpc("contract_parameters_completude", { _id: registro.id }),
       supabase.rpc("contract_parameters_pendencias", { _id: registro.id }),
@@ -280,7 +283,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         proposta_id: proposta?.id ?? null,
         template_code: modelo?.code ?? null,
         campos_carregados: lista.filter((v) => v.valor).length,
-        bloqueios: bloqueios.map((b) => b.chave),
+        bloqueios: [...new Set(bloqueios.map((b) => b.chave))],
       },
     });
 
