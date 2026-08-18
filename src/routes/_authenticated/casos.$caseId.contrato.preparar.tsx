@@ -11,8 +11,10 @@ import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { SaasShell } from "@/components/saas/shell";
+import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
+import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
 
 import {
   aprovarParametros,
@@ -28,13 +30,8 @@ import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
 
-const SECOES: { chave: string; titulo: string; grupos: string[] }[] = [
-  { chave: "A", titulo: "A. Núcleo familiar e caso", grupos: ["objeto"] },
-  { chave: "B", titulo: "B. Requerentes e signatários", grupos: ["partes"] },
-  { chave: "C", titulo: "C. Dependente e representação", grupos: ["membros"] },
-  { chave: "D", titulo: "D. Linha e dossiê compartilhado", grupos: ["servicos"] },
-  { chave: "E", titulo: "E. Contrato, anexos, comercial e gates", grupos: ["comerciais", "assinatura"] },
-];
+
+
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
   head: () => ({
@@ -284,8 +281,10 @@ function Pagina() {
         </div>
 
         <div id="ficha" className="space-y-4">
-          {SECOES.map((s) => (
+          <GovernancaFicha />
+          {BLOCOS_FICHA.map((s) => (
             <Painel key={s.chave} titulo={s.titulo}>
+              <CabecalhoBloco bloco={s} estado={estadoDoBloco((d.valores ?? []) as any[], s.grupos)} />
               <div className="space-y-3">
                 {s.grupos.flatMap((g) => {
                   const itens = (d.valores as any[]).filter((v) => v.grupo === g);
@@ -301,6 +300,7 @@ function Pagina() {
             </Painel>
           ))}
         </div>
+
 
 
         <Painel titulo="Prévia contratual versionada">
