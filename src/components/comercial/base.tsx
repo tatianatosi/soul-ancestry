@@ -9,7 +9,9 @@ export const ROTULO_PROPOSTA: Record<string, string> = {
   rascunho: "Rascunho",
   em_revisao: "Em revisão",
   enviada: "Enviada",
-  aprovada: "Aprovada",
+  em_negociacao: "Em negociação",
+  aprovada: "Aceita/aprovada",
+
   recusada: "Recusada",
   expirada: "Expirada",
   substituida: "Substituída",
