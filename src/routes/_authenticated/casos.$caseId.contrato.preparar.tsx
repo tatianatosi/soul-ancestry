@@ -156,8 +156,13 @@ function Pagina() {
   const d = q.data as any;
   const bloqueios = d.bloqueios as { chave: string; motivo: string }[];
   const bloqueado = bloqueios.length > 0;
+  const resolutivos = bloqueiosResolutivos(bloqueios, (d.valores ?? []) as any);
+  const impeditivos = resolutivos.filter((b) => b.impeditivo);
+  const revisaoTravada = temBloqueioImpeditivo(resolutivos);
+  const eventos = agruparAuditoria((qa.data?.eventos ?? []) as any[]);
   const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final");
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
+
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
