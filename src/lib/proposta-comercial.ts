@@ -35,10 +35,15 @@ export function propostaAptaParaPrecarga(p?: PropostaComercial | null): boolean 
 }
 
 function numero(txt: string): number | null {
-  const limpo = txt.replace(/\./g, "").replace(",", ".");
+  const bruto = txt.trim();
+  let limpo: string;
+  if (bruto.includes(",")) limpo = bruto.replace(/\./g, "").replace(",", ".");
+  else if (/^\d+\.\d{1,2}$/.test(bruto)) limpo = bruto; // decimal com ponto (ex.: 9600.00)
+  else limpo = bruto.replace(/\./g, ""); // milhar com ponto (ex.: 9.600)
   const n = Number(limpo);
   return Number.isFinite(n) ? n : null;
 }
+
 
 /**
  * Deriva os candidatos comerciais da proposta. Retorna lista vazia quando a
