@@ -106,7 +106,10 @@ export function bloqueiosResolutivos(
   bloqueios: { chave: string; motivo: string }[],
   valores: { id: string; campo: string; label: string; obrigatorio: boolean; valor: string | null; status: string; conflito?: unknown[] }[],
 ): BloqueioResolutivo[] {
-  return bloqueios.map((b) => {
+  // Deduplicação no mesmo evento: mesma chave + mesmo motivo aparece uma vez só.
+  const unicos = [...new Map(bloqueios.map((b) => [`${b.chave}::${b.motivo}`, b])).values()];
+  return unicos.map((b) => {
+
     const regra = REGRAS_BLOQUEIO[b.chave] ?? {
       titulo: b.chave,
       oQueBloqueia: "Geração final do instrumento.",
