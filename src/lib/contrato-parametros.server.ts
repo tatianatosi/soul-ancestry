@@ -91,6 +91,37 @@ export function anexosPorRegra(input: {
 }
 
 
+/** Impressão digital estável do conteúdo da prévia: reconhece rascunhos idênticos. */
+export function hashConteudo(conteudo: unknown) {
+  const texto = JSON.stringify(conteudo ?? null);
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < texto.length; i += 1) {
+    h1 = Math.imul(h1 ^ texto.charCodeAt(i), 16777619) >>> 0;
+    h2 = Math.imul(h2 + texto.charCodeAt(i) + 1, 2246822519) >>> 0;
+  }
+  return `${h1.toString(16)}${h2.toString(16)}`;
+}
+
+/** Eventos que autorizam congelar uma versão imutável. Salvar não é evento. */
+export const EVENTOS_SNAPSHOT = [
+  "revisao_solicitada",
+  "retorno_ajuste",
+  "aprovacao",
+  "envio_assinatura",
+  "assinatura_registrada",
+] as const;
+export type EventoSnapshot = (typeof EVENTOS_SNAPSHOT)[number];
+
+export const ROTULO_EVENTO_PREVIA: Record<string, string> = {
+  rascunho_atualizado: "Rascunho atualizado",
+  revisao_solicitada: "Revisão humana solicitada",
+  retorno_ajuste: "Retorno para ajuste",
+  aprovacao: "Aprovação registrada",
+  envio_assinatura: "Envio para assinatura",
+  assinatura_registrada: "Assinatura registrada",
+};
+
 function esc(v: unknown) {
   return String(v ?? "")
     .replace(/&/g, "&amp;")
