@@ -216,8 +216,8 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
-    if (atual.data.archived_at) throw new Error("Proposta arquivada: restaure antes de criar uma versão de ajuste.");
     if (atual.data.status === "substituida") throw new Error("Esta proposta já foi substituída por outra versão.");
+
 
     const base = { ...(atual.data as Record<string, any>) };
     for (const campo of [
