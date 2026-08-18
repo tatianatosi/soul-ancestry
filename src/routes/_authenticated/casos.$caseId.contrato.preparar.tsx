@@ -83,8 +83,13 @@ function Pagina() {
       toast.success(
         `${r.importados} campo(s) carregados como “a confirmar”${r.conflitos.length ? ` · ${r.conflitos.length} conflito(s)` : ""}${
           r.limpos?.length ? ` · ${r.limpos.length} valor(es) fora da convenção homologada devolvidos a pendência` : ""
-        }.`,
+        }${
+          r.proposta?.campos?.length
+            ? ` · ${r.proposta.campos.length} campo(s) comercial(is) da proposta aprovada v${r.proposta.versao}`
+            : ""
+        }${r.proposta?.conflitos?.length ? ` · ${r.proposta.conflitos.length} divergência(s) proposta × Planejador` : ""}.`,
       );
+
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
