@@ -216,8 +216,8 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
-    if (atual.data.archived_at) throw new Error("Proposta arquivada: restaure antes de criar uma versão de ajuste.");
     if (atual.data.status === "substituida") throw new Error("Esta proposta já foi substituída por outra versão.");
+
 
     const base = { ...(atual.data as Record<string, any>) };
     for (const campo of [
@@ -251,7 +251,10 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    const permiteSubstituir = ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
+    // Proposta arquivada permanece arquivada: o rascunho derivado nasce novo, sem alterar o histórico.
+    const permiteSubstituir =
+      !atual.data.archived_at && ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
+
     if (permiteSubstituir) {
       const { error: e2 } = await supabase
         .from("proposals")
