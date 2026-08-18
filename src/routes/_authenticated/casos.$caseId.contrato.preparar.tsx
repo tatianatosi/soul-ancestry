@@ -284,8 +284,10 @@ function Pagina() {
         </div>
 
         <div id="ficha" className="space-y-4">
-          {SECOES.map((s) => (
+          <GovernancaFicha />
+          {BLOCOS_FICHA.map((s) => (
             <Painel key={s.chave} titulo={s.titulo}>
+              <CabecalhoBloco bloco={s} estado={estadoDoBloco((d.valores ?? []) as any[], s.grupos)} />
               <div className="space-y-3">
                 {s.grupos.flatMap((g) => {
                   const itens = (d.valores as any[]).filter((v) => v.grupo === g);
@@ -301,6 +303,7 @@ function Pagina() {
             </Painel>
           ))}
         </div>
+
 
 
         <Painel titulo="Prévia contratual versionada">
