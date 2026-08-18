@@ -30,13 +30,8 @@ import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
 const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, reaproveitando proposta, modelo ativo e anexos existentes.";
 
-const SECOES: { chave: string; titulo: string; grupos: string[] }[] = [
-  { chave: "A", titulo: "A. Núcleo familiar e caso", grupos: ["objeto"] },
-  { chave: "B", titulo: "B. Requerentes e signatários", grupos: ["partes"] },
-  { chave: "C", titulo: "C. Dependente e representação", grupos: ["membros"] },
-  { chave: "D", titulo: "D. Linha e dossiê compartilhado", grupos: ["servicos"] },
-  { chave: "E", titulo: "E. Contrato, anexos, comercial e gates", grupos: ["comerciais", "assinatura"] },
-];
+
+
 
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
   head: () => ({
