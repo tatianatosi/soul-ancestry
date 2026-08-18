@@ -83,7 +83,7 @@ function Tabela({ cabecalho, linhas }: { cabecalho: string[]; linhas: (string | 
 
 function DecisoesPage() {
   return (
-    <SaasShell>
+    <SaasShell titulo="Decisões operacionais" descricao="Registro somente leitura das decisões CA-DEC-2026-08-17-01, 03 e 04.">
       <div className="space-y-4">
         <header className="rounded-xl border border-gold/40 bg-gold/5 p-4">
           <h1 className="text-lg font-semibold text-navy">Decisões operacionais aprovadas</h1>
