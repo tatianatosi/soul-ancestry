@@ -255,9 +255,15 @@ function Pagina() {
               disabled={mImportar.isPending}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
             >
-              Pré-carregar do Planejador homologado (fonte única, sem redigitação)
+              Pré-carregar do Planejador homologado (sem redigitação)
             </button>
+            <p className="mt-2 text-xs text-navy/60">
+              O Planejador continua sendo a fonte de maior precedência. Quando não há parâmetro financeiro homologado para a rota, os
+              campos comerciais (valor total, forma de pagamento, parcelas e despesas externas) vêm da proposta aprovada vinculada,
+              sempre como “importado — a confirmar”. Datas de vencimento nunca são inferidas: dependem de condição formal registrada.
+            </p>
           </div>
+
         </Painel>
 
         <div id="coerencia">
