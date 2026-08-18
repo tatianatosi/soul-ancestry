@@ -191,6 +191,104 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Cria uma versão de ajuste: duplica a proposta como rascunho editável e
+ * marca a original como substituída (preservada no histórico, sem exclusão).
+ * Proposta substituída ou arquivada não satisfaz o gate de geração contratual.
+ */
+export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; motivo: string }) => {
+    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo do ajuste (mínimo 5 caracteres).");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin criam versões de proposta.");
+
+    const atual = await supabase
+      .from("proposals")
+      .select("*")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
+    if (atual.data.archived_at) throw new Error("Proposta arquivada: restaure antes de criar uma versão de ajuste.");
+    if (atual.data.status === "substituida") throw new Error("Esta proposta já foi substituída por outra versão.");
+
+    const base = { ...(atual.data as Record<string, any>) };
+    for (const campo of [
+      "id",
+      "created_at",
+      "updated_at",
+      "archived_at",
+      "archived_by",
+      "archive_motivo",
+      "substituida_por_id",
+      "derivada_de_id",
+      "restaurado_em",
+      "restaurado_por",
+      "restauracao_motivo",
+      "versao",
+      "status",
+    ]) {
+      delete base[campo];
+    }
+
+    const { data: nova, error } = await supabase
+      .from("proposals")
+      .insert({
+        ...base,
+        organization_id: organizationId,
+        status: "rascunho",
+        versao: Number(atual.data.versao ?? 0) + 1,
+        derivada_de_id: atual.data.id,
+      })
+      .select("id,versao")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+
+    const permiteSubstituir = ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
+    if (permiteSubstituir) {
+      const { error: e2 } = await supabase
+        .from("proposals")
+        .update({ status: "substituida", substituida_por_id: nova?.id })
+        .eq("id", atual.data.id)
+        .eq("organization_id", organizationId);
+      if (e2) throw new Error(e2.message);
+    }
+
+    return { id: nova?.id as string, versao: nova?.versao as number, substituiu: permiteSubstituir };
+  });
+
+/** Restaura uma proposta arquivada, com motivo rastreável. */
+export const restaurarProposta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; motivo: string }) => {
+    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo da restauração (mínimo 5 caracteres).");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin restauram propostas.");
+    const { error } = await supabase
+      .from("proposals")
+      .update({
+        archived_at: null,
+        archived_by: null,
+        restaurado_em: new Date().toISOString(),
+        restaurado_por: context.userId,
+        restauracao_motivo: data.motivo.trim(),
+      })
+      .eq("id", data.id)
+      .eq("organization_id", organizationId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 /* ======================= ORDENS DE SERVIÇO ======================= */
 
 export const criarOrdemServico = createServerFn({ method: "POST" })
