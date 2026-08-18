@@ -392,7 +392,16 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       conflitos,
       incoerentes,
       limpos,
-      propostaAprovada: false,
+      propostaAprovada: propostaApta,
+      proposta: propostaApta
+        ? {
+            id: String((propostaCaso as any).id),
+            versao: Number((propostaCaso as any).versao ?? 1),
+            campos: candidatosProposta.map((c) => c.campo),
+            conflitos: conflitosProposta,
+          }
+        : null,
+
 
       planejador: {
         convencao: planejador.convencao?.prefixo ?? null,
