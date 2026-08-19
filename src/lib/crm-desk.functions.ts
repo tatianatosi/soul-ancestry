@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { calcularMetricasCrm, montarFilasHoje, validarLead, type LeadDesk } from "@/lib/crm-desk";
+import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
 
