@@ -93,6 +93,38 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "contrato_assinado",
     "pagamento_confirmado",
     "documentos_minimos_ok",
+    // Ficha operacional canônica
+    "eixo_comercial",
+    "eixo_formalizacao",
+    "status_caso_derivado",
+    "responsavel_principal",
+    "cargo_responsavel_principal",
+    "supervisora_do_caso",
+    "colaboradores_do_caso",
+    "data_confirmacao_formal_proposta",
+    "data_entrada_caso",
+    "proposta_referencia_interna",
+    "proposta_url_interna",
+    "data_proposta",
+    "escopo_incluido_resumido",
+    "escopo_excluido_resumido",
+    "condicao_comercial_interna_pendente",
+    "citizenship_track_id",
+    "pais_linha_prioritaria",
+    "via_juridica_preliminar",
+    "status_via",
+    "hipotese_trabalho_interna",
+    "status_radar",
+    "radar_aderencia_percentual",
+    "revisao_humana_juridica",
+    "riscos_identificados",
+    "resumo_interno",
+    "brief_interno",
+    "origem_brief",
+    "link_origem_interna",
+    "proxima_acao_codigo",
+    "proxima_acao_justificativa",
+    "alias_historico",
   ],
   case_members: [
     "case_id",
@@ -101,7 +133,21 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "data_nascimento",
     "local_nascimento",
     "observacoes_protegidas",
+    "papel_no_caso",
+    "representante_legal",
+    "cpf",
+    "rg",
+    "telefone",
+    "email",
+    "endereco",
+    "cep",
+    "profissao",
+    "estado_civil",
+    "status_cadastral",
+    "documentos_pendentes",
+    "consentimentos",
   ],
+
   evidencias: [
     "caso_id",
     "titulo",
@@ -181,12 +227,39 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** Colunas com NOT NULL + default: string vazia é ignorada em vez de virar null. */
+const NAO_NULAVEIS = new Set([
+  "eixo_comercial",
+  "eixo_formalizacao",
+  "responsavel_principal",
+  "cargo_responsavel_principal",
+  "supervisora_do_caso",
+  "colaboradores_do_caso",
+  "riscos_identificados",
+  "status_radar",
+  "revisao_humana_juridica",
+  "condicao_comercial_interna_pendente",
+  "status_cadastral",
+  "titulo",
+  "nome",
+  "status",
+]);
+
 function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
   const saida: Record<string, unknown> = {};
   for (const chave of permitidos) {
-    if (dados[chave] !== undefined && dados[chave] !== "") saida[chave] = dados[chave];
+    const valor = dados[chave];
+    if (valor === undefined) continue;
+    // Campo esvaziado precisa gravar null — antes a alteração era descartada em silêncio.
+    if (valor === "" || valor === null) {
+      if (NAO_NULAVEIS.has(chave)) continue;
+      saida[chave] = null;
+      continue;
+    }
+    saida[chave] = valor;
   }
+
   // campos de referência só aceitam identificador válido (nunca nome digitado)
   for (const chave of Object.keys(saida)) {
     if (!chave.endsWith("_id")) continue;
@@ -327,18 +400,53 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
 
     const alteracoes = sanitizar(data.entidade, data.dados);
-    const combinado = { ...(atual.data as Record<string, unknown>), ...alteracoes };
-    validarTransicao(data.entidade, atual.data as Record<string, unknown>, alteracoes);
+    const anterior = atual.data as Record<string, unknown>;
+    const combinado = { ...anterior, ...alteracoes };
+    validarTransicao(data.entidade, anterior, alteracoes);
     validarRegrasNegocio(data.entidade, combinado);
 
-    const { error } = await supabase
+    const diff = Object.keys(alteracoes).filter(
+      (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
+    );
+    if (diff.length === 0) return { ok: true, alterados: [] as string[], salvoEm: new Date().toISOString() };
+
+    const { data: linhas, error } = await supabase
       .from(data.entidade)
       .update(alteracoes)
       .eq("id", data.id)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id");
     if (error) throw new Error(error.message);
-    return { ok: true };
+    // Sem linha retornada = política de escrita bloqueou. Nunca falhar em silêncio.
+    if (!linhas || linhas.length === 0) {
+      throw new Error("Nada foi gravado: seu papel não permite editar este registro.");
+    }
+
+    // Registro de alterações do caso (quem, quando, o quê).
+    const caseId =
+      data.entidade === "crm_casos"
+        ? data.id
+        : typeof combinado["case_id"] === "string"
+          ? (combinado["case_id"] as string)
+          : null;
+    if (caseId && (data.entidade === "crm_casos" || data.entidade === "case_members")) {
+      await supabase.from("caso_log").insert(
+        diff.map((campo) => ({
+          organization_id: organizationId,
+          case_id: caseId,
+          entidade: data.entidade,
+          entidade_id: data.id,
+          campo,
+          valor_anterior: anterior[campo] === null || anterior[campo] === undefined ? null : String(anterior[campo]),
+          valor_novo: alteracoes[campo] === null ? null : String(alteracoes[campo]),
+          autor_user_id: context.userId,
+        })),
+      );
+    }
+
+    return { ok: true, alterados: diff, salvoEm: new Date().toISOString() };
   });
+
 
 
 export const arquivarRegistro = createServerFn({ method: "POST" })

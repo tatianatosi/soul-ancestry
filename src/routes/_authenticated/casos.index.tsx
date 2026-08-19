@@ -134,12 +134,20 @@ function CasosPage() {
         extra={(linha, recarregar) => (
           <div className="flex flex-wrap justify-end gap-2">
             <Link
+              to="/casos/$caseId"
+              params={{ caseId: String(linha["id"]) }}
+              className="rounded-md bg-navy px-2 py-1 text-xs text-cream hover:bg-navy/90"
+            >
+              Abrir ficha operacional
+            </Link>
+            <Link
               to="/onboarding/$id"
               params={{ id: String(linha["id"]) }}
               className="rounded-md border border-gold/50 px-2 py-1 text-xs text-navy hover:bg-gold/10"
             >
               Pronto para ativar?
             </Link>
+
             {podeEscrever && !linha["ativo"] ? (
               <button
                 onClick={async () => {

@@ -428,10 +428,17 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           case_id: string
+          cep: string | null
+          consentimentos: string | null
+          cpf: string | null
           created_at: string
           created_by: string | null
           data_nascimento: string | null
           data_obito: string | null
+          documentos_pendentes: string | null
+          email: string | null
+          endereco: string | null
+          estado_civil: string | null
           id: string
           local_nascimento: string | null
           local_obito: string | null
@@ -441,8 +448,14 @@ export type Database = {
           observacoes_protegidas: string | null
           organization_id: string
           pai_id: string | null
+          papel_no_caso: string | null
           parentesco: string
+          profissao: string | null
+          representante_legal: string | null
           requerente: boolean
+          rg: string | null
+          status_cadastral: string
+          telefone: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -451,10 +464,17 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id: string
+          cep?: string | null
+          consentimentos?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
           data_nascimento?: string | null
           data_obito?: string | null
+          documentos_pendentes?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado_civil?: string | null
           id?: string
           local_nascimento?: string | null
           local_obito?: string | null
@@ -464,8 +484,14 @@ export type Database = {
           observacoes_protegidas?: string | null
           organization_id: string
           pai_id?: string | null
+          papel_no_caso?: string | null
           parentesco: string
+          profissao?: string | null
+          representante_legal?: string | null
           requerente?: boolean
+          rg?: string | null
+          status_cadastral?: string
+          telefone?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -474,10 +500,17 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string
+          cep?: string | null
+          consentimentos?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
           data_nascimento?: string | null
           data_obito?: string | null
+          documentos_pendentes?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado_civil?: string | null
           id?: string
           local_nascimento?: string | null
           local_obito?: string | null
@@ -487,8 +520,14 @@ export type Database = {
           observacoes_protegidas?: string | null
           organization_id?: string
           pai_id?: string | null
+          papel_no_caso?: string | null
           parentesco?: string
+          profissao?: string | null
+          representante_legal?: string | null
           requerente?: boolean
+          rg?: string | null
+          status_cadastral?: string
+          telefone?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -526,6 +565,60 @@ export type Database = {
             columns: ["pai_id"]
             isOneToOne: false
             referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      caso_log: {
+        Row: {
+          autor_user_id: string | null
+          campo: string
+          case_id: string
+          created_at: string
+          entidade: string
+          entidade_id: string | null
+          id: string
+          organization_id: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          autor_user_id?: string | null
+          campo: string
+          case_id: string
+          created_at?: string
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          organization_id: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          autor_user_id?: string | null
+          campo?: string
+          case_id?: string
+          created_at?: string
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          organization_id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caso_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "caso_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
             referencedColumns: ["id"]
           },
         ]
@@ -2715,6 +2808,7 @@ export type Database = {
         Row: {
           aceite_comercial_em: string | null
           aceite_comercial_registrado_por: string | null
+          alias_historico: string | null
           app_access_status: string
           app_visibility_level: string
           archive_motivo: string | null
@@ -2724,9 +2818,14 @@ export type Database = {
           ativado_em: string | null
           ativado_por: string | null
           ativo: boolean
+          brief_interno: string | null
+          cargo_responsavel_principal: string
+          citizenship_track_id: string | null
           cliente_id: string | null
           codigo: string
           codigos_legados: string[]
+          colaboradores_do_caso: string[]
+          condicao_comercial_interna_pendente: boolean
           condicoes_verificadas_em: string | null
           condicoes_verificadas_por: string | null
           consentimento_compartilhamento: boolean
@@ -2734,25 +2833,49 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_ativacao: string | null
+          data_confirmacao_formal_proposta: string | null
           data_entrada: string
+          data_entrada_caso: string | null
+          data_proposta: string | null
           demo: boolean
           documentos_minimos_ok: boolean
+          eixo_comercial: string
+          eixo_formalizacao: string
+          escopo_excluido_resumido: string | null
+          escopo_incluido_resumido: string | null
           fase: string | null
           hipotese_elegibilidade: string | null
+          hipotese_trabalho_interna: string | null
           id: string
           info_cliente_liberada: boolean
+          link_origem_interna: string | null
           organization_id: string
+          origem_brief: string | null
           pagamento_confirmado: boolean
           pais: string | null
+          pais_linha_prioritaria: string | null
           piloto: boolean
           preparacao_status: string | null
           prioridade: string
+          proposta_referencia_interna: string | null
+          proposta_url_interna: string | null
           proxima_acao: string | null
+          proxima_acao_codigo: string | null
+          proxima_acao_justificativa: string | null
+          radar_aderencia_percentual: number | null
           responsavel_id: string | null
+          responsavel_principal: string
           resumo: string | null
+          resumo_interno: string | null
+          revisao_humana_juridica: string
           risco: string | null
+          riscos_identificados: string[]
           selo_interno: string | null
           status: string
+          status_caso_derivado: string | null
+          status_radar: string
+          status_via: string | null
+          supervisora_do_caso: string
           suspenso_em: string | null
           suspenso_motivo: string | null
           suspenso_por: string | null
@@ -2761,10 +2884,12 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           via: string
+          via_juridica_preliminar: string | null
         }
         Insert: {
           aceite_comercial_em?: string | null
           aceite_comercial_registrado_por?: string | null
+          alias_historico?: string | null
           app_access_status?: string
           app_visibility_level?: string
           archive_motivo?: string | null
@@ -2774,9 +2899,14 @@ export type Database = {
           ativado_em?: string | null
           ativado_por?: string | null
           ativo?: boolean
+          brief_interno?: string | null
+          cargo_responsavel_principal?: string
+          citizenship_track_id?: string | null
           cliente_id?: string | null
           codigo: string
           codigos_legados?: string[]
+          colaboradores_do_caso?: string[]
+          condicao_comercial_interna_pendente?: boolean
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
           consentimento_compartilhamento?: boolean
@@ -2784,25 +2914,49 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_ativacao?: string | null
+          data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
+          data_entrada_caso?: string | null
+          data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
+          eixo_comercial?: string
+          eixo_formalizacao?: string
+          escopo_excluido_resumido?: string | null
+          escopo_incluido_resumido?: string | null
           fase?: string | null
           hipotese_elegibilidade?: string | null
+          hipotese_trabalho_interna?: string | null
           id?: string
           info_cliente_liberada?: boolean
+          link_origem_interna?: string | null
           organization_id: string
+          origem_brief?: string | null
           pagamento_confirmado?: boolean
           pais?: string | null
+          pais_linha_prioritaria?: string | null
           piloto?: boolean
           preparacao_status?: string | null
           prioridade?: string
+          proposta_referencia_interna?: string | null
+          proposta_url_interna?: string | null
           proxima_acao?: string | null
+          proxima_acao_codigo?: string | null
+          proxima_acao_justificativa?: string | null
+          radar_aderencia_percentual?: number | null
           responsavel_id?: string | null
+          responsavel_principal?: string
           resumo?: string | null
+          resumo_interno?: string | null
+          revisao_humana_juridica?: string
           risco?: string | null
+          riscos_identificados?: string[]
           selo_interno?: string | null
           status?: string
+          status_caso_derivado?: string | null
+          status_radar?: string
+          status_via?: string | null
+          supervisora_do_caso?: string
           suspenso_em?: string | null
           suspenso_motivo?: string | null
           suspenso_por?: string | null
@@ -2811,10 +2965,12 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           via?: string
+          via_juridica_preliminar?: string | null
         }
         Update: {
           aceite_comercial_em?: string | null
           aceite_comercial_registrado_por?: string | null
+          alias_historico?: string | null
           app_access_status?: string
           app_visibility_level?: string
           archive_motivo?: string | null
@@ -2824,9 +2980,14 @@ export type Database = {
           ativado_em?: string | null
           ativado_por?: string | null
           ativo?: boolean
+          brief_interno?: string | null
+          cargo_responsavel_principal?: string
+          citizenship_track_id?: string | null
           cliente_id?: string | null
           codigo?: string
           codigos_legados?: string[]
+          colaboradores_do_caso?: string[]
+          condicao_comercial_interna_pendente?: boolean
           condicoes_verificadas_em?: string | null
           condicoes_verificadas_por?: string | null
           consentimento_compartilhamento?: boolean
@@ -2834,25 +2995,49 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_ativacao?: string | null
+          data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
+          data_entrada_caso?: string | null
+          data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
+          eixo_comercial?: string
+          eixo_formalizacao?: string
+          escopo_excluido_resumido?: string | null
+          escopo_incluido_resumido?: string | null
           fase?: string | null
           hipotese_elegibilidade?: string | null
+          hipotese_trabalho_interna?: string | null
           id?: string
           info_cliente_liberada?: boolean
+          link_origem_interna?: string | null
           organization_id?: string
+          origem_brief?: string | null
           pagamento_confirmado?: boolean
           pais?: string | null
+          pais_linha_prioritaria?: string | null
           piloto?: boolean
           preparacao_status?: string | null
           prioridade?: string
+          proposta_referencia_interna?: string | null
+          proposta_url_interna?: string | null
           proxima_acao?: string | null
+          proxima_acao_codigo?: string | null
+          proxima_acao_justificativa?: string | null
+          radar_aderencia_percentual?: number | null
           responsavel_id?: string | null
+          responsavel_principal?: string
           resumo?: string | null
+          resumo_interno?: string | null
+          revisao_humana_juridica?: string
           risco?: string | null
+          riscos_identificados?: string[]
           selo_interno?: string | null
           status?: string
+          status_caso_derivado?: string | null
+          status_radar?: string
+          status_via?: string | null
+          supervisora_do_caso?: string
           suspenso_em?: string | null
           suspenso_motivo?: string | null
           suspenso_por?: string | null
@@ -2861,6 +3046,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           via?: string
+          via_juridica_preliminar?: string | null
         }
         Relationships: [
           {

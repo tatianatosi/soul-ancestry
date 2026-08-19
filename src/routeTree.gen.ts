@@ -66,6 +66,7 @@ import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
+import { Route as AuthenticatedCasosCaseIdIndexRouteImport } from './routes/_authenticated/casos.$caseId.index'
 import { Route as AuthenticatedCasosCaseIdContratoPrepararRouteImport } from './routes/_authenticated/casos.$caseId.contrato.preparar'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
@@ -370,6 +371,12 @@ const AuthenticatedContratoParametrosIdRoute =
     path: '/contrato-parametros/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCasosCaseIdIndexRoute =
+  AuthenticatedCasosCaseIdIndexRouteImport.update({
+    id: '/casos/$caseId/',
+    path: '/casos/$caseId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCasosCaseIdContratoPrepararRoute =
   AuthenticatedCasosCaseIdContratoPrepararRouteImport.update({
     id: '/casos/$caseId/contrato/preparar',
@@ -434,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/casos/$caseId/': typeof AuthenticatedCasosCaseIdIndexRoute
   '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRoutesByTo {
@@ -492,6 +500,7 @@ export interface FileRoutesByTo {
   '/pesquisa-modulo': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
+  '/casos/$caseId': typeof AuthenticatedCasosCaseIdIndexRoute
   '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRoutesById {
@@ -553,6 +562,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/_authenticated/casos/$caseId/': typeof AuthenticatedCasosCaseIdIndexRoute
   '/_authenticated/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 export interface FileRouteTypes {
@@ -614,6 +624,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo/'
     | '/pesquisa/'
     | '/privacidade/'
+    | '/casos/$caseId/'
     | '/casos/$caseId/contrato/preparar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -672,6 +683,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo'
     | '/pesquisa'
     | '/privacidade'
+    | '/casos/$caseId'
     | '/casos/$caseId/contrato/preparar'
   id:
     | '__root__'
@@ -732,6 +744,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa-modulo/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
+    | '/_authenticated/casos/$caseId/'
     | '/_authenticated/casos/$caseId/contrato/preparar'
   fileRoutesById: FileRoutesById
 }
@@ -1154,6 +1167,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/casos/$caseId/': {
+      id: '/_authenticated/casos/$caseId/'
+      path: '/casos/$caseId'
+      fullPath: '/casos/$caseId/'
+      preLoaderRoute: typeof AuthenticatedCasosCaseIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/casos/$caseId/contrato/preparar': {
       id: '/_authenticated/casos/$caseId/contrato/preparar'
       path: '/casos/$caseId/contrato/preparar'
@@ -1199,6 +1219,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPesquisaModuloIndexRoute: typeof AuthenticatedPesquisaModuloIndexRoute
   AuthenticatedPesquisaIndexRoute: typeof AuthenticatedPesquisaIndexRoute
   AuthenticatedPrivacidadeIndexRoute: typeof AuthenticatedPrivacidadeIndexRoute
+  AuthenticatedCasosCaseIdIndexRoute: typeof AuthenticatedCasosCaseIdIndexRoute
   AuthenticatedCasosCaseIdContratoPrepararRoute: typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
 
@@ -1240,6 +1261,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPesquisaModuloIndexRoute: AuthenticatedPesquisaModuloIndexRoute,
   AuthenticatedPesquisaIndexRoute: AuthenticatedPesquisaIndexRoute,
   AuthenticatedPrivacidadeIndexRoute: AuthenticatedPrivacidadeIndexRoute,
+  AuthenticatedCasosCaseIdIndexRoute: AuthenticatedCasosCaseIdIndexRoute,
   AuthenticatedCasosCaseIdContratoPrepararRoute:
     AuthenticatedCasosCaseIdContratoPrepararRoute,
 }
