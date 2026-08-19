@@ -6,6 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
+import { carregarCanonico } from "@/lib/caso-canonico.functions";
+import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
+import { AbaProximaAcao } from "@/components/caso/proxima-acao";
+import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
+import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import {
   EIXO_COMERCIAL,
   EIXO_FORMALIZACAO,
@@ -166,6 +171,10 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao?: st
 const ABAS = [
   { id: "caso", rotulo: "Caso" },
   { id: "pessoas", rotulo: "Pessoas" },
+  { id: "produto", rotulo: "Produto e trilha" },
+  { id: "acao", rotulo: "Próxima ação e alertas" },
+  { id: "etiquetas", rotulo: "Etiquetas" },
+  { id: "onboarding", rotulo: "Onboarding" },
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "log", rotulo: "Registro de alterações" },
@@ -175,11 +184,17 @@ function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(carregarFichaCaso);
+  const carregarCanon = useServerFn(carregarCanonico);
   const atualizar = useServerFn(atualizarRegistro);
   const criar = useServerFn(criarRegistro);
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["ficha-caso", id], queryFn: () => carregar({ data: { id } }), retry: false });
+  const qc2 = useQuery({ queryKey: ["caso-canonico", id], queryFn: () => carregarCanon({ data: { caseId: id } }), retry: false });
+  const recarregar = () => {
+    void qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
+    void qc.invalidateQueries({ queryKey: ["caso-canonico", id] });
+  };
 
   const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("caso");
   const [form, setForm] = useState<Record<string, unknown>>({});
@@ -510,7 +525,53 @@ function FichaCaso() {
         </div>
       ) : null}
 
-      {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={() => qc.invalidateQueries({ queryKey: ["ficha-caso", id] })} atualizar={atualizar} criar={criar} /> : null}
+      {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={recarregar} atualizar={atualizar} criar={criar} /> : null}
+
+      {aba === "produto" ? (
+        <AbaProdutoTrilha
+          caseId={id}
+          produtos={qc2.data?.produtos ?? []}
+          trilhas={qc2.data?.trilhas ?? []}
+          servicos={qc2.data?.servicos ?? []}
+          bloqueado={bloqueado}
+          onMudou={recarregar}
+        />
+      ) : null}
+
+      {aba === "acao" ? (
+        <AbaProximaAcao
+          caseId={id}
+          caso={caso}
+          alertas={qc2.data?.alertas ?? []}
+          comunicacoes={qc2.data?.comunicacoes ?? []}
+          bloqueado={bloqueado}
+          onMudou={recarregar}
+          v={v}
+          set={set}
+        />
+      ) : null}
+
+      {aba === "etiquetas" ? (
+        <AbaEtiquetas
+          caseId={id}
+          taxonomia={qc2.data?.taxonomia ?? []}
+          aplicadas={qc2.data?.etiquetas ?? []}
+          bloqueado={bloqueado}
+          onMudou={recarregar}
+        />
+      ) : null}
+
+      {aba === "onboarding" ? (
+        <AbaOnboarding
+          caso={caso}
+          itens={qc2.data?.onboarding ?? []}
+          nucleos={qc2.data?.nucleos ?? []}
+          membrosNucleo={qc2.data?.membrosNucleo ?? []}
+          planoInicialOk={Boolean(q.data?.planoInicialOk)}
+          bloqueado={bloqueado}
+          onMudou={recarregar}
+        />
+      ) : null}
 
       {aba === "log" ? (
         <Secao titulo="Registro de alterações" descricao="Quem alterou, quando e o quê. Nada é apagado.">

@@ -125,6 +125,21 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "proxima_acao_codigo",
     "proxima_acao_justificativa",
     "alias_historico",
+    // Jornada, comunicação e alertas
+    "proposta_id_origem",
+    "marcos_gerais_da_proposta",
+    "sinal_aderencia_preliminar",
+    "confianca_triagem",
+    "risco_observacao_interna",
+    "prazo_proxima_acao",
+    "target_audience",
+    "visibility",
+    "suggested_channel",
+    "requires_human_approval",
+    "communication_status",
+    "alert_status",
+    "dossie_mae_referencia",
+    "case_service_id",
   ],
   case_members: [
     "case_id",
@@ -146,6 +161,12 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "status_cadastral",
     "documentos_pendentes",
     "consentimentos",
+    "contratante",
+    "titular",
+    "dependente",
+    "representa_pessoa_id",
+    "fonte_origem_dado",
+    "data_verificacao_dado",
   ],
 
   evidencias: [
@@ -245,9 +266,24 @@ const NAO_NULAVEIS = new Set([
   "status",
 ]);
 
+const BLINDADOS = new Set(["organization_id", "demo", "archived_at", "archived_by", "id", "created_at", "updated_at"]);
+
+/**
+ * Filtra o payload para as colunas persistíveis.
+ * Retorna também os campos descartados: enviar um campo não persistível
+ * costumava ser ignorado em silêncio — a tela dizia "salvo" e o banco não mudava.
+ */
 function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
   const permitidos = CAMPOS_PERMITIDOS[entidade];
   const saida: Record<string, unknown> = {};
+  const ignorados: string[] = [];
+
+  for (const chave of Object.keys(dados)) {
+    if (dados[chave] === undefined) continue;
+    if (BLINDADOS.has(chave)) continue;
+    if (!permitidos.includes(chave)) ignorados.push(chave);
+  }
+
   for (const chave of permitidos) {
     const valor = dados[chave];
     if (valor === undefined) continue;
@@ -272,11 +308,7 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
     }
     saida[chave] = valor.trim();
   }
-  // blindagem: campos de organização/auditoria jamais vêm do front-end
-  delete saida["organization_id"];
-  delete saida["demo"];
-  delete saida["archived_at"];
-  return saida;
+  return { saida, ignorados };
 }
 
 
@@ -372,7 +404,12 @@ export const criarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
-    const payload = { ...sanitizar(data.entidade, data.dados), organization_id: organizationId };
+    const payload = {
+      ...sanitizar(data.entidade, data.dados).saida,
+      organization_id: organizationId,
+      created_by: context.userId,
+      updated_by: context.userId,
+    };
     validarEstadoInicial(data.entidade, payload);
     validarRegrasNegocio(data.entidade, payload);
     const { data: linha, error } = await supabase.from(data.entidade).insert(payload).select("id").maybeSingle();
@@ -399,20 +436,27 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     if (!atual.data) throw new Error("Registro não encontrado nesta organização.");
     if (atual.data["archived_at"]) throw new Error("Registro arquivado não pode ser editado.");
 
-    const alteracoes = sanitizar(data.entidade, data.dados);
+    const { saida: alteracoes, ignorados } = sanitizar(data.entidade, data.dados);
     const anterior = atual.data as Record<string, unknown>;
     const combinado = { ...anterior, ...alteracoes };
     validarTransicao(data.entidade, anterior, alteracoes);
     validarRegrasNegocio(data.entidade, combinado);
 
+    // Campo enviado que não existe na tabela nunca mais some em silêncio.
+    if (ignorados.length > 0 && Object.keys(alteracoes).length === 0) {
+      throw new Error(`Nada foi gravado: campo(s) não persistível(is): ${ignorados.join(", ")}.`);
+    }
+
     const diff = Object.keys(alteracoes).filter(
       (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
     );
-    if (diff.length === 0) return { ok: true, alterados: [] as string[], salvoEm: new Date().toISOString() };
+    if (diff.length === 0) {
+      return { ok: true, alterados: [] as string[], ignorados, salvoEm: new Date().toISOString() };
+    }
 
     const { data: linhas, error } = await supabase
       .from(data.entidade)
-      .update(alteracoes)
+      .update({ ...alteracoes, updated_by: context.userId })
       .eq("id", data.id)
       .eq("organization_id", organizationId)
       .select("id");
@@ -444,7 +488,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       );
     }
 
-    return { ok: true, alterados: diff, salvoEm: new Date().toISOString() };
+    return { ok: true, alterados: diff, ignorados, salvoEm: new Date().toISOString() };
   });
 
 
