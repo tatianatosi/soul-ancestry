@@ -265,13 +265,27 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     if (signatarios.some((v) => !v.valor || v.status !== "validado"))
       bloqueios.push({ chave: "signatario", motivo: "Qualificação de parte/signatário obrigatória incompleta." });
 
-    if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
+    // Escopo mandatório: proposta Canva vigente aprovada, páginas 1–7.
+    const validadeEscopo = validarPropostaCanva(proposta as any, caso.id);
+    const extraidos = extrairEscopoDaProposta(proposta as any);
+    const cobertura = mapaCoberturaEscopo({
+      proposta: proposta as any,
+      extraidos,
+      valores: lista.map((v) => ({ campo: v.campo, valor: v.valor, origem: v.origem, status: v.status })),
+    });
+    const conflitosEscopo = cobertura
+      .filter((l) => l.estado === "divergente")
+      .map((l) => ({ campo: l.campo, label: l.label, proposta: l.valorProposta, outraFonte: "ficha", valor: l.divergencia ?? "" }));
+    for (const b of bloqueiosDeEscopo({ validade: validadeEscopo, extraidos, conflitos: conflitosEscopo })) {
+      bloqueios.push(b);
+    }
 
     // Validação cruzada: código canônico x Planejador x parâmetros x proposta.
     const coerencia = await conflitosCoerenciaDoRegistro(supabase, registro);
     for (const c of coerencia.conflitos) {
       bloqueios.push({ chave: CONFLITO_PAIS_ROTA, motivo: c.mensagem });
     }
+
 
     await auditar(supabase, {
       org,
