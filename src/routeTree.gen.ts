@@ -41,6 +41,7 @@ import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
+import { Route as AuthenticatedImportacoesRouteImport } from './routes/_authenticated/importacoes'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authenticated/etiquetas'
@@ -232,6 +233,12 @@ const AuthenticatedIntegracoesRoute =
     path: '/integracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedImportacoesRoute =
+  AuthenticatedImportacoesRouteImport.update({
+    id: '/importacoes',
+    path: '/importacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -408,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -468,6 +476,7 @@ export interface FileRoutesByTo {
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -531,6 +540,7 @@ export interface FileRoutesById {
   '/_authenticated/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/importacoes': typeof AuthenticatedImportacoesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
@@ -594,6 +604,7 @@ export interface FileRouteTypes {
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/importacoes'
     | '/integracoes'
     | '/leads'
     | '/ops'
@@ -654,6 +665,7 @@ export interface FileRouteTypes {
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/importacoes'
     | '/integracoes'
     | '/leads'
     | '/ops'
@@ -716,6 +728,7 @@ export interface FileRouteTypes {
     | '/_authenticated/etiquetas'
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
+    | '/_authenticated/importacoes'
     | '/_authenticated/integracoes'
     | '/_authenticated/leads'
     | '/_authenticated/ops'
@@ -1004,6 +1017,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIntegracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/importacoes': {
+      id: '/_authenticated/importacoes'
+      path: '/importacoes'
+      fullPath: '/importacoes'
+      preLoaderRoute: typeof AuthenticatedImportacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/financeiro': {
       id: '/_authenticated/financeiro'
       path: '/financeiro'
@@ -1214,6 +1234,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEtiquetasRoute: typeof AuthenticatedEtiquetasRoute
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedImportacoesRoute: typeof AuthenticatedImportacoesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
@@ -1254,6 +1275,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEtiquetasRoute: AuthenticatedEtiquetasRoute,
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedImportacoesRoute: AuthenticatedImportacoesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
