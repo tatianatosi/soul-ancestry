@@ -64,6 +64,8 @@ export type EntradaConferencia = {
   dependentesPendentes?: string[];
   /** Temas jurídicos bloqueantes ainda sem decisão registrada. */
   temasJuridicosBloqueantes?: string[];
+  /** Registro de extração das páginas 1–7 da proposta Canva. */
+  paginasCanva?: { page_number: number; extracao_status: string | null; campos_nao_localizados: string[] | null }[];
   hoje?: Date;
 };
 
@@ -91,7 +93,25 @@ export function conferirEscopo(e: EntradaConferencia): ResultadoConferencia {
   const paginas_usadas = [...new Set(campos_extraidos.flatMap((c) => c.paginas))].sort((a, b) => a - b);
   const paginasForaDoIntervalo = [...paginasDeclaradas].filter((p) => !(PAGINAS_PROPOSTA as readonly number[]).includes(p));
 
+  const paginasCanva = e.paginasCanva ?? [];
+  const paginasCanvaPendentes = (PAGINAS_PROPOSTA as readonly number[]).filter(
+    (p) => paginasCanva.find((x) => Number(x.page_number) === p)?.extracao_status !== "extraida",
+  );
+  const camposNaoLocalizadosCanva = [
+    ...new Set(paginasCanva.flatMap((p) => (p.campos_nao_localizados ?? []).map((c) => `p.${p.page_number}: ${c}`))),
+  ];
+
   const bloqueios: BloqueioConferencia[] = [];
+  if (paginasCanvaPendentes.length)
+    bloqueios.push({
+      codigo: "PROPOSTA_CANVA_EXTRACAO_INCOMPLETA",
+      descricao: `Páginas sem extração concluída: ${paginasCanvaPendentes.join(", ")}.`,
+    });
+  if (camposNaoLocalizadosCanva.length)
+    bloqueios.push({
+      codigo: "PROPOSTA_CANVA_CAMPO_NAO_LOCALIZADO",
+      descricao: `Campos declarados como não localizados: ${camposNaoLocalizadosCanva.join("; ")}.`,
+    });
   for (const m of validade.motivos) bloqueios.push({ codigo: "PROPOSTA_INVALIDA", descricao: m });
   if (paginasForaDoIntervalo.length)
     bloqueios.push({
@@ -158,6 +178,8 @@ export function conferirEscopo(e: EntradaConferencia): ResultadoConferencia {
     despesasPendentes,
     dependentesPendentes: e.dependentesPendentes ?? [],
     temasJuridicosBloqueantes: e.temasJuridicosBloqueantes ?? [],
+    paginasCanvaPendentes,
+    camposNaoLocalizadosCanva,
   };
 
   const impeditivos = bloqueios.filter((b) => b.codigo !== "CONFLITO_NAO_RESOLVIDO");
@@ -204,6 +226,8 @@ export function contextoGatesDaConferencia(r: ResultadoConferencia): ContextoGat
     autorizacaoPesquisa: ok("autorizacao_pesquisa"),
     despesasAplicaveis: !ok("despesas_aprovadas"),
     despesasPendentes: ok("despesas_aprovadas") ? [] : ["Pendência registrada em despesas de terceiros."],
+    paginasCanvaPendentes: ok("completude_canva") ? [] : [1],
+    camposNaoLocalizadosCanva: [],
     dependentesPendentes: ok("dependentes_representacao") ? [] : ["Dependente com representação pendente."],
     temasJuridicosBloqueantes: ok("matriz_juridica") ? [] : ["Tema jurídico bloqueante sem decisão."],
   };
