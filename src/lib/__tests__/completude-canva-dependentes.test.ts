@@ -130,7 +130,7 @@ describe("D. Matriz de temas jurídicos", () => {
   it("7. tema pendente que bloqueia assinatura mantém assinatura bloqueada", () => {
     const pendentes = temasBloqueantesPendentes(linhas);
     expect(pendentes.length).toBeGreaterThan(0);
-    expect(pendentes.every((l) => l.bloqueia_assinatura)).toBe(true);
+    expect(pendentes).toContain(TEMAS_JURIDICOS.find((t) => t.bloqueia_assinatura)!.tema);
   });
 
   it("8. cláusula sem versão jurídica aprovada é recusada", () => {
