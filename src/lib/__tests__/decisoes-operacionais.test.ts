@@ -75,9 +75,11 @@ describe("CA-DEC-2026-08-17-04 — superfícies e conferência", () => {
     }
   });
 
-  it("mantém a conferência amarrada às três decisões e ao caso canônico", () => {
+  it("mantém a conferência amarrada às decisões vigentes e ao caso canônico", () => {
     const codigos = new Set(DECISOES.map((d) => d.codigo));
-    expect(codigos).toEqual(new Set(["CA-DEC-2026-08-17-01", "CA-DEC-2026-08-17-03", "CA-DEC-2026-08-17-04"]));
+    expect(codigos).toEqual(
+      new Set(["CA-DEC-2026-08-17-01", "CA-DEC-2026-08-17-03", "CA-DEC-2026-08-17-04", "CA-DEC-2026-08-19-01"]),
+    );
     for (const c of CONFERENCIA) expect(codigos.has(c.decisao)).toBe(true);
     expect(CONFERENCIA.some((c) => c.evidencia.includes(CASO_CANONICO))).toBe(true);
   });
