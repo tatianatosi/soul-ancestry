@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { PainelHoje } from "@/components/painel/painel-hoje";
+import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -55,6 +56,7 @@ function Painel() {
       </div>
 
       <PainelHoje />
+      <PainelDeskHoje />
 
 
 
