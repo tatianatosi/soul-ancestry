@@ -129,7 +129,9 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const [{ data: proposta }, { data: modelo }, { data: base }, { data: membros }] = await Promise.all([
       supabase
         .from("proposals")
-        .select("id,versao,status,valor,moeda,forma_pagamento,escopo,exclusoes,validade")
+        .select(
+          "id,case_id,versao,status,valor,moeda,forma_pagamento,escopo,exclusoes,validade,archived_at,substituida_em,substituida_por_id,recusada_em,origem,origem_referencia,paginas_registradas,escopo_paginas",
+        )
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .order("versao", { ascending: false })
