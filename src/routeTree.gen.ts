@@ -46,6 +46,7 @@ import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authenticated/etiquetas'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
@@ -259,6 +260,11 @@ const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   path: '/equipe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConversaoRoute = AuthenticatedConversaoRouteImport.update({
+  id: '/conversao',
+  path: '/conversao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConfiguracoesRoute =
   AuthenticatedConfiguracoesRouteImport.update({
     id: '/configuracoes',
@@ -411,6 +417,7 @@ export interface FileRoutesByFullPath {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
@@ -472,6 +479,7 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
@@ -536,6 +544,7 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
@@ -600,6 +609,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/clientes'
     | '/configuracoes'
+    | '/conversao'
     | '/equipe'
     | '/etiquetas'
     | '/evidencias'
@@ -661,6 +671,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/clientes'
     | '/configuracoes'
+    | '/conversao'
     | '/equipe'
     | '/etiquetas'
     | '/evidencias'
@@ -724,6 +735,7 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/conversao'
     | '/_authenticated/equipe'
     | '/_authenticated/etiquetas'
     | '/_authenticated/evidencias'
@@ -1052,6 +1064,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEquipeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/conversao': {
+      id: '/_authenticated/conversao'
+      path: '/conversao'
+      fullPath: '/conversao'
+      preLoaderRoute: typeof AuthenticatedConversaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/configuracoes': {
       id: '/_authenticated/configuracoes'
       path: '/configuracoes'
@@ -1230,6 +1249,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEtiquetasRoute: typeof AuthenticatedEtiquetasRoute
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
@@ -1271,6 +1291,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEtiquetasRoute: AuthenticatedEtiquetasRoute,
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
