@@ -5292,7 +5292,10 @@ export type Database = {
           derivada_de_id: string | null
           enviada_em: string | null
           escopo: string | null
+          escopo_paginas: Json
           exclusoes: string | null
+          extracao_em: string | null
+          extracao_por: string | null
           forma_pagamento: string | null
           id: string
           lead_id: string | null
@@ -5300,6 +5303,9 @@ export type Database = {
           observacoes_cliente: string | null
           observacoes_internas: string | null
           organization_id: string
+          origem: string
+          origem_referencia: string | null
+          paginas_registradas: number[]
           recusada_em: string | null
           restauracao_motivo: string | null
           restaurado_em: string | null
@@ -5328,7 +5334,10 @@ export type Database = {
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          escopo_paginas?: Json
           exclusoes?: string | null
+          extracao_em?: string | null
+          extracao_por?: string | null
           forma_pagamento?: string | null
           id?: string
           lead_id?: string | null
@@ -5336,6 +5345,9 @@ export type Database = {
           observacoes_cliente?: string | null
           observacoes_internas?: string | null
           organization_id: string
+          origem?: string
+          origem_referencia?: string | null
+          paginas_registradas?: number[]
           recusada_em?: string | null
           restauracao_motivo?: string | null
           restaurado_em?: string | null
@@ -5364,7 +5376,10 @@ export type Database = {
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          escopo_paginas?: Json
           exclusoes?: string | null
+          extracao_em?: string | null
+          extracao_por?: string | null
           forma_pagamento?: string | null
           id?: string
           lead_id?: string | null
@@ -5372,6 +5387,9 @@ export type Database = {
           observacoes_cliente?: string | null
           observacoes_internas?: string | null
           organization_id?: string
+          origem?: string
+          origem_referencia?: string | null
+          paginas_registradas?: number[]
           recusada_em?: string | null
           restauracao_motivo?: string | null
           restaurado_em?: string | null
