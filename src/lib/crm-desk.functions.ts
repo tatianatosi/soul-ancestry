@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { calcularMetricasCrm, montarFilasHoje, validarLead, type LeadDesk } from "@/lib/crm-desk";
+import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
 
@@ -208,6 +209,7 @@ export const salvarDependente = createServerFn({ method: "POST" })
     if (data.id) {
       const { error } = await supabase.from("case_dependents").update({ ...patch, updated_by: userId }).eq("id", data.id);
       if (error) throw new Error(error.message);
+      await sincronizarParametroDependentes(supabase, data.caseId);
       return { ok: true };
     }
     const { data: caso } = await supabase.from("crm_casos").select("organization_id").eq("id", data.caseId).maybeSingle();
@@ -220,6 +222,7 @@ export const salvarDependente = createServerFn({ method: "POST" })
       updated_by: userId,
     });
     if (error) throw new Error(error.message);
+    await sincronizarParametroDependentes(supabase, data.caseId);
     return { ok: true };
   });
 
