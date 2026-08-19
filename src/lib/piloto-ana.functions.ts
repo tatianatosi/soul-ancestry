@@ -99,7 +99,8 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
           organization_id: organizationId,
           case_id: caso.id,
           nome: "Núcleo Silveira Rodrigues",
-          observacao_interna: "Adriel Felipe não integra este caso: processo separado, fora de escopo.",
+          contratante_nome: PILOTO_ANA.nome,
+          descricao: "Adriel Felipe não integra este caso: processo separado, fora de escopo.",
         })
         .select("id")
         .single();
@@ -109,15 +110,18 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
 
     const { data: membrosAtuais } = await supabase.from("nucleo_membros").select("nome").eq("nucleo_id", nucleoId);
     const nomes = new Set(((membrosAtuais ?? []) as Linha[]).map((m) => String(m.nome)));
+    let ordem = 0;
     for (const m of NUCLEO_PILOTO) {
+      ordem += 1;
       if (nomes.has(m.nome)) continue;
       await supabase.from("nucleo_membros").insert({
         organization_id: organizationId,
         nucleo_id: nucleoId,
         nome: m.nome,
         papel: m.papel,
-        signatario: m.signatario,
-        observacao_interna: `${m.situacao}. ${m.observacao}`,
+        vinculo: m.signatario ? "signatário" : "dependente",
+        processo: `${m.situacao}. ${m.observacao}`,
+        ordem,
       });
     }
 
