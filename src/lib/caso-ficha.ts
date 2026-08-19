@@ -242,3 +242,134 @@ export function sugerirVia(input: { pais?: string | null; processoConsular?: boo
   if (input.processoConsular) return "administrativa";
   return null;
 }
+
+/* ---------------- Próxima ação: público, visibilidade e canal ---------------- */
+
+export const TARGET_AUDIENCE: Opcao[] = [
+  { valor: "interno_tatiana", rotulo: "Interno — Tatiana" },
+  { valor: "cliente_contratante", rotulo: "Cliente contratante" },
+  { valor: "participante_nucleo", rotulo: "Participante do núcleo" },
+  { valor: "responsavel_legal", rotulo: "Responsável legal" },
+  { valor: "colaborador_autorizado", rotulo: "Colaborador autorizado" },
+];
+
+export const VISIBILITY: Opcao[] = [
+  { valor: "internal_only", rotulo: "Somente interno" },
+  { valor: "client_sanitized", rotulo: "Cliente — conteúdo sanitizado" },
+  { valor: "restricted", rotulo: "Restrito" },
+];
+
+export const SUGGESTED_CHANNEL: Opcao[] = [
+  { valor: "desk_only", rotulo: "Somente Desk" },
+  { valor: "app", rotulo: "App Cliente" },
+  { valor: "whatsapp", rotulo: "WhatsApp" },
+  { valor: "app_and_whatsapp", rotulo: "App + WhatsApp" },
+  { valor: "email", rotulo: "E-mail" },
+  { valor: "decide_later", rotulo: "Decidir depois" },
+];
+
+export const COMMUNICATION_STATUS: Opcao[] = [
+  { valor: "not_applicable", rotulo: "Não se aplica" },
+  { valor: "draft_created", rotulo: "Rascunho criado" },
+  { valor: "awaiting_approval", rotulo: "Aguardando aprovação" },
+  { valor: "approved", rotulo: "Aprovado (sem envio)" },
+  { valor: "sent", rotulo: "Enviado" },
+  { valor: "cancelled", rotulo: "Cancelado" },
+  { valor: "failed", rotulo: "Falhou" },
+];
+
+export const ALERT_STATUS: Opcao[] = [
+  { valor: "pending", rotulo: "Pendente" },
+  { valor: "alerted", rotulo: "Alertado" },
+  { valor: "acknowledged", rotulo: "Ciente" },
+  { valor: "completed", rotulo: "Concluído" },
+  { valor: "overdue", rotulo: "Vencido" },
+];
+
+export const SINAL_ADERENCIA: Opcao[] = [
+  { valor: "forte", rotulo: "Forte" },
+  { valor: "provavel", rotulo: "Provável" },
+  { valor: "possivel_com_pesquisa", rotulo: "Possível com pesquisa" },
+  { valor: "inconclusivo", rotulo: "Inconclusivo" },
+  { valor: "sem_aderencia", rotulo: "Sem aderência" },
+  { valor: "em_investigacao", rotulo: "Em investigação" },
+];
+
+export const CONFIANCA_TRIAGEM: Opcao[] = [
+  { valor: "alta", rotulo: "Alta" },
+  { valor: "media", rotulo: "Média" },
+  { valor: "baixa", rotulo: "Baixa" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const STATUS_CASE_SERVICE: Opcao[] = [
+  { valor: "draft", rotulo: "Rascunho" },
+  { valor: "approved", rotulo: "Aprovado" },
+  { valor: "contracted", rotulo: "Contratado" },
+  { valor: "active", rotulo: "Ativo" },
+  { valor: "completed", rotulo: "Concluído" },
+  { valor: "cancelled", rotulo: "Cancelado" },
+];
+
+export const STATUS_ONBOARDING_ITEM: Opcao[] = [
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "em_andamento", rotulo: "Em andamento" },
+  { valor: "concluido", rotulo: "Concluído" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+];
+
+/** Mapeamento normativo de destino por próxima ação. Nada é enviado automaticamente. */
+export type MapaAcao = {
+  desk: boolean;
+  app: "bloqueado" | "sanitizado_com_onboarding" | "publicado";
+  rascunhoWhatsapp: boolean;
+  audience: string;
+  visibility: string;
+  channel: string;
+};
+
+export const MAPA_ACOES: Record<string, MapaAcao> = {
+  solicitar_confirmacao_formal: { desk: true, app: "bloqueado", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "whatsapp" },
+  solicitar_dados_cadastrais: { desk: true, app: "bloqueado", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "whatsapp" },
+  preparar_contrato: { desk: true, app: "bloqueado", rascunhoWhatsapp: false, audience: "interno_tatiana", visibility: "internal_only", channel: "desk_only" },
+  confirmar_assinatura: { desk: true, app: "bloqueado", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "whatsapp" },
+  confirmar_pagamento: { desk: true, app: "bloqueado", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "whatsapp" },
+  iniciar_onboarding: { desk: true, app: "sanitizado_com_onboarding", rascunhoWhatsapp: false, audience: "interno_tatiana", visibility: "internal_only", channel: "desk_only" },
+  enviar_checklist_inicial: { desk: true, app: "sanitizado_com_onboarding", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "app_and_whatsapp" },
+  solicitar_documentos: { desk: true, app: "sanitizado_com_onboarding", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "app_and_whatsapp" },
+  revisar_documentos: { desk: true, app: "bloqueado", rascunhoWhatsapp: false, audience: "interno_tatiana", visibility: "internal_only", channel: "desk_only" },
+  publicar_primeira_micro_entrega: { desk: true, app: "publicado", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "app_and_whatsapp" },
+  atualizar_cliente: { desk: true, app: "sanitizado_com_onboarding", rascunhoWhatsapp: true, audience: "cliente_contratante", visibility: "client_sanitized", channel: "whatsapp" },
+};
+
+export function mapaDaAcao(codigo: string | null | undefined): MapaAcao {
+  return (
+    MAPA_ACOES[String(codigo ?? "")] ?? {
+      desk: true,
+      app: "bloqueado",
+      rascunhoWhatsapp: false,
+      audience: "interno_tatiana",
+      visibility: "internal_only",
+      channel: "desk_only",
+    }
+  );
+}
+
+/** Gates mínimos exigidos antes de considerar "cliente/caso ativo". */
+export function gatesClienteAtivo(input: {
+  contrato_assinado?: boolean | null;
+  pagamento_confirmado?: boolean | null;
+  responsavel_principal?: string | null;
+  nucleo_ok?: boolean;
+  dossie_mae?: string | null;
+  plano_inicial_ok?: boolean;
+}): { chave: string; rotulo: string; ok: boolean }[] {
+  return [
+    { chave: "contrato", rotulo: "Contrato assinado", ok: Boolean(input.contrato_assinado) },
+    { chave: "pagamento", rotulo: "Pagamento inicial confirmado", ok: Boolean(input.pagamento_confirmado) },
+    { chave: "responsavel", rotulo: "Responsável principal definido", ok: Boolean(input.responsavel_principal) },
+    { chave: "nucleo", rotulo: "Núcleo familiar definido", ok: Boolean(input.nucleo_ok) },
+    { chave: "dossie", rotulo: "Dossiê-mãe vinculado", ok: Boolean(input.dossie_mae) },
+    { chave: "plano", rotulo: "Plano inicial/checklist criados", ok: Boolean(input.plano_inicial_ok) },
+  ];
+}
