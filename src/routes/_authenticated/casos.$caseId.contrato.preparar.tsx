@@ -9,12 +9,14 @@ import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EscopoProposta } from "@/components/contrato/escopo-proposta";
+import { CompletudeCanva } from "@/components/contrato/completude-canva";
 import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
+import { PainelDependentes } from "@/components/contrato/painel-dependentes";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelPreparacao } from "@/components/contrato/painel-preparacao";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
@@ -54,6 +56,7 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/pre
 
 function Pagina() {
   const { caseId } = Route.useParams();
+  const { podeEscrever } = useSaas();
   const qc = useQueryClient();
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
@@ -224,7 +227,11 @@ function Pagina() {
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
 
+        <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+
         <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
+
+        <PainelDependentes caseId={caseId} podeEscrever={podeEscrever} />
 
         <RegraComercial caseId={caseId} />
 

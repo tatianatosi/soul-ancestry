@@ -569,6 +569,114 @@ export type Database = {
           },
         ]
       }
+      case_dependents: {
+        Row: {
+          anexo_individual_aplicavel: boolean
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          dependent_person_id: string | null
+          documento_representacao_referencia_interna: string | null
+          id: string
+          nome_completo: string
+          observacao_interna: string | null
+          organization_id: string
+          participa_do_contrato: boolean
+          possui_acesso_app: boolean
+          status_representacao: string
+          titular_responsavel_legal_id: string | null
+          titular_responsavel_legal_nome: string | null
+          updated_at: string
+          updated_by: string | null
+          vinculo_com_titular: string
+        }
+        Insert: {
+          anexo_individual_aplicavel?: boolean
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          dependent_person_id?: string | null
+          documento_representacao_referencia_interna?: string | null
+          id?: string
+          nome_completo: string
+          observacao_interna?: string | null
+          organization_id: string
+          participa_do_contrato?: boolean
+          possui_acesso_app?: boolean
+          status_representacao?: string
+          titular_responsavel_legal_id?: string | null
+          titular_responsavel_legal_nome?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vinculo_com_titular: string
+        }
+        Update: {
+          anexo_individual_aplicavel?: boolean
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          dependent_person_id?: string | null
+          documento_representacao_referencia_interna?: string | null
+          id?: string
+          nome_completo?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          participa_do_contrato?: boolean
+          possui_acesso_app?: boolean
+          status_representacao?: string
+          titular_responsavel_legal_id?: string | null
+          titular_responsavel_legal_nome?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          vinculo_com_titular?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_dependents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dependents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dependents_dependent_person_id_fkey"
+            columns: ["dependent_person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dependents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dependents_titular_responsavel_legal_id_fkey"
+            columns: ["titular_responsavel_legal_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_members: {
         Row: {
           archive_motivo: string | null
@@ -5102,60 +5210,171 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          area_responsavel: string | null
+          asaas_evento_referencia: string | null
+          call_agendada_em: string | null
+          call_realizada_em: string | null
+          case_id: string | null
+          codigo: string | null
+          contrato_link_interno: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           demo: boolean
+          discovery_resultado: string | null
+          eixo_comercial: string
+          eixo_formalizacao: string
           email: string | null
           estagio: string
           id: string
+          marco_preliminar: string | null
+          motivo_perda: string | null
+          nacionalidade: string | null
+          narrativa_familiar: string | null
           nome: string
+          nucleo_id: string | null
+          objetivo: string | null
           observacoes: string | null
           organization_id: string
           origem: string | null
+          pagamento_previsto_em: string | null
           pais_interesse: string | null
+          proposta_link_interno: string | null
+          proposta_referencia_interna: string | null
+          proxima_acao: string | null
+          proxima_acao_em: string | null
+          responsavel_nome: string | null
+          responsavel_user_id: string | null
+          resumo_call: string | null
+          resumo_validado: boolean
+          servico_inicial_aprovado: string | null
+          status_via: string | null
           telefone: string | null
+          ultimo_followup_em: string | null
           updated_at: string
           updated_by: string | null
+          via_juridica_preliminar: string | null
         }
         Insert: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          area_responsavel?: string | null
+          asaas_evento_referencia?: string | null
+          call_agendada_em?: string | null
+          call_realizada_em?: string | null
+          case_id?: string | null
+          codigo?: string | null
+          contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           demo?: boolean
+          discovery_resultado?: string | null
+          eixo_comercial?: string
+          eixo_formalizacao?: string
           email?: string | null
           estagio?: string
           id?: string
+          marco_preliminar?: string | null
+          motivo_perda?: string | null
+          nacionalidade?: string | null
+          narrativa_familiar?: string | null
           nome: string
+          nucleo_id?: string | null
+          objetivo?: string | null
           observacoes?: string | null
           organization_id: string
           origem?: string | null
+          pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          proposta_link_interno?: string | null
+          proposta_referencia_interna?: string | null
+          proxima_acao?: string | null
+          proxima_acao_em?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          resumo_call?: string | null
+          resumo_validado?: boolean
+          servico_inicial_aprovado?: string | null
+          status_via?: string | null
           telefone?: string | null
+          ultimo_followup_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          via_juridica_preliminar?: string | null
         }
         Update: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          area_responsavel?: string | null
+          asaas_evento_referencia?: string | null
+          call_agendada_em?: string | null
+          call_realizada_em?: string | null
+          case_id?: string | null
+          codigo?: string | null
+          contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           demo?: boolean
+          discovery_resultado?: string | null
+          eixo_comercial?: string
+          eixo_formalizacao?: string
           email?: string | null
           estagio?: string
           id?: string
+          marco_preliminar?: string | null
+          motivo_perda?: string | null
+          nacionalidade?: string | null
+          narrativa_familiar?: string | null
           nome?: string
+          nucleo_id?: string | null
+          objetivo?: string | null
           observacoes?: string | null
           organization_id?: string
           origem?: string | null
+          pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          proposta_link_interno?: string | null
+          proposta_referencia_interna?: string | null
+          proxima_acao?: string | null
+          proxima_acao_em?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          resumo_call?: string | null
+          resumo_validado?: boolean
+          servico_inicial_aprovado?: string | null
+          status_via?: string | null
           telefone?: string | null
+          ultimo_followup_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          via_juridica_preliminar?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_nucleo_id_fkey"
+            columns: ["nucleo_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_organization_id_fkey"
             columns: ["organization_id"]
@@ -5223,6 +5442,83 @@ export type Database = {
             columns: ["migration_batch_id"]
             isOneToOne: false
             referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_clause_matrix: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueia_assinatura: boolean
+          created_at: string
+          created_by: string | null
+          decidido_em: string | null
+          decisao: string | null
+          id: string
+          impacto_templates: string[]
+          justificativa: string | null
+          organization_id: string
+          referencia_versao: string | null
+          responsavel_revisao: string | null
+          status: string
+          tema: string
+          tema_codigo: string
+          updated_at: string
+          updated_by: string | null
+          versao_juridica_aplicavel: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueia_assinatura?: boolean
+          created_at?: string
+          created_by?: string | null
+          decidido_em?: string | null
+          decisao?: string | null
+          id?: string
+          impacto_templates?: string[]
+          justificativa?: string | null
+          organization_id: string
+          referencia_versao?: string | null
+          responsavel_revisao?: string | null
+          status?: string
+          tema: string
+          tema_codigo: string
+          updated_at?: string
+          updated_by?: string | null
+          versao_juridica_aplicavel?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueia_assinatura?: boolean
+          created_at?: string
+          created_by?: string | null
+          decidido_em?: string | null
+          decisao?: string | null
+          id?: string
+          impacto_templates?: string[]
+          justificativa?: string | null
+          organization_id?: string
+          referencia_versao?: string | null
+          responsavel_revisao?: string | null
+          status?: string
+          tema?: string
+          tema_codigo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao_juridica_aplicavel?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_clause_matrix_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -6882,6 +7178,98 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_canva_pages: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          campos_nao_localizados: string[]
+          case_id: string | null
+          created_at: string
+          created_by: string | null
+          extracao_status: string
+          extraido_em: string
+          extraido_por: string | null
+          id: string
+          observacao_interna: string | null
+          organization_id: string
+          page_content_structured: Json
+          page_number: number
+          proposal_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campos_nao_localizados?: string[]
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          extracao_status?: string
+          extraido_em?: string
+          extraido_por?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id: string
+          page_content_structured?: Json
+          page_number: number
+          proposal_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campos_nao_localizados?: string[]
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          extracao_status?: string
+          extraido_em?: string
+          extraido_por?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          page_content_structured?: Json
+          page_number?: number
+          proposal_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_canva_pages_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_canva_pages_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_canva_pages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_canva_pages_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposals: {
         Row: {
           aprovada_em: string | null
@@ -6892,6 +7280,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          deck_referencia_interna: string | null
           derivada_de_id: string | null
           enviada_em: string | null
           escopo: string | null
@@ -6899,6 +7288,7 @@ export type Database = {
           exclusoes: string | null
           extracao_em: string | null
           extracao_por: string | null
+          extracao_status: string
           forma_pagamento: string | null
           id: string
           lead_id: string | null
@@ -6934,6 +7324,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deck_referencia_interna?: string | null
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
@@ -6941,6 +7332,7 @@ export type Database = {
           exclusoes?: string | null
           extracao_em?: string | null
           extracao_por?: string | null
+          extracao_status?: string
           forma_pagamento?: string | null
           id?: string
           lead_id?: string | null
@@ -6976,6 +7368,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          deck_referencia_interna?: string | null
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
@@ -6983,6 +7376,7 @@ export type Database = {
           exclusoes?: string | null
           extracao_em?: string | null
           extracao_por?: string | null
+          extracao_status?: string
           forma_pagamento?: string | null
           id?: string
           lead_id?: string | null

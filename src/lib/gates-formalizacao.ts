@@ -36,6 +36,7 @@ export const ROTULO_ACAO: Record<AcaoGateada, string> = {
 
 export const GATES = [
   "proposta_valida",
+  "completude_canva",
   "escopo_conferido",
   "conflitos_resolvidos",
   "produto_condicao_homologados",
@@ -48,11 +49,14 @@ export const GATES = [
   "pagamento",
   "autorizacao_pesquisa",
   "despesas_aprovadas",
+  "dependentes_representacao",
+  "matriz_juridica",
 ] as const;
 export type Gate = (typeof GATES)[number];
 
 export const ROTULO_GATE: Record<Gate, string> = {
   proposta_valida: "Proposta Canva válida",
+  completude_canva: "Proposta Canva extraída e completa (páginas 1–7)",
   escopo_conferido: "Escopo conferido",
   conflitos_resolvidos: "Conflitos resolvidos",
   produto_condicao_homologados: "Produto e condição homologados",
@@ -65,22 +69,27 @@ export const ROTULO_GATE: Record<Gate, string> = {
   pagamento: "Pagamento",
   autorizacao_pesquisa: "Autorização de pesquisa",
   despesas_aprovadas: "Despesas de terceiros aprovadas (se aplicável)",
+  dependentes_representacao: "Dependentes com representação resolvida (se aplicável)",
+  matriz_juridica: "Temas jurídicos bloqueantes decididos",
 };
 
 /** Gates exigidos por ação. Cada ação só passa com todos os seus gates verdes. */
 export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
   gerar_versao_final: [
     "proposta_valida",
+    "completude_canva",
     "escopo_conferido",
     "conflitos_resolvidos",
     "produto_condicao_homologados",
     "cadastro_completo",
     "nucleo_familiar_validado",
     "representacao_menor",
+    "dependentes_representacao",
   ],
-  preparar_anexo_escopo: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos"],
+  preparar_anexo_escopo: ["proposta_valida", "completude_canva", "escopo_conferido", "conflitos_resolvidos"],
   preparar_anexo_comercial: [
     "proposta_valida",
+    "completude_canva",
     "escopo_conferido",
     "conflitos_resolvidos",
     "produto_condicao_homologados",
@@ -88,6 +97,7 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
   ],
   solicitar_assinatura: [
     "proposta_valida",
+    "completude_canva",
     "escopo_conferido",
     "conflitos_resolvidos",
     "produto_condicao_homologados",
@@ -96,9 +106,12 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "representacao_menor",
     "revisao_juridica",
     "contrato_os_prontos",
+    "dependentes_representacao",
+    "matriz_juridica",
   ],
   liberar_formalizacao_financeiro: [
     "proposta_valida",
+    "completude_canva",
     "escopo_conferido",
     "conflitos_resolvidos",
     "produto_condicao_homologados",
@@ -114,13 +127,21 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
   ],
   formalizacao_contrato_enviado: [
     "proposta_valida",
+    "completude_canva",
     "escopo_conferido",
     "conflitos_resolvidos",
     "produto_condicao_homologados",
     "revisao_juridica",
     "contrato_os_prontos",
   ],
-  formalizacao_contrato_assinado: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos", "contrato_os_prontos", "assinatura"],
+  formalizacao_contrato_assinado: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "contrato_os_prontos",
+    "assinatura",
+    "matriz_juridica",
+  ],
   formalizacao_pagamento_confirmado: [
     "proposta_valida",
     "escopo_conferido",
@@ -139,6 +160,7 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "pagamento",
     "autorizacao_pesquisa",
     "despesas_aprovadas",
+    "dependentes_representacao",
   ],
 };
 
@@ -161,6 +183,14 @@ export type ContextoGates = {
   autorizacaoPesquisa: boolean;
   despesasAplicaveis: boolean;
   despesasPendentes: string[];
+  /** Dependentes que participam de contrato/App/anexo com representação pendente. */
+  dependentesPendentes?: string[];
+  /** Temas da matriz jurídica marcados como bloqueantes e ainda não decididos. */
+  temasJuridicosBloqueantes?: string[];
+  /** Páginas 1–7 da proposta Canva sem extração concluída. */
+  paginasCanvaPendentes?: number[];
+  /** Campos declarados como não localizados na extração das páginas. */
+  camposNaoLocalizadosCanva?: string[];
 };
 
 export type AvaliacaoGate = { gate: Gate; label: string; ok: boolean; motivo: string | null };
@@ -178,6 +208,11 @@ export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
       "proposta_valida",
       c.propostaValida,
       c.propostaMotivos?.length ? c.propostaMotivos.join(" ") : "Proposta Canva inválida como fonte de escopo.",
+    ),
+    g(
+      "completude_canva",
+      (c.paginasCanvaPendentes ?? []).length === 0 && (c.camposNaoLocalizadosCanva ?? []).length === 0,
+      `Extração da proposta Canva incompleta: ${[...(c.paginasCanvaPendentes ?? []).map((p) => `página ${p}`), ...(c.camposNaoLocalizadosCanva ?? [])].join(", ")}.`,
     ),
     g(
       "escopo_conferido",
@@ -208,6 +243,20 @@ export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
       "despesas_aprovadas",
       !c.despesasAplicaveis || c.despesasPendentes.length === 0,
       `${c.despesasPendentes.length} pendência(s) em despesas de terceiros: ${c.despesasPendentes.join(" ")}`,
+    ),
+    g(
+      "dependentes_representacao",
+      (c.dependentesPendentes ?? []).length === 0,
+      `${(c.dependentesPendentes ?? []).length} dependente(s) com representação pendente participando de contrato, App ou anexo: ${(
+        c.dependentesPendentes ?? []
+      ).join(", ")}.`,
+    ),
+    g(
+      "matriz_juridica",
+      (c.temasJuridicosBloqueantes ?? []).length === 0,
+      `${(c.temasJuridicosBloqueantes ?? []).length} tema(s) jurídico(s) bloqueante(s) sem decisão registrada: ${(
+        c.temasJuridicosBloqueantes ?? []
+      ).join(", ")}.`,
     ),
   ];
 }

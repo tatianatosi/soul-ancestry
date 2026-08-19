@@ -85,6 +85,7 @@ const NAV = [
   { to: "/propostas", label: "Propostas", icon: FileText },
   { to: "/contratos", label: "Contratos", icon: FileSignature },
   { to: "/contrato-parametros", label: "Dados parametrizáveis", icon: FileSignature },
+  { to: "/matriz-juridica", label: "Matriz jurídica interna", icon: FileSignature },
   { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/privacidade", label: "Privacidade e documentos", icon: ShieldCheck },

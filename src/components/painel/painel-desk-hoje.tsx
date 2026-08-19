@@ -1,0 +1,135 @@
+import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { painelHojeDesk } from "@/lib/crm-desk.functions";
+
+/**
+ * Painel Hoje do Desk comercial: filas ordenadas por criticidade e leitura
+ * operacional. Somente leitura — nenhuma ação é disparada daqui.
+ */
+export function PainelDeskHoje() {
+  const carregar = useServerFn(painelHojeDesk);
+  const q = useQuery({ queryKey: ["painel-desk-hoje"], queryFn: () => carregar(), retry: false });
+
+  if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando filas do Desk…</p>;
+  if (q.isError || !q.data) return null;
+
+  const { filas, metricas } = q.data;
+
+  return (
+    <section className="mt-8">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="font-serif text-xl text-navy">Hoje no Desk comercial</h2>
+        <Link to="/leads" className="text-xs text-navy/60 underline">
+          Abrir CRM de leads
+        </Link>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {filas.map((f) => (
+          <div key={f.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs uppercase tracking-wide text-navy/50">{f.rotulo}</p>
+              <span className="font-serif text-2xl text-navy">{f.itens.length}</span>
+            </div>
+            <ul className="mt-2 space-y-1 text-xs text-navy/60">
+              {f.itens.slice(0, 4).map((i) => (
+                <li key={`${f.chave}-${i.id}`}>
+                  {i.tipo === "caso" ? (
+                    <Link to="/casos/$caseId" params={{ caseId: i.id }} className="underline">
+                      {i.rotulo}
+                    </Link>
+                  ) : (
+                    <Link to="/leads" className="underline">
+                      {i.rotulo}
+                    </Link>
+                  )}{" "}
+                  — {i.detalhe}
+                  {i.data ? ` · ${String(i.data).slice(0, 10)}` : ""}
+                </li>
+              ))}
+              {!f.itens.length ? <li>Fila vazia.</li> : null}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Funil comercial</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            {metricas.funil.map((e) => (
+              <li key={e.etapa}>
+                {e.etapa}: {e.para}/{e.de} {e.taxa === null ? "" : `(${e.taxa}%)`}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Discovery</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            <li>Agendadas: {metricas.calls.agendadas}</li>
+            <li>Realizadas: {metricas.calls.realizadas}</li>
+            <li>No-show: {metricas.calls.noShow}</li>
+            <li>Conversão agendada → realizada: {metricas.calls.conversao === null ? "—" : `${metricas.calls.conversao}%`}</li>
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Higiene operacional</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            <li>Leads sem próxima ação: {metricas.semProximaAcao}</li>
+            <li>Follow-ups vencidos: {metricas.followupsVencidos}</li>
+            {metricas.pendenciasDocumentais.slice(0, 3).map((p) => (
+              <li key={p.chave}>
+                Pendência documental — {p.chave}: {p.total}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Leads por origem</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            {metricas.porOrigem.slice(0, 6).map((o) => (
+              <li key={o.origem}>
+                {o.origem}: {o.total}
+              </li>
+            ))}
+            {!metricas.porOrigem.length ? <li>Sem origens registradas.</li> : null}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Casos por nacionalidade e via</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            {metricas.casosPorNacionalidadeVia.slice(0, 6).map((c) => (
+              <li key={c.chave}>
+                {c.chave}: {c.total}
+              </li>
+            ))}
+            {!metricas.casosPorNacionalidadeVia.length ? <li>Sem casos ativos classificados.</li> : null}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Entrada de leads</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            {metricas.entradaMensal.slice(-4).map((m) => (
+              <li key={m.periodo}>
+                {m.periodo}: {m.total}
+              </li>
+            ))}
+            {metricas.entradaSemanal.slice(-2).map((m) => (
+              <li key={m.periodo}>
+                Semana {m.periodo}: {m.total}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
