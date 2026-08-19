@@ -66,6 +66,7 @@ import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
+import { Route as AuthenticatedCasosIdRouteImport } from './routes/_authenticated/casos.$id'
 import { Route as AuthenticatedCasosCaseIdContratoPrepararRouteImport } from './routes/_authenticated/casos.$caseId.contrato.preparar'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
@@ -370,6 +371,11 @@ const AuthenticatedContratoParametrosIdRoute =
     path: '/contrato-parametros/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCasosIdRoute = AuthenticatedCasosIdRouteImport.update({
+  id: '/casos/$id',
+  path: '/casos/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCasosCaseIdContratoPrepararRoute =
   AuthenticatedCasosCaseIdContratoPrepararRouteImport.update({
     id: '/casos/$caseId/contrato/preparar',
@@ -418,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/casos/$id': typeof AuthenticatedCasosIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -476,6 +483,7 @@ export interface FileRoutesByTo {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
+  '/casos/$id': typeof AuthenticatedCasosIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -537,6 +545,7 @@ export interface FileRoutesById {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
+  '/_authenticated/casos/$id': typeof AuthenticatedCasosIdRoute
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -598,6 +607,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/casos/$id'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/governanca/decisoes'
@@ -656,6 +666,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal'
+    | '/casos/$id'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/governanca/decisoes'
@@ -716,6 +727,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/proposta'
     | '/portal/'
+    | '/_authenticated/casos/$id'
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/governanca/decisoes'
@@ -1154,6 +1166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/casos/$id': {
+      id: '/_authenticated/casos/$id'
+      path: '/casos/$id'
+      fullPath: '/casos/$id'
+      preLoaderRoute: typeof AuthenticatedCasosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/casos/$caseId/contrato/preparar': {
       id: '/_authenticated/casos/$caseId/contrato/preparar'
       path: '/casos/$caseId/contrato/preparar'
@@ -1185,6 +1204,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
+  AuthenticatedCasosIdRoute: typeof AuthenticatedCasosIdRoute
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
@@ -1223,6 +1243,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
+  AuthenticatedCasosIdRoute: AuthenticatedCasosIdRoute,
   AuthenticatedContratoParametrosIdRoute:
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,

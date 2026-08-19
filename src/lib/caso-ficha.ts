@@ -1,0 +1,244 @@
+/**
+ * Ficha operacional canônica do caso (Desk Intelligence).
+ *
+ * Catálogos controlados e derivações. Nada aqui infere dado ausente:
+ * quando falta informação, o estado é explicitamente "pendente".
+ */
+
+export type Opcao = { valor: string; rotulo: string };
+
+export const EIXO_COMERCIAL: Opcao[] = [
+  { valor: "novo_lead", rotulo: "Novo lead" },
+  { valor: "triagem", rotulo: "Triagem" },
+  { valor: "discovery_agendada", rotulo: "Discovery agendada" },
+  { valor: "discovery_realizada", rotulo: "Discovery realizada" },
+  { valor: "diagnostico_em_elaboracao", rotulo: "Diagnóstico em elaboração" },
+  { valor: "proposta_enviada", rotulo: "Proposta enviada" },
+  { valor: "negociacao", rotulo: "Negociação" },
+  { valor: "aceite_verbal", rotulo: "Aceite verbal" },
+  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
+  { valor: "nutricao", rotulo: "Nutrição" },
+  { valor: "perdido", rotulo: "Perdido" },
+  { valor: "encerrado_sem_aderencia", rotulo: "Encerrado sem aderência" },
+];
+
+export const EIXO_FORMALIZACAO: Opcao[] = [
+  { valor: "nao_iniciado", rotulo: "Não iniciado" },
+  { valor: "formalizacao_em_preparacao", rotulo: "Formalização em preparação" },
+  { valor: "contrato_enviado", rotulo: "Contrato enviado" },
+  { valor: "contrato_assinado", rotulo: "Contrato assinado" },
+  { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
+  { valor: "onboarding_iniciado", rotulo: "Onboarding iniciado" },
+  { valor: "caso_ativo", rotulo: "Caso ativo" },
+  { valor: "arquivado", rotulo: "Arquivado" },
+];
+
+export const STATUS_DERIVADO: Opcao[] = [
+  { valor: "pre_onboarding_bloqueado", rotulo: "Pré-onboarding bloqueado" },
+  { valor: "formalizacao_pendente", rotulo: "Formalização pendente" },
+  { valor: "onboarding_pendente", rotulo: "Onboarding pendente" },
+  { valor: "em_execucao", rotulo: "Em execução" },
+  { valor: "aguardando_cliente", rotulo: "Aguardando cliente" },
+  { valor: "aguardando_terceiro", rotulo: "Aguardando terceiro" },
+  { valor: "concluido", rotulo: "Concluído" },
+  { valor: "arquivado", rotulo: "Arquivado" },
+];
+
+export const PAISES_LINHA: Opcao[] = [
+  { valor: "austria", rotulo: "Áustria" },
+  { valor: "italia", rotulo: "Itália" },
+  { valor: "portugal", rotulo: "Portugal" },
+  { valor: "espanha", rotulo: "Espanha" },
+  { valor: "alemanha", rotulo: "Alemanha" },
+  { valor: "polonia", rotulo: "Polônia" },
+  { valor: "brasil", rotulo: "Brasil" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const VIAS_JURIDICAS: Opcao[] = [
+  { valor: "administrativa", rotulo: "Administrativa" },
+  { valor: "judicial_em_confirmacao", rotulo: "Judicial — em confirmação" },
+  { valor: "naturalizacao_residencia_em_confirmacao", rotulo: "Naturalização/residência — em confirmação" },
+  { valor: "reparacao_historica_em_confirmacao", rotulo: "Reparação histórica — em confirmação" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const STATUS_VIA: Opcao[] = [
+  { valor: "sugerida", rotulo: "Sugerida pelo sistema" },
+  { valor: "em_confirmacao", rotulo: "Em confirmação" },
+  { valor: "confirmada_internamente", rotulo: "Confirmada internamente" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const STATUS_RADAR: Opcao[] = [
+  { valor: "nao_calculado", rotulo: "Não calculado" },
+  { valor: "em_revisao", rotulo: "Em revisão" },
+  { valor: "validado_internamente", rotulo: "Validado internamente" },
+];
+
+export const REVISAO_JURIDICA: Opcao[] = [
+  { valor: "obrigatoria", rotulo: "Obrigatória" },
+  { valor: "dispensa_homologada", rotulo: "Dispensa homologada" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const ORIGEM_BRIEF: Opcao[] = [
+  { valor: "proposta", rotulo: "Proposta" },
+  { valor: "transcricao", rotulo: "Transcrição" },
+  { valor: "whatsapp", rotulo: "WhatsApp" },
+  { valor: "reuniao", rotulo: "Reunião" },
+  { valor: "documento", rotulo: "Documento" },
+  { valor: "outro", rotulo: "Outro" },
+];
+
+export const RISCOS: Opcao[] = [
+  { valor: "nenhum_identificado", rotulo: "Nenhum identificado" },
+  { valor: "naturalizacao_estrangeira", rotulo: "Naturalização estrangeira" },
+  { valor: "divergencia_nomes_datas", rotulo: "Divergência de nomes/datas" },
+  { valor: "casamento_estado_civil", rotulo: "Casamento/estado civil" },
+  { valor: "linha_materna_pre_1948", rotulo: "Linha materna pré-1948" },
+  { valor: "adocao_reconhecimento", rotulo: "Adoção/reconhecimento" },
+  { valor: "falta_certidao", rotulo: "Falta de certidão" },
+  { valor: "perseguicao_prova_historica", rotulo: "Perseguição/prova histórica" },
+  { valor: "documento_estrangeiro_idioma", rotulo: "Documento estrangeiro/idioma" },
+  { valor: "representacao_de_menor", rotulo: "Representação de menor" },
+  { valor: "prazo_legal_administrativo", rotulo: "Prazo legal ou administrativo" },
+  { valor: "escopo_contrato_pendente", rotulo: "Escopo/contrato pendente" },
+  { valor: "pagamento_formalizacao_pendente", rotulo: "Pagamento/formalização pendente" },
+  { valor: "revisao_juridica_pendente", rotulo: "Revisão jurídica pendente" },
+  { valor: "dados_cadastrais_pendentes", rotulo: "Dados cadastrais pendentes" },
+  { valor: "em_investigacao", rotulo: "Em investigação" },
+  { valor: "outro_justificar", rotulo: "Outro — justificar" },
+];
+
+export const PROXIMAS_ACOES: Opcao[] = [
+  { valor: "solicitar_confirmacao_formal", rotulo: "Solicitar confirmação formal" },
+  { valor: "solicitar_dados_cadastrais", rotulo: "Solicitar dados cadastrais" },
+  { valor: "validar_nucleo_familiar", rotulo: "Validar núcleo familiar" },
+  { valor: "validar_representacao_menor", rotulo: "Validar representação de menor" },
+  { valor: "revisar_proposta_escopo", rotulo: "Revisar proposta e escopo" },
+  { valor: "definir_produto_trilha", rotulo: "Definir produto-pai/trilha/case service" },
+  { valor: "preparar_contrato", rotulo: "Preparar contrato" },
+  { valor: "preparar_ordem_servico", rotulo: "Preparar Ordem de Serviço" },
+  { valor: "solicitar_revisao_juridica", rotulo: "Solicitar revisão jurídica" },
+  { valor: "definir_assinatura", rotulo: "Definir assinatura" },
+  { valor: "enviar_contrato", rotulo: "Enviar contrato" },
+  { valor: "confirmar_assinatura", rotulo: "Confirmar assinatura" },
+  { valor: "preparar_cobranca", rotulo: "Preparar cobrança" },
+  { valor: "confirmar_pagamento", rotulo: "Confirmar pagamento" },
+  { valor: "iniciar_onboarding", rotulo: "Iniciar onboarding" },
+  { valor: "criar_validar_dossie_mae", rotulo: "Criar/validar dossiê-mãe" },
+  { valor: "criar_grupo_familiar", rotulo: "Criar grupo familiar" },
+  { valor: "enviar_checklist_inicial", rotulo: "Enviar checklist inicial" },
+  { valor: "solicitar_documentos", rotulo: "Solicitar documentos" },
+  { valor: "revisar_documentos", rotulo: "Revisar documentos" },
+  { valor: "preparar_diagnostico", rotulo: "Preparar diagnóstico" },
+  { valor: "preparar_plano_acao", rotulo: "Preparar plano de ação" },
+  { valor: "publicar_primeira_micro_entrega", rotulo: "Publicar primeira micro-entrega" },
+  { valor: "atualizar_cliente", rotulo: "Atualizar cliente" },
+  { valor: "encerrar", rotulo: "Encerrar" },
+  { valor: "outro_justificar", rotulo: "Outro — justificar" },
+];
+
+export const PAPEIS_PESSOA: Opcao[] = [
+  { valor: "contratante", rotulo: "Contratante" },
+  { valor: "titular", rotulo: "Titular" },
+  { valor: "dependente", rotulo: "Dependente" },
+  { valor: "interlocutor", rotulo: "Interlocutor (fora do núcleo contratual)" },
+];
+
+export const STATUS_CADASTRAL: Opcao[] = [
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "parcial", rotulo: "Parcial" },
+  { valor: "completo", rotulo: "Completo" },
+];
+
+export function rotulo(lista: Opcao[], valor: unknown): string {
+  const v = typeof valor === "string" ? valor : "";
+  return lista.find((o) => o.valor === v)?.rotulo ?? (v || "—");
+}
+
+/* ---------------- Derivação de status ---------------- */
+
+export type CasoDerivacao = {
+  eixo_comercial?: string | null;
+  eixo_formalizacao?: string | null;
+  contrato_assinado?: boolean | null;
+  pagamento_confirmado?: boolean | null;
+  responsavel_principal?: string | null;
+  nucleo_ok?: boolean;
+  plano_inicial_ok?: boolean;
+  archived_at?: string | null;
+};
+
+/**
+ * "Cliente ativo" nunca é etapa isolada: só é derivado com contrato assinado,
+ * pagamento inicial confirmado, responsável, núcleo/dossiê e plano inicial.
+ */
+export function derivarStatusCaso(c: CasoDerivacao): { valor: string; motivo: string } {
+  if (c.archived_at || c.eixo_formalizacao === "arquivado") {
+    return { valor: "arquivado", motivo: "Caso arquivado." };
+  }
+  const assinado = Boolean(c.contrato_assinado) || ["contrato_assinado", "pagamento_inicial_confirmado", "onboarding_iniciado", "caso_ativo"].includes(String(c.eixo_formalizacao));
+  const pago = Boolean(c.pagamento_confirmado) || ["pagamento_inicial_confirmado", "onboarding_iniciado", "caso_ativo"].includes(String(c.eixo_formalizacao));
+
+  if (!assinado) {
+    if (c.eixo_comercial === "confirmacao_formal_recebida" || c.eixo_formalizacao === "formalizacao_em_preparacao") {
+      return { valor: "pre_onboarding_bloqueado", motivo: "Confirmação formal recebida, mas contrato ainda não assinado." };
+    }
+    return { valor: "formalizacao_pendente", motivo: "Sem contrato assinado registrado." };
+  }
+  if (!pago) return { valor: "formalizacao_pendente", motivo: "Contrato assinado, pagamento inicial não confirmado." };
+  if (!c.responsavel_principal) return { valor: "onboarding_pendente", motivo: "Responsável principal não definido." };
+  if (!c.nucleo_ok) return { valor: "onboarding_pendente", motivo: "Núcleo familiar/dossiê-mãe não validado." };
+  if (!c.plano_inicial_ok) return { valor: "onboarding_pendente", motivo: "Plano inicial não registrado." };
+  return { valor: "em_execucao", motivo: "Contrato, pagamento, responsável, núcleo e plano inicial registrados." };
+}
+
+/* ---------------- Sugestões de jornada (sem automação externa) ---------------- */
+
+export type Sugestao = { titulo: string; detalhe: string; nivel: "informativo" | "atencao" | "critico" };
+
+export function sugestoesJornada(input: {
+  eixo_comercial?: string | null;
+  eixo_formalizacao?: string | null;
+  contrato_assinado?: boolean | null;
+  pagamento_confirmado?: boolean | null;
+  updated_at?: string | null;
+  agora?: Date;
+}): Sugestao[] {
+  const out: Sugestao[] = [];
+  const agora = input.agora ?? new Date();
+
+  if (input.eixo_comercial === "aceite_verbal") {
+    out.push({ titulo: "Solicitar confirmação formal em até D+2", detalhe: "Aceite verbal registrado.", nivel: "atencao" });
+  }
+  if (input.eixo_comercial === "confirmacao_formal_recebida") {
+    out.push({ titulo: "Solicitar/validar cadastro e escopo em D+1", detalhe: "Confirmação formal recebida.", nivel: "atencao" });
+  }
+  if (input.contrato_assinado && input.pagamento_confirmado && input.eixo_formalizacao !== "onboarding_iniciado" && input.eixo_formalizacao !== "caso_ativo") {
+    out.push({ titulo: "Iniciar onboarding", detalhe: "Contrato assinado e pagamento confirmado.", nivel: "atencao" });
+  }
+  if (input.eixo_formalizacao === "onboarding_iniciado") {
+    out.push({
+      titulo: "Plano, checklist, grupo familiar e primeira entrega até D7",
+      detalhe: "Onboarding iniciado.",
+      nivel: "informativo",
+    });
+  }
+  if (input.updated_at) {
+    const dias = Math.floor((agora.getTime() - new Date(input.updated_at).getTime()) / 86_400_000);
+    if (dias >= 14) out.push({ titulo: "Alerta crítico: 14 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "critico" });
+    else if (dias >= 10) out.push({ titulo: "Alerta interno: 10 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "atencao" });
+  }
+  return out;
+}
+
+/** Sugestão de via preliminar — sempre editável, nunca conclusão jurídica. */
+export function sugerirVia(input: { pais?: string | null; processoConsular?: boolean; hipoteseJudicial?: boolean; naturalizacaoBrasileira?: boolean; austria58c?: boolean }): string | null {
+  if (input.austria58c || input.pais === "austria") return "reparacao_historica_em_confirmacao";
+  if (input.pais === "italia" && input.hipoteseJudicial) return "judicial_em_confirmacao";
+  if (input.naturalizacaoBrasileira) return "naturalizacao_residencia_em_confirmacao";
+  if (input.processoConsular) return "administrativa";
+  return null;
+}
