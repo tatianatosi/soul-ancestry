@@ -27,7 +27,7 @@ import {
   type Opcao,
 } from "@/lib/caso-ficha";
 
-export const Route = createFileRoute("/_authenticated/casos/$id")({
+export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
   head: () => ({
     meta: [
       { title: "Ficha operacional do caso — Clube Ancestral" },
@@ -172,7 +172,7 @@ const ABAS = [
 ] as const;
 
 function FichaCaso() {
-  const { id } = useParams({ from: "/_authenticated/casos/$id" });
+  const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(carregarFichaCaso);
   const atualizar = useServerFn(atualizarRegistro);
