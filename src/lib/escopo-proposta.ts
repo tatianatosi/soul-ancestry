@@ -227,3 +227,142 @@ export function bloqueiosDeEscopo(input: {
 
   return bloqueios;
 }
+
+/* ------------------------------------------------------------------ *
+ * Mapa normativo: campo de escopo da proposta → parâmetro de destino
+ * na ficha contratual → anexo que recebe o conteúdo.
+ * Serve para verificação de cobertura, nunca para inferir conteúdo.
+ * ------------------------------------------------------------------ */
+
+export type DestinoEscopo = {
+  campo: string;
+  parametros: string[];
+  anexos: string[];
+};
+
+export const MAPA_ESCOPO_DESTINO: DestinoEscopo[] = [
+  { campo: "proposta_referencia", parametros: ["objeto_contrato"], anexos: ["ANX-ESCOPO"] },
+  { campo: "caso_contexto", parametros: ["pais_rota", "objeto_contrato"], anexos: ["ANX-ESCOPO"] },
+  { campo: "processos_participantes", parametros: ["beneficiarios", "partes_signatarias"], anexos: ["ANX-INDIVIDUAL"] },
+  { campo: "escopo_macro", parametros: ["escopo_resumo", "produto_sku"], anexos: ["ANX-ESCOPO"] },
+  { campo: "escopos_individuais", parametros: ["escopo_resumo"], anexos: ["ANX-INDIVIDUAL"] },
+  { campo: "servicos_incluidos", parametros: ["servicos_incluidos"], anexos: ["ANX-ESCOPO"] },
+  { campo: "servicos_excluidos", parametros: ["servicos_excluidos"], anexos: ["ANX-ESCOPO"] },
+  { campo: "entregas_jornada", parametros: ["fases_entregas", "prazos_referencia"], anexos: ["ANX-ESCOPO"] },
+  { campo: "composicao_familiar", parametros: ["vinculo_familiar", "beneficiarios"], anexos: ["ANX-INDIVIDUAL", "ANX-PRIVACIDADE"] },
+  { campo: "responsabilidades", parametros: ["representacao_legal", "partes_signatarias"], anexos: ["ANX-INDIVIDUAL", "ANX-REPRESENTACAO"] },
+  { campo: "valor_total", parametros: ["valor_total"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "forma_pagamento", parametros: ["forma_pagamento"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "parcelas", parametros: ["parcelas", "vencimentos"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "responsaveis_financeiros", parametros: ["contratante_nome", "partes_signatarias"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "despesas_externas", parametros: ["despesas_externas"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "prazo_validade", parametros: ["prazos_referencia"], anexos: ["ANX-COMERCIAL"] },
+  { campo: "proximos_passos", parametros: ["fases_entregas"], anexos: ["ANX-ESCOPO"] },
+];
+
+export const ESTADOS_COBERTURA = [
+  "coberto",
+  "importado_a_confirmar",
+  "parametro_vazio",
+  "nao_localizado_na_proposta",
+  "divergente",
+  "opcional_nao_declarado",
+] as const;
+export type EstadoCobertura = (typeof ESTADOS_COBERTURA)[number];
+
+export const ROTULO_COBERTURA: Record<EstadoCobertura, string> = {
+  coberto: "Coberto e validado",
+  importado_a_confirmar: "Importado — a confirmar",
+  parametro_vazio: "Parâmetro de destino vazio",
+  nao_localizado_na_proposta: "Não localizado na proposta",
+  divergente: "Divergente da proposta",
+  opcional_nao_declarado: "Opcional — não declarado",
+};
+
+export type ValorFicha = {
+  campo: string;
+  label?: string | null;
+  valor: string | null;
+  origem: string | null;
+  status: string | null;
+};
+
+export type LinhaCobertura = {
+  campo: string;
+  label: string;
+  paginas: number[];
+  origem: string;
+  obrigatorio: boolean;
+  valorProposta: string | null;
+  parametros: { campo: string; valor: string | null; origem: string | null; status: string | null }[];
+  anexos: string[];
+  estado: EstadoCobertura;
+  divergencia: string | null;
+};
+
+/**
+ * Cruza o que a proposta declara (por página) com os parâmetros da ficha,
+ * apontando cobertura e divergência campo a campo. Não preenche nada.
+ */
+export function mapaCoberturaEscopo(input: {
+  proposta: PropostaCanva | null | undefined;
+  extraidos: CampoExtraido[];
+  valores: ValorFicha[];
+}): LinhaCobertura[] {
+  const norm = (s: string | null | undefined) => (s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  const porCampo = new Map(input.valores.map((v) => [v.campo, v]));
+  const versao = input.proposta?.versao ? `v${input.proposta.versao}` : "sem versão";
+  const ref = input.proposta?.origem_referencia ? " · referência registrada" : " · referência ausente";
+
+  return input.extraidos.map((e) => {
+    const destino = MAPA_ESCOPO_DESTINO.find((d) => d.campo === e.campo);
+    const parametros = (destino?.parametros ?? []).map((c) => {
+      const v = porCampo.get(c);
+      return { campo: c, valor: v?.valor ?? null, origem: v?.origem ?? null, status: v?.status ?? null };
+    });
+
+    const preenchidos = parametros.filter((p) => p.valor);
+    let estado: EstadoCobertura;
+    let divergencia: string | null = null;
+
+    if (!e.localizado) {
+      estado = e.obrigatorio ? "nao_localizado_na_proposta" : "opcional_nao_declarado";
+      const conflitante = preenchidos[0];
+      if (conflitante) {
+        estado = "divergente";
+        divergencia = `Parâmetro “${conflitante.campo}” preenchido por origem “${
+          conflitante.origem ?? "não declarada"
+        }” sem respaldo na proposta.`;
+      }
+    } else if (!preenchidos.length) {
+      estado = "parametro_vazio";
+    } else {
+      const contradiz = preenchidos.find(
+        (p) => norm(p.valor) !== norm(e.valor) && !norm(e.valor).includes(norm(p.valor)) && !norm(p.valor).includes(norm(e.valor)),
+      );
+      if (contradiz) {
+        estado = "divergente";
+        divergencia = `Proposta declara “${e.valor}”, mas o parâmetro “${contradiz.campo}” registra “${contradiz.valor}” (origem ${
+          contradiz.origem ?? "não declarada"
+        }).`;
+      } else if (preenchidos.some((p) => p.status !== "validado")) {
+        estado = "importado_a_confirmar";
+      } else {
+        estado = "coberto";
+      }
+    }
+
+    return {
+      campo: e.campo,
+      label: e.label,
+      paginas: e.paginas,
+      origem: `Proposta Canva ${versao} · página(s) ${e.paginas.join(", ")}${ref}`,
+      obrigatorio: e.obrigatorio,
+      valorProposta: e.valor,
+      parametros,
+      anexos: destino?.anexos ?? [],
+      estado,
+      divergencia,
+    };
+  });
+}

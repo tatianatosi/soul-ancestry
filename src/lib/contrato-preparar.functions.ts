@@ -4,6 +4,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+import {
+  bloqueiosDeEscopo,
+  extrairEscopoDaProposta,
+  mapaCoberturaEscopo,
+  validarPropostaCanva,
+} from "@/lib/escopo-proposta";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -129,7 +135,9 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     const [{ data: proposta }, { data: modelo }, { data: base }, { data: membros }] = await Promise.all([
       supabase
         .from("proposals")
-        .select("id,versao,status,valor,moeda,forma_pagamento,escopo,exclusoes,validade")
+        .select(
+          "id,case_id,versao,status,valor,moeda,forma_pagamento,escopo,exclusoes,validade,archived_at,substituida_em,substituida_por_id,recusada_em,origem,origem_referencia,paginas_registradas,escopo_paginas",
+        )
         .eq("case_id", caso.id)
         .is("archived_at", null)
         .order("versao", { ascending: false })
@@ -265,11 +273,27 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
 
     if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
 
+    // Escopo mandatório: proposta Canva vigente aprovada, páginas 1–7.
+    const validadeEscopo = validarPropostaCanva(proposta as any, caso.id);
+    const extraidos = extrairEscopoDaProposta(proposta as any);
+    const cobertura = mapaCoberturaEscopo({
+      proposta: proposta as any,
+      extraidos,
+      valores: lista.map((v) => ({ campo: v.campo, valor: v.valor, origem: v.origem, status: v.status })),
+    });
+    const conflitosEscopo = cobertura
+      .filter((l) => l.estado === "divergente")
+      .map((l) => ({ campo: l.campo, label: l.label, proposta: l.valorProposta, outraFonte: "ficha", valor: l.divergencia ?? "" }));
+    for (const b of bloqueiosDeEscopo({ validade: validadeEscopo, extraidos, conflitos: conflitosEscopo })) {
+      bloqueios.push(b);
+    }
+
     // Validação cruzada: código canônico x Planejador x parâmetros x proposta.
     const coerencia = await conflitosCoerenciaDoRegistro(supabase, registro);
     for (const c of coerencia.conflitos) {
       bloqueios.push({ chave: CONFLITO_PAIS_ROTA, motivo: c.mensagem });
     }
+
 
     await auditar(supabase, {
       org,
@@ -313,6 +337,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       pendencias: (pendencias as any).data ?? [],
       bloqueios,
       coerencia,
+      escopo: { validade: validadeEscopo, cobertura, conflitos: conflitosEscopo.length },
       revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
     };
   });

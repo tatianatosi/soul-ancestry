@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
+import { EscopoProposta } from "@/components/contrato/escopo-proposta";
 import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
@@ -219,6 +220,8 @@ function Pagina() {
         </Painel>
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
+
+        <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
 
         <RegraComercial caseId={caseId} />
 
