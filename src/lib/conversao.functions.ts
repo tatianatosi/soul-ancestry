@@ -205,3 +205,55 @@ export const painelHoje = createServerFn({ method: "GET" })
       totalCasos: casos.length,
     };
   });
+
+/** Materializa o template padrão de onboarding (reutilizável por todos os casos). */
+export const garantirTemplateOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { CHECKLIST_ONBOARDING, TEMPLATE_ONBOARDING_CODIGO, TEMPLATE_ONBOARDING_VERSAO } = await import("@/lib/onboarding-padrao");
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase);
+
+    const { data: existente } = await supabase
+      .from("onboarding_templates")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("codigo", TEMPLATE_ONBOARDING_CODIGO)
+      .eq("versao", TEMPLATE_ONBOARDING_VERSAO)
+      .maybeSingle();
+
+    let templateId = existente?.id as string | undefined;
+    if (!templateId) {
+      const { data, error } = await supabase
+        .from("onboarding_templates")
+        .insert({
+          organization_id: organizationId,
+          codigo: TEMPLATE_ONBOARDING_CODIGO,
+          versao: TEMPLATE_ONBOARDING_VERSAO,
+          nome: "Onboarding padrão Clube Ancestral",
+          descricao: "Seis fases, checklist obrigatório e regra de valor percebido (D7 e 14 dias).",
+        })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      templateId = data.id as string;
+    }
+
+    const { data: itens } = await supabase.from("onboarding_template_items").select("item").eq("template_id", templateId);
+    const existentes = new Set(((itens ?? []) as Linha[]).map((i) => String(i.item)));
+    const novos = CHECKLIST_ONBOARDING.filter((i) => !existentes.has(i.item)).map((i) => ({
+      organization_id: organizationId,
+      template_id: templateId,
+      fase: i.fase,
+      ordem: i.ordem,
+      item: i.item,
+      descricao: i.descricao,
+      obrigatorio: i.obrigatorio,
+      prazo_dias: i.prazo_dias,
+    }));
+    if (novos.length) {
+      const { error } = await supabase.from("onboarding_template_items").insert(novos);
+      if (error) throw new Error(error.message);
+    }
+    return { templateId, itensCriados: novos.length };
+  });

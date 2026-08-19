@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
-import { carregarConversao } from "@/lib/conversao.functions";
+import { carregarConversao, garantirTemplateOnboarding } from "@/lib/conversao.functions";
 import { ESTADOS_ACEITE, EVENTOS_CONVERSAO, calcularMetricas, moeda, percentual } from "@/lib/conversao";
 import { CHECKLIST_ONBOARDING, FASES_ONBOARDING, REGRA_VALOR_PERCEBIDO } from "@/lib/onboarding-padrao";
 
@@ -33,6 +33,8 @@ const Bloco = ({ titulo, children }: { titulo: string; children: React.ReactNode
 function Conversao() {
   const carregar = useServerFn(carregarConversao);
   const q = useQuery({ queryKey: ["conversao"], queryFn: () => carregar(), retry: false });
+  const criarTemplate = useServerFn(garantirTemplateOnboarding);
+  const mTemplate = useMutation({ mutationFn: () => criarTemplate() });
 
   const metricas = useMemo(() => {
     if (!q.data) return null;
@@ -195,6 +197,19 @@ function Conversao() {
                 </li>
               ))}
             </ul>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
+                disabled={mTemplate.isPending}
+                onClick={() => mTemplate.mutate()}
+              >
+                {mTemplate.isPending ? "Registrando…" : "Registrar template padrão no Desk"}
+              </button>
+              {mTemplate.data && (
+                <span className="text-xs text-navy/60">Template disponível — {mTemplate.data.itensCriados} item(ns) adicionado(s).</span>
+              )}
+              {mTemplate.isError && <span className="text-xs text-terracotta">{(mTemplate.error as Error).message}</span>}
+            </div>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-navy/60">
               {REGRA_VALOR_PERCEBIDO.map((r) => (
                 <li key={r}>{r}</li>
