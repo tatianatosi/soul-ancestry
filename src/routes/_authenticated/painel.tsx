@@ -53,6 +53,10 @@ function Painel() {
         ))}
       </div>
 
+      <PainelHoje />
+
+
+
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-navy/10 bg-white p-5 text-sm text-navy/70">
           <h2 className="font-serif text-lg text-navy">Como ler estas informações</h2>
