@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { Painel, Selo, moeda } from "@/components/comercial/base";
 import { conferirEscopoProposta, painelPreparacaoContratual } from "@/lib/escopo-conferencia.functions";
-import { ROTULO_ACAO, ROTULO_GATE, type AvaliacaoGate } from "@/lib/gates-formalizacao";
+import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
+import { ACOES_GATEADAS, ROTULO_ACAO, ROTULO_GATE, podeExecutar, type AvaliacaoGate } from "@/lib/gates-formalizacao";
 import { ROTULO_FONTE_CANONICA } from "@/lib/preco-canonico";
 
 const ROTULO_STATUS: Record<string, string> = {
@@ -48,6 +49,8 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
   const d = q.data as any;
   const r = d.resultado;
   const gates: AvaliacaoGate[] = r.gates ?? [];
+  const contexto = contextoGatesDaConferencia(r);
+  const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto));
 
   return (
     <Painel titulo="Preparação contratual — conferência e gates">
@@ -56,7 +59,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
           texto={ROTULO_STATUS[r.status] ?? r.status}
           tom={r.status === "aprovado_para_preparacao" ? "ok" : r.status === "requer_revisao" ? "alerta" : "erro"}
         />
-        <Selo texto={`Próxima ação: ${r.proxima_acao}`} tom="neutro" />
+        <Selo texto={`Próxima ação: ${r.proxima_acao_recomendada}`} tom="neutro" />
         <button
           type="button"
           onClick={() => m.mutate()}
@@ -129,8 +132,8 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
         </Bloco>
 
         <Bloco n={5} titulo="Ações liberadas">
-          {(r.acoes_liberadas ?? []).length ? (
-            <p>{(r.acoes_liberadas ?? []).map((a: string) => ROTULO_ACAO[a as never] ?? a).join(" · ")}</p>
+          {liberadas.length ? (
+            <p>{liberadas.map((a) => ROTULO_ACAO[a] ?? a).join(" · ")}</p>
           ) : (
             <p>Nenhuma ação de formalização liberada até resolver os bloqueios.</p>
           )}

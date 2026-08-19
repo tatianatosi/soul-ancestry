@@ -11,6 +11,7 @@ import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EscopoProposta } from "@/components/contrato/escopo-proposta";
 import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
+import { PainelPreparacao } from "@/components/contrato/painel-preparacao";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell } from "@/components/saas/shell";
@@ -218,6 +219,8 @@ function Pagina() {
             informação real permanece vazio.
           </p>
         </Painel>
+
+        <PainelPreparacao caseId={caseId} />
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
 
