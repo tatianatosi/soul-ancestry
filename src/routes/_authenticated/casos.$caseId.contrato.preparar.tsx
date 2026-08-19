@@ -11,6 +11,7 @@ import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EstruturaFamiliar } from "@/components/contrato/estrutura-familiar";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
+import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell } from "@/components/saas/shell";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
@@ -218,6 +219,8 @@ function Pagina() {
         </Painel>
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
+
+        <RegraComercial caseId={caseId} />
 
         <Painel titulo="Entidades reaproveitadas (nada é duplicado)">
           <ul className="space-y-1 text-sm text-navy/80">

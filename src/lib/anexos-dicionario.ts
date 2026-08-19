@@ -9,6 +9,8 @@
  * Anexo nunca é escolhido à mão: entra por regra derivada dos parâmetros.
  */
 
+import { CLAUSULA_DESPESAS_CHAVE, CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
+
 export const ESTADOS_ANEXO = [
   "nao_aplicavel",
   "aplicavel",
@@ -163,10 +165,21 @@ export function dicionarioAnexos(entrada: Entrada): RegraAnexo[] {
   regras.push({
     codigo: "ANX-COMERCIAL",
     titulo: "Condições comerciais",
-    finalidade: "Valor total, parcelas, vencimentos, responsáveis pelo pagamento e despesas de terceiros.",
+    finalidade:
+      "Valor total, parcelas, vencimentos, responsáveis pelo pagamento e despesas de terceiros. " +
+      `Cláusula institucional aplicada automaticamente: "${CLAUSULA_DESPESAS_TERCEIROS}"`,
     regra: "Aplicável quando houver valor total ou forma de pagamento parametrizada, vinda de proposta aceita ou cálculo aprovado.",
     aplicabilidade: "Caso familiar: um único anexo comercial para o núcleo, com responsáveis identificados.",
-    campos: ["valor_total", "forma_pagamento", "parcelas", "vencimentos", "despesas_externas", "excecoes_comerciais"],
+    campos: [
+      "valor_total",
+      "forma_pagamento",
+      "parcelas",
+      "vencimentos",
+      "despesas_externas",
+      "excecoes_comerciais",
+      "produto_sku",
+      CLAUSULA_DESPESAS_CHAVE,
+    ],
     impactoAusencia: "Sem ele não há base contratual para cobrança: o financeiro permanece bloqueado.",
     obrigatorio: temComercial,
     aplicavel: temComercial,
