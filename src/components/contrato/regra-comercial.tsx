@@ -59,9 +59,10 @@ export function RegraComercial({ caseId }: { caseId: string }) {
               <div key={d.id} className="rounded border border-navy/15 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <strong className="text-sm text-navy">{d.descricao ?? "—"}</strong>
-                  <Selo tom={pend.length ? "alerta" : "ok"}>
-                    {ROTULO_ESTADO_DESPESA[d.estado as EstadoDespesa] ?? d.estado}
-                  </Selo>
+                  <Selo
+                    tom={pend.length ? "alerta" : "ok"}
+                    texto={ROTULO_ESTADO_DESPESA[d.estado as EstadoDespesa] ?? d.estado}
+                  />
                 </div>
                 <p className="mt-1 text-xs text-navy/70">
                   {d.categoria ? `${d.categoria} · ` : ""}
@@ -92,7 +93,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
             {preco?.ok ? (
               <>
                 <p>
-                  <Selo tom="ok">Preço homologado</Selo>{" "}
+                  <Selo tom="ok" texto="Preço homologado" />{" "}
                   {moeda(preco.preco_total, preco.moeda ?? "BRL")} · {preco.condicao_pagamento ?? "condição não informada"}
                   {preco.parcelas ? ` · ${preco.parcelas}x` : ""}
                 </p>
