@@ -34,6 +34,7 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
+import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authenticated/piloto-ana'
 import { Route as AuthenticatedPilotoRouteImport } from './routes/_authenticated/piloto'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
@@ -194,6 +195,11 @@ const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   id: '/propostas',
   path: '/propostas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPilotoAnaRoute = AuthenticatedPilotoAnaRouteImport.update({
+  id: '/piloto-ana',
+  path: '/piloto-ana',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPilotoRoute = AuthenticatedPilotoRouteImport.update({
@@ -430,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/piloto': typeof AuthenticatedPilotoRoute
+  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -492,6 +499,7 @@ export interface FileRoutesByTo {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/piloto': typeof AuthenticatedPilotoRoute
+  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -557,6 +565,7 @@ export interface FileRoutesById {
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/piloto': typeof AuthenticatedPilotoRoute
+  '/_authenticated/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -622,6 +631,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/piloto'
+    | '/piloto-ana'
     | '/propostas'
     | '/qualidade'
     | '/relatorios'
@@ -684,6 +694,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/piloto'
+    | '/piloto-ana'
     | '/propostas'
     | '/qualidade'
     | '/relatorios'
@@ -748,6 +759,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
     | '/_authenticated/piloto'
+    | '/_authenticated/piloto-ana'
     | '/_authenticated/propostas'
     | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
@@ -978,6 +990,13 @@ declare module '@tanstack/react-router' {
       path: '/propostas'
       fullPath: '/propostas'
       preLoaderRoute: typeof AuthenticatedPropostasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/piloto-ana': {
+      id: '/_authenticated/piloto-ana'
+      path: '/piloto-ana'
+      fullPath: '/piloto-ana'
+      preLoaderRoute: typeof AuthenticatedPilotoAnaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/piloto': {
@@ -1262,6 +1281,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPilotoRoute: typeof AuthenticatedPilotoRoute
+  AuthenticatedPilotoAnaRoute: typeof AuthenticatedPilotoAnaRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
@@ -1304,6 +1324,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPilotoRoute: AuthenticatedPilotoRoute,
+  AuthenticatedPilotoAnaRoute: AuthenticatedPilotoAnaRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
