@@ -4,6 +4,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+import {
+  bloqueiosDeEscopo,
+  extrairEscopoDaProposta,
+  mapaCoberturaEscopo,
+  validarPropostaCanva,
+} from "@/lib/escopo-proposta";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -265,6 +271,8 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     if (signatarios.some((v) => !v.valor || v.status !== "validado"))
       bloqueios.push({ chave: "signatario", motivo: "Qualificação de parte/signatário obrigatória incompleta." });
 
+    if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
+
     // Escopo mandatório: proposta Canva vigente aprovada, páginas 1–7.
     const validadeEscopo = validarPropostaCanva(proposta as any, caso.id);
     const extraidos = extrairEscopoDaProposta(proposta as any);
@@ -329,6 +337,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       pendencias: (pendencias as any).data ?? [],
       bloqueios,
       coerencia,
+      escopo: { validade: validadeEscopo, cobertura, conflitos: conflitosEscopo.length },
       revisaoAprovadaEm: finalAprovada?.aprovado_em ?? null,
     };
   });
