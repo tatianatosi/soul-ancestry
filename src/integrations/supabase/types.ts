@@ -6148,16 +6148,21 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           ativo: boolean
+          auditoria_origem: Json
           code: string
           condicao_comercial_padrao: string | null
           created_at: string
           created_by: string | null
           elegivel_para_proposta: boolean
           escopo_aprovado: string | null
+          homologado_em: string | null
+          homologado_por: string | null
           id: string
           jornada_fase: string | null
           nome_comercial: string
           organization_id: string
+          origem_legada_referencia: string | null
+          parcelas_padrao: number | null
           preco_comercial_vigente: number | null
           preco_historico_legado: number | null
           prioridade_catalogo: string
@@ -6166,22 +6171,29 @@ export type Database = {
           tipo_oferta: string
           updated_at: string
           updated_by: string | null
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
         }
         Insert: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
           ativo?: boolean
+          auditoria_origem?: Json
           code: string
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
           id?: string
           jornada_fase?: string | null
           nome_comercial: string
           organization_id: string
+          origem_legada_referencia?: string | null
+          parcelas_padrao?: number | null
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
@@ -6190,22 +6202,29 @@ export type Database = {
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
         }
         Update: {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
           ativo?: boolean
+          auditoria_origem?: Json
           code?: string
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
           id?: string
           jornada_fase?: string | null
           nome_comercial?: string
           organization_id?: string
+          origem_legada_referencia?: string | null
+          parcelas_padrao?: number | null
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
@@ -6214,6 +6233,8 @@ export type Database = {
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
         }
         Relationships: []
       }
