@@ -36,6 +36,7 @@ export const ROTULO_ACAO: Record<AcaoGateada, string> = {
 
 export const GATES = [
   "proposta_valida",
+  "completude_canva",
   "escopo_conferido",
   "conflitos_resolvidos",
   "produto_condicao_homologados",
