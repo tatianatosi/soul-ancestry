@@ -40,7 +40,7 @@ export async function montarConferencia(
   let propostaQuery = supabase
     .from("proposals")
     .select(
-      "id,case_id,versao,status,valor,moeda,forma_pagamento,validade,archived_at,substituida_em,substituida_por_id,recusada_em,origem,origem_referencia,paginas_registradas,escopo_paginas",
+      "id,case_id,versao,status,valor,moeda,forma_pagamento,validade,aprovada_em,archived_at,substituida_em,substituida_por_id,recusada_em,origem,origem_referencia,paginas_registradas,escopo_paginas",
     )
     .eq("case_id", caso.id);
   propostaQuery = input.proposalId
