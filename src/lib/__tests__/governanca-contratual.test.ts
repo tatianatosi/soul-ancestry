@@ -59,6 +59,11 @@ function entrada(over: Partial<EntradaConferencia> = {}): EntradaConferencia {
       autorizacaoPesquisa: false,
     },
     despesas: [],
+    paginasCanva: [1, 2, 3, 4, 5, 6, 7].map((page_number) => ({
+      page_number,
+      extracao_status: "extraida",
+      campos_nao_localizados: [],
+    })),
     hoje: HOJE,
     ...over,
   };
