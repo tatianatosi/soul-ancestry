@@ -3,6 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import {
   AGENTE_PESQUISA,
+  CADEIA_OPERACIONAL,
+  ESTADO_CASO_ANA,
+  FONTES_DE_VERDADE,
+  PERFIL_INSTITUCIONAL,
   CASO_CANONICO,
   CONFERENCIA,
   DECISOES,
@@ -83,7 +87,7 @@ function Tabela({ cabecalho, linhas }: { cabecalho: string[]; linhas: (string | 
 
 function DecisoesPage() {
   return (
-    <SaasShell titulo="Decisões operacionais" descricao="Registro somente leitura das decisões CA-DEC-2026-08-17-01, 03 e 04.">
+    <SaasShell titulo="Decisões operacionais" descricao="Registro somente leitura das decisões CA-DEC-2026-08-17-01, 03, 04 e CA-DEC-2026-08-19-01.">
       <div className="space-y-4">
         <header className="rounded-xl border border-gold/40 bg-gold/5 p-4">
           <h1 className="text-lg font-semibold text-navy">Decisões operacionais aprovadas</h1>
@@ -132,6 +136,45 @@ function DecisoesPage() {
             </div>
           </article>
         ))}
+
+        <Bloco titulo="Cadeia operacional canônica">
+          <Tabela cabecalho={["Etapa", "Responsabilidade"]} linhas={CADEIA_OPERACIONAL.map((c) => [c.etapa, c.detalhe])} />
+        </Bloco>
+
+        <Bloco titulo="Fontes de verdade">
+          <Tabela
+            cabecalho={["Tema", "Fonte canônica", "Nunca como fonte final"]}
+            linhas={FONTES_DE_VERDADE.map((f) => [f.tema, f.canonica, f.nuncaFinal])}
+          />
+        </Bloco>
+
+        <Bloco titulo="Perfil institucional do contrato-base">
+          <Tabela
+            cabecalho={["Elemento", "Valor institucional"]}
+            linhas={[
+              ["Contrato-base", `${PERFIL_INSTITUCIONAL.contratoBase} — ${PERFIL_INSTITUCIONAL.subtitulo}`],
+              ["Razão empresarial", PERFIL_INSTITUCIONAL.razaoEmpresarial],
+              ["Nome de operação", PERFIL_INSTITUCIONAL.nomeOperacao],
+              ["CNPJ", PERFIL_INSTITUCIONAL.cnpj],
+              ["Endereço institucional", PERFIL_INSTITUCIONAL.endereco],
+              ["E-mail", PERFIL_INSTITUCIONAL.email],
+              ["Site", PERFIL_INSTITUCIONAL.site],
+              ["WhatsApp", PERFIL_INSTITUCIONAL.whatsapp],
+            ]}
+          />
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-navy/80">
+            {PERFIL_INSTITUCIONAL.vedacoes.map((v) => (
+              <li key={v}>{v}</li>
+            ))}
+          </ul>
+        </Bloco>
+
+        <Bloco titulo="Caso Ana Luiza — estado consolidado e gates">
+          <Tabela
+            cabecalho={["Dimensão", "Estado conhecido", "Ação/gate"]}
+            linhas={ESTADO_CASO_ANA.map((e) => [e.dimensao, e.estado, e.gate])}
+          />
+        </Bloco>
 
         <Bloco titulo="Estrutura familiar do caso canônico (01)">
           <Tabela

@@ -354,3 +354,187 @@ export const CONFERENCIA: ConferenciaCriterio[] = [
       "Convivem /pesquisa e /pesquisa-modulo. Decisão registra o alvo (dossiê único com o agente como camada) e proíbe fusão/exclusão sem correção aprovada.",
   },
 ];
+
+/* ------------------------------------------------------------------ *
+ * CA-DEC-2026-08-19-01 — Arquitetura e decisões vigentes
+ * Texto normativo somente leitura. Não executa fusão, migração,
+ * cobrança, assinatura, portal, comunicação ou pesquisa externa.
+ * ------------------------------------------------------------------ */
+
+/** Cadeia operacional canônica, do Painel de Calls à projeção no App Cliente. */
+export const CADEIA_OPERACIONAL: { etapa: string; detalhe: string }[] = [
+  { etapa: "Painel de Calls", detalhe: "Origem do lead/oportunidade, agenda, consentimento e resultado da call." },
+  { etapa: "Brief/Roteiro de Discovery", detalhe: "Narrativa, hipóteses e lacunas — fora do CRM estruturado e do App." },
+  { etapa: "CRM Mestre / Oportunidade", detalhe: "Somente campos estruturados da oportunidade." },
+  { etapa: "Proposta Canva / OS aprovada", detalhe: "Escopo, entregas, prazos e condição do caso (páginas 1–7)." },
+  { etapa: "Motor Contratual / MODELO-ESTUDO", detalhe: "Texto institucional versionado + parâmetros do caso; um rascunho editável." },
+  { etapa: "Assinatura externa, quando aplicável", detalhe: "Registro humano da assinatura; nunca disparo automático." },
+  { etapa: "Financeiro / Asaas", detalhe: "Somente condição homologada; estado muda após confirmação da fonte transacional." },
+  { etapa: "Onboarding e acesso sem senha autorizado", detalhe: "Link mágico/OTP de uso único, curto, revogável e vinculado a caso e RLS." },
+  { etapa: "Caso / Desk Intelligence", detalhe: "Cockpit operacional soberano, com a Memória de Bases Genealógicas como módulo nativo." },
+  { etapa: "Pesquisa, Biblioteca, documentos e entregas", detalhe: "Dossiê e evidências sob RLS, com gates de pesquisa externa." },
+  { etapa: "Projeção autorizada no App Cliente", detalhe: "Painel, Jornada, Documentos, Origem/Radar, Árvore, Descobertas, Biblioteca e Conta." },
+];
+
+/** Fonte canônica por tema — e o que nunca vale como fonte final. */
+export const FONTES_DE_VERDADE: { tema: string; canonica: string; nuncaFinal: string }[] = [
+  {
+    tema: "Escopo, entregas, prazos e condição do caso",
+    canonica: "Proposta/OS master aprovada, páginas 1–7",
+    nuncaFinal: "CRM, transcrição, WhatsApp, campo livre ou mockup",
+  },
+  {
+    tema: "Texto institucional do contrato",
+    canonica: "Modelo jurídico institucional versionado e aprovado",
+    nuncaFinal: "Texto copiado em caso individual ou proposta antiga",
+  },
+  {
+    tema: "Preço, SKU, condição e cobrança",
+    canonica: "Fonte financeira homologada (catálogo/planilha mestre) e Asaas reconciliado",
+    nuncaFinal: "Mockup, proposta antiga, dado DEMO ou valor inferido",
+  },
+  {
+    tema: "Caso, documentos, evidência e pesquisa",
+    canonica: "Desk / Dossiê / Biblioteca com RLS",
+    nuncaFinal: "App Cliente, resposta de IA ou narrativa não confirmada",
+  },
+  {
+    tema: "Algoritmos, prompts e fontes por país",
+    canonica: "Memória de Bases Genealógicas no Desk, corpus aprovado e versionado",
+    nuncaFinal: "Gem/app separado, resposta sem citação ou fonte externa não homologada",
+  },
+  {
+    tema: "Portal / App Cliente",
+    canonica: "Projeções client-facing autorizadas por caso",
+    nuncaFinal: "Tabelas internas, CRM, Desk, fontes, logs ou dados de outros casos",
+  },
+];
+
+/**
+ * Perfil institucional versionado do contrato-base. Dados pessoais da
+ * responsável (CPF, RG, nascimento, e-mail/contato pessoal) nunca entram em
+ * contrato padrão, prévia, log ou App.
+ */
+export const PERFIL_INSTITUCIONAL = {
+  contratoBase: "Contrato de Serviços de Pesquisa Genealógica — Clube Ancestral",
+  subtitulo: "Contrato-Base de Prestação de Serviços Genealógicos e Jornada Documental",
+  razaoEmpresarial: "TATIANA MELANI TOSI – ME",
+  nomeOperacao: "Clube Ancestral",
+  cnpj: "10.448.812/0001-58",
+  endereco: "Rua Nova York, 822, Apt. 142, Brooklin, CEP 04560-001, São Paulo–SP, Brasil",
+  email: "atendimento@clubeancestral.com.br",
+  site: "https://clubeancestral.com.br",
+  whatsapp: "Somente referência ao canal institucional homologado",
+  vedacoes: [
+    "Não incluir CPF, RG, data de nascimento, e-mail pessoal ou contato pessoal da responsável.",
+    "Perfil institucional precisa estar ativo e aprovado para gerar MODELO-ESTUDO.",
+  ],
+} as const;
+
+/** Estado consolidado do caso Ana Luiza e o gate correspondente. */
+export const ESTADO_CASO_ANA: { dimensao: string; estado: string; gate: string }[] = [
+  { dimensao: "Caso canônico", estado: CASO_CANONICO, gate: "Resolver aliases antigos sem duplicar caso, contrato ou cobrança." },
+  {
+    dimensao: "Núcleo",
+    estado: "Ana, Adair e Alice; Felipe é dependente de Ana",
+    gate: "Conferir qualificação, papéis, acesso e representação do menor.",
+  },
+  { dimensao: "Adriel", estado: "Fora do escopo de cidadania familiar por padrão", gate: "Incluir só por nova OS/processo específico." },
+  { dimensao: "Rota austríaca", estado: "§ 58c é hipótese em validação", gate: "Não tratar como direito confirmado ou promessa." },
+  {
+    dimensao: "Dossiê/Checklist",
+    estado: "Dossiê Consolidado e Checklist § 58c existentes",
+    gate: "Revisar fontes, documentos, lacunas e estados; não recriar.",
+  },
+  {
+    dimensao: "Propostas",
+    estado: "Proposta familiar no Canva com múltiplas cópias/versões; proposta individual também localizada",
+    gate: "Eleger uma única proposta/OS master por revisão humana.",
+  },
+  {
+    dimensao: "Proposta individual",
+    estado: "Referência CA-CID-AT-20026-001, validade declarada até 12/08/2026, com inconsistência editorial",
+    gate: "Não usar automaticamente para o contrato familiar; tratar como versão/referência.",
+  },
+  { dimensao: "Aceite", estado: "Registro anterior: verbalmente aprovado, formal pendente", gate: "Confirmar evidência escrita; não inferir." },
+  {
+    dimensao: "Contrato",
+    estado: "Contrato-Mãe existia como placeholder no inventário anterior",
+    gate: "Localizar estado atual; preencher apenas pelo modelo aprovado.",
+  },
+  {
+    dimensao: "Cobrança / pesquisa externa",
+    estado: "Condicionadas a contrato e primeira cobrança",
+    gate: "Confirmar que não houve ativação indevida.",
+  },
+  {
+    dimensao: "Último prompt pausado",
+    estado: "Auditoria de escopo do motor vs proposta/OS",
+    gate: "Próxima tarefa do caso, sem alteração de estado.",
+  },
+];
+
+/** Trilhas de programa vigentes. */
+export const TRILHAS_PROGRAMA: { codigo: string; escopo: string }[] = [
+  { codigo: "CA-06", escopo: "KPIs e SLA internos, complementares ao Desk." },
+  { codigo: "CA-07", escopo: "Saneamento, RLS, DEMO, fontes, auditoria e erros." },
+  { codigo: "CA-08", escopo: "Go-Live, onboarding, suporte, observabilidade, revogação e rollback." },
+];
+
+DECISOES.push({
+  codigo: "CA-DEC-2026-08-19-01",
+  titulo: "Arquitetura, fontes de verdade, contrato-base e Go-Live",
+  versao: "1.0",
+  data: "19/08/2026",
+  status: "aprovada — arquitetura",
+  escopo: "Cadeia operacional completa, fontes canônicas, motor contratual, conversão/Go-Live e caso Ana Luiza",
+  decisao:
+    "O Desk Intelligence é o cockpit operacional soberano. A cadeia vai do Painel de Calls à projeção autorizada no App Cliente, cada tema tem uma fonte canônica única e nenhuma cobrança, assinatura, pesquisa externa, portal ou comunicação é disparada automaticamente.",
+  itens: [
+    { rotulo: "Cockpit", valor: "Desk Intelligence é soberano; App Cliente é projeção autorizada." },
+    {
+      rotulo: "Memória de Bases Genealógicas",
+      valor: "Módulo nativo do Desk; Memória Italiana passa a ser Base Itália, preparada para Áustria, Portugal, Espanha, Polônia e outras bases homologadas.",
+    },
+    {
+      rotulo: "Natureza consultiva",
+      valor: "A Memória de Bases não confirma fatos, não conclui juridicamente e não cria dados, tarefas, e-mails ou pesquisas externas sem confirmação humana.",
+    },
+    { rotulo: "Elegibilidade", valor: "Leitura interna de triagem/hipótese; nunca direito confirmado, percentual de chance ou promessa cliente-facing." },
+    { rotulo: "Contrato-base", valor: `${PERFIL_INSTITUCIONAL.contratoBase} — ${PERFIL_INSTITUCIONAL.subtitulo}` },
+    { rotulo: "Perfil institucional", valor: "Somente dados institucionais versionados; nenhum dado pessoal da responsável." },
+    { rotulo: "Gate de escopo", valor: "Proposta/OS válida, aprovada e vinculada ao mesmo caso, páginas 1–7." },
+    { rotulo: "Versionamento", valor: "Um rascunho editável por caso/modelo; snapshots imutáveis em revisão, aprovação, envio e assinatura." },
+    { rotulo: "Caso familiar", valor: "Adultos aplicáveis como signatários; menor como dependente, com representação em anexo quando necessário." },
+    {
+      rotulo: "Despesas de terceiros",
+      valor: "São do cliente, comunicadas e aprovadas previamente; antecipação excepcional exige autorização, teto e regra de reembolso.",
+    },
+    {
+      rotulo: "Acesso sem senha",
+      valor: "Link mágico/OTP de uso único, curta duração, revogável e vinculado a identidade, organização, caso e RLS; nunca URL pública por case_id.",
+    },
+    { rotulo: "Checkout", valor: "Exige SKU, preço e condição homologados; pagamento muda estado apenas após confirmação da fonte transacional." },
+    {
+      rotulo: "Fluxo alvo de conversão",
+      valor: "Proposta/OS aceita → reconciliação comercial → contrato quando aplicável → cobrança autorizada → comunicação consentida → pagamento confirmado → onboarding/acesso autorizado.",
+    },
+    ...TRILHAS_PROGRAMA.map((t) => ({ rotulo: t.codigo, valor: t.escopo })),
+  ],
+  limites: [
+    "Nenhuma cobrança, assinatura, pesquisa externa, portal ou comunicação é disparada automaticamente.",
+    "MODELO-ESTUDO só é gerável com texto-base e perfil institucional ativos e aprovados.",
+    "Proposta arquivada, recusada, substituída, expirada ou de outro caso não satisfaz gate.",
+    "O App nunca mostra fontes cruas, prompts, regras internas, hipótese, risco, auditoria, RLS, preço técnico, margem, dados de terceiros ou documentos não liberados.",
+    "Não incluir dados pessoais da responsável em contrato padrão, prévia, log ou App.",
+    "Não duplicar caso, contrato ou cobrança ao resolver aliases históricos do caso da Ana.",
+  ],
+  criteriosAceite: [
+    "Cada tema tem fonte canônica declarada e origens não canônicas viram divergência, nunca valor final.",
+    "O motor bloqueia versão final, assinatura, cobrança e onboarding sem proposta/OS válida, preço homologado e gates atendidos.",
+    "O contrato-base usa somente o perfil institucional versionado.",
+    "Uma única proposta/OS master é eleita por revisão humana no caso da Ana.",
+    "Acesso do cliente ocorre por link de uso único revogável, nunca por URL pública com case_id.",
+    "Nenhuma ação externa é disparada por esta decisão.",
+  ],
+});
