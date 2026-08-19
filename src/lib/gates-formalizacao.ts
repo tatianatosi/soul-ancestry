@@ -1,0 +1,244 @@
+/**
+ * Gates de formalização — travas executáveis compartilhadas entre a tela de
+ * preparação contratual e as transições reais no servidor.
+ *
+ * Nenhuma transição pode ser liberada pelo front-end: a mesma avaliação roda
+ * no servidor antes de gerar versão final, preparar anexo, pedir assinatura,
+ * liberar financeiro/onboarding ou mover o eixo de formalização.
+ */
+
+export const ACOES_GATEADAS = [
+  "gerar_versao_final",
+  "preparar_anexo_escopo",
+  "preparar_anexo_comercial",
+  "solicitar_assinatura",
+  "liberar_formalizacao_financeiro",
+  "liberar_cobranca_futura",
+  "formalizacao_contrato_enviado",
+  "formalizacao_contrato_assinado",
+  "formalizacao_pagamento_confirmado",
+  "liberar_onboarding",
+] as const;
+export type AcaoGateada = (typeof ACOES_GATEADAS)[number];
+
+export const ROTULO_ACAO: Record<AcaoGateada, string> = {
+  gerar_versao_final: "Gerar versão final do contrato",
+  preparar_anexo_escopo: "Preparar Anexo de Escopo",
+  preparar_anexo_comercial: "Preparar Anexo Comercial",
+  solicitar_assinatura: "Solicitar assinatura",
+  liberar_formalizacao_financeiro: "Liberar formalização para o financeiro",
+  liberar_cobranca_futura: "Liberar criação futura de cobrança/checkout",
+  formalizacao_contrato_enviado: "Eixo formalização → Contrato enviado",
+  formalizacao_contrato_assinado: "Eixo formalização → Contrato assinado",
+  formalizacao_pagamento_confirmado: "Eixo formalização → Pagamento inicial confirmado",
+  liberar_onboarding: "Liberar onboarding",
+};
+
+export const GATES = [
+  "proposta_valida",
+  "escopo_conferido",
+  "conflitos_resolvidos",
+  "produto_condicao_homologados",
+  "cadastro_completo",
+  "nucleo_familiar_validado",
+  "representacao_menor",
+  "revisao_juridica",
+  "contrato_os_prontos",
+  "assinatura",
+  "pagamento",
+  "autorizacao_pesquisa",
+  "despesas_aprovadas",
+] as const;
+export type Gate = (typeof GATES)[number];
+
+export const ROTULO_GATE: Record<Gate, string> = {
+  proposta_valida: "Proposta Canva válida",
+  escopo_conferido: "Escopo conferido",
+  conflitos_resolvidos: "Conflitos resolvidos",
+  produto_condicao_homologados: "Produto e condição homologados",
+  cadastro_completo: "Cadastro completo",
+  nucleo_familiar_validado: "Núcleo familiar validado",
+  representacao_menor: "Representação de menor (se aplicável)",
+  revisao_juridica: "Revisão jurídica",
+  contrato_os_prontos: "Contrato e OS prontos",
+  assinatura: "Assinatura",
+  pagamento: "Pagamento",
+  autorizacao_pesquisa: "Autorização de pesquisa",
+  despesas_aprovadas: "Despesas de terceiros aprovadas (se aplicável)",
+};
+
+/** Gates exigidos por ação. Cada ação só passa com todos os seus gates verdes. */
+export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
+  gerar_versao_final: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "cadastro_completo",
+    "nucleo_familiar_validado",
+    "representacao_menor",
+  ],
+  preparar_anexo_escopo: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos"],
+  preparar_anexo_comercial: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "despesas_aprovadas",
+  ],
+  solicitar_assinatura: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "cadastro_completo",
+    "nucleo_familiar_validado",
+    "representacao_menor",
+    "revisao_juridica",
+    "contrato_os_prontos",
+  ],
+  liberar_formalizacao_financeiro: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "despesas_aprovadas",
+  ],
+  liberar_cobranca_futura: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "assinatura",
+    "despesas_aprovadas",
+  ],
+  formalizacao_contrato_enviado: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "revisao_juridica",
+    "contrato_os_prontos",
+  ],
+  formalizacao_contrato_assinado: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos", "contrato_os_prontos", "assinatura"],
+  formalizacao_pagamento_confirmado: [
+    "proposta_valida",
+    "escopo_conferido",
+    "produto_condicao_homologados",
+    "assinatura",
+    "pagamento",
+  ],
+  liberar_onboarding: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "produto_condicao_homologados",
+    "cadastro_completo",
+    "nucleo_familiar_validado",
+    "assinatura",
+    "pagamento",
+    "autorizacao_pesquisa",
+    "despesas_aprovadas",
+  ],
+};
+
+export type ContextoGates = {
+  propostaValida: boolean;
+  propostaMotivos?: string[];
+  camposAusentes: string[];
+  conflitos: string[];
+  precoOk: boolean;
+  precoMotivos?: string[];
+  caseServiceOk: boolean;
+  cadastroCompleto: boolean;
+  nucleoValidado: boolean;
+  menorEnvolvido: boolean;
+  representacaoRegistrada: boolean;
+  revisaoJuridicaOk: boolean;
+  contratoOsProntos: boolean;
+  assinaturaRegistrada: boolean;
+  pagamentoConfirmado: boolean;
+  autorizacaoPesquisa: boolean;
+  despesasAplicaveis: boolean;
+  despesasPendentes: string[];
+};
+
+export type AvaliacaoGate = { gate: Gate; label: string; ok: boolean; motivo: string | null };
+
+export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
+  const g = (gate: Gate, ok: boolean, motivo: string | null): AvaliacaoGate => ({
+    gate,
+    label: ROTULO_GATE[gate],
+    ok,
+    motivo: ok ? null : motivo,
+  });
+
+  return [
+    g(
+      "proposta_valida",
+      c.propostaValida,
+      c.propostaMotivos?.length ? c.propostaMotivos.join(" ") : "Proposta Canva inválida como fonte de escopo.",
+    ),
+    g(
+      "escopo_conferido",
+      c.camposAusentes.length === 0,
+      `${c.camposAusentes.length} campo(s) obrigatório(s) não localizado(s) na proposta: ${c.camposAusentes.join(", ")}.`,
+    ),
+    g("conflitos_resolvidos", c.conflitos.length === 0, `${c.conflitos.length} conflito(s) aguardando revisão humana.`),
+    g(
+      "produto_condicao_homologados",
+      c.precoOk && c.caseServiceOk,
+      !c.caseServiceOk
+        ? "Case service (produto-pai/trilha) não configurado no caso."
+        : (c.precoMotivos?.join(" ") ?? "Preço/condição sem homologação vigente."),
+    ),
+    g("cadastro_completo", c.cadastroCompleto, "Cadastro de partes/qualificação incompleto."),
+    g("nucleo_familiar_validado", c.nucleoValidado, "Núcleo familiar não validado."),
+    g(
+      "representacao_menor",
+      !c.menorEnvolvido || c.representacaoRegistrada,
+      "Menor/incapaz no núcleo sem representação legal registrada.",
+    ),
+    g("revisao_juridica", c.revisaoJuridicaOk, "Revisão jurídica da versão final não aprovada."),
+    g("contrato_os_prontos", c.contratoOsProntos, "Contrato/OS ainda não preparados."),
+    g("assinatura", c.assinaturaRegistrada, "Assinatura não registrada."),
+    g("pagamento", c.pagamentoConfirmado, "Pagamento inicial não confirmado."),
+    g("autorizacao_pesquisa", c.autorizacaoPesquisa, "Autorização de pesquisa não registrada."),
+    g(
+      "despesas_aprovadas",
+      !c.despesasAplicaveis || c.despesasPendentes.length === 0,
+      `${c.despesasPendentes.length} pendência(s) em despesas de terceiros: ${c.despesasPendentes.join(" ")}`,
+    ),
+  ];
+}
+
+export type ErroGate = { codigo: string; descricao: string };
+
+/** Erros legíveis por código para a ação pedida. Vazio = transição permitida. */
+export function bloqueiosDaAcao(acao: AcaoGateada, c: ContextoGates): ErroGate[] {
+  const avaliacao = avaliarGates(c);
+  const exigidos = GATES_POR_ACAO[acao];
+  return avaliacao
+    .filter((a) => exigidos.includes(a.gate) && !a.ok)
+    .map((a) => ({ codigo: `GATE_${a.gate.toUpperCase()}`, descricao: `${a.label}: ${a.motivo}` }));
+}
+
+export function podeExecutar(acao: AcaoGateada, c: ContextoGates): boolean {
+  return bloqueiosDaAcao(acao, c).length === 0;
+}
+
+/** Próxima ação recomendada: primeiro gate vermelho na ordem normativa. */
+export function proximaAcaoRecomendada(c: ContextoGates): string {
+  const primeiro = avaliarGates(c).find((a) => !a.ok);
+  if (!primeiro) return "Todos os gates verdes: seguir para revisão jurídica final e preparação de versão.";
+  return `Resolver “${primeiro.label}” — ${primeiro.motivo}`;
+}
+
+export class GateBloqueadoError extends Error {
+  readonly erros: ErroGate[];
+  constructor(acao: AcaoGateada, erros: ErroGate[]) {
+    super(`${ROTULO_ACAO[acao]} bloqueada: ${erros.map((e) => `[${e.codigo}] ${e.descricao}`).join(" · ")}`);
+    this.name = "GateBloqueadoError";
+    this.erros = erros;
+  }
+}
