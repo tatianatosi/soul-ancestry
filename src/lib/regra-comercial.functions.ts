@@ -73,10 +73,10 @@ export const conferirRegraComercial = createServerFn({ method: "GET" })
     }
 
     const codigo = sku(valorSku);
-    let preco: Record<string, unknown> | null = null;
+    let preco: ConferenciaPreco | null = null;
     if (codigo) {
       const { data: rpc } = await supabase.rpc("sku_preco_homologado", { _org: org, _sku: codigo });
-      preco = (rpc as Record<string, unknown>) ?? null;
+      preco = (rpc as ConferenciaPreco) ?? null;
     } else {
       preco = { ok: false, motivo: "SKU do produto não parametrizado no caso." };
     }
