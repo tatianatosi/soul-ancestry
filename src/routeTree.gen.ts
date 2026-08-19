@@ -34,6 +34,7 @@ import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
+import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authenticated/piloto-ana'
 import { Route as AuthenticatedPilotoRouteImport } from './routes/_authenticated/piloto'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
@@ -41,10 +42,12 @@ import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
+import { Route as AuthenticatedImportacoesRouteImport } from './routes/_authenticated/importacoes'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authenticated/etiquetas'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
@@ -194,6 +197,11 @@ const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   path: '/propostas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPilotoAnaRoute = AuthenticatedPilotoAnaRouteImport.update({
+  id: '/piloto-ana',
+  path: '/piloto-ana',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPilotoRoute = AuthenticatedPilotoRouteImport.update({
   id: '/piloto',
   path: '/piloto',
@@ -232,6 +240,12 @@ const AuthenticatedIntegracoesRoute =
     path: '/integracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedImportacoesRoute =
+  AuthenticatedImportacoesRouteImport.update({
+    id: '/importacoes',
+    path: '/importacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -250,6 +264,11 @@ const AuthenticatedEtiquetasRoute = AuthenticatedEtiquetasRouteImport.update({
 const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedConversaoRoute = AuthenticatedConversaoRouteImport.update({
+  id: '/conversao',
+  path: '/conversao',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -404,10 +423,12 @@ export interface FileRoutesByFullPath {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -415,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/piloto': typeof AuthenticatedPilotoRoute
+  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -464,10 +486,12 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -475,6 +499,7 @@ export interface FileRoutesByTo {
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/piloto': typeof AuthenticatedPilotoRoute
+  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -527,10 +552,12 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/importacoes': typeof AuthenticatedImportacoesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
@@ -538,6 +565,7 @@ export interface FileRoutesById {
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/piloto': typeof AuthenticatedPilotoRoute
+  '/_authenticated/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -590,10 +618,12 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/clientes'
     | '/configuracoes'
+    | '/conversao'
     | '/equipe'
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/importacoes'
     | '/integracoes'
     | '/leads'
     | '/ops'
@@ -601,6 +631,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/piloto'
+    | '/piloto-ana'
     | '/propostas'
     | '/qualidade'
     | '/relatorios'
@@ -650,10 +681,12 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/clientes'
     | '/configuracoes'
+    | '/conversao'
     | '/equipe'
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/importacoes'
     | '/integracoes'
     | '/leads'
     | '/ops'
@@ -661,6 +694,7 @@ export interface FileRouteTypes {
     | '/ordens-servico'
     | '/painel'
     | '/piloto'
+    | '/piloto-ana'
     | '/propostas'
     | '/qualidade'
     | '/relatorios'
@@ -712,10 +746,12 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/conversao'
     | '/_authenticated/equipe'
     | '/_authenticated/etiquetas'
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
+    | '/_authenticated/importacoes'
     | '/_authenticated/integracoes'
     | '/_authenticated/leads'
     | '/_authenticated/ops'
@@ -723,6 +759,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
     | '/_authenticated/piloto'
+    | '/_authenticated/piloto-ana'
     | '/_authenticated/propostas'
     | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
@@ -955,6 +992,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPropostasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/piloto-ana': {
+      id: '/_authenticated/piloto-ana'
+      path: '/piloto-ana'
+      fullPath: '/piloto-ana'
+      preLoaderRoute: typeof AuthenticatedPilotoAnaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/piloto': {
       id: '/_authenticated/piloto'
       path: '/piloto'
@@ -1004,6 +1048,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIntegracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/importacoes': {
+      id: '/_authenticated/importacoes'
+      path: '/importacoes'
+      fullPath: '/importacoes'
+      preLoaderRoute: typeof AuthenticatedImportacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/financeiro': {
       id: '/_authenticated/financeiro'
       path: '/financeiro'
@@ -1030,6 +1081,13 @@ declare module '@tanstack/react-router' {
       path: '/equipe'
       fullPath: '/equipe'
       preLoaderRoute: typeof AuthenticatedEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conversao': {
+      id: '/_authenticated/conversao'
+      path: '/conversao'
+      fullPath: '/conversao'
+      preLoaderRoute: typeof AuthenticatedConversaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes': {
@@ -1210,10 +1268,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEtiquetasRoute: typeof AuthenticatedEtiquetasRoute
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedImportacoesRoute: typeof AuthenticatedImportacoesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
@@ -1221,6 +1281,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPilotoRoute: typeof AuthenticatedPilotoRoute
+  AuthenticatedPilotoAnaRoute: typeof AuthenticatedPilotoAnaRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
@@ -1250,10 +1311,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEtiquetasRoute: AuthenticatedEtiquetasRoute,
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedImportacoesRoute: AuthenticatedImportacoesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
@@ -1261,6 +1324,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPilotoRoute: AuthenticatedPilotoRoute,
+  AuthenticatedPilotoAnaRoute: AuthenticatedPilotoAnaRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,

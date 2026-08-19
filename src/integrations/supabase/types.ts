@@ -146,6 +146,84 @@ export type Database = {
           },
         ]
       }
+      attribution_records: {
+        Row: {
+          archived_at: string | null
+          campaign_id: string | null
+          canal: string | null
+          case_id: string | null
+          cliente_id: string | null
+          created_at: string
+          id: string
+          lead_id: string | null
+          lead_source_id: string | null
+          modelo: string
+          observacao: string | null
+          organization_id: string
+          peso: number
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          valor_convertido: number | null
+        }
+        Insert: {
+          archived_at?: string | null
+          campaign_id?: string | null
+          canal?: string | null
+          case_id?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          lead_source_id?: string | null
+          modelo?: string
+          observacao?: string | null
+          organization_id: string
+          peso?: number
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          valor_convertido?: number | null
+        }
+        Update: {
+          archived_at?: string | null
+          campaign_id?: string | null
+          canal?: string | null
+          case_id?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          lead_source_id?: string | null
+          modelo?: string
+          observacao?: string | null
+          organization_id?: string
+          peso?: number
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          valor_convertido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attribution_records_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attribution_records_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           acao: string
@@ -3269,6 +3347,81 @@ export type Database = {
           },
         ]
       }
+      conversion_events: {
+        Row: {
+          campaign_id: string | null
+          canal: string | null
+          case_id: string | null
+          cliente_id: string | null
+          created_at: string
+          created_by: string | null
+          event_type: string
+          evidencia_referencia: string | null
+          id: string
+          lead_id: string | null
+          lead_source_id: string | null
+          observacao: string | null
+          occurred_at: string
+          organization_id: string
+          origem: string | null
+          responsavel: string | null
+          responsavel_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          canal?: string | null
+          case_id?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          evidencia_referencia?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_source_id?: string | null
+          observacao?: string | null
+          occurred_at?: string
+          organization_id: string
+          origem?: string | null
+          responsavel?: string | null
+          responsavel_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          canal?: string | null
+          case_id?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          evidencia_referencia?: string | null
+          id?: string
+          lead_id?: string | null
+          lead_source_id?: string | null
+          observacao?: string | null
+          occurred_at?: string
+          organization_id?: string
+          origem?: string | null
+          responsavel?: string | null
+          responsavel_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_events_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_casos: {
         Row: {
           aceite_comercial_em: string | null
@@ -3319,6 +3472,10 @@ export type Database = {
           hipotese_elegibilidade: string | null
           hipotese_trabalho_interna: string | null
           id: string
+          id_canonico_decidido: string | null
+          id_canonico_decidido_em: string | null
+          id_canonico_decidido_por: string | null
+          ids_historicos: Json
           info_cliente_liberada: boolean
           link_origem_interna: string | null
           marcos_gerais_da_proposta: string | null
@@ -3417,6 +3574,10 @@ export type Database = {
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
           id?: string
+          id_canonico_decidido?: string | null
+          id_canonico_decidido_em?: string | null
+          id_canonico_decidido_por?: string | null
+          ids_historicos?: Json
           info_cliente_liberada?: boolean
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
@@ -3515,6 +3676,10 @@ export type Database = {
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
           id?: string
+          id_canonico_decidido?: string | null
+          id_canonico_decidido_em?: string | null
+          id_canonico_decidido_por?: string | null
+          ids_historicos?: Json
           info_cliente_liberada?: boolean
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
@@ -4187,6 +4352,75 @@ export type Database = {
           },
         ]
       }
+      import_batches: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_records: number
+          duplicated_records: number
+          error_log: Json
+          finished_at: string | null
+          id: string
+          imported_by: string | null
+          mapping: Json
+          mapping_version: string
+          observacao: string | null
+          organization_id: string
+          rejected_records: number
+          source_file_or_endpoint: string | null
+          source_system: string
+          started_at: string
+          status: string
+          total_rows: number
+          updated_at: string
+          updated_records: number
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_records?: number
+          duplicated_records?: number
+          error_log?: Json
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          mapping?: Json
+          mapping_version?: string
+          observacao?: string | null
+          organization_id: string
+          rejected_records?: number
+          source_file_or_endpoint?: string | null
+          source_system: string
+          started_at?: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_records?: number
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_records?: number
+          duplicated_records?: number
+          error_log?: Json
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          mapping?: Json
+          mapping_version?: string
+          observacao?: string | null
+          organization_id?: string
+          rejected_records?: number
+          source_file_or_endpoint?: string | null
+          source_system?: string
+          started_at?: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+          updated_records?: number
+        }
+        Relationships: []
+      }
       integration_review_queue: {
         Row: {
           archive_motivo: string | null
@@ -4821,6 +5055,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_sources: {
+        Row: {
+          active: boolean
+          archived_at: string | null
+          canal: string | null
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          organization_id: string
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          archived_at?: string | null
+          canal?: string | null
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          organization_id: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          archived_at?: string | null
+          canal?: string | null
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          organization_id?: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           archive_motivo: string | null
@@ -4889,6 +5165,199 @@ export type Database = {
           },
         ]
       }
+      legacy_record_links: {
+        Row: {
+          archived_at: string | null
+          canonical_record_id: string | null
+          canonical_reference: string | null
+          confidence: string
+          created_at: string
+          deduplication_reason: string | null
+          entity_type: string
+          id: string
+          imported_at: string
+          legacy_record_id: string
+          legacy_reference: string | null
+          legacy_system: string
+          migration_batch_id: string | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          canonical_record_id?: string | null
+          canonical_reference?: string | null
+          confidence?: string
+          created_at?: string
+          deduplication_reason?: string | null
+          entity_type: string
+          id?: string
+          imported_at?: string
+          legacy_record_id: string
+          legacy_reference?: string | null
+          legacy_system: string
+          migration_batch_id?: string | null
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          canonical_record_id?: string | null
+          canonical_reference?: string | null
+          confidence?: string
+          created_at?: string
+          deduplication_reason?: string | null
+          entity_type?: string
+          id?: string
+          imported_at?: string
+          legacy_record_id?: string
+          legacy_reference?: string | null
+          legacy_system?: string
+          migration_batch_id?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legacy_record_links_migration_batch_id_fkey"
+            columns: ["migration_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_campaigns: {
+        Row: {
+          archived_at: string | null
+          canal: string | null
+          codigo: string
+          created_at: string
+          fim: string | null
+          id: string
+          inicio: string | null
+          lead_source_id: string | null
+          nome: string
+          observacao: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          canal?: string | null
+          codigo: string
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          lead_source_id?: string | null
+          nome: string
+          observacao?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          canal?: string | null
+          codigo?: string
+          created_at?: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          lead_source_id?: string | null
+          nome?: string
+          observacao?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campaigns_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_investments: {
+        Row: {
+          archived_at: string | null
+          campaign_id: string | null
+          canal: string | null
+          competencia: string
+          created_at: string
+          id: string
+          lead_source_id: string | null
+          moeda: string
+          observacao: string | null
+          organization_id: string
+          origem_dado: string
+          referencia_interna: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          archived_at?: string | null
+          campaign_id?: string | null
+          canal?: string | null
+          competencia: string
+          created_at?: string
+          id?: string
+          lead_source_id?: string | null
+          moeda?: string
+          observacao?: string | null
+          organization_id: string
+          origem_dado?: string
+          referencia_interna?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          archived_at?: string | null
+          campaign_id?: string | null
+          canal?: string | null
+          competencia?: string
+          created_at?: string
+          id?: string
+          lead_source_id?: string | null
+          moeda?: string
+          observacao?: string | null
+          organization_id?: string
+          origem_dado?: string
+          referencia_interna?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_investments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_investments_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       microentregas: {
         Row: {
           caso_id: string
@@ -4935,6 +5404,65 @@ export type Database = {
             columns: ["caso_id"]
             isOneToOne: false
             referencedRelation: "casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      migration_exceptions: {
+        Row: {
+          archived_at: string | null
+          assigned_to: string | null
+          created_at: string
+          exception_type: string
+          id: string
+          migration_batch_id: string | null
+          organization_id: string
+          payload: Json
+          proposed_resolution: string | null
+          reason: string
+          source_record_id: string | null
+          source_system: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          exception_type: string
+          id?: string
+          migration_batch_id?: string | null
+          organization_id: string
+          payload?: Json
+          proposed_resolution?: string | null
+          reason: string
+          source_record_id?: string | null
+          source_system: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          assigned_to?: string | null
+          created_at?: string
+          exception_type?: string
+          id?: string
+          migration_batch_id?: string | null
+          organization_id?: string
+          payload?: Json
+          proposed_resolution?: string | null
+          reason?: string
+          source_record_id?: string | null
+          source_system?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "migration_exceptions_migration_batch_id_fkey"
+            columns: ["migration_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
             referencedColumns: ["id"]
           },
         ]
@@ -5166,6 +5694,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      onboarding_template_items: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          descricao: string | null
+          fase: string
+          id: string
+          item: string
+          obrigatorio: boolean
+          ordem: number
+          organization_id: string
+          prazo_dias: number | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          descricao?: string | null
+          fase: string
+          id?: string
+          item: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id: string
+          prazo_dias?: number | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          descricao?: string | null
+          fase?: string
+          id?: string
+          item?: string
+          obrigatorio?: boolean
+          ordem?: number
+          organization_id?: string
+          prazo_dias?: number | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_templates: {
+        Row: {
+          active: boolean
+          archived_at: string | null
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          organization_id: string
+          updated_at: string
+          versao: string
+        }
+        Insert: {
+          active?: boolean
+          archived_at?: string | null
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          organization_id: string
+          updated_at?: string
+          versao?: string
+        }
+        Update: {
+          active?: boolean
+          archived_at?: string | null
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          organization_id?: string
+          updated_at?: string
+          versao?: string
+        }
+        Relationships: []
       }
       ops_excecoes: {
         Row: {

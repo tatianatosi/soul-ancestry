@@ -3,6 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { PainelHoje } from "@/components/painel/painel-hoje";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -52,6 +53,10 @@ function Painel() {
           </div>
         ))}
       </div>
+
+      <PainelHoje />
+
+
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-navy/10 bg-white p-5 text-sm text-navy/70">
