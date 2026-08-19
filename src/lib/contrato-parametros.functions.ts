@@ -13,6 +13,7 @@ import {
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
+import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 
@@ -561,7 +562,15 @@ export const gerarPrevia = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const { registro, template, previa } = await montarDoRegistro(supabase, data.id, "rascunho");
-    if (data.tipo === "final") await exigirCoerencia(supabase, registro);
+    if (data.tipo === "final") {
+      await exigirCoerencia(supabase, registro);
+      await exigirGate(supabase, {
+        caseId: registro.case_id,
+        acao: "gerar_versao_final",
+        userId: context.userId as string,
+        organizationId: registro.organization_id,
+      });
+    }
 
     const hash = hashConteudo(previa.conteudo);
 
@@ -657,7 +666,15 @@ export const congelarPrevia = createServerFn({ method: "POST" })
 
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
     const { registro, template, previa } = await montarDoRegistro(supabase, data.id, tipo as any);
-    if (tipo === "final") await exigirCoerencia(supabase, registro);
+    if (tipo === "final") {
+      await exigirCoerencia(supabase, registro);
+      await exigirGate(supabase, {
+        caseId: registro.case_id,
+        acao: data.evento === "envio_assinatura" ? "solicitar_assinatura" : "gerar_versao_final",
+        userId: context.userId as string,
+        organizationId: registro.organization_id,
+      });
+    }
     if (tipo === "final" && previa.placeholdersPendentes.length > 0) {
       throw new Error(
         `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
@@ -796,6 +813,12 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
     if (!registro) throw new Error("Registro de parâmetros não encontrado.");
     if (registro.status !== "aprovado") throw new Error("Aprove os parâmetros antes de enviar para assinatura.");
     await exigirCoerencia(supabase, registro);
+    await exigirGate(supabase, {
+      caseId: registro.case_id,
+      acao: "solicitar_assinatura",
+      userId: context.userId as string,
+      organizationId: registro.organization_id,
+    });
 
     const { data: valores } = await supabase
       .from("contract_parameter_values")
@@ -895,6 +918,12 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (!registro?.contract_id) throw new Error("Envie para assinatura antes de registrar o instrumento assinado.");
+    await exigirGate(supabase, {
+      caseId: registro.case_id,
+      acao: "formalizacao_contrato_enviado",
+      userId: context.userId as string,
+      organizationId: registro.organization_id,
+    });
 
     const { count } = await supabase
       .from("contract_parties")
