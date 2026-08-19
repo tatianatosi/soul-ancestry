@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { exigirGate } from "@/lib/escopo-conferencia.server";
+import type { AcaoGateada } from "@/lib/gates-formalizacao";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   validarEstadoInicial,
@@ -441,6 +443,27 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
     const combinado = { ...anterior, ...alteracoes };
     validarTransicao(data.entidade, anterior, alteracoes);
     validarRegrasNegocio(data.entidade, combinado);
+
+    // Gates de formalização: nenhuma transição de eixo pode ser liberada pela
+    // interface — a avaliação roda aqui, no servidor, e registra a tentativa.
+    if (data.entidade === "crm_casos" && typeof alteracoes["eixo_formalizacao"] === "string") {
+      const destino = String(alteracoes["eixo_formalizacao"]);
+      const mapa: Record<string, AcaoGateada> = {
+        contrato_enviado: "formalizacao_contrato_enviado",
+        contrato_assinado: "formalizacao_contrato_assinado",
+        pagamento_inicial_confirmado: "formalizacao_pagamento_confirmado",
+        onboarding_iniciado: "liberar_onboarding",
+      };
+      const acao = mapa[destino];
+      if (acao && anterior["eixo_formalizacao"] !== destino) {
+        await exigirGate(supabase as never, {
+          caseId: data.id,
+          acao,
+          userId: context.userId as string,
+          organizationId,
+        });
+      }
+    }
 
     // Campo enviado que não existe na tabela nunca mais some em silêncio.
     if (ignorados.length > 0 && Object.keys(alteracoes).length === 0) {

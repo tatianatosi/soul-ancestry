@@ -6,6 +6,8 @@ import { mapaDaAcao } from "@/lib/caso-ficha";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
+import { exigirGate } from "@/lib/escopo-conferencia.server";
+
 export const carregarCanonico = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => data)
@@ -262,6 +264,22 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
+    const { data: item } = await supabase
+      .from("onboarding_checklist")
+      .select("id,case_id,item_code")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!item) throw new Error("Item de onboarding não encontrado.");
+    if (data.status === "concluido" && ["liberacao_onboarding", "onboarding_liberado"].includes(String(item.item_code))) {
+      await exigirGate(supabase, {
+        caseId: item.case_id,
+        acao: "liberar_onboarding",
+        userId: context.userId as string,
+        organizationId,
+      });
+    }
+
     const { error } = await supabase
       .from("onboarding_checklist")
       .update({
