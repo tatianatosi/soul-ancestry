@@ -1,0 +1,72 @@
+/**
+ * Matriz interna de decisão jurídica.
+ *
+ * Registra TEMAS pendentes de revisão — nunca texto de cláusula. Nenhum tema
+ * pendente pode virar cláusula, e nenhum conteúdo do site é tratado como
+ * versão jurídica vigente.
+ */
+
+export const STATUS_TEMA = [
+  { valor: "pendente_revisao_juridica", rotulo: "Pendente de revisão jurídica" },
+  { valor: "aprovado", rotulo: "Aprovado" },
+  { valor: "rejeitado", rotulo: "Rejeitado" },
+  { valor: "substituir", rotulo: "Substituir" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+] as const;
+export type StatusTema = (typeof STATUS_TEMA)[number]["valor"];
+
+export type TemaJuridico = {
+  tema_codigo: string;
+  tema: string;
+  bloqueia_assinatura: boolean;
+  impacto_templates: string[];
+};
+
+/** Temas normativos cadastrados na matriz. Sem redação, só decisão. */
+export const TEMAS_JURIDICOS: TemaJuridico[] = [
+  { tema_codigo: "natureza_servico", tema: "Natureza intelectual/técnica do serviço", bloqueia_assinatura: true, impacto_templates: ["MODELO-ESTUDO", "BASE-GEN-V2"] },
+  { tema_codigo: "nao_garantia", tema: "Não garantia de documento, linhagem, cidadania, resultado ou prazo", bloqueia_assinatura: true, impacto_templates: ["MODELO-ESTUDO", "BASE-GEN-V2"] },
+  { tema_codigo: "limite_relatorio", tema: "Limite do relatório e ausência de parecer jurídico individual", bloqueia_assinatura: true, impacto_templates: ["MODELO-ESTUDO"] },
+  { tema_codigo: "retencao_dados", tema: "Retenção, descarte e acesso a dados/documentos", bloqueia_assinatura: true, impacto_templates: ["ANX-PRIVACIDADE"] },
+  { tema_codigo: "suspensao_prazo", tema: "Suspensão de prazo", bloqueia_assinatura: false, impacto_templates: ["BASE-GEN-V2"] },
+  { tema_codigo: "encerramento", tema: "Encerramento", bloqueia_assinatura: true, impacto_templates: ["BASE-GEN-V2"] },
+  { tema_codigo: "inadimplemento", tema: "Inadimplemento", bloqueia_assinatura: true, impacto_templates: ["ANX-COMERCIAL"] },
+  { tema_codigo: "rescisao", tema: "Rescisão", bloqueia_assinatura: true, impacto_templates: ["BASE-GEN-V2"] },
+  { tema_codigo: "foro", tema: "Foro", bloqueia_assinatura: true, impacto_templates: ["BASE-GEN-V2"] },
+  { tema_codigo: "parcelamento", tema: "Parcelamento", bloqueia_assinatura: false, impacto_templates: ["ANX-COMERCIAL"] },
+  { tema_codigo: "despesas_terceiros", tema: "Despesas de terceiros", bloqueia_assinatura: true, impacto_templates: ["ANX-COMERCIAL"] },
+  { tema_codigo: "dependentes_representacao", tema: "Dependentes e representação", bloqueia_assinatura: true, impacto_templates: ["ANX-INDIVIDUAL", "ANX-REPRESENTACAO"] },
+];
+
+export type LinhaMatriz = {
+  tema_codigo: string;
+  tema: string;
+  status: string;
+  versao_juridica_aplicavel: string | null;
+  responsavel_revisao: string | null;
+  decisao: string | null;
+  justificativa: string | null;
+  decidido_em: string | null;
+  referencia_versao: string | null;
+  impacto_templates: string[];
+  bloqueia_assinatura: boolean;
+};
+
+export function rotuloStatusTema(v: string | null | undefined): string {
+  return STATUS_TEMA.find((s) => s.valor === v)?.rotulo ?? "—";
+}
+
+/** Temas bloqueantes ainda sem decisão registrada. */
+export function temasBloqueantesPendentes(linhas: LinhaMatriz[]): string[] {
+  return linhas
+    .filter((l) => l.bloqueia_assinatura && l.status === "pendente_revisao_juridica")
+    .map((l) => l.tema);
+}
+
+/** Só há cláusula quando o tema está aprovado com versão jurídica vigente. */
+export function podeGerarClausula(linha: LinhaMatriz | undefined | null): { permitido: boolean; motivo: string | null } {
+  if (!linha) return { permitido: false, motivo: "Tema não cadastrado na matriz jurídica." };
+  if (linha.status !== "aprovado") return { permitido: false, motivo: `Tema com status “${rotuloStatusTema(linha.status)}”.` };
+  if (!linha.versao_juridica_aplicavel) return { permitido: false, motivo: "Tema aprovado sem versão jurídica aplicável." };
+  return { permitido: true, motivo: null };
+}
