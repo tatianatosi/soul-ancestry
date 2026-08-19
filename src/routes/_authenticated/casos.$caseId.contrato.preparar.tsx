@@ -56,6 +56,7 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/pre
 
 function Pagina() {
   const { caseId } = Route.useParams();
+  const { podeEscrever } = useSaas();
   const qc = useQueryClient();
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
