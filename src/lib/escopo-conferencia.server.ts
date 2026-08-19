@@ -9,6 +9,8 @@ import { conferirEscopo, type EntradaConferencia, type ResultadoConferencia } fr
 import { conferirPrecoCanonico, type ProdutoCanonico } from "@/lib/preco-canonico";
 import type { Despesa } from "@/lib/despesas-terceiros";
 import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
+import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
+import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { GateBloqueadoError, bloqueiosDaAcao, type AcaoGateada } from "@/lib/gates-formalizacao";
 
 type Sb = any;
@@ -102,6 +104,36 @@ export async function montarConferencia(
       ).data ?? [])
     : [];
 
+  const [{ data: dependentesRaw }, { data: matrizRaw }, { data: paginasRaw }] = await Promise.all([
+    supabase.from("case_dependents").select("*").eq("case_id", caso.id).is("archived_at", null),
+    supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+    proposta?.id
+      ? supabase
+          .from("proposal_canva_pages")
+          .select("page_number,extracao_status,campos_nao_localizados")
+          .eq("proposal_id", proposta.id)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const dependentes = ((dependentesRaw ?? []) as any[]) as Dependente[];
+  const matriz: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
+    const linha = ((matrizRaw ?? []) as any[]).find((m) => m.tema_codigo === t.tema_codigo);
+    return {
+      tema_codigo: t.tema_codigo,
+      tema: t.tema,
+      status: linha?.status ?? "pendente_revisao_juridica",
+      versao_juridica_aplicavel: linha?.versao_juridica_aplicavel ?? null,
+      responsavel_revisao: linha?.responsavel_revisao ?? null,
+      decisao: linha?.decisao ?? null,
+      justificativa: linha?.justificativa ?? null,
+      decidido_em: linha?.decidido_em ?? null,
+      referencia_versao: linha?.referencia_versao ?? null,
+      impacto_templates: linha?.impacto_templates ?? t.impacto_templates,
+      bloqueia_assinatura: linha?.bloqueia_assinatura ?? t.bloqueia_assinatura,
+    };
+  });
+
   const { data: excecao } = await supabase
     .from("sku_price_exceptions")
     .select("id,preco_total,condicao_pagamento,status,valido_ate,aprovado_em,motivo")
@@ -184,6 +216,13 @@ export async function montarConferencia(
       autorizacaoPesquisa: Boolean(caso.consentimento_compartilhamento),
     },
     despesas,
+    dependentesPendentes: bloqueiosDependentes(dependentes).map((b) => b.descricao),
+    temasJuridicosBloqueantes: temasBloqueantesPendentes(matriz),
+    paginasCanva: ((paginasRaw ?? []) as any[]).map((p) => ({
+      page_number: Number(p.page_number),
+      extracao_status: p.extracao_status ?? null,
+      campos_nao_localizados: p.campos_nao_localizados ?? [],
+    })),
     hoje,
   };
 
@@ -203,6 +242,9 @@ export async function montarConferencia(
       fichaId: ficha?.id ?? null,
       checklistOnboarding: checklist ?? [],
       excecao: excecao ?? null,
+      dependentes,
+      matrizJuridica: matriz,
+      paginasCanva: paginasRaw ?? [],
     },
   };
 }
