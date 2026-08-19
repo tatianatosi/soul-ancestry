@@ -60,6 +60,10 @@ export type EntradaConferencia = {
     autorizacaoPesquisa: boolean;
   };
   despesas: Despesa[];
+  /** Dependentes com representação pendente que participam de contrato, App ou anexo. */
+  dependentesPendentes?: string[];
+  /** Temas jurídicos bloqueantes ainda sem decisão registrada. */
+  temasJuridicosBloqueantes?: string[];
   hoje?: Date;
 };
 
@@ -109,6 +113,16 @@ export function conferirEscopo(e: EntradaConferencia): ResultadoConferencia {
 
   const despesasAplicaveis = e.despesas.some((d) => d.estado !== "nao_aplicavel");
   const despesasPendentes = e.despesas.flatMap((d) => pendenciasDespesa(d));
+  if ((e.dependentesPendentes ?? []).length)
+    bloqueios.push({
+      codigo: "DEPENDENTE_REPRESENTACAO_PENDENTE",
+      descricao: `${(e.dependentesPendentes ?? []).length} dependente(s) com representação pendente participando de contrato, App ou anexo.`,
+    });
+  if ((e.temasJuridicosBloqueantes ?? []).length)
+    bloqueios.push({
+      codigo: "TEMA_JURIDICO_PENDENTE",
+      descricao: `${(e.temasJuridicosBloqueantes ?? []).length} tema(s) jurídico(s) bloqueante(s) sem decisão registrada.`,
+    });
   if (despesasAplicaveis && despesasPendentes.length)
     bloqueios.push({
       codigo: "DESPESA_TERCEIRO_PENDENTE",
@@ -142,6 +156,8 @@ export function conferirEscopo(e: EntradaConferencia): ResultadoConferencia {
     autorizacaoPesquisa: e.checklist.autorizacaoPesquisa,
     despesasAplicaveis,
     despesasPendentes,
+    dependentesPendentes: e.dependentesPendentes ?? [],
+    temasJuridicosBloqueantes: e.temasJuridicosBloqueantes ?? [],
   };
 
   const impeditivos = bloqueios.filter((b) => b.codigo !== "CONFLITO_NAO_RESOLVIDO");
@@ -188,6 +204,8 @@ export function contextoGatesDaConferencia(r: ResultadoConferencia): ContextoGat
     autorizacaoPesquisa: ok("autorizacao_pesquisa"),
     despesasAplicaveis: !ok("despesas_aprovadas"),
     despesasPendentes: ok("despesas_aprovadas") ? [] : ["Pendência registrada em despesas de terceiros."],
+    dependentesPendentes: ok("dependentes_representacao") ? [] : ["Dependente com representação pendente."],
+    temasJuridicosBloqueantes: ok("matriz_juridica") ? [] : ["Tema jurídico bloqueante sem decisão."],
   };
 }
 

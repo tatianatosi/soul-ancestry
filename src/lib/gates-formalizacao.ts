@@ -48,6 +48,8 @@ export const GATES = [
   "pagamento",
   "autorizacao_pesquisa",
   "despesas_aprovadas",
+  "dependentes_representacao",
+  "matriz_juridica",
 ] as const;
 export type Gate = (typeof GATES)[number];
 
@@ -65,6 +67,8 @@ export const ROTULO_GATE: Record<Gate, string> = {
   pagamento: "Pagamento",
   autorizacao_pesquisa: "Autorização de pesquisa",
   despesas_aprovadas: "Despesas de terceiros aprovadas (se aplicável)",
+  dependentes_representacao: "Dependentes com representação resolvida (se aplicável)",
+  matriz_juridica: "Temas jurídicos bloqueantes decididos",
 };
 
 /** Gates exigidos por ação. Cada ação só passa com todos os seus gates verdes. */
@@ -77,6 +81,7 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "cadastro_completo",
     "nucleo_familiar_validado",
     "representacao_menor",
+    "dependentes_representacao",
   ],
   preparar_anexo_escopo: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos"],
   preparar_anexo_comercial: [
@@ -96,6 +101,8 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "representacao_menor",
     "revisao_juridica",
     "contrato_os_prontos",
+    "dependentes_representacao",
+    "matriz_juridica",
   ],
   liberar_formalizacao_financeiro: [
     "proposta_valida",
@@ -120,7 +127,14 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "revisao_juridica",
     "contrato_os_prontos",
   ],
-  formalizacao_contrato_assinado: ["proposta_valida", "escopo_conferido", "conflitos_resolvidos", "contrato_os_prontos", "assinatura"],
+  formalizacao_contrato_assinado: [
+    "proposta_valida",
+    "escopo_conferido",
+    "conflitos_resolvidos",
+    "contrato_os_prontos",
+    "assinatura",
+    "matriz_juridica",
+  ],
   formalizacao_pagamento_confirmado: [
     "proposta_valida",
     "escopo_conferido",
@@ -139,6 +153,7 @@ export const GATES_POR_ACAO: Record<AcaoGateada, Gate[]> = {
     "pagamento",
     "autorizacao_pesquisa",
     "despesas_aprovadas",
+    "dependentes_representacao",
   ],
 };
 
@@ -161,6 +176,10 @@ export type ContextoGates = {
   autorizacaoPesquisa: boolean;
   despesasAplicaveis: boolean;
   despesasPendentes: string[];
+  /** Dependentes que participam de contrato/App/anexo com representação pendente. */
+  dependentesPendentes?: string[];
+  /** Temas da matriz jurídica marcados como bloqueantes e ainda não decididos. */
+  temasJuridicosBloqueantes?: string[];
 };
 
 export type AvaliacaoGate = { gate: Gate; label: string; ok: boolean; motivo: string | null };
@@ -208,6 +227,20 @@ export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
       "despesas_aprovadas",
       !c.despesasAplicaveis || c.despesasPendentes.length === 0,
       `${c.despesasPendentes.length} pendência(s) em despesas de terceiros: ${c.despesasPendentes.join(" ")}`,
+    ),
+    g(
+      "dependentes_representacao",
+      (c.dependentesPendentes ?? []).length === 0,
+      `${(c.dependentesPendentes ?? []).length} dependente(s) com representação pendente participando de contrato, App ou anexo: ${(
+        c.dependentesPendentes ?? []
+      ).join(", ")}.`,
+    ),
+    g(
+      "matriz_juridica",
+      (c.temasJuridicosBloqueantes ?? []).length === 0,
+      `${(c.temasJuridicosBloqueantes ?? []).length} tema(s) jurídico(s) bloqueante(s) sem decisão registrada: ${(
+        c.temasJuridicosBloqueantes ?? []
+      ).join(", ")}.`,
     ),
   ];
 }
