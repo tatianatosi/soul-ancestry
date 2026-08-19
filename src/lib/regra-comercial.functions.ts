@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { ConferenciaPreco } from "@/lib/precos-sku";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
