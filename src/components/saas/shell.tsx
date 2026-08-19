@@ -73,6 +73,9 @@ const NAV = [
 
   { to: "/casos", label: "Casos", icon: FolderOpen },
   { to: "/piloto", label: "Piloto real", icon: ShieldCheck },
+  { to: "/piloto-ana", label: "Caso-piloto Ana Luiza", icon: ShieldCheck },
+  { to: "/conversao", label: "Conversão e marketing", icon: BarChart3 },
+  { to: "/importacoes", label: "Importações e migração", icon: Plug },
   { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
   { to: "/pesquisa-modulo", label: "Pesquisa e evidências", icon: FileSearch },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
