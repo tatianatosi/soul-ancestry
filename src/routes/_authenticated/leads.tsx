@@ -1,16 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
 
-import { EntidadeCrud } from "@/components/saas/entidade-crud";
+import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
-import { ESTADOS, rotuloEstado } from "@/lib/estados";
+import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import {
+  AREAS_RESPONSAVEIS,
+  CATALOGOS,
+  EIXO_COMERCIAL,
+  EIXO_FORMALIZACAO,
+  MOTIVOS_PERDA,
+  NACIONALIDADES,
+  OBJETIVOS,
+  ORIGENS_LEAD,
+  PROXIMAS_ACOES,
+  RESULTADOS_DISCOVERY,
+  SERVICOS_INICIAIS,
+  STATUS_VIA,
+  VIAS_JURIDICAS,
+  resultadoComercialDerivado,
+  rotulo,
+  validarLead,
+  type ErroValidacao,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
     meta: [
-      { title: "Leads — Clube Ancestral" },
-      { name: "description", content: "Gestão de leads da organização, com arquivamento e trilha de auditoria." },
-      { property: "og:title", content: "Leads — Clube Ancestral" },
-      { property: "og:description", content: "Gestão de leads no Clube Ancestral." },
+      { title: "CRM de leads — Clube Ancestral" },
+      { name: "description", content: "Desk comercial diário: leads, Discovery, eixos comercial e de formalização." },
+      { property: "og:title", content: "CRM de leads — Clube Ancestral" },
+      { property: "og:description", content: "Desk comercial diário do Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -19,41 +42,376 @@ export const Route = createFileRoute("/_authenticated/leads")({
   component: LeadsPage,
 });
 
+type LeadComPendencias = LeadDesk & { pendencias?: ErroValidacao[] };
+
 function LeadsPage() {
   const { podeEscrever } = useSaas();
-  return (
-    <SaasShell titulo="Leads" descricao="Interessados em pesquisa genealógica e jornada de cidadania.">
-      <EntidadeCrud
-        entidade="leads"
-        titulo="Leads"
-        podeEscrever={podeEscrever}
-        dominio="lead"
-        campoEstado="estagio"
-        colunas={[
-          { chave: "nome", rotulo: "Nome" },
-          { chave: "email", rotulo: "E-mail" },
-          { chave: "telefone", rotulo: "Telefone" },
-          { chave: "origem", rotulo: "Origem" },
-          { chave: "estagio", rotulo: "Estágio", render: (l) => rotuloEstado("lead", l["estagio"]) },
-          { chave: "pais_interesse", rotulo: "País" },
-        ]}
-        campos={[
-          { chave: "nome", rotulo: "Nome", obrigatorio: true },
-          { chave: "email", rotulo: "E-mail" },
-          { chave: "telefone", rotulo: "Telefone" },
-          { chave: "origem", rotulo: "Origem" },
-          {
-            chave: "estagio",
-            rotulo: "Estágio",
-            tipo: "select",
-            estado: true,
-            opcoes: ESTADOS.lead,
-          },
-          { chave: "pais_interesse", rotulo: "País de interesse" },
-          { chave: "observacoes", rotulo: "Observações", tipo: "area" },
-        ]}
-      />
+  const carregar = useServerFn(listarLeadsDesk);
+  const salvar = useServerFn(salvarLeadDesk);
+  const arquivar = useServerFn(arquivarLeadDesk);
+  const qc = useQueryClient();
 
+  const q = useQuery({ queryKey: ["leads-desk"], queryFn: () => carregar(), retry: false });
+  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
+  const [filtroEixo, setFiltroEixo] = useState("");
+  const [filtroArea, setFiltroArea] = useState("");
+  const [busca, setBusca] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const leads = (q.data ?? []) as LeadComPendencias[];
+  const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
+  const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
+  const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+
+  const mutSalvar = useMutation({
+    mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
+    onSuccess: (r) => {
+      if (!r.ok) {
+        setMsg("Gravação recusada: corrija as pendências listadas.");
+        return;
+      }
+      setMsg("Registro gravado.");
+      setRascunho({});
+      setSelecionado(r.lead?.id ?? null);
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+    },
+    onError: (e: Error) => setMsg(e.message),
+  });
+
+  const mutArquivar = useMutation({
+    mutationFn: (motivo: string) => arquivar({ data: { id: String(atual?.id), motivo } }),
+    onSuccess: () => {
+      setMsg("Lead arquivado (sem exclusão física).");
+      setSelecionado(null);
+      void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+    },
+    onError: (e: Error) => setMsg(e.message),
+  });
+
+  const visiveis = leads.filter((l) => {
+    if (filtroEixo && l.eixo_comercial !== filtroEixo) return false;
+    if (filtroArea && l.area_responsavel !== filtroArea) return false;
+    if (busca && !`${l.nome} ${l.codigo ?? ""} ${l.email ?? ""}`.toLowerCase().includes(busca.toLowerCase())) return false;
+    return true;
+  });
+
+  const campo = (k: string) => String((editado as Record<string, unknown>)[k] ?? "");
+  const set = (k: string) => (v: unknown) => setRascunho((r) => ({ ...r, [k]: v }));
+  const bool = (k: string) => Boolean((editado as Record<string, unknown>)[k]);
+  const data = (k: string) => String((editado as Record<string, unknown>)[k] ?? "").slice(0, 10);
+
+  return (
+    <SaasShell titulo="CRM de leads" descricao="Desk comercial diário: entrada, Discovery, proposta e formalização.">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
+        <div className="space-y-3">
+          <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
+            <div className="grid gap-3">
+              <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
+              <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
+              <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
+              {podeEscrever ? (
+                <button
+                  type="button"
+                  className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
+                  onClick={() => {
+                    setSelecionado(null);
+                    setRascunho({ nome: "" });
+                    setMsg(null);
+                  }}
+                >
+                  Novo lead
+                </button>
+              ) : null}
+            </div>
+          </Secao>
+
+          <Secao titulo={`Leads (${visiveis.length})`} descricao="Código único gerado pelo sistema.">
+            {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+            <ul className="max-h-[520px] space-y-2 overflow-auto">
+              {visiveis.map((l) => (
+                <li key={l.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelecionado(l.id ?? null);
+                      setRascunho({});
+                      setMsg(null);
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-left text-sm ${
+                      selecionado === l.id ? "border-gold bg-cream/60" : "border-navy/10 bg-white"
+                    }`}
+                  >
+                    <span className="block font-medium text-navy">
+                      {l.codigo ?? "—"} · {l.nome}
+                    </span>
+                    <span className="block text-[11px] text-navy/55">
+                      {rotulo("eixo_comercial", l.eixo_comercial)} · {rotulo("eixo_formalizacao", l.eixo_formalizacao)} ·{" "}
+                      {resultadoComercialDerivado(l)}
+                    </span>
+                    {l.pendencias?.length ? (
+                      <span className="mt-1 block text-[11px] text-terracotta">{l.pendencias.length} pendência(s)</span>
+                    ) : null}
+                    {l.archived_at ? <span className="block text-[11px] text-navy/40">Arquivado</span> : null}
+                  </button>
+                </li>
+              ))}
+              {!visiveis.length && !q.isLoading ? <li className="text-sm text-navy/50">Nenhum lead nos filtros.</li> : null}
+            </ul>
+          </Secao>
+        </div>
+
+        <div className="space-y-3">
+          {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
+
+          {erros.length ? (
+            <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
+              <p className="text-sm font-medium text-terracotta">Pendências que impedem a gravação</p>
+              <ul className="mt-2 space-y-1 text-xs text-navy/70">
+                {erros.map((e) => (
+                  <li key={`${e.campo}-${e.motivo}`}>
+                    <strong>{e.campo}</strong>: {e.motivo}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} desabilitado={!podeEscrever} />
+              <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
+              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} desabilitado={!podeEscrever} />
+              <Texto label="Telefone" valor={campo("telefone")} onChange={set("telefone")} desabilitado={!podeEscrever} />
+              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} desabilitado={!podeEscrever} />
+              <Selecao
+                label="Área responsável"
+                valor={campo("area_responsavel")}
+                opcoes={AREAS_RESPONSAVEIS}
+                onChange={set("area_responsavel")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Responsável nominal"
+                valor={campo("responsavel_nome")}
+                onChange={set("responsavel_nome")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Próxima ação"
+                valor={campo("proxima_acao")}
+                opcoes={PROXIMAS_ACOES}
+                onChange={set("proxima_acao")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Data da próxima ação"
+                tipo="date"
+                valor={data("proxima_acao_em")}
+                onChange={set("proxima_acao_em")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Último follow-up"
+                tipo="date"
+                valor={data("ultimo_followup_em")}
+                onChange={set("ultimo_followup_em")}
+                desabilitado={!podeEscrever}
+              />
+            </div>
+          </Secao>
+
+          <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} desabilitado={!podeEscrever} />
+              <Selecao
+                label="Nacionalidade de interesse"
+                valor={campo("nacionalidade")}
+                opcoes={NACIONALIDADES}
+                onChange={set("nacionalidade")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Via jurídica preliminar"
+                valor={campo("via_juridica_preliminar")}
+                opcoes={VIAS_JURIDICAS}
+                onChange={set("via_juridica_preliminar")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Status da via"
+                valor={campo("status_via")}
+                opcoes={STATUS_VIA}
+                onChange={set("status_via")}
+                desabilitado={!podeEscrever}
+              />
+              <div className="md:col-span-2">
+                <Texto
+                  label="Narrativa familiar (texto livre)"
+                  area
+                  valor={campo("narrativa_familiar")}
+                  onChange={set("narrativa_familiar")}
+                  desabilitado={!podeEscrever}
+                />
+              </div>
+            </div>
+          </Secao>
+
+          <Secao titulo="Discovery" descricao="Call realizada exige resultado, resumo validado e próxima ação datada.">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Texto
+                label="Call agendada em"
+                tipo="datetime-local"
+                valor={String(editado.call_agendada_em ?? "").slice(0, 16)}
+                onChange={set("call_agendada_em")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Call realizada em"
+                tipo="datetime-local"
+                valor={String(editado.call_realizada_em ?? "").slice(0, 16)}
+                onChange={set("call_realizada_em")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Resultado da Discovery"
+                valor={campo("discovery_resultado")}
+                opcoes={RESULTADOS_DISCOVERY}
+                onChange={set("discovery_resultado")}
+                desabilitado={!podeEscrever}
+              />
+              <label className="flex items-end gap-2 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={bool("resumo_validado")}
+                  disabled={!podeEscrever}
+                  onChange={(e) => set("resumo_validado")(e.target.checked)}
+                />
+                Resumo da call validado
+              </label>
+              <div className="md:col-span-2">
+                <Texto
+                  label="Resumo da call (texto livre)"
+                  area
+                  valor={campo("resumo_call")}
+                  onChange={set("resumo_call")}
+                  desabilitado={!podeEscrever}
+                />
+              </div>
+            </div>
+          </Secao>
+
+          <Secao
+            titulo="Comercial e formalização"
+            descricao="Preço, SKU e link de pagamento não são campo livre: registre apenas referência interna."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao
+                label="Eixo comercial"
+                valor={campo("eixo_comercial")}
+                opcoes={EIXO_COMERCIAL}
+                onChange={set("eixo_comercial")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Eixo de formalização"
+                valor={campo("eixo_formalizacao")}
+                opcoes={EIXO_FORMALIZACAO}
+                onChange={set("eixo_formalizacao")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Serviço inicial aprovado"
+                valor={campo("servico_inicial_aprovado")}
+                opcoes={SERVICOS_INICIAIS}
+                onChange={set("servico_inicial_aprovado")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Motivo de perda"
+                valor={campo("motivo_perda")}
+                opcoes={MOTIVOS_PERDA}
+                onChange={set("motivo_perda")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Link interno da proposta"
+                valor={campo("proposta_link_interno")}
+                onChange={set("proposta_link_interno")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Referência interna da proposta"
+                valor={campo("proposta_referencia_interna")}
+                onChange={set("proposta_referencia_interna")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Link interno do contrato"
+                valor={campo("contrato_link_interno")}
+                onChange={set("contrato_link_interno")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Referência do evento Asaas"
+                valor={campo("asaas_evento_referencia")}
+                onChange={set("asaas_evento_referencia")}
+                ajuda="Somente referência ao evento transacional; nenhum valor ou link é criado aqui."
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Pagamento previsto para"
+                tipo="date"
+                valor={data("pagamento_previsto_em")}
+                onChange={set("pagamento_previsto_em")}
+                desabilitado={!podeEscrever}
+              />
+              <label className="flex items-end gap-2 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={bool("dados_teste")}
+                  disabled={!podeEscrever}
+                  onChange={(e) => set("dados_teste")(e.target.checked)}
+                />
+                Registro de teste (excluído das métricas)
+              </label>
+            </div>
+            <p className="mt-3 text-xs text-navy/55">
+              Resultado comercial derivado: <strong>{resultadoComercialDerivado(editado)}</strong>
+            </p>
+          </Secao>
+
+          {podeEscrever ? (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={mutSalvar.isPending || erros.length > 0 || !Object.keys(rascunho).length}
+                onClick={() => mutSalvar.mutate()}
+                className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
+              >
+                {mutSalvar.isPending ? "Gravando…" : "Gravar"}
+              </button>
+              {atual?.id && !atual.archived_at ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const motivo = window.prompt("Motivo do arquivamento:");
+                    if (motivo?.trim()) mutArquivar.mutate(motivo.trim());
+                  }}
+                  className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
+                >
+                  Arquivar
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          <p className="text-xs text-navy/45">
+            Listas controladas em uso: {Object.keys(CATALOGOS).length} campos classificatórios. Entrada fora da lista é recusada no
+            servidor e no banco.
+          </p>
+        </div>
+      </div>
     </SaasShell>
   );
 }
