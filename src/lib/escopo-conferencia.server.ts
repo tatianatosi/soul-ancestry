@@ -8,6 +8,8 @@
 import { conferirEscopo, type EntradaConferencia, type ResultadoConferencia } from "@/lib/escopo-conferencia";
 import { conferirPrecoCanonico, type ProdutoCanonico } from "@/lib/preco-canonico";
 import type { Despesa } from "@/lib/despesas-terceiros";
+import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
+import { GateBloqueadoError, bloqueiosDaAcao, type AcaoGateada } from "@/lib/gates-formalizacao";
 
 type Sb = any;
 
@@ -203,4 +205,35 @@ export async function montarConferencia(
       excecao: excecao ?? null,
     },
   };
+}
+
+/**
+ * Trava executável no servidor: nenhuma transição passa pelo front-end.
+ * Registra toda tentativa bloqueada no histórico interno (audit_logs).
+ */
+export async function exigirGate(
+  supabase: Sb,
+  input: { caseId: string; acao: AcaoGateada; userId: string; organizationId?: string | null },
+) {
+  const { resultado, dados } = await montarConferencia(supabase, { caseId: input.caseId });
+  const erros = bloqueiosDaAcao(input.acao, contextoGatesDaConferencia(resultado));
+  if (!erros.length) return resultado;
+
+  await supabase.from("audit_logs").insert({
+    organization_id: input.organizationId ?? dados.caso.organization_id,
+    user_id: input.userId,
+    acao: "gate_formalizacao_bloqueado",
+    entidade: "crm_casos",
+    entidade_id: input.caseId,
+    metadados: {
+      acao_tentada: input.acao,
+      status_conferencia: resultado.status,
+      codigos: erros.map((e) => e.codigo),
+      descricoes: erros.map((e) => e.descricao),
+      proposal_id: resultado.proposal_id,
+      proposal_version: resultado.proposal_version,
+    },
+  });
+
+  throw new GateBloqueadoError(input.acao, erros);
 }
