@@ -3,6 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { PainelHoje } from "@/components/painel/painel-hoje";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
