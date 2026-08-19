@@ -36,9 +36,11 @@ export function EscopoProposta({
   return (
     <Painel titulo="Escopo — proposta Canva vigente aprovada (páginas 1–7)">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <Selo tom={dados.validade.valida ? "ok" : "alerta"}>
-          {dados.validade.valida ? "Fonte mandatória válida" : "Fonte mandatória inválida"}
-        </Selo>
+        <Selo
+          tom={dados.validade.valida ? "ok" : "alerta"}
+          texto={dados.validade.valida ? "Fonte mandatória válida" : "Fonte mandatória inválida"}
+        />
+
         <span className="text-navy/70">
           Proposta {proposta?.versao ? `v${proposta.versao}` : "sem versão"} · status {proposta?.status ?? "—"} · origem{" "}
           {proposta?.origem ?? "não declarada"} · páginas registradas {paginas.length ? paginas.join(", ") : "nenhuma"}
