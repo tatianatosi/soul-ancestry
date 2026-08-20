@@ -48,6 +48,8 @@ import {
   FileSignature,
   Link2,
 } from "lucide-react";
+import { PainelModulosContextuais, AssistenteLateral } from "@/components/desk/modulos-contextuais";
+import type { TelaDesk } from "@/lib/desk-modulos";
 import { useActiveCase } from "@/lib/useActiveCase";
 import {
   CONTRATO_LABEL,
@@ -142,6 +144,7 @@ export function DeskApp() {
 
       <main className="flex-1 overflow-x-hidden px-5 py-8 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-6xl">
+          <PainelModulosContextuais tela={sec as TelaDesk} />
           {sec === "overview" && <Overview />}
           {sec === "crm" && <DeskCrm />}
           {sec === "casos" && <Casos />}
@@ -159,6 +162,8 @@ export function DeskApp() {
           {sec === "biblio" && <BiblioMestre />}
         </div>
       </main>
+
+      <AssistenteLateral contexto={`Desk · ${sec}`} />
     </div>
   );
 }
