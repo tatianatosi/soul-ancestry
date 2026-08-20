@@ -1165,6 +1165,99 @@ export type Database = {
           },
         ]
       }
+      case_reports: {
+        Row: {
+          archived_at: string | null
+          archived_reason: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          data_aprovacao: string | null
+          data_entrega: string | null
+          data_origin: string
+          fase_jornada: string
+          id: string
+          link_interno: string | null
+          observacao_interna: string | null
+          organization_id: string
+          publicado_no_app: boolean
+          report_status: string
+          report_type: string
+          responsavel_id: string | null
+          resumo_aprovado_cliente: string | null
+          revisor_id: string | null
+          titulo: string | null
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          data_aprovacao?: string | null
+          data_entrega?: string | null
+          data_origin?: string
+          fase_jornada: string
+          id?: string
+          link_interno?: string | null
+          observacao_interna?: string | null
+          organization_id: string
+          publicado_no_app?: boolean
+          report_status?: string
+          report_type: string
+          responsavel_id?: string | null
+          resumo_aprovado_cliente?: string | null
+          revisor_id?: string | null
+          titulo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Update: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_aprovacao?: string | null
+          data_entrega?: string | null
+          data_origin?: string
+          fase_jornada?: string
+          id?: string
+          link_interno?: string | null
+          observacao_interna?: string | null
+          organization_id?: string
+          publicado_no_app?: boolean
+          report_status?: string
+          report_type?: string
+          responsavel_id?: string | null
+          resumo_aprovado_cliente?: string | null
+          revisor_id?: string | null
+          titulo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_reports_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_reports_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_service_criterios: {
         Row: {
           archive_motivo: string | null
@@ -9757,6 +9850,130 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_evidence_links: {
+        Row: {
+          archived_at: string | null
+          archived_reason: string | null
+          created_at: string
+          created_by: string | null
+          evidence_id: string
+          id: string
+          observacao_interna: string | null
+          organization_id: string
+          relacao: string
+          report_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id: string
+          id?: string
+          observacao_interna?: string | null
+          organization_id: string
+          relacao: string
+          report_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id?: string
+          id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          relacao?: string
+          report_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_evidence_links_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_evidence_links_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "case_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_microdelivery_links: {
+        Row: {
+          archived_at: string | null
+          archived_reason: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          microentrega_id: string
+          observacao_interna: string | null
+          organization_id: string
+          report_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          microentrega_id: string
+          observacao_interna?: string | null
+          organization_id: string
+          report_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          microentrega_id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          report_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_microdelivery_links_microentrega_id_fkey"
+            columns: ["microentrega_id"]
+            isOneToOne: false
+            referencedRelation: "ops_microentregas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_microdelivery_links_microentrega_id_fkey"
+            columns: ["microentrega_id"]
+            isOneToOne: false
+            referencedRelation: "v_ops_microentregas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_microdelivery_links_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "case_reports"
             referencedColumns: ["id"]
           },
         ]
