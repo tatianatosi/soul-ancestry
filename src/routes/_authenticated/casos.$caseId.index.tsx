@@ -9,6 +9,7 @@ import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
+import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
