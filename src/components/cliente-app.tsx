@@ -1306,16 +1306,18 @@ function DescobertasTab({
   caso: CaseData;
   onOpenRelatorio: () => void;
 }) {
+  const legado = visibilidadeLegado(caso.descobertas);
+
   return (
     <div className="space-y-6 p-5" data-tab="biblio">
       <section>
         <div className="mb-1 text-[11px] uppercase tracking-widest text-terracotta">
           Biblioteca da jornada
         </div>
-        <h2 className="font-serif text-2xl text-navy">Seus Achados</h2>
+        <h2 className="font-serif text-2xl text-navy">Seu Legado</h2>
         <p className="mt-1 text-[12px] italic text-navy/70">
-          Cada descoberta validada fica registrada aqui, com a pessoa relacionada e o estágio da
-          evidência.
+          Aqui ficam apenas os materiais aprovados e publicados pela equipe para o seu
+          acompanhamento.
         </p>
 
         <div className="mt-4 space-y-3">
