@@ -60,7 +60,7 @@ export function MatrizJuridicaPreparacao({ caseId }: { caseId: string }) {
                 <tr key={l.tema_codigo} className="border-t border-navy/10 align-top">
                   <td className="py-1 pr-2 font-medium text-navy">{l.tema}</td>
                   <td className="py-1 pr-2">
-                    <Selo tom={COR[l.status] ?? "neutro"}>{rotuloStatusTema(l.status)}</Selo>
+                    <Selo tom={COR[l.status] ?? "neutro"} texto={rotuloStatusTema(l.status)} />
                   </td>
                   <td className="py-1 pr-2">{l.bloqueia_assinatura ? "Sim" : "Não"}</td>
                   <td className="py-1 pr-2">{l.versao_juridica_aplicavel ?? "—"}</td>
