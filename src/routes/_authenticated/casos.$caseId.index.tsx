@@ -7,6 +7,7 @@ import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
+import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
@@ -169,6 +170,7 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao?: st
 /* ---------------- Página ---------------- */
 
 const ABAS = [
+  { id: "visao", rotulo: "Visão geral" },
   { id: "caso", rotulo: "Caso" },
   { id: "pessoas", rotulo: "Pessoas" },
   { id: "produto", rotulo: "Produto e trilha" },
@@ -196,7 +198,7 @@ function FichaCaso() {
     void qc.invalidateQueries({ queryKey: ["caso-canonico", id] });
   };
 
-  const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("caso");
+  const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -367,6 +369,15 @@ function FichaCaso() {
           </button>
         ))}
       </div>
+
+      {aba === "visao" ? (
+        <AbaVisaoGeral
+          caso={caso}
+          timeline={q.data?.timeline ?? []}
+          blueprint={q.data?.blueprint ?? []}
+          filaDrive={q.data?.filaDrive ?? []}
+        />
+      ) : null}
 
       {aba === "caso" ? (
         <div className="grid gap-5 lg:grid-cols-2">
