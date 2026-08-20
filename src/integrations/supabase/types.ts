@@ -5122,6 +5122,179 @@ export type Database = {
           },
         ]
       }
+      genealogical_findings: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_deliverable_id: string | null
+          confirmed_facts: string | null
+          created_at: string
+          created_by: string | null
+          eligible_for_client_deliverable: boolean
+          evidence_links: string[]
+          facts_to_confirm: string | null
+          family_id: string | null
+          family_relationship: string | null
+          finding_type: string
+          found_at: string
+          generation: string | null
+          id: string
+          internal_notes: string | null
+          internal_summary: string | null
+          locality: string | null
+          negative_next_action: string | null
+          negative_source_consulted_at: string | null
+          organization_id: string
+          period_end: string | null
+          period_start: string | null
+          planning_impact: string | null
+          primary_research_person_id: string | null
+          relevance: string
+          research_item_id: string | null
+          responsible_user_id: string | null
+          source_links: string[]
+          timeline_impact: string
+          title: string
+          tree_impact: string
+          updated_at: string
+          updated_by: string | null
+          validated_at: string | null
+          validation_status: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_deliverable_id?: string | null
+          confirmed_facts?: string | null
+          created_at?: string
+          created_by?: string | null
+          eligible_for_client_deliverable?: boolean
+          evidence_links?: string[]
+          facts_to_confirm?: string | null
+          family_id?: string | null
+          family_relationship?: string | null
+          finding_type: string
+          found_at?: string
+          generation?: string | null
+          id?: string
+          internal_notes?: string | null
+          internal_summary?: string | null
+          locality?: string | null
+          negative_next_action?: string | null
+          negative_source_consulted_at?: string | null
+          organization_id: string
+          period_end?: string | null
+          period_start?: string | null
+          planning_impact?: string | null
+          primary_research_person_id?: string | null
+          relevance?: string
+          research_item_id?: string | null
+          responsible_user_id?: string | null
+          source_links?: string[]
+          timeline_impact?: string
+          title: string
+          tree_impact?: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validation_status?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_deliverable_id?: string | null
+          confirmed_facts?: string | null
+          created_at?: string
+          created_by?: string | null
+          eligible_for_client_deliverable?: boolean
+          evidence_links?: string[]
+          facts_to_confirm?: string | null
+          family_id?: string | null
+          family_relationship?: string | null
+          finding_type?: string
+          found_at?: string
+          generation?: string | null
+          id?: string
+          internal_notes?: string | null
+          internal_summary?: string | null
+          locality?: string | null
+          negative_next_action?: string | null
+          negative_source_consulted_at?: string | null
+          organization_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          planning_impact?: string | null
+          primary_research_person_id?: string | null
+          relevance?: string
+          research_item_id?: string | null
+          responsible_user_id?: string | null
+          source_links?: string[]
+          timeline_impact?: string
+          title?: string
+          tree_impact?: string
+          updated_at?: string
+          updated_by?: string | null
+          validated_at?: string | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genealogical_findings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_client_deliverable_id_fkey"
+            columns: ["client_deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "client_deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_primary_research_person_id_fkey"
+            columns: ["primary_research_person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_findings_research_item_id_fkey"
+            columns: ["research_item_id"]
+            isOneToOne: false
+            referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_batches: {
         Row: {
           archived_at: string | null
@@ -6178,6 +6351,159 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "legal_clause_matrix_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lineage_encounters: {
+        Row: {
+          approval_status: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_deliverable_id: string | null
+          confidence_internal: string
+          contexto_historico: string | null
+          created_at: string
+          created_by: string | null
+          data_marco: string | null
+          disclaimer_obrigatorio: boolean
+          encontros_no_brasil: string | null
+          encounter_type: string
+          evidence_links: string[] | null
+          evidence_links_a: string[]
+          evidence_links_b: string[]
+          family_id: string | null
+          id: string
+          lineage_path_a_id: string | null
+          lineage_path_b_id: string | null
+          memoria_familiar: string | null
+          organization_id: string
+          praticas_culturais_documentadas: string | null
+          repertorios_narrativos: string | null
+          responsible_user_id: string | null
+          resumo_aprovado_cliente: string | null
+          resumo_interno: string | null
+          territorios_migratorios: string | null
+          timeline_impact: string
+          title_client: string | null
+          title_internal: string
+          tree_impact: string
+          updated_at: string
+          updated_by: string | null
+          validation_status: string
+        }
+        Insert: {
+          approval_status?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_deliverable_id?: string | null
+          confidence_internal?: string
+          contexto_historico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_marco?: string | null
+          disclaimer_obrigatorio?: boolean
+          encontros_no_brasil?: string | null
+          encounter_type: string
+          evidence_links?: string[] | null
+          evidence_links_a?: string[]
+          evidence_links_b?: string[]
+          family_id?: string | null
+          id?: string
+          lineage_path_a_id?: string | null
+          lineage_path_b_id?: string | null
+          memoria_familiar?: string | null
+          organization_id: string
+          praticas_culturais_documentadas?: string | null
+          repertorios_narrativos?: string | null
+          responsible_user_id?: string | null
+          resumo_aprovado_cliente?: string | null
+          resumo_interno?: string | null
+          territorios_migratorios?: string | null
+          timeline_impact?: string
+          title_client?: string | null
+          title_internal: string
+          tree_impact?: string
+          updated_at?: string
+          updated_by?: string | null
+          validation_status?: string
+        }
+        Update: {
+          approval_status?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_deliverable_id?: string | null
+          confidence_internal?: string
+          contexto_historico?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_marco?: string | null
+          disclaimer_obrigatorio?: boolean
+          encontros_no_brasil?: string | null
+          encounter_type?: string
+          evidence_links?: string[] | null
+          evidence_links_a?: string[]
+          evidence_links_b?: string[]
+          family_id?: string | null
+          id?: string
+          lineage_path_a_id?: string | null
+          lineage_path_b_id?: string | null
+          memoria_familiar?: string | null
+          organization_id?: string
+          praticas_culturais_documentadas?: string | null
+          repertorios_narrativos?: string | null
+          responsible_user_id?: string | null
+          resumo_aprovado_cliente?: string | null
+          resumo_interno?: string | null
+          territorios_migratorios?: string | null
+          timeline_impact?: string
+          title_client?: string | null
+          title_internal?: string
+          tree_impact?: string
+          updated_at?: string
+          updated_by?: string | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lineage_encounters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_encounters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_encounters_client_deliverable_id_fkey"
+            columns: ["client_deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "client_deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_encounters_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_encounters_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -11093,6 +11419,7 @@ export type Database = {
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
       contract_pode_ler: { Args: { _org: string }; Returns: boolean }
       contract_pode_preparar: { Args: { _org: string }; Returns: boolean }
+      fn_linguagem_proibida: { Args: { _txt: string }; Returns: string }
       gerar_case_id: {
         Args: { _ano?: number; _demo?: boolean; _modelo: string; _org: string }
         Returns: string
@@ -11172,6 +11499,7 @@ export type Database = {
         Args: { _de: string; _entidade: string; _para: string }
         Returns: boolean
       }
+      unaccent_imutavel: { Args: { _t: string }; Returns: string }
       validate_contract_readiness: {
         Args: { _contract_id: string; _version_id?: string }
         Returns: {

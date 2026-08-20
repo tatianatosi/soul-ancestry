@@ -347,7 +347,17 @@ function FichaCaso() {
           </div>
         ))}
       </div>
-      <p className="-mt-4 mb-6 text-xs text-navy/55">Motivo do status derivado: {derivado.motivo}</p>
+      <p className="-mt-4 mb-3 text-xs text-navy/55">Motivo do status derivado: {derivado.motivo}</p>
+      <div className="mb-6">
+        <Link
+          to="/achados/$caseId"
+          params={{ caseId: id }}
+          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+        >
+          Achados genealógicos e encontros de linhagem →
+        </Link>
+      </div>
+
 
       {sugestoes.length ? (
         <div className="mb-6 rounded-xl border border-gold/40 bg-gold/10 p-4">
