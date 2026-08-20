@@ -5134,6 +5134,118 @@ export type Database = {
           },
         ]
       }
+      genealogical_events: {
+        Row: {
+          approximate_date: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          created_at: string
+          created_by: string | null
+          description_internal: string | null
+          end_date: string | null
+          event_type: string
+          evidence_id: string | null
+          id: string
+          locality: string | null
+          organization_id: string
+          person_id: string
+          source_id: string | null
+          start_date: string | null
+          updated_at: string
+          updated_by: string | null
+          validation_status: string
+        }
+        Insert: {
+          approximate_date?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_internal?: string | null
+          end_date?: string | null
+          event_type: string
+          evidence_id?: string | null
+          id?: string
+          locality?: string | null
+          organization_id: string
+          person_id: string
+          source_id?: string | null
+          start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          validation_status?: string
+        }
+        Update: {
+          approximate_date?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_internal?: string | null
+          end_date?: string | null
+          event_type?: string
+          evidence_id?: string | null
+          id?: string
+          locality?: string | null
+          organization_id?: string
+          person_id?: string
+          source_id?: string | null
+          start_date?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genealogical_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       genealogical_findings: {
         Row: {
           archive_motivo: string | null
@@ -5303,6 +5415,251 @@ export type Database = {
             columns: ["research_item_id"]
             isOneToOne: false
             referencedRelation: "research_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      genealogical_person_profiles: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          causa_morte: string | null
+          created_at: string
+          created_by: string | null
+          evidence_id: string | null
+          id: string
+          internal_notes: string | null
+          morte_data: string | null
+          morte_data_aproximada: string | null
+          morte_localidade: string | null
+          nascimento_data: string | null
+          nascimento_data_aproximada: string | null
+          nascimento_localidade: string | null
+          nome_completo: string
+          nome_nascimento: string | null
+          organization_id: string
+          research_person_id: string
+          sepultamento_localidade: string | null
+          sexo: string | null
+          status_verificacao: string
+          updated_at: string
+          updated_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          causa_morte?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          morte_data?: string | null
+          morte_data_aproximada?: string | null
+          morte_localidade?: string | null
+          nascimento_data?: string | null
+          nascimento_data_aproximada?: string | null
+          nascimento_localidade?: string | null
+          nome_completo: string
+          nome_nascimento?: string | null
+          organization_id: string
+          research_person_id: string
+          sepultamento_localidade?: string | null
+          sexo?: string | null
+          status_verificacao?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          causa_morte?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          morte_data?: string | null
+          morte_data_aproximada?: string | null
+          morte_localidade?: string | null
+          nascimento_data?: string | null
+          nascimento_data_aproximada?: string | null
+          nascimento_localidade?: string | null
+          nome_completo?: string
+          nome_nascimento?: string | null
+          organization_id?: string
+          research_person_id?: string
+          sepultamento_localidade?: string | null
+          sexo?: string | null
+          status_verificacao?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genealogical_person_profiles_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_person_profiles_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_person_profiles_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_person_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_person_profiles_research_person_id_fkey"
+            columns: ["research_person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      genealogical_relationships: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          created_at: string
+          created_by: string | null
+          evidence_id: string | null
+          id: string
+          internal_notes: string | null
+          locality: string | null
+          organization_id: string
+          person_from_id: string
+          person_to_id: string
+          relation_date: string | null
+          relation_date_aproximada: string | null
+          relation_type: string
+          source_id: string | null
+          status_pesquisa: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          locality?: string | null
+          organization_id: string
+          person_from_id: string
+          person_to_id: string
+          relation_date?: string | null
+          relation_date_aproximada?: string | null
+          relation_type: string
+          source_id?: string | null
+          status_pesquisa?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidence_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          locality?: string | null
+          organization_id?: string
+          person_from_id?: string
+          person_to_id?: string
+          relation_date?: string | null
+          relation_date_aproximada?: string | null
+          relation_type?: string
+          source_id?: string | null
+          status_pesquisa?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genealogical_relationships_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_person_from_id_fkey"
+            columns: ["person_from_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_person_to_id_fkey"
+            columns: ["person_to_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_relationships_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -6526,6 +6883,124 @@ export type Database = {
           },
         ]
       }
+      lineage_paths: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          citizenship_track_id: string | null
+          created_at: string
+          created_by: string | null
+          evidencias_chave: string[]
+          family_id: string | null
+          geracao_alvo: string | null
+          id: string
+          nome_da_linha: string
+          objetivo: string | null
+          organization_id: string
+          pessoa_ancora_id: string | null
+          proximo_marco: string | null
+          responsavel: string | null
+          risco_principal: string | null
+          status: string
+          tipo_da_linha: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          citizenship_track_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidencias_chave?: string[]
+          family_id?: string | null
+          geracao_alvo?: string | null
+          id?: string
+          nome_da_linha: string
+          objetivo?: string | null
+          organization_id: string
+          pessoa_ancora_id?: string | null
+          proximo_marco?: string | null
+          responsavel?: string | null
+          risco_principal?: string | null
+          status?: string
+          tipo_da_linha?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          citizenship_track_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evidencias_chave?: string[]
+          family_id?: string | null
+          geracao_alvo?: string | null
+          id?: string
+          nome_da_linha?: string
+          objetivo?: string | null
+          organization_id?: string
+          pessoa_ancora_id?: string | null
+          proximo_marco?: string | null
+          responsavel?: string | null
+          risco_principal?: string | null
+          status?: string
+          tipo_da_linha?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lineage_paths_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_paths_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_paths_citizenship_track_id_fkey"
+            columns: ["citizenship_track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_paths_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_paths_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lineage_paths_pessoa_ancora_id_fkey"
+            columns: ["pessoa_ancora_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_campaigns: {
         Row: {
           archived_at: string | null
@@ -6762,6 +7237,101 @@ export type Database = {
             columns: ["migration_batch_id"]
             isOneToOne: false
             referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      name_variants: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          estado_validacao: string
+          evidence_id: string | null
+          id: string
+          localidade: string | null
+          nivel_confianca: string
+          observacao_interna: string | null
+          organization_id: string
+          periodo: string | null
+          person_id: string
+          source_id: string | null
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          variante: string
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado_validacao?: string
+          evidence_id?: string | null
+          id?: string
+          localidade?: string | null
+          nivel_confianca?: string
+          observacao_interna?: string | null
+          organization_id: string
+          periodo?: string | null
+          person_id: string
+          source_id?: string | null
+          tipo: string
+          updated_at?: string
+          updated_by?: string | null
+          variante: string
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado_validacao?: string
+          evidence_id?: string | null
+          id?: string
+          localidade?: string | null
+          nivel_confianca?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          periodo?: string | null
+          person_id?: string
+          source_id?: string | null
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          variante?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "name_variants_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "name_variants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "name_variants_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "name_variants_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]

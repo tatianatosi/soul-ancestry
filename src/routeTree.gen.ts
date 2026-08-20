@@ -64,6 +64,7 @@ import { Route as AuthenticatedCasosIndexRouteImport } from './routes/_authentic
 import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
+import { Route as AuthenticatedPessoasLinhagensCaseIdRouteImport } from './routes/_authenticated/pessoas-linhagens.$caseId'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
@@ -366,6 +367,12 @@ const AuthenticatedPrivacidadeIdRoute =
     path: '/privacidade/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPessoasLinhagensCaseIdRoute =
+  AuthenticatedPessoasLinhagensCaseIdRouteImport.update({
+    id: '/pessoas-linhagens/$caseId',
+    path: '/pessoas-linhagens/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPesquisaIdRoute = AuthenticatedPesquisaIdRouteImport.update({
   id: '/pesquisa/$id',
   path: '/pesquisa/$id',
@@ -501,6 +508,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
+  '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
@@ -569,6 +577,7 @@ export interface FileRoutesByTo {
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
+  '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
@@ -640,6 +649,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
+  '/_authenticated/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
@@ -711,6 +721,7 @@ export interface FileRouteTypes {
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
+    | '/pessoas-linhagens/$caseId'
     | '/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
@@ -779,6 +790,7 @@ export interface FileRouteTypes {
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
+    | '/pessoas-linhagens/$caseId'
     | '/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
@@ -849,6 +861,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-modulo/$id'
     | '/_authenticated/pesquisa/$id'
+    | '/_authenticated/pessoas-linhagens/$caseId'
     | '/_authenticated/privacidade/$id'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
@@ -1267,6 +1280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrivacidadeIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pessoas-linhagens/$caseId': {
+      id: '/_authenticated/pessoas-linhagens/$caseId'
+      path: '/pessoas-linhagens/$caseId'
+      fullPath: '/pessoas-linhagens/$caseId'
+      preLoaderRoute: typeof AuthenticatedPessoasLinhagensCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/pesquisa/$id': {
       id: '/_authenticated/pesquisa/$id'
       path: '/pesquisa/$id'
@@ -1398,6 +1418,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
+  AuthenticatedPessoasLinhagensCaseIdRoute: typeof AuthenticatedPessoasLinhagensCaseIdRoute
   AuthenticatedPrivacidadeIdRoute: typeof AuthenticatedPrivacidadeIdRoute
   AuthenticatedCasosIndexRoute: typeof AuthenticatedCasosIndexRoute
   AuthenticatedContratoParametrosIndexRoute: typeof AuthenticatedContratoParametrosIndexRoute
@@ -1451,6 +1472,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaModuloIdRoute: AuthenticatedPesquisaModuloIdRoute,
   AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
+  AuthenticatedPessoasLinhagensCaseIdRoute:
+    AuthenticatedPessoasLinhagensCaseIdRoute,
   AuthenticatedPrivacidadeIdRoute: AuthenticatedPrivacidadeIdRoute,
   AuthenticatedCasosIndexRoute: AuthenticatedCasosIndexRoute,
   AuthenticatedContratoParametrosIndexRoute:
