@@ -1388,6 +1388,103 @@ export type Database = {
           },
         ]
       }
+      checklist_cadastral: {
+        Row: {
+          acesso_restrito: boolean
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          campo: string
+          campo_rotulo: string
+          case_id: string
+          created_at: string
+          created_by: string | null
+          data_verificacao: string | null
+          fonte: string | null
+          id: string
+          obrigatorio: boolean
+          observacao_interna: string | null
+          ordem: number
+          organization_id: string
+          pessoa_nome: string
+          pessoa_ref_id: string | null
+          pessoa_tipo: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          acesso_restrito?: boolean
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campo: string
+          campo_rotulo: string
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          data_verificacao?: string | null
+          fonte?: string | null
+          id?: string
+          obrigatorio?: boolean
+          observacao_interna?: string | null
+          ordem?: number
+          organization_id: string
+          pessoa_nome: string
+          pessoa_ref_id?: string | null
+          pessoa_tipo: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          acesso_restrito?: boolean
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          campo?: string
+          campo_rotulo?: string
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_verificacao?: string | null
+          fonte?: string | null
+          id?: string
+          obrigatorio?: boolean
+          observacao_interna?: string | null
+          ordem?: number
+          organization_id?: string
+          pessoa_nome?: string
+          pessoa_ref_id?: string | null
+          pessoa_tipo?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_cadastral_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_cadastral_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_cadastral_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       citizenship_tracks: {
         Row: {
           archive_motivo: string | null

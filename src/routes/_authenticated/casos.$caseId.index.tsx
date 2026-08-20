@@ -12,6 +12,8 @@ import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
+import { AbaCadastro } from "@/components/caso/cadastro-checklist";
+
 import {
   EIXO_COMERCIAL,
   EIXO_FORMALIZACAO,
@@ -173,6 +175,8 @@ const ABAS = [
   { id: "visao", rotulo: "Visão geral" },
   { id: "caso", rotulo: "Caso" },
   { id: "pessoas", rotulo: "Pessoas" },
+  { id: "cadastro", rotulo: "Cadastro e núcleo" },
+
   { id: "produto", rotulo: "Produto e trilha" },
   { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
@@ -537,6 +541,9 @@ function FichaCaso() {
       ) : null}
 
       {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={recarregar} atualizar={atualizar} criar={criar} /> : null}
+
+      {aba === "cadastro" ? <AbaCadastro caseId={id} bloqueado={bloqueado} /> : null}
+
 
       {aba === "produto" ? (
         <AbaProdutoTrilha
