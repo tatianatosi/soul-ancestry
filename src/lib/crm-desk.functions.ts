@@ -4,7 +4,7 @@ import { semFixtures } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { calcularMetricasCrm, montarFilasHoje, validarLead, type LeadDesk } from "@/lib/crm-desk";
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
-import { TEMAS_JURIDICOS, type LinhaMatriz } from "@/lib/matriz-juridica";
+import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -379,4 +379,111 @@ export const salvarPaginaCanva = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
     return { ok: true };
+  });
+
+/* ---------------- ANA-E-01: consolidação e diagnóstico de instrumentos ---------------- */
+
+/** Deduplicação lógica auditada da matriz (uma linha canônica por tema). Não apaga nada. */
+export const consolidarMatrizJuridica = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const organization_id = await orgDoUsuario(supabase, userId);
+    const { data, error } = await supabase.rpc("matriz_juridica_deduplicar", { _org: organization_id });
+    if (error) throw new Error(error.message);
+    return { consolidados: (data ?? []) as any[] };
+  });
+
+/**
+ * Leitura agregada para preparação de instrumentos: matriz jurídica, dependentes,
+ * checklist cadastral, case service/critérios e conferência da proposta Canva.
+ * Só diagnostica bloqueios — não redige cláusula nem cria artefato externo.
+ */
+export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => ({ caseId: exigirUuid(d?.caseId, "caseId") }))
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+
+    const [matrizRes, depRes, checkRes, servRes, critRes, confRes] = await Promise.all([
+      supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+      supabase.from("case_dependents").select("*").eq("case_id", data.caseId).is("archived_at", null),
+      supabase.from("checklist_cadastral").select("*").eq("case_id", data.caseId).is("archived_at", null),
+      supabase.from("case_services").select("*").eq("case_id", data.caseId).is("archived_at", null),
+      supabase.from("case_service_criterios").select("*").eq("case_id", data.caseId).is("archived_at", null),
+      supabase
+        .from("piloto_conferencia")
+        .select("*")
+        .eq("case_id", data.caseId)
+        .order("created_at", { ascending: false })
+        .limit(1),
+    ]);
+
+    const rows = (matrizRes.data ?? []) as any[];
+    const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
+      const l = rows.find((r) => canonicalizarTemaCodigo(r.tema_codigo) === t.tema_codigo);
+      return {
+        tema_codigo: t.tema_codigo,
+        tema: t.tema,
+        status: l?.status ?? "pendente_revisao_juridica",
+        versao_juridica_aplicavel: l?.versao_juridica_aplicavel ?? null,
+        responsavel_revisao: l?.responsavel_revisao ?? null,
+        decisao: l?.decisao ?? null,
+        justificativa: l?.justificativa ?? null,
+        decidido_em: l?.decidido_em ?? null,
+        referencia_versao: l?.referencia_versao ?? null,
+        impacto_templates: l?.impacto_templates ?? t.impacto_templates,
+        bloqueia_assinatura: l?.bloqueia_assinatura ?? t.bloqueia_assinatura,
+      };
+    });
+
+    const assinatura = avaliarAssinaturaPelaMatriz(linhas);
+    const bloqueios = assinatura.bloqueios.map((b) => ({ origem: "matriz_juridica", detalhe: `${b.tema}: ${b.motivo}` }));
+
+    const dependentes = (depRes.data ?? []) as any[];
+    for (const d of dependentes) {
+      if (String(d.status_representacao ?? "") !== "documentada") {
+        bloqueios.push({
+          origem: "dependentes",
+          detalhe: `Representação pendente para dependente ${d.nome ?? d.id}.`,
+        });
+      }
+    }
+
+    const checklist = (checkRes.data ?? []) as any[];
+    const checklistPendente = checklist.filter((c) => String(c.status ?? "") !== "completo").length;
+    if (checklistPendente) {
+      bloqueios.push({ origem: "checklist_cadastral", detalhe: `${checklistPendente} item(ns) cadastrais pendentes.` });
+    }
+
+    const servicos = (servRes.data ?? []) as any[];
+    const servicoNaoConsolidado = servicos.filter((s) => !["approved", "contracted"].includes(String(s.status ?? ""))).length;
+    if (!servicos.length) bloqueios.push({ origem: "case_service", detalhe: "Nenhum case service registrado." });
+    else if (servicoNaoConsolidado)
+      bloqueios.push({ origem: "case_service", detalhe: `${servicoNaoConsolidado} case service(s) fora de estado consolidado.` });
+
+    const criterios = (critRes.data ?? []) as any[];
+    const criteriosPendentes = criterios.filter((c) => String(c.estado ?? c.status ?? "") !== "aceito").length;
+    if (criteriosPendentes)
+      bloqueios.push({ origem: "criterios_aceite", detalhe: `${criteriosPendentes} critério(s) de aceite pendentes.` });
+
+    const conferencia = ((confRes.data ?? []) as any[])[0] ?? null;
+    if (!conferencia) bloqueios.push({ origem: "conferencia_canva", detalhe: "Conferência de escopo da proposta não registrada." });
+    else if (String(conferencia.status ?? "") !== "aprovado_para_preparacao")
+      bloqueios.push({ origem: "conferencia_canva", detalhe: `Conferência de escopo em estado “${conferencia.status}”.` });
+
+    return {
+      linhas,
+      assinatura,
+      bloqueios,
+      resumo: {
+        dependentes: dependentes.length,
+        checklist_pendente: checklistPendente,
+        criterios_pendentes: criteriosPendentes,
+        case_services: servicos.length,
+        conferencia_status: conferencia?.status ?? null,
+      },
+      nenhuma_acao_externa: true,
+    };
   });
