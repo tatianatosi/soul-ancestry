@@ -291,18 +291,25 @@ export function ClienteApp() {
             return (
               <button
                 key={id}
+                ref={(el) => {
+                  if (el && isActive) {
+                    el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+                  }
+                }}
                 onClick={() => {
                   setTab(id);
                   setShowConta(id === "conta");
                 }}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
+                  "flex min-w-[68px] shrink-0 snap-center flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition sm:min-w-0",
                   isActive ? "text-navy" : "text-muted-foreground hover:text-navy",
                 )}
               >
                 <Icon className={cn("h-5 w-5", isActive && "text-gold")} />
-                <span>{label}</span>
+                <span className="whitespace-nowrap">{label}</span>
               </button>
+
             );
           })}
         </div>
