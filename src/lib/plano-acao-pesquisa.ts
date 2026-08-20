@@ -254,3 +254,107 @@ export function validarInstituicao(i: Instituicao): string[] {
 
 export const moedaBR = (v: number | null | undefined, moeda = "BRL") =>
   v == null ? "—" : new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda }).format(Number(v));
+
+/* ------------------------------------------------------------------ *
+ * G-07B — agrupamentos de tela, painel e leitura de comunicação.
+ * Tudo é leitura: nenhuma função aqui contata instituição, envia
+ * mensagem, gera despesa, cobrança, reembolso ou evento externo.
+ * ------------------------------------------------------------------ */
+
+export const FIXTURE_ORIGIN = "fixture_demo";
+
+const dia = (v?: string | null) => (v ? String(v).slice(0, 10) : null);
+const hojeISO = (d: Date = new Date()) => d.toISOString().slice(0, 10);
+
+export type ItemPainel = ItemPlano & {
+  id?: string;
+  case_id?: string | null;
+  data_origin?: string | null;
+  institution_id?: string | null;
+  next_action?: string | null;
+  responsible_user_id?: string | null;
+  document_request_id?: string | null;
+  evidence_id?: string | null;
+  finding_id?: string | null;
+  research_item_id?: string | null;
+  estimated_cost_currency?: string | null;
+};
+
+export const acaoAberta = (i: ItemPainel) =>
+  !i.archived_at && i.status !== "concluida" && i.status !== "cancelada";
+
+export const ehFixture = (i: ItemPainel) => (i.data_origin ?? "") === FIXTURE_ORIGIN;
+
+export function vencidaOuHoje(i: ItemPainel, hoje: Date = new Date()): boolean {
+  const d = dia(i.due_date);
+  return !!d && d <= hojeISO(hoje);
+}
+
+function dentroDaSemana(i: ItemPainel, hoje: Date = new Date()): boolean {
+  const d = dia(i.due_date);
+  if (!d) return false;
+  const limite = new Date(hoje.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+  return d > hojeISO(hoje) && d <= limite;
+}
+
+/** Cartão do Painel Hoje: só crítica, vencida/hoje, aberta e não-fixture. */
+export function pendenciasCriticasPesquisa(itens: ItemPainel[], hoje: Date = new Date()): ItemPainel[] {
+  return itens.filter(
+    (i) => i.priority === "critica" && acaoAberta(i) && !ehFixture(i) && vencidaOuHoje(i, hoje),
+  );
+}
+
+export type GruposPlano = {
+  urgenteHoje: ItemPainel[];
+  estaSemana: ItemPainel[];
+  aguardandoResposta: ItemPainel[];
+  rechecagensVencidas: ItemPainel[];
+  porInstituicao: { chave: string; itens: ItemPainel[] }[];
+  porPessoaGeracao: { chave: string; itens: ItemPainel[] }[];
+  concluidas: ItemPainel[];
+};
+
+function agrupar(itens: ItemPainel[], chave: (i: ItemPainel) => string) {
+  const mapa = new Map<string, ItemPainel[]>();
+  for (const i of itens) {
+    const k = chave(i);
+    mapa.set(k, [...(mapa.get(k) ?? []), i]);
+  }
+  return [...mapa.entries()].map(([chave, itens]) => ({ chave, itens }));
+}
+
+export function agruparPlanoAcao(itens: ItemPainel[], hoje: Date = new Date()): GruposPlano {
+  const abertas = itens.filter(acaoAberta);
+  return {
+    urgenteHoje: abertas.filter((i) => vencidaOuHoje(i, hoje)),
+    estaSemana: abertas.filter((i) => dentroDaSemana(i, hoje)),
+    aguardandoResposta: abertas.filter((i) => i.status === "aguardando_resposta"),
+    rechecagensVencidas: abertas.filter((i) => {
+      const d = dia(i.next_check_at);
+      return !!d && d <= hojeISO(hoje);
+    }),
+    porInstituicao: agrupar(abertas, (i) => i.institution_id ?? "sem_instituicao"),
+    porPessoaGeracao: agrupar(
+      abertas,
+      (i) => i.research_item_id ?? i.finding_id ?? i.evidence_id ?? i.document_request_id ?? "sem_vinculo",
+    ),
+    concluidas: itens.filter((i) => i.status === "concluida" || i.status === "cancelada"),
+  };
+}
+
+/** Estado de comunicação exibido na UI. Nunca existe envio a partir daqui. */
+export function estadoComunicacaoUI(i: ItemPainel) {
+  const externo = !!i.suggested_channel && i.suggested_channel !== "desk_only";
+  return {
+    externo,
+    estado: externo ? ("draft_created" as const) : ("sem_comunicacao" as const),
+    requerAprovacaoHumana: externo,
+    podeEnviarPelaUI: false as const,
+    rotulo: externo
+      ? "Rascunho interno criado — requer aprovação humana. Nenhum envio por este módulo."
+      : "Somente Desk: nenhuma comunicação externa prevista.",
+  };
+}
+
+export const rotuloDe = (lista: { id: string; rotulo: string }[], id?: string | null) =>
+  lista.find((x) => x.id === id)?.rotulo ?? (id ? String(id) : "—");

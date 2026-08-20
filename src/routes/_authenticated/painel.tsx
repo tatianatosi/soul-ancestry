@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { PainelHoje } from "@/components/painel/painel-hoje";
+import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
 import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
@@ -56,6 +57,7 @@ function Painel() {
       </div>
 
       <PainelHoje />
+      <PendenciasCriticasPesquisa />
       <PainelDeskHoje />
 
 
