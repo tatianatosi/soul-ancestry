@@ -1319,18 +1319,19 @@ function DescobertasTab({
         </p>
 
         <div className="mt-4 space-y-3">
-          {caso.descobertas.length === 0 && (
-            <div className="rounded-xl border border-dashed border-border bg-white p-4 text-[12px] text-navy/70">
-              A próxima descoberta será adicionada assim que uma nova referência for validada.
+          {legado.itens.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border bg-white p-4">
+              <div className="font-serif text-base text-navy">{legado.titulo}</div>
+              <p className="mt-1 text-[12px] leading-relaxed text-navy/70">{legado.mensagem}</p>
             </div>
           )}
-          {caso.descobertas.map((x) => (
+          {legado.itens.map((x) => (
             <div key={x.titulo} className="rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-gold" />
                   <span className="text-[11px] uppercase tracking-widest text-terracotta">
-                    Achado
+                    Publicado
                   </span>
                 </div>
                 {preenchido(x.data) && (
@@ -1344,14 +1345,13 @@ function DescobertasTab({
               {preenchido(x.texto) && (
                 <p className="mt-1.5 text-[12px] leading-relaxed text-navy/70">{x.texto}</p>
               )}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {preenchido(x.pessoa_relacionada) && (
+              {preenchido(x.pessoa_relacionada) && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-navy/15 bg-areia px-2.5 py-0.5 text-[11px] text-navy/70">
                     {x.pessoa_relacionada}
                   </span>
-                )}
-                <EvidenceTag status={x.tipo_evidencia} />
-              </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
