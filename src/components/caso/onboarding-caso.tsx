@@ -3,8 +3,10 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Secao, Selecao, inputCls } from "@/components/caso/campos";
+import { PainelPlanoOnboarding } from "@/components/caso/onboarding-plano";
 import { atualizarItemOnboarding } from "@/lib/caso-canonico.functions";
 import { STATUS_ONBOARDING_ITEM, gatesClienteAtivo, rotulo } from "@/lib/caso-ficha";
+
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -39,7 +41,10 @@ export function AbaOnboarding({
 
   return (
     <div className="space-y-5">
+      <PainelPlanoOnboarding caseId={String(caso.id)} />
+
       <Secao titulo="Gates de cliente ativo" descricao="Nenhum caso é considerado ativo com gate pendente.">
+
         <ul className="grid gap-2 sm:grid-cols-2">
           {gates.map((g) => (
             <li key={g.chave} className="flex items-center gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm">

@@ -6577,6 +6577,122 @@ export type Database = {
           },
         ]
       }
+      onboarding_planos: {
+        Row: {
+          ambiente_autorizado: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          checklist_inicial: Json
+          created_at: string
+          created_by: string | null
+          dossie_mae_referencia: string | null
+          dossie_mae_status: string
+          estado: string
+          grupo_familiar_status: string
+          id: string
+          inicio_previsto: string | null
+          motivos_bloqueio: Json
+          nivel_acesso: string | null
+          observacao_interna: string | null
+          organization_id: string
+          plano_acao: Json
+          primeira_microentrega_descricao: string | null
+          primeira_microentrega_prazo_dias: number
+          responsavel_principal: string | null
+          template_id: string | null
+          touchpoints: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ambiente_autorizado?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          checklist_inicial?: Json
+          created_at?: string
+          created_by?: string | null
+          dossie_mae_referencia?: string | null
+          dossie_mae_status?: string
+          estado?: string
+          grupo_familiar_status?: string
+          id?: string
+          inicio_previsto?: string | null
+          motivos_bloqueio?: Json
+          nivel_acesso?: string | null
+          observacao_interna?: string | null
+          organization_id: string
+          plano_acao?: Json
+          primeira_microentrega_descricao?: string | null
+          primeira_microentrega_prazo_dias?: number
+          responsavel_principal?: string | null
+          template_id?: string | null
+          touchpoints?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ambiente_autorizado?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          checklist_inicial?: Json
+          created_at?: string
+          created_by?: string | null
+          dossie_mae_referencia?: string | null
+          dossie_mae_status?: string
+          estado?: string
+          grupo_familiar_status?: string
+          id?: string
+          inicio_previsto?: string | null
+          motivos_bloqueio?: Json
+          nivel_acesso?: string | null
+          observacao_interna?: string | null
+          organization_id?: string
+          plano_acao?: Json
+          primeira_microentrega_descricao?: string | null
+          primeira_microentrega_prazo_dias?: number
+          responsavel_principal?: string | null
+          template_id?: string | null
+          touchpoints?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_planos_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_planos_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_planos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_planos_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_template_items: {
         Row: {
           archived_at: string | null
