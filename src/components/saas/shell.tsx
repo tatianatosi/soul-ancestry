@@ -97,6 +97,7 @@ const NAV = [
   { to: "/governanca/decisoes", label: "Decisões operacionais", icon: Library },
   { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade", icon: Library },
   { to: "/governanca/modulos-contextuais", label: "Módulos contextuais", icon: Library },
+  { to: "/governanca/criterios-aceite", label: "Critérios de aceite", icon: Library },
   { to: "/etiquetas", label: "Etiquetas canônicas", icon: Library },
 
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
