@@ -292,6 +292,178 @@ export type Database = {
         }
         Relationships: []
       }
+      blueprint_parameters: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          case_service_id: string | null
+          citizenship_track_id: string | null
+          condicao_comercial_padrao: string | null
+          conteudo_aprovado_para_proposta: boolean
+          created_at: string
+          created_by: string | null
+          criterios_aceite: Json
+          data_vigencia: string | null
+          despesas_terceiros_faixa: string | null
+          despesas_terceiros_status: string
+          entregas_previstas: Json
+          escopo_aprovado: string | null
+          excecao_comercial_id: string | null
+          family_id: string | null
+          fases_jornada: Json
+          id: string
+          link_proposta_interno: string | null
+          observacao_interna: string | null
+          organization_id: string
+          origem_preco: string
+          parcelas: number | null
+          preco_comercial_vigente: number | null
+          product_catalog_id: string | null
+          proposal_id: string | null
+          proposta_version: string | null
+          regra_despesas: string | null
+          status_preparacao: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          case_service_id?: string | null
+          citizenship_track_id?: string | null
+          condicao_comercial_padrao?: string | null
+          conteudo_aprovado_para_proposta?: boolean
+          created_at?: string
+          created_by?: string | null
+          criterios_aceite?: Json
+          data_vigencia?: string | null
+          despesas_terceiros_faixa?: string | null
+          despesas_terceiros_status?: string
+          entregas_previstas?: Json
+          escopo_aprovado?: string | null
+          excecao_comercial_id?: string | null
+          family_id?: string | null
+          fases_jornada?: Json
+          id?: string
+          link_proposta_interno?: string | null
+          observacao_interna?: string | null
+          organization_id: string
+          origem_preco?: string
+          parcelas?: number | null
+          preco_comercial_vigente?: number | null
+          product_catalog_id?: string | null
+          proposal_id?: string | null
+          proposta_version?: string | null
+          regra_despesas?: string | null
+          status_preparacao?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          case_service_id?: string | null
+          citizenship_track_id?: string | null
+          condicao_comercial_padrao?: string | null
+          conteudo_aprovado_para_proposta?: boolean
+          created_at?: string
+          created_by?: string | null
+          criterios_aceite?: Json
+          data_vigencia?: string | null
+          despesas_terceiros_faixa?: string | null
+          despesas_terceiros_status?: string
+          entregas_previstas?: Json
+          escopo_aprovado?: string | null
+          excecao_comercial_id?: string | null
+          family_id?: string | null
+          fases_jornada?: Json
+          id?: string
+          link_proposta_interno?: string | null
+          observacao_interna?: string | null
+          organization_id?: string
+          origem_preco?: string
+          parcelas?: number | null
+          preco_comercial_vigente?: number | null
+          product_catalog_id?: string | null
+          proposal_id?: string | null
+          proposta_version?: string | null
+          regra_despesas?: string | null
+          status_preparacao?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blueprint_parameters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_case_service_id_fkey"
+            columns: ["case_service_id"]
+            isOneToOne: false
+            referencedRelation: "case_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_citizenship_track_id_fkey"
+            columns: ["citizenship_track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_excecao_comercial_id_fkey"
+            columns: ["excecao_comercial_id"]
+            isOneToOne: false
+            referencedRelation: "sku_price_exceptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_product_catalog_id_fkey"
+            columns: ["product_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blueprint_parameters_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bootstrap_lock: {
         Row: {
           completed_at: string
@@ -939,6 +1111,118 @@ export type Database = {
             columns: ["product_catalog_id"]
             isOneToOne: false
             referencedRelation: "product_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_timeline_events: {
+        Row: {
+          alerta: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueio: boolean
+          case_id: string
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          event_type: string
+          id: string
+          next_action: string | null
+          next_action_id: string | null
+          occurred_at: string | null
+          organization_id: string
+          phase: string | null
+          responsavel_nome: string | null
+          responsible_user_id: string | null
+          source_entity_id: string | null
+          source_entity_type: string | null
+          status: string
+          summary_client_approved: string | null
+          summary_internal: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visibility: string
+        }
+        Insert: {
+          alerta?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio?: boolean
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          event_type: string
+          id?: string
+          next_action?: string | null
+          next_action_id?: string | null
+          occurred_at?: string | null
+          organization_id: string
+          phase?: string | null
+          responsavel_nome?: string | null
+          responsible_user_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          status?: string
+          summary_client_approved?: string | null
+          summary_internal?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility?: string
+        }
+        Update: {
+          alerta?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio?: boolean
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          event_type?: string
+          id?: string
+          next_action?: string | null
+          next_action_id?: string | null
+          occurred_at?: string | null
+          organization_id?: string
+          phase?: string | null
+          responsavel_nome?: string | null
+          responsible_user_id?: string | null
+          source_entity_id?: string | null
+          source_entity_type?: string | null
+          status?: string
+          summary_client_approved?: string | null
+          summary_internal?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_timeline_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_timeline_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_timeline_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -4133,6 +4417,107 @@ export type Database = {
           },
         ]
       }
+      drive_provisioning_queue: {
+        Row: {
+          approval_required: boolean
+          approved_at: string | null
+          approved_by: string | null
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          external_result_reference: string | null
+          family_id: string | null
+          id: string
+          observacao_interna: string | null
+          organization_id: string
+          requested_structure: Json
+          required_gates: Json
+          stage_trigger: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approval_required?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          external_result_reference?: string | null
+          family_id?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id: string
+          requested_structure?: Json
+          required_gates?: Json
+          stage_trigger: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approval_required?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          external_result_reference?: string | null
+          family_id?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          requested_structure?: Json
+          required_gates?: Json
+          stage_trigger?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drive_provisioning_queue_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_provisioning_queue_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_provisioning_queue_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_provisioning_queue_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_labels: {
         Row: {
           applied_at: string
@@ -7071,6 +7456,9 @@ export type Database = {
           created_by: string | null
           elegivel_para_proposta: boolean
           escopo_aprovado: string | null
+          exige_case_service: boolean
+          exige_justificativa_escopo: boolean
+          gera_comunicacao_automatica: boolean
           homologado_em: string | null
           homologado_por: string | null
           id: string
@@ -7082,6 +7470,7 @@ export type Database = {
           preco_comercial_vigente: number | null
           preco_historico_legado: number | null
           prioridade_catalogo: string
+          regra_uso: string | null
           requer_fechamento_humano: boolean
           status_homologacao: string
           tipo_oferta: string
@@ -7102,6 +7491,9 @@ export type Database = {
           created_by?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
+          exige_case_service?: boolean
+          exige_justificativa_escopo?: boolean
+          gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
           id?: string
@@ -7113,6 +7505,7 @@ export type Database = {
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
+          regra_uso?: string | null
           requer_fechamento_humano?: boolean
           status_homologacao?: string
           tipo_oferta?: string
@@ -7133,6 +7526,9 @@ export type Database = {
           created_by?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
+          exige_case_service?: boolean
+          exige_justificativa_escopo?: boolean
+          gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
           id?: string
@@ -7144,6 +7540,7 @@ export type Database = {
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
+          regra_uso?: string | null
           requer_fechamento_humano?: boolean
           status_homologacao?: string
           tipo_oferta?: string

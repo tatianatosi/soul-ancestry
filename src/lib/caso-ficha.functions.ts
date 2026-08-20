@@ -31,7 +31,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const [membros, log, cliente, nucleos, planos] = await Promise.all([
+    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive] = await Promise.all([
       supabase
         .from("case_members")
         .select("*")
@@ -50,6 +50,15 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         : Promise.resolve({ data: null }),
       supabase.from("nucleos_familiares").select("*").eq("case_id", data.id).is("archived_at", null),
       supabase.from("tarefas").select("id").eq("caso_id", data.id).limit(1),
+      supabase
+        .from("case_timeline_events")
+        .select("*")
+        .eq("case_id", data.id)
+        .is("archived_at", null)
+        .order("occurred_at", { ascending: false })
+        .limit(200),
+      supabase.from("blueprint_parameters").select("*").eq("case_id", data.id).is("archived_at", null),
+      supabase.from("drive_provisioning_queue").select("*").eq("case_id", data.id).is("archived_at", null),
     ]);
 
     return {
@@ -59,6 +68,9 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       cliente: (cliente as any)?.data ?? null,
       nucleoOk: ((nucleos.data ?? []) as Linha[]).length > 0,
       planoInicialOk: ((planos.data ?? []) as Linha[]).length > 0,
+      timeline: (timeline.data ?? []) as Linha[],
+      blueprint: (blueprint.data ?? []) as Linha[],
+      filaDrive: (filaDrive.data ?? []) as Linha[],
     };
   });
 
