@@ -171,9 +171,10 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
     const c = caso.data as Linha;
-    if (!c.proxima_acao_codigo) throw new Error("Defina a próxima ação antes de registrar o alerta.");
-    if (!c.prazo_proxima_acao) throw new Error("Defina o prazo da próxima ação.");
-    if (!c.responsavel_principal) throw new Error("Defina o responsável principal.");
+    // Completude obrigatória: responsável, prazo, público, visibilidade, canal
+    // e aprovação humana quando o canal é externo (códigos específicos de erro).
+    exigirProximaAcaoCompleta(c as Record<string, unknown>);
+
 
     const mapa = mapaDaAcao(c.proxima_acao_codigo);
     const externo = c.target_audience && c.target_audience !== "interno_tatiana";
