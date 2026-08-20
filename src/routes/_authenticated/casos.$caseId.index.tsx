@@ -446,8 +446,13 @@ function FichaCaso() {
               <Texto label="Título do caso" valor={v("titulo")} onChange={(x) => set("titulo", x)} desabilitado={bloqueado} />
               <div>
                 <Rotulo>Identificador canônico</Rotulo>
-                <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                <p className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
                   {String(caso?.["codigo"] ?? "—")}
+                  {ehFixture(caso?.["codigo"] as string | null) && (
+                    <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
+                      {ROTULO_FIXTURE}
+                    </span>
+                  )}
                 </p>
                 <p className="mt-1 text-xs text-navy/50">
                   Gerado pelo servidor e imutável. Modelo: {String(caso?.["modelo"] ?? "—")}. País, via, produto e preço
