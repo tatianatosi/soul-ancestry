@@ -123,7 +123,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
           </div>
           <div>
             <Rotulo>Status permitido pelo motor</Rotulo>
-            <p>{c.statusPermitido === "approved" ? "Pode ser aprovado" : "Somente rascunho (draft)"}</p>
+            <p>{d.promocao.statusPermitido === "approved" ? "Pode ser aprovado" : "Somente rascunho (draft)"}</p>
           </div>
         </dl>
       </Secao>
@@ -364,8 +364,17 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
 
       <Secao titulo="Bloqueios de aprovação e financeiro" descricao="Somente leitura — o motor não libera cobrança nesta tela.">
         <ul className="list-disc space-y-1 pl-5 text-sm text-navy/80">
-          {c.motivosBloqueioAprovacao.length ? (
-            c.motivosBloqueioAprovacao.map((m, i) => <li key={i}>{m}</li>)
+          {c.motivosBloqueioAprovacao.length || d.promocao.bloqueios.length ? (
+            <>
+              {c.motivosBloqueioAprovacao.map((m, i) => (
+                <li key={`c-${i}`}>{m}</li>
+              ))}
+              {d.promocao.bloqueios.map((b, i) => (
+                <li key={`p-${i}`}>
+                  {b.codigo} — {b.descricao}
+                </li>
+              ))}
+            </>
           ) : (
             <li>Sem bloqueios para aprovação do case service.</li>
           )}
