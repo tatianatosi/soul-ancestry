@@ -14,6 +14,8 @@ import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
+import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
+
 
 import {
   EIXO_COMERCIAL,
@@ -538,8 +540,11 @@ function FichaCaso() {
           <Secao titulo="Riscos identificados" descricao="Lista controlada e acumulável. 'Outro' exige detalhamento no brief.">
             <Multi label="Riscos" valores={arr("riscos_identificados")} opcoes={RISCOS} onChange={(x) => set("riscos_identificados", x)} desabilitado={bloqueado} />
           </Secao>
+
+          <PainelFichaPiloto caseId={id} />
         </div>
       ) : null}
+
 
       {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={recarregar} atualizar={atualizar} criar={criar} /> : null}
 
