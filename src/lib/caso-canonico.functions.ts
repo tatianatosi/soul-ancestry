@@ -232,13 +232,16 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
       patch["acknowledged_by"] = context.userId;
     }
     if (data.status === "completed") patch["completed_at"] = new Date().toISOString();
-    const { error } = await supabase
-      .from("case_alerts")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "case_alerts",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status },
+      derivados: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /** Aprova o rascunho — aprovação é registro interno; não há envio nesta entrega. */
@@ -248,19 +251,16 @@ export const aprovarRascunho = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
-    const { error } = await supabase
-      .from("communication_queue")
-      .update({
-        corpo_rascunho: data.corpo,
-        status: "approved",
-        approved_at: new Date().toISOString(),
-        approved_by: context.userId,
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true, enviado: false };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "communication_queue",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: data.corpo === undefined ? { status: "approved" } : { corpo_rascunho: data.corpo, status: "approved" },
+      derivados: { approved_at: new Date().toISOString(), approved_by: context.userId },
+    });
+    return { ok: true, enviado: false, salvoEm: r.salvoEm };
   });
 
 export const atualizarItemOnboarding = createServerFn({ method: "POST" })
@@ -285,19 +285,21 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
       });
     }
 
-    const { error } = await supabase
-      .from("onboarding_checklist")
-      .update({
-        status: data.status,
-        observacao: data.observacao ?? null,
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "onboarding_checklist",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status, observacao: data.observacao ?? null },
+      derivados: {
         concluido_em: data.status === "concluido" ? new Date().toISOString() : null,
         concluido_por: data.status === "concluido" ? context.userId : null,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true, salvoEm: new Date().toISOString() };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
+
 
 /** Taxonomia completa + mapa de equivalência com o Meta Agent (sem sincronizar). */
 export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
