@@ -117,16 +117,20 @@ export const aplicarEtiqueta = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!existe.data) throw new Error("Etiqueta fora da taxonomia canônica.");
-    const { error } = await supabase.from("entity_labels").insert({
-      organization_id: organizationId,
-      label_id: data.labelId,
-      entity_type: data.entityType,
-      entity_id: data.entityId,
-      applied_by: context.userId,
-      source: "desk_manual",
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "entity_labels",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        label_id: data.labelId,
+        entity_type: data.entityType,
+        entity_id: data.entityId,
+        applied_by: context.userId,
+        source: "desk_manual",
+      },
     });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, id: r.id, salvoEm: r.salvoEm };
   });
 
 export const removerEtiqueta = createServerFn({ method: "POST" })
@@ -135,14 +139,19 @@ export const removerEtiqueta = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
-    const { error } = await supabase
-      .from("entity_labels")
-      .update({ removed_at: new Date().toISOString(), removed_by: context.userId })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const removidoEm = new Date().toISOString();
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "entity_labels",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {},
+      derivados: { removed_at: removidoEm, removed_by: context.userId },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
+
 
 /**
  * Registra a próxima ação: alerta interno sempre; rascunho de comunicação
