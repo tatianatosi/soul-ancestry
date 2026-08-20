@@ -57,6 +57,7 @@ function Painel() {
       </div>
 
       <PainelHoje />
+      <PendenciasCriticasPesquisa />
       <PainelDeskHoje />
 
 
