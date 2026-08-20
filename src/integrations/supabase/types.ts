@@ -581,6 +581,7 @@ export type Database = {
           case_id: string
           completed_at: string | null
           created_at: string
+          created_by: string | null
           criticidade: string
           detalhe: string | null
           due_at: string | null
@@ -591,6 +592,7 @@ export type Database = {
           titulo: string
           triggered_at: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           acknowledged_at?: string | null
@@ -598,6 +600,7 @@ export type Database = {
           case_id: string
           completed_at?: string | null
           created_at?: string
+          created_by?: string | null
           criticidade?: string
           detalhe?: string | null
           due_at?: string | null
@@ -608,6 +611,7 @@ export type Database = {
           titulo: string
           triggered_at?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           acknowledged_at?: string | null
@@ -615,6 +619,7 @@ export type Database = {
           case_id?: string
           completed_at?: string | null
           created_at?: string
+          created_by?: string | null
           criticidade?: string
           detalhe?: string | null
           due_at?: string | null
@@ -625,6 +630,7 @@ export type Database = {
           titulo?: string
           triggered_at?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -4724,6 +4730,7 @@ export type Database = {
           applied_at: string
           applied_by: string | null
           created_at: string
+          created_by: string | null
           entity_id: string
           entity_type: string
           id: string
@@ -4733,11 +4740,13 @@ export type Database = {
           removed_by: string | null
           source: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           applied_at?: string
           applied_by?: string | null
           created_at?: string
+          created_by?: string | null
           entity_id: string
           entity_type: string
           id?: string
@@ -4747,11 +4756,13 @@ export type Database = {
           removed_by?: string | null
           source?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           applied_at?: string
           applied_by?: string | null
           created_at?: string
+          created_by?: string | null
           entity_id?: string
           entity_type?: string
           id?: string
@@ -4761,6 +4772,7 @@ export type Database = {
           removed_by?: string | null
           source?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -6520,6 +6532,7 @@ export type Database = {
           concluido_em: string | null
           concluido_por: string | null
           created_at: string
+          created_by: string | null
           id: string
           item_code: string
           label: string
@@ -6529,12 +6542,14 @@ export type Database = {
           organization_id: string
           status: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           case_id: string
           concluido_em?: string | null
           concluido_por?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           item_code: string
           label: string
@@ -6544,12 +6559,14 @@ export type Database = {
           organization_id: string
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           case_id?: string
           concluido_em?: string | null
           concluido_por?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           item_code?: string
           label?: string
@@ -6559,6 +6576,7 @@ export type Database = {
           organization_id?: string
           status?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
