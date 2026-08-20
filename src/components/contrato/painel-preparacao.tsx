@@ -143,7 +143,44 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
             </p>
           ))}
         </Bloco>
+
+        <Bloco n={6} titulo="Campos da proposta Canva (páginas 1–7)">
+          <p>
+            Deck interno: {d.proposta?.origem_referencia ?? "não registrado"} · páginas usadas:{" "}
+            {(r.paginas_usadas ?? []).join(", ") || "nenhuma"}
+          </p>
+          <p className="mt-1 font-medium text-navy">Extraídos ({(r.campos_extraidos ?? []).length})</p>
+          {(r.campos_extraidos ?? []).length ? (
+            <ul className="space-y-0.5">
+              {(r.campos_extraidos ?? []).map((c: any) => (
+                <li key={c.campo}>
+                  ✓ {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhum campo extraído.</p>
+          )}
+          <p className="mt-1 font-medium text-navy">Não localizados ({(r.campos_ausentes ?? []).length})</p>
+          {(r.campos_ausentes ?? []).length ? (
+            <ul className="space-y-0.5">
+              {(r.campos_ausentes ?? []).map((c: any) => (
+                <li key={c.campo} className={c.obrigatorio ? "text-terracotta" : "text-navy/60"}>
+                  {c.obrigatorio ? "✗" : "○"} {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
+                  {c.obrigatorio ? " · obrigatório" : " · opcional, não declarado"}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Nenhum campo pendente.</p>
+          )}
+          <p className="mt-1">
+            Anexos afetados: {(r.anexos_afetados ?? []).join(" · ") || "nenhum"}
+          </p>
+          <p className="text-navy/50">Nada é inferido: campo não localizado permanece pendência e mantém o bloqueio.</p>
+        </Bloco>
       </div>
+
     </Painel>
   );
 }
