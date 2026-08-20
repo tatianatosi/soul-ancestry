@@ -10,6 +10,7 @@ export type SecaoPesquisa =
   | "visao"
   | "pessoas"
   | "fontes"
+  | "fontes_documentos"
   | "documentos"
   | "evidencias"
   | "hipoteses"
