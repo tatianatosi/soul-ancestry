@@ -9,19 +9,18 @@ import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
 describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
   it("1. campo alterado e salvo é confirmado pela releitura", () => {
     const r = compararPersistencia({ titulo: "Caso Ana" }, { titulo: "Caso Ana", pais: "AT" });
-    expect(r.divergentes).toHaveLength(0);
-    expect(r.conferidos).toContain("titulo");
+    expect(r).toHaveLength(0);
   });
 
   it("2. divergência entre enviado e gravado é detectada", () => {
     const r = compararPersistencia({ titulo: "Novo" }, { titulo: "Antigo" });
-    expect(r.divergentes.map((d) => d.campo)).toContain("titulo");
+    expect(r.map((d) => d.campo)).toContain("titulo");
   });
 
   it("3. campo não mapeado retorna código estável", () => {
     const c = classificarErroPersistencia(new Error(CODIGOS_PERSISTENCIA.NAO_MAPEADO));
     expect(c.codigo).toBe(CODIGOS_PERSISTENCIA.NAO_MAPEADO);
-    expect(c.mensagem).toMatch(/não/i);
+    expect(c.titulo).toMatch(/não mapeado/i);
   });
 
   it("4. bloqueio por permissão vira erro explícito, não sucesso silencioso", () => {

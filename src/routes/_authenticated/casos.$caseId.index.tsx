@@ -265,9 +265,9 @@ function FichaCaso() {
     },
     onError: (e: unknown) => {
       const classificado = classificarErroPersistencia(e);
-      setErro(classificado.mensagem);
+      setErro(`${classificado.titulo}: ${classificado.detalhe}`);
       setCamposSalvos([]);
-      toast.error(classificado.mensagem, { description: classificado.codigo });
+      toast.error(classificado.titulo, { description: classificado.detalhe });
     },
   });
 
