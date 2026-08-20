@@ -6,6 +6,7 @@ import { Secao, Rotulo } from "@/components/caso/campos";
 import {
   carregarConsolidacaoCaseService,
   decidirCriterioAceite,
+  salvarCondicaoComercial,
   semearCriteriosAceite,
 } from "@/lib/case-service-consolidacao.functions";
 import { ROTULO_ORIGEM_VALOR, type ItemCriterio } from "@/lib/case-service-consolidacao";
@@ -26,8 +27,11 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
   const carregar = useServerFn(carregarConsolidacaoCaseService);
   const semear = useServerFn(semearCriteriosAceite);
   const decidir = useServerFn(decidirCriterioAceite);
+  const salvarCondicao = useServerFn(salvarCondicaoComercial);
   const [erro, setErro] = useState<string | null>(null);
   const [quem, setQuem] = useState("Tatiana Tosi");
+  const [rascunhoCriterio, setRascunhoCriterio] = useState<Record<string, { justificativa: string; evidencia: string }>>({});
+  const [cond, setCond] = useState<Record<string, string>>({});
 
   const q = useQuery({
     queryKey: ["consolidacao-case-service", caseId],
@@ -40,9 +44,42 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao criar os critérios."),
   });
   const mDecidir = useMutation({
-    mutationFn: (v: { id: string; status: string }) => decidir({ data: { ...v, decididoPor: quem } }),
+    mutationFn: (v: { id: string; status: string }) =>
+      decidir({
+        data: {
+          ...v,
+          decididoPor: quem,
+          justificativa: rascunhoCriterio[v.id]?.justificativa ?? "",
+          evidenciaInterna: rascunhoCriterio[v.id]?.evidencia ?? "",
+        },
+      }),
     onSuccess: () => q.refetch(),
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao registrar a decisão."),
+  });
+
+  const mCondicao = useMutation({
+    mutationFn: (homologar: boolean) =>
+      salvarCondicao({
+        data: {
+          caseId,
+          homologar,
+          homologadoPor: quem,
+          forma_pagamento: cond.forma_pagamento ?? q.data?.condicao?.forma_pagamento ?? "",
+          parcelas: cond.parcelas ? Number(cond.parcelas) : (q.data?.condicao?.parcelas ?? null),
+          valor_parcela: cond.valor_parcela ? Number(cond.valor_parcela) : (q.data?.condicao?.valor_parcela ?? null),
+          valor_total_referencia: cond.valor_total_referencia
+            ? Number(cond.valor_total_referencia)
+            : (q.data?.condicao?.valor_total_referencia ?? null),
+          vencimento_dia: cond.vencimento_dia ? Number(cond.vencimento_dia) : (q.data?.condicao?.vencimento_dia ?? null),
+          primeiro_vencimento: cond.primeiro_vencimento ?? q.data?.condicao?.primeiro_vencimento ?? null,
+          condicao_aplicavel: cond.condicao_aplicavel ?? q.data?.condicao?.condicao_aplicavel ?? null,
+        },
+      }),
+    onSuccess: () => {
+      setErro(null);
+      q.refetch();
+    },
+    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao salvar a condição comercial."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando consolidação…</p>;
@@ -166,6 +203,29 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
                               </span>
                             ) : null}
                           </span>
+                          <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center">
+                          <input
+                            placeholder="Justificativa"
+                            className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+                            value={rascunhoCriterio[i.id!]?.justificativa ?? i.justificativa ?? ""}
+                            onChange={(e) =>
+                              setRascunhoCriterio((p) => ({
+                                ...p,
+                                [i.id!]: { evidencia: p[i.id!]?.evidencia ?? "", justificativa: e.target.value },
+                              }))
+                            }
+                          />
+                          <input
+                            placeholder="Evidência interna"
+                            className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+                            value={rascunhoCriterio[i.id!]?.evidencia ?? i.evidencia_interna ?? ""}
+                            onChange={(e) =>
+                              setRascunhoCriterio((p) => ({
+                                ...p,
+                                [i.id!]: { justificativa: p[i.id!]?.justificativa ?? "", evidencia: e.target.value },
+                              }))
+                            }
+                          />
                           <select
                             className="rounded-lg border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
                             value={i.status}
@@ -178,6 +238,7 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
                               </option>
                             ))}
                           </select>
+                          </div>
                         </li>
                       ))}
                   </ul>
@@ -186,6 +247,119 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
             </div>
           </>
         )}
+      </Secao>
+
+      <Secao
+        titulo="Fonte de preço e elegibilidade"
+        descricao="Somente o catálogo homologado é fonte final. Proposta, planejador, WhatsApp e texto manual não valem como fonte."
+      >
+        <dl className="grid gap-3 text-sm text-navy/80">
+          <div>
+            <Rotulo>Fonte admitida</Rotulo>
+            <p>{d.elegibilidade.fonte === "product_catalog" ? "Catálogo homologado (product_catalog)" : "Nenhuma fonte homologada"}</p>
+          </div>
+          <div>
+            <Rotulo>Uso contratual e financeiro</Rotulo>
+            <p>{d.elegibilidade.uso_contratual_financeiro === "liberado" ? "Liberado" : "Bloqueado — preço não homologado"}</p>
+          </div>
+          <div>
+            <Rotulo>Referência interna</Rotulo>
+            <p>
+              {d.elegibilidade.preco_referencia_interna != null
+                ? `R$ ${d.elegibilidade.preco_referencia_interna.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} — referência interna até decisão humana homologada`
+                : "—"}
+            </p>
+          </div>
+        </dl>
+        {d.elegibilidade.motivos.length ? (
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-terracotta">
+            {d.elegibilidade.motivos.map((m, i) => (
+              <li key={i}>{m}</li>
+            ))}
+          </ul>
+        ) : null}
+      </Secao>
+
+      <Secao
+        titulo="Condição comercial estruturada"
+        descricao="Campos estruturados e aprovados, separados do texto da proposta. Nenhuma cobrança, parcela financeira ou link é criada."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            { k: "forma_pagamento", l: "Forma de pagamento", t: "text" },
+            { k: "parcelas", l: "Parcelas", t: "number" },
+            { k: "valor_parcela", l: "Valor da parcela", t: "number" },
+            { k: "valor_total_referencia", l: "Valor total de referência", t: "number" },
+            { k: "vencimento_dia", l: "Dia de vencimento", t: "number" },
+            { k: "primeiro_vencimento", l: "Primeiro vencimento", t: "date" },
+            { k: "condicao_aplicavel", l: "Condição aplicável", t: "text" },
+          ].map((f) => (
+            <label key={f.k}>
+              <Rotulo>{f.l}</Rotulo>
+              <input
+                type={f.t}
+                className="w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                value={cond[f.k] ?? (d.condicao ? String((d.condicao as Record<string, unknown>)[f.k] ?? "") : "")}
+                onChange={(e) => setCond((p) => ({ ...p, [f.k]: e.target.value }))}
+              />
+            </label>
+          ))}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => mCondicao.mutate(false)}
+            disabled={mCondicao.isPending}
+            className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-40"
+          >
+            Salvar rascunho da condição
+          </button>
+          <button
+            onClick={() => mCondicao.mutate(true)}
+            disabled={mCondicao.isPending || !d.elegibilidade.elegivel}
+            className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
+          >
+            Homologar condição
+          </button>
+        </div>
+        <p className="mt-2 text-[11px] text-navy/45">
+          Estado atual: {d.condicao?.status ?? "sem condição registrada"}
+          {d.condicao?.homologado_por ? ` · homologada por ${d.condicao.homologado_por}` : ""}
+        </p>
+        {d.avaliacaoCondicao.bloqueios.length ? (
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-terracotta">
+            {d.avaliacaoCondicao.bloqueios.map((b, i) => (
+              <li key={i}>
+                {b.codigo} — {b.descricao}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {d.divergenciasValor.length ? (
+          <div className="mt-4">
+            <Rotulo>Divergências registradas (sem ajuste automático)</Rotulo>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-navy/80">
+              {d.divergenciasValor.map((x, i) => (
+                <li key={i}>{x.descricao}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </Secao>
+
+      <Secao titulo="Plano inicial por critérios persistidos" descricao="Substitui o antigo indicador único de plano inicial.">
+        <ul className="space-y-2 text-sm">
+          {d.planoInicial.criterios.map((c2) => (
+            <li key={c2.criterio} className="rounded-lg border border-navy/10 p-3">
+              <p className="text-navy/85">
+                {c2.ok ? "✓" : "•"} {c2.label}
+              </p>
+              <p className="text-[11px] text-navy/55">{c2.detalhe}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-navy/60">
+          Plano inicial {d.planoInicial.ok ? "completo" : `pendente: ${d.planoInicial.pendentes.join(", ")}`}.
+        </p>
       </Secao>
 
       <Secao titulo="Bloqueios de aprovação e financeiro" descricao="Somente leitura — o motor não libera cobrança nesta tela.">
