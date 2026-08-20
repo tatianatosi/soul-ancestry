@@ -540,6 +540,9 @@ function FichaCaso() {
 
       {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={recarregar} atualizar={atualizar} criar={criar} /> : null}
 
+      {aba === "cadastro" ? <AbaCadastro caseId={id} bloqueado={bloqueado} /> : null}
+
+
       {aba === "produto" ? (
         <AbaProdutoTrilha
           caseId={id}
