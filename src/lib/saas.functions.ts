@@ -2,11 +2,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import type { AcaoGateada } from "@/lib/gates-formalizacao";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao, linhasDeLog } from "@/lib/persistencia.server";
+import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
 import {
   validarEstadoInicial,
   validarRegrasNegocio,
   validarTransicao,
 } from "@/lib/estados";
+
+/** Campos que compõem a Próxima ação (validados em conjunto no servidor). */
+const CAMPOS_PROXIMA_ACAO = [
+  "proxima_acao_codigo",
+  "proxima_acao_justificativa",
+  "prazo_proxima_acao",
+  "target_audience",
+  "visibility",
+  "suggested_channel",
+  "requires_human_approval",
+];
+
 
 /**
  * Camada de acesso do SaaS Clube Ancestral.
@@ -481,19 +495,22 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       return { ok: true, alterados: [] as string[], ignorados, salvoEm: new Date().toISOString() };
     }
 
-    const { data: linhas, error } = await supabase
-      .from(data.entidade)
-      .update({ ...alteracoes, updated_by: context.userId })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId)
-      .select("id");
-    if (error) throw new Error(error.message);
-    // Sem linha retornada = política de escrita bloqueou. Nunca falhar em silêncio.
-    if (!linhas || linhas.length === 0) {
-      throw new Error("Nada foi gravado: seu papel não permite editar este registro.");
+    // Próxima ação: completude exigida no servidor sempre que a tela toca um
+    // dos campos da ação. Nada aqui envia comunicação externa.
+    if (data.entidade === "crm_casos" && CAMPOS_PROXIMA_ACAO.some((c) => c in alteracoes)) {
+      exigirProximaAcaoCompleta(combinado as Record<string, unknown>);
     }
 
-    // Registro de alterações do caso (quem, quando, o quê).
+    const gravacao = await gravarComVerificacao({
+      supabase: supabase as never,
+      tabela: data.entidade,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: alteracoes,
+    });
+
+    // Registro de alterações do caso (quem, quando, o quê) — sensíveis mascarados.
     const caseId =
       data.entidade === "crm_casos"
         ? data.id
@@ -502,20 +519,21 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
           : null;
     if (caseId && (data.entidade === "crm_casos" || data.entidade === "case_members")) {
       await supabase.from("caso_log").insert(
-        diff.map((campo) => ({
-          organization_id: organizationId,
-          case_id: caseId,
+        linhasDeLog({
+          organizationId,
+          caseId,
           entidade: data.entidade,
-          entidade_id: data.id,
-          campo,
-          valor_anterior: anterior[campo] === null || anterior[campo] === undefined ? null : String(anterior[campo]),
-          valor_novo: alteracoes[campo] === null ? null : String(alteracoes[campo]),
-          autor_user_id: context.userId,
-        })),
+          entidadeId: data.id,
+          userId: context.userId as string,
+          anterior,
+          novo: alteracoes,
+          campos: diff,
+        }),
       );
     }
 
-    return { ok: true, alterados: diff, ignorados, salvoEm: new Date().toISOString() };
+    return { ok: true, alterados: diff, ignorados, salvoEm: gravacao.salvoEm };
+
   });
 
 

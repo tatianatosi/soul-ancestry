@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useBlocker, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -16,6 +16,9 @@ import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
+import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
+import { classificarErroPersistencia } from "@/lib/persistencia-erros";
+import { toast } from "sonner";
 
 
 import {
@@ -209,6 +212,7 @@ function FichaCaso() {
   const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  const [camposSalvos, setCamposSalvos] = useState<string[]>([]);
   const [erro, setErro] = useState<string | null>(null);
 
   const caso = q.data?.caso;
@@ -219,7 +223,7 @@ function FichaCaso() {
 
   const sujo = Object.keys(form).length > 0;
 
-  // Nada de saída silenciosa com alteração pendente.
+  // Nada de saída silenciosa com alteração pendente (recarregar/fechar aba).
   useEffect(() => {
     if (!sujo) return;
     const h = (e: BeforeUnloadEvent) => {
@@ -229,6 +233,13 @@ function FichaCaso() {
     window.addEventListener("beforeunload", h);
     return () => window.removeEventListener("beforeunload", h);
   }, [sujo]);
+
+  // ...e também na navegação interna entre abas/rotas do Desk.
+  useBlocker({
+    shouldBlockFn: () =>
+      sujo && !window.confirm("Há alterações não salvas nesta ficha. Sair mesmo assim?"),
+    enableBeforeUnload: false,
+  });
 
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
@@ -245,12 +256,21 @@ function FichaCaso() {
     onSuccess: async (r: any) => {
       setErro(null);
       setSalvoEm(new Date().toLocaleTimeString("pt-BR"));
+      setCamposSalvos(Array.isArray(r?.alterados) ? (r.alterados as string[]) : []);
       setForm({});
       await qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
-      void r;
+      toast.success(
+        `Salvo e conferido no banco${Array.isArray(r?.alterados) && r.alterados.length ? ` — ${r.alterados.length} campo(s)` : ""}.`,
+      );
     },
-    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao salvar."),
+    onError: (e: unknown) => {
+      const classificado = classificarErroPersistencia(e);
+      setErro(`${classificado.titulo}: ${classificado.detalhe}`);
+      setCamposSalvos([]);
+      toast.error(classificado.titulo, { description: classificado.detalhe });
+    },
   });
+
 
   const derivado = useMemo(
     () =>
@@ -325,8 +345,18 @@ function FichaCaso() {
         </div>
       }
     >
+      {ehFixtureLinha(caso as never) ? (
+        <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs font-medium tracking-wide text-navy">
+          {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem App Cliente.
+        </p>
+      ) : null}
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">{erro}</p>
+      ) : null}
+      {!erro && !sujo && camposSalvos.length ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
+          Conferido no banco após gravar: {camposSalvos.join(", ")}.
+        </p>
       ) : null}
       {bloqueado ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

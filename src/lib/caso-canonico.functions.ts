@@ -7,6 +7,9 @@ import { mapaDaAcao } from "@/lib/caso-ficha";
 
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
 import { exigirGate } from "@/lib/escopo-conferencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+
 
 export const carregarCanonico = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -77,31 +80,27 @@ export const salvarCaseService = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { data: linhas, error } = await supabase
-        .from("case_services")
-        .update({ ...payload, updated_by: context.userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId)
-        .select("id");
-      if (error) throw new Error(error.message);
-      if (!linhas?.length) throw new Error("Nada foi gravado: seu papel não permite editar este serviço.");
-      return { id: data.id, salvoEm: new Date().toISOString() };
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_services",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload,
+      });
+      return { id: data.id, salvoEm: r.salvoEm };
     }
 
-    const { data: linha, error } = await supabase
-      .from("case_services")
-      .insert({
-        ...payload,
-        case_id: data.caseId,
-        organization_id: organizationId,
-        created_by: context.userId,
-        updated_by: context.userId,
-      })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string, salvoEm: new Date().toISOString() };
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "case_services",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...payload, case_id: data.caseId },
+    });
+    return { id: r.id, salvoEm: r.salvoEm };
   });
+
 
 /** Aplica etiqueta canônica (nunca cria etiqueta livre fora da taxonomia). */
 export const aplicarEtiqueta = createServerFn({ method: "POST" })
@@ -117,16 +116,20 @@ export const aplicarEtiqueta = createServerFn({ method: "POST" })
       .eq("organization_id", organizationId)
       .maybeSingle();
     if (!existe.data) throw new Error("Etiqueta fora da taxonomia canônica.");
-    const { error } = await supabase.from("entity_labels").insert({
-      organization_id: organizationId,
-      label_id: data.labelId,
-      entity_type: data.entityType,
-      entity_id: data.entityId,
-      applied_by: context.userId,
-      source: "desk_manual",
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "entity_labels",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        label_id: data.labelId,
+        entity_type: data.entityType,
+        entity_id: data.entityId,
+        applied_by: context.userId,
+        source: "desk_manual",
+      },
     });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, id: r.id, salvoEm: r.salvoEm };
   });
 
 export const removerEtiqueta = createServerFn({ method: "POST" })
@@ -135,14 +138,19 @@ export const removerEtiqueta = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
-    const { error } = await supabase
-      .from("entity_labels")
-      .update({ removed_at: new Date().toISOString(), removed_by: context.userId })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const removidoEm = new Date().toISOString();
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "entity_labels",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {},
+      derivados: { removed_at: removidoEm, removed_by: context.userId },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
+
 
 /**
  * Registra a próxima ação: alerta interno sempre; rascunho de comunicação
@@ -162,9 +170,10 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
     const c = caso.data as Linha;
-    if (!c.proxima_acao_codigo) throw new Error("Defina a próxima ação antes de registrar o alerta.");
-    if (!c.prazo_proxima_acao) throw new Error("Defina o prazo da próxima ação.");
-    if (!c.responsavel_principal) throw new Error("Defina o responsável principal.");
+    // Completude obrigatória: responsável, prazo, público, visibilidade, canal
+    // e aprovação humana quando o canal é externo (códigos específicos de erro).
+    exigirProximaAcaoCompleta(c as Record<string, unknown>);
+
 
     const mapa = mapaDaAcao(c.proxima_acao_codigo);
     const externo = c.target_audience && c.target_audience !== "interno_tatiana";
@@ -232,13 +241,16 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
       patch["acknowledged_by"] = context.userId;
     }
     if (data.status === "completed") patch["completed_at"] = new Date().toISOString();
-    const { error } = await supabase
-      .from("case_alerts")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "case_alerts",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status },
+      derivados: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /** Aprova o rascunho — aprovação é registro interno; não há envio nesta entrega. */
@@ -248,19 +260,16 @@ export const aprovarRascunho = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
-    const { error } = await supabase
-      .from("communication_queue")
-      .update({
-        corpo_rascunho: data.corpo,
-        status: "approved",
-        approved_at: new Date().toISOString(),
-        approved_by: context.userId,
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true, enviado: false };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "communication_queue",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: data.corpo === undefined ? { status: "approved" } : { corpo_rascunho: data.corpo, status: "approved" },
+      derivados: { approved_at: new Date().toISOString(), approved_by: context.userId },
+    });
+    return { ok: true, enviado: false, salvoEm: r.salvoEm };
   });
 
 export const atualizarItemOnboarding = createServerFn({ method: "POST" })
@@ -285,19 +294,21 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
       });
     }
 
-    const { error } = await supabase
-      .from("onboarding_checklist")
-      .update({
-        status: data.status,
-        observacao: data.observacao ?? null,
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "onboarding_checklist",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status, observacao: data.observacao ?? null },
+      derivados: {
         concluido_em: data.status === "concluido" ? new Date().toISOString() : null,
         concluido_por: data.status === "concluido" ? context.userId : null,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true, salvoEm: new Date().toISOString() };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
+
 
 /** Taxonomia completa + mapa de equivalência com o Meta Agent (sem sincronizar). */
 export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
