@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
+import { semFixtures } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { calcularMetricasCrm, montarFilasHoje, validarLead, type LeadDesk } from "@/lib/crm-desk";
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
@@ -153,12 +154,13 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
       supabase.from("leads").select("*").limit(1000),
       supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,pais,via,documentos_minimos_ok,prazo_proxima_acao,responsavel_principal,ativo")
+        .select("id,codigo,titulo,pais,via,documentos_minimos_ok,prazo_proxima_acao,responsavel_principal,ativo,data_origin")
         .is("archived_at", null)
         .limit(1000),
     ]);
-    const listaLeads = (leads ?? []) as LeadDesk[];
-    const listaCasos = (casos ?? []) as any[];
+    // Fixtures de demonstração ficam fora das filas e métricas do Desk.
+    const listaLeads = semFixtures((leads ?? []) as never) as unknown as LeadDesk[];
+    const listaCasos = semFixtures((casos ?? []) as never) as any[];
     return {
       filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
