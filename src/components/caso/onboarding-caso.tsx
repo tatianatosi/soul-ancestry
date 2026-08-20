@@ -41,7 +41,10 @@ export function AbaOnboarding({
 
   return (
     <div className="space-y-5">
+      <PainelPlanoOnboarding caseId={String(caso.id)} />
+
       <Secao titulo="Gates de cliente ativo" descricao="Nenhum caso é considerado ativo com gate pendente.">
+
         <ul className="grid gap-2 sm:grid-cols-2">
           {gates.map((g) => (
             <li key={g.chave} className="flex items-center gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm">
