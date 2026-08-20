@@ -15,6 +15,7 @@ import { PainelDependentes } from "@/components/contrato/painel-dependentes";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { PainelPreparacao } from "@/components/contrato/painel-preparacao";
 import { MatrizJuridicaPreparacao } from "@/components/contrato/matriz-juridica-preparacao";
+import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -225,6 +226,7 @@ function Pagina() {
         </Painel>
 
         <PainelPreparacao caseId={caseId} />
+        <PainelInstrumentos caseId={caseId} />
         <MatrizJuridicaPreparacao caseId={caseId} />
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
