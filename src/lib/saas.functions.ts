@@ -467,8 +467,11 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
 
     // Campo enviado que não existe na tabela nunca mais some em silêncio.
     if (ignorados.length > 0 && Object.keys(alteracoes).length === 0) {
-      throw new Error(`Nada foi gravado: campo(s) não persistível(is): ${ignorados.join(", ")}.`);
+      throw new Error(
+        `CAMPO_NAO_MAPEADO_PARA_PERSISTENCIA: nada foi gravado. Campo(s) sem coluna correspondente: ${ignorados.join(", ")}.`,
+      );
     }
+
 
     const diff = Object.keys(alteracoes).filter(
       (k) => JSON.stringify(anterior[k] ?? null) !== JSON.stringify(alteracoes[k] ?? null),
