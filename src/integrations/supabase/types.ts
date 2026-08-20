@@ -649,6 +649,67 @@ export type Database = {
           },
         ]
       }
+      case_aliases: {
+        Row: {
+          alias: string
+          alias_type: string
+          case_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          source: string
+          superseded_by: string | null
+        }
+        Insert: {
+          alias: string
+          alias_type?: string
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          source?: string
+          superseded_by?: string | null
+        }
+        Update: {
+          alias?: string
+          alias_type?: string
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          source?: string
+          superseded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_aliases_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_aliases_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_aliases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_checklist_items: {
         Row: {
           archive_motivo: string | null
@@ -4078,6 +4139,7 @@ export type Database = {
           info_cliente_liberada: boolean
           link_origem_interna: string | null
           marcos_gerais_da_proposta: string | null
+          modelo: string
           organization_id: string
           origem_brief: string | null
           pagamento_confirmado: boolean
@@ -4180,6 +4242,7 @@ export type Database = {
           info_cliente_liberada?: boolean
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
+          modelo?: string
           organization_id: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -4282,6 +4345,7 @@ export type Database = {
           info_cliente_liberada?: boolean
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
+          modelo?: string
           organization_id?: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -11029,6 +11093,10 @@ export type Database = {
       contract_pode_financeiro: { Args: { _org: string }; Returns: boolean }
       contract_pode_ler: { Args: { _org: string }; Returns: boolean }
       contract_pode_preparar: { Args: { _org: string }; Returns: boolean }
+      gerar_case_id: {
+        Args: { _ano?: number; _demo?: boolean; _modelo: string; _org: string }
+        Returns: string
+      }
       has_org_role: {
         Args: { _org: string; _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean

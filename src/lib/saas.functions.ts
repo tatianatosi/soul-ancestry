@@ -78,8 +78,9 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
   client_contacts: ["client_id", "nome", "relacao", "email", "telefone", "principal", "observacoes"],
   crm_casos: [
     "cliente_id",
-    "codigo",
+    // "codigo" e "modelo" não são graváveis: identificador canônico é gerado pelo servidor e imutável (G-01).
     "titulo",
+
     "tipo_servico",
     "fase",
     "responsavel_id",
@@ -126,7 +127,7 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "link_origem_interna",
     "proxima_acao_codigo",
     "proxima_acao_justificativa",
-    "alias_historico",
+    // "alias_historico" migrou para case_aliases (histórico imutável, somente leitura na ficha).
     // Jornada, comunicação e alertas
     "proposta_id_origem",
     "marcos_gerais_da_proposta",

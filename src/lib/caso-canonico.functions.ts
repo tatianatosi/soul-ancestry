@@ -16,7 +16,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas] =
+    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
         eq("citizenship_tracks").is("archived_at", null).order("pais"),
@@ -28,7 +28,10 @@ export const carregarCanonico = createServerFn({ method: "GET" })
         eq("onboarding_checklist").eq("case_id", data.caseId).order("ordem"),
         eq("nucleos_familiares").eq("case_id", data.caseId).is("archived_at", null),
         eq("client_deliverables").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
+        // Aliases históricos: visíveis apenas no detalhe interno, nunca como chave.
+        eq("case_aliases").eq("case_id", data.caseId).order("created_at"),
       ]);
+
 
     const nucleoIds = ((nucleos.data ?? []) as Linha[]).map((n) => n.id);
     const membrosNucleo = nucleoIds.length
@@ -47,8 +50,10 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       nucleos: (nucleos.data ?? []) as Linha[],
       membrosNucleo: ((membrosNucleo as any).data ?? []) as Linha[],
       entregas: (entregas.data ?? []) as Linha[],
+      aliases: (aliases.data ?? []) as Linha[],
     };
   });
+
 
 /** Cria ou atualiza o case service (produto-pai + trilha + escopo + condição comercial). */
 export const salvarCaseService = createServerFn({ method: "POST" })

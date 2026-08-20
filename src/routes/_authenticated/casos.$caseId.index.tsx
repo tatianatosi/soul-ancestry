@@ -391,14 +391,42 @@ function FichaCaso() {
           <Secao titulo="Identificação" descricao="Registro de caso — distinto de família e de pessoa.">
             <div className="grid gap-4 sm:grid-cols-2">
               <Texto label="Título do caso" valor={v("titulo")} onChange={(x) => set("titulo", x)} desabilitado={bloqueado} />
-              <Texto label="Código do caso" valor={v("codigo")} onChange={(x) => set("codigo", x)} desabilitado={bloqueado} />
-              <Texto
-                label="Alias histórico"
-                valor={v("alias_historico")}
-                onChange={(x) => set("alias_historico", x)}
-                desabilitado={bloqueado}
-                ajuda="Nomes antigos permanecem rastreáveis; nunca substituem o código canônico."
-              />
+              <div>
+                <Rotulo>Identificador canônico</Rotulo>
+                <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                  {String(caso?.["codigo"] ?? "—")}
+                </p>
+                <p className="mt-1 text-xs text-navy/50">
+                  Gerado pelo servidor e imutável. Modelo: {String(caso?.["modelo"] ?? "—")}. País, via, produto e preço
+                  ficam em campos estruturados e nunca compõem o identificador.
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <Rotulo>Identificadores históricos (aliases)</Rotulo>
+                {(qc2.data?.aliases ?? []).length === 0 ? (
+                  <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/60">
+                    Nenhum identificador histórico registrado.
+                  </p>
+                ) : (
+                  <ul className="space-y-1">
+                    {(qc2.data?.aliases ?? []).map((a) => (
+                      <li
+                        key={String(a["id"])}
+                        className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
+                      >
+                        <span className="font-mono text-navy">{String(a["alias"])}</span>
+                        <span className="ml-2 text-xs text-navy/50">
+                          {String(a["alias_type"] ?? "historico")} · origem {String(a["source"] ?? "—")}
+                          {a["superseded_by"] ? ` · substituído por ${String(a["superseded_by"])}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-1 text-xs text-navy/50">
+                  Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
+                </p>
+              </div>
               <Texto label="Data de entrada do caso" tipo="date" valor={v("data_entrada_caso")} onChange={(x) => set("data_entrada_caso", x)} desabilitado={bloqueado} />
               <Texto label="Case service / trilha (ID)" valor={v("citizenship_track_id")} onChange={(x) => set("citizenship_track_id", x)} desabilitado={bloqueado} />
               <div>
@@ -409,6 +437,7 @@ function FichaCaso() {
               </div>
             </div>
           </Secao>
+
 
           <Secao titulo="Responsabilidade" descricao="Toda entrega tem responsável nomeado.">
             <div className="grid gap-4 sm:grid-cols-2">
