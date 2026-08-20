@@ -7715,11 +7715,15 @@ export type Database = {
           impacto_templates: string[]
           justificativa: string | null
           organization_id: string
+          origem: string
           referencia_versao: string | null
           responsavel_revisao: string | null
           status: string
+          substituicao_motivo: string | null
+          substituido_por_id: string | null
           tema: string
           tema_codigo: string
+          tema_codigo_historico: string | null
           updated_at: string
           updated_by: string | null
           versao_juridica_aplicavel: string | null
@@ -7737,11 +7741,15 @@ export type Database = {
           impacto_templates?: string[]
           justificativa?: string | null
           organization_id: string
+          origem?: string
           referencia_versao?: string | null
           responsavel_revisao?: string | null
           status?: string
+          substituicao_motivo?: string | null
+          substituido_por_id?: string | null
           tema: string
           tema_codigo: string
+          tema_codigo_historico?: string | null
           updated_at?: string
           updated_by?: string | null
           versao_juridica_aplicavel?: string | null
@@ -7759,11 +7767,15 @@ export type Database = {
           impacto_templates?: string[]
           justificativa?: string | null
           organization_id?: string
+          origem?: string
           referencia_versao?: string | null
           responsavel_revisao?: string | null
           status?: string
+          substituicao_motivo?: string | null
+          substituido_por_id?: string | null
           tema?: string
           tema_codigo?: string
+          tema_codigo_historico?: string | null
           updated_at?: string
           updated_by?: string | null
           versao_juridica_aplicavel?: string | null
@@ -7774,6 +7786,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_clause_matrix_substituido_por_id_fkey"
+            columns: ["substituido_por_id"]
+            isOneToOne: false
+            referencedRelation: "legal_clause_matrix"
             referencedColumns: ["id"]
           },
         ]
@@ -13553,6 +13572,14 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       is_staff_ativo: { Args: { _org: string }; Returns: boolean }
+      matriz_juridica_deduplicar: {
+        Args: { _org: string }
+        Returns: {
+          arquivadas: number
+          canonica_id: string
+          tema_codigo: string
+        }[]
+      }
       nucleo_completude: { Args: { _case: string }; Returns: Json }
       ops_painel: { Args: { _org: string }; Returns: Json }
       ops_sla_status: {
