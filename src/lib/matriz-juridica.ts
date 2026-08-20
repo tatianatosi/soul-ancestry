@@ -56,6 +56,16 @@ export function rotuloStatusTema(v: string | null | undefined): string {
   return STATUS_TEMA.find((s) => s.valor === v)?.rotulo ?? "—";
 }
 
+/** Códigos históricos preservados como alias do código canônico. */
+export const ALIASES_TEMA: Record<string, string> = {
+  dados_retencao: "retencao_dados",
+};
+
+export function canonicalizarTemaCodigo(codigo: string | null | undefined): string {
+  const c = String(codigo ?? "");
+  return ALIASES_TEMA[c] ?? c;
+}
+
 /** Temas bloqueantes ainda sem decisão registrada. */
 export function temasBloqueantesPendentes(linhas: LinhaMatriz[]): string[] {
   return linhas
@@ -70,3 +80,93 @@ export function podeGerarClausula(linha: LinhaMatriz | undefined | null): { perm
   if (!linha.versao_juridica_aplicavel) return { permitido: false, motivo: "Tema aprovado sem versão jurídica aplicável." };
   return { permitido: true, motivo: null };
 }
+
+/**
+ * Preparação interna (não redação) só é liberada com tema aprovado e versão
+ * jurídica vigente. Nunca gera cláusula, contrato ou artefato externo.
+ */
+export function preparacaoInternaPermitida(
+  linha: LinhaMatriz | undefined | null,
+  versoesVigentes: string[],
+): { permitido: boolean; motivo: string | null } {
+  const base = podeGerarClausula(linha);
+  if (!base.permitido) return base;
+  if (!versoesVigentes.includes(String(linha!.versao_juridica_aplicavel))) {
+    return { permitido: false, motivo: "Versão jurídica do tema não está vigente." };
+  }
+  return { permitido: true, motivo: null };
+}
+
+export type LinhaBruta = {
+  id: string;
+  tema_codigo: string;
+  decidido_em?: string | null;
+  updated_at?: string | null;
+  archived_at?: string | null;
+};
+
+export type PlanoDeduplicacao = {
+  tema_codigo: string;
+  canonica_id: string;
+  arquivar: { id: string; motivo: string; substituido_por_id: string }[];
+};
+
+/**
+ * Plano de deduplicação lógica: uma linha canônica por tema, demais arquivadas
+ * com trilha de substituição. Nunca remove fisicamente.
+ */
+export function planejarDeduplicacao(linhas: LinhaBruta[]): PlanoDeduplicacao[] {
+  const ativas = linhas.filter((l) => !l.archived_at);
+  const porTema = new Map<string, LinhaBruta[]>();
+  for (const l of ativas) {
+    const tc = canonicalizarTemaCodigo(l.tema_codigo);
+    porTema.set(tc, [...(porTema.get(tc) ?? []), l]);
+  }
+  const planos: PlanoDeduplicacao[] = [];
+  for (const [tema_codigo, grupo] of porTema) {
+    if (grupo.length < 2) continue;
+    const ordenado = [...grupo].sort((a, b) => {
+      const da = a.decidido_em ? 1 : 0;
+      const db = b.decidido_em ? 1 : 0;
+      if (da !== db) return db - da;
+      return String(b.decidido_em ?? b.updated_at ?? "").localeCompare(String(a.decidido_em ?? a.updated_at ?? ""));
+    });
+    const canonica = ordenado[0]!;
+    planos.push({
+      tema_codigo,
+      canonica_id: canonica.id,
+      arquivar: ordenado.slice(1).map((l) => ({
+        id: l.id,
+        motivo: "Deduplicação ANA-E-01: linha substituída pela canônica do tema.",
+        substituido_por_id: canonica.id,
+      })),
+    });
+  }
+  return planos;
+}
+
+export type AvaliacaoAssinatura = {
+  liberada: boolean;
+  bloqueios: { tema_codigo: string; tema: string; motivo: string }[];
+};
+
+/** Assinatura só é liberada quando nenhum tema bloqueante está sem decisão válida. */
+export function avaliarAssinaturaPelaMatriz(linhas: LinhaMatriz[]): AvaliacaoAssinatura {
+  const bloqueios: AvaliacaoAssinatura["bloqueios"] = [];
+  for (const l of linhas) {
+    if (!l.bloqueia_assinatura) continue;
+    if (l.status === "aprovado" || l.status === "nao_aplicavel") {
+      if (l.status === "aprovado" && !l.versao_juridica_aplicavel) {
+        bloqueios.push({ tema_codigo: l.tema_codigo, tema: l.tema, motivo: "Tema aprovado sem versão jurídica aplicável." });
+      }
+      continue;
+    }
+    bloqueios.push({
+      tema_codigo: l.tema_codigo,
+      tema: l.tema,
+      motivo: `Tema bloqueante com status “${rotuloStatusTema(l.status)}”.`,
+    });
+  }
+  return { liberada: bloqueios.length === 0, bloqueios };
+}
+
