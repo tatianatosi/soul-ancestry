@@ -113,6 +113,7 @@ export function ClienteApp() {
     caso.rota.pais_principal,
     caso.geral.produto_atual,
   );
+  const escopoCliente = escopoDoRegistro(registro);
 
   useEffect(() => {
     const id = window.setTimeout(() => runCanvasAudit(), 400);
