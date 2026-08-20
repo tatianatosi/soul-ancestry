@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useBlocker, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -16,6 +16,9 @@ import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
+import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
+import { classificarErroPersistencia } from "@/lib/persistencia-erros";
+import { toast } from "sonner";
 
 
 import {
@@ -209,6 +212,7 @@ function FichaCaso() {
   const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
+  const [camposSalvos, setCamposSalvos] = useState<string[]>([]);
   const [erro, setErro] = useState<string | null>(null);
 
   const caso = q.data?.caso;
