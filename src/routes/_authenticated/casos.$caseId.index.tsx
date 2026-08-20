@@ -9,6 +9,7 @@ import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
+import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
@@ -546,14 +547,17 @@ function FichaCaso() {
 
 
       {aba === "produto" ? (
-        <AbaProdutoTrilha
-          caseId={id}
-          produtos={qc2.data?.produtos ?? []}
-          trilhas={qc2.data?.trilhas ?? []}
-          servicos={qc2.data?.servicos ?? []}
-          bloqueado={bloqueado}
-          onMudou={recarregar}
-        />
+        <div className="space-y-5">
+          <AbaProdutoTrilha
+            caseId={id}
+            produtos={qc2.data?.produtos ?? []}
+            trilhas={qc2.data?.trilhas ?? []}
+            servicos={qc2.data?.servicos ?? []}
+            bloqueado={bloqueado}
+            onMudou={recarregar}
+          />
+          <ConsolidacaoCaseService caseId={id} />
+        </div>
       ) : null}
 
       {aba === "acao" ? (
