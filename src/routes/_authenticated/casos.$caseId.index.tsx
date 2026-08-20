@@ -546,14 +546,17 @@ function FichaCaso() {
 
 
       {aba === "produto" ? (
-        <AbaProdutoTrilha
-          caseId={id}
-          produtos={qc2.data?.produtos ?? []}
-          trilhas={qc2.data?.trilhas ?? []}
-          servicos={qc2.data?.servicos ?? []}
-          bloqueado={bloqueado}
-          onMudou={recarregar}
-        />
+        <div className="space-y-5">
+          <AbaProdutoTrilha
+            caseId={id}
+            produtos={qc2.data?.produtos ?? []}
+            trilhas={qc2.data?.trilhas ?? []}
+            servicos={qc2.data?.servicos ?? []}
+            bloqueado={bloqueado}
+            onMudou={recarregar}
+          />
+          <ConsolidacaoCaseService caseId={id} />
+        </div>
       ) : null}
 
       {aba === "acao" ? (
