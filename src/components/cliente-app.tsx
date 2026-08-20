@@ -1,3 +1,4 @@
+import { visibilidadeLegado } from "@/lib/legado-visibilidade";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { runCanvasAudit } from "@/lib/canvas-audit";
