@@ -47,7 +47,20 @@ function CasosPage() {
         podeEscrever={podeEscrever}
         dominio="caso"
         colunas={[
-          { chave: "codigo", rotulo: "Código" },
+          {
+            chave: "codigo",
+            rotulo: "Código",
+            render: (l) => (
+              <span className="flex flex-wrap items-center gap-1">
+                <span>{(l["codigo"] as string) || "—"}</span>
+                {ehFixture(l["codigo"] as string | null) ? (
+                  <span className="rounded-full border border-terracotta/50 bg-terracotta/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-terracotta">
+                    {ROTULO_FIXTURE}
+                  </span>
+                ) : null}
+              </span>
+            ),
+          },
           { chave: "titulo", rotulo: "Título" },
           { chave: "tipo_servico", rotulo: "Tipo de serviço" },
           { chave: "fase", rotulo: "Fase" },
