@@ -21,6 +21,7 @@ import {
   painelPesquisaEvidencias,
   salvarSolicitacaoDocumental,
 } from "@/lib/documentos-solicitacoes.functions";
+import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -207,6 +208,8 @@ function AreaPesquisaEvidencias() {
           </Bloco>
         </section>
       )}
+
+      {secao === "fontes_documentos" && <SecaoFontesDocumentos caseId={caseId} />}
 
       {d && secao === "documentos" && (
         <section className="space-y-4">
