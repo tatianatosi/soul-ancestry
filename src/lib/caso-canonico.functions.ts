@@ -7,6 +7,9 @@ import { mapaDaAcao } from "@/lib/caso-ficha";
 
 /** Catálogos, serviços, etiquetas, alertas, comunicação e onboarding do caso. */
 import { exigirGate } from "@/lib/escopo-conferencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+
 
 export const carregarCanonico = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
