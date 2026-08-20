@@ -268,8 +268,10 @@ export function ClienteApp() {
           "fixed bottom-0 left-1/2 z-40 w-full -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur",
           wide ? "max-w-6xl" : "max-w-md",
         )}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="grid grid-cols-10">
+        <div className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-10 [&::-webkit-scrollbar]:hidden">
+
           {(
             [
               ["home", Home, "Home"],
