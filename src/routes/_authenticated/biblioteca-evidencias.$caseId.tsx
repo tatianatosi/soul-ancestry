@@ -475,6 +475,7 @@ function FormValidacao({
   onSelecionar: (id: string) => void;
   onRegistrar: (v: { evidenceId: string; estadoNovo: string; confiancaNova: string; justificativa: string }) => void;
 }) {
+  const alvo = evidencias.find((e) => e["id"] === selecionada);
   const [estadoNovo, setEstadoNovo] = useState("EM_VALIDACAO_DOCUMENTAL");
   const [confiancaNova, setConfiancaNova] = useState("BAIXO");
   const [justificativa, setJustificativa] = useState("");
