@@ -345,8 +345,18 @@ function FichaCaso() {
         </div>
       }
     >
+      {ehFixtureLinha(caso as never) ? (
+        <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs font-medium tracking-wide text-navy">
+          {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem App Cliente.
+        </p>
+      ) : null}
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">{erro}</p>
+      ) : null}
+      {!erro && !sujo && camposSalvos.length ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
+          Conferido no banco após gravar: {camposSalvos.join(", ")}.
+        </p>
       ) : null}
       {bloqueado ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
