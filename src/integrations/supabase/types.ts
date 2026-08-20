@@ -1483,6 +1483,105 @@ export type Database = {
           },
         ]
       }
+      case_source_documents: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          case_id: string
+          cidade: string | null
+          confidencialidade: string
+          created_at: string
+          created_by: string | null
+          data_documento: string | null
+          estado_provincia: string | null
+          extracao_status: string
+          id: string
+          idioma: string | null
+          instituicao_emissora: string | null
+          mime_type: string | null
+          nome_arquivo: string
+          observacoes: string | null
+          organization_id: string
+          origem_documento: string
+          pais: string | null
+          pessoa_nao_identificada: boolean
+          pessoa_ref_id: string | null
+          qualidade_origem: string
+          referencia_origem: string | null
+          status: string
+          storage_path: string
+          tamanho_bytes: number | null
+          tipo_documento: string
+          titulo_interno: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          case_id: string
+          cidade?: string | null
+          confidencialidade?: string
+          created_at?: string
+          created_by?: string | null
+          data_documento?: string | null
+          estado_provincia?: string | null
+          extracao_status?: string
+          id?: string
+          idioma?: string | null
+          instituicao_emissora?: string | null
+          mime_type?: string | null
+          nome_arquivo: string
+          observacoes?: string | null
+          organization_id: string
+          origem_documento: string
+          pais?: string | null
+          pessoa_nao_identificada?: boolean
+          pessoa_ref_id?: string | null
+          qualidade_origem?: string
+          referencia_origem?: string | null
+          status?: string
+          storage_path: string
+          tamanho_bytes?: number | null
+          tipo_documento: string
+          titulo_interno?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          case_id?: string
+          cidade?: string | null
+          confidencialidade?: string
+          created_at?: string
+          created_by?: string | null
+          data_documento?: string | null
+          estado_provincia?: string | null
+          extracao_status?: string
+          id?: string
+          idioma?: string | null
+          instituicao_emissora?: string | null
+          mime_type?: string | null
+          nome_arquivo?: string
+          observacoes?: string | null
+          organization_id?: string
+          origem_documento?: string
+          pais?: string | null
+          pessoa_nao_identificada?: boolean
+          pessoa_ref_id?: string | null
+          qualidade_origem?: string
+          referencia_origem?: string | null
+          status?: string
+          storage_path?: string
+          tamanho_bytes?: number | null
+          tipo_documento?: string
+          titulo_interno?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       case_timeline_events: {
         Row: {
           alerta: string | null
