@@ -44,6 +44,18 @@ export function AbaOnboarding({
     <div className="space-y-5">
       <PainelPlanoOnboarding caseId={String(caso.id)} />
 
+      <PainelJornadaPosGates
+        caseId={String(caso.id)}
+        estadoBase={{
+          contrato_assinado: Boolean(caso["contrato_assinado"]),
+          pagamento_confirmado: Boolean(caso["pagamento_confirmado"]),
+          responsavel_principal: caso["responsavel_principal"] ?? null,
+          nucleo_ok: Boolean(nucleo),
+          dossie_mae: nucleo?.dossie_mae_referencia ?? null,
+          plano_acao_ok: planoInicialOk,
+        }}
+      />
+
       <Secao titulo="Gates de cliente ativo" descricao="Nenhum caso é considerado ativo com gate pendente.">
 
         <ul className="grid gap-2 sm:grid-cols-2">
