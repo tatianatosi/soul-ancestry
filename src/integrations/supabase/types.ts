@@ -4602,6 +4602,73 @@ export type Database = {
           },
         ]
       }
+      crm_interactions: {
+        Row: {
+          canal: string
+          case_id: string
+          created_at: string
+          data_origin: string
+          direcao: string
+          id: string
+          ocorrido_em: string
+          organization_id: string
+          origem: string
+          origem_id: string | null
+          registrado_por: string | null
+          resumo_interno: string
+        }
+        Insert: {
+          canal?: string
+          case_id: string
+          created_at?: string
+          data_origin?: string
+          direcao?: string
+          id?: string
+          ocorrido_em?: string
+          organization_id: string
+          origem?: string
+          origem_id?: string | null
+          registrado_por?: string | null
+          resumo_interno: string
+        }
+        Update: {
+          canal?: string
+          case_id?: string
+          created_at?: string
+          data_origin?: string
+          direcao?: string
+          id?: string
+          ocorrido_em?: string
+          organization_id?: string
+          origem?: string
+          origem_id?: string | null
+          registrado_por?: string | null
+          resumo_interno?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_interactions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       decisions: {
         Row: {
           alternativas: string | null
@@ -5613,6 +5680,129 @@ export type Database = {
           },
         ]
       }
+      expense_estimates: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_approval_status: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          data_origin: string
+          estimate_source: string
+          estimated_total_max: number | null
+          estimated_total_min: number | null
+          estimated_wait_days_max: number | null
+          estimated_wait_days_min: number | null
+          expense_type: string
+          id: string
+          institution_id: string | null
+          notes_internal: string | null
+          organization_id: string
+          payer: string
+          quantity: number
+          research_action_plan_item_id: string | null
+          unit_price_max: number | null
+          unit_price_min: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          data_origin?: string
+          estimate_source?: string
+          estimated_total_max?: number | null
+          estimated_total_min?: number | null
+          estimated_wait_days_max?: number | null
+          estimated_wait_days_min?: number | null
+          expense_type: string
+          id?: string
+          institution_id?: string | null
+          notes_internal?: string | null
+          organization_id: string
+          payer?: string
+          quantity?: number
+          research_action_plan_item_id?: string | null
+          unit_price_max?: number | null
+          unit_price_min?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          data_origin?: string
+          estimate_source?: string
+          estimated_total_max?: number | null
+          estimated_total_min?: number | null
+          estimated_wait_days_max?: number | null
+          estimated_wait_days_min?: number | null
+          expense_type?: string
+          id?: string
+          institution_id?: string | null
+          notes_internal?: string | null
+          organization_id?: string
+          payer?: string
+          quantity?: number
+          research_action_plan_item_id?: string | null
+          unit_price_max?: number | null
+          unit_price_min?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_estimates_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_estimates_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_estimates_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_estimates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_estimates_research_action_plan_item_id_fkey"
+            columns: ["research_action_plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "research_action_plan_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       genealogical_events: {
         Row: {
           approximate_date: string | null
@@ -6211,6 +6401,95 @@ export type Database = {
           updated_records?: number
         }
         Relationships: []
+      }
+      institutions: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          city: string | null
+          contact_source: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          email: string | null
+          id: string
+          institution_type: string
+          last_verified_at: string | null
+          name: string
+          notes_internal: string | null
+          opening_hours: string | null
+          operational_instruction: string | null
+          organization_id: string
+          phone: string | null
+          preferred_channel: string
+          update_status: string
+          updated_at: string
+          updated_by: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          city?: string | null
+          contact_source?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          email?: string | null
+          id?: string
+          institution_type?: string
+          last_verified_at?: string | null
+          name: string
+          notes_internal?: string | null
+          opening_hours?: string | null
+          operational_instruction?: string | null
+          organization_id: string
+          phone?: string | null
+          preferred_channel?: string
+          update_status?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          city?: string | null
+          contact_source?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          email?: string | null
+          id?: string
+          institution_type?: string
+          last_verified_at?: string | null
+          name?: string
+          notes_internal?: string | null
+          opening_hours?: string | null
+          operational_instruction?: string | null
+          organization_id?: string
+          phone?: string | null
+          preferred_channel?: string
+          update_status?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institutions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integration_review_queue: {
         Row: {
@@ -9974,6 +10253,183 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "case_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_action_plan_items: {
+        Row: {
+          action_type: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          communication_draft: string | null
+          communication_queue_id: string | null
+          contact_result_internal: string | null
+          contacted_at: string | null
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          document_request_id: string | null
+          due_date: string | null
+          estimated_cost_amount: number | null
+          estimated_cost_currency: string
+          evidence_id: string | null
+          expense_approval_status: string
+          finding_id: string | null
+          id: string
+          institution_id: string | null
+          internal_evidence_link: string | null
+          next_action: string | null
+          next_check_at: string | null
+          notes_internal: string | null
+          organization_id: string
+          payer: string
+          priority: string
+          reason: string
+          requires_human_approval: boolean
+          research_item_id: string | null
+          responsible_user_id: string | null
+          status: string
+          suggested_channel: string
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          action_type: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          communication_draft?: string | null
+          communication_queue_id?: string | null
+          contact_result_internal?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          document_request_id?: string | null
+          due_date?: string | null
+          estimated_cost_amount?: number | null
+          estimated_cost_currency?: string
+          evidence_id?: string | null
+          expense_approval_status?: string
+          finding_id?: string | null
+          id?: string
+          institution_id?: string | null
+          internal_evidence_link?: string | null
+          next_action?: string | null
+          next_check_at?: string | null
+          notes_internal?: string | null
+          organization_id: string
+          payer?: string
+          priority?: string
+          reason: string
+          requires_human_approval?: boolean
+          research_item_id?: string | null
+          responsible_user_id?: string | null
+          status?: string
+          suggested_channel?: string
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          action_type?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          communication_draft?: string | null
+          communication_queue_id?: string | null
+          contact_result_internal?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          document_request_id?: string | null
+          due_date?: string | null
+          estimated_cost_amount?: number | null
+          estimated_cost_currency?: string
+          evidence_id?: string | null
+          expense_approval_status?: string
+          finding_id?: string | null
+          id?: string
+          institution_id?: string | null
+          internal_evidence_link?: string | null
+          next_action?: string | null
+          next_check_at?: string | null
+          notes_internal?: string | null
+          organization_id?: string
+          payer?: string
+          priority?: string
+          reason?: string
+          requires_human_approval?: boolean
+          research_item_id?: string | null
+          responsible_user_id?: string | null
+          status?: string
+          suggested_channel?: string
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_action_plan_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_communication_queue_id_fkey"
+            columns: ["communication_queue_id"]
+            isOneToOne: false
+            referencedRelation: "communication_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_finding_id_fkey"
+            columns: ["finding_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_findings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_action_plan_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
