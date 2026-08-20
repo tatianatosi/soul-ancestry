@@ -137,7 +137,6 @@ function Pagina() {
   const projecoes = data?.projecoes ?? [];
   const validacoes = data?.validacoes ?? [];
   const podeEditar = data?.podeEditar ?? false;
-  const alvo = evidencias.find((e) => e["id"] === selecionada);
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -476,7 +475,6 @@ function FormValidacao({
   onSelecionar: (id: string) => void;
   onRegistrar: (v: { evidenceId: string; estadoNovo: string; confiancaNova: string; justificativa: string }) => void;
 }) {
-  const alvo = evidencias.find((e) => e["id"] === selecionada);
   const [estadoNovo, setEstadoNovo] = useState("EM_VALIDACAO_DOCUMENTAL");
   const [confiancaNova, setConfiancaNova] = useState("BAIXO");
   const [justificativa, setJustificativa] = useState("");
