@@ -219,7 +219,7 @@ function FichaCaso() {
 
   const sujo = Object.keys(form).length > 0;
 
-  // Nada de saída silenciosa com alteração pendente.
+  // Nada de saída silenciosa com alteração pendente (recarregar/fechar aba).
   useEffect(() => {
     if (!sujo) return;
     const h = (e: BeforeUnloadEvent) => {
@@ -229,6 +229,13 @@ function FichaCaso() {
     window.addEventListener("beforeunload", h);
     return () => window.removeEventListener("beforeunload", h);
   }, [sujo]);
+
+  // ...e também na navegação interna entre abas/rotas do Desk.
+  useBlocker({
+    shouldBlockFn: () =>
+      sujo && !window.confirm("Há alterações não salvas nesta ficha. Sair mesmo assim?"),
+    enableBeforeUnload: false,
+  });
 
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
@@ -245,12 +252,21 @@ function FichaCaso() {
     onSuccess: async (r: any) => {
       setErro(null);
       setSalvoEm(new Date().toLocaleTimeString("pt-BR"));
+      setCamposSalvos(Array.isArray(r?.alterados) ? (r.alterados as string[]) : []);
       setForm({});
       await qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
-      void r;
+      toast.success(
+        `Salvo e conferido no banco${Array.isArray(r?.alterados) && r.alterados.length ? ` — ${r.alterados.length} campo(s)` : ""}.`,
+      );
     },
-    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao salvar."),
+    onError: (e: unknown) => {
+      const classificado = classificarErroPersistencia(e);
+      setErro(classificado.mensagem);
+      setCamposSalvos([]);
+      toast.error(classificado.mensagem, { description: classificado.codigo });
+    },
   });
+
 
   const derivado = useMemo(
     () =>
