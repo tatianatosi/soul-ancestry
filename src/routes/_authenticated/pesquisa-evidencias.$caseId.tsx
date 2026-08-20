@@ -209,6 +209,8 @@ function AreaPesquisaEvidencias() {
         </section>
       )}
 
+      {secao === "fontes_documentos" && <SecaoFontesDocumentos caseId={caseId} />}
+
       {d && secao === "documentos" && (
         <section className="space-y-4">
           <Bloco titulo="Documentos e Solicitações">
