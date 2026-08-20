@@ -63,6 +63,7 @@ import { Route as AuthenticatedContratoParametrosIndexRouteImport } from './rout
 import { Route as AuthenticatedCasosIndexRouteImport } from './routes/_authenticated/casos.index'
 import { Route as PortalMensagensIdRouteImport } from './routes/portal/mensagens.$id'
 import { Route as PortalCasosIdRouteImport } from './routes/portal/casos.$id'
+import { Route as AuthenticatedRelatoriosFaseCaseIdRouteImport } from './routes/_authenticated/relatorios-fase.$caseId'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
 import { Route as AuthenticatedPessoasLinhagensCaseIdRouteImport } from './routes/_authenticated/pessoas-linhagens.$caseId'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
@@ -363,6 +364,12 @@ const PortalCasosIdRoute = PortalCasosIdRouteImport.update({
   path: '/casos/$id',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const AuthenticatedRelatoriosFaseCaseIdRoute =
+  AuthenticatedRelatoriosFaseCaseIdRouteImport.update({
+    id: '/relatorios-fase/$caseId',
+    path: '/relatorios-fase/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPrivacidadeIdRoute =
   AuthenticatedPrivacidadeIdRouteImport.update({
     id: '/privacidade/$id',
@@ -526,6 +533,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
+  '/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/casos/': typeof AuthenticatedCasosIndexRoute
@@ -597,6 +605,7 @@ export interface FileRoutesByTo {
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
+  '/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/casos': typeof AuthenticatedCasosIndexRoute
@@ -671,6 +680,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
+  '/_authenticated/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
   '/portal/casos/$id': typeof PortalCasosIdRoute
   '/portal/mensagens/$id': typeof PortalMensagensIdRoute
   '/_authenticated/casos/': typeof AuthenticatedCasosIndexRoute
@@ -745,6 +755,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
     | '/privacidade/$id'
+    | '/relatorios-fase/$caseId'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/casos/'
@@ -816,6 +827,7 @@ export interface FileRouteTypes {
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
     | '/privacidade/$id'
+    | '/relatorios-fase/$caseId'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/casos'
@@ -889,6 +901,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/pessoas-linhagens/$caseId'
     | '/_authenticated/privacidade/$id'
+    | '/_authenticated/relatorios-fase/$caseId'
     | '/portal/casos/$id'
     | '/portal/mensagens/$id'
     | '/_authenticated/casos/'
@@ -1299,6 +1312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalCasosIdRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/_authenticated/relatorios-fase/$caseId': {
+      id: '/_authenticated/relatorios-fase/$caseId'
+      path: '/relatorios-fase/$caseId'
+      fullPath: '/relatorios-fase/$caseId'
+      preLoaderRoute: typeof AuthenticatedRelatoriosFaseCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/privacidade/$id': {
       id: '/_authenticated/privacidade/$id'
       path: '/privacidade/$id'
@@ -1462,6 +1482,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
   AuthenticatedPessoasLinhagensCaseIdRoute: typeof AuthenticatedPessoasLinhagensCaseIdRoute
   AuthenticatedPrivacidadeIdRoute: typeof AuthenticatedPrivacidadeIdRoute
+  AuthenticatedRelatoriosFaseCaseIdRoute: typeof AuthenticatedRelatoriosFaseCaseIdRoute
   AuthenticatedCasosIndexRoute: typeof AuthenticatedCasosIndexRoute
   AuthenticatedContratoParametrosIndexRoute: typeof AuthenticatedContratoParametrosIndexRoute
   AuthenticatedContratosIndexRoute: typeof AuthenticatedContratosIndexRoute
@@ -1521,6 +1542,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPessoasLinhagensCaseIdRoute:
     AuthenticatedPessoasLinhagensCaseIdRoute,
   AuthenticatedPrivacidadeIdRoute: AuthenticatedPrivacidadeIdRoute,
+  AuthenticatedRelatoriosFaseCaseIdRoute:
+    AuthenticatedRelatoriosFaseCaseIdRoute,
   AuthenticatedCasosIndexRoute: AuthenticatedCasosIndexRoute,
   AuthenticatedContratoParametrosIndexRoute:
     AuthenticatedContratoParametrosIndexRoute,

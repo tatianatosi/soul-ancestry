@@ -377,6 +377,14 @@ function FichaCaso() {
         >
           Pesquisa genealógica e evidências (documentos e solicitações) →
         </Link>
+        <Link
+          to="/relatorios-fase/$caseId"
+          params={{ caseId: id }}
+          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+        >
+          Relatórios de fase (F1 a F5 e memória de legado) →
+        </Link>
+
       </div>
 
 
