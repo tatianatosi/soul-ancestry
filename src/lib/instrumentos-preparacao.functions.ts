@@ -26,7 +26,7 @@ export const lerPreparacaoInstrumentos = createServerFn({ method: "GET" })
 
     const { data: caso } = await supabase
       .from("crm_casos")
-      .select("id, organization_id, case_id_canonico")
+      .select("id, organization_id, codigo")
       .eq("id", caseId)
       .maybeSingle();
     if (!caso) throw new Error("Caso não encontrado nesta organização.");
@@ -215,5 +215,5 @@ export const lerPreparacaoInstrumentos = createServerFn({ method: "GET" })
       },
     });
 
-    return { caso: { id: caso.id, codigo: caso.case_id_canonico ?? null }, entrada, resultado };
+    return { caso: { id: caso.id, codigo: caso.codigo ?? null }, entrada, resultado };
   });
