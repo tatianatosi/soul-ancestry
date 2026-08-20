@@ -363,7 +363,15 @@ function FichaCaso() {
         >
           Pessoas e linhagens (ficha genealógica interna) →
         </Link>
+        <Link
+          to="/biblioteca-evidencias/$caseId"
+          params={{ caseId: id }}
+          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+        >
+          Biblioteca de evidências e projeções autorizadas →
+        </Link>
       </div>
+
 
 
 
