@@ -67,6 +67,7 @@ import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedPessoasLinhagensCaseIdRouteImport } from './routes/_authenticated/pessoas-linhagens.$caseId'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
+import { Route as AuthenticatedPesquisaEvidenciasCaseIdRouteImport } from './routes/_authenticated/pesquisa-evidencias.$caseId'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
 import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
@@ -385,6 +386,12 @@ const AuthenticatedPesquisaModuloIdRoute =
     path: '/pesquisa-modulo/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPesquisaEvidenciasCaseIdRoute =
+  AuthenticatedPesquisaEvidenciasCaseIdRouteImport.update({
+    id: '/pesquisa-evidencias/$caseId',
+    path: '/pesquisa-evidencias/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOnboardingIdRoute =
   AuthenticatedOnboardingIdRouteImport.update({
     id: '/onboarding/$id',
@@ -514,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
@@ -584,6 +592,7 @@ export interface FileRoutesByTo {
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
@@ -657,6 +666,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
+  '/_authenticated/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/governanca/matriz-conformidade'
     | '/governanca/modulos-contextuais'
     | '/onboarding/$id'
+    | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
@@ -800,6 +811,7 @@ export interface FileRouteTypes {
     | '/governanca/matriz-conformidade'
     | '/governanca/modulos-contextuais'
     | '/onboarding/$id'
+    | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
@@ -872,6 +884,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/matriz-conformidade'
     | '/_authenticated/governanca/modulos-contextuais'
     | '/_authenticated/onboarding/$id'
+    | '/_authenticated/pesquisa-evidencias/$caseId'
     | '/_authenticated/pesquisa-modulo/$id'
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/pessoas-linhagens/$caseId'
@@ -1314,6 +1327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPesquisaModuloIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pesquisa-evidencias/$caseId': {
+      id: '/_authenticated/pesquisa-evidencias/$caseId'
+      path: '/pesquisa-evidencias/$caseId'
+      fullPath: '/pesquisa-evidencias/$caseId'
+      preLoaderRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding/$id': {
       id: '/_authenticated/onboarding/$id'
       path: '/onboarding/$id'
@@ -1437,6 +1457,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
+  AuthenticatedPesquisaEvidenciasCaseIdRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
   AuthenticatedPessoasLinhagensCaseIdRoute: typeof AuthenticatedPessoasLinhagensCaseIdRoute
@@ -1493,6 +1514,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovernancaModulosContextuaisRoute:
     AuthenticatedGovernancaModulosContextuaisRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
+  AuthenticatedPesquisaEvidenciasCaseIdRoute:
+    AuthenticatedPesquisaEvidenciasCaseIdRoute,
   AuthenticatedPesquisaModuloIdRoute: AuthenticatedPesquisaModuloIdRoute,
   AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
   AuthenticatedPessoasLinhagensCaseIdRoute:

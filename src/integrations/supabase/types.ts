@@ -4631,6 +4631,130 @@ export type Database = {
           },
         ]
       }
+      document_requests: {
+        Row: {
+          access_level: string
+          archived_at: string | null
+          archived_reason: string | null
+          case_id: string
+          client_approval_status: string
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          document_type: string
+          estimated_external_cost: number | null
+          evidence_id: string | null
+          family_id: string | null
+          full_name_text: string | null
+          generation: number | null
+          id: string
+          institution_or_archive: string | null
+          internal_link: string | null
+          next_action: string | null
+          next_action_due: string | null
+          observation_internal: string | null
+          organization_id: string
+          priority: string
+          received_at: string | null
+          request_type: string
+          requested_at: string | null
+          research_person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          access_level?: string
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id: string
+          client_approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          document_type: string
+          estimated_external_cost?: number | null
+          evidence_id?: string | null
+          family_id?: string | null
+          full_name_text?: string | null
+          generation?: number | null
+          id?: string
+          institution_or_archive?: string | null
+          internal_link?: string | null
+          next_action?: string | null
+          next_action_due?: string | null
+          observation_internal?: string | null
+          organization_id: string
+          priority?: string
+          received_at?: string | null
+          request_type?: string
+          requested_at?: string | null
+          research_person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          access_level?: string
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id?: string
+          client_approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          document_type?: string
+          estimated_external_cost?: number | null
+          evidence_id?: string | null
+          family_id?: string | null
+          full_name_text?: string | null
+          generation?: number | null
+          id?: string
+          institution_or_archive?: string | null
+          internal_link?: string | null
+          next_action?: string | null
+          next_action_due?: string | null
+          observation_internal?: string | null
+          organization_id?: string
+          priority?: string
+          received_at?: string | null
+          request_type?: string
+          requested_at?: string | null
+          research_person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requests_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requests_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archive_motivo: string | null
