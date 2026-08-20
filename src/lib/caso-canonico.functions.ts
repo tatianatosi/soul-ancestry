@@ -80,31 +80,27 @@ export const salvarCaseService = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { data: linhas, error } = await supabase
-        .from("case_services")
-        .update({ ...payload, updated_by: context.userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId)
-        .select("id");
-      if (error) throw new Error(error.message);
-      if (!linhas?.length) throw new Error("Nada foi gravado: seu papel não permite editar este serviço.");
-      return { id: data.id, salvoEm: new Date().toISOString() };
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "case_services",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload,
+      });
+      return { id: data.id, salvoEm: r.salvoEm };
     }
 
-    const { data: linha, error } = await supabase
-      .from("case_services")
-      .insert({
-        ...payload,
-        case_id: data.caseId,
-        organization_id: organizationId,
-        created_by: context.userId,
-        updated_by: context.userId,
-      })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string, salvoEm: new Date().toISOString() };
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "case_services",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...payload, case_id: data.caseId },
+    });
+    return { id: r.id, salvoEm: r.salvoEm };
   });
+
 
 /** Aplica etiqueta canônica (nunca cria etiqueta livre fora da taxonomia). */
 export const aplicarEtiqueta = createServerFn({ method: "POST" })
