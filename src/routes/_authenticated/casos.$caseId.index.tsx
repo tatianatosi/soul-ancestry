@@ -370,7 +370,15 @@ function FichaCaso() {
         >
           Biblioteca de evidências e projeções autorizadas →
         </Link>
+        <Link
+          to="/pesquisa-evidencias/$caseId"
+          params={{ caseId: id }}
+          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+        >
+          Pesquisa genealógica e evidências (documentos e solicitações) →
+        </Link>
       </div>
+
 
 
 
