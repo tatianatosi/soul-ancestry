@@ -185,3 +185,35 @@ export const arquivarRegistroG07 = createServerFn({ method: "POST" })
     if (r.error) throw new Error(r.error.message);
     return { ok: true };
   });
+
+/**
+ * G-07B — pendências críticas de pesquisa para o Painel Hoje.
+ * Somente leitura: crítica, prazo hoje/vencido, aberta e sem fixture.
+ */
+export const pendenciasCriticasPainel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
+    if (!PAPEIS_LE_DETALHE.includes(papel)) return { itens: [] as Record<string, any>[], casos: [] as Record<string, any>[] };
+
+    const hoje = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from("research_action_plan_items")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("priority", "critica")
+      .is("archived_at", null)
+      .not("due_date", "is", null)
+      .lte("due_date", hoje)
+      .order("due_date", { ascending: true });
+
+    const itens = ((data ?? []) as Record<string, any>[]).filter(
+      (i) => i.status !== "concluida" && i.status !== "cancelada" && i.data_origin !== "fixture_demo",
+    );
+    const ids = [...new Set(itens.map((i) => i.case_id).filter(Boolean))];
+    const casos = ids.length
+      ? ((await supabase.from("crm_casos").select("id,codigo,titulo").in("id", ids)).data ?? [])
+      : [];
+    return { itens, casos: casos as Record<string, any>[] };
+  });
