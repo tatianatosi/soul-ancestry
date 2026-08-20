@@ -3,8 +3,10 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Secao, Selecao, inputCls } from "@/components/caso/campos";
+import { PainelPlanoOnboarding } from "@/components/caso/onboarding-plano";
 import { atualizarItemOnboarding } from "@/lib/caso-canonico.functions";
 import { STATUS_ONBOARDING_ITEM, gatesClienteAtivo, rotulo } from "@/lib/caso-ficha";
+
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
