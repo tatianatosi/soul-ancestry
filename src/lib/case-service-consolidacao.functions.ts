@@ -8,6 +8,7 @@ import {
   semearCriterios,
   type ItemCriterio,
 } from "@/lib/case-service-consolidacao";
+import { montarConferencia } from "@/lib/escopo-conferencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -57,16 +58,18 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
 
     const { data: proposta } = await supabase
       .from("proposals")
-      .select("id,valor_total,extracao_status,conferencia_status,conferencia_resultado")
+      .select("id,valor,escopo,extracao_status,status")
       .eq("case_id", data.caseId)
       .is("archived_at", null)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
+    const conferencia = await montarConferencia(supabase, { caseId: data.caseId }).then((r) => r.resultado).catch(() => null);
+
     const { data: membros } = await supabase
       .from("case_members")
-      .select("nome_completo,papel,tipo_participacao")
+      .select("nome,papel_no_caso,dependente")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
 
@@ -84,21 +87,20 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       .order("entrega_codigo")
       .order("ordem");
 
-    const resultadoConferencia = (proposta?.conferencia_resultado ?? null) as any;
     const consolidado = consolidarCaseService({
       servico,
       catalogo: catalogo ?? null,
-      propostaValor: proposta?.valor_total ?? null,
-      escopoConferido: proposta
+      propostaValor: proposta?.valor ?? null,
+      escopoConferido: conferencia
         ? {
-            status: (resultadoConferencia?.status as string) ?? proposta.conferencia_status ?? null,
-            camposAusentes: Array.isArray(resultadoConferencia?.campos_ausentes) ? resultadoConferencia.campos_ausentes.length : 0,
-            conflitos: Array.isArray(resultadoConferencia?.conflitos) ? resultadoConferencia.conflitos.length : 0,
+            status: conferencia.status,
+            camposAusentes: conferencia.campos_ausentes.length,
+            conflitos: conferencia.conflitos.length,
           }
         : null,
       planejadorValor: null,
       nucleo: {
-        titulares: (membros ?? []).filter((m: any) => m.tipo_participacao !== "dependente").map((m: any) => m.nome_completo),
+        titulares: (membros ?? []).filter((m: any) => !m.dependente).map((m: any) => m.nome),
         dependentes: (dependentes ?? []).map((d: any) => d.nome_completo),
         representacaoPendente: (dependentes ?? []).some((d: any) => d.status_representacao !== "confirmada"),
       },
@@ -111,6 +113,7 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       catalogo: catalogo ?? null,
       trilha: trilha ?? null,
       proposta: proposta ?? null,
+      conferencia,
       consolidado,
       condicaoSugerida: condicaoReferenciaInterna(consolidado.precoReferenciaInterna),
       criterios: itens,
