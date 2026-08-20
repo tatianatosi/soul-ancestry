@@ -9,6 +9,17 @@ import {
   type ItemCriterio,
 } from "@/lib/case-service-consolidacao";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import {
+  avaliarCondicao,
+  avaliarCriterios,
+  avaliarElegibilidadePreco,
+  avaliarPlanoInicial,
+  avaliarPromocaoCaseService,
+  divergenciasDeValor,
+  validarGravacaoPreco,
+  type CondicaoComercial,
+  type CriterioRegistro,
+} from "@/lib/condicao-comercial";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -47,7 +58,9 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
     const { data: catalogo } = servico?.product_catalog_id
       ? await supabase
           .from("product_catalog")
-          .select("id,code,nome_comercial,status_homologacao,preco_comercial_vigente,condicao_comercial_padrao")
+          .select(
+            "id,code,nome_comercial,status_homologacao,preco_comercial_vigente,condicao_comercial_padrao,homologado_por,homologado_em,vigencia_inicio,vigencia_fim,ativo",
+          )
           .eq("id", servico.product_catalog_id)
           .maybeSingle()
       : { data: null };
@@ -107,6 +120,63 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
     });
 
     const itens = (criterios ?? []) as ItemCriterio[];
+
+    // ANA-C-01 — elegibilidade do preço, condição estruturada, divergências e plano inicial.
+    const { data: condicoes } = await supabase
+      .from("commercial_conditions")
+      .select("*")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+    const condicao = (condicoes?.[0] ?? null) as CondicaoComercial | null;
+
+    const elegibilidade = avaliarElegibilidadePreco(catalogo ?? null);
+    const avaliacaoCondicao = avaliarCondicao(condicao, elegibilidade);
+    const divergencias = divergenciasDeValor(
+      [
+        { origem: "proposta_canva", valor: proposta?.valor ?? null },
+        { origem: "case_service", valor: servico?.preco_acordado ?? null },
+        { origem: "condicao_comercial", valor: condicao?.valor_total_referencia ?? null },
+      ],
+      catalogo?.preco_comercial_vigente ?? null,
+    );
+
+    const criteriosAvaliados = avaliarCriterios(itens as unknown as CriterioRegistro[]);
+    const promocao = avaliarPromocaoCaseService({
+      criterios: itens as unknown as CriterioRegistro[],
+      condicao: avaliacaoCondicao,
+      referenciaContratualInterna: servico?.referencia_contratual_interna ?? servico?.contract_id ?? null,
+      divergencias,
+    });
+
+    const { data: casoFicha } = await supabase
+      .from("crm_casos")
+      .select("responsavel_id,responsavel_principal,proxima_acao,prazo_proxima_acao")
+      .eq("id", data.caseId)
+      .maybeSingle();
+    const { count: checklistItens } = await supabase
+      .from("case_checklist_items")
+      .select("id", { count: "exact", head: true })
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    const { data: plano } = await supabase
+      .from("onboarding_planos")
+      .select("estado,inicio_previsto,primeira_microentrega_descricao,checklist_inicial")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .maybeSingle();
+
+    const onboardingLiberado = Boolean(plano && plano.estado !== "bloqueado");
+    const planoInicial = avaliarPlanoInicial({
+      responsavelUserId: casoFicha?.responsavel_id ?? servico?.responsavel_id ?? null,
+      caseServiceStatusPermitido: promocao.statusPermitido,
+      proximaAcao: { descricao: casoFicha?.proxima_acao ?? null, data: casoFicha?.prazo_proxima_acao ?? null },
+      checklistItens:
+        (checklistItens ?? 0) || (Array.isArray(plano?.checklist_inicial) ? plano!.checklist_inicial.length : 0),
+      onboardingLiberado,
+      primeiraEntrega: { titulo: plano?.primeira_microentrega_descricao ?? null, data: plano?.inicio_previsto ?? null },
+    });
+
     return {
       caso: c,
       servico,
@@ -118,7 +188,114 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       condicaoSugerida: condicaoReferenciaInterna(consolidado.precoReferenciaInterna),
       criterios: itens,
       resumoCriterios: resumoCriterios(itens),
+      elegibilidade,
+      condicao,
+      avaliacaoCondicao,
+      divergenciasValor: divergencias,
+      criteriosAvaliados,
+      promocao,
+      planoInicial,
+      onboardingLiberado,
     };
+  });
+
+/**
+ * Registra ou atualiza a condição comercial estruturada (rascunho ou homologada).
+ * Nunca cria cobrança, parcela financeira, link de pagamento ou contrato.
+ */
+export const salvarCondicaoComercial = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      caseId: string;
+      forma_pagamento?: string;
+      parcelas?: number | null;
+      valor_parcela?: number | null;
+      valor_total_referencia?: number | null;
+      vencimento_dia?: number | null;
+      primeiro_vencimento?: string | null;
+      condicao_aplicavel?: string | null;
+      observacao_interna?: string | null;
+      homologar?: boolean;
+      homologadoPor?: string;
+    }) => ({ ...data, caseId: exigirUuid(data?.caseId, "caseId") }),
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const c = await caso(supabase, data.caseId);
+
+    const { data: servicos } = await supabase
+      .from("case_services")
+      .select("id,product_catalog_id")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .limit(1);
+    const servico = servicos?.[0] ?? null;
+
+    const { data: catalogo } = servico?.product_catalog_id
+      ? await supabase
+          .from("product_catalog")
+          .select(
+            "id,code,status_homologacao,preco_comercial_vigente,homologado_por,homologado_em,vigencia_inicio,vigencia_fim,ativo",
+          )
+          .eq("id", servico.product_catalog_id)
+          .maybeSingle()
+      : { data: null };
+
+    const elegibilidade = avaliarElegibilidadePreco(catalogo ?? null);
+    const gravacao = validarGravacaoPreco({
+      campos: { valor_total_referencia: data.valor_total_referencia ?? null },
+      precoCatalogo: catalogo?.preco_comercial_vigente ?? null,
+      elegibilidade,
+      parcelamento: { parcelas: data.parcelas ?? null, valor_parcela: data.valor_parcela ?? null },
+    });
+    if (!gravacao.permitido) throw new Error(gravacao.erros.join(" "));
+    if (data.homologar && !elegibilidade.elegivel)
+      throw new Error(`Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`);
+    if (data.homologar && !data.homologadoPor?.trim())
+      throw new Error("Informe o responsável humano pela homologação da condição comercial.");
+
+    const { data: existente } = await supabase
+      .from("commercial_conditions")
+      .select("id,codigo")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const linha = {
+      case_id: data.caseId,
+      case_service_id: servico?.id ?? null,
+      product_catalog_id: servico?.product_catalog_id ?? null,
+      organization_id: c.organization_id,
+      codigo: existente?.codigo ?? `COND-${String(c.codigo ?? "CASO")}-01`,
+      forma_pagamento: data.forma_pagamento?.trim() || null,
+      parcelas: data.parcelas ?? null,
+      valor_parcela: data.valor_parcela ?? null,
+      valor_total_referencia: data.valor_total_referencia ?? null,
+      vencimento_dia: data.vencimento_dia ?? null,
+      primeiro_vencimento: data.primeiro_vencimento || null,
+      condicao_aplicavel: data.condicao_aplicavel?.trim() || null,
+      observacao_interna: data.observacao_interna?.trim() || null,
+      origem: "decisao_humana_interna",
+      data_origin: "decisao_humana_interna",
+      status: data.homologar ? "homologada" : "rascunho",
+      homologado_por: data.homologar ? data.homologadoPor!.trim() : null,
+      homologado_em: data.homologar ? new Date().toISOString() : null,
+      updated_by: (context as any).userId,
+    };
+
+    const query = existente
+      ? supabase.from("commercial_conditions").update(linha).eq("id", existente.id).select("id")
+      : supabase
+          .from("commercial_conditions")
+          .insert({ ...linha, created_by: (context as any).userId })
+          .select("id");
+    const { data: salvo, error } = await query;
+    if (error) throw new Error(error.message);
+    if (!salvo?.length) throw new Error("Nada foi gravado: seu papel não permite alterar a condição comercial.");
+    return { id: salvo[0].id, status: linha.status };
   });
 
 /** Cria os critérios de aceite por entrega, todos pendentes de decisão humana. */
@@ -157,11 +334,20 @@ export const semearCriteriosAceite = createServerFn({ method: "POST" })
 export const decidirCriterioAceite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { id: string; status: string; decididoPor?: string; observacao?: string }) => ({
+    (data: {
+      id: string;
+      status: string;
+      decididoPor?: string;
+      observacao?: string;
+      justificativa?: string;
+      evidenciaInterna?: string;
+    }) => ({
       id: exigirUuid(data?.id, "id"),
       status: String(data?.status ?? ""),
       decididoPor: data?.decididoPor?.trim() || "",
       observacao: data?.observacao ?? "",
+      justificativa: data?.justificativa?.trim() || "",
+      evidenciaInterna: data?.evidenciaInterna?.trim() || "",
     }),
   )
   .handler(async ({ data, context }) => {
@@ -170,6 +356,10 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
     if (!permitidos.includes(data.status)) throw new Error("Status de critério inválido.");
     if ((data.status === "aceito" || data.status === "recusado") && !data.decididoPor)
       throw new Error("Informe quem decidiu — critério não pode ser aceito ou recusado sem responsável humano.");
+    if (data.status !== "pendente_decisao_humana" && !data.justificativa)
+      throw new Error("Informe a justificativa da decisão — nenhum critério muda de estado sem justificativa registrada.");
+    if (data.status === "aceito" && !data.evidenciaInterna)
+      throw new Error("Informe a evidência interna que sustenta o aceite deste critério.");
 
     const decidido = data.status === "aceito" || data.status === "recusado";
     const { data: linhas, error } = await supabase
@@ -179,6 +369,8 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
         decidido_por: decidido ? data.decididoPor : null,
         decidido_em: decidido ? new Date().toISOString() : null,
         observacao_interna: data.observacao || null,
+        justificativa: data.justificativa || null,
+        evidencia_interna: data.evidenciaInterna || null,
         updated_by: (context as any).userId,
       })
       .eq("id", data.id)
