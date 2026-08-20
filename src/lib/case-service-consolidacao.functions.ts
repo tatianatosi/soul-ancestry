@@ -58,7 +58,9 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
     const { data: catalogo } = servico?.product_catalog_id
       ? await supabase
           .from("product_catalog")
-          .select("id,code,nome_comercial,status_homologacao,preco_comercial_vigente,condicao_comercial_padrao")
+          .select(
+            "id,code,nome_comercial,status_homologacao,preco_comercial_vigente,condicao_comercial_padrao,homologado_por,homologado_em,vigencia_inicio,vigencia_fim,ativo",
+          )
           .eq("id", servico.product_catalog_id)
           .maybeSingle()
       : { data: null };
