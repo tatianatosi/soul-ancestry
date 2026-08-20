@@ -40,7 +40,14 @@ export type ItemChecklist = {
   case_id: string;
   pessoa_tipo: PessoaTipo;
   pessoa_nome: string;
+  /** Referência obrigatória à pessoa do caso (case_members / case_dependents). */
   pessoa_ref_id?: string | null;
+  pessoa_ref_tabela?: string | null;
+  /** Cliente canônico do CRM, quando a pessoa já existe no cadastro. */
+  cliente_id?: string | null;
+  pessoa_nome_historico?: string | null;
+  reconciliado_em?: string | null;
+  reconciliacao_motivo?: string | null;
   campo: string;
   campo_rotulo: string;
   obrigatorio: boolean;
@@ -51,6 +58,36 @@ export type ItemChecklist = {
   observacao_interna?: string | null;
   ordem: number;
 };
+
+/**
+ * Chave de agrupamento por pessoa: sempre o ID de referência quando existe.
+ * O nome nunca é chave única — nomes divergentes do mesmo cadastro (caso Adair)
+ * não podem produzir duas pessoas distintas.
+ */
+export function chavePessoa(i: ItemChecklist): string {
+  return i.pessoa_ref_id ? `ref::${i.pessoa_ref_id}` : `${i.pessoa_tipo}::${i.pessoa_nome}`;
+}
+
+/**
+ * Guard de criação: pessoa física do caso exige referência por ID.
+ * Retorna o motivo do bloqueio, ou null quando a criação é permitida.
+ */
+export function bloqueioCriacaoPorNome(input: {
+  pessoa_tipo: PessoaTipo;
+  pessoa_nome: string;
+  pessoa_ref_id?: string | null;
+  pessoasExistentes?: { id: string; nome: string }[];
+}): string | null {
+  if (input.pessoa_tipo === "contratada") return null;
+  if (input.pessoa_ref_id) return null;
+  const homonimo = (input.pessoasExistentes ?? []).find(
+    (p) => p.nome.trim().toLowerCase() === input.pessoa_nome.trim().toLowerCase(),
+  );
+  if (homonimo)
+    return `Já existe pessoa registrada neste caso para "${input.pessoa_nome}": use a referência por ID, não o nome.`;
+  return "Checklist cadastral exige referência obrigatória à pessoa (pessoa_ref_id).";
+}
+
 
 /** Campos cadastrais de pessoa física titular/contratante. */
 export const CAMPOS_TITULAR = [
