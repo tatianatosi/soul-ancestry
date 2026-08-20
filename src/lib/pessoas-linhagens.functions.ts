@@ -264,7 +264,7 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
           .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data) throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
-    return { registro: r.data as Record<string, unknown> };
+    return { registro: r.data as any };
   });
 
 /** Sem exclusão física: somente arquivamento com motivo. */
