@@ -173,6 +173,8 @@ const ABAS = [
   { id: "visao", rotulo: "Visão geral" },
   { id: "caso", rotulo: "Caso" },
   { id: "pessoas", rotulo: "Pessoas" },
+  { id: "cadastro", rotulo: "Cadastro e núcleo" },
+
   { id: "produto", rotulo: "Produto e trilha" },
   { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
