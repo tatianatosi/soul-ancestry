@@ -1135,7 +1135,7 @@ function ArvoreTab({ caso }: { caso: CaseData }) {
       {preenchido(caso.arvore.lacuna_critica) && (
         <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
           <div className="text-[11px] uppercase tracking-widest text-terracotta">
-            O que ainda falta
+            Panorama Genealógico
           </div>
           <p className="mt-1 text-[13px] leading-relaxed text-navy/80">
             {caso.arvore.lacuna_critica}
