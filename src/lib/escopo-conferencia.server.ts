@@ -13,7 +13,7 @@ import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
 import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { GateBloqueadoError, bloqueiosDaAcao, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
-import { sanearProposta } from "@/lib/proposta-saneamento";
+import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
 
 type Sb = any;
 
@@ -28,7 +28,7 @@ function ehMenor(nascimento: string | null | undefined, hoje: Date): boolean {
 export async function montarConferencia(
   supabase: Sb,
   input: { caseId: string; proposalId?: string | null; hoje?: Date },
-): Promise<{ resultado: ResultadoConferencia; dados: Record<string, any> }> {
+): Promise<{ resultado: ResultadoConferencia; saneamento: SaneamentoProposta; dados: Record<string, any> }> {
   const hoje = input.hoje ?? new Date();
 
   const { data: caso } = await supabase
