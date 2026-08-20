@@ -380,6 +380,7 @@ function FichaCaso() {
         <Link
           to="/plano-acao/$caseId"
           params={{ caseId: id }}
+          search={{ foco: undefined }}
           className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
         >
           Pesquisa e Evidências → Plano de Ação de Pesquisa →
