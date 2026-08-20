@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
-import { listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
+import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
@@ -27,9 +27,15 @@ function MatrizPage() {
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarMatrizJuridica);
   const registrar = useServerFn(registrarDecisaoTema);
+  const consolidar = useServerFn(consolidarMatrizJuridica);
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["matriz-juridica"], queryFn: () => carregar(), retry: false });
   const [edicao, setEdicao] = useState<Record<string, Record<string, string>>>({});
+
+  const mutConsolidar = useMutation({
+    mutationFn: () => consolidar(),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["matriz-juridica"] }),
+  });
 
   const mut = useMutation({
     mutationFn: (p: Parameters<typeof registrarDecisaoTema>[0]["data"]) => registrar({ data: p }),
@@ -49,6 +55,17 @@ function MatrizPage() {
           ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura permanece bloqueada.`
           : "Nenhum tema bloqueante pendente."}
       </div>
+
+      {podeEscrever ? (
+        <button
+          type="button"
+          className="mb-4 rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
+          onClick={() => mutConsolidar.mutate()}
+          disabled={mutConsolidar.isPending}
+        >
+          Consolidar duplicatas (arquivamento auditado, sem exclusão)
+        </button>
+      ) : null}
 
       <div className="space-y-3">
         {linhas.map((l) => {
