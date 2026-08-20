@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
+import { ARVORE_DESK, contarConteudos } from "@/lib/desk-arvore-canonica";
 import {
   MODULOS_DESK,
   TELAS_PRINCIPAIS_DESK,
