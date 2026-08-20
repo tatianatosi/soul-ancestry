@@ -325,7 +325,6 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
         <FiltroSimples rotuloCampo="Pessoa" opcoes={[...pessoas.map((p) => p.nome), "Pessoa ainda não identificada"]} valor={filtros["pessoa"] ?? ""} onChange={(v) => setFiltros((f) => ({ ...f, pessoa: v }))} />
         <FiltroSimples rotuloCampo="Origem" opcoes={ORIGENS_DOCUMENTO.map((o) => o.rotulo)} valor={filtros["origem"] ?? ""} onChange={(v) => setFiltros((f) => ({ ...f, origem: v }))} />
         <input className={inputCls} placeholder="Filtrar por local" value={filtros["local"] ?? ""} onChange={(e) => setFiltros((f) => ({ ...f, local: e.target.value }))} />
-        <FiltroSimples rotuloCampo="Confidencialidade" opcoes={CONFIDENCIALIDADE.map((c) => c.rotulo)} valor={filtros["confid"] ?? ""} onChange={(v) => setFiltros((f) => ({ ...f, confid: v }))} />
       </div>
 
       <div className="overflow-x-auto">
