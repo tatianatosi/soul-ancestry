@@ -162,6 +162,9 @@ export function pendenciasCadastro(itens: ItemChecklist[]): PendenciaCadastro[] 
 export type ResumoPessoa = {
   pessoa_nome: string;
   pessoa_tipo: PessoaTipo;
+  pessoa_ref_id?: string | null;
+  cliente_id?: string | null;
+  pessoa_nome_historico?: string | null;
   total: number;
   resolvidos: number;
   pendentes: number;
@@ -171,16 +174,20 @@ export type ResumoPessoa = {
 export function resumoPorPessoa(itens: ItemChecklist[]): ResumoPessoa[] {
   const mapa = new Map<string, ItemChecklist[]>();
   for (const i of itens) {
-    const chave = `${i.pessoa_tipo}::${i.pessoa_nome}`;
+    const chave = chavePessoa(i);
     mapa.set(chave, [...(mapa.get(chave) ?? []), i]);
   }
-  return [...mapa.entries()]
-    .map(([chave, lista]) => {
+  return [...mapa.values()]
+    .map((lista) => {
+      const primeiro = lista[0]!;
       const resolvidos = lista.filter(itemResolvido).length;
       const pendentes = lista.filter((i) => i.obrigatorio && !itemResolvido(i)).length;
       return {
-        pessoa_nome: chave.split("::")[1] ?? "",
-        pessoa_tipo: (chave.split("::")[0] ?? "titular") as PessoaTipo,
+        pessoa_nome: primeiro.pessoa_nome,
+        pessoa_tipo: primeiro.pessoa_tipo,
+        pessoa_ref_id: primeiro.pessoa_ref_id ?? null,
+        cliente_id: primeiro.cliente_id ?? null,
+        pessoa_nome_historico: lista.find((i) => i.pessoa_nome_historico)?.pessoa_nome_historico ?? null,
         total: lista.length,
         resolvidos,
         pendentes,
@@ -189,6 +196,7 @@ export function resumoPorPessoa(itens: ItemChecklist[]): ResumoPessoa[] {
     })
     .sort((a, b) => a.pessoa_tipo.localeCompare(b.pessoa_tipo) || a.pessoa_nome.localeCompare(b.pessoa_nome));
 }
+
 
 /** Bloqueio de cadastro para os gates de formalização. */
 export function bloqueioCadastro(itens: ItemChecklist[]): { codigo: string; descricao: string } | null {
