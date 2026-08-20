@@ -20,8 +20,8 @@ export type SecaoPesquisa =
 export const SECOES: { id: SecaoPesquisa; rotulo: string; nota: string }[] = [
   { id: "visao", rotulo: "Visão de pesquisa", nota: "Panorama do caso: pedidos, evidências e pendências." },
   { id: "pessoas", rotulo: "Pessoas, famílias e ramos", nota: "Origem canônica de pessoas e linhagens." },
+  { id: "fontes", rotulo: "Fontes e consultas", nota: "Acervos e consultas registradas internamente." },
   { id: "fontes_documentos", rotulo: "Fontes e documentos", nota: "Upload e catalogação de material bruto do caso." },
-  { id: "documentos", rotulo: "Documentos e Solicitações", nota: "Grade operacional de pedidos documentais." },
   { id: "documentos", rotulo: "Documentos e Solicitações", nota: "Grade operacional de pedidos documentais." },
   { id: "evidencias", rotulo: "Evidências e validações", nota: "Biblioteca de evidências e histórico de validação." },
   { id: "hipoteses", rotulo: "Hipóteses e lacunas", nota: "Trabalho interno; nunca projetado ao cliente." },
