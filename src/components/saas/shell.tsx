@@ -96,6 +96,7 @@ const NAV = [
   { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação", icon: Library },
   { to: "/governanca/decisoes", label: "Decisões operacionais", icon: Library },
   { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade", icon: Library },
+  { to: "/governanca/modulos-contextuais", label: "Módulos contextuais", icon: Library },
   { to: "/etiquetas", label: "Etiquetas canônicas", icon: Library },
 
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
