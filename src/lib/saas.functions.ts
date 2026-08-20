@@ -127,7 +127,7 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "link_origem_interna",
     "proxima_acao_codigo",
     "proxima_acao_justificativa",
-    "alias_historico",
+    // "alias_historico" migrou para case_aliases (histórico imutável, somente leitura na ficha).
     // Jornada, comunicação e alertas
     "proposta_id_origem",
     "marcos_gerais_da_proposta",
