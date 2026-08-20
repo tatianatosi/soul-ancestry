@@ -44,6 +44,7 @@ import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authe
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedImportacoesRouteImport } from './routes/_authenticated/importacoes'
+import { Route as AuthenticatedFontesGenealogicasRouteImport } from './routes/_authenticated/fontes-genealogicas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authenticated/etiquetas'
@@ -260,6 +261,12 @@ const AuthenticatedImportacoesRoute =
   AuthenticatedImportacoesRouteImport.update({
     id: '/importacoes',
     path: '/importacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFontesGenealogicasRoute =
+  AuthenticatedFontesGenealogicasRouteImport.update({
+    id: '/fontes-genealogicas',
+    path: '/fontes-genealogicas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
@@ -498,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
   '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -571,6 +579,7 @@ export interface FileRoutesByTo {
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
   '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -647,6 +656,7 @@ export interface FileRoutesById {
   '/_authenticated/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
   '/_authenticated/importacoes': typeof AuthenticatedImportacoesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
@@ -723,6 +733,7 @@ export interface FileRouteTypes {
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/fontes-genealogicas'
     | '/importacoes'
     | '/integracoes'
     | '/leads'
@@ -796,6 +807,7 @@ export interface FileRouteTypes {
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
+    | '/fontes-genealogicas'
     | '/importacoes'
     | '/integracoes'
     | '/leads'
@@ -871,6 +883,7 @@ export interface FileRouteTypes {
     | '/_authenticated/etiquetas'
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
+    | '/_authenticated/fontes-genealogicas'
     | '/_authenticated/importacoes'
     | '/_authenticated/integracoes'
     | '/_authenticated/leads'
@@ -1192,6 +1205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedImportacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fontes-genealogicas': {
+      id: '/_authenticated/fontes-genealogicas'
+      path: '/fontes-genealogicas'
+      fullPath: '/fontes-genealogicas'
+      preLoaderRoute: typeof AuthenticatedFontesGenealogicasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/financeiro': {
       id: '/_authenticated/financeiro'
       path: '/financeiro'
@@ -1473,6 +1493,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEtiquetasRoute: typeof AuthenticatedEtiquetasRoute
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedFontesGenealogicasRoute: typeof AuthenticatedFontesGenealogicasRoute
   AuthenticatedImportacoesRoute: typeof AuthenticatedImportacoesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
@@ -1526,6 +1547,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEtiquetasRoute: AuthenticatedEtiquetasRoute,
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedFontesGenealogicasRoute: AuthenticatedFontesGenealogicasRoute,
   AuthenticatedImportacoesRoute: AuthenticatedImportacoesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
