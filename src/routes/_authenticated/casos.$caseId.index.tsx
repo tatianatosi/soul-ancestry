@@ -14,7 +14,7 @@ import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
-import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
+import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 
 
 import {
