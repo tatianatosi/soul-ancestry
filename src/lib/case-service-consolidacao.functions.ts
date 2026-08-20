@@ -9,6 +9,17 @@ import {
   type ItemCriterio,
 } from "@/lib/case-service-consolidacao";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import {
+  avaliarCondicao,
+  avaliarCriterios,
+  avaliarElegibilidadePreco,
+  avaliarPlanoInicial,
+  avaliarPromocaoCaseService,
+  divergenciasDeValor,
+  validarGravacaoPreco,
+  type CondicaoComercial,
+  type CriterioRegistro,
+} from "@/lib/condicao-comercial";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
