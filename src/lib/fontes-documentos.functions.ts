@@ -91,7 +91,12 @@ async function garantirCaso(supabase: Sb, organizationId: string, caseId: string
     .eq("organization_id", organizationId)
     .maybeSingle();
   if (!data) throw new Error("CASO_NAO_ENCONTRADO_NESTA_ORGANIZACAO");
+  // Defesa em profundidade: o RLS já limita por caso; aqui a negativa vira erro legível.
+  const permitido = await (supabase as any).rpc("pode_pesquisar_caso", { _case: caseId });
+  if (permitido.error) throw new Error(permitido.error.message);
+  if (permitido.data === false) throw new Error("SEM_ACESSO_A_ESTE_CASO");
 }
+
 
 /** Lista de fontes/documentos do caso, mais as pessoas elegíveis e a equipe. */
 export const listarFontesDocumentos = createServerFn({ method: "GET" })
