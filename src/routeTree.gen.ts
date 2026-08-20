@@ -67,6 +67,7 @@ import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
+import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
 import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
@@ -379,6 +380,12 @@ const AuthenticatedOnboardingIdRoute =
     path: '/onboarding/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaMatrizConformidadeRoute =
+  AuthenticatedGovernancaMatrizConformidadeRouteImport.update({
+    id: '/governanca/matriz-conformidade',
+    path: '/governanca/matriz-conformidade',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaInventarioRecuperacaoRoute =
   AuthenticatedGovernancaInventarioRecuperacaoRouteImport.update({
     id: '/governanca/inventario-recuperacao',
@@ -466,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
+  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
@@ -530,6 +538,7 @@ export interface FileRoutesByTo {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
+  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
@@ -597,6 +606,7 @@ export interface FileRoutesById {
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
+  '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/decisoes'
     | '/governanca/inventario-recuperacao'
+    | '/governanca/matriz-conformidade'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
@@ -728,6 +739,7 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/decisoes'
     | '/governanca/inventario-recuperacao'
+    | '/governanca/matriz-conformidade'
     | '/onboarding/$id'
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
@@ -794,6 +806,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contratos/$id'
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/inventario-recuperacao'
+    | '/_authenticated/governanca/matriz-conformidade'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-modulo/$id'
     | '/_authenticated/pesquisa/$id'
@@ -1236,6 +1249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/matriz-conformidade': {
+      id: '/_authenticated/governanca/matriz-conformidade'
+      path: '/governanca/matriz-conformidade'
+      fullPath: '/governanca/matriz-conformidade'
+      preLoaderRoute: typeof AuthenticatedGovernancaMatrizConformidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/inventario-recuperacao': {
       id: '/_authenticated/governanca/inventario-recuperacao'
       path: '/governanca/inventario-recuperacao'
@@ -1311,6 +1331,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaInventarioRecuperacaoRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
+  AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
@@ -1357,6 +1378,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
   AuthenticatedGovernancaInventarioRecuperacaoRoute:
     AuthenticatedGovernancaInventarioRecuperacaoRoute,
+  AuthenticatedGovernancaMatrizConformidadeRoute:
+    AuthenticatedGovernancaMatrizConformidadeRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaModuloIdRoute: AuthenticatedPesquisaModuloIdRoute,
   AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
