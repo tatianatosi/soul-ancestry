@@ -269,6 +269,8 @@ export type ItemCriterio = {
   decidido_por?: string | null;
   decidido_em?: string | null;
   observacao_interna?: string | null;
+  justificativa?: string | null;
+  evidencia_interna?: string | null;
 };
 
 export function semearCriterios(): Omit<ItemCriterio, "id">[] {
