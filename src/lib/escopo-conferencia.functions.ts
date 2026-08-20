@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { auditoriaSanitizada } from "@/lib/escopo-conferencia";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import { ACAO_REVALIDAR, detalheAcaoRevalidar } from "@/lib/proposta-saneamento";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -44,9 +45,10 @@ export const painelPreparacaoContratual = createServerFn({ method: "GET" })
   .inputValidator((d: { caseId: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const { resultado, dados } = await montarConferencia(supabase, { caseId: data.caseId });
+    const { resultado, saneamento, dados } = await montarConferencia(supabase, { caseId: data.caseId });
     return {
       resultado,
+      saneamento,
       proposta: dados.proposta
         ? {
             id: dados.proposta.id,
@@ -68,4 +70,66 @@ export const painelPreparacaoContratual = createServerFn({ method: "GET" })
       membros: dados.membros,
       nucleo: dados.nucleo ? { id: dados.nucleo.id, nome: dados.nucleo.nome } : null,
     };
+  });
+
+/**
+ * Registra a ação interna de revalidação da proposta quando a validade
+ * comercial está vencida ou ausente. Não envia mensagem, não cria contrato,
+ * OS, anexo, cobrança ou link, e não edita nada no Canva.
+ */
+export const registrarRevalidacaoProposta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const actorId = context.userId as string;
+    const { saneamento, dados } = await montarConferencia(supabase, { caseId: data.caseId });
+
+    if (!saneamento.validade.bloqueia) {
+      throw new Error("Validade comercial vigente: nenhuma revalidação é necessária.");
+    }
+
+    const { data: existente } = await supabase
+      .from("case_alerts")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("tipo", ACAO_REVALIDAR.tipo)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+
+    if (existente?.id) return { id: existente.id, criada: false };
+
+    const detalhe = detalheAcaoRevalidar(saneamento.validade);
+    const { data: criada, error } = await supabase
+      .from("case_alerts")
+      .insert({
+        organization_id: dados.caso.organization_id,
+        case_id: data.caseId,
+        tipo: ACAO_REVALIDAR.tipo,
+        criticidade: ACAO_REVALIDAR.criticidade,
+        titulo: ACAO_REVALIDAR.titulo,
+        detalhe,
+        status: "pending",
+        created_by: actorId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await supabase.from("audit_logs").insert({
+      organization_id: dados.caso.organization_id,
+      user_id: actorId,
+      acao: "proposta_revalidacao_solicitada",
+      entidade: "proposals",
+      entidade_id: dados.proposta?.id ?? data.caseId,
+      metadados: {
+        estado_validade: saneamento.validade.estado,
+        validade: saneamento.validade.validade,
+        decisoes_humanas: saneamento.validade.decisoes_humanas,
+        alerta_id: criada.id,
+      },
+    });
+
+    return { id: criada.id, criada: true };
   });

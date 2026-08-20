@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo, moeda } from "@/components/comercial/base";
-import { conferirEscopoProposta, painelPreparacaoContratual } from "@/lib/escopo-conferencia.functions";
+import { conferirEscopoProposta, painelPreparacaoContratual, registrarRevalidacaoProposta } from "@/lib/escopo-conferencia.functions";
+import { ROTULO_DECISAO_VALIDADE } from "@/lib/proposta-saneamento";
 import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
 import { ACOES_GATEADAS, ROTULO_ACAO, ROTULO_GATE, podeExecutar, type AvaliacaoGate } from "@/lib/gates-formalizacao";
 import { ROTULO_FONTE_CANONICA } from "@/lib/preco-canonico";
@@ -31,6 +32,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
   const qc = useQueryClient();
   const carregar = useServerFn(painelPreparacaoContratual);
   const conferir = useServerFn(conferirEscopoProposta);
+  const revalidar = useServerFn(registrarRevalidacaoProposta);
   const chave = ["painel-preparacao", caseId];
 
   const q = useQuery({ queryKey: chave, queryFn: () => carregar({ data: { caseId } }), retry: false });
@@ -43,12 +45,20 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
     onError: (e: any) => toast.error(e?.message ?? "Não foi possível conferir o escopo."),
   });
 
+  const mRevalidar = useMutation({
+    mutationFn: () => revalidar({ data: { caseId } }),
+    onSuccess: (r: any) =>
+      toast.success(r?.criada ? "Ação interna de revalidação registrada." : "Já existe ação interna de revalidação em aberto."),
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível registrar a ação interna."),
+  });
+
   if (q.isLoading) return <Painel titulo="Preparação contratual">Carregando conferência…</Painel>;
   if (q.error) return <Painel titulo="Preparação contratual">{(q.error as any)?.message}</Painel>;
 
   const d = q.data as any;
   const r = d.resultado;
   const gates: AvaliacaoGate[] = r.gates ?? [];
+  const san = d.saneamento;
   const contexto = contextoGatesDaConferencia(r);
   const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto));
 
@@ -178,6 +188,68 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
             Anexos afetados: {(r.anexos_afetados ?? []).join(" · ") || "nenhum"}
           </p>
           <p className="text-navy/50">Nada é inferido: campo não localizado permanece pendência e mantém o bloqueio.</p>
+        </Bloco>
+      </div>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Bloco n={7} titulo="Páginas 1–7 — status de extração">
+          <ul className="space-y-0.5">
+            {(san?.paginas ?? []).map((p: any) => (
+              <li key={p.page_number} className={p.bloqueia ? "text-terracotta" : "text-navy/70"}>
+                {p.bloqueia ? "✗" : "✓"} p. {p.page_number} — {p.rotulo}
+                {p.campos_nao_localizados.length ? ` · não localizados: ${p.campos_nao_localizados.join(", ")}` : ""}
+              </li>
+            ))}
+          </ul>
+          <p className="text-navy/50">
+            Referência interna do deck: {san?.deck_referencia_interna ?? "não registrada"}. Nenhum link ou conteúdo do Canva é exibido.
+          </p>
+        </Bloco>
+
+        <Bloco n={8} titulo="Validade comercial e decisão humana">
+          <p className={san?.validade?.bloqueia ? "text-terracotta" : "text-navy/70"}>{san?.validade?.descricao}</p>
+          {san?.validade?.bloqueia ? (
+            <>
+              <p className="mt-1 font-medium text-navy">Decisão humana requerida (nenhuma é automática):</p>
+              <ul className="space-y-0.5">
+                {(san.validade.decisoes_humanas ?? []).map((d: any) => (
+                  <li key={d}>○ {ROTULO_DECISAO_VALIDADE[d as keyof typeof ROTULO_DECISAO_VALIDADE] ?? d}</li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => mRevalidar.mutate()}
+                disabled={mRevalidar.isPending}
+                className="mt-2 rounded border border-navy/30 px-3 py-1 text-xs font-medium text-navy disabled:opacity-60"
+              >
+                {mRevalidar.isPending ? "Registrando…" : "Criar ação interna: revalidar proposta"}
+              </button>
+            </>
+          ) : null}
+        </Bloco>
+
+        <Bloco n={9} titulo="Estado por campo do escopo">
+          <ul className="space-y-0.5">
+            {(san?.campos ?? []).map((c: any) => (
+              <li key={c.campo} className={c.bloqueia ? "text-terracotta" : c.pendencia ? "text-navy/60" : "text-navy/80"}>
+                {c.bloqueia ? "✗" : c.pendencia ? "○" : "✓"} {c.label} — {c.estado_rotulo}
+                <span className="text-navy/50"> · p. {c.paginas.join(", ")}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-navy/50">Campo ausente permanece ausente: nada é preenchido por suposição.</p>
+        </Bloco>
+
+        <Bloco n={10} titulo="Bloqueios do saneamento">
+          {(san?.bloqueios ?? []).length ? (
+            (san.bloqueios ?? []).map((b: any) => (
+              <p key={b.codigo} className="text-terracotta">
+                {b.codigo}: {b.descricao}
+              </p>
+            ))
+          ) : (
+            <p>Nenhum bloqueio de saneamento aberto.</p>
+          )}
         </Bloco>
       </div>
 

@@ -12,6 +12,8 @@ import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
 import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
 import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 import { GateBloqueadoError, bloqueiosDaAcao, type AcaoGateada } from "@/lib/gates-formalizacao";
+import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
+import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
 
 type Sb = any;
 
@@ -26,7 +28,7 @@ function ehMenor(nascimento: string | null | undefined, hoje: Date): boolean {
 export async function montarConferencia(
   supabase: Sb,
   input: { caseId: string; proposalId?: string | null; hoje?: Date },
-): Promise<{ resultado: ResultadoConferencia; dados: Record<string, any> }> {
+): Promise<{ resultado: ResultadoConferencia; saneamento: SaneamentoProposta; dados: Record<string, any> }> {
   const hoje = input.hoje ?? new Date();
 
   const { data: caso } = await supabase
@@ -110,7 +112,7 @@ export async function montarConferencia(
     proposta?.id
       ? supabase
           .from("proposal_canva_pages")
-          .select("page_number,extracao_status,campos_nao_localizados")
+          .select("page_number,extracao_status,campos_nao_localizados,observacao_interna")
           .eq("proposal_id", proposta.id)
           .is("archived_at", null)
       : Promise.resolve({ data: [] }),
@@ -228,8 +230,25 @@ export async function montarConferencia(
 
   const resultado = conferirEscopo(entrada);
 
+  const saneamento = sanearProposta({
+    proposta: proposta as any,
+    paginas: ((paginasRaw ?? []) as any[]).map((p) => ({
+      page_number: Number(p.page_number),
+      extracao_status: p.extracao_status ?? null,
+      campos_nao_localizados: p.campos_nao_localizados ?? [],
+      observacao_interna: p.observacao_interna ?? null,
+    })),
+    cobertura: mapaCoberturaEscopo({
+      proposta: proposta as any,
+      extraidos: extrairEscopoDaProposta(proposta as any),
+      valores: entrada.valores,
+    }),
+    hoje,
+  });
+
   return {
     resultado,
+    saneamento,
     dados: {
       caso,
       proposta,
