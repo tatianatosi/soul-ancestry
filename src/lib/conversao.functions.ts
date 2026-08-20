@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { semFixtures } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/lib/conversao";
@@ -162,7 +163,9 @@ export const painelHoje = createServerFn({ method: "GET" })
     const comNucleo = new Set(nucleos.map((n) => n.case_id));
     const dias = (t?: number) => (t ? Math.floor((Date.now() - t) / 86400000) : null);
 
-    const resumo = casos.map((c) => ({
+    // Fixtures de demonstração não entram em Painel Hoje, filas nem métricas.
+    const casosOperacionais = semFixtures(casos as never);
+    const resumo = casosOperacionais.map((c: any) => ({
       id: c.id as string,
       codigo: (c.codigo ?? c.id) as string,
       titulo: (c.titulo ?? c.codigo ?? "Caso") as string,
@@ -202,7 +205,7 @@ export const painelHoje = createServerFn({ method: "GET" })
       eventos,
       investimentos,
       campanhas,
-      totalCasos: casos.length,
+      totalCasos: casosOperacionais.length,
     };
   });
 
