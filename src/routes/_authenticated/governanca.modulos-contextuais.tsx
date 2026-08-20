@@ -70,6 +70,39 @@ function Pagina() {
         </section>
 
         <section>
+          <h2 className="mb-1 font-serif text-xl text-navy">Árvore canônica de abas do Desk</h2>
+          <p className="mb-3 text-sm text-navy/60">
+            14 abas aprovadas e o que reside dentro de cada uma. Nenhum item filho vira aba principal.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {ARVORE_DESK.map((aba) => (
+              <div key={aba.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-serif text-lg text-navy">{aba.nome}</h3>
+                  <span className="text-[11px] uppercase tracking-wide text-navy/45">
+                    {contarConteudos(aba)} itens
+                  </span>
+                </div>
+                <ul className="mt-2 space-y-1 text-sm text-navy/75">
+                  {aba.conteudos.map((c) => (
+                    <li key={c.nome}>
+                      <span>├── {c.nome}</span>
+                      {c.filhos ? (
+                        <ul className="ml-4 mt-1 space-y-0.5 text-xs text-navy/55">
+                          {c.filhos.map((f) => (
+                            <li key={f.nome}>│&nbsp;&nbsp;├── {f.nome}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
           <h2 className="mb-3 font-serif text-xl text-navy">
             Matriz módulo profundo → tela principal → subrota/painel
           </h2>
