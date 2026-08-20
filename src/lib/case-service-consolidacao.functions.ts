@@ -334,11 +334,20 @@ export const semearCriteriosAceite = createServerFn({ method: "POST" })
 export const decidirCriterioAceite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { id: string; status: string; decididoPor?: string; observacao?: string }) => ({
+    (data: {
+      id: string;
+      status: string;
+      decididoPor?: string;
+      observacao?: string;
+      justificativa?: string;
+      evidenciaInterna?: string;
+    }) => ({
       id: exigirUuid(data?.id, "id"),
       status: String(data?.status ?? ""),
       decididoPor: data?.decididoPor?.trim() || "",
       observacao: data?.observacao ?? "",
+      justificativa: data?.justificativa?.trim() || "",
+      evidenciaInterna: data?.evidenciaInterna?.trim() || "",
     }),
   )
   .handler(async ({ data, context }) => {
@@ -347,6 +356,10 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
     if (!permitidos.includes(data.status)) throw new Error("Status de critério inválido.");
     if ((data.status === "aceito" || data.status === "recusado") && !data.decididoPor)
       throw new Error("Informe quem decidiu — critério não pode ser aceito ou recusado sem responsável humano.");
+    if (data.status !== "pendente_decisao_humana" && !data.justificativa)
+      throw new Error("Informe a justificativa da decisão — nenhum critério muda de estado sem justificativa registrada.");
+    if (data.status === "aceito" && !data.evidenciaInterna)
+      throw new Error("Informe a evidência interna que sustenta o aceite deste critério.");
 
     const decidido = data.status === "aceito" || data.status === "recusado";
     const { data: linhas, error } = await supabase
@@ -356,6 +369,8 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
         decidido_por: decidido ? data.decididoPor : null,
         decidido_em: decidido ? new Date().toISOString() : null,
         observacao_interna: data.observacao || null,
+        justificativa: data.justificativa || null,
+        evidencia_interna: data.evidenciaInterna || null,
         updated_by: (context as any).userId,
       })
       .eq("id", data.id)
