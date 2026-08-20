@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.fn_audit_campos() FROM PUBLIC, anon, authenticated;
