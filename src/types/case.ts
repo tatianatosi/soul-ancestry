@@ -159,6 +159,10 @@ export type CaseDescoberta = {
   tipo_evidencia: EvidenceStatus;
   destaque: boolean;
   data: string;
+  /** Projeção autorizada (Legado): origem, autorização e publicação. */
+  origem?: "app_projection" | "client_deliverable";
+  autorizado?: boolean;
+  publicado?: boolean;
 };
 
 export type CaseDocumentos = {
