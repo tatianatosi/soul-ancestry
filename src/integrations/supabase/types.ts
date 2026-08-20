@@ -583,6 +583,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           criticidade: string
+          data_origin: string
           detalhe: string | null
           due_at: string | null
           id: string
@@ -602,6 +603,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           criticidade?: string
+          data_origin?: string
           detalhe?: string | null
           due_at?: string | null
           id?: string
@@ -621,6 +623,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           criticidade?: string
+          data_origin?: string
           detalhe?: string | null
           due_at?: string | null
           id?: string
@@ -2157,6 +2160,7 @@ export type Database = {
           archived_by: string | null
           created_at: string
           created_by: string | null
+          data_origin: string
           demo: boolean
           documento: string | null
           email: string | null
@@ -2178,6 +2182,7 @@ export type Database = {
           archived_by?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           demo?: boolean
           documento?: string | null
           email?: string | null
@@ -2199,6 +2204,7 @@ export type Database = {
           archived_by?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           demo?: boolean
           documento?: string | null
           email?: string | null
@@ -2237,6 +2243,7 @@ export type Database = {
           corpo_rascunho: string | null
           created_at: string
           created_by: string | null
+          data_origin: string
           id: string
           observacao_interna: string | null
           organization_id: string
@@ -2261,6 +2268,7 @@ export type Database = {
           corpo_rascunho?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           id?: string
           observacao_interna?: string | null
           organization_id: string
@@ -2285,6 +2293,7 @@ export type Database = {
           corpo_rascunho?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           id?: string
           observacao_interna?: string | null
           organization_id?: string
@@ -4120,6 +4129,7 @@ export type Database = {
           data_confirmacao_formal_proposta: string | null
           data_entrada: string
           data_entrada_caso: string | null
+          data_origin: string
           data_proposta: string | null
           demo: boolean
           documentos_minimos_ok: boolean
@@ -4223,6 +4233,7 @@ export type Database = {
           data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
           data_entrada_caso?: string | null
+          data_origin?: string
           data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
@@ -4326,6 +4337,7 @@ export type Database = {
           data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
           data_entrada_caso?: string | null
+          data_origin?: string
           data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
@@ -6055,6 +6067,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           dados_teste: boolean
+          data_origin: string
           demo: boolean
           discovery_resultado: string | null
           eixo_comercial: string
@@ -6104,6 +6117,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
+          data_origin?: string
           demo?: boolean
           discovery_resultado?: string | null
           eixo_comercial?: string
@@ -6153,6 +6167,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
+          data_origin?: string
           demo?: boolean
           discovery_resultado?: string | null
           eixo_comercial?: string
@@ -10755,6 +10770,7 @@ export type Database = {
           concluida_em: string | null
           created_at: string
           created_by: string | null
+          data_origin: string
           demo: boolean
           desbloqueado_em: string | null
           desbloqueio_justificativa: string | null
@@ -10788,6 +10804,7 @@ export type Database = {
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           demo?: boolean
           desbloqueado_em?: string | null
           desbloqueio_justificativa?: string | null
@@ -10821,6 +10838,7 @@ export type Database = {
           concluida_em?: string | null
           created_at?: string
           created_by?: string | null
+          data_origin?: string
           demo?: boolean
           desbloqueado_em?: string | null
           desbloqueio_justificativa?: string | null
