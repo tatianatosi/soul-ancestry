@@ -978,6 +978,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "case_dependents_dependent_person_fk"
+            columns: ["dependent_person_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "case_dependents_dependent_person_id_fkey"
             columns: ["dependent_person_id"]
             isOneToOne: false
@@ -989,6 +996,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_dependents_titular_responsavel_fk"
+            columns: ["titular_responsavel_legal_id"]
+            isOneToOne: false
+            referencedRelation: "case_members"
             referencedColumns: ["id"]
           },
           {
@@ -1745,6 +1759,7 @@ export type Database = {
           campo: string
           campo_rotulo: string
           case_id: string
+          cliente_id: string | null
           created_at: string
           created_by: string | null
           data_verificacao: string | null
@@ -1755,8 +1770,13 @@ export type Database = {
           ordem: number
           organization_id: string
           pessoa_nome: string
+          pessoa_nome_historico: string | null
           pessoa_ref_id: string | null
+          pessoa_ref_tabela: string | null
           pessoa_tipo: string
+          reconciliacao_motivo: string | null
+          reconciliado_em: string | null
+          reconciliado_por: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -1769,6 +1789,7 @@ export type Database = {
           campo: string
           campo_rotulo: string
           case_id: string
+          cliente_id?: string | null
           created_at?: string
           created_by?: string | null
           data_verificacao?: string | null
@@ -1779,8 +1800,13 @@ export type Database = {
           ordem?: number
           organization_id: string
           pessoa_nome: string
+          pessoa_nome_historico?: string | null
           pessoa_ref_id?: string | null
+          pessoa_ref_tabela?: string | null
           pessoa_tipo: string
+          reconciliacao_motivo?: string | null
+          reconciliado_em?: string | null
+          reconciliado_por?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1793,6 +1819,7 @@ export type Database = {
           campo?: string
           campo_rotulo?: string
           case_id?: string
+          cliente_id?: string | null
           created_at?: string
           created_by?: string | null
           data_verificacao?: string | null
@@ -1803,8 +1830,13 @@ export type Database = {
           ordem?: number
           organization_id?: string
           pessoa_nome?: string
+          pessoa_nome_historico?: string | null
           pessoa_ref_id?: string | null
+          pessoa_ref_tabela?: string | null
           pessoa_tipo?: string
+          reconciliacao_motivo?: string | null
+          reconciliado_em?: string | null
+          reconciliado_por?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1822,6 +1854,20 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_cadastral_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_cadastral_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -13077,6 +13123,7 @@ export type Database = {
       }
       is_org_member: { Args: { _org: string }; Returns: boolean }
       is_staff_ativo: { Args: { _org: string }; Returns: boolean }
+      nucleo_completude: { Args: { _case: string }; Returns: Json }
       ops_painel: { Args: { _org: string }; Returns: Json }
       ops_sla_status: {
         Args: { _alerta_em: string; _prazo_em: string; _status: string }

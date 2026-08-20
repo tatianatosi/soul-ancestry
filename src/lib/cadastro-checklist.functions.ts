@@ -84,19 +84,47 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
 
     const { data: dependentes } = await supabase
       .from("case_dependents")
-      .select("id,nome_completo")
+      .select("id,nome_completo,dependent_person_id")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
 
-    const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null }[] = [];
+    // Clientes canônicos da organização para reconciliar pessoa → cliente por ID.
+    const { data: clientes } = await supabase
+      .from("clientes")
+      .select("id,nome")
+      .eq("organization_id", caso.organization_id)
+      .is("archived_at", null);
+    const clientePorNome = new Map(
+      ((clientes ?? []) as any[]).map((c) => [String(c.nome).trim().toLowerCase(), c.id as string]),
+    );
+
+    const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null; tabela: string | null; cliente: string | null }[] = [];
     for (const m of (membros ?? []) as any[]) {
       if (m.dependente) continue;
-      pessoas.push({ tipo: "titular", nome: m.nome, ref: m.id });
+      pessoas.push({
+        tipo: "titular",
+        nome: m.nome,
+        ref: m.id,
+        tabela: "case_members",
+        cliente: clientePorNome.get(String(m.nome).trim().toLowerCase()) ?? null,
+      });
     }
     for (const d of (dependentes ?? []) as any[]) {
-      pessoas.push({ tipo: "dependente", nome: d.nome_completo, ref: d.id });
+      pessoas.push({
+        tipo: "dependente",
+        nome: d.nome_completo,
+        ref: d.dependent_person_id ?? d.id,
+        tabela: d.dependent_person_id ? "case_members" : "case_dependents",
+        cliente: null,
+      });
     }
-    pessoas.push({ tipo: "contratada", nome: "Clube Ancestral (contratada)", ref: null });
+    pessoas.push({ tipo: "contratada", nome: "Clube Ancestral (contratada)", ref: null, tabela: null, cliente: null });
+
+    const semRef = pessoas.filter((p) => p.tipo !== "contratada" && !p.ref).map((p) => p.nome);
+    if (semRef.length)
+      throw new Error(
+        `Checklist por pessoa exige referência por ID. Sem referência: ${semRef.join(", ")}. Nenhuma linha foi criada por nome.`,
+      );
 
     const linhas: any[] = [];
     for (const p of pessoas) {
@@ -107,6 +135,8 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           pessoa_tipo: p.tipo,
           pessoa_nome: p.nome,
           pessoa_ref_id: p.ref,
+          pessoa_ref_tabela: p.tabela,
+          cliente_id: p.cliente,
           campo: c.campo,
           campo_rotulo: c.rotulo,
           obrigatorio: true,
@@ -128,6 +158,7 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
 
     return { criados: linhas.length, pessoas: pessoas.length };
   });
+
 
 /** Atualiza um item: status, fonte, data de verificação, acesso e observação. */
 export const salvarItemChecklist = createServerFn({ method: "POST" })

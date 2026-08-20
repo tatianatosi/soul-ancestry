@@ -40,7 +40,14 @@ export type ItemChecklist = {
   case_id: string;
   pessoa_tipo: PessoaTipo;
   pessoa_nome: string;
+  /** Referência obrigatória à pessoa do caso (case_members / case_dependents). */
   pessoa_ref_id?: string | null;
+  pessoa_ref_tabela?: string | null;
+  /** Cliente canônico do CRM, quando a pessoa já existe no cadastro. */
+  cliente_id?: string | null;
+  pessoa_nome_historico?: string | null;
+  reconciliado_em?: string | null;
+  reconciliacao_motivo?: string | null;
   campo: string;
   campo_rotulo: string;
   obrigatorio: boolean;
@@ -51,6 +58,36 @@ export type ItemChecklist = {
   observacao_interna?: string | null;
   ordem: number;
 };
+
+/**
+ * Chave de agrupamento por pessoa: sempre o ID de referência quando existe.
+ * O nome nunca é chave única — nomes divergentes do mesmo cadastro (caso Adair)
+ * não podem produzir duas pessoas distintas.
+ */
+export function chavePessoa(i: ItemChecklist): string {
+  return i.pessoa_ref_id ? `ref::${i.pessoa_ref_id}` : `${i.pessoa_tipo}::${i.pessoa_nome}`;
+}
+
+/**
+ * Guard de criação: pessoa física do caso exige referência por ID.
+ * Retorna o motivo do bloqueio, ou null quando a criação é permitida.
+ */
+export function bloqueioCriacaoPorNome(input: {
+  pessoa_tipo: PessoaTipo;
+  pessoa_nome: string;
+  pessoa_ref_id?: string | null;
+  pessoasExistentes?: { id: string; nome: string }[];
+}): string | null {
+  if (input.pessoa_tipo === "contratada") return null;
+  if (input.pessoa_ref_id) return null;
+  const homonimo = (input.pessoasExistentes ?? []).find(
+    (p) => p.nome.trim().toLowerCase() === input.pessoa_nome.trim().toLowerCase(),
+  );
+  if (homonimo)
+    return `Já existe pessoa registrada neste caso para "${input.pessoa_nome}": use a referência por ID, não o nome.`;
+  return "Checklist cadastral exige referência obrigatória à pessoa (pessoa_ref_id).";
+}
+
 
 /** Campos cadastrais de pessoa física titular/contratante. */
 export const CAMPOS_TITULAR = [
@@ -125,6 +162,9 @@ export function pendenciasCadastro(itens: ItemChecklist[]): PendenciaCadastro[] 
 export type ResumoPessoa = {
   pessoa_nome: string;
   pessoa_tipo: PessoaTipo;
+  pessoa_ref_id?: string | null;
+  cliente_id?: string | null;
+  pessoa_nome_historico?: string | null;
   total: number;
   resolvidos: number;
   pendentes: number;
@@ -134,16 +174,20 @@ export type ResumoPessoa = {
 export function resumoPorPessoa(itens: ItemChecklist[]): ResumoPessoa[] {
   const mapa = new Map<string, ItemChecklist[]>();
   for (const i of itens) {
-    const chave = `${i.pessoa_tipo}::${i.pessoa_nome}`;
+    const chave = chavePessoa(i);
     mapa.set(chave, [...(mapa.get(chave) ?? []), i]);
   }
-  return [...mapa.entries()]
-    .map(([chave, lista]) => {
+  return [...mapa.values()]
+    .map((lista) => {
+      const primeiro = lista[0]!;
       const resolvidos = lista.filter(itemResolvido).length;
       const pendentes = lista.filter((i) => i.obrigatorio && !itemResolvido(i)).length;
       return {
-        pessoa_nome: chave.split("::")[1] ?? "",
-        pessoa_tipo: (chave.split("::")[0] ?? "titular") as PessoaTipo,
+        pessoa_nome: primeiro.pessoa_nome,
+        pessoa_tipo: primeiro.pessoa_tipo,
+        pessoa_ref_id: primeiro.pessoa_ref_id ?? null,
+        cliente_id: primeiro.cliente_id ?? null,
+        pessoa_nome_historico: lista.find((i) => i.pessoa_nome_historico)?.pessoa_nome_historico ?? null,
         total: lista.length,
         resolvidos,
         pendentes,
@@ -152,6 +196,7 @@ export function resumoPorPessoa(itens: ItemChecklist[]): ResumoPessoa[] {
     })
     .sort((a, b) => a.pessoa_tipo.localeCompare(b.pessoa_tipo) || a.pessoa_nome.localeCompare(b.pessoa_nome));
 }
+
 
 /** Bloqueio de cadastro para os gates de formalização. */
 export function bloqueioCadastro(itens: ItemChecklist[]): { codigo: string; descricao: string } | null {

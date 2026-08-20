@@ -61,18 +61,31 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       supabase.from("drive_provisioning_queue").select("*").eq("case_id", data.id).is("archived_at", null),
     ]);
 
+    // Completude do núcleo por critérios persistidos (ANA-B-01), nunca por existência de linha.
+    const { data: completude } = await supabase.rpc("nucleo_completude", { _case: data.id });
+    const nucleoCompletude = (completude ?? { nucleo_id: null, itens: [], completo: false }) as {
+      nucleo_id: string | null;
+      itens: { chave: string; rotulo: string; ok: boolean; motivo: string | null }[];
+      completo: boolean;
+    };
+
     return {
       caso: caso.data as Linha,
       membros: (membros.data ?? []) as Linha[],
       log: (log.data ?? []) as Linha[],
       cliente: (cliente as any)?.data ?? null,
-      nucleoOk: ((nucleos.data ?? []) as Linha[]).length > 0,
+      nucleos: (nucleos.data ?? []) as Linha[],
+      nucleoCompletude,
+      nucleoCriterios: nucleoCompletude.itens,
+      nucleoPendencias: nucleoCompletude.itens.filter((i) => !i.ok),
+      nucleoOk: nucleoCompletude.completo,
       planoInicialOk: ((planos.data ?? []) as Linha[]).length > 0,
       timeline: (timeline.data ?? []) as Linha[],
       blueprint: (blueprint.data ?? []) as Linha[],
       filaDrive: (filaDrive.data ?? []) as Linha[],
     };
   });
+
 
 /** Lista enxuta de casos para a aba Casos do Desk. */
 export const listarCasosFicha = createServerFn({ method: "GET" })
