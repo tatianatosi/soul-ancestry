@@ -328,13 +328,15 @@ export function avaliarPlanoInicial(e: {
 }
 
 /** Campos de preço que nunca podem ser gravados livremente por caso/oportunidade. */
-export const CAMPOS_PRECO_BLOQUEADOS = ["preco_acordado", "preco_comercial_vigente", "valor_parcela", "valor_total_referencia"] as const;
+export const CAMPOS_PRECO_BLOQUEADOS = ["preco_acordado", "preco_comercial_vigente", "valor_total_referencia"] as const;
 
 /** Regra E5: qualquer gravação livre de preço fora do catálogo é recusada. */
 export function validarGravacaoPreco(input: {
   campos: Record<string, unknown>;
   precoCatalogo: number | null;
   elegibilidade: ElegibilidadePreco;
+  /** Parcelamento declarado, para conferir valor_parcela contra o total. */
+  parcelamento?: { parcelas: number | null; valor_parcela: number | null } | null;
 }): { permitido: boolean; erros: string[] } {
   const erros: string[] = [];
   for (const campo of CAMPOS_PRECO_BLOQUEADOS) {
@@ -347,6 +349,15 @@ export function validarGravacaoPreco(input: {
     }
     if (input.precoCatalogo == null || Math.abs(Number(valor) - input.precoCatalogo) >= 0.01) {
       erros.push(`${campo}: valor livre não permitido — deve espelhar o catálogo homologado.`);
+    }
+  }
+  const parc = input.parcelamento;
+  if (parc?.valor_parcela != null) {
+    const total = input.precoCatalogo;
+    if (!input.elegibilidade.elegivel || total == null) {
+      erros.push("valor_parcela: sem preço homologado no catálogo, nenhuma parcela pode ser derivada.");
+    } else if (!parc.parcelas || Math.abs(parc.parcelas * parc.valor_parcela - total) >= 0.01) {
+      erros.push("valor_parcela: parcelas × valor da parcela devem fechar exatamente com o total homologado.");
     }
   }
   return { permitido: erros.length === 0, erros };
