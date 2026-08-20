@@ -84,6 +84,7 @@ describe("CA-DEC-2026-08-17-04 — superfícies e conferência", () => {
         "CA-DEC-2026-08-17-04",
         "CA-DEC-2026-08-19-01",
         "CA-DEC-2026-08-20-01",
+        "CA-DEC-2026-08-20-02",
       ]),
     );
     for (const c of CONFERENCIA) expect(codigos.has(c.decisao)).toBe(true);

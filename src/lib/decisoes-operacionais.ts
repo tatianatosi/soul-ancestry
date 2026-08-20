@@ -634,3 +634,56 @@ DECISOES.push({
     "Encontro de Linhagem só é projetado ao cliente após aprovação no Desk.",
   ],
 });
+
+/**
+ * Cadeia de preço e condição — ordem única e obrigatória.
+ * Nenhum elo pode ser pulado e nenhum valor pode nascer fora do catálogo homologado.
+ */
+export const CADEIA_PRECO: { ordem: number; elo: string; regra: string }[] = [
+  { ordem: 1, elo: "product_catalog homologado", regra: "Única origem de SKU. Item em revisão não entra em proposta." },
+  { ordem: 2, elo: "Preço comercial vigente + condição padrão", regra: "Lidos do catálogo, com vigência e parcelas homologadas." },
+  { ordem: 3, elo: "Case service", regra: "Produto-pai, trilha, escopo e condição consolidados no caso." },
+  { ordem: 4, elo: "Exceção comercial aprovada, se houver", regra: "Único desvio permitido; exige aprovação registrada e vínculo ao case service." },
+  { ordem: 5, elo: "Parâmetros do Blueprint", regra: "Blueprint consome preço e condição; nunca cria preço, SKU ou condição." },
+  { ordem: 6, elo: "Proposta Canva", regra: "Artefato visual que recebe campos estruturados do Blueprint, sem editar valor." },
+];
+
+/** Cadeia operacional do caso — do Discovery ao caso ativo. */
+export const CADEIA_CASO: { ordem: number; etapa: string; regra: string }[] = [
+  { ordem: 1, etapa: "Discovery + Brief", regra: "Narrativa fica no Brief; só classificação e decisão vão a campo estruturado." },
+  { ordem: 2, etapa: "Oportunidade", regra: "Oportunidade não cria dossiê, pasta, contrato ou cobrança." },
+  { ordem: 3, etapa: "Produto-pai + Trilha + Núcleo + Escopo", regra: "Definição estruturada antes de qualquer artefato comercial." },
+  { ordem: 4, etapa: "Case service", regra: "Consolida produto-pai, trilha, escopo e condição do caso." },
+  { ordem: 5, etapa: "Dados paramétricos do Blueprint", regra: "Fases, entregas, critérios de aceite e preço de origem homologada." },
+  { ordem: 6, etapa: "Proposta Canva", regra: "Páginas 1–7 como fonte de escopo; permanece artefato visual." },
+  { ordem: 7, etapa: "Conferência de escopo e gates", regra: "Divergência bloqueia avanço; nada é resolvido por edição manual." },
+  { ordem: 8, etapa: "Contrato e OS", regra: "Um rascunho editável por caso/modelo; snapshot imutável a cada marco." },
+  { ordem: 9, etapa: "Pagamento Asaas", regra: "Só com contrato assinado e condição homologada; estado muda após confirmação da fonte." },
+  { ordem: 10, etapa: "Onboarding", regra: "Acesso e dossiê liberados após pagamento confirmado e checklist aprovado." },
+  { ordem: 11, etapa: "Caso ativo", regra: "Pesquisa externa, entregas e projeção ao cliente somente com o caso ativo." },
+];
+
+DECISOES.push({
+  codigo: "CA-DEC-2026-08-20-02",
+  titulo: "Cadeia canônica de preço e cadeia operacional do caso",
+  versao: "1.0",
+  data: "20/08/2026",
+  status: "aprovada — arquitetura",
+  escopo: "Origem de preço e condição, e sequência obrigatória do caso do Discovery ao caso ativo",
+  decisao:
+    "Preço e condição nascem apenas do product_catalog homologado (ou exceção aprovada) e descem para case service, Blueprint e proposta Canva. O caso percorre Discovery/Brief → Oportunidade → produto/trilha/núcleo/escopo → case service → Blueprint → proposta Canva → conferência de escopo e gates → contrato e OS → pagamento → onboarding → caso ativo, sem pular elos.",
+  itens: [
+    ...CADEIA_PRECO.map((c) => ({ rotulo: `Preço ${c.ordem}. ${c.elo}`, valor: c.regra })),
+    ...CADEIA_CASO.map((c) => ({ rotulo: `Caso ${c.ordem}. ${c.etapa}`, valor: c.regra })),
+  ],
+  limites: [
+    "Nenhum preço, SKU ou condição nasce em proposta, Blueprint, contrato ou campo manual.",
+    "Oportunidade não gera dossiê, pasta, contrato, cobrança ou comunicação.",
+    "Nenhum elo é pulado: conferência de escopo e gates precede contrato, pagamento e onboarding.",
+  ],
+  criteriosAceite: [
+    "Todo valor comercial do caso é rastreável até catálogo homologado ou exceção aprovada.",
+    "Blueprint e proposta apenas consomem o que já existe no case service.",
+    "Caso só fica ativo depois de contrato, pagamento confirmado e onboarding aprovado.",
+  ],
+});
