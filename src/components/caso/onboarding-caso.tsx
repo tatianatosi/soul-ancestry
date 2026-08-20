@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Secao, Selecao, inputCls } from "@/components/caso/campos";
+import { PainelJornadaPosGates } from "@/components/caso/jornada-pos-gates";
 import { PainelPlanoOnboarding } from "@/components/caso/onboarding-plano";
 import { atualizarItemOnboarding } from "@/lib/caso-canonico.functions";
 import { STATUS_ONBOARDING_ITEM, gatesClienteAtivo, rotulo } from "@/lib/caso-ficha";
@@ -42,6 +43,18 @@ export function AbaOnboarding({
   return (
     <div className="space-y-5">
       <PainelPlanoOnboarding caseId={String(caso.id)} />
+
+      <PainelJornadaPosGates
+        caseId={String(caso.id)}
+        estadoBase={{
+          contrato_assinado: Boolean(caso["contrato_assinado"]),
+          pagamento_confirmado: Boolean(caso["pagamento_confirmado"]),
+          responsavel_principal: caso["responsavel_principal"] ?? null,
+          nucleo_ok: Boolean(nucleo),
+          dossie_mae: nucleo?.dossie_mae_referencia ?? null,
+          plano_acao_ok: planoInicialOk,
+        }}
+      />
 
       <Secao titulo="Gates de cliente ativo" descricao="Nenhum caso é considerado ativo com gate pendente.">
 
