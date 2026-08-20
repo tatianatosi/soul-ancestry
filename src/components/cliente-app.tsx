@@ -268,12 +268,12 @@ export function ClienteApp() {
             [
               ["home", Home, "Home"],
               ["jornada", RouteIcon, "Jornada"],
-              ["entrega", Sparkles, "Entrega"],
-              ["relatorio", ClipboardList, "Fase 01"],
-              ["fase02", Layers, "Fase 02"],
               ["radar", Radar, "Radar"],
               ["arvore", TreeDeciduous, "Árvore"],
               ["docs", FileText, "Docs"],
+              ["entrega", Sparkles, "Entregas"],
+              ["relatorio", ClipboardList, "Fase 01"],
+              ["fase02", Layers, "Fase 02"],
               ["biblio", BookOpen, "Legado"],
               ["conta", User, "Conta"],
             ] as const
