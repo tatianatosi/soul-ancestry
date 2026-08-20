@@ -1287,7 +1287,9 @@ export type Database = {
           decidido_por: string | null
           entrega_codigo: string
           entrega_rotulo: string
+          evidencia_interna: string | null
           id: string
+          justificativa: string | null
           obrigatorio: boolean
           observacao_interna: string | null
           ordem: number
@@ -1311,7 +1313,9 @@ export type Database = {
           decidido_por?: string | null
           entrega_codigo: string
           entrega_rotulo: string
+          evidencia_interna?: string | null
           id?: string
+          justificativa?: string | null
           obrigatorio?: boolean
           observacao_interna?: string | null
           ordem?: number
@@ -1335,7 +1339,9 @@ export type Database = {
           decidido_por?: string | null
           entrega_codigo?: string
           entrega_rotulo?: string
+          evidencia_interna?: string | null
           id?: string
+          justificativa?: string | null
           obrigatorio?: boolean
           observacao_interna?: string | null
           ordem?: number
@@ -2446,6 +2452,122 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_conditions: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          case_service_id: string | null
+          codigo: string
+          condicao_aplicavel: string | null
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          forma_pagamento: string | null
+          homologado_em: string | null
+          homologado_por: string | null
+          id: string
+          observacao_interna: string | null
+          organization_id: string
+          origem: string
+          parcelas: number | null
+          primeiro_vencimento: string | null
+          product_catalog_id: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+          valor_parcela: number | null
+          valor_total_referencia: number | null
+          vencimento_dia: number | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          case_service_id?: string | null
+          codigo: string
+          condicao_aplicavel?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          forma_pagamento?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id: string
+          origem?: string
+          parcelas?: number | null
+          primeiro_vencimento?: string | null
+          product_catalog_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_parcela?: number | null
+          valor_total_referencia?: number | null
+          vencimento_dia?: number | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          case_service_id?: string | null
+          codigo?: string
+          condicao_aplicavel?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          forma_pagamento?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          origem?: string
+          parcelas?: number | null
+          primeiro_vencimento?: string | null
+          product_catalog_id?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          valor_parcela?: number | null
+          valor_total_referencia?: number | null
+          vencimento_dia?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_conditions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_conditions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_conditions_case_service_id_fkey"
+            columns: ["case_service_id"]
+            isOneToOne: false
+            referencedRelation: "case_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_conditions_product_catalog_id_fkey"
+            columns: ["product_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
             referencedColumns: ["id"]
           },
         ]
