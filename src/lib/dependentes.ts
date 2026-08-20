@@ -49,15 +49,23 @@ export type BloqueioDependente = { codigo: string; descricao: string; dependente
 
 /**
  * Bloqueios de formalização gerados pelos dependentes. A simples existência de
- * um dependente nunca bloqueia: só participação com representação pendente.
+ * um dependente nunca bloqueia: só participação em contrato, App ou anexo.
  */
 export function bloqueiosDependentes(lista: Dependente[]): BloqueioDependente[] {
   const out: BloqueioDependente[] = [];
   for (const d of lista) {
-    if (participaDeFormalizacao(d) && d.status_representacao === "pendente") {
+    const participa = participaDeFormalizacao(d);
+    if (participa && d.status_representacao !== "documentada") {
       out.push({
         codigo: "DEPENDENTE_REPRESENTACAO_PENDENTE",
-        descricao: `${d.nome_completo}: participa de contrato, App ou anexo individual com representação pendente.`,
+        descricao: `${d.nome_completo}: participa de contrato, App ou anexo individual sem representação documentada.`,
+        dependente: d.nome_completo,
+      });
+    }
+    if (participa && (!d.dependent_person_id || !d.titular_responsavel_legal_id)) {
+      out.push({
+        codigo: "DEPENDENTE_SEM_VINCULO_POR_ID",
+        descricao: `${d.nome_completo}: participação exige pessoa dependente e responsável legal referenciados por ID.`,
         dependente: d.nome_completo,
       });
     }
@@ -78,6 +86,7 @@ export function bloqueiosDependentes(lista: Dependente[]): BloqueioDependente[] 
   }
   return out;
 }
+
 
 /** Anexo individual só é aplicável quando explicitamente marcado no dependente. */
 export function anexosImpactados(lista: Dependente[]): string[] {

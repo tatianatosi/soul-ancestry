@@ -535,9 +535,21 @@ function FichaCaso() {
               <ul className="space-y-1 text-xs text-navy/60">
                 <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
                 <li>Pagamento confirmado: {caso["pagamento_confirmado"] ? "sim" : "não"}</li>
-                <li>Núcleo familiar/dossiê-mãe: {q.data?.nucleoOk ? "registrado" : "pendente"}</li>
                 <li>Plano inicial (tarefas): {q.data?.planoInicialOk ? "registrado" : "pendente"}</li>
               </ul>
+              <div className="rounded-lg border border-navy/10 bg-white/60 p-3">
+                <p className="text-xs font-semibold text-navy">Completude do núcleo familiar (critérios persistidos)</p>
+                <ul className="mt-2 space-y-1 text-xs">
+                  {(q.data?.nucleoCriterios ?? []).map((c) => (
+                    <li key={c.chave} className={c.ok ? "text-navy/60" : "text-terracotta"}>
+                      {c.ok ? "✓" : "•"} {c.rotulo}
+                      {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
+                    </li>
+                  ))}
+                  {(q.data?.nucleoCriterios ?? []).length === 0 ? <li className="text-navy/50">Sem critérios avaliados.</li> : null}
+                </ul>
+              </div>
+
               <Link to="/onboarding/$id" params={{ id }} className="text-xs font-medium text-navy underline">
                 Abrir painel de onboarding e ativação
               </Link>
