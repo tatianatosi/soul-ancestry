@@ -1014,6 +1014,110 @@ export type Database = {
           },
         ]
       }
+      case_service_criterios: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          case_service_id: string | null
+          created_at: string
+          created_by: string | null
+          criterio_codigo: string
+          criterio_descricao: string
+          decidido_em: string | null
+          decidido_por: string | null
+          entrega_codigo: string
+          entrega_rotulo: string
+          id: string
+          obrigatorio: boolean
+          observacao_interna: string | null
+          ordem: number
+          organization_id: string
+          origem_regra: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          case_service_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          criterio_codigo: string
+          criterio_descricao: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          entrega_codigo: string
+          entrega_rotulo: string
+          id?: string
+          obrigatorio?: boolean
+          observacao_interna?: string | null
+          ordem?: number
+          organization_id: string
+          origem_regra?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          case_service_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          criterio_codigo?: string
+          criterio_descricao?: string
+          decidido_em?: string | null
+          decidido_por?: string | null
+          entrega_codigo?: string
+          entrega_rotulo?: string
+          id?: string
+          obrigatorio?: boolean
+          observacao_interna?: string | null
+          ordem?: number
+          organization_id?: string
+          origem_regra?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_service_criterios_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_service_criterios_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_service_criterios_case_service_id_fkey"
+            columns: ["case_service_id"]
+            isOneToOne: false
+            referencedRelation: "case_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_service_criterios_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_services: {
         Row: {
           archive_motivo: string | null
