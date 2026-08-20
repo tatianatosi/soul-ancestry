@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_projections: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
+          archived_reason: string | null
+          case_id: string
+          content_sanitized: string
+          created_at: string
+          created_by: string | null
+          destination: string
+          effective_from: string | null
+          id: string
+          organization_id: string
+          projection_type: string
+          source_entity_id: string
+          source_entity_type: string
+          updated_at: string
+          updated_by: string | null
+          visibility_scope: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id: string
+          content_sanitized: string
+          created_at?: string
+          created_by?: string | null
+          destination: string
+          effective_from?: string | null
+          id?: string
+          organization_id: string
+          projection_type: string
+          source_entity_id: string
+          source_entity_type: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_scope?: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id?: string
+          content_sanitized?: string
+          created_at?: string
+          created_by?: string | null
+          destination?: string
+          effective_from?: string | null
+          id?: string
+          organization_id?: string
+          projection_type?: string
+          source_entity_id?: string
+          source_entity_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          visibility_scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_projections_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projections_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artifact_register: {
         Row: {
           archive_motivo: string | null
@@ -4938,6 +5019,187 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidence_validations: {
+        Row: {
+          confianca_anterior: string | null
+          confianca_nova: string
+          created_at: string
+          estado_anterior: string | null
+          estado_novo: string
+          evidence_id: string
+          id: string
+          justificativa: string
+          organization_id: string
+          revisado_em: string
+          revisado_por: string
+        }
+        Insert: {
+          confianca_anterior?: string | null
+          confianca_nova: string
+          created_at?: string
+          estado_anterior?: string | null
+          estado_novo: string
+          evidence_id: string
+          id?: string
+          justificativa: string
+          organization_id: string
+          revisado_em?: string
+          revisado_por: string
+        }
+        Update: {
+          confianca_anterior?: string | null
+          confianca_nova?: string
+          created_at?: string
+          estado_anterior?: string | null
+          estado_novo?: string
+          evidence_id?: string
+          id?: string
+          justificativa?: string
+          organization_id?: string
+          revisado_em?: string
+          revisado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_validations_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidences: {
+        Row: {
+          access_level: string
+          archived_at: string | null
+          archived_reason: string | null
+          case_id: string
+          confidence_level: string
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          description_internal: string | null
+          epistemic_validation_status: string
+          evidence_nature: string
+          evidence_type: string
+          id: string
+          legal_review_notes_internal: string | null
+          legal_review_status: string
+          negative_search_date: string | null
+          negative_search_next_action: string | null
+          negative_search_source: string | null
+          organization_id: string
+          reference_date: string | null
+          reference_location: string | null
+          research_item_id: string | null
+          research_person_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          storage_reference_internal: string | null
+          title_internal: string
+          updated_at: string
+          updated_by: string | null
+          workflow_status: string
+        }
+        Insert: {
+          access_level?: string
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id: string
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          description_internal?: string | null
+          epistemic_validation_status?: string
+          evidence_nature: string
+          evidence_type: string
+          id?: string
+          legal_review_notes_internal?: string | null
+          legal_review_status?: string
+          negative_search_date?: string | null
+          negative_search_next_action?: string | null
+          negative_search_source?: string | null
+          organization_id: string
+          reference_date?: string | null
+          reference_location?: string | null
+          research_item_id?: string | null
+          research_person_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          storage_reference_internal?: string | null
+          title_internal: string
+          updated_at?: string
+          updated_by?: string | null
+          workflow_status?: string
+        }
+        Update: {
+          access_level?: string
+          archived_at?: string | null
+          archived_reason?: string | null
+          case_id?: string
+          confidence_level?: string
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          description_internal?: string | null
+          epistemic_validation_status?: string
+          evidence_nature?: string
+          evidence_type?: string
+          id?: string
+          legal_review_notes_internal?: string | null
+          legal_review_status?: string
+          negative_search_date?: string | null
+          negative_search_next_action?: string | null
+          negative_search_source?: string | null
+          organization_id?: string
+          reference_date?: string | null
+          reference_location?: string | null
+          research_item_id?: string | null
+          research_person_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          storage_reference_internal?: string | null
+          title_internal?: string
+          updated_at?: string
+          updated_by?: string | null
+          workflow_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidences_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidences_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidences_research_person_id_fkey"
+            columns: ["research_person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidences_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]

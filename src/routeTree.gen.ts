@@ -75,6 +75,7 @@ import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_a
 import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
+import { Route as AuthenticatedBibliotecaEvidenciasCaseIdRouteImport } from './routes/_authenticated/biblioteca-evidencias.$caseId'
 import { Route as AuthenticatedAchadosCaseIdRouteImport } from './routes/_authenticated/achados.$caseId'
 import { Route as AuthenticatedCasosCaseIdIndexRouteImport } from './routes/_authenticated/casos.$caseId.index'
 import { Route as AuthenticatedCasosCaseIdContratoPrepararRouteImport } from './routes/_authenticated/casos.$caseId.contrato.preparar'
@@ -432,6 +433,12 @@ const AuthenticatedContratoParametrosIdRoute =
     path: '/contrato-parametros/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBibliotecaEvidenciasCaseIdRoute =
+  AuthenticatedBibliotecaEvidenciasCaseIdRouteImport.update({
+    id: '/biblioteca-evidencias/$caseId',
+    path: '/biblioteca-evidencias/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAchadosCaseIdRoute =
   AuthenticatedAchadosCaseIdRouteImport.update({
     id: '/achados/$caseId',
@@ -498,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
+  '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -567,6 +575,7 @@ export interface FileRoutesByTo {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
+  '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -639,6 +648,7 @@ export interface FileRoutesById {
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
+  '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -711,6 +721,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/achados/$caseId'
+    | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/governanca/criterios-aceite'
@@ -780,6 +791,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal'
     | '/achados/$caseId'
+    | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
     | '/governanca/criterios-aceite'
@@ -851,6 +863,7 @@ export interface FileRouteTypes {
     | '/portal/proposta'
     | '/portal/'
     | '/_authenticated/achados/$caseId'
+    | '/_authenticated/biblioteca-evidencias/$caseId'
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
     | '/_authenticated/governanca/criterios-aceite'
@@ -1357,6 +1370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratoParametrosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/biblioteca-evidencias/$caseId': {
+      id: '/_authenticated/biblioteca-evidencias/$caseId'
+      path: '/biblioteca-evidencias/$caseId'
+      fullPath: '/biblioteca-evidencias/$caseId'
+      preLoaderRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/achados/$caseId': {
       id: '/_authenticated/achados/$caseId'
       path: '/achados/$caseId'
@@ -1408,6 +1428,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
+  AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -1457,6 +1478,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,
+  AuthenticatedBibliotecaEvidenciasCaseIdRoute:
+    AuthenticatedBibliotecaEvidenciasCaseIdRoute,
   AuthenticatedContratoParametrosIdRoute:
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
