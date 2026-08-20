@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { runCanvasAudit } from "@/lib/canvas-audit";
 
+import { EstadoTelaCliente } from "@/components/cliente/estado-visibilidade";
+import { escopoDoRegistro } from "@/lib/app-visibilidade-registro";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
@@ -111,6 +113,7 @@ export function ClienteApp() {
     caso.rota.pais_principal,
     caso.geral.produto_atual,
   );
+  const escopoCliente = escopoDoRegistro(registro);
 
   useEffect(() => {
     const id = window.setTimeout(() => runCanvasAudit(), 400);
@@ -229,6 +232,7 @@ export function ClienteApp() {
             {tab === "jornada" && <JornadaTab caso={caso} />}
             {tab === "entrega" && (
               <PainelExpandido caso={caso} area="entrega">
+                <EstadoTelaCliente tela="entrega" escopo={escopoCliente} />
                 {modelo ? (
                   <EntregaModeloTab modelo={modelo} />
                 ) : (
@@ -238,11 +242,13 @@ export function ClienteApp() {
             )}
             {tab === "relatorio" && (
               <PainelExpandido caso={caso} area="fase1">
+                <EstadoTelaCliente tela="relatorio" escopo={escopoCliente} />
                 <RelatorioVisualTab caso={casoJornada} />
               </PainelExpandido>
             )}
             {tab === "fase02" && (
               <PainelExpandido caso={caso} area="fase2">
+                <EstadoTelaCliente tela="fase02" escopo={escopoCliente} />
                 <RelatorioFase02 registro={registro} />
               </PainelExpandido>
             )}
