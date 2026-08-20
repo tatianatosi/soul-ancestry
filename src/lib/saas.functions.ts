@@ -2,11 +2,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import type { AcaoGateada } from "@/lib/gates-formalizacao";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao, linhasDeLog } from "@/lib/persistencia.server";
+import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
 import {
   validarEstadoInicial,
   validarRegrasNegocio,
   validarTransicao,
 } from "@/lib/estados";
+
+/** Campos que compõem a Próxima ação (validados em conjunto no servidor). */
+const CAMPOS_PROXIMA_ACAO = [
+  "proxima_acao_codigo",
+  "proxima_acao_justificativa",
+  "prazo_proxima_acao",
+  "target_audience",
+  "visibility",
+  "suggested_channel",
+  "requires_human_approval",
+];
+
 
 /**
  * Camada de acesso do SaaS Clube Ancestral.
