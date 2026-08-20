@@ -125,14 +125,23 @@ export function DeskApp() {
       </aside>
 
       {/* mobile nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex overflow-x-auto border-t border-border bg-navy text-cream md:hidden">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 flex snap-x snap-mandatory overflow-x-auto border-t border-border bg-navy text-cream [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {nav.map(([id, Icon, label]) => (
           <button
             key={id}
+            ref={(el) => {
+              if (el && sec === id) {
+                el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+              }
+            }}
             onClick={() => setSec(id)}
+            aria-current={sec === id ? "page" : undefined}
             className={cn(
-              "flex min-w-[72px] shrink-0 flex-col items-center gap-1 px-2 py-2 text-[10px] leading-tight",
-              sec === id ? "text-gold" : "text-cream/70",
+              "flex min-w-[76px] shrink-0 snap-center flex-col items-center gap-1 px-2 py-2 text-[10px] leading-tight",
+              sec === id ? "border-t-2 border-gold text-gold" : "text-cream/70",
             )}
           >
             <Icon className="h-4 w-4" />
@@ -140,6 +149,7 @@ export function DeskApp() {
           </button>
         ))}
       </div>
+
 
 
       <main className="flex-1 overflow-x-hidden px-5 py-8 pb-24 md:px-8 md:pb-10">
