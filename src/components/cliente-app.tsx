@@ -268,8 +268,10 @@ export function ClienteApp() {
           "fixed bottom-0 left-1/2 z-40 w-full -translate-x-1/2 border-t border-border bg-white/95 backdrop-blur",
           wide ? "max-w-6xl" : "max-w-md",
         )}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="grid grid-cols-10">
+        <div className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-10 [&::-webkit-scrollbar]:hidden">
+
           {(
             [
               ["home", Home, "Home"],
@@ -289,18 +291,25 @@ export function ClienteApp() {
             return (
               <button
                 key={id}
+                ref={(el) => {
+                  if (el && isActive) {
+                    el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+                  }
+                }}
                 onClick={() => {
                   setTab(id);
                   setShowConta(id === "conta");
                 }}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition",
+                  "flex min-w-[68px] shrink-0 snap-center flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition sm:min-w-0",
                   isActive ? "text-navy" : "text-muted-foreground hover:text-navy",
                 )}
               >
                 <Icon className={cn("h-5 w-5", isActive && "text-gold")} />
-                <span>{label}</span>
+                <span className="whitespace-nowrap">{label}</span>
               </button>
+
             );
           })}
         </div>
