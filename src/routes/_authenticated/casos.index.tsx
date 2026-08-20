@@ -7,6 +7,7 @@ import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { verificarCondicoesCaso } from "@/lib/saas.functions";
 import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
+import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   head: () => ({
