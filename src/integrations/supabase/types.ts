@@ -6379,6 +6379,128 @@ export type Database = {
           },
         ]
       }
+      genealogical_sources_catalog: {
+        Row: {
+          acesso: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          autenticacao_necessaria: boolean
+          citizenship_track_id: string | null
+          cobertura_geografica: string | null
+          cobertura_temporal: string | null
+          created_at: string
+          created_by: string | null
+          custo: string
+          data_origin: string
+          estagio_maturidade: string
+          id: string
+          licenca_termos: string | null
+          modo_de_uso_permitido: string
+          nivel_de_fonte: string
+          nome: string
+          observacao_risco: string | null
+          organization_id: string
+          pais_eixo: string
+          prioridade: string
+          proxima_acao: string | null
+          responsavel_revisao: string | null
+          risco: string
+          scraping_status: string
+          status_documentacao: string
+          status_integracao: string
+          tipo_de_acervo: string
+          trata_dados_pessoais: boolean
+          ultima_verificacao: string | null
+          updated_at: string
+          updated_by: string | null
+          url_referencia_interna: string | null
+          uso_recomendado: string | null
+        }
+        Insert: {
+          acesso?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          autenticacao_necessaria?: boolean
+          citizenship_track_id?: string | null
+          cobertura_geografica?: string | null
+          cobertura_temporal?: string | null
+          created_at?: string
+          created_by?: string | null
+          custo?: string
+          data_origin?: string
+          estagio_maturidade?: string
+          id?: string
+          licenca_termos?: string | null
+          modo_de_uso_permitido?: string
+          nivel_de_fonte?: string
+          nome: string
+          observacao_risco?: string | null
+          organization_id: string
+          pais_eixo: string
+          prioridade?: string
+          proxima_acao?: string | null
+          responsavel_revisao?: string | null
+          risco?: string
+          scraping_status?: string
+          status_documentacao?: string
+          status_integracao?: string
+          tipo_de_acervo?: string
+          trata_dados_pessoais?: boolean
+          ultima_verificacao?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          url_referencia_interna?: string | null
+          uso_recomendado?: string | null
+        }
+        Update: {
+          acesso?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          autenticacao_necessaria?: boolean
+          citizenship_track_id?: string | null
+          cobertura_geografica?: string | null
+          cobertura_temporal?: string | null
+          created_at?: string
+          created_by?: string | null
+          custo?: string
+          data_origin?: string
+          estagio_maturidade?: string
+          id?: string
+          licenca_termos?: string | null
+          modo_de_uso_permitido?: string
+          nivel_de_fonte?: string
+          nome?: string
+          observacao_risco?: string | null
+          organization_id?: string
+          pais_eixo?: string
+          prioridade?: string
+          proxima_acao?: string | null
+          responsavel_revisao?: string | null
+          risco?: string
+          scraping_status?: string
+          status_documentacao?: string
+          status_integracao?: string
+          tipo_de_acervo?: string
+          trata_dados_pessoais?: boolean
+          ultima_verificacao?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          url_referencia_interna?: string | null
+          uso_recomendado?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genealogical_sources_catalog_citizenship_track_id_fkey"
+            columns: ["citizenship_track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_batches: {
         Row: {
           archived_at: string | null
@@ -12341,6 +12463,192 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      source_access_logs: {
+        Row: {
+          acesso_tipo: string
+          case_id: string | null
+          estrutura_futura: boolean
+          id: string
+          organization_id: string
+          registrado_em: string
+          registrado_por: string | null
+          resumo_interno: string | null
+          source_id: string
+        }
+        Insert: {
+          acesso_tipo?: string
+          case_id?: string | null
+          estrutura_futura?: boolean
+          id?: string
+          organization_id: string
+          registrado_em?: string
+          registrado_por?: string | null
+          resumo_interno?: string | null
+          source_id: string
+        }
+        Update: {
+          acesso_tipo?: string
+          case_id?: string | null
+          estrutura_futura?: boolean
+          id?: string
+          organization_id?: string
+          registrado_em?: string
+          registrado_por?: string | null
+          resumo_interno?: string | null
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_access_logs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_sources_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_evaluation_matrix: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          avaliado_em: string | null
+          avaliado_por: string | null
+          bloqueante: boolean
+          created_at: string
+          created_by: string | null
+          criterio: string
+          evidencia_interna: string | null
+          id: string
+          nota: number | null
+          organization_id: string
+          parecer_interno: string | null
+          source_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          avaliado_em?: string | null
+          avaliado_por?: string | null
+          bloqueante?: boolean
+          created_at?: string
+          created_by?: string | null
+          criterio: string
+          evidencia_interna?: string | null
+          id?: string
+          nota?: number | null
+          organization_id: string
+          parecer_interno?: string | null
+          source_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          avaliado_em?: string | null
+          avaliado_por?: string | null
+          bloqueante?: boolean
+          created_at?: string
+          created_by?: string | null
+          criterio?: string
+          evidencia_interna?: string | null
+          id?: string
+          nota?: number | null
+          organization_id?: string
+          parecer_interno?: string | null
+          source_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_evaluation_matrix_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_sources_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sources_activation_backlog: {
+        Row: {
+          acao_interna: string
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueio_atual: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          motivo: string
+          organization_id: string
+          prazo: string | null
+          prioridade: string
+          requires_human_approval: boolean
+          responsavel: string | null
+          resultado_interno: string | null
+          source_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          acao_interna: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_atual?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo: string
+          organization_id: string
+          prazo?: string | null
+          prioridade?: string
+          requires_human_approval?: boolean
+          responsavel?: string | null
+          resultado_interno?: string | null
+          source_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          acao_interna?: string
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_atual?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo?: string
+          organization_id?: string
+          prazo?: string | null
+          prioridade?: string
+          requires_human_approval?: boolean
+          responsavel?: string | null
+          resultado_interno?: string | null
+          source_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sources_activation_backlog_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_sources_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff_access: {
         Row: {
