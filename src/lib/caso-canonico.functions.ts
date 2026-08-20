@@ -50,8 +50,10 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       nucleos: (nucleos.data ?? []) as Linha[],
       membrosNucleo: ((membrosNucleo as any).data ?? []) as Linha[],
       entregas: (entregas.data ?? []) as Linha[],
+      aliases: (aliases.data ?? []) as Linha[],
     };
   });
+
 
 /** Cria ou atualiza o case service (produto-pai + trilha + escopo + condição comercial). */
 export const salvarCaseService = createServerFn({ method: "POST" })
