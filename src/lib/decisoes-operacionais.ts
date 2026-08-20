@@ -538,3 +538,99 @@ DECISOES.push({
     "Nenhuma ação externa é disparada por esta decisão.",
   ],
 });
+
+/**
+ * CA-DEC-2026-08-20-01 — Decisões consolidadas de Discovery, genealogia,
+ * catálogo, preço, despesas, Drive, complementos, Encontro de Linhagem e IA.
+ * Texto normativo somente leitura: nada aqui executa ação externa.
+ */
+export const DECISOES_CONSOLIDADAS: { numero: number; tema: string; regra: string }[] = [
+  {
+    numero: 1,
+    tema: "Discovery",
+    regra:
+      "Toda resposta narrativa de Discovery fica no Brief; somente classificação e decisão operacional vão para campos estruturados.",
+  },
+  {
+    numero: 2,
+    tema: "Estado genealógico",
+    regra:
+      "Toda resposta genealógica tem estado — confirmado, provável, hipótese, pendente ou refutado — com evidência quando confirmada.",
+  },
+  {
+    numero: 3,
+    tema: "Biblioteca Base",
+    regra:
+      "Perguntas repetíveis e normativas viram Biblioteca Base/dicionário; perguntas particulares permanecem no caso, pessoa ou pesquisa.",
+  },
+  {
+    numero: 4,
+    tema: "Roteiro Master",
+    regra:
+      "Roteiro Master não é duplicado em proposta ou contrato: orienta Discovery e Brief, enquanto o Desk preenche Blueprint/escopo com dados aprovados.",
+  },
+  {
+    numero: 5,
+    tema: "case_service",
+    regra: "Produto-pai, trilha, escopo e condição formam o case_service do caso.",
+  },
+  {
+    numero: 6,
+    tema: "Preço",
+    regra: "Preço vem de product_catalog homologado ou exceção aprovada, nunca de campo manual.",
+  },
+  {
+    numero: 7,
+    tema: "Despesas de terceiros",
+    regra:
+      "Despesas de terceiros ficam em Financeiro/Formalização, fora do preço de serviço, com aprovação e pagador identificados.",
+  },
+  {
+    numero: 8,
+    tema: "Drive",
+    regra:
+      "Drive é automação futura por gate e nunca cria dossiê operacional apenas porque uma oportunidade existe.",
+  },
+  {
+    numero: 9,
+    tema: "Complementos",
+    regra:
+      "Pacotes WhatsApp e Familiar Conectado entram como complementos contextuais no catálogo; não ativam comunicação ou família automaticamente.",
+  },
+  {
+    numero: 10,
+    tema: "Encontro de Linhagem",
+    regra: "Encontro de Linhagem nasce no Desk e só aparece no App como projeção aprovada.",
+  },
+  {
+    numero: 11,
+    tema: "IA",
+    regra:
+      "IA sugere e explica, mas não confirma elegibilidade, cria contrato, cobra, pesquisa externamente, publica ou envia mensagem.",
+  },
+];
+
+DECISOES.push({
+  codigo: "CA-DEC-2026-08-20-01",
+  titulo: "Decisões consolidadas — Discovery, genealogia, catálogo, preço e IA",
+  versao: "1.0",
+  data: "20/08/2026",
+  status: "aprovada — arquitetura",
+  escopo: "Discovery e Brief, estados genealógicos, Biblioteca Base, Roteiro Master, case_service, preço, despesas, Drive, complementos, Encontro de Linhagem e IA",
+  decisao:
+    "Narrativa vive no Brief e classificação vive em campo estruturado; genealogia sempre tem estado declarado; preço e escopo vêm de fonte homologada; Drive, comunicação, publicação e IA nunca agem sozinhos.",
+  itens: DECISOES_CONSOLIDADAS.map((d) => ({ rotulo: `${d.numero}. ${d.tema}`, valor: d.regra })),
+  limites: [
+    "Nenhum campo estruturado recebe texto narrativo de Discovery.",
+    "Nenhum preço é digitado manualmente fora de catálogo homologado ou exceção aprovada.",
+    "Drive, WhatsApp, Familiar Conectado e publicação no App não são acionados automaticamente.",
+    "IA não confirma elegibilidade nem executa contrato, cobrança, pesquisa externa, publicação ou mensagem.",
+  ],
+  criteriosAceite: [
+    "Toda resposta genealógica exibe estado e, quando confirmada, evidência vinculada.",
+    "Roteiro Master não aparece duplicado em proposta ou contrato.",
+    "case_service concentra produto-pai, trilha, escopo e condição.",
+    "Despesas de terceiros aparecem separadas do preço de serviço, com aprovação e pagador.",
+    "Encontro de Linhagem só é projetado ao cliente após aprovação no Desk.",
+  ],
+});
