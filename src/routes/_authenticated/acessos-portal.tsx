@@ -457,6 +457,7 @@ function AcessosPortalPage() {
               disabled={
                 !clientId ||
                 !autorizacaoId ||
+                !!bloqueioSelecionado?.bloqueado ||
                 (nivel === "client_workspace" && !casoId) ||
                 mConvite.isPending
               }
