@@ -11,8 +11,26 @@ import {
   definirLiberacaoCaso,
   listarAcessosPortal,
   listarEventosAcesso,
+  registrarEmailAutorizado,
   reenviarConvitePortal,
+  validarEmailAutorizado,
 } from "@/lib/portal.functions";
+import {
+  bloqueioDaPessoa,
+  bloqueioDoCaso,
+  emailsElegiveis,
+  estadoDoLink,
+  EVENTO_LABEL,
+  NIVEL_DESCRICAO,
+  NIVEL_LABEL,
+  STATUS_ACESSO_LABEL,
+  STATUS_AUTORIZACAO_LABEL,
+  type AutorizacaoEmail,
+  type CasoPortal,
+  type NivelPortal,
+  type PessoaPortal,
+} from "@/lib/portal-elegibilidade";
+
 
 export const Route = createFileRoute("/_authenticated/acessos-portal")({
   head: () => ({
