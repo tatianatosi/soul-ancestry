@@ -9223,16 +9223,21 @@ export type Database = {
           created_at: string
           created_by: string | null
           descricao_interna: string | null
+          homologacao_criterio: string | null
+          homologado_em: string | null
+          homologado_por: string | null
           id: string
           organization_id: string
           owner: string | null
           referencia_interna: string | null
           status: string
           substitui_item_id: string | null
+          substituido_por_item_id: string | null
           titulo: string
           updated_at: string
           updated_by: string | null
           versao: string
+          vigencia_estado: string
         }
         Insert: {
           archive_motivo?: string | null
@@ -9243,16 +9248,21 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           descricao_interna?: string | null
+          homologacao_criterio?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
           id?: string
           organization_id: string
           owner?: string | null
           referencia_interna?: string | null
           status?: string
           substitui_item_id?: string | null
+          substituido_por_item_id?: string | null
           titulo: string
           updated_at?: string
           updated_by?: string | null
           versao?: string
+          vigencia_estado?: string
         }
         Update: {
           archive_motivo?: string | null
@@ -9263,21 +9273,33 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           descricao_interna?: string | null
+          homologacao_criterio?: string | null
+          homologado_em?: string | null
+          homologado_por?: string | null
           id?: string
           organization_id?: string
           owner?: string | null
           referencia_interna?: string | null
           status?: string
           substitui_item_id?: string | null
+          substituido_por_item_id?: string | null
           titulo?: string
           updated_at?: string
           updated_by?: string | null
           versao?: string
+          vigencia_estado?: string
         }
         Relationships: [
           {
             foreignKeyName: "master_library_items_substitui_item_id_fkey"
             columns: ["substitui_item_id"]
+            isOneToOne: false
+            referencedRelation: "master_library_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_library_items_substituido_por_item_id_fkey"
+            columns: ["substituido_por_item_id"]
             isOneToOne: false
             referencedRelation: "master_library_items"
             referencedColumns: ["id"]
