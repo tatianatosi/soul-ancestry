@@ -11,6 +11,7 @@ import {
   prepararLoginEquipe,
 } from "@/lib/equipe.functions";
 import { EquipeMoldura } from "@/components/equipe/moldura";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 
 export const Route = createFileRoute("/equipe/entrar")({
@@ -38,9 +39,11 @@ function EntrarEquipe() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const pronto = useHydrated();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!pronto) return;
     setErro(null);
     setCarregando(true);
     try {
@@ -69,7 +72,7 @@ function EntrarEquipe() {
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
-      <form onSubmit={onSubmit} className="space-y-4" autoComplete="on">
+      <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
         <div>
           <label htmlFor="email" className="text-sm font-medium text-navy">
             E-mail corporativo
@@ -103,10 +106,10 @@ function EntrarEquipe() {
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
         <button
           type="submit"
-          disabled={carregando}
+          disabled={carregando || !pronto}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {carregando ? "Entrando…" : "Entrar"}
+          {!pronto ? "Carregando…" : carregando ? "Entrando…" : "Entrar"}
         </button>
       </form>
 
@@ -161,7 +164,7 @@ function PrimeiroAcesso() {
   }
 
   return (
-    <form onSubmit={criarConta} className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
+    <form onSubmit={criarConta} method="post" action="?" className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
       <p className="text-sm font-medium text-navy">Primeiro acesso da organização</p>
       <p className="text-xs text-navy/60">
         Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador. Depois disso, novos

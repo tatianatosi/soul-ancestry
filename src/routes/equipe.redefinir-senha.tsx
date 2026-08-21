@@ -102,7 +102,7 @@ function RedefinirSenha() {
       ) : !pronto ? (
         <p className="text-sm text-navy/60">Validando link…</p>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4" autoComplete="on">
+        <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
           <div>
             <label htmlFor="senha" className="text-sm font-medium text-navy">
               Nova senha
