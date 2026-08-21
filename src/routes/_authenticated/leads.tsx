@@ -9,6 +9,8 @@ import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
+import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
+
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
@@ -454,7 +456,12 @@ function LeadsPage() {
         </p>
         <PainelCanonicoCrm podeEscrever={podeEscrever} />
       </div>
+
+      <div id="crm-templates" className="mt-6 scroll-mt-24">
+        <TemplatesWhatsapp />
+      </div>
       <PainelDeskHoje />
+
     </SaasShell>
   );
 }
