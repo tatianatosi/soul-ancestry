@@ -147,3 +147,20 @@ export function rotuloPrazo(prazo: string | null | undefined): string {
   if (dias === 0) return "Vence hoje";
   return `Vence em ${dias} dia(s)`;
 }
+
+/**
+ * Texto livre que vai para auditoria. A auditoria é append-only e não pode
+ * guardar token, link mágico, número de documento ou conteúdo de anexo.
+ */
+export function sanitizarParaLog(valor: string | null | undefined, max = 400): string | null {
+  if (typeof valor !== "string") return null;
+  let t = valor.trim();
+  if (!t) return null;
+  t = t
+    .replace(/https?:\/\/\S+/gi, "[link removido]")
+    .replace(/\b(token|access_token|magic|otp|senha|password|pix)\b\s*[:=]?\s*\S+/gi, "[dado sensível removido]")
+    .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, "[e-mail removido]")
+    .replace(/\b[\d][\d.\-/\s]{6,}\d\b/g, "[número removido]");
+  return t.slice(0, max);
+}
+
