@@ -82,6 +82,7 @@ export const EIXO_COMERCIAL: Opcao[] = [
 
 export const EIXO_FORMALIZACAO: Opcao[] = [
   { valor: "nao_iniciado", rotulo: "Não iniciado" },
+  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
   { valor: "contrato_enviado", rotulo: "Contrato enviado" },
   { valor: "contrato_assinado", rotulo: "Contrato assinado" },
   { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
@@ -216,6 +217,7 @@ export function resultadoComercialDerivado(l: LeadDesk): string {
   if (l.eixo_formalizacao === "pagamento_inicial_confirmado") return "Ganho — pagamento confirmado";
   if (l.eixo_formalizacao === "contrato_assinado") return "Ganho — contrato assinado";
   if (l.eixo_formalizacao === "contrato_enviado") return "Em formalização";
+  if (l.eixo_formalizacao === "confirmacao_formal_recebida") return "Aceite confirmado — formalização pendente";
   if (l.eixo_comercial === "nutricao") return "Em nutrição";
   return "Em andamento comercial";
 }
@@ -487,8 +489,8 @@ export function escadaConversao(l: LeadDesk): DegrauEscada[] {
   const atingiu = (v: string) => idx(f) >= 0 && idx(v) >= 0 && idx(f) >= idx(v);
 
   const aceiteVerbal = c === "negociacao" || c === "proposta_enviada" || idx(f) > 0;
-  /** Confirmação formal no lead = preparação da formalização iniciada (contrato enviado em diante). */
-  const confirmacao = atingiu("contrato_enviado");
+  /** Confirmação formal registrada no eixo de formalização (não antecipa contrato nem cobrança). */
+  const confirmacao = atingiu("confirmacao_formal_recebida");
   const contratoOk = atingiu("contrato_assinado");
   const pagamentoOk = atingiu("pagamento_inicial_confirmado");
   const onboardingOk = atingiu("onboarding_iniciado");
