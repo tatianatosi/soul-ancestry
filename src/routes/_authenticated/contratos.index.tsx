@@ -1,3 +1,5 @@
+import { PainelCatalogo } from "@/components/painel/painel-catalogo";
+import { PainelTop30 } from "@/components/painel/painel-top30";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -159,6 +161,8 @@ function ContratosPage() {
           </table>
         </div>
       )}
+      <PainelCatalogo />
+      <PainelTop30 />
     </SaasShell>
   );
 }

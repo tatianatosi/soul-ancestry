@@ -1,3 +1,4 @@
+import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -453,6 +454,7 @@ function LeadsPage() {
         </p>
         <PainelCanonicoCrm podeEscrever={podeEscrever} />
       </div>
+      <PainelDeskHoje />
     </SaasShell>
   );
 }
