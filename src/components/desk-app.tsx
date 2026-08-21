@@ -1151,6 +1151,9 @@ function Alertas() {
 
 /* --- Biblioteca Mestre --- */
 function BiblioMestre() {
+  const [sub, setSub] = useState<SubareaBiblioteca>("acervo");
+  const meta = SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub)!;
+
   const groups = [
     {
       client: "Marina Alves",
@@ -1182,43 +1185,94 @@ function BiblioMestre() {
       : s === "Revisão"
         ? "bg-blue-100 text-blue-700"
         : "bg-orange-100 text-orange-700";
+
   return (
     <div className="space-y-8">
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Curadoria interna</div>
         <h1 className="font-serif text-3xl italic text-navy">Biblioteca Mestre</h1>
         <p className="mt-1 text-[13px] text-navy/70">
-          Todos os conteúdos produzidos, organizados por caso.
+          Subáreas contextuais da biblioteca — conteúdo interno, sem exposição ao App Cliente.
         </p>
       </header>
 
-      {groups.map((g) => (
-        <section key={g.client}>
-          <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="font-serif text-xl text-navy">{g.client}</h3>
-            <span className="text-[12px] text-navy/70">{g.items.length} peças</span>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {g.items.map((it) => (
-              <div key={it.t} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-widest text-gold">{it.type}</span>
-                  <span
-                    className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", chip(it.s))}
-                  >
-                    {it.s}
-                  </span>
+      <nav className="flex flex-wrap gap-2">
+        {SUBAREAS_BIBLIOTECA.map((s) => (
+          <button
+            key={s.chave}
+            type="button"
+            onClick={() => setSub(s.chave)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-[12px] font-medium transition",
+              sub === s.chave
+                ? "border-navy bg-navy text-cream"
+                : "border-border bg-white text-navy/70 hover:border-gold",
+            )}
+          >
+            {s.label}
+          </button>
+        ))}
+      </nav>
+
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="text-[11px] uppercase tracking-widest text-gold">Subárea</div>
+        <h2 className="font-serif text-2xl text-navy">{meta.label}</h2>
+        <p className="mt-1 text-[13px] text-navy/70">{meta.finalidade}</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {meta.dimensoes.map((d) => (
+            <div key={d} className="rounded-lg bg-cream/60 px-3 py-2 text-[12px] text-navy">
+              {d}
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-[12px] text-navy">
+          Regra interna: {meta.regra}
+        </p>
+      </section>
+
+      {sub === "acervo" &&
+        groups.map((g) => (
+          <section key={g.client}>
+            <div className="mb-3 flex items-baseline justify-between">
+              <h3 className="font-serif text-xl text-navy">{g.client}</h3>
+              <span className="text-[12px] text-navy/70">{g.items.length} peças</span>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {g.items.map((it) => (
+                <div key={it.t} className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-widest text-gold">
+                      {it.type}
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        chip(it.s),
+                      )}
+                    >
+                      {it.s}
+                    </span>
+                  </div>
+                  <div className="font-serif text-lg text-navy">{it.t}</div>
+                  <div className="mt-3 h-24 rounded-lg bg-gradient-to-br from-cream to-muted" />
                 </div>
-                <div className="font-serif text-lg text-navy">{it.t}</div>
-                <div className="mt-3 h-24 rounded-lg bg-gradient-to-br from-cream to-muted" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </section>
+        ))}
+
+      {sub !== "acervo" && (
+        <section className="rounded-2xl border border-dashed border-border bg-cream/40 p-6 text-center">
+          <p className="text-[13px] text-navy/70">
+            Nenhum item catalogado nesta subárea ainda. Os registros entram pelas rotinas internas de
+            curadoria e permanecem restritos ao Desk.
+          </p>
         </section>
-      ))}
+      )}
     </div>
   );
 }
+
 
 /* --- Checklist AppCliente por caso --- */
 function ChecklistAppCliente() {
