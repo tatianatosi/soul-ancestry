@@ -14,6 +14,10 @@ export type GateAtivacao = {
   ok: boolean;
   responsavel: string;
   motivo: string | null;
+  /** Registro canônico que resolve a pendência (um clique). */
+  destino: { rota: string; rotulo: string };
+  /** Evidência exigida para validar o requisito. */
+  evidencia: string;
 };
 
 const preenchido = (v: unknown) => typeof v === "string" && v.trim().length > 0;
@@ -36,12 +40,34 @@ export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
   const pago = Boolean(caso["pagamento_confirmado"]);
   const ativacaoAprovada = preenchido(caso["ativado_em"]) || String(caso["ativacao_operacional"] ?? "") === "aprovada";
 
+  const caseId = String(caso["id"] ?? "");
+  const destinos: Record<string, { rota: string; rotulo: string }> = {
+    escopo_sku_preco: { rota: `/casos/${caseId}/contrato/preparar`, rotulo: "Abrir reconciliação de oferta" },
+    canva_completo: { rota: `/casos/${caseId}`, rotulo: "Abrir ficha comercial do caso" },
+    instrumentos_preparados: { rota: `/casos/${caseId}/contrato/preparar`, rotulo: "Abrir preparação de instrumentos" },
+    assinatura: { rota: "/contratos", rotulo: "Abrir contratos e assinaturas" },
+    cobranca_aprovada: { rota: "/financeiro", rotulo: "Abrir aprovação de cobrança" },
+    pagamento_confirmado: { rota: "/financeiro", rotulo: "Abrir confirmação de pagamento" },
+    aprovacao_ativacao: { rota: `/onboarding/${caseId}`, rotulo: "Abrir requisitos e decisão de ativação" },
+  };
+  const evidencias: Record<string, string> = {
+    escopo_sku_preco: "Registro de conferência com data, autor e versão de escopo/SKU/preço.",
+    canva_completo: "Proposta aprovada (páginas 1–7) com campos mandatórios validados.",
+    instrumentos_preparados: "Prévia contratual, Anexo I e OS gerados da fonte aprovada e revisados.",
+    assinatura: "Contrato assinado: versão, data, partes e referência externa.",
+    cobranca_aprovada: "Aprovação humana de cobrança registrada no financeiro.",
+    pagamento_confirmado: "Confirmação na fonte transacional (não basta informe verbal).",
+    aprovacao_ativacao: "Decisão humana de ativação: quem aprovou, quando e com qual evidência.",
+  };
+
   const g = (chave: string, rotulo: string, ok: boolean, responsavel: string, motivo: string): GateAtivacao => ({
     chave,
     rotulo,
     ok,
     responsavel,
     motivo: ok ? null : motivo,
+    destino: destinos[chave] ?? { rota: `/onboarding/${caseId}`, rotulo: "Abrir requisitos de ativação" },
+    evidencia: evidencias[chave] ?? "Evidência documental registrada.",
   });
 
   return [
@@ -103,6 +129,7 @@ export function resumoGatesAtivacao(caso: Linha): {
   total: number;
   elegivel: boolean;
   rotuloBotao: string;
+  rotaAcao: string;
 } {
   const itens = gatesAtivacaoFicha(caso);
   const concluidos = itens.filter((i) => i.ok).length;
@@ -113,6 +140,9 @@ export function resumoGatesAtivacao(caso: Linha): {
     total: itens.length,
     elegivel,
     rotuloBotao: elegivel ? "Ativar caso" : "Ver requisitos de ativação",
+    // Mesmo elegível, a ativação acontece na tela de requisitos, onde a
+    // decisão humana é registrada e revalidada no servidor.
+    rotaAcao: `/onboarding/${String(caso["id"] ?? "")}`,
   };
 }
 
@@ -245,3 +275,12 @@ export const ESCOPO_SOLICITACAO_D1 = {
     "Comunicações de boas-vindas.",
   ],
 };
+
+/** Condições mínimas para que uma exceção altere um gate. Exceção não é marcação manual. */
+export const REGRAS_EXCECAO_GATE = [
+  "Somente perfis autorizados (admin ou operações) podem registrar exceção.",
+  "Justificativa escrita obrigatória, vinculada ao requisito específico.",
+  "Evidência documental anexada; ausência de evidência invalida a exceção.",
+  "Validade com data-limite: exceção expirada volta a bloquear a ativação.",
+  "Exceção, validação, invalidação e tentativa bloqueada ficam na trilha de auditoria.",
+];
