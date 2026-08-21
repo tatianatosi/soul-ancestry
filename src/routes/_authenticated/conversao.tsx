@@ -102,8 +102,13 @@ function Conversao() {
     { r: "Leads ativos sem próxima ação", l: dados.saude.leadsSemProximaAcao },
     { r: "Follow-ups vencidos", l: dados.saude.followupsVencidos },
     { r: "Propostas sem resposta", l: dados.saude.propostasSemResposta },
-    { r: "Aceite verbal sem confirmação formal", l: dados.saude.aceiteVerbalSemFormalizacao },
-    { r: "Inconsistências de sequência", l: dados.saude.inconsistencias },
+    {
+      r: "Aceite verbal sem confirmação formal",
+      l: dados.saude.aceiteVerbalSemFormalizacao,
+      nota: "Sempre exibido quando o estado existe, inclusive em registros de demonstração.",
+    },
+    { r: "Inconsistências de sequência", l: dados.saude.inconsistencias, nota: "Inclui integridade de eventos fora do filtro." },
+
   ];
 
   return (
