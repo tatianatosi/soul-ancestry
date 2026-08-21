@@ -11,6 +11,7 @@ import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
+import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
   AREAS_RESPONSAVEIS,
   CATALOGOS,
   EIXO_COMERCIAL,
@@ -453,6 +454,7 @@ function LeadsPage() {
         </p>
         <PainelCanonicoCrm podeEscrever={podeEscrever} />
       </div>
+      <PainelDeskHoje />
     </SaasShell>
   );
 }
