@@ -866,6 +866,10 @@ function AbaPessoas({
   const [novo, setNovo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
 
+  const carregarNucleos = useServerFn(listarNucleos);
+  const qNucleos = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregarNucleos(), retry: false });
+  const temNucleo = ((qNucleos.data ?? []) as { case_id: string | null }[]).some((n) => n.case_id === casoId);
+
   const mCriar = useMutation({
     mutationFn: () => criar({ data: { entidade: "case_members", dados: { case_id: casoId, nome: novo.trim() } } }),
     onSuccess: () => {
@@ -875,6 +879,10 @@ function AbaPessoas({
     },
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao criar pessoa."),
   });
+
+  // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
+  if (temNucleo) return <PessoasDoNucleo caseId={casoId} />;
+
 
   return (
     <div className="space-y-5">
