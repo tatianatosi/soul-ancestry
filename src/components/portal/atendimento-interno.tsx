@@ -21,11 +21,27 @@ import {
   STATUS_ENVIO,
   STATUS_SOLICITACAO,
   STATUS_TICKET,
+  VISIBILIDADE_ENTREGA_LABEL,
+  VISIBILIDADE_FATURA_LABEL,
   bloqueioAtendimento,
   bloqueioFatura,
+  estadoCasoAtendimento,
   rotuloPrazo,
   type CasoAtendimento,
 } from "@/lib/atendimento";
+
+type Confirmacao = {
+  tipo: "entrega" | "fatura";
+  liberar: boolean;
+  id: string;
+  caso: string;
+  item: string;
+  classificacao: string;
+  visibilidade: string;
+  responsavel: string;
+  versaoAtual?: string | null;
+};
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
