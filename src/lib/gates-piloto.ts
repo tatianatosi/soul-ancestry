@@ -12,36 +12,14 @@ export type GatePiloto = {
 };
 
 export const GATES_PILOTO: GatePiloto[] = [
-  {
-    numero: 1,
-    codigo: "identidade",
-    nome: "Identidade e participantes",
-    objetivo: "Um único identificador canônico e núcleo familiar descrito com evidência documental.",
-  },
-  {
-    numero: 2,
-    codigo: "oferta",
-    nome: "Oferta e escopo",
-    objetivo: "Proposta aprovada reconciliada com catálogo homologado, escopo e participantes.",
-  },
-  {
-    numero: 3,
-    codigo: "contrato",
-    nome: "Contrato e assinatura",
-    objetivo: "Partes qualificadas, contrato preparado, revisado e assinado com registro externo.",
-  },
-  {
-    numero: 4,
-    codigo: "financeiro",
-    nome: "Financeiro",
-    objetivo: "Condição financeira aprovada por responsável humano e cobrança autorizada manualmente.",
-  },
-  {
-    numero: 5,
-    codigo: "ativacao",
-    nome: "Ativação e consentimento",
-    objetivo: "Consentimento, dossiê mínimo e autorização registrados antes de qualquer ativação.",
-  },
+  { numero: 1, codigo: "a_governanca", nome: "A — Governança e identidade canônica", objetivo: "Um único case_id canônico decidido por humano; o ID não escolhido vira alias/histórico." },
+  { numero: 2, codigo: "b_cadastro", nome: "B — Cadastro, consentimento e núcleo familiar", objetivo: "Cadastro da contratante, consentimento registrado e participantes qualificados com evidência documental." },
+  { numero: 3, codigo: "c_oferta", nome: "C — Proposta, SKU, preço, escopo, parcelamento e vencimento", objetivo: "Reconciliação com catálogo homologado e proposta aprovada; nenhum código ou preço criado no Desk." },
+  { numero: 4, codigo: "d_juridico", nome: "D — Jurídico, partes, anexos e assinatura", objetivo: "Partes qualificadas, revisão jurídica, método de assinatura e registro externo da assinatura." },
+  { numero: 5, codigo: "e_contrato", nome: "E — Contrato específico e Ordem de Serviço", objetivo: "MODELO ESTUDO com base genérica v2 e Anexo I/OS preparados para revisão interna." },
+  { numero: 6, codigo: "f_financeiro", nome: "F — Financeiro", objetivo: "Condição financeira aprovada e cobrança autorizada manualmente após contrato assinado." },
+  { numero: 7, codigo: "g_pesquisa", nome: "G — Pesquisa externa, despesas e diligências", objetivo: "Autorização registrada antes de qualquer pesquisa externa ou solicitação institucional." },
+  { numero: 8, codigo: "h_operacao", nome: "H — Operação, portal e conteúdo client-facing", objetivo: "Dossiê mínimo validado e aprovação interna antes de ativação, portal ou conteúdo ao cliente." },
 ];
 
 export type RequisitoBloqueio = {
@@ -54,115 +32,115 @@ export type RequisitoBloqueio = {
 /** chave do bloqueio → gate, responsável, evidência mínima e origem permitida. */
 export const REQUISITOS_BLOQUEIO: Record<string, RequisitoBloqueio> = {
   id_canonico_pendente: {
-    gate: "identidade",
+    gate: "a_governanca",
     responsavel: "Governança / Operações",
     evidencia: "Decisão humana registrada do case_id canônico; o outro ID permanece como alias.",
     origem: "Decisão interna registrada",
   },
   alice_nome_completo: {
-    gate: "identidade",
+    gate: "b_cadastro",
     responsavel: "Cadastro / Operações",
     evidencia: "Documento de identificação com nome civil completo.",
     origem: "Documento",
   },
   felipe_representacao_legal: {
-    gate: "identidade",
+    gate: "b_cadastro",
     responsavel: "Jurídico interno",
     evidencia: "Comprovação de representação legal do menor e vínculo com a contratante.",
     origem: "Documento",
   },
   cadastro_contratante_pendente: {
-    gate: "identidade",
+    gate: "b_cadastro",
     responsavel: "Cadastro / Operações",
     evidencia: "Ficha cadastral completa da contratante com origem em documento.",
     origem: "Documento ou formulário validado",
   },
   pacote_familiar_sem_sku: {
-    gate: "oferta",
+    gate: "c_oferta",
     responsavel: "Comercial + Catálogo",
     evidencia: "SKU homologado no catálogo para o pacote familiar, sem criação de código no Desk.",
     origem: "Catálogo homologado",
   },
   reconciliacao_comercial_pendente: {
-    gate: "oferta",
+    gate: "c_oferta",
     responsavel: "Comercial",
     evidencia: "SKU, preço, escopo, parcelamento e vencimento conferidos contra a fonte homologada.",
     origem: "Catálogo homologado + proposta aprovada",
   },
   dados_contratada_pendentes: {
-    gate: "oferta",
+    gate: "c_oferta",
     responsavel: "Administrativo",
     evidencia: "Perfil institucional versionado e aprovado da contratada.",
     origem: "Registro institucional",
   },
   anexo_os_pendente: {
-    gate: "oferta",
+    gate: "e_contrato",
     responsavel: "Operações",
     evidencia: "Anexo I / Ordem de Serviço com escopo idêntico à proposta aceita.",
     origem: "Proposta aprovada",
   },
   partes_qualificadas: {
-    gate: "contrato",
+    gate: "d_juridico",
     responsavel: "Jurídico interno",
     evidencia: "Qualificação completa das partes validada por revisão humana.",
     origem: "Documento",
   },
   contrato_especifico_pendente: {
-    gate: "contrato",
+    gate: "e_contrato",
     responsavel: "Operações",
     evidencia: "Versão específica do caso gerada a partir do MODELO ESTUDO / base genérica v2.",
     origem: "Preparação interna",
   },
   revisao_juridica_pendente: {
-    gate: "contrato",
+    gate: "d_juridico",
     responsavel: "Jurídico interno",
     evidencia: "Parecer interno de revisão da minuta, com data e responsável.",
     origem: "Revisão humana",
   },
   metodo_assinatura_pendente: {
-    gate: "contrato",
+    gate: "d_juridico",
     responsavel: "Operações",
     evidencia: "Método de assinatura definido e homologado.",
     origem: "Decisão interna registrada",
   },
   contrato_assinado_externo: {
-    gate: "contrato",
+    gate: "d_juridico",
     responsavel: "Operações + Jurídico",
     evidencia: "Registro externo de assinatura com data, referência e partes qualificadas.",
     origem: "Registro externo de assinatura",
   },
   condicao_financeira: {
-    gate: "financeiro",
+    gate: "f_financeiro",
     responsavel: "Financeiro",
     evidencia: "Condição financeira aplicável confirmada por responsável humano.",
     origem: "Aprovação humana registrada",
   },
   asaas_bloqueado: {
-    gate: "financeiro",
+    gate: "f_financeiro",
     responsavel: "Financeiro",
     evidencia: "Autorização humana de cobrança após contrato assinado e reconciliação concluída.",
     origem: "Fonte transacional homologada",
   },
   consentimento_registrado: {
-    gate: "ativacao",
+    gate: "b_cadastro",
     responsavel: "Operações",
     evidencia: "Consentimento explícito e rastreável do titular.",
     origem: "Registro de consentimento",
   },
   dossie_minimo_conferido: {
-    gate: "ativacao",
+    gate: "h_operacao",
     responsavel: "Pesquisa / Operações",
     evidencia: "Dossiê mínimo conferido com origem declarada em todos os campos obrigatórios.",
     origem: "Documento",
   },
   dossie_pre_onboarding: {
-    gate: "ativacao",
+    gate: "h_operacao",
     responsavel: "Pesquisa",
     evidencia: "Validação humana do dossiê pré-onboarding e do checklist aplicável.",
     origem: "Revisão humana",
   },
   autorizacao_pesquisa_externa: {
-    gate: "ativacao",
+    gate: "g_pesquisa",
     responsavel: "Operações + Jurídico",
     evidencia: "Autorização registrada para pesquisa externa e solicitações institucionais.",
     origem: "Autorização registrada",
@@ -170,7 +148,7 @@ export const REQUISITOS_BLOQUEIO: Record<string, RequisitoBloqueio> = {
 };
 
 const REQUISITO_PADRAO: RequisitoBloqueio = {
-  gate: "ativacao",
+  gate: "h_operacao",
   responsavel: "Operações",
   evidencia: "Evidência documental ou decisão humana registrada.",
   origem: "Revisão humana",
@@ -202,4 +180,39 @@ export function agruparBloqueiosPorGate<T extends Record<string, any>>(
     anteriorConcluido = anteriorConcluido && abertos === 0;
     return { gate, itens, abertos, total: itens.length, liberado };
   });
+}
+
+/** Fontes brutas: subsidiam captura, mas nunca validam por si só. */
+export const FONTES_BRUTAS = ["whatsapp_confirmado", "reuniao_transcricao"];
+
+export type EstadoCampo = "sem_dado" | "capturado" | "em_revisao" | "verificado";
+
+export function estadoDoCampo(campo: Record<string, any>): {
+  estado: EstadoCampo;
+  rotulo: string;
+  tom: "ok" | "alerta" | "erro";
+  nota: string | null;
+} {
+  if (!campo["valor"]) {
+    return { estado: "sem_dado", rotulo: "Sem dado", tom: "erro", nota: null };
+  }
+  if (campo["verificado"]) {
+    return { estado: "verificado", rotulo: "Verificado", tom: "ok", nota: null };
+  }
+  const bruta = FONTES_BRUTAS.includes(String(campo["origem"]));
+  return bruta
+    ? {
+        estado: "capturado",
+        rotulo: "Capturado — fonte bruta",
+        tom: "erro",
+        nota: "WhatsApp, reunião e transcrição são insumos: não validam parentesco, elegibilidade, rota jurídica, valor final ou condição contratual.",
+      }
+    : { estado: "em_revisao", rotulo: "Em revisão", tom: "alerta", nota: null };
+}
+
+/** Primeiro gate com bloqueio aberto, na ordem canônica. */
+export function primeiroGatePendente<T extends Record<string, any>>(
+  agrupados: BloqueioAgrupado<T>[],
+): BloqueioAgrupado<T> | null {
+  return agrupados.find((g) => g.abertos > 0) ?? null;
 }

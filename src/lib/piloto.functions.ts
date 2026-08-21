@@ -103,12 +103,25 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Marca um dado como verificado por revisão humana. */
+/** Marca um dado como verificado por revisão humana (fonte bruta não valida). */
 export const verificarDadoPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; verificado: boolean }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
+    if (data.verificado) {
+      const { data: atual } = await supabase
+        .from("piloto_conferencia")
+        .select("valor,origem")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (!atual?.valor) throw new Error("Campo sem dado não pode ser verificado.");
+      if (["whatsapp_confirmado", "reuniao_transcricao"].includes(String(atual.origem))) {
+        throw new Error(
+          "Fonte bruta (WhatsApp/reunião/transcrição) não valida o campo. Registre documento, proposta aprovada ou formulário validado antes de verificar.",
+        );
+      }
+    }
     const { error } = await supabase
       .from("piloto_conferencia")
       .update({ verificado: data.verificado })
@@ -116,6 +129,7 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 /** Resolve um bloqueio crítico (admin ou operações, com justificativa). */
 export const resolverBloqueioPiloto = createServerFn({ method: "POST" })

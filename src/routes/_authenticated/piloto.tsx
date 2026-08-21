@@ -16,7 +16,13 @@ import {
   verificarDadoPiloto,
 } from "@/lib/piloto.functions";
 import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
-import { agruparBloqueiosPorGate, type RequisitoBloqueio } from "@/lib/gates-piloto";
+import {
+  agruparBloqueiosPorGate,
+  estadoDoCampo,
+  primeiroGatePendente,
+  type RequisitoBloqueio,
+} from "@/lib/gates-piloto";
+
 
 
 const TITULO = "Piloto real — conferir dados | Clube Ancestral";
@@ -120,7 +126,10 @@ function Conteudo({ dados }: { dados: any }) {
   const pendentes = campos.filter((c) => c["obrigatorio"] && !c["valor"]);
   const naoVerificados = campos.filter((c) => c["valor"] && !c["verificado"]);
   const criticosAbertos = bloqueios.filter((b) => b["status"] === "aberto" && b["criticidade"] === "critico");
+  const agrupados = agruparBloqueiosPorGate(bloqueios);
+  const gatePendente = primeiroGatePendente(agrupados);
   const secoes = [...new Set(campos.map((c) => c["secao"] as string))];
+
 
   return (
     <div className="space-y-4">
@@ -166,6 +175,12 @@ function Conteudo({ dados }: { dados: any }) {
             Bloqueios críticos abertos: <strong>{criticosAbertos.length}</strong> — a ativação operacional permanece
             NO_GO enquanto houver qualquer um deles.
           </li>
+          {gatePendente && (
+            <li>
+              Primeiro gate não atendido: <strong>{gatePendente.gate.nome}</strong> ({gatePendente.abertos} item(ns)
+              aberto(s)). Evidências exigidas listadas abaixo, no bloco do gate.
+            </li>
+          )}
         </ul>
         <p className="mt-2 text-xs text-navy/60">
           A importação de dados não cria cobranças, pesquisa externa, solicitações institucionais, entregas nem
@@ -186,17 +201,18 @@ function Conteudo({ dados }: { dados: any }) {
 
       <Painel titulo="Bloqueios críticos por gate">
         <p className="text-sm text-navy/70">
-          Os bloqueios são resolvidos em sequência. Um gate posterior só deve ser trabalhado depois que o anterior
-          estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
+          Os bloqueios são resolvidos em sequência (A a H). Um gate posterior só deve ser trabalhado depois que o
+          anterior estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
           automaticamente.
         </p>
         <div className="mt-3 space-y-4">
-          {agruparBloqueiosPorGate(bloqueios).map((g) => (
+          {agrupados.map((g) => (
             <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-serif text-base text-navy">
-                  Gate {g.gate.numero} — {g.gate.nome}: {g.total - g.abertos}/{g.total}
+                  Gate {g.gate.nome}: {g.total - g.abertos}/{g.total}
                 </p>
+
                 <Selo
                   texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
                   tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
@@ -284,7 +300,9 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const vazio = !campo["valor"];
+  const estado = estadoDoCampo(campo);
+  const origemAtual = ORIGENS.find((o) => o.valor === campo["origem"])?.rotulo ?? "sem origem declarada";
+  const fmt = (v: string | null) => (v ? new Date(v).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—");
 
   return (
     <div className="rounded-lg border border-navy/15 bg-white p-3">
@@ -292,14 +310,28 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
         <p className="text-sm font-medium text-navy">
           {campo["label"]} {campo["obrigatorio"] ? <span className="text-terracotta">*</span> : null}
         </p>
-        {vazio ? (
-          <Selo texto="Pendência — sem dado" tom="erro" />
-        ) : campo["verificado"] ? (
-          <Selo texto="Verificado" tom="ok" />
-        ) : (
-          <Selo texto="Não verificado" tom="alerta" />
-        )}
+        <Selo texto={estado.rotulo} tom={estado.tom} />
       </div>
+      <dl className="mt-1 grid gap-x-4 gap-y-0.5 text-[11px] text-navy/60 md:grid-cols-3">
+        <div>
+          <dt className="inline font-semibold">Origem: </dt>
+          <dd className="inline">{campo["valor"] ? origemAtual : "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Referência: </dt>
+          <dd className="inline">{campo["origem_detalhe"] ?? "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Captura: </dt>
+          <dd className="inline">{campo["valor"] ? fmt(campo["updated_at"]) : "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Verificação: </dt>
+          <dd className="inline">{campo["verificado"] ? fmt(campo["verificado_em"]) : "pendente de revisão humana"}</dd>
+        </div>
+      </dl>
+      {estado.nota && <p className="mt-1 text-[11px] text-terracotta">{estado.nota}</p>}
+
       <div className="mt-2 grid gap-2 md:grid-cols-3">
         <input
           className={inputCls}
@@ -439,7 +471,14 @@ function LinhaBloqueio({
           </div>
         )
       ) : (
-        <p className="mt-1 text-xs text-navy/60">Justificativa: {bloqueio["justificativa"]}</p>
+        <p className="mt-1 text-xs text-navy/60">
+          Resultado: {bloqueio["status"] === "resolvido" ? "resolvido" : "não aplicável"} em{" "}
+          {bloqueio["resolvido_em"]
+            ? new Date(bloqueio["resolvido_em"]).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })
+            : "—"}
+          . Justificativa: {bloqueio["justificativa"]}
+        </p>
+
       )}
 
     </div>
