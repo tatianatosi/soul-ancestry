@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -264,11 +265,11 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
 
     await supabase.from("research_audit_events").insert({
       organization_id: organizationId,
-      entity: "evidences",
+      entity_type: "evidences",
       entity_id: data.id,
-      action: `estado:${de}->${data.status}`,
+      event_type: `estado:${de}->${data.status}`,
       actor_user_id: context.userId,
-      details: { justificativa: data.nota?.trim() ?? "", origem },
+      metadata: { justificativa: data.nota?.trim() ?? "", origem },
     } as any);
 
     return { ok: true, status: r.data.workflow_status };
