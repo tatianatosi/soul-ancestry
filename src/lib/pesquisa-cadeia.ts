@@ -201,3 +201,58 @@ export function validarArquivamentoPesquisa(motivo: string): { ok: boolean; erro
   }
   return { ok: true };
 }
+
+/* ============ MÁQUINA DE ESTADOS DA EVIDÊNCIA ============ */
+
+/**
+ * Transições permitidas entre situações de evidência.
+ * Regra: conflito nunca é sobrescrito silenciosamente — de "divergente" só se
+ * sai para tratamento explícito, jamais direto para validação/entrega/publicação.
+ */
+export const TRANSICOES_EVIDENCIA: Record<string, string[]> = {
+  recebida: ["registrada", "rejeitada_ou_inaplicavel"],
+  registrada: ["em_revisao", "requer_complemento", "requer_traducao_ou_apostila", "rejeitada_ou_inaplicavel"],
+  em_revisao: [
+    "validada_internamente",
+    "divergente",
+    "insuficiente",
+    "requer_complemento",
+    "requer_retificacao",
+    "requer_traducao_ou_apostila",
+    "rejeitada_ou_inaplicavel",
+  ],
+  divergente: ["em_revisao", "insuficiente", "requer_complemento", "requer_retificacao", "rejeitada_ou_inaplicavel"],
+  insuficiente: ["em_revisao", "requer_complemento", "rejeitada_ou_inaplicavel"],
+  requer_complemento: ["em_revisao", "rejeitada_ou_inaplicavel"],
+  requer_retificacao: ["em_revisao", "rejeitada_ou_inaplicavel"],
+  requer_traducao_ou_apostila: ["em_revisao", "rejeitada_ou_inaplicavel"],
+  validada_internamente: ["aprovada_para_entrega_cliente", "divergente", "em_revisao"],
+  aprovada_para_entrega_cliente: ["publicada_ao_cliente", "em_revisao", "divergente"],
+  publicada_ao_cliente: ["em_revisao", "divergente"],
+  rejeitada_ou_inaplicavel: ["em_revisao"],
+};
+
+/** Transição só avança com autor, justificativa e origem registrados. */
+export function validarTransicaoEvidencia(entrada: {
+  de: string;
+  para: string;
+  autor?: string | null;
+  justificativa?: string | null;
+  origem?: string | null;
+}): { ok: boolean; erro?: string } {
+  const { de, para } = entrada;
+  if (!STATUS_EVIDENCIA.some((s) => s.id === para)) return { ok: false, erro: "Situação de evidência desconhecida." };
+  if (de === para) return { ok: false, erro: "A evidência já está nesta situação." };
+  const permitidas = TRANSICOES_EVIDENCIA[de] ?? [];
+  if (!permitidas.includes(para)) {
+    return { ok: false, erro: `Transição não permitida: “${de}” → “${para}”.` };
+  }
+  if (!entrada.autor) return { ok: false, erro: "Transição exige responsável identificado." };
+  if (!entrada.justificativa || entrada.justificativa.trim().length < 5) {
+    return { ok: false, erro: "Transição exige justificativa (mínimo 5 caracteres)." };
+  }
+  if (!entrada.origem || !entrada.origem.trim()) {
+    return { ok: false, erro: "Transição exige origem do dado registrada." };
+  }
+  return { ok: true };
+}
