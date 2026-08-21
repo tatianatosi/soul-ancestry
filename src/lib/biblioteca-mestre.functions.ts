@@ -69,6 +69,24 @@ export const ESTADOS_VIGENCIA: { valor: EstadoVigencia; rotulo: string }[] = [
   { valor: "arquivado", rotulo: "Arquivado" },
 ];
 
+/** Estados que encerram o ciclo de uso do item (mantêm leitura e vínculos históricos). */
+export const ESTADOS_ENCERRADOS: EstadoVigencia[] = ["substituido", "suspenso", "arquivado"];
+
+/**
+ * Elegibilidade para NOVA utilização (proposta, contrato, OS, template, seletor).
+ * Item substituído, suspenso ou arquivado continua legível e navegável no histórico,
+ * mas nunca entra em seletor de nova operação.
+ */
+export function itemElegivelParaNovoUso(item: {
+  vigencia?: EstadoVigencia | null;
+  arquivado?: boolean;
+}): boolean {
+  if (item.arquivado) return false;
+  return item.vigencia === "vigente";
+}
+
+
+
 
 function det(rotulo: string, valor: unknown): { rotulo: string; valor: string }[] {
   if (valor === null || valor === undefined || valor === "") return [];
@@ -347,7 +365,14 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
 export const definirVigenciaItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => {
+    (data: {
+      id: string;
+      estado: EstadoVigencia;
+      criterio?: string;
+      sucessorId?: string | null;
+      justificativa?: string;
+      motivoSuspensao?: string;
+    }) => {
       if (!data?.id) throw new Error("Item inválido.");
       const estados = ESTADOS_VIGENCIA.map((e) => e.valor);
       if (!estados.includes(data.estado)) throw new Error("Estado de vigência inválido.");
@@ -361,11 +386,16 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         if (!data.sucessorId) throw new Error("Item substituído deve apontar para o item sucessor.");
         if (data.sucessorId === data.id) throw new Error("Um item não pode substituir a si mesmo.");
       }
+      if (data.estado === "suspenso" && (data.motivoSuspensao ?? "").trim().length < 5) {
+        throw new Error("Suspensão exige motivo registrado (mínimo 5 caracteres).");
+      }
       return {
         id: data.id,
         estado: data.estado,
         criterio: data.criterio?.trim() || null,
         sucessorId: data.sucessorId || null,
+        justificativa: data.justificativa?.trim() || null,
+        motivoSuspensao: data.motivoSuspensao?.trim() || null,
       };
     },
   )
@@ -374,7 +404,9 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
 
     const { data: atual } = await supabase
       .from("master_library_items")
-      .select("id,organization_id,vigencia_estado,versao,owner,substituido_por_item_id")
+      .select(
+        "id,organization_id,vigencia_estado,versao,owner,substituido_por_item_id,substitui_item_id",
+      )
       .eq("id", data.id)
       .maybeSingle();
     if (!atual) {
@@ -391,12 +423,36 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       throw new Error("Item sem versão e responsável não pode ser homologado ou tornado vigente.");
     }
 
-    const patch: Record<string, unknown> = { vigencia_estado: data.estado };
+    // Sucessor só entra em vigência com o predecessor já encerrado.
+    if (data.estado === "vigente" && atual.substitui_item_id) {
+      const { data: pred } = await supabase
+        .from("master_library_items")
+        .select("id,vigencia_estado")
+        .eq("id", atual.substitui_item_id)
+        .maybeSingle();
+      if (!ESTADOS_ENCERRADOS.includes(String(pred?.vigencia_estado ?? "") as EstadoVigencia)) {
+        throw new Error(
+          "Sucessor só pode ficar vigente após o predecessor ser substituído, suspenso ou arquivado.",
+        );
+      }
+    }
+
+    const patch: Record<string, unknown> = {
+      vigencia_estado: data.estado,
+      vigencia_justificativa: data.justificativa,
+    };
     if (data.criterio) patch["homologacao_criterio"] = data.criterio;
     if (data.estado === "homologado" || data.estado === "vigente") {
       patch["homologado_por"] = context.userId;
       patch["homologado_em"] = new Date().toISOString();
     }
+    if (data.estado === "suspenso") {
+      patch["suspensao_motivo"] = data.motivoSuspensao;
+      patch["suspenso_por"] = context.userId;
+      patch["suspenso_em"] = new Date().toISOString();
+    }
+
+
 
     if (data.estado === "substituido") {
       // Sucessor precisa existir na mesma organização e não pode ser um item
@@ -439,8 +495,60 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         sucessorId: data.estado === "substituido" ? data.sucessorId : null,
       },
     });
-    return { ok: true };
+    // Revalidação de dependências: itens que citam o item alterado precisam de
+    // confirmação humana de compatibilidade. Nada é ajustado automaticamente.
+    const { data: dependentes } = await supabase
+      .from("master_library_items")
+      .select("id,titulo,versao,vigencia_estado,substitui_item_id,substituido_por_item_id")
+      .or(`substitui_item_id.eq.${data.id},substituido_por_item_id.eq.${data.id}`);
+
+    return {
+      ok: true,
+      dependencias: (dependentes ?? []).map((d: any) => ({
+        id: String(d.id),
+        titulo: String(d.titulo),
+        versao: d.versao ?? null,
+        estado: (d.vigencia_estado ?? null) as EstadoVigencia | null,
+        vinculo: d.substitui_item_id === data.id ? ("sucessor" as const) : ("predecessor" as const),
+        pendencia: "Confirmar se permanece compatível após a troca de vigência.",
+      })),
+    };
   });
+
+/** Histórico append-only de estados de um item da Biblioteca Mestre. */
+export const historicoVigenciaItem = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => {
+    if (!data?.id) throw new Error("Item inválido.");
+    return { id: data.id };
+  })
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Cliente;
+    const { data: eventos } = await supabase
+      .from("master_library_state_events")
+      .select(
+        "id,estado_anterior,estado_novo,justificativa,versao,responsavel,criterio_registrado,sucessor_id,predecessor_id,ator_user_id,created_at",
+      )
+      .eq("item_id", data.id)
+      .order("created_at", { ascending: false });
+    return {
+      eventos: ((eventos ?? []) as any[]).map((e) => ({
+        id: String(e.id),
+        estadoAnterior: (e.estado_anterior ?? null) as string | null,
+        estadoNovo: String(e.estado_novo ?? ""),
+        justificativa: (e.justificativa ?? null) as string | null,
+        versao: (e.versao ?? null) as string | null,
+        responsavel: (e.responsavel ?? null) as string | null,
+        criterioRegistrado: Boolean(e.criterio_registrado),
+        sucessorId: (e.sucessor_id ?? null) as string | null,
+        predecessorId: (e.predecessor_id ?? null) as string | null,
+        atorUserId: (e.ator_user_id ?? null) as string | null,
+        registradoEm: (e.created_at ?? null) as string | null,
+      })),
+    };
+  });
+
+
 
 /** Auditoria append-only da Biblioteca Mestre, sem conteúdo sensível do item. */
 async function registrarAuditoriaBiblioteca(

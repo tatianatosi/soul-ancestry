@@ -153,13 +153,23 @@ export function itemElegivelParaProposta(item: {
   elegivel_para_proposta?: boolean | null;
   archived_at?: string | null;
   vigencia_fim?: string | null;
+  vigencia_estado?: string | null;
 }): boolean {
   if (item.archived_at) return false;
+  // Substituído, suspenso ou arquivado sai de qualquer seletor de nova utilização.
+  if (
+    item.vigencia_estado === "substituido" ||
+    item.vigencia_estado === "suspenso" ||
+    item.vigencia_estado === "arquivado"
+  ) {
+    return false;
+  }
   if (item.status_homologacao !== "homologado") return false;
   if (!item.elegivel_para_proposta) return false;
   if (item.vigencia_fim && item.vigencia_fim < new Date().toISOString().slice(0, 10)) return false;
   return true;
 }
+
 
 /** Arquivamento lógico exige motivo; exclusão física nunca é permitida. */
 export function validarArquivamento(motivo: string): { ok: boolean; erro?: string } {

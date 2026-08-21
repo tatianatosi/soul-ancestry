@@ -9466,11 +9466,15 @@ export type Database = {
           status: string
           substitui_item_id: string | null
           substituido_por_item_id: string | null
+          suspensao_motivo: string | null
+          suspenso_em: string | null
+          suspenso_por: string | null
           titulo: string
           updated_at: string
           updated_by: string | null
           versao: string
           vigencia_estado: string
+          vigencia_justificativa: string | null
         }
         Insert: {
           archive_motivo?: string | null
@@ -9491,11 +9495,15 @@ export type Database = {
           status?: string
           substitui_item_id?: string | null
           substituido_por_item_id?: string | null
+          suspensao_motivo?: string | null
+          suspenso_em?: string | null
+          suspenso_por?: string | null
           titulo: string
           updated_at?: string
           updated_by?: string | null
           versao?: string
           vigencia_estado?: string
+          vigencia_justificativa?: string | null
         }
         Update: {
           archive_motivo?: string | null
@@ -9516,11 +9524,15 @@ export type Database = {
           status?: string
           substitui_item_id?: string | null
           substituido_por_item_id?: string | null
+          suspensao_motivo?: string | null
+          suspenso_em?: string | null
+          suspenso_por?: string | null
           titulo?: string
           updated_at?: string
           updated_by?: string | null
           versao?: string
           vigencia_estado?: string
+          vigencia_justificativa?: string | null
         }
         Relationships: [
           {
@@ -9533,6 +9545,62 @@ export type Database = {
           {
             foreignKeyName: "master_library_items_substituido_por_item_id_fkey"
             columns: ["substituido_por_item_id"]
+            isOneToOne: false
+            referencedRelation: "master_library_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_library_state_events: {
+        Row: {
+          ator_user_id: string | null
+          created_at: string
+          criterio_registrado: boolean
+          estado_anterior: string | null
+          estado_novo: string
+          id: string
+          item_id: string
+          justificativa: string | null
+          organization_id: string
+          predecessor_id: string | null
+          responsavel: string | null
+          sucessor_id: string | null
+          versao: string | null
+        }
+        Insert: {
+          ator_user_id?: string | null
+          created_at?: string
+          criterio_registrado?: boolean
+          estado_anterior?: string | null
+          estado_novo: string
+          id?: string
+          item_id: string
+          justificativa?: string | null
+          organization_id: string
+          predecessor_id?: string | null
+          responsavel?: string | null
+          sucessor_id?: string | null
+          versao?: string | null
+        }
+        Update: {
+          ator_user_id?: string | null
+          created_at?: string
+          criterio_registrado?: boolean
+          estado_anterior?: string | null
+          estado_novo?: string
+          id?: string
+          item_id?: string
+          justificativa?: string | null
+          organization_id?: string
+          predecessor_id?: string | null
+          responsavel?: string | null
+          sucessor_id?: string | null
+          versao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_library_state_events_item_id_fkey"
+            columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "master_library_items"
             referencedColumns: ["id"]

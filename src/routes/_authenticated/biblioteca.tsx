@@ -81,15 +81,26 @@ function BibliotecaPage() {
     onError: (e: Error) => setErroArquivo(e.message),
   });
 
+  const [dependencias, setDependencias] = useState<
+    { id: string; titulo: string; versao: string | null; vinculo: string; pendencia: string }[]
+  >([]);
   const vigencia = useMutation({
-    mutationFn: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) =>
-      definirVigenciaItem({ data: v }),
-    onSuccess: async () => {
+    mutationFn: (v: {
+      id: string;
+      estado: EstadoVigencia;
+      criterio?: string;
+      sucessorId?: string | null;
+      justificativa?: string;
+      motivoSuspensao?: string;
+    }) => definirVigenciaItem({ data: v }),
+    onSuccess: async (r) => {
       setErroVigencia(null);
+      setDependencias((r?.dependencias ?? []) as never);
       await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
     },
     onError: (e: Error) => setErroVigencia(e.message),
   });
+
 
   const itens = useMemo<ItemBiblioteca[]>(
     () => [...(geral.data?.itens ?? []), ...(catalogo.data?.itens ?? [])],
@@ -357,10 +368,26 @@ function BibliotecaPage() {
                             erro={erroVigencia}
                           />
                         )}
+                        {dependencias.length > 0 && (
+                          <div className="rounded-lg border border-border p-2">
+                            <p className="font-medium">Revalidar dependências após a troca de vigência</p>
+                            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                              {dependencias.map((d) => (
+                                <li key={d.id}>
+                                  • {d.titulo} {d.versao ? `(v${d.versao})` : ""} — {d.vinculo}: {d.pendencia}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         <p className="text-muted-foreground">
-                          Homologar ou tornar vigente exige versão, responsável e critério, e é validado no banco —
-                          um item sem esses dados é recusado no servidor.
+                          Homologar, tornar vigente, substituir, suspender ou arquivar exige perfil admin/operações e é
+                          validado no banco: versão, responsável, critério, sucessor recíproco e motivo de suspensão são
+                          obrigatórios, e cada transição grava evento append-only com ator, data, estado anterior e novo.
+                          Item substituído, suspenso ou arquivado continua legível, mas sai dos seletores de nova
+                          utilização (proposta, contrato, OS e templates).
                         </p>
+
                       </div>
                     )}
                   </div>
@@ -430,20 +457,29 @@ function FormularioVigencia({
 }: {
   item: ItemBiblioteca;
   candidatos: ItemBiblioteca[];
-  onSalvar: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => void;
+  onSalvar: (v: {
+    id: string;
+    estado: EstadoVigencia;
+    criterio?: string;
+    sucessorId?: string | null;
+    justificativa?: string;
+    motivoSuspensao?: string;
+  }) => void;
   salvando: boolean;
   erro: string | null;
 }) {
   const [estado, setEstado] = useState<EstadoVigencia>((item.vigencia ?? "rascunho") as EstadoVigencia);
   const [criterio, setCriterio] = useState(item.homologacaoCriterio ?? "");
   const [sucessor, setSucessor] = useState(item.sucessorId ?? "");
+  const [justificativa, setJustificativa] = useState("");
+  const [motivoSuspensao, setMotivoSuspensao] = useState("");
 
   return (
     <form
       className="space-y-2"
       onSubmit={(e) => {
         e.preventDefault();
-        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null });
+        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null, justificativa, motivoSuspensao });
       }}
     >
       <label className="block">
@@ -471,6 +507,17 @@ function FormularioVigencia({
           />
         </label>
       )}
+      {estado === "suspenso" && (
+        <label className="block">
+          <span className="text-muted-foreground">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
+          <textarea
+            value={motivoSuspensao}
+            onChange={(e) => setMotivoSuspensao(e.target.value)}
+            rows={2}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          />
+        </label>
+      )}
       {estado === "substituido" && (
         <label className="block">
           <span className="text-muted-foreground">Item sucessor</span>
@@ -488,6 +535,16 @@ function FormularioVigencia({
           </select>
         </label>
       )}
+      <label className="block">
+        <span className="text-muted-foreground">Justificativa da mudança (registro append-only)</span>
+        <textarea
+          value={justificativa}
+          onChange={(e) => setJustificativa(e.target.value)}
+          rows={2}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+
       {erro && (
         <p role="alert" className="text-destructive">
           {erro}
