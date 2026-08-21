@@ -46,7 +46,7 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
         nome: (r.nome_comercial ?? r.code) as string,
         familia: (r.familia_comercial ?? "—") as string,
         tipo: (r.tipo_oferta ?? "—") as string,
-        faixa: (r.faixa_prioridade ?? "HISTORICO") as "TOP_10" | "TOP_30" | "HISTORICO",
+        faixa: (r.prioridade_catalogo ?? r.faixa_prioridade ?? "HISTORICO") as "TOP_10" | "TOP_30" | "HISTORICO",
         papel: (r.papel_comercial ?? "") as string,
         status_homologacao: (r.status_homologacao ?? "em_revisao") as string,
         elegivel: !!r.elegivel_para_proposta && r.status_homologacao === "homologado",
