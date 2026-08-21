@@ -587,7 +587,9 @@ function AcessosPortalPage() {
                           <ul className="mt-2 space-y-1 text-sm text-navy/70">
                             {(qEventos.data ?? []).map((ev) => (
                               <li key={ev.id}>
-                                {new Date(ev.occurred_at).toLocaleString("pt-BR")} — {ev.event_type}
+                                {new Date(ev.occurred_at).toLocaleString("pt-BR")} —{" "}
+                                {EVENTO_LABEL[ev.event_type] ?? ev.event_type}
+
                               </li>
                             ))}
                             {qEventos.data && qEventos.data.length === 0 ? <li>Sem eventos registrados.</li> : null}
