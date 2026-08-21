@@ -669,6 +669,8 @@ export type Database = {
           due_at: string | null
           id: string
           organization_id: string
+          origem_regra: string | null
+          resolucao_observacao: string | null
           status: string
           tipo: string
           titulo: string
@@ -689,6 +691,8 @@ export type Database = {
           due_at?: string | null
           id?: string
           organization_id: string
+          origem_regra?: string | null
+          resolucao_observacao?: string | null
           status?: string
           tipo: string
           titulo: string
@@ -709,6 +713,8 @@ export type Database = {
           due_at?: string | null
           id?: string
           organization_id?: string
+          origem_regra?: string | null
+          resolucao_observacao?: string | null
           status?: string
           tipo?: string
           titulo?: string
@@ -1014,6 +1020,85 @@ export type Database = {
           },
         ]
       }
+      case_espera_externa: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          motivo: string
+          observacao_interna: string | null
+          organization_id: string
+          prazo_rechecagem: string
+          responsavel_user_id: string
+          status: string
+          ultima_atualizacao_contextualizada_em: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo: string
+          observacao_interna?: string | null
+          organization_id: string
+          prazo_rechecagem: string
+          responsavel_user_id: string
+          status?: string
+          ultima_atualizacao_contextualizada_em: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          motivo?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          prazo_rechecagem?: string
+          responsavel_user_id?: string
+          status?: string
+          ultima_atualizacao_contextualizada_em?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_espera_externa_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_espera_externa_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_espera_externa_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_members: {
         Row: {
           archive_motivo: string | null
@@ -1175,6 +1260,121 @@ export type Database = {
             columns: ["pai_id"]
             isOneToOne: false
             referencedRelation: "case_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_plans: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          case_service_id: string | null
+          checklist_aplicavel: string[]
+          created_at: string
+          created_by: string | null
+          dias_sem_touchpoint: number
+          entrega_robusta_atual: string | null
+          family_id: string | null
+          fase_jornada: string
+          id: string
+          marco_atual: string | null
+          observacao_interna: string | null
+          organization_id: string
+          pendencias_cliente: string[]
+          pendencias_internas: string[]
+          prazo_proxima_acao: string | null
+          proxima_acao: string | null
+          proxima_atualizacao_limite_em: string | null
+          proxima_microentrega: string | null
+          responsavel_user_id: string | null
+          status: string
+          status_saude: string
+          ultima_atualizacao_cliente_em: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          case_service_id?: string | null
+          checklist_aplicavel?: string[]
+          created_at?: string
+          created_by?: string | null
+          dias_sem_touchpoint?: number
+          entrega_robusta_atual?: string | null
+          family_id?: string | null
+          fase_jornada?: string
+          id?: string
+          marco_atual?: string | null
+          observacao_interna?: string | null
+          organization_id: string
+          pendencias_cliente?: string[]
+          pendencias_internas?: string[]
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
+          proxima_atualizacao_limite_em?: string | null
+          proxima_microentrega?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          status_saude?: string
+          ultima_atualizacao_cliente_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          case_service_id?: string | null
+          checklist_aplicavel?: string[]
+          created_at?: string
+          created_by?: string | null
+          dias_sem_touchpoint?: number
+          entrega_robusta_atual?: string | null
+          family_id?: string | null
+          fase_jornada?: string
+          id?: string
+          marco_atual?: string | null
+          observacao_interna?: string | null
+          organization_id?: string
+          pendencias_cliente?: string[]
+          pendencias_internas?: string[]
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
+          proxima_atualizacao_limite_em?: string | null
+          proxima_microentrega?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          status_saude?: string
+          ultima_atualizacao_cliente_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_plans_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_plans_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2324,6 +2524,8 @@ export type Database = {
       client_deliverables: {
         Row: {
           approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
@@ -2342,6 +2544,7 @@ export type Database = {
           notification_channel: string
           organization_id: string
           priority: string
+          published_at: string | null
           responsible_user_id: string | null
           summary_approved: string | null
           title_client: string
@@ -2351,6 +2554,8 @@ export type Database = {
         }
         Insert: {
           approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -2369,6 +2574,7 @@ export type Database = {
           notification_channel?: string
           organization_id: string
           priority?: string
+          published_at?: string | null
           responsible_user_id?: string | null
           summary_approved?: string | null
           title_client: string
@@ -2378,6 +2584,8 @@ export type Database = {
         }
         Update: {
           approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -2396,6 +2604,7 @@ export type Database = {
           notification_channel?: string
           organization_id?: string
           priority?: string
+          published_at?: string | null
           responsible_user_id?: string | null
           summary_approved?: string | null
           title_client?: string
@@ -4866,6 +5075,7 @@ export type Database = {
           dossie_mae_referencia: string | null
           eixo_comercial: string
           eixo_formalizacao: string
+          eixo_operacao: string
           escopo_excluido_resumido: string | null
           escopo_incluido_resumido: string | null
           fase: string | null
@@ -4881,6 +5091,8 @@ export type Database = {
           marcos_gerais_da_proposta: string | null
           modelo: string
           motivo_espera_externa: string | null
+          onboarding_iniciado_em: string | null
+          onboarding_iniciado_por: string | null
           organization_id: string
           origem_brief: string | null
           pagamento_confirmado: boolean
@@ -4975,6 +5187,7 @@ export type Database = {
           dossie_mae_referencia?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
+          eixo_operacao?: string
           escopo_excluido_resumido?: string | null
           escopo_incluido_resumido?: string | null
           fase?: string | null
@@ -4990,6 +5203,8 @@ export type Database = {
           marcos_gerais_da_proposta?: string | null
           modelo?: string
           motivo_espera_externa?: string | null
+          onboarding_iniciado_em?: string | null
+          onboarding_iniciado_por?: string | null
           organization_id: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -5084,6 +5299,7 @@ export type Database = {
           dossie_mae_referencia?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
+          eixo_operacao?: string
           escopo_excluido_resumido?: string | null
           escopo_incluido_resumido?: string | null
           fase?: string | null
@@ -5099,6 +5315,8 @@ export type Database = {
           marcos_gerais_da_proposta?: string | null
           modelo?: string
           motivo_espera_externa?: string | null
+          onboarding_iniciado_em?: string | null
+          onboarding_iniciado_por?: string | null
           organization_id?: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -9214,11 +9432,17 @@ export type Database = {
       }
       onboarding_checklist: {
         Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueio_codigo: string | null
           case_id: string
           concluido_em: string | null
           concluido_por: string | null
           created_at: string
           created_by: string | null
+          descricao_interna: string | null
+          evidencia_referencia_interna: string | null
           id: string
           item_code: string
           label: string
@@ -9226,16 +9450,23 @@ export type Database = {
           observacao: string | null
           ordem: number
           organization_id: string
+          responsavel_user_id: string | null
           status: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_codigo?: string | null
           case_id: string
           concluido_em?: string | null
           concluido_por?: string | null
           created_at?: string
           created_by?: string | null
+          descricao_interna?: string | null
+          evidencia_referencia_interna?: string | null
           id?: string
           item_code: string
           label: string
@@ -9243,16 +9474,23 @@ export type Database = {
           observacao?: string | null
           ordem?: number
           organization_id: string
+          responsavel_user_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_codigo?: string | null
           case_id?: string
           concluido_em?: string | null
           concluido_por?: string | null
           created_at?: string
           created_by?: string | null
+          descricao_interna?: string | null
+          evidencia_referencia_interna?: string | null
           id?: string
           item_code?: string
           label?: string
@@ -9260,6 +9498,7 @@ export type Database = {
           observacao?: string | null
           ordem?: number
           organization_id?: string
+          responsavel_user_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
