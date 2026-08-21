@@ -8,25 +8,82 @@
 
 export type SecaoPesquisa =
   | "visao"
+  | "ficha"
   | "pessoas"
   | "fontes"
-  | "fontes_documentos"
-  | "documentos"
   | "evidencias"
-  | "hipoteses"
+  | "validacao"
+  | "achados"
   | "relatorios"
   | "alertas";
 
-export const SECOES: { id: SecaoPesquisa; rotulo: string; nota: string }[] = [
-  { id: "visao", rotulo: "Visão de pesquisa", nota: "Panorama do caso: pedidos, evidências e pendências." },
-  { id: "pessoas", rotulo: "Pessoas, famílias e ramos", nota: "Origem canônica de pessoas e linhagens." },
-  { id: "fontes", rotulo: "Fontes e consultas", nota: "Acervos e consultas registradas internamente." },
-  { id: "fontes_documentos", rotulo: "Fontes e documentos", nota: "Upload e catalogação de material bruto do caso." },
-  { id: "documentos", rotulo: "Documentos e Solicitações", nota: "Grade operacional de pedidos documentais." },
-  { id: "evidencias", rotulo: "Evidências e validações", nota: "Biblioteca de evidências e histórico de validação." },
-  { id: "hipoteses", rotulo: "Hipóteses e lacunas", nota: "Trabalho interno; nunca projetado ao cliente." },
-  { id: "relatorios", rotulo: "Relatórios de fase", nota: "Consolidações internas por fase de pesquisa." },
-  { id: "alertas", rotulo: "Alertas e histórico", nota: "Pendências com responsável, prazo e trilha de auditoria." },
+/** Seções contextuais do caso — não são abas globais do Desk. */
+export const SECOES: { id: SecaoPesquisa; rotulo: string; nota: string; funcao: string }[] = [
+  {
+    id: "visao",
+    rotulo: "Visão de pesquisa",
+    nota: "Panorama interno do caso.",
+    funcao: "Objetivo, hipótese interna, trilha, autorização, responsável, status e próximo marco.",
+  },
+  {
+    id: "ficha",
+    rotulo: "Ficha genealógica",
+    nota: "Estrutura genealógica do caso.",
+    funcao: "Pessoas, variantes de nome, núcleo, relações, ramos, gerações, localidades e lacunas.",
+  },
+  {
+    id: "pessoas",
+    rotulo: "Pessoas, famílias e ramos",
+    nota: "Origem canônica de pessoas e linhagens.",
+    funcao: "Ascendentes, descendentes, linha de transmissão e vínculos a validar.",
+  },
+  {
+    id: "fontes",
+    rotulo: "Fontes e consultas",
+    nota: "Acervos e consultas registradas internamente.",
+    funcao: "Arquivos, cartórios, acervos, registros, bases, fontes familiares e consultas realizadas.",
+  },
+  {
+    id: "evidencias",
+    rotulo: "Evidências e documentos",
+    nota: "Biblioteca e pedidos documentais do caso.",
+    funcao: "Certidões, imagens, transcrições, registros e seus vínculos com pessoas e fontes.",
+  },
+  {
+    id: "validacao",
+    rotulo: "Validação e pendências",
+    nota: "Situação de conferência interna.",
+    funcao: "Em revisão, validada, divergente, insuficiente, complemento, retificação, tradução/apostila.",
+  },
+  {
+    id: "achados",
+    rotulo: "Achados e microentregas",
+    nota: "Do achado interno à entrega autorizada.",
+    funcao: "Achado interno, aprovação, versão sanitizada e possível entrega ao cliente.",
+  },
+  {
+    id: "relatorios",
+    rotulo: "Relatórios F1/F2",
+    nota: "Consolidações internas por fase.",
+    funcao: "Rascunho, revisão interna, versão aprovada e publicação controlada.",
+  },
+  {
+    id: "alertas",
+    rotulo: "Alertas e histórico",
+    nota: "Pendências com responsável, prazo e trilha de auditoria.",
+    funcao: "Próxima ação, prazo, responsável, fila de comunicação e auditoria.",
+  },
+];
+
+/** Estados de validação usados na seção "Validação e pendências". */
+export const ESTADOS_VALIDACAO: { id: string; rotulo: string }[] = [
+  { id: "em_revisao", rotulo: "Em revisão" },
+  { id: "validado_internamente", rotulo: "Validada" },
+  { id: "divergente", rotulo: "Divergente" },
+  { id: "insuficiente", rotulo: "Insuficiente" },
+  { id: "requer_complemento", rotulo: "Requer complemento" },
+  { id: "requer_retificacao", rotulo: "Requer retificação" },
+  { id: "requer_traducao_apostila", rotulo: "Tradução / apostila" },
 ];
 
 export const STATUS_SOLICITACAO: { id: string; rotulo: string }[] = [
