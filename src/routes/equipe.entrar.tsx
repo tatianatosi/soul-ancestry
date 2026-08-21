@@ -39,9 +39,11 @@ function EntrarEquipe() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const pronto = useHydrated();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!pronto) return;
     setErro(null);
     setCarregando(true);
     try {
