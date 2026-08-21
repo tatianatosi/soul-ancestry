@@ -5,6 +5,9 @@ import { CODIGOS_PERSISTENCIA, classificarErroPersistencia } from "@/lib/persist
 import { ehFixtureLinha, semFixtures, FIXTURE_ORIGIN } from "@/lib/fixtures";
 import { ehCampoSensivel, mascararValor } from "@/lib/persistencia-mascara";
 import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+import { MAPA_PERSISTENCIA, campoMapeado } from "@/lib/persistencia-caso";
+import { limparCamposDeControle } from "@/lib/persistencia.server";
+
 
 describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
   it("1. campo alterado e salvo é confirmado pela releitura", () => {
@@ -66,4 +69,23 @@ describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
     expect(ehFixtureLinha(linhas[0]!)).toBe(true);
     expect(semFixtures(linhas).map((l) => l.id)).toEqual(["b"]);
   });
+
+  it("9. o mapa formal cobre os campos editáveis e marca somente leitura", () => {
+    expect(campoMapeado("crm_casos", "titulo")).toBe(true);
+    expect(campoMapeado("crm_casos", "campo_inexistente")).toBe(false);
+    const codigo = MAPA_PERSISTENCIA.find((l) => l.coluna === "codigo");
+    expect(codigo?.estado).toBe("somente_leitura");
+  });
+
+  it("10. campos de controle nunca vêm da tela", () => {
+    const limpo = limparCamposDeControle({
+      titulo: "Caso Ana",
+      updated_by: "atacante",
+      organization_id: "outra-org",
+      data_origin: "real",
+      vazio: undefined,
+    });
+    expect(limpo).toEqual({ titulo: "Caso Ana" });
+  });
 });
+
