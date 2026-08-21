@@ -39,8 +39,36 @@ export interface ItemBiblioteca {
   homologado: boolean;
   /** Texto curto da regra de homologação aplicada. */
   regraHomologacao: string;
+  /** Estado de vigência canônico (só o acervo é governado por este ciclo). */
+  vigencia: EstadoVigencia | null;
+  homologacaoCriterio: string | null;
+  homologadoEm: string | null;
+  /** Item que substitui este (sucessor). */
+  sucessorId: string | null;
+  /** Item substituído por este (predecessor). */
+  predecessorId: string | null;
   detalhes: { rotulo: string; valor: string }[];
 }
+
+export type EstadoVigencia =
+  | "rascunho"
+  | "em_revisao"
+  | "homologado"
+  | "vigente"
+  | "substituido"
+  | "suspenso"
+  | "arquivado";
+
+export const ESTADOS_VIGENCIA: { valor: EstadoVigencia; rotulo: string }[] = [
+  { valor: "rascunho", rotulo: "Rascunho" },
+  { valor: "em_revisao", rotulo: "Em revisão" },
+  { valor: "homologado", rotulo: "Homologado" },
+  { valor: "vigente", rotulo: "Vigente" },
+  { valor: "substituido", rotulo: "Substituído" },
+  { valor: "suspenso", rotulo: "Suspenso" },
+  { valor: "arquivado", rotulo: "Arquivado" },
+];
+
 
 function det(rotulo: string, valor: unknown): { rotulo: string; valor: string }[] {
   if (valor === null || valor === undefined || valor === "") return [];
