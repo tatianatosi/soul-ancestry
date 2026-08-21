@@ -64,7 +64,7 @@ function Index() {
 
   return (
     <SaasShell
-      titulo="Pesquisa e evidências"
+      titulo="Pesquisa Genealógica e Evidências"
       descricao="Pesquisas por caso, com pendências, evidências e travas de pesquisa externa."
     >
       {q.isLoading && <p className="text-sm text-navy/60">Carregando painel…</p>}

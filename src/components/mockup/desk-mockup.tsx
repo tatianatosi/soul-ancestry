@@ -43,7 +43,7 @@ const ABAS: { id: AbaId; nome: string; icone: typeof LayoutGrid; sub: { id: stri
     sub: [
       { id: "lista", nome: "Casos" },
       { id: "ficha", nome: "Ficha do caso" },
-      { id: "pesquisa", nome: "Pesquisa e evidências" },
+      { id: "pesquisa", nome: "Pesquisa Genealógica e Evidências" },
       { id: "formalizacao", nome: "Formalização" },
       { id: "golive", nome: "Go-live" },
     ],
