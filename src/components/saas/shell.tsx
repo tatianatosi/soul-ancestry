@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getContexto, type Papel } from "@/lib/saas.functions";
 import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
+import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
@@ -195,6 +196,7 @@ export function SaasShell({
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
+    limparArmazenamentoDaSessao();
     navigate({ to: "/equipe/entrar", replace: true });
   }
 

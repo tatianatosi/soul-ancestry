@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
+import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 
 export function usePortal() {
   const carregar = useServerFn(portalContexto);
@@ -48,6 +49,7 @@ export function PortalShell({
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
+    limparArmazenamentoDaSessao();
     navigate({ to: "/acesso", replace: true });
   }
 

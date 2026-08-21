@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import type { Classificacao, PessoaLista } from "@/lib/clientes-lista";
+import { semCache } from "@/lib/no-store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -19,6 +20,7 @@ const seguro = async (p: any): Promise<any[]> => {
 export const listarPessoasCliente = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PessoaLista[]> => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
@@ -69,6 +71,7 @@ export const ativarCliente = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const { error } = await supabase
@@ -95,6 +98,7 @@ export const reclassificarPessoa = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const { error } = await supabase
