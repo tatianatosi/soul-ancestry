@@ -66,36 +66,35 @@ export function useSaas() {
 }
 
 /**
- * Navegação canônica do Desk: 14 entradas principais.
- * Os módulos secundários continuam acessíveis, listados sob a entrada
- * principal correspondente quando a seção está aberta — nada foi removido.
+ * Navegação do Desk: 7 seções principais.
+ * Nenhum módulo foi removido — os secundários aparecem como subitens
+ * da seção correspondente quando ela está aberta.
  */
 const NAV = [
-  { to: "/painel", label: "Visão geral", icon: LayoutDashboard, sub: [] },
+  {
+    to: "/painel",
+    label: "Visão geral",
+    icon: LayoutDashboard,
+    sub: [{ to: "/relatorios", label: "Relatórios" }],
+  },
   {
     to: "/leads",
-    label: "Leads e oportunidades",
+    label: "Comercial",
     icon: Users,
     sub: [
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão e marketing" },
-    ],
-  },
-  {
-    to: "/clientes",
-    label: "Clientes",
-    icon: UserCheck,
-    sub: [
+      { to: "/clientes", label: "Clientes" },
       { to: "/acessos-portal", label: "Acessos ao portal" },
       { to: "/atendimento", label: "Atendimento ao cliente" },
     ],
   },
-  { to: "/nucleos", label: "Núcleos e dossiês", icon: UsersRound, sub: [] },
   {
     to: "/casos",
-    label: "Casos",
+    label: "Casos e núcleos",
     icon: FolderOpen,
     sub: [
+      { to: "/nucleos", label: "Núcleos e dossiês" },
       { to: "/piloto", label: "Piloto real" },
       { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
     ],
@@ -107,37 +106,29 @@ const NAV = [
     sub: [
       { to: "/pesquisa-modulo", label: "Pesquisa e evidências" },
       { to: "/evidencias", label: "Evidências" },
+      { to: "/privacidade", label: "Privacidade e documentos" },
     ],
   },
-  { to: "/tarefas", label: "Tarefas", icon: ListChecks, sub: [] },
   {
     to: "/ops",
-    label: "Desk Operacional",
+    label: "Operação",
     icon: ClipboardList,
-    sub: [{ to: "/ops-excecoes", label: "Exceções operacionais" }],
+    sub: [
+      { to: "/tarefas", label: "Tarefas" },
+      { to: "/ops-excecoes", label: "Exceções operacionais" },
+      { to: "/qualidade", label: "Qualidade" },
+    ],
   },
   {
     to: "/contratos",
-    label: "Contratos",
+    label: "Contratos e financeiro",
     icon: FileSignature,
     sub: [
       { to: "/contrato-parametros", label: "Dados parametrizáveis" },
       { to: "/matriz-juridica", label: "Matriz jurídica interna" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
+      { to: "/financeiro", label: "Financeiro" },
     ],
-  },
-  { to: "/financeiro", label: "Financeiro", icon: Wallet, sub: [] },
-  {
-    to: "/qualidade",
-    label: "Qualidade",
-    icon: BadgeCheck,
-    sub: [{ to: "/privacidade", label: "Privacidade e documentos" }],
-  },
-  {
-    to: "/integracoes",
-    label: "Integrações",
-    icon: Plug,
-    sub: [{ to: "/importacoes", label: "Importações e migração" }],
   },
   {
     to: "/biblioteca",
@@ -151,13 +142,10 @@ const NAV = [
       { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { to: "/etiquetas", label: "Etiquetas canônicas" },
+      { to: "/integracoes", label: "Integrações" },
+      { to: "/importacoes", label: "Importações e migração" },
+      { to: "/configuracoes", label: "Configurações" },
     ],
-  },
-  {
-    to: "/relatorios",
-    label: "Relatórios",
-    icon: BarChart3,
-    sub: [{ to: "/configuracoes", label: "Configurações" }],
   },
 ] as const;
 
