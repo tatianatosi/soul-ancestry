@@ -18,9 +18,11 @@ import {
 import {
   bloqueioDaPessoa,
   bloqueioDoCaso,
+  classificarPessoas,
   emailsElegiveis,
   estadoDoLink,
   EVENTO_LABEL,
+  MOTIVO_GATES,
   NIVEL_DESCRICAO,
   NIVEL_LABEL,
   STATUS_ACESSO_LABEL,
@@ -29,6 +31,7 @@ import {
   type CasoPortal,
   type NivelPortal,
   type PessoaPortal,
+  type PropostaPortal,
 } from "@/lib/portal-elegibilidade";
 
 
