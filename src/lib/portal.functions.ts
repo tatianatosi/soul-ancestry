@@ -544,10 +544,18 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
       throw new Error("Acesso indisponível para reenvio.");
     }
 
-    const expira = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expira = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
     await supabase
       .from("client_portal_access")
-      .update({ invitation_expires_at: expira, invited_at: new Date().toISOString(), updated_by: context.userId })
+      .update({
+        invitation_expires_at: expira,
+        magic_link_expires_at: expira,
+        magic_link_uses: 0,
+        magic_link_max_uses: 1,
+        invited_at: new Date().toISOString(),
+        updated_by: context.userId,
+      })
+
       .eq("id", data.acessoId)
       .eq("organization_id", organizationId);
 
