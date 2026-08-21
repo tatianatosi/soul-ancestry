@@ -1483,6 +1483,126 @@ export type Database = {
           },
         ]
       }
+      case_source_document_links: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          case_id: string
+          case_report_id: string | null
+          created_at: string
+          created_by: string | null
+          document_request_id: string | null
+          evidence_id: string | null
+          id: string
+          observacao_interna: string | null
+          organization_id: string
+          research_person_id: string | null
+          source_document_id: string
+          tipo_vinculo: string
+          updated_at: string
+          updated_by: string | null
+          vinculado_em: string
+          vinculado_por: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          case_id: string
+          case_report_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_request_id?: string | null
+          evidence_id?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id: string
+          research_person_id?: string | null
+          source_document_id: string
+          tipo_vinculo: string
+          updated_at?: string
+          updated_by?: string | null
+          vinculado_em?: string
+          vinculado_por?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          case_id?: string
+          case_report_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_request_id?: string | null
+          evidence_id?: string | null
+          id?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          research_person_id?: string | null
+          source_document_id?: string
+          tipo_vinculo?: string
+          updated_at?: string
+          updated_by?: string | null
+          vinculado_em?: string
+          vinculado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_source_document_links_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_case_report_id_fkey"
+            columns: ["case_report_id"]
+            isOneToOne: false
+            referencedRelation: "case_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_research_person_id_fkey"
+            columns: ["research_person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_source_document_links_source_document_id_fkey"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "case_source_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_source_documents: {
         Row: {
           archive_motivo: string | null

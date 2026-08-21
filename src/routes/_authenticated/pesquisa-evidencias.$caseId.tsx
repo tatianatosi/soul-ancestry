@@ -22,6 +22,7 @@ import {
   salvarSolicitacaoDocumental,
 } from "@/lib/documentos-solicitacoes.functions";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
+import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -155,6 +156,7 @@ function AreaPesquisaEvidencias() {
       )}
 
       {d && secao === "evidencias" && (
+        <div className="space-y-3">
         <Lista
           titulo="Evidências e validações"
           nota="Nada chega ao App sem projeção aprovada e conteúdo sanitizado."
@@ -162,6 +164,8 @@ function AreaPesquisaEvidencias() {
           link={{ to: "/biblioteca-evidencias/$caseId", rotulo: "Abrir biblioteca de evidências →" }}
           caseId={caseId}
         />
+        <LastroDeFontes caseId={caseId} tipoAlvo="evidencia" />
+        </div>
       )}
 
       {d && secao === "hipoteses" && (
@@ -175,13 +179,16 @@ function AreaPesquisaEvidencias() {
       )}
 
       {d && secao === "relatorios" && (
-        <Lista
-          titulo="Relatórios de fase"
-          nota="Consolidações internas por fase, sem juízo de mérito no material do cliente."
-          itens={[]}
-          link={{ to: "/pesquisa-modulo/$id", rotulo: "Abrir relatórios de pesquisa →" }}
-          caseId={caseId}
-        />
+        <div className="space-y-3">
+          <Lista
+            titulo="Relatórios de fase"
+            nota="Consolidações internas por fase, sem juízo de mérito no material do cliente."
+            itens={[]}
+            link={{ to: "/pesquisa-modulo/$id", rotulo: "Abrir relatórios de pesquisa →" }}
+            caseId={caseId}
+          />
+          <LastroDeFontes caseId={caseId} tipoAlvo="relatorio" />
+        </div>
       )}
 
       {d && secao === "alertas" && (
@@ -213,6 +220,7 @@ function AreaPesquisaEvidencias() {
 
       {d && secao === "documentos" && (
         <section className="space-y-4">
+          <LastroDeFontes caseId={caseId} tipoAlvo="solicitacao" />
           <Bloco titulo="Documentos e Solicitações">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left text-sm">

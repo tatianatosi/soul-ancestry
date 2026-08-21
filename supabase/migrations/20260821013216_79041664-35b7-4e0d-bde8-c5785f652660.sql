@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.fn_case_source_document_link_guard() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.fn_case_source_document_link_audit() FROM PUBLIC, anon, authenticated;
