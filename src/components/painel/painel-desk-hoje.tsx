@@ -84,6 +84,13 @@ export function PainelDeskHoje() {
         </label>
       </div>
 
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Link to="/nucleos" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
+          Núcleos familiares e dossiê-mãe
+        </Link>
+      </div>
+
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filas.map((f) => (
           <div key={f.chave} className="rounded-xl border border-navy/10 bg-white p-4">
