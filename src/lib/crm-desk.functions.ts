@@ -22,6 +22,7 @@ const CAMPOS_LEAD = [
   "origem",
   "area_responsavel",
   "responsavel_nome",
+  "indicado_por",
   "proxima_acao",
   "proxima_acao_em",
   "eixo_comercial",
