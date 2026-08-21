@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { itemElegivelParaProposta, regraAplicavelACaso, validarArquivamento } from "@/lib/biblioteca-mestre";
 
 /**
  * Biblioteca Mestre — leitura e escrita auditada das referências internas.
@@ -8,8 +9,21 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Cliente = { from: (t: string) => any };
 
+/** Tabelas que compõem a Biblioteca Mestre. Todas suportam arquivamento lógico. */
+export const FONTES_BIBLIOTECA = {
+  acervo: "master_library_items",
+  bases: "genealogical_sources_catalog",
+  dicionarios: "controlled_taxonomies",
+  trilhas: "citizenship_tracks",
+  juridico: "versioned_legal_rules",
+  top30: "product_catalog",
+} as const;
+export type FonteBiblioteca = keyof typeof FONTES_BIBLIOTECA;
+
 export interface ItemBiblioteca {
   id: string;
+  /** Origem canônica do registro; define onde o arquivamento lógico é gravado. */
+  fonte: FonteBiblioteca;
   subarea: string;
   titulo: string;
   subtitulo: string | null;
@@ -21,6 +35,10 @@ export interface ItemBiblioteca {
   revisadoEm: string | null;
   arquivado: boolean;
   motivoArquivo: string | null;
+  /** Homologação: item pode ser referenciado em proposta/relatório. */
+  homologado: boolean;
+  /** Texto curto da regra de homologação aplicada. */
+  regraHomologacao: string;
   detalhes: { rotulo: string; valor: string }[];
 }
 
@@ -67,6 +85,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
     for (const r of acervoLike.data ?? []) {
       itens.push({
         id: r.id,
+        fonte: "acervo",
         subarea: r.categoria,
         titulo: r.titulo,
         subtitulo: r.descricao_interna ?? null,
@@ -78,6 +97,8 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.updated_at ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
+        homologado: !r.archived_at && r.status === "aprovado",
+        regraHomologacao: "Circula apenas material aprovado e não arquivado.",
         detalhes: [...det("Referência interna", r.referencia_interna)],
       });
     }
@@ -85,6 +106,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
     for (const r of bases.data ?? []) {
       itens.push({
         id: r.id,
+        fonte: "bases",
         subarea: "bases",
         titulo: r.nome,
         subtitulo: r.tipo_de_acervo ?? null,
@@ -96,6 +118,8 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.ultima_verificacao ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
+        homologado: !r.archived_at,
+        regraHomologacao: "Consulta externa só com autorização registrada no caso.",
         detalhes: [
           ...det("Acesso", r.acesso),
           ...det("Cobertura", r.cobertura_geografica),
@@ -108,6 +132,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
     for (const r of taxonomias.data ?? []) {
       itens.push({
         id: r.id,
+        fonte: "dicionarios",
         subarea: "dicionarios",
         titulo: r.nome,
         subtitulo: r.descricao ?? r.dominio,
@@ -119,6 +144,8 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.updated_at ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
+        homologado: !r.archived_at && Boolean(r.ativo),
+        regraHomologacao: "Termo fora do dicionário ativo não pode ser gravado como valor canônico.",
         detalhes: [...det("Domínio", r.dominio)],
       });
     }
@@ -126,6 +153,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
     for (const r of trilhas.data ?? []) {
       itens.push({
         id: r.id,
+        fonte: "trilhas",
         subarea: "trilhas",
         titulo: `${r.pais} — ${r.via_preliminar ?? "via a confirmar"}`,
         subtitulo: r.marco_juridico_referencia ?? null,
@@ -137,6 +165,8 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.ultima_revisao_em ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
+        homologado: !r.archived_at && Boolean(r.ativo) && r.status_via === "homologada",
+        regraHomologacao: "Trilha é preliminar: exige revisão humana e nunca vira parecer ao cliente.",
         detalhes: [
           ...det("Requisitos de entrada", r.requisitos_entrada),
           ...det("Documentos prioritários", r.documentos_prioritarios),
@@ -154,6 +184,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
     for (const r of regras.data ?? []) {
       itens.push({
         id: r.id,
+        fonte: "juridico",
         subarea: "juridico",
         titulo: r.tema,
         subtitulo: r.escopo ?? null,
@@ -165,6 +196,8 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.reviewed_at ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
+        homologado: regraAplicavelACaso(r),
+        regraHomologacao: "Regra citável apenas se aprovada, vigente e não arquivada.",
         detalhes: [
           ...det("Vigência", [r.vigencia_inicio, r.vigencia_fim].filter(Boolean).join(" → ")),
           ...det("Fonte", r.fonte_referencia),
@@ -189,6 +222,7 @@ export const listarCatalogoTop30 = createServerFn({ method: "GET" })
 
     const itens = (data ?? []).map((r: any) => ({
       id: r.id,
+      fonte: "top30" as const,
       subarea: r.archived_at ? "arquivo" : "top30",
       titulo: r.nome_comercial,
       subtitulo: r.escopo_aprovado ?? null,
@@ -200,6 +234,9 @@ export const listarCatalogoTop30 = createServerFn({ method: "GET" })
       revisadoEm: r.vigencia_inicio ?? null,
       arquivado: Boolean(r.archived_at),
       motivoArquivo: r.archive_motivo ?? null,
+      homologado: itemElegivelParaProposta(r),
+      regraHomologacao:
+        "Só entra em proposta se homologado, elegível, vigente e não arquivado; preço vem do catálogo.",
       detalhes: [
         ...det("Tipo", r.tipo_oferta),
         ...det("Prioridade", r.prioridade_catalogo),
@@ -216,19 +253,27 @@ export const listarCatalogoTop30 = createServerFn({ method: "GET" })
 
 export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; motivo: string }) => {
+  .inputValidator((data: { id: string; fonte: FonteBiblioteca; motivo: string }) => {
     if (!data?.id) throw new Error("Item inválido.");
-    if (!data?.motivo || data.motivo.trim().length < 5) {
-      throw new Error("Informe o motivo do arquivamento (mínimo 5 caracteres).");
-    }
-    return { id: data.id, motivo: data.motivo.trim() };
+    if (!data?.fonte || !(data.fonte in FONTES_BIBLIOTECA)) throw new Error("Origem do item inválida.");
+    const check = validarArquivamento(data?.motivo ?? "");
+    if (!check.ok) throw new Error(check.erro!);
+    return { id: data.id, fonte: data.fonte, motivo: data.motivo.trim() };
   })
   .handler(async ({ context, data }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const { error } = await supabase
-      .from("master_library_items")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo, status: "arquivado" })
-      .eq("id", data.id);
+    const tabela = FONTES_BIBLIOTECA[data.fonte];
+
+    // Arquivamento lógico: nunca há exclusão física de item da Biblioteca Mestre.
+    const patch: Record<string, unknown> = {
+      archived_at: new Date().toISOString(),
+      archive_motivo: data.motivo,
+    };
+    if (data.fonte === "acervo" || data.fonte === "juridico") patch["status"] = "arquivado";
+    if (data.fonte === "dicionarios" || data.fonte === "trilhas") patch["ativo"] = false;
+    if (data.fonte === "top30") patch["elegivel_para_proposta"] = false;
+
+    const { error } = await supabase.from(tabela).update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
