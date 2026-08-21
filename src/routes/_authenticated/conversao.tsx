@@ -11,6 +11,8 @@ import {
   calcularMetricas,
   calcularQuadroMetricas,
   calcularSaudeComercial,
+  MOMENTOS_ACEITE,
+  situacaoAceite,
   moeda,
   percentual,
 } from "@/lib/conversao";
@@ -55,6 +57,20 @@ function Conversao() {
     );
   }, [q.data]);
 
+  const aceitePorLead = useMemo(() => {
+    const eventos = (q.data?.eventos ?? []) as { event_type: string; lead_id?: string | null }[];
+    const leads = (q.data?.leadsTodos ?? []) as Record<string, unknown>[];
+    return leads
+      .map((l) => ({
+        id: String(l.id),
+        nome: String(l.nome ?? "Sem nome"),
+        codigo: String(l.codigo ?? "—"),
+        situacao: situacaoAceite(eventos.filter((e) => e.lead_id === l.id)),
+      }))
+      .filter((l) => l.situacao.momentoAtual !== null)
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [q.data]);
+
   const quadro = useMemo(() => (metricas ? calcularQuadroMetricas(metricas) : []), [metricas]);
   const saude = useMemo(
     () => calcularSaudeComercial(((q.data?.leads ?? []) as never), ((q.data?.casos ?? []) as never)),
@@ -88,6 +104,60 @@ function Conversao() {
               </div>
             ))}
           </div>
+
+          <Bloco titulo="Padrão de aceite — quatro momentos">
+            <div className="grid gap-2 lg:grid-cols-4">
+              {MOMENTOS_ACEITE.map((m) => (
+                <div key={m.codigo} className="rounded-lg border border-navy/10 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-navy/50">Momento {m.ordem}</p>
+                  <p className="font-serif text-base text-navy">{m.rotulo}</p>
+                  <p className="mt-1 text-[11px] text-navy/60">{m.evidencia}</p>
+                  <p className="mt-1 text-[11px] text-navy/70">Libera: {m.libera}</p>
+                  <p className="mt-1 text-[11px] text-terracotta">{m.naoLibera}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {aceitePorLead.length === 0 ? (
+                <EstadoVazio mensagem="Nenhum lead com evento de aceite registrado." />
+              ) : (
+                aceitePorLead.map((l) => (
+                  <div key={l.id} className="rounded-lg border border-navy/10 p-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="font-serif text-base text-navy">{l.nome}</p>
+                      <span className="text-[10px] uppercase tracking-wide text-navy/40">{l.codigo}</span>
+                    </div>
+                    <p className="mt-1 text-xs font-medium text-navy">{l.situacao.rotuloEstado}</p>
+                    <p className="text-[11px] text-navy/60">Próxima ação: {l.situacao.proximaAcao}</p>
+                    <ul className="mt-1 flex flex-wrap gap-1">
+                      {MOMENTOS_ACEITE.map((m) => (
+                        <li
+                          key={m.codigo}
+                          className={`rounded px-1.5 py-0.5 text-[10px] ${
+                            l.situacao.alcancados[m.codigo] ? "bg-gold/20 text-navy" : "bg-navy/5 text-navy/40"
+                          }`}
+                        >
+                          {m.ordem}. {m.rotulo}
+                        </li>
+                      ))}
+                    </ul>
+                    {l.situacao.bloqueios.length > 0 && (
+                      <ul className="mt-2 space-y-0.5 text-[11px] text-terracotta">
+                        {l.situacao.bloqueios.map((b) => (
+                          <li key={b}>• {b}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            <p className="mt-3 text-xs text-navy/60">
+              Aceite verbal e confirmação formal são momentos distintos: o Desk registra o estado e mantém contrato,
+              cobrança e onboarding bloqueados até a evidência exigida.
+            </p>
+          </Bloco>
 
           <Bloco titulo="Quadro de métricas comerciais">
             <table className="w-full text-left text-xs">

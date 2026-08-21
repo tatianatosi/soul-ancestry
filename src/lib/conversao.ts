@@ -347,3 +347,124 @@ export function calcularSaudeComercial(leads: LeadSaude[], casos: CasoSaude[], a
       .map((c) => ({ id: c.id, rotulo: rotuloCaso(c) })),
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Padrão de aceite em quatro momentos (Ana e João seguem o mesmo fluxo).
+ * Puro: apenas leitura de eventos já registrados. Nada é disparado aqui.
+ * ------------------------------------------------------------------ */
+
+export type MomentoAceite = "aceite_verbal" | "confirmacao_formal" | "contrato_cobranca" | "onboarding";
+
+export const MOMENTOS_ACEITE: {
+  codigo: MomentoAceite;
+  ordem: 1 | 2 | 3 | 4;
+  rotulo: string;
+  evidencia: string;
+  libera: string;
+  naoLibera: string;
+  eventos: EventoConversao[];
+}[] = [
+  {
+    codigo: "aceite_verbal",
+    ordem: 1,
+    rotulo: "Aceite verbal",
+    evidencia: "Registro interno da call ou conversa.",
+    libera: "Somente o registro. Próxima ação: solicitar confirmação escrita simples.",
+    naoLibera: "Não cria cliente ativo, contrato, cobrança ou onboarding.",
+    eventos: ["aceite_verbal_confirmado"],
+  },
+  {
+    codigo: "confirmacao_formal",
+    ordem: 2,
+    rotulo: "Confirmação formal",
+    evidencia: "Print, WhatsApp, e-mail ou aceite registrado com referência interna.",
+    libera: "Preparação da formalização (ficha, escopo, prévia contratual).",
+    naoLibera: "Não libera contrato assinado nem cobrança automática.",
+    eventos: ["confirmacao_formal_recebida"],
+  },
+  {
+    codigo: "contrato_cobranca",
+    ordem: 3,
+    rotulo: "Contrato e cobrança",
+    evidencia: "Contrato específico + Ordem de Serviço com dados e escopo resolvidos.",
+    libera: "Cobrança apenas após contrato e condições aprovados, por decisão humana.",
+    naoLibera: "Nenhuma emissão automática; SKU e preço vêm do catálogo homologado.",
+    eventos: ["contrato_enviado", "contrato_assinado", "pagamento_inicial_confirmado"],
+  },
+  {
+    codigo: "onboarding",
+    ordem: 4,
+    rotulo: "Onboarding",
+    evidencia: "Contrato assinado e pagamento inicial confirmado.",
+    libera: "Núcleo familiar, dossiê-mãe, checklist, plano de ação e primeira micro-entrega.",
+    naoLibera: "Nada client-facing antes de aprovação interna.",
+    eventos: ["onboarding_iniciado", "caso_ativo"],
+  },
+];
+
+export type SituacaoAceite = {
+  momentoAtual: MomentoAceite | null;
+  rotuloEstado: string;
+  proximaAcao: string;
+  bloqueios: string[];
+  alcancados: Record<MomentoAceite, boolean>;
+};
+
+/** Deriva o momento de aceite de um lead/caso a partir da sequência de eventos. */
+export function situacaoAceite(eventos: readonly { event_type: string }[]): SituacaoAceite {
+  const tipos = new Set(eventos.map((e) => e.event_type));
+  const alcancados = MOMENTOS_ACEITE.reduce(
+    (acc, m) => ({ ...acc, [m.codigo]: m.eventos.some((e) => tipos.has(e)) }),
+    {} as Record<MomentoAceite, boolean>,
+  );
+  const ultimo = [...MOMENTOS_ACEITE].reverse().find((m) => alcancados[m.codigo]) ?? null;
+
+  if (!ultimo) {
+    return {
+      momentoAtual: null,
+      rotuloEstado: tipos.has("proposta_enviada") ? "Proposta enviada — sem aceite" : "Em triagem comercial",
+      proximaAcao: tipos.has("proposta_enviada") ? "Fazer follow-up da proposta." : "Qualificar e agendar Discovery.",
+      bloqueios: ["Sem aceite registrado: nada de contrato, cobrança ou onboarding."],
+      alcancados,
+    };
+  }
+
+  if (ultimo.codigo === "aceite_verbal") {
+    return {
+      momentoAtual: "aceite_verbal",
+      rotuloEstado: "Aceite verbal — confirmação formal pendente",
+      proximaAcao: "Solicitar confirmação escrita simples (print, WhatsApp ou e-mail).",
+      bloqueios: ["Contrato e Ordem de Serviço bloqueados.", "Cobrança bloqueada.", "Não é cliente ativo."],
+      alcancados,
+    };
+  }
+  if (ultimo.codigo === "confirmacao_formal") {
+    return {
+      momentoAtual: "confirmacao_formal",
+      rotuloEstado: "Aceite confirmado — formalização pendente",
+      proximaAcao: "Preparar contrato e Ordem de Serviço com escopo, SKU e valor reconciliados.",
+      bloqueios: ["Cobrança bloqueada até contrato e condições aprovados.", "Onboarding bloqueado."],
+      alcancados,
+    };
+  }
+  if (ultimo.codigo === "contrato_cobranca") {
+    const assinado = tipos.has("contrato_assinado");
+    const pago = tipos.has("pagamento_inicial_confirmado");
+    return {
+      momentoAtual: "contrato_cobranca",
+      rotuloEstado: pago ? "Pagamento inicial confirmado" : assinado ? "Contrato assinado" : "Contrato enviado",
+      proximaAcao: pago ? "Abrir onboarding padronizado." : assinado ? "Registrar pagamento inicial." : "Acompanhar assinatura.",
+      bloqueios: pago ? [] : ["Onboarding bloqueado até contrato assinado e pagamento inicial confirmado."],
+      alcancados,
+    };
+  }
+  return {
+    momentoAtual: "onboarding",
+    rotuloEstado: tipos.has("caso_ativo") ? "Caso ativo" : "Onboarding iniciado",
+    proximaAcao: tipos.has("caso_ativo")
+      ? "Manter cadência: micro-entrega até D7 e atualização a cada 14 dias."
+      : "Criar núcleo, dossiê-mãe, checklist, plano de ação e primeira micro-entrega até D7.",
+    bloqueios: [],
+    alcancados,
+  };
+}
