@@ -309,7 +309,14 @@ export const revisarEnvioCliente = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Liberar ou recolher entrega ao cliente. O banco reforça papel e elegibilidade. */
+/**
+ * Liberar ou recolher entrega ao cliente.
+ *
+ * Toda tentativa é auditada: quem (autor + papel), quando (com fuso), onde
+ * (caso, documento, versão, classificação de visibilidade) e o quê (liberado,
+ * recolhido, recusado ou bloqueado). Metadados nunca carregam número de
+ * documento, token, link mágico ou conteúdo de arquivo.
+ */
 export const liberarEntregaCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -325,10 +332,55 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
-    if (!PAPEIS_ENTREGA.includes(papel)) throw new Error("Apenas admin e operações liberam ou recolhem entregas.");
+    const userId = context.userId as string;
+    const quando = new Date().toISOString();
+    const fuso = "UTC";
+
+    const doc = await supabase
+      .from("documents")
+      .select("id, case_id, entrega_versao")
+      .eq("id", data.documentoId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!doc.data) throw new Error("Entrega não encontrada nesta organização.");
+
+    const base = {
+      case_id: doc.data.case_id,
+      papel,
+      quando,
+      fuso,
+      classificacao: CLASSIFICACAO_ENTREGA,
+      visibilidade: VISIBILIDADE_ENTREGA_LABEL,
+    };
+    const negar = async (motivo: string, resultado: "bloqueado" | "recusado") => {
+      await auditar(organizationId, userId, "entrega_cliente_" + resultado, "documents", data.documentoId, {
+        ...base,
+        resultado,
+        motivo,
+        acao: data.liberar ? "liberar" : "recolher",
+      });
+      throw new Error(motivo);
+    };
+
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      await negar("Apenas admin e operações liberam ou recolhem entregas.", "recusado");
+    }
 
     let patch: Record<string, unknown>;
+    let metadados: Record<string, unknown>;
     if (data.liberar) {
+      const caso = await supabase
+        .from("crm_casos")
+        .select(
+          "id, codigo, titulo, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, responsavel_id, demo",
+        )
+        .eq("id", doc.data.case_id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (!caso.data) await negar("Entrega sem caso elegível vinculado.", "bloqueado");
+      const b = bloqueioAtendimento(caso.data as any);
+      if (b.bloqueado) await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado");
+
       const versao = texto(data.versao ?? null, 40);
       if (!versao) throw new Error("Informe a versão da entrega.");
       if (!data.responsavelId) throw new Error("Informe o responsável pela entrega.");
@@ -340,23 +392,35 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
         entrega_versao: versao,
         entrega_responsavel_id: data.responsavelId,
       };
+      metadados = { ...base, resultado: "liberado", versao, responsavel_id: data.responsavelId, demo: !!caso.data?.demo };
     } else {
       const motivo = texto(data.motivo ?? null, 600);
       if (!motivo) throw new Error("Recolher entrega exige justificativa objetiva.");
+      const substituta = texto(data.versaoSubstituta ?? null, 40);
       patch = {
         status: "aprovado",
         entrega_cliente: false,
         recolhimento_motivo: motivo,
-        versao_substituta: texto(data.versaoSubstituta ?? null, 40),
+        versao_substituta: substituta,
+      };
+      metadados = {
+        ...base,
+        resultado: "recolhido",
+        motivo,
+        versao: doc.data.entrega_versao ?? null,
+        versao_substituta: substituta,
       };
     }
 
     const r = await supabase
       .from("documents")
-      .update({ ...patch, updated_by: context.userId })
+      .update({ ...patch, updated_by: userId })
       .eq("id", data.documentoId)
       .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) {
+      await negar(r.error.message, "bloqueado");
+    }
+    await auditar(organizationId, userId, "entrega_cliente_publicacao", "documents", data.documentoId, metadados);
     return { ok: true };
   });
 
@@ -367,16 +431,79 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
-    if (!PAPEIS_FATURA.includes(papel)) throw new Error("Apenas admin e financeiro liberam faturas ao cliente.");
+    const userId = context.userId as string;
+    const base = {
+      papel,
+      quando: new Date().toISOString(),
+      fuso: "UTC",
+      visibilidade: VISIBILIDADE_FATURA_LABEL,
+      acao: data.liberar ? "liberar" : "recolher",
+    };
+    const negar = async (motivo: string, resultado: "bloqueado" | "recusado", extra?: any) => {
+      await auditar(organizationId, userId, "fatura_cliente_" + resultado, "invoices", data.faturaId, {
+        ...base,
+        ...extra,
+        resultado,
+        motivo,
+      });
+      throw new Error(motivo);
+    };
+
+    if (!PAPEIS_FATURA.includes(papel)) {
+      await negar("Apenas admin e financeiro liberam faturas ao cliente.", "recusado");
+    }
+
+    const fatura = await supabase
+      .from("invoices")
+      .select("id, case_id, client_id")
+      .eq("id", data.faturaId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!fatura.data) throw new Error("Fatura não encontrada nesta organização.");
+
+    if (data.liberar) {
+      if (!fatura.data.case_id) await negar("Fatura sem caso vinculado.", "bloqueado");
+      const [caso, acesso] = await Promise.all([
+        supabase
+          .from("crm_casos")
+          .select(
+            "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, demo",
+          )
+          .eq("id", fatura.data.case_id)
+          .eq("organization_id", organizationId)
+          .maybeSingle(),
+        supabase
+          .from("client_portal_access")
+          .select("client_id, access_status, access_level")
+          .eq("organization_id", organizationId)
+          .eq("access_level", "client_workspace")
+          .eq("access_status", "active")
+          .is("archived_at", null),
+      ]);
+      if (!caso.data) await negar("Fatura sem caso elegível vinculado.", "bloqueado");
+      const ativo = ((acesso.data ?? []) as any[]).some((a) => a.client_id === caso.data?.cliente_id);
+      const b = bloqueioFatura({ ...(caso.data as any), acesso_portal_ativo: ativo });
+      if (b.bloqueado) {
+        await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado", { case_id: fatura.data.case_id });
+      }
+    }
 
     const r = await supabase
       .from("invoices")
-      .update({ liberada_cliente: data.liberar, updated_by: context.userId })
+      .update({ liberada_cliente: data.liberar, updated_by: userId })
       .eq("id", data.faturaId)
       .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    if (r.error) await negar(r.error.message, "bloqueado", { case_id: fatura.data.case_id });
+
+    await auditar(organizationId, userId, "fatura_cliente_publicacao", "invoices", data.faturaId, {
+      ...base,
+      case_id: fatura.data.case_id,
+      resultado: data.liberar ? "liberado" : "recolhido",
+      motivo: texto(data.motivo ?? null, 400),
+    });
     return { ok: true };
   });
+
 
 export const ticketInterno = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
