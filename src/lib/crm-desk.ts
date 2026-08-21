@@ -21,6 +21,8 @@ export const AREAS_RESPONSAVEIS: Opcao[] = [
 
 export const ORIGENS_LEAD: Opcao[] = [
   { valor: "indicacao", rotulo: "Indicação" },
+  { valor: "formulario", rotulo: "Formulário" },
+  { valor: "whatsapp", rotulo: "WhatsApp" },
   { valor: "instagram", rotulo: "Instagram" },
   { valor: "meta_ads", rotulo: "Meta Ads" },
   { valor: "google", rotulo: "Google" },
@@ -149,6 +151,7 @@ export const CAMPOS_TEXTO_LIVRE = [
   "email",
   "telefone",
   "responsavel_nome",
+  "indicado_por",
   "resumo_call",
   "observacoes",
   "narrativa_familiar",
@@ -175,6 +178,7 @@ export type LeadDesk = {
   origem?: string | null;
   area_responsavel?: string | null;
   responsavel_nome?: string | null;
+  indicado_por?: string | null;
   proxima_acao?: string | null;
   proxima_acao_em?: string | null;
   eixo_comercial?: string | null;

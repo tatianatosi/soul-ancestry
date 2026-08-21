@@ -22,6 +22,7 @@ const CAMPOS_LEAD = [
   "origem",
   "area_responsavel",
   "responsavel_nome",
+  "indicado_por",
   "proxima_acao",
   "proxima_acao_em",
   "eixo_comercial",
@@ -486,4 +487,122 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
       },
       nenhuma_acao_externa: true,
     };
+  });
+
+/* ————— Cadastro manual de lead (Comercial → Leads → Novo lead) ————— */
+
+const soDigitos = (v: string) => v.replace(/\D+/g, "");
+const normalizarNome = (v: string) =>
+  v
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+export type PossivelDuplicidade = {
+  id: string;
+  codigo: string | null;
+  nome: string;
+  email: string | null;
+  telefone: string | null;
+  motivo: string;
+};
+
+/** Procura possíveis duplicidades por e-mail e telefone, usando nome como sinal complementar. */
+async function buscarDuplicidades(
+  supabase: any,
+  entrada: { nome: string; email?: string | null; telefone?: string | null },
+): Promise<PossivelDuplicidade[]> {
+  const { data } = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
+  const linhas = (data ?? []) as Array<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>;
+
+  const email = (entrada.email ?? "").trim().toLowerCase();
+  const tel = soDigitos(entrada.telefone ?? "");
+  const telChave = tel.length >= 8 ? tel.slice(-8) : "";
+  const nome = normalizarNome(entrada.nome);
+
+  const achados: PossivelDuplicidade[] = [];
+  for (const l of linhas) {
+    const motivos: string[] = [];
+    if (email && (l.email ?? "").trim().toLowerCase() === email) motivos.push("mesmo e-mail");
+    const lTel = soDigitos(l.telefone ?? "");
+    if (telChave && lTel.length >= 8 && lTel.slice(-8) === telChave) motivos.push("mesmo telefone");
+    if (nome && normalizarNome(l.nome ?? "") === nome) motivos.push("mesmo nome");
+    if (motivos.length) achados.push({ ...l, motivo: motivos.join(" + ") });
+  }
+  return achados;
+}
+
+export const verificarDuplicidadeLead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { nome: string; email?: string | null; telefone?: string | null }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    return { duplicidades: await buscarDuplicidades(supabase, data) };
+  });
+
+/** Cria contato/lead manual já em Triagem, com deduplicação prévia. */
+export const criarLeadManual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: {
+      nome: string;
+      email?: string | null;
+      telefone?: string | null;
+      origem: string;
+      objetivo: string;
+      responsavel_nome: string;
+      proxima_acao: string;
+      proxima_acao_em: string;
+      resumo_call?: string | null;
+      indicado_por?: string | null;
+      confirmarDuplicidade?: boolean;
+    }) => {
+      if (!d?.nome?.trim()) throw new Error("Nome completo é obrigatório.");
+      if (!d.email?.trim() && !d.telefone?.trim()) throw new Error("Informe ao menos telefone ou e-mail.");
+      if (!d.origem) throw new Error("Origem é obrigatória.");
+      if (!d.objetivo) throw new Error("Interesse inicial é obrigatório.");
+      if (!d.responsavel_nome?.trim()) throw new Error("Responsável é obrigatório.");
+      if (!d.proxima_acao) throw new Error("Próxima ação é obrigatória.");
+      if (!d.proxima_acao_em) throw new Error("Prazo da próxima ação é obrigatório.");
+      return d;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+
+    const duplicidades = await buscarDuplicidades(supabase, data);
+    if (duplicidades.length && !data.confirmarDuplicidade) {
+      return { ok: false as const, duplicidades, erros: [], lead: null };
+    }
+
+    const candidato: LeadDesk = {
+      nome: data.nome.trim(),
+      email: data.email?.trim() || null,
+      telefone: data.telefone?.trim() || null,
+      origem: data.origem,
+      objetivo: data.objetivo,
+      area_responsavel: "comercial",
+      responsavel_nome: data.responsavel_nome.trim(),
+      proxima_acao: data.proxima_acao,
+      proxima_acao_em: data.proxima_acao_em,
+      eixo_comercial: "triagem",
+      eixo_formalizacao: "nao_iniciado",
+      resumo_call: data.resumo_call?.trim() || null,
+      indicado_por: data.indicado_por?.trim() || null,
+    };
+
+    const erros = validarLead(candidato);
+    if (erros.length) return { ok: false as const, duplicidades: [], erros, lead: null };
+
+    const organization_id = await orgDoUsuario(supabase, userId);
+    const { data: row, error } = await supabase
+      .from("leads")
+      .insert({ ...candidato, organization_id, created_by: userId, updated_by: userId })
+      .select("*")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { ok: true as const, duplicidades: [], erros: [], lead: row as LeadDesk };
   });

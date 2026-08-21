@@ -8284,6 +8284,7 @@ export type Database = {
           email: string | null
           estagio: string
           id: string
+          indicado_por: string | null
           marco_preliminar: string | null
           motivo_perda: string | null
           nacionalidade: string | null
@@ -8334,6 +8335,7 @@ export type Database = {
           email?: string | null
           estagio?: string
           id?: string
+          indicado_por?: string | null
           marco_preliminar?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
@@ -8384,6 +8386,7 @@ export type Database = {
           email?: string | null
           estagio?: string
           id?: string
+          indicado_por?: string | null
           marco_preliminar?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
