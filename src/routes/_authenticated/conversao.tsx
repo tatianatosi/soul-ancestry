@@ -296,6 +296,19 @@ function Conversao() {
                     ))}
                   </ul>
                 </div>
+                <div className="rounded-lg border border-navy/10 p-3 lg:col-span-2">
+                  <p className="font-serif text-base text-navy">Cadeia de transição validada no servidor</p>
+                  <p className="mt-1 text-[11px] text-navy/60">
+                    proposta enviada → aceite verbal → confirmação formal → preparação contratual → contrato assinado → pagamento inicial
+                    confirmado → onboarding
+                  </p>
+                  <p className="mt-1 text-[11px] text-navy/60">
+                    Cada avanço verifica o estado anterior no banco, inclusive em gravações concorrentes. Chamadas diretas que tentem contrato,
+                    cobrança, assinatura, pesquisa externa, App Cliente ou onboarding fora de ordem são recusadas. O evento de entrada nunca é
+                    preenchido automaticamente: a ausência permanece como inconsistência de integridade.
+                  </p>
+                </div>
+
               </div>
             )}
           </section>
