@@ -394,19 +394,37 @@ export const listarEventosAcesso = createServerFn({ method: "GET" })
 export const criarConvitePortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { clientId: string; email: string; nivel: "proposal_portal" | "client_workspace"; casoId?: string }) => data,
+    (data: {
+      clientId: string;
+      autorizacaoId: string;
+      nivel: "proposal_portal" | "client_workspace";
+      casoId?: string;
+    }) => data,
   )
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
     const supabase = context.supabase as any;
     const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
 
-    const email = helpers.normalizarEmail(data.email);
+    // Somente e-mail previamente autorizado e aprovado, no nível pretendido.
+    const autorizacao = await supabase
+      .from("authorized_portal_emails")
+      .select("id, client_id, case_id, email, finalidade, nivel_pretendido, status, is_demo, archived_at")
+      .eq("id", data.autorizacaoId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    const auth = autorizacao.data;
+    if (!auth || auth.archived_at) throw new Error("Autorização de e-mail não encontrada.");
+    if (auth.status !== "aprovado") throw new Error("E-mail não aprovado: valide a autorização antes de convidar.");
+    if (auth.nivel_pretendido !== data.nivel) throw new Error("Autorização não cobre o nível de acesso escolhido.");
+    if (auth.client_id !== data.clientId) throw new Error("Autorização não pertence a esta pessoa.");
+
+    const email = helpers.normalizarEmail(auth.email);
     if (!helpers.emailValido(email)) throw new Error("E-mail inválido.");
 
     const cliente = await supabase
       .from("clientes")
-      .select("id")
+      .select("id, is_demo")
       .eq("id", data.clientId)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -415,9 +433,14 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
     let caso: any = null;
     if (data.nivel === "client_workspace") {
       if (!data.casoId) throw new Error("Para acesso ao espaço do cliente é obrigatório associar um caso.");
+      if (auth.case_id && auth.case_id !== data.casoId) {
+        throw new Error("A autorização é específica de outro caso.");
+      }
       const r = await supabase
         .from("crm_casos")
-        .select("id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, archived_at")
+        .select(
+          "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
+        )
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
         .maybeSingle();
@@ -427,10 +450,13 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       if (!caso.contrato_assinado || !caso.pagamento_confirmado || !caso.documentos_minimos_ok) {
         throw new Error("Caso inelegível: exige contrato assinado, pagamento confirmado e documentos mínimos.");
       }
+      if (!caso.ativado_em && !caso.onboarding_iniciado_em) {
+        throw new Error("Caso inelegível: falta decisão humana de ativação ou onboarding elegível.");
+      }
     }
 
     const agora = new Date();
-    const expira = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const expira = new Date(agora.getTime() + 48 * 60 * 60 * 1000);
 
     const inserido = await supabase
       .from("client_portal_access")
@@ -440,14 +466,21 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
         email,
         access_level: data.nivel,
         access_status: "invited",
+        finalidade: auth.finalidade,
+        authorized_email_id: auth.id,
+        is_demo: auth.is_demo || cliente.data.is_demo || false,
         invited_at: agora.toISOString(),
         invited_by: context.userId,
         invitation_expires_at: expira.toISOString(),
+        magic_link_expires_at: expira.toISOString(),
+        magic_link_uses: 0,
+        magic_link_max_uses: 1,
       })
       .select("id")
       .maybeSingle();
     if (inserido.error) throw new Error(inserido.error.message);
     const acessoId = inserido.data.id as string;
+
 
     if (caso) {
       const vinculo = await supabase.from("client_portal_case_access").insert({
