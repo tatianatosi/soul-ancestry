@@ -28,6 +28,7 @@ import {
   LayoutGrid,
   Users,
   ListChecks,
+  Radar as RadarIcon,
   Bell,
   Library,
   TrendingUp,
@@ -39,7 +40,12 @@ import {
   Clock,
   Scale,
   Radio,
+  Wallet,
+  Plug,
+  Smartphone,
   FileText,
+  Rocket,
+  FileSignature,
   Link2,
 } from "lucide-react";
 import { PainelModulosContextuais, AssistenteLateral } from "@/components/desk/modulos-contextuais";
@@ -70,65 +76,24 @@ type Section =
   | "formalizacao"
   | "crm";
 
-const GRUPOS = [
-  {
-    id: "overview",
-    icon: LayoutGrid,
-    label: "Visão Geral",
-    subs: [
-      ["overview", "Painel Hoje"],
-      ["radar", "Radar Interno"],
-      ["financeiro", "Financeiro"],
-      ["integracoes", "Integrações"],
-    ],
-  },
-  {
-    id: "crm",
-    icon: Radio,
-    label: "CRM vivo",
-    subs: [
-      ["crm", "Leads e triagem"],
-      ["propostas", "Propostas"],
-    ],
-  },
-  {
-    id: "casos",
-    icon: Users,
-    label: "Casos 360",
-    subs: [
-      ["casos", "Casos"],
-      ["formalizacao", "Formalização"],
-      ["golive", "Go-live"],
-    ],
-  },
-  {
-    id: "checklist",
-    icon: ListChecks,
-    label: "Checklist",
-    subs: [
-      ["checklist", "Semanal"],
-      ["appcliente", "Checklist AppCliente"],
-    ],
-  },
-  { id: "juridica", icon: Scale, label: "Validação Jurídica", subs: [["juridica", "Matriz jurídica"]] },
-  { id: "alertas", icon: Bell, label: "Alertas", subs: [["alertas", "Fila de achados"]] },
-  { id: "biblio", icon: Library, label: "Biblioteca Mestre", subs: [["biblio", "Acervo"]] },
-] as const satisfies ReadonlyArray<{
-  id: string;
-  icon: typeof LayoutGrid;
-  label: string;
-  subs: ReadonlyArray<readonly [Section, string]>;
-}>;
-
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
-  const grupoAtivo = GRUPOS.find((g) => g.subs.some(([id]) => id === sec)) ?? GRUPOS[0];
-  const nav = GRUPOS.map((g) => [g.id, g.icon, g.label] as const);
-  const abrirGrupo = (gid: string) => {
-    const g = GRUPOS.find((x) => x.id === gid);
-    if (g) setSec(g.subs[0][0]);
-  };
-
+  const nav = [
+    ["overview", LayoutGrid, "Visão Geral"],
+    ["crm", Radio, "CRM vivo"],
+    ["casos", Users, "Casos 360"],
+    ["propostas", FileText, "Propostas"],
+    ["golive", Rocket, "Go-live"],
+    ["formalizacao", FileSignature, "Formalização"],
+    ["appcliente", Smartphone, "Checklist AppCliente"],
+    ["financeiro", Wallet, "Financeiro"],
+    ["checklist", ListChecks, "Checklist semanal"],
+    ["juridica", Scale, "Validação Jurídica"],
+    ["radar", RadarIcon, "Radar Interno"],
+    ["alertas", Bell, "Alertas"],
+    ["integracoes", Plug, "Integrações"],
+    ["biblio", Library, "Biblioteca Mestre"],
+  ] as const;
 
   return (
     <div className="flex min-h-[calc(100vh-52px)] bg-cream">
@@ -143,10 +108,10 @@ export function DeskApp() {
           {nav.map(([id, Icon, label]) => (
             <button
               key={id}
-              onClick={() => abrirGrupo(id)}
+              onClick={() => setSec(id)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition text-left",
-                grupoAtivo.id === id ? "bg-gold text-navy font-semibold" : "text-cream/80 hover:bg-navy-soft",
+                sec === id ? "bg-gold text-navy font-semibold" : "text-cream/80 hover:bg-navy-soft",
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -168,15 +133,15 @@ export function DeskApp() {
           <button
             key={id}
             ref={(el) => {
-              if (el && grupoAtivo.id === id) {
+              if (el && sec === id) {
                 el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
               }
             }}
-            onClick={() => abrirGrupo(id)}
-            aria-current={grupoAtivo.id === id ? "page" : undefined}
+            onClick={() => setSec(id)}
+            aria-current={sec === id ? "page" : undefined}
             className={cn(
               "flex min-w-[76px] shrink-0 snap-center flex-col items-center gap-1 px-2 py-2 text-[10px] leading-tight",
-              grupoAtivo.id === id ? "border-t-2 border-gold text-gold" : "text-cream/70",
+              sec === id ? "border-t-2 border-gold text-gold" : "text-cream/70",
             )}
           >
             <Icon className="h-4 w-4" />
@@ -189,24 +154,6 @@ export function DeskApp() {
 
       <main className="flex-1 overflow-x-hidden px-5 py-8 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-6xl">
-          {grupoAtivo.subs.length > 1 && (
-            <div className="mb-5 flex flex-wrap gap-2">
-              {grupoAtivo.subs.map(([id, nome]) => (
-                <button
-                  key={id}
-                  onClick={() => setSec(id)}
-                  className={cn(
-                    "rounded-full border px-3 py-1 text-xs transition",
-                    sec === id
-                      ? "border-navy bg-navy text-cream"
-                      : "border-border bg-card text-muted-foreground hover:border-navy/40",
-                  )}
-                >
-                  {nome}
-                </button>
-              ))}
-            </div>
-          )}
           <PainelModulosContextuais tela={sec as TelaDesk} />
           {sec === "overview" && <Overview />}
           {sec === "crm" && <DeskCrm />}
