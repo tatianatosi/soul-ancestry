@@ -36,11 +36,12 @@ describe("testes de aceite — cadeia operacional", () => {
 
     const el = elegibilidadeAtivacao({
       status_comercial: "confirmacao_formal",
-      contrato_assinado: false,
-      pagamento_confirmado: false,
+      contratoAssinado: false,
+      pagamentoConfirmado: false,
       is_demo: false,
     } as never);
-    expect(el.pode).toBe(false);
+    expect(el.apto).toBe(false);
+    expect(el.pendencias.length).toBeGreaterThan(0);
   });
 
   it("estados de evidência só avançam por transições permitidas, com autor, justificativa e origem", () => {
