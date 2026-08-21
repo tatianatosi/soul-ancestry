@@ -131,6 +131,179 @@ export const SERVICOS_INICIAIS: Opcao[] = [
   { valor: "servico_a_definir", rotulo: "Serviço a definir" },
 ];
 
+
+/* ------------------------------------------------------------------ *
+ * Ficha de Discovery e triagem (CA 04 CRM Discovery Handoff v1.1)
+ * Triagem comercial/técnica preliminar — nunca decisão jurídica final.
+ * ------------------------------------------------------------------ */
+
+export const STATUS_CALL: Opcao[] = [
+  { valor: "agendada", rotulo: "Agendada" },
+  { valor: "confirmada", rotulo: "Confirmada" },
+  { valor: "realizada", rotulo: "Realizada" },
+  { valor: "remarcada", rotulo: "Remarcada" },
+  { valor: "no_show", rotulo: "No-show" },
+  { valor: "cancelada_lead", rotulo: "Cancelada pelo lead" },
+  { valor: "cancelada_clube", rotulo: "Cancelada pelo Clube" },
+];
+
+export const ELEGIBILIDADE_PRELIMINAR: Opcao[] = [
+  { valor: "forte", rotulo: "Forte" },
+  { valor: "provavel", rotulo: "Provável" },
+  { valor: "possivel_com_pesquisa", rotulo: "Possível com pesquisa" },
+  { valor: "baixa", rotulo: "Baixa" },
+  { valor: "inconclusiva", rotulo: "Inconclusiva" },
+  { valor: "sem_aderencia_atual", rotulo: "Sem aderência atual" },
+];
+
+export const CONFIANCA_TRIAGEM: Opcao[] = [
+  { valor: "alta", rotulo: "Alta — documentos-chave vistos" },
+  { valor: "media", rotulo: "Média — narrativa + parte documental" },
+  { valor: "baixa", rotulo: "Baixa — apenas relato inicial" },
+];
+
+export const GERACOES_ASCENDENTE: Opcao[] = [
+  { valor: "pai_mae", rotulo: "Pai/mãe" },
+  { valor: "avo", rotulo: "Avô/avó" },
+  { valor: "bisavo", rotulo: "Bisavô/bisavó" },
+  { valor: "trisavo", rotulo: "Trisavô/trisavó" },
+  { valor: "tetravo_ou_anterior", rotulo: "Tetravô/tetravó ou anterior" },
+  { valor: "nao_identificado", rotulo: "Ainda não identificado" },
+];
+
+export const LINHAS_TRANSMISSAO: Opcao[] = [
+  { valor: "paterna", rotulo: "Paterna" },
+  { valor: "materna", rotulo: "Materna" },
+  { valor: "mista", rotulo: "Mista" },
+  { valor: "nao_confirmada", rotulo: "Linha única ainda não confirmada" },
+];
+
+export const RISCOS_RUPTURA: Opcao[] = [
+  { valor: "nenhum", rotulo: "Nenhum identificado" },
+  { valor: "naturalizacao_estrangeira", rotulo: "Naturalização estrangeira" },
+  { valor: "divergencia_nomes_datas", rotulo: "Divergência de nomes/datas" },
+  { valor: "casamento_estado_civil", rotulo: "Casamento/estado civil" },
+  { valor: "linha_materna_pre_1948", rotulo: "Linha materna pré-1948" },
+  { valor: "adocao_reconhecimento", rotulo: "Adoção/reconhecimento" },
+  { valor: "falta_certidao", rotulo: "Falta de certidão" },
+  { valor: "perseguicao_prova_historica", rotulo: "Perseguição/prova histórica" },
+  { valor: "outro", rotulo: "Outro" },
+  { valor: "em_investigacao", rotulo: "Em investigação" },
+];
+
+export const COMPLEXIDADE_DOCUMENTAL: Opcao[] = [
+  { valor: "baixa", rotulo: "Baixa" },
+  { valor: "media", rotulo: "Média" },
+  { valor: "alta", rotulo: "Alta" },
+  { valor: "muito_alta", rotulo: "Muito alta" },
+];
+
+export const ESTADO_DOCUMENTAL_INICIAL: Opcao[] = [
+  { valor: "chave_disponiveis", rotulo: "Documentos-chave disponíveis" },
+  { valor: "parciais", rotulo: "Documentos parciais" },
+  { valor: "so_orais", rotulo: "Só informações orais" },
+  { valor: "arvore_sem_certidoes", rotulo: "Árvore/nomes sem certidões" },
+  { valor: "sem_dados", rotulo: "Sem dados suficientes" },
+];
+
+export const PENDENCIAS_DOCUMENTAIS: Opcao[] = [
+  { valor: "certidao_nascimento", rotulo: "Certidão de nascimento" },
+  { valor: "certidao_casamento", rotulo: "Certidão de casamento" },
+  { valor: "certidao_obito", rotulo: "Certidão de óbito" },
+  { valor: "naturalizacao_negativa", rotulo: "Naturalização/negativa" },
+  { valor: "passaporte", rotulo: "Passaporte" },
+  { valor: "imigracao", rotulo: "Imigração" },
+  { valor: "registro_militar", rotulo: "Registro militar" },
+  { valor: "registro_religioso", rotulo: "Registro religioso" },
+  { valor: "retificacao", rotulo: "Retificação" },
+  { valor: "traducao", rotulo: "Tradução" },
+  { valor: "apostila", rotulo: "Apostila" },
+  { valor: "prova_historica", rotulo: "Prova histórica" },
+  { valor: "documento_pessoal_requerente", rotulo: "Documento pessoal do requerente" },
+  { valor: "nenhuma", rotulo: "Nenhuma" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const EXIGE_IDIOMA_ENTREVISTA: Opcao[] = [
+  { valor: "nao", rotulo: "Não" },
+  { valor: "idioma", rotulo: "Sim — idioma" },
+  { valor: "entrevista", rotulo: "Sim — entrevista" },
+  { valor: "ambos", rotulo: "Sim — ambos" },
+  { valor: "a_confirmar", rotulo: "A confirmar" },
+];
+
+export const ESTRUTURAS_FAMILIARES: Opcao[] = [
+  { valor: "individual", rotulo: "Individual" },
+  { valor: "casal", rotulo: "Casal" },
+  { valor: "nucleo_familiar", rotulo: "Núcleo familiar" },
+  { valor: "familia_ampliada", rotulo: "Família ampliada" },
+  { valor: "linha_com_menores", rotulo: "Linha com menores" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const PRODUTOS_RECOMENDADOS: Opcao[] = [
+  { valor: "diagnostico", rotulo: "Diagnóstico" },
+  { valor: "pesquisa_genealogica", rotulo: "Pesquisa genealógica" },
+  { valor: "assessoria_completa", rotulo: "Assessoria completa" },
+  { valor: "montagem_pasta", rotulo: "Montagem de pasta" },
+  { valor: "certidoes", rotulo: "Certidões" },
+  { valor: "retificacao", rotulo: "Retificação" },
+  { valor: "traducao", rotulo: "Tradução" },
+  { valor: "apostila", rotulo: "Apostila" },
+  { valor: "protocolo_acompanhamento", rotulo: "Protocolo/acompanhamento" },
+  { valor: "pos_cidadania", rotulo: "Pós-cidadania" },
+  { valor: "memoria_familiar", rotulo: "Memória familiar" },
+  { valor: "outro_sku", rotulo: "Outro SKU — consultar Planilha Mestre" },
+];
+
+export const DESPESAS_TERCEIROS_STATUS: Opcao[] = [
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+  { valor: "estimativa_pendente", rotulo: "Estimativa pendente" },
+  { valor: "estimadas_comunicadas", rotulo: "Estimadas e comunicadas" },
+  { valor: "aguardando_aprovacao", rotulo: "Aguardando aprovação" },
+  { valor: "aprovadas", rotulo: "Aprovadas" },
+  { valor: "pagas_pelo_cliente", rotulo: "Pagas diretamente pelo cliente" },
+  { valor: "parcialmente_pagas", rotulo: "Parcialmente pagas" },
+  { valor: "pendencia_cliente", rotulo: "Pendência do cliente" },
+];
+
+export const DESPESAS_TERCEIROS_REGRA: Opcao[] = [
+  { valor: "cliente_paga_direto", rotulo: "Cliente paga diretamente ao terceiro" },
+  { valor: "cliente_antecipa_aprovado", rotulo: "Cliente antecipa valor aprovado" },
+  { valor: "clube_nao_antecipa", rotulo: "Clube não antecipa nem reembolsa despesas de terceiros" },
+];
+
+export const DESPESAS_TERCEIROS_FAIXA: Opcao[] = [
+  { valor: "sem_estimativa", rotulo: "Sem estimativa" },
+  { valor: "ate_1000", rotulo: "Até R$ 1.000" },
+  { valor: "1001_3000", rotulo: "R$ 1.001–3.000" },
+  { valor: "3001_6000", rotulo: "R$ 3.001–6.000" },
+  { valor: "6001_10000", rotulo: "R$ 6.001–10.000" },
+  { valor: "acima_10000", rotulo: "Acima de R$ 10.000" },
+  { valor: "sob_consulta", rotulo: "Sob consulta" },
+];
+
+export const OBJECOES: Opcao[] = [
+  { valor: "preco", rotulo: "Preço" },
+  { valor: "prazo", rotulo: "Prazo" },
+  { valor: "falta_documentos", rotulo: "Falta de documentos" },
+  { valor: "duvida_elegibilidade", rotulo: "Dúvida de elegibilidade" },
+  { valor: "familia_decisor", rotulo: "Família/decisor" },
+  { valor: "confianca", rotulo: "Confiança" },
+  { valor: "momento_financeiro", rotulo: "Momento financeiro" },
+  { valor: "idioma", rotulo: "Idioma" },
+  { valor: "concorrente", rotulo: "Comparação com concorrente" },
+  { valor: "nao_houve", rotulo: "Não houve" },
+  { valor: "outro", rotulo: "Outro" },
+];
+
+export const NIVEIS_INTENCAO: Opcao[] = [
+  { valor: "alta", rotulo: "Alta — quer avançar" },
+  { valor: "media", rotulo: "Média — precisa avaliar" },
+  { valor: "baixa", rotulo: "Baixa — exploratório" },
+  { valor: "sem_intencao", rotulo: "Sem intenção atual" },
+];
+
 /** Todos os catálogos classificatórios por campo. Entrada fora da lista é rejeitada. */
 export const CATALOGOS: Record<string, Opcao[]> = {
   area_responsavel: AREAS_RESPONSAVEIS,
@@ -145,6 +318,22 @@ export const CATALOGOS: Record<string, Opcao[]> = {
   motivo_perda: MOTIVOS_PERDA,
   proxima_acao: PROXIMAS_ACOES,
   servico_inicial_aprovado: SERVICOS_INICIAIS,
+  status_call: STATUS_CALL,
+  elegibilidade_preliminar: ELEGIBILIDADE_PRELIMINAR,
+  confianca_triagem: CONFIANCA_TRIAGEM,
+  geracao_ascendente: GERACOES_ASCENDENTE,
+  linha_transmissao: LINHAS_TRANSMISSAO,
+  risco_ruptura: RISCOS_RUPTURA,
+  complexidade_documental: COMPLEXIDADE_DOCUMENTAL,
+  estado_documental_inicial: ESTADO_DOCUMENTAL_INICIAL,
+  pendencia_documental_prioritaria: PENDENCIAS_DOCUMENTAIS,
+  exige_idioma_entrevista: EXIGE_IDIOMA_ENTREVISTA,
+  estrutura_familiar: ESTRUTURAS_FAMILIARES,
+  despesas_terceiros_status: DESPESAS_TERCEIROS_STATUS,
+  despesas_terceiros_regra: DESPESAS_TERCEIROS_REGRA,
+  despesas_terceiros_faixa: DESPESAS_TERCEIROS_FAIXA,
+  objecao_predominante: OBJECOES,
+  nivel_intencao: NIVEIS_INTENCAO,
 };
 
 export const CAMPOS_TEXTO_LIVRE = [
@@ -206,6 +395,32 @@ export type LeadDesk = {
   ultimo_followup_em?: string | null;
   archived_at?: string | null;
   created_at?: string | null;
+  status_call?: string | null;
+  elegibilidade_preliminar?: string | null;
+  confianca_triagem?: string | null;
+  geracao_ascendente?: string | null;
+  linha_transmissao?: string | null;
+  risco_ruptura?: string | null;
+  complexidade_documental?: string | null;
+  estado_documental_inicial?: string | null;
+  pendencia_documental_prioritaria?: string | null;
+  exige_idioma_entrevista?: string | null;
+  requerentes_potenciais?: number | null;
+  estrutura_familiar?: string | null;
+  objecao_predominante?: string | null;
+  nivel_intencao?: string | null;
+  produtos_recomendados?: string[] | null;
+  sku_referencia?: string | null;
+  despesas_terceiros_status?: string | null;
+  despesas_terceiros_regra?: string | null;
+  despesas_terceiros_faixa?: string | null;
+  consentimento_gravacao?: boolean | null;
+  spin_situacao?: boolean | null;
+  spin_problema?: boolean | null;
+  spin_implicacao?: boolean | null;
+  spin_necessidade?: boolean | null;
+  gravacao_link_interno?: string | null;
+  dossie_link_interno?: string | null;
 };
 
 /** Resultado comercial é DERIVADO: nunca substitui os dois eixos. */
@@ -276,6 +491,42 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
 
   if (String(l.eixo_formalizacao) === "onboarding_iniciado" && vazio(l.asaas_evento_referencia)) {
     erros.push({ campo: "eixo_formalizacao", motivo: "Onboarding não inicia sem pagamento inicial confirmado." });
+  }
+
+  if (String(l.status_call) === "realizada") {
+    if (vazio(l.discovery_resultado)) erros.push({ campo: "discovery_resultado", motivo: "Call realizada exige resultado da Discovery." });
+    if (vazio(l.proxima_acao)) erros.push({ campo: "proxima_acao", motivo: "Call realizada exige próxima ação." });
+  }
+
+  if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
+    if (vazio(l.via_juridica_preliminar)) erros.push({ campo: "via_juridica_preliminar", motivo: "Elegibilidade Forte/Provável exige via jurídica preliminar." });
+    if (vazio(l.geracao_ascendente)) erros.push({ campo: "geracao_ascendente", motivo: "Elegibilidade Forte/Provável exige geração do ascendente." });
+    if (vazio(l.estado_documental_inicial)) erros.push({ campo: "estado_documental_inicial", motivo: "Elegibilidade Forte/Provável exige estado documental inicial." });
+  }
+
+  if (!vazio(l.sku_referencia) && (l.produtos_recomendados ?? []).length === 0) {
+    erros.push({ campo: "sku_referencia", motivo: "Referência de SKU só após indicar produtos/serviços recomendados." });
+  }
+
+  if (String(l.despesas_terceiros_status) === "aprovadas") {
+    if (vazio(l.despesas_terceiros_faixa)) erros.push({ campo: "despesas_terceiros_faixa", motivo: "Despesas aprovadas exigem faixa estimada registrada." });
+    if (vazio(l.despesas_terceiros_regra)) erros.push({ campo: "despesas_terceiros_regra", motivo: "Despesas aprovadas exigem a regra de pagamento pelo cliente." });
+  }
+
+  if (!l.consentimento_gravacao && !vazio(l.gravacao_link_interno)) {
+    erros.push({ campo: "gravacao_link_interno", motivo: "Sem consentimento de gravação não é possível registrar link de gravação/transcrição." });
+  }
+
+  if (l.requerentes_potenciais !== null && l.requerentes_potenciais !== undefined && Number(l.requerentes_potenciais) < 1) {
+    erros.push({ campo: "requerentes_potenciais", motivo: "Número de requerentes deve ser inteiro positivo." });
+  }
+
+  if ((l.produtos_recomendados ?? []).some((p) => !PRODUTOS_RECOMENDADOS.some((o) => o.valor === p))) {
+    erros.push({ campo: "produtos_recomendados", motivo: "Produto fora da lista controlada." });
+  }
+
+  if (String(l.status_via) === "encerrada_novos_pedidos" && (l.produtos_recomendados ?? []).includes("protocolo_acompanhamento")) {
+    erros.push({ campo: "produtos_recomendados", motivo: "Via encerrada para novos pedidos: permitido apenas diagnóstico, pesquisa de alternativas ou nutrição." });
   }
 
   if (String(l.eixo_formalizacao) === "caso_ativo" && vazio(l.case_id)) {
