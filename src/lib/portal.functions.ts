@@ -83,6 +83,20 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
       return { autorizado: false as const, destino: null, motivo: "sem_autorizacao" };
     }
 
+    // Link mágico de uso controlado: expirado ou já consumido não libera acesso.
+    const { estadoDoLink } = await import("./portal-elegibilidade");
+    const estado = estadoDoLink(acesso);
+    if (estado !== "valido") {
+      await helpers.registrarEvento({
+        organizationId: acesso.organization_id,
+        acessoId: acesso.id,
+        authUserId: context.userId as string,
+        tipo: "session_expired",
+        metadata: { estado },
+      });
+      return { autorizado: false as const, destino: null, motivo: estado };
+    }
+
     const agora = new Date().toISOString();
     await helpers.adminClient
       .from("client_portal_access")
@@ -91,8 +105,10 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
         access_status: "active",
         first_authenticated_at: acesso.first_authenticated_at ?? agora,
         last_authenticated_at: agora,
+        magic_link_uses: (acesso.magic_link_uses ?? 0) + 1,
       })
       .eq("id", acesso.id);
+
 
     await helpers.registrarEvento({
       organizationId: acesso.organization_id,
