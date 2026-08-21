@@ -4597,6 +4597,63 @@ export type Database = {
           },
         ]
       }
+      controlled_taxonomies: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          ativo: boolean
+          codigo: string
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          dominio: string
+          id: string
+          nome: string
+          organization_id: string
+          responsavel: string | null
+          updated_at: string
+          updated_by: string | null
+          versao: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          dominio: string
+          id?: string
+          nome: string
+          organization_id: string
+          responsavel?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          dominio?: string
+          id?: string
+          nome?: string
+          organization_id?: string
+          responsavel?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+        }
+        Relationships: []
+      }
       conversion_events: {
         Row: {
           campaign_id: string | null
@@ -8491,6 +8548,77 @@ export type Database = {
             columns: ["lead_source_id"]
             isOneToOne: false
             referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_library_items: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          arquivo_ou_url_interna: string | null
+          categoria: string
+          created_at: string
+          created_by: string | null
+          descricao_interna: string | null
+          id: string
+          organization_id: string
+          owner: string | null
+          referencia_interna: string | null
+          status: string
+          substitui_item_id: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+          versao: string
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          arquivo_ou_url_interna?: string | null
+          categoria: string
+          created_at?: string
+          created_by?: string | null
+          descricao_interna?: string | null
+          id?: string
+          organization_id: string
+          owner?: string | null
+          referencia_interna?: string | null
+          status?: string
+          substitui_item_id?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          arquivo_ou_url_interna?: string | null
+          categoria?: string
+          created_at?: string
+          created_by?: string | null
+          descricao_interna?: string | null
+          id?: string
+          organization_id?: string
+          owner?: string | null
+          referencia_interna?: string | null
+          status?: string
+          substitui_item_id?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_library_items_substitui_item_id_fkey"
+            columns: ["substitui_item_id"]
+            isOneToOne: false
+            referencedRelation: "master_library_items"
             referencedColumns: ["id"]
           },
         ]
@@ -13534,6 +13662,86 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      versioned_legal_rules: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          dados_necessarios: string | null
+          escopo: string | null
+          excecoes: string | null
+          fonte_referencia: string | null
+          id: string
+          organization_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tema: string
+          track_id: string | null
+          updated_at: string
+          updated_by: string | null
+          versao: string
+          vigencia_fim: string | null
+          vigencia_inicio: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          dados_necessarios?: string | null
+          escopo?: string | null
+          excecoes?: string | null
+          fonte_referencia?: string | null
+          id?: string
+          organization_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tema: string
+          track_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          dados_necessarios?: string | null
+          escopo?: string | null
+          excecoes?: string | null
+          fonte_referencia?: string | null
+          id?: string
+          organization_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tema?: string
+          track_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "versioned_legal_rules_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
             referencedColumns: ["id"]
           },
         ]
