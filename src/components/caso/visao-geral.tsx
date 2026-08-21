@@ -2,6 +2,7 @@
  * Visão Geral do caso — linha do tempo operacional como visão padrão.
  * Somente leitura: nenhuma ação externa é executada a partir daqui.
  */
+import { Link } from "@tanstack/react-router";
 import { montarLinhaDoTempo, rotuloEvento, faseDoEvento, type EventoTimeline } from "@/lib/timeline-caso";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { STATUS_PREPARACAO_BLUEPRINT } from "@/lib/blueprint";
@@ -11,6 +12,7 @@ import {
   previsoesCondicionais,
   CHECAGEM_REPRESENTACAO,
   ESCOPO_SOLICITACAO_D1,
+  REGRAS_EXCECAO_GATE,
 } from "@/lib/gates-ativacao-ficha";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -75,18 +77,15 @@ export function AbaVisaoGeral({
           <h2 className="font-serif text-lg text-navy">
             Gates de ativação — {gates.concluidos} de {gates.total} concluídos
           </h2>
-          <button
-            type="button"
-            disabled={!gates.elegivel}
+          <Link
+            to={gates.rotaAcao}
             className={
               "rounded-lg px-4 py-2 text-sm font-medium " +
-              (gates.elegivel
-                ? "bg-navy text-cream"
-                : "cursor-default border border-navy/20 bg-navy/5 text-navy/70")
+              (gates.elegivel ? "bg-navy text-cream" : "border border-navy/20 bg-navy/5 text-navy/70")
             }
           >
             {gates.rotuloBotao}
-          </button>
+          </Link>
         </div>
         <p className="mt-1 text-xs text-navy/55">
           {gates.elegivel
@@ -108,9 +107,27 @@ export function AbaVisaoGeral({
                 Responsável: {g.responsavel}
                 {g.motivo ? ` · ${g.motivo}` : " · concluído"}
               </span>
+              <p className="mt-1 text-xs text-navy/60">
+                Evidência exigida: {g.evidencia}{" "}
+                <Link to={g.destino.rota} className="font-medium text-navy underline">
+                  {g.destino.rotulo}
+                </Link>
+              </p>
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-navy/50">
+          Exceção a um gate — condições mínimas
+        </p>
+        <ul className="mt-1 space-y-1 text-xs text-navy/70">
+          {REGRAS_EXCECAO_GATE.map((r) => (
+            <li key={r}>• {r}</li>
+          ))}
+        </ul>
+        <p className="mt-2 text-xs text-navy/55">
+          Alterar a data de uma previsão não muda status, não habilita ação e não recalcula elegibilidade: os gates
+          são revalidados no servidor a cada tentativa, e tentativas bloqueadas ficam auditadas.
+        </p>
       </section>
 
       <Cartao titulo="Formalização — sequência com critério de conclusão">
