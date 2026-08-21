@@ -18,6 +18,8 @@ import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
 import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
+import { PessoasDoNucleo } from "@/components/caso/pessoas-do-nucleo";
+import { listarNucleos } from "@/lib/nucleos-desk.functions";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
