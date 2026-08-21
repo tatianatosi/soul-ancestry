@@ -48,37 +48,37 @@ const Bloco = ({ titulo, aviso, children }: { titulo: string; aviso?: string; ch
 
 function Conversao() {
   const carregar = useServerFn(carregarConversao);
-  const q = useQuery({ queryKey: ["conversao"], queryFn: () => carregar(), retry: false });
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [referenciaAberta, setReferenciaAberta] = useState(false);
+  const q = useQuery({
+    queryKey: ["conversao", incluirDemo],
+    queryFn: () => carregar({ data: { incluirDemo } }),
+    retry: false,
+  });
 
   const dados = useMemo(() => {
-    const leadsTodos = ((q.data?.leadsTodos ?? []) as Record<string, unknown>[]).map((l) => ({
-      id: String(l.id),
-      nome: (l.nome as string) ?? null,
-      codigo: (l.codigo as string) ?? null,
-      status: (l.estagio as string) ?? null,
-      proxima_acao: (l.proxima_acao as string) ?? null,
-      prazo_proxima_acao: (l.proxima_acao_em as string) ?? null,
-      origem: (l.origem as string) ?? null,
-      demo: ehFixtureLinha(l as never),
-    }));
-    const demoIds = new Set(leadsTodos.filter((l) => l.demo).map((l) => l.id));
+    const rotulosLeads = q.data?.rotulos?.leads ?? [];
+    const rotulosCasos = q.data?.rotulos?.casos ?? [];
+    const eventos = (q.data?.eventos ?? []) as unknown as EventoBruto[];
 
-    const eventosTodos = ((q.data?.eventos ?? []) as Record<string, unknown>[]).map((e) => ({
-      ...(e as unknown as EventoBruto),
-      is_demo: e["is_demo"] === true || (e["lead_id"] ? demoIds.has(String(e["lead_id"])) : false),
-    })) as EventoBruto[];
+    const leads: LeadMinimo[] = rotulosLeads.map((l) => ({
+      id: l.id,
+      nome: l.rotulo,
+      codigo: null,
+      status: l.estagio ?? null,
+      proxima_acao: l.proxima_acao ?? null,
+      prazo_proxima_acao: l.proxima_acao_em ?? null,
+      origem: l.origem ?? null,
+      demo: l.is_demo,
+    })) as LeadMinimo[];
 
-    const leads = incluirDemo ? leadsTodos : leadsTodos.filter((l) => !l.demo);
-    const eventos = incluirDemo ? eventosTodos : eventosTodos.filter((e) => !e.is_demo);
-
-    const rotulos = { leads: new Map(leadsTodos.map((l) => [l.id, l.nome || l.codigo || l.id])) };
+    const rotulos = {
+      leads: new Map(rotulosLeads.map((l) => [l.id, l.rotulo])),
+      casos: new Map(rotulosCasos.map((c) => [c.id, c.rotulo])),
+    };
     const estados = montarEstados(eventos, rotulos);
-    const estadosTodos = montarEstados(eventosTodos, rotulos);
     const funil = montarFunil(eventos, estados);
-    const saude = montarSaude(estados, leads as LeadMinimo[], Date.now(), estadosTodos);
-
+    const saude = montarSaude(estados, leads, Date.now(), estados);
 
     const origens = new Map<string, number>();
     for (const e of eventos) {
@@ -92,11 +92,12 @@ function Conversao() {
       saude,
       eventos,
       leads,
-      ocultosLeads: leadsTodos.filter((l) => l.demo),
-      ocultosEventos: eventosTodos.filter((e) => e.is_demo).length,
+      ocultosLeads: (q.data?.leadsDemoRotulos ?? []) as string[],
+      ocultosEventos: q.data?.eventosOcultos ?? 0,
       origens: [...origens.entries()].sort((a, b) => b[1] - a[1]),
     };
-  }, [q.data, incluirDemo]);
+  }, [q.data]);
+
 
   const filas = [
     { r: "Leads ativos sem próxima ação", l: dados.saude.leadsSemProximaAcao },
