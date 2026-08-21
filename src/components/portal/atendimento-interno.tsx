@@ -500,28 +500,20 @@ export function AtendimentoInterno() {
                   <div className="flex items-center gap-2">
                     <Selo texto={liberada ? "Visível ao cliente" : "Interna"} tom={liberada ? "ok" : "neutro"} />
                     <button
-                      onClick={() => {
-                        if (liberada) {
-                          const motivo = window.prompt("Justificativa objetiva do recolhimento?") ?? "";
-                          if (!motivo.trim()) return;
-                          const sub = window.prompt("Versão substituta (opcional)") ?? "";
-                          alternarEntrega.mutate({
-                            documentoId: d.id,
-                            liberar: false,
-                            motivo,
-                            versaoSubstituta: sub.trim() || null,
-                          });
-                          return;
-                        }
-                        const versao = window.prompt("Versão da entrega (ex.: v1.0)") ?? "";
-                        if (!versao.trim()) return;
-                        alternarEntrega.mutate({
-                          documentoId: d.id,
-                          liberar: true,
-                          versao,
-                          responsavelId: form.responsavelId || undefined,
-                        });
-                      }}
+                      onClick={() =>
+                        abrirConfirmacao({
+                          tipo: "entrega",
+                          liberar: !liberada,
+                          id: d.id,
+                          caso: nomeCaso(d.case_id),
+                          item: d.titulo,
+                          classificacao: CLASSIFICACAO_ENTREGA_LABEL,
+                          visibilidade: VISIBILIDADE_ENTREGA_LABEL,
+                          responsavel: nomePessoa(form.responsavelId || d.entrega_responsavel_id),
+                          versaoAtual: d.entrega_versao ?? null,
+                        })
+                      }
+
                       disabled={impedido}
                       className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
                     >
