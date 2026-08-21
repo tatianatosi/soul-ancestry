@@ -21,7 +21,7 @@ describe("cadeia da pesquisa genealógica", () => {
       "validacao",
       "achado",
       "relatorio",
-      "app_cliente",
+      "app",
     ]);
   });
 
