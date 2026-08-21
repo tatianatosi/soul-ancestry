@@ -206,7 +206,7 @@ export function AtendimentoInterno() {
   });
 
   const alternarFatura = useMutation({
-    mutationFn: (p: { faturaId: string; liberar: boolean }) => liberarFat({ data: p }),
+    mutationFn: (p: { faturaId: string; liberar: boolean; motivo?: string }) => liberarFat({ data: p }),
     onSuccess: recarregar,
     onError: falhar,
   });
