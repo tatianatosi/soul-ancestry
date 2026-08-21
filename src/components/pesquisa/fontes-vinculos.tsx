@@ -232,3 +232,43 @@ export function VinculosDoDocumento({
     </div>
   );
 }
+
+/**
+ * Leitura apenas: mostra, na seção do alvo, quais documentos-fonte já foram
+ * vinculados por decisão humana. Não edita nem cria nada.
+ */
+export function LastroDeFontes({ caseId, tipoAlvo }: { caseId: string; tipoAlvo: TipoAlvo }) {
+  const painel = useQuery({
+    queryKey: ["g08b-vinculos", caseId, "todos"],
+    queryFn: () => listarVinculosFonte({ data: { caseId } }),
+  });
+  const d = painel.data as any;
+  const alvos: { id: string; rotulo: string }[] = d?.alvos?.[tipoAlvo] ?? [];
+  const itens = ((d?.vinculos ?? []) as Record<string, any>[]).filter((v) => alvoDoVinculo(v)?.tipo === tipoAlvo);
+
+  return (
+    <div className="rounded-lg border border-navy/10 bg-white/60 p-3 text-xs text-navy">
+      <h4 className="mb-1 text-[11px] font-medium uppercase tracking-wide text-navy/60">
+        Documentos-fonte vinculados ({ROTULO_ALVO[tipoAlvo].toLowerCase()})
+      </h4>
+      {itens.length === 0 ? (
+        <p className="text-navy/60">
+          Nenhum documento-fonte vinculado. O vínculo é feito manualmente na seção “Fontes e documentos”.
+        </p>
+      ) : (
+        <ul className="space-y-1">
+          {itens.map((v) => {
+            const alvo = alvoDoVinculo(v);
+            const rot = alvo ? alvos.find((a) => a.id === alvo.id)?.rotulo : null;
+            return (
+              <li key={String(v["id"])} className="border-t border-navy/10 py-1">
+                {rot ?? "Registro do caso"} · {TIPOS_VINCULO.find((t) => t.id === v["tipo_vinculo"])?.rotulo ?? String(v["tipo_vinculo"])}
+                {v["vinculado_em"] ? ` · ${String(v["vinculado_em"]).slice(0, 10)}` : ""}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
