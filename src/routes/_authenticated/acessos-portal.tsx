@@ -472,19 +472,29 @@ function AcessosPortalPage() {
 
           <section>
             <h2 className="font-serif text-xl">Acessos</h2>
+            {!incluirDemo && acessosDemoOcultos > 0 ? (
+              <p className="mt-1 text-sm text-navy/60">
+                {acessosDemoOcultos} acesso(s) de demonstração ocultos do painel operacional e das métricas de clientes
+                reais. Marque “Incluir demonstrações” acima para exibi-los.
+              </p>
+            ) : null}
             {q.isLoading ? (
               <p className="mt-3 text-sm text-navy/60">Carregando…</p>
-            ) : !q.data?.acessos.length ? (
+            ) : !acessosVisiveis.length ? (
               <div className="mt-3">
                 <EstadoVazio mensagem="Nenhum acesso ao portal criado ainda." />
               </div>
             ) : (
               <div className="mt-3 space-y-3">
-                {q.data.acessos.map((a) => {
+                {acessosVisiveis.map((a) => {
                   const cliente = q.data!.clientes.find((c) => c.id === a.client_id);
                   const casosVinculados = q.data!.casosAcesso.filter((v) => v.client_portal_access_id === a.id);
                   return (
-                    <div key={a.id} className="rounded-xl border border-navy/10 bg-white p-4">
+                    <div
+                      key={a.id}
+                      className={`rounded-xl border p-4 ${a.is_demo ? "border-dashed border-gold/60 bg-gold/5" : "border-navy/10 bg-white"}`}
+                    >
+
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-medium">{cliente?.nome ?? "Cliente"}</p>
