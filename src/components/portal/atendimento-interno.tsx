@@ -614,7 +614,106 @@ export function AtendimentoInterno() {
           })}
         </ul>
       </Painel>
+
+      {confirmacao ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div className="w-full max-w-lg rounded-xl border border-navy/10 bg-white p-4">
+            <h3 className="font-serif text-lg">
+              {confirmacao.liberar ? "Confirmar liberação ao cliente" : "Confirmar recolhimento"}
+            </h3>
+            <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-cream p-3 text-xs text-navy/80">
+              {[
+                `Caso: ${confirmacao.caso}`,
+                `Item: ${confirmacao.item}`,
+                `Classificação: ${confirmacao.classificacao}`,
+                `Visibilidade: ${confirmacao.visibilidade}`,
+                `Ação: ${confirmacao.liberar ? "liberar publicação" : "recolher publicação"}`,
+                `Responsável: ${confirmacao.responsavel}`,
+                `Registro: ${new Date().toLocaleString("pt-BR", { timeZoneName: "short" })}`,
+              ].join("\n")}
+            </pre>
+
+            {confirmacao.tipo === "entrega" && confirmacao.liberar ? (
+              <input
+                value={confVersao}
+                onChange={(e) => setConfVersao(e.target.value)}
+                placeholder="Versão do conteúdo (ex.: v1.0)"
+                className={`${inputCls} mt-3`}
+              />
+            ) : null}
+            {!confirmacao.liberar ? (
+              <>
+                <textarea
+                  value={confMotivo}
+                  onChange={(e) => setConfMotivo(e.target.value)}
+                  rows={2}
+                  placeholder="Justificativa objetiva do recolhimento"
+                  className={`${inputCls} mt-3`}
+                />
+                {confirmacao.tipo === "entrega" ? (
+                  <input
+                    value={confSubstituta}
+                    onChange={(e) => setConfSubstituta(e.target.value)}
+                    placeholder="Versão substituta (opcional)"
+                    className={`${inputCls} mt-2`}
+                  />
+                ) : null}
+              </>
+            ) : null}
+
+            <p className="mt-3 text-xs text-navy/50">
+              A decisão fica auditada com autor, papel, data e hora com fuso, caso, versão, classificação de
+              visibilidade e resultado (liberado, recolhido, recusado ou bloqueado).
+            </p>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmacao(null)}
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={
+                  (confirmacao.tipo === "entrega" && confirmacao.liberar && !confVersao.trim()) ||
+                  (!confirmacao.liberar && !confMotivo.trim())
+                }
+                onClick={() => {
+                  if (confirmacao.tipo === "entrega") {
+                    alternarEntrega.mutate(
+                      confirmacao.liberar
+                        ? {
+                            documentoId: confirmacao.id,
+                            liberar: true,
+                            versao: confVersao,
+                            responsavelId: form.responsavelId || undefined,
+                          }
+                        : {
+                            documentoId: confirmacao.id,
+                            liberar: false,
+                            motivo: confMotivo,
+                            versaoSubstituta: confSubstituta.trim() || null,
+                          },
+                    );
+                  } else {
+                    alternarFatura.mutate({
+                      faturaId: confirmacao.id,
+                      liberar: confirmacao.liberar,
+                      motivo: confirmacao.liberar ? undefined : confMotivo,
+                    });
+                  }
+                  setConfirmacao(null);
+                }}
+                className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-60"
+              >
+                {confirmacao.liberar ? "Liberar publicação" : "Recolher"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
+
   );
 }
 
