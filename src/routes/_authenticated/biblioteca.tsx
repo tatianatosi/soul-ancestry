@@ -102,7 +102,17 @@ function BibliotecaPage() {
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
     >
       <div className="space-y-6">
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="text-lg font-medium text-foreground">Da Biblioteca até o App Cliente</h2>
+          <p className="mb-3 mt-1 text-sm text-muted-foreground">
+            Bases Genealógicas, Dicionários e Trilhas são o insumo da pesquisa. O caminho é único e nenhum elo é
+            pulado.
+          </p>
+          <CadeiaSuprimentoPesquisa compacto />
+        </section>
+
         <section className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+
           {SUBAREAS_BIBLIOTECA.map((s) => (
             <button
               key={s.chave}
