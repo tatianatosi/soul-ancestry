@@ -5,6 +5,9 @@ import { CODIGOS_PERSISTENCIA, classificarErroPersistencia } from "@/lib/persist
 import { ehFixtureLinha, semFixtures, FIXTURE_ORIGIN } from "@/lib/fixtures";
 import { ehCampoSensivel, mascararValor } from "@/lib/persistencia-mascara";
 import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+import { MAPA_PERSISTENCIA, campoMapeado } from "@/lib/persistencia-caso";
+import { limparCamposDeControle } from "@/lib/persistencia.server";
+
 
 describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
   it("1. campo alterado e salvo é confirmado pela releitura", () => {
