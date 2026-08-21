@@ -76,24 +76,61 @@ type Section =
   | "formalizacao"
   | "crm";
 
+const GRUPOS = [
+  {
+    id: "overview",
+    icon: LayoutGrid,
+    label: "Visão Geral",
+    subs: [
+      ["overview", "Painel Hoje"],
+      ["radar", "Radar Interno"],
+      ["financeiro", "Financeiro"],
+      ["integracoes", "Integrações"],
+    ],
+  },
+  {
+    id: "crm",
+    icon: Radio,
+    label: "CRM vivo",
+    subs: [
+      ["crm", "Leads e triagem"],
+      ["propostas", "Propostas"],
+    ],
+  },
+  {
+    id: "casos",
+    icon: Users,
+    label: "Casos 360",
+    subs: [
+      ["casos", "Casos"],
+      ["formalizacao", "Formalização"],
+      ["golive", "Go-live"],
+    ],
+  },
+  {
+    id: "checklist",
+    icon: ListChecks,
+    label: "Checklist",
+    subs: [
+      ["checklist", "Semanal"],
+      ["appcliente", "Checklist AppCliente"],
+    ],
+  },
+  { id: "juridica", icon: Scale, label: "Validação Jurídica", subs: [["juridica", "Matriz jurídica"]] },
+  { id: "alertas", icon: Bell, label: "Alertas", subs: [["alertas", "Fila de achados"]] },
+  { id: "biblio", icon: Library, label: "Biblioteca Mestre", subs: [["biblio", "Acervo"]] },
+] as const satisfies ReadonlyArray<{
+  id: string;
+  icon: typeof LayoutGrid;
+  label: string;
+  subs: ReadonlyArray<readonly [Section, string]>;
+}>;
+
 export function DeskApp() {
   const [sec, setSec] = useState<Section>("overview");
-  const nav = [
-    ["overview", LayoutGrid, "Visão Geral"],
-    ["crm", Radio, "CRM vivo"],
-    ["casos", Users, "Casos 360"],
-    ["propostas", FileText, "Propostas"],
-    ["golive", Rocket, "Go-live"],
-    ["formalizacao", FileSignature, "Formalização"],
-    ["appcliente", Smartphone, "Checklist AppCliente"],
-    ["financeiro", Wallet, "Financeiro"],
-    ["checklist", ListChecks, "Checklist semanal"],
-    ["juridica", Scale, "Validação Jurídica"],
-    ["radar", RadarIcon, "Radar Interno"],
-    ["alertas", Bell, "Alertas"],
-    ["integracoes", Plug, "Integrações"],
-    ["biblio", Library, "Biblioteca Mestre"],
-  ] as const;
+  const grupoAtivo = GRUPOS.find((g) => g.subs.some(([id]) => id === sec)) ?? GRUPOS[0];
+  const nav = GRUPOS.map((g) => [g.id, g.icon, g.label] as const);
+
 
   return (
     <div className="flex min-h-[calc(100vh-52px)] bg-cream">
