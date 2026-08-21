@@ -37,6 +37,8 @@ import {
   prepararAreaPesquisa,
 } from "@/lib/pesquisa-cadeia.functions";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
+import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
+
 import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -233,7 +235,11 @@ function AreaPesquisaEvidencias() {
             ))}
           </dl>
         </Bloco>
+        <Bloco titulo="Origem dos insumos — Biblioteca Mestre">
+          <CadeiaSuprimentoPesquisa />
+        </Bloco>
         <Bloco titulo="Cadeia da pesquisa">
+
           <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
             {CADEIA_PESQUISA.map((e, i) => {
               const registros: Record<string, number> = {
