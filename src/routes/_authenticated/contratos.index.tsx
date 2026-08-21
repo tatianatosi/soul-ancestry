@@ -6,6 +6,8 @@ import { useState } from "react";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
+import { PainelCatalogo } from "@/components/painel/painel-catalogo";
+import { PainelTop30 } from "@/components/painel/painel-top30";
   ROTULO_STATUS_CONTRATO,
   ROTULO_TIPO_INSTRUMENTO,
   Selo,
@@ -159,6 +161,8 @@ function ContratosPage() {
           </table>
         </div>
       )}
+      <PainelCatalogo />
+      <PainelTop30 />
     </SaasShell>
   );
 }

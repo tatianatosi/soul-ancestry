@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SaasShell } from "@/components/saas/shell";
 import { Painel, Selo } from "@/components/comercial/base";
 import { listarCasosPesquisa } from "@/lib/pesquisa.functions";
+import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
 
 export const Route = createFileRoute("/_authenticated/pesquisa/")({
   head: () => ({
@@ -51,6 +52,7 @@ function PesquisaIndex() {
           {q.data && q.data.length === 0 && <p className="text-sm text-navy/60">Nenhum caso disponível.</p>}
         </div>
       </Painel>
+      <PendenciasCriticasPesquisa />
     </SaasShell>
   );
 }

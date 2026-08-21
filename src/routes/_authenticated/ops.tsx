@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { DeskOperacional } from "@/components/ops/desk-operacional";
+import { MetricasJornada } from "@/components/painel/metricas-jornada";
+import { PainelOnboardingJornada } from "@/components/painel/painel-onboarding-jornada";
+import { PainelCadencia } from "@/components/painel/painel-cadencia";
 
 export const Route = createFileRoute("/_authenticated/ops")({
   head: () => ({
@@ -28,6 +31,9 @@ function OpsPage() {
       descricao="Acompanhamento de casos, tarefas e micro-entregas com SLA calculado pelo banco."
     >
       <DeskOperacional />
+      <PainelOnboardingJornada />
+      <MetricasJornada />
+      <PainelCadencia />
     </SaasShell>
   );
 }
