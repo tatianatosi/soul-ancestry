@@ -95,10 +95,19 @@ function NucleosPage() {
     });
   }, [q.data, busca, filtroStatus]);
 
+  const casosDuplicados = useMemo(() => {
+    const contagem = new Map<string, number>();
+    for (const n of (q.data ?? []) as Nucleo[]) {
+      if (n.caso) contagem.set(n.caso.id, (contagem.get(n.caso.id) ?? 0) + 1);
+    }
+    return new Set([...contagem.entries()].filter(([, c]) => c > 1).map(([id]) => id));
+  }, [q.data]);
+
   const atual = useMemo(
     () => ((q.data ?? []) as Nucleo[]).find((n) => n.id === selecionado) ?? null,
     [q.data, selecionado],
   );
+
 
   const abrir = (n: Nucleo) => {
     setSelecionado(n.id);
