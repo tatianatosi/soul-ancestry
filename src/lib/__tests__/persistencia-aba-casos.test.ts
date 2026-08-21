@@ -66,4 +66,23 @@ describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
     expect(ehFixtureLinha(linhas[0]!)).toBe(true);
     expect(semFixtures(linhas).map((l) => l.id)).toEqual(["b"]);
   });
+
+  it("9. o mapa formal cobre os campos editáveis e marca somente leitura", () => {
+    expect(campoMapeado("crm_casos", "titulo")).toBe(true);
+    expect(campoMapeado("crm_casos", "campo_inexistente")).toBe(false);
+    const codigo = MAPA_PERSISTENCIA.find((l) => l.coluna === "codigo");
+    expect(codigo?.estado).toBe("somente_leitura");
+  });
+
+  it("10. campos de controle nunca vêm da tela", () => {
+    const limpo = limparCamposDeControle({
+      titulo: "Caso Ana",
+      updated_by: "atacante",
+      organization_id: "outra-org",
+      data_origin: "real",
+      vazio: undefined,
+    });
+    expect(limpo).toEqual({ titulo: "Caso Ana" });
+  });
 });
+
