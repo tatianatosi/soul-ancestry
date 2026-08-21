@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, ShieldCheck, Users } from "lucide-react";
@@ -13,14 +13,17 @@ import {
   ORIGENS,
   PAISES,
   STATUS_COMERCIAL,
+  destinoDoRegistro,
   elegibilidadeAtivacao,
   filtrarClientes,
+  normalizarPais,
   participantesDeNucleo,
   rotuloClassificacao,
   rotuloDe,
   type Filtros,
   type PessoaLista,
 } from "@/lib/clientes-lista";
+
 import { rotuloEstado } from "@/lib/estados";
 import { cn } from "@/lib/utils";
 
