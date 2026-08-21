@@ -495,8 +495,46 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         sucessorId: data.estado === "substituido" ? data.sucessorId : null,
       },
     });
-    return { ok: true };
+    // Revalidação de dependências: itens que citam o item alterado precisam de
+    // confirmação humana de compatibilidade. Nada é ajustado automaticamente.
+    const { data: dependentes } = await supabase
+      .from("master_library_items")
+      .select("id,titulo,versao,vigencia_estado,substitui_item_id,substituido_por_item_id")
+      .or(`substitui_item_id.eq.${data.id},substituido_por_item_id.eq.${data.id}`);
+
+    return {
+      ok: true,
+      dependencias: (dependentes ?? []).map((d: any) => ({
+        id: String(d.id),
+        titulo: String(d.titulo),
+        versao: d.versao ?? null,
+        estado: (d.vigencia_estado ?? null) as EstadoVigencia | null,
+        vinculo: d.substitui_item_id === data.id ? ("sucessor" as const) : ("predecessor" as const),
+        pendencia: "Confirmar se permanece compatível após a troca de vigência.",
+      })),
+    };
   });
+
+/** Histórico append-only de estados de um item da Biblioteca Mestre. */
+export const historicoVigenciaItem = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => {
+    if (!data?.id) throw new Error("Item inválido.");
+    return { id: data.id };
+  })
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Cliente;
+    const { data: eventos } = await supabase
+      .from("master_library_state_events")
+      .select(
+        "id,estado_anterior,estado_novo,justificativa,versao,responsavel,criterio_registrado,sucessor_id,predecessor_id,ator_user_id,created_at",
+      )
+      .eq("item_id", data.id)
+      .order("created_at", { ascending: false });
+    return { eventos: (eventos ?? []) as Record<string, unknown>[] };
+  });
+
+
 
 /** Auditoria append-only da Biblioteca Mestre, sem conteúdo sensível do item. */
 async function registrarAuditoriaBiblioteca(
