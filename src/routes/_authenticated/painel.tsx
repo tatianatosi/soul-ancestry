@@ -7,6 +7,7 @@ import { PainelHoje } from "@/components/painel/painel-hoje";
 import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
 import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
 import { PainelCadencia } from "@/components/painel/painel-cadencia";
+import { MetricasJornada } from "@/components/painel/metricas-jornada";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -61,6 +62,7 @@ function Painel() {
       <PendenciasCriticasPesquisa />
       <PainelDeskHoje />
       <PainelCadencia />
+      <MetricasJornada />
 
 
 
