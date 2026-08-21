@@ -27,7 +27,7 @@ async function auditar(
   acao: string,
   entidade: string,
   entidadeId: string,
-  metadados: Record<string, unknown>,
+  metadados: any,
 ) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   await supabaseAdmin.from("audit_logs").insert({
