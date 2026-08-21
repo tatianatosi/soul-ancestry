@@ -85,12 +85,15 @@ function AcessosPortalPage() {
   const [nivel, setNivel] = useState<NivelPortal>("proposal_portal");
   const [autorizacaoId, setAutorizacaoId] = useState("");
   const [casoId, setCasoId] = useState("");
+  const [mostrarBloqueados, setMostrarBloqueados] = useState(false);
+  const [incluirDemo, setIncluirDemo] = useState(false);
 
   const invalidar = () => queryClient.invalidateQueries({ queryKey: ["acessos-portal"] });
 
   const pessoas = (q.data?.clientes ?? []) as PessoaPortal[];
   const casos = (q.data?.casos ?? []) as CasoPortal[];
   const autorizacoes = (q.data?.autorizacoes ?? []) as AutorizacaoEmail[];
+  const propostas = (q.data?.propostas ?? []) as PropostaPortal[];
 
   const mAutorizacao = useMutation({
     mutationFn: () =>
