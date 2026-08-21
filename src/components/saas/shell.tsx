@@ -65,44 +65,100 @@ export function useSaas() {
   };
 }
 
+/**
+ * Navegação canônica do Desk: 14 entradas principais.
+ * Os módulos secundários continuam acessíveis, listados sob a entrada
+ * principal correspondente quando a seção está aberta — nada foi removido.
+ */
 const NAV = [
-  { to: "/painel", label: "Visão geral", icon: LayoutDashboard },
-  { to: "/leads", label: "Leads", icon: Users },
-  { to: "/clientes", label: "Clientes", icon: UserCheck },
-  { to: "/acessos-portal", label: "Acessos ao portal", icon: KeyRound },
-
-  { to: "/casos", label: "Casos", icon: FolderOpen },
-  { to: "/piloto", label: "Piloto real", icon: ShieldCheck },
-  { to: "/piloto-ana", label: "Caso-piloto Ana Luiza", icon: ShieldCheck },
-  { to: "/conversao", label: "Conversão e marketing", icon: BarChart3 },
-  { to: "/importacoes", label: "Importações e migração", icon: Plug },
-  { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
-  { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências", icon: FileSearch },
-  { to: "/evidencias", label: "Evidências", icon: FileSearch },
-  { to: "/tarefas", label: "Tarefas", icon: ListChecks },
-  { to: "/ops", label: "Desk Operacional", icon: ClipboardList },
-  { to: "/ops-excecoes", label: "Exceções operacionais", icon: ShieldCheck },
-  { to: "/propostas", label: "Propostas", icon: FileText },
-  { to: "/contratos", label: "Contratos", icon: FileSignature },
-  { to: "/contrato-parametros", label: "Dados parametrizáveis", icon: FileSignature },
-  { to: "/matriz-juridica", label: "Matriz jurídica interna", icon: FileSignature },
-  { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
-  { to: "/financeiro", label: "Financeiro", icon: Wallet },
-  { to: "/privacidade", label: "Privacidade e documentos", icon: ShieldCheck },
-  { to: "/atendimento", label: "Atendimento ao cliente", icon: MessagesSquare },
-  { to: "/qualidade", label: "Qualidade", icon: BadgeCheck },
-  { to: "/integracoes", label: "Integrações", icon: Plug },
-  { to: "/biblioteca", label: "Governança e biblioteca", icon: Library },
-  { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação", icon: Library },
-  { to: "/governanca/decisoes", label: "Decisões operacionais", icon: Library },
-  { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade", icon: Library },
-  { to: "/governanca/modulos-contextuais", label: "Módulos contextuais", icon: Library },
-  { to: "/governanca/criterios-aceite", label: "Critérios de aceite", icon: Library },
-  { to: "/governanca/identificadores", label: "Identificadores", icon: Library },
-  { to: "/etiquetas", label: "Etiquetas canônicas", icon: Library },
-
-  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { to: "/configuracoes", label: "Configurações", icon: Settings },
+  { to: "/painel", label: "Visão geral", icon: LayoutDashboard, sub: [] },
+  {
+    to: "/leads",
+    label: "Leads e oportunidades",
+    icon: Users,
+    sub: [
+      { to: "/propostas", label: "Propostas" },
+      { to: "/conversao", label: "Conversão e marketing" },
+    ],
+  },
+  {
+    to: "/clientes",
+    label: "Clientes",
+    icon: UserCheck,
+    sub: [
+      { to: "/acessos-portal", label: "Acessos ao portal" },
+      { to: "/atendimento", label: "Atendimento ao cliente" },
+    ],
+  },
+  { to: "/nucleos", label: "Núcleos e dossiês", icon: UsersRound, sub: [] },
+  {
+    to: "/casos",
+    label: "Casos",
+    icon: FolderOpen,
+    sub: [
+      { to: "/piloto", label: "Piloto real" },
+      { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
+    ],
+  },
+  {
+    to: "/pesquisa",
+    label: "Pesquisa genealógica",
+    icon: FileSearch,
+    sub: [
+      { to: "/pesquisa-modulo", label: "Pesquisa e evidências" },
+      { to: "/evidencias", label: "Evidências" },
+    ],
+  },
+  { to: "/tarefas", label: "Tarefas", icon: ListChecks, sub: [] },
+  {
+    to: "/ops",
+    label: "Desk Operacional",
+    icon: ClipboardList,
+    sub: [{ to: "/ops-excecoes", label: "Exceções operacionais" }],
+  },
+  {
+    to: "/contratos",
+    label: "Contratos",
+    icon: FileSignature,
+    sub: [
+      { to: "/contrato-parametros", label: "Dados parametrizáveis" },
+      { to: "/matriz-juridica", label: "Matriz jurídica interna" },
+      { to: "/ordens-servico", label: "Ordens de serviço" },
+    ],
+  },
+  { to: "/financeiro", label: "Financeiro", icon: Wallet, sub: [] },
+  {
+    to: "/qualidade",
+    label: "Qualidade",
+    icon: BadgeCheck,
+    sub: [{ to: "/privacidade", label: "Privacidade e documentos" }],
+  },
+  {
+    to: "/integracoes",
+    label: "Integrações",
+    icon: Plug,
+    sub: [{ to: "/importacoes", label: "Importações e migração" }],
+  },
+  {
+    to: "/biblioteca",
+    label: "Governança e biblioteca",
+    icon: Library,
+    sub: [
+      { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
+      { to: "/governanca/decisoes", label: "Decisões operacionais" },
+      { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade" },
+      { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
+      { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
+      { to: "/governanca/identificadores", label: "Identificadores" },
+      { to: "/etiquetas", label: "Etiquetas canônicas" },
+    ],
+  },
+  {
+    to: "/relatorios",
+    label: "Relatórios",
+    icon: BarChart3,
+    sub: [{ to: "/configuracoes", label: "Configurações" }],
+  },
 ] as const;
 
 export function SaasShell({
@@ -147,8 +203,8 @@ export function SaasShell({
   const itens = ehAdmin
     ? [
         ...NAV,
-        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound } as const,
-        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck } as const,
+        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound, sub: [] } as const,
+        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck, sub: [] } as const,
       ]
     : NAV;
 
@@ -166,20 +222,42 @@ export function SaasShell({
           <p className="text-[11px] uppercase tracking-widest text-cream/60">Gestão de pesquisa</p>
         </div>
         <nav className="flex-1 space-y-1">
-          {itens.map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={() => setAberto(false)}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                rota === to ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
+          {itens.map(({ to, label, icon: Icon, sub }) => {
+            const subitens = (sub ?? []) as readonly { to: string; label: string }[];
+            const secaoAtiva = rota === to || subitens.some((s) => rota.startsWith(s.to));
+            return (
+              <div key={to}>
+                <Link
+                  to={to}
+                  onClick={() => setAberto(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                    rota === to ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+                {secaoAtiva && subitens.length ? (
+                  <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
+                    {subitens.map((s) => (
+                      <Link
+                        key={s.to}
+                        to={s.to}
+                        onClick={() => setAberto(false)}
+                        className={cn(
+                          "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                          rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
+                        )}
+                      >
+                        {s.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
