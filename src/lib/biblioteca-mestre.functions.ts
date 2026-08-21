@@ -69,6 +69,24 @@ export const ESTADOS_VIGENCIA: { valor: EstadoVigencia; rotulo: string }[] = [
   { valor: "arquivado", rotulo: "Arquivado" },
 ];
 
+/** Estados que encerram o ciclo de uso do item (mantêm leitura e vínculos históricos). */
+export const ESTADOS_ENCERRADOS: EstadoVigencia[] = ["substituido", "suspenso", "arquivado"];
+
+/**
+ * Elegibilidade para NOVA utilização (proposta, contrato, OS, template, seletor).
+ * Item substituído, suspenso ou arquivado continua legível e navegável no histórico,
+ * mas nunca entra em seletor de nova operação.
+ */
+export function itemElegivelParaNovoUso(item: {
+  vigencia?: EstadoVigencia | null;
+  arquivado?: boolean;
+}): boolean {
+  if (item.arquivado) return false;
+  return item.vigencia === "vigente";
+}
+
+
+
 
 function det(rotulo: string, valor: unknown): { rotulo: string; valor: string }[] {
   if (valor === null || valor === undefined || valor === "") return [];
