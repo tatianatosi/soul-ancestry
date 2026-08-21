@@ -21,11 +21,27 @@ import {
   STATUS_ENVIO,
   STATUS_SOLICITACAO,
   STATUS_TICKET,
+  VISIBILIDADE_ENTREGA_LABEL,
+  VISIBILIDADE_FATURA_LABEL,
   bloqueioAtendimento,
   bloqueioFatura,
+  estadoCasoAtendimento,
   rotuloPrazo,
   type CasoAtendimento,
 } from "@/lib/atendimento";
+
+type Confirmacao = {
+  tipo: "entrega" | "fatura";
+  liberar: boolean;
+  id: string;
+  caso: string;
+  item: string;
+  classificacao: string;
+  visibilidade: string;
+  responsavel: string;
+  versaoAtual?: string | null;
+};
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -124,6 +140,20 @@ export function AtendimentoInterno() {
   }, [casoId, casoPorId, data]);
 
   const bloqueioSelecionado = casoId ? bloqueio(casoId) : null;
+  const casoSelecionado = casoId ? casoPorId.get(casoId) : undefined;
+  const estadoSelecionado = casoSelecionado ? estadoCasoAtendimento(casoSelecionado) : null;
+  const [confirmacao, setConfirmacao] = useState<Confirmacao | null>(null);
+  const [confVersao, setConfVersao] = useState("");
+  const [confMotivo, setConfMotivo] = useState("");
+  const [confSubstituta, setConfSubstituta] = useState("");
+
+  function abrirConfirmacao(c: Confirmacao) {
+    setConfVersao("");
+    setConfMotivo("");
+    setConfSubstituta("");
+    setConfirmacao(c);
+  }
+
 
   const novaSolicitacao = useMutation({
     mutationFn: () => {
@@ -176,7 +206,7 @@ export function AtendimentoInterno() {
   });
 
   const alternarFatura = useMutation({
-    mutationFn: (p: { faturaId: string; liberar: boolean }) => liberarFat({ data: p }),
+    mutationFn: (p: { faturaId: string; liberar: boolean; motivo?: string }) => liberarFat({ data: p }),
     onSuccess: recarregar,
     onError: falhar,
   });
@@ -197,21 +227,78 @@ export function AtendimentoInterno() {
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-sm text-navy/60">Caso</label>
-        <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={`${inputCls} max-w-md`}>
-          <option value="">Todos os casos</option>
-          {casos.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.codigo ? `${c.codigo} · ` : ""}
-              {c.titulo}
-              {bloqueioAtendimento(c).bloqueado ? " — bloqueado" : ""}
-            </option>
-          ))}
-        </select>
-        {bloqueioSelecionado?.bloqueado ? <Selo texto="Portal não elegível" tom="alerta" /> : null}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-sm text-navy/60">Caso</label>
+          <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={`${inputCls} max-w-xl`}>
+            <option value="">Todos os casos</option>
+            {(["apto", "demo", "bloqueado"] as const).map((situacao) => {
+              const grupo = casos.filter((c) => estadoCasoAtendimento(c).situacao === situacao);
+              if (grupo.length === 0) return null;
+              return (
+                <optgroup
+                  key={situacao}
+                  label={
+                    situacao === "apto"
+                      ? "Aptos ao portal"
+                      : situacao === "demo"
+                        ? "Demonstração (isolada dos indicadores reais)"
+                        : "Bloqueados para conteúdo client-facing"
+                  }
+                >
+                  {grupo.map((c) => {
+                    const e = estadoCasoAtendimento(c);
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {c.codigo ? `${c.codigo} · ` : ""}
+                        {c.titulo} — {e.rotulo}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              );
+            })}
+          </select>
+          {estadoSelecionado ? (
+            <Selo
+              texto={estadoSelecionado.rotulo}
+              tom={estadoSelecionado.situacao === "bloqueado" ? "alerta" : "ok"}
+            />
+          ) : null}
+        </div>
+        {bloqueioSelecionado ? <Bloqueado motivos={bloqueioSelecionado.motivos} /> : null}
+        <ul className="grid gap-1.5 md:grid-cols-3">
+          {casos.map((c) => {
+            const e = estadoCasoAtendimento(c);
+            return (
+              <li
+                key={c.id}
+                className={`rounded-lg border px-3 py-2 text-xs ${
+                  e.situacao === "bloqueado"
+                    ? "border-terracotta/30 bg-terracotta/5"
+                    : e.situacao === "demo"
+                      ? "border-dashed border-gold/50 bg-gold/5"
+                      : "border-navy/10 bg-white"
+                }`}
+              >
+                <p className="font-medium text-navy">
+                  {c.codigo ? `${c.codigo} · ` : ""}
+                  {c.titulo}
+                </p>
+                <p className="mt-0.5 text-navy/60">{e.rotulo}</p>
+                <p className="mt-0.5 text-navy/45">
+                  {e.situacao === "bloqueado"
+                    ? "Sem solicitação documental, entrega, fatura ou ticket de portal."
+                    : e.situacao === "demo"
+                      ? "Apenas ambiente demonstrativo."
+                      : "Ações client-facing liberadas com confirmação."}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       </div>
-      {bloqueioSelecionado ? <Bloqueado motivos={bloqueioSelecionado.motivos} /> : null}
+
 
       {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
@@ -413,28 +500,20 @@ export function AtendimentoInterno() {
                   <div className="flex items-center gap-2">
                     <Selo texto={liberada ? "Visível ao cliente" : "Interna"} tom={liberada ? "ok" : "neutro"} />
                     <button
-                      onClick={() => {
-                        if (liberada) {
-                          const motivo = window.prompt("Justificativa objetiva do recolhimento?") ?? "";
-                          if (!motivo.trim()) return;
-                          const sub = window.prompt("Versão substituta (opcional)") ?? "";
-                          alternarEntrega.mutate({
-                            documentoId: d.id,
-                            liberar: false,
-                            motivo,
-                            versaoSubstituta: sub.trim() || null,
-                          });
-                          return;
-                        }
-                        const versao = window.prompt("Versão da entrega (ex.: v1.0)") ?? "";
-                        if (!versao.trim()) return;
-                        alternarEntrega.mutate({
-                          documentoId: d.id,
-                          liberar: true,
-                          versao,
-                          responsavelId: form.responsavelId || undefined,
-                        });
-                      }}
+                      onClick={() =>
+                        abrirConfirmacao({
+                          tipo: "entrega",
+                          liberar: !liberada,
+                          id: d.id,
+                          caso: nomeCaso(d.case_id),
+                          item: d.titulo,
+                          classificacao: CLASSIFICACAO_ENTREGA_LABEL,
+                          visibilidade: VISIBILIDADE_ENTREGA_LABEL,
+                          responsavel: nomePessoa(form.responsavelId || d.entrega_responsavel_id),
+                          versaoAtual: d.entrega_versao ?? null,
+                        })
+                      }
+
                       disabled={impedido}
                       className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
                     >
@@ -477,7 +556,18 @@ export function AtendimentoInterno() {
                   <div className="flex items-center gap-2">
                     <Selo texto={f.liberada_cliente ? "Visível" : "Oculta"} tom={f.liberada_cliente ? "ok" : "neutro"} />
                     <button
-                      onClick={() => alternarFatura.mutate({ faturaId: f.id, liberar: !f.liberada_cliente })}
+                      onClick={() =>
+                        abrirConfirmacao({
+                          tipo: "fatura",
+                          liberar: !f.liberada_cliente,
+                          id: f.id,
+                          caso: f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado",
+                          item: f.descricao ?? f.numero ?? "Fatura",
+                          classificacao: "fatura vinculada ao caso autorizado",
+                          visibilidade: VISIBILIDADE_FATURA_LABEL,
+                          responsavel: "membro autenticado",
+                        })
+                      }
                       disabled={impedido}
                       className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
                     >
@@ -524,7 +614,106 @@ export function AtendimentoInterno() {
           })}
         </ul>
       </Painel>
+
+      {confirmacao ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div className="w-full max-w-lg rounded-xl border border-navy/10 bg-white p-4">
+            <h3 className="font-serif text-lg">
+              {confirmacao.liberar ? "Confirmar liberação ao cliente" : "Confirmar recolhimento"}
+            </h3>
+            <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-cream p-3 text-xs text-navy/80">
+              {[
+                `Caso: ${confirmacao.caso}`,
+                `Item: ${confirmacao.item}`,
+                `Classificação: ${confirmacao.classificacao}`,
+                `Visibilidade: ${confirmacao.visibilidade}`,
+                `Ação: ${confirmacao.liberar ? "liberar publicação" : "recolher publicação"}`,
+                `Responsável: ${confirmacao.responsavel}`,
+                `Registro: ${new Date().toLocaleString("pt-BR", { timeZoneName: "short" })}`,
+              ].join("\n")}
+            </pre>
+
+            {confirmacao.tipo === "entrega" && confirmacao.liberar ? (
+              <input
+                value={confVersao}
+                onChange={(e) => setConfVersao(e.target.value)}
+                placeholder="Versão do conteúdo (ex.: v1.0)"
+                className={`${inputCls} mt-3`}
+              />
+            ) : null}
+            {!confirmacao.liberar ? (
+              <>
+                <textarea
+                  value={confMotivo}
+                  onChange={(e) => setConfMotivo(e.target.value)}
+                  rows={2}
+                  placeholder="Justificativa objetiva do recolhimento"
+                  className={`${inputCls} mt-3`}
+                />
+                {confirmacao.tipo === "entrega" ? (
+                  <input
+                    value={confSubstituta}
+                    onChange={(e) => setConfSubstituta(e.target.value)}
+                    placeholder="Versão substituta (opcional)"
+                    className={`${inputCls} mt-2`}
+                  />
+                ) : null}
+              </>
+            ) : null}
+
+            <p className="mt-3 text-xs text-navy/50">
+              A decisão fica auditada com autor, papel, data e hora com fuso, caso, versão, classificação de
+              visibilidade e resultado (liberado, recolhido, recusado ou bloqueado).
+            </p>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmacao(null)}
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={
+                  (confirmacao.tipo === "entrega" && confirmacao.liberar && !confVersao.trim()) ||
+                  (!confirmacao.liberar && !confMotivo.trim())
+                }
+                onClick={() => {
+                  if (confirmacao.tipo === "entrega") {
+                    alternarEntrega.mutate(
+                      confirmacao.liberar
+                        ? {
+                            documentoId: confirmacao.id,
+                            liberar: true,
+                            versao: confVersao,
+                            responsavelId: form.responsavelId || undefined,
+                          }
+                        : {
+                            documentoId: confirmacao.id,
+                            liberar: false,
+                            motivo: confMotivo,
+                            versaoSubstituta: confSubstituta.trim() || null,
+                          },
+                    );
+                  } else {
+                    alternarFatura.mutate({
+                      faturaId: confirmacao.id,
+                      liberar: confirmacao.liberar,
+                      motivo: confirmacao.liberar ? undefined : confMotivo,
+                    });
+                  }
+                  setConfirmacao(null);
+                }}
+                className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-60"
+              >
+                {confirmacao.liberar ? "Liberar publicação" : "Recolher"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
+
   );
 }
 

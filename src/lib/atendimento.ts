@@ -65,6 +65,25 @@ export function bloqueioFatura(caso: CasoAtendimento | undefined): Bloqueio {
   return { bloqueado: motivos.length > 0, motivos };
 }
 
+/** Rótulo curto de estado do caso para o seletor: apto, demo ou bloqueado com motivo. */
+export type EstadoCaso = {
+  situacao: "apto" | "demo" | "bloqueado";
+  rotulo: string;
+  motivos: string[];
+};
+
+export function estadoCasoAtendimento(caso: CasoAtendimento): EstadoCaso {
+  const { bloqueado, motivos } = bloqueioAtendimento(caso);
+  if (bloqueado) return { situacao: "bloqueado", rotulo: `Bloqueado — ${motivos[0]}`, motivos };
+  if (caso.demo) return { situacao: "demo", rotulo: "Demonstração — portal liberado (fora dos indicadores reais)", motivos: [] };
+  return { situacao: "apto", rotulo: "Apto ao portal", motivos: [] };
+}
+
+/** Classificação de visibilidade usada na confirmação de publicação. */
+export const VISIBILIDADE_ENTREGA_LABEL = "Espaço do cliente";
+export const VISIBILIDADE_FATURA_LABEL = "Espaço do cliente — financeiro";
+
+
 export const CATEGORIAS_SOLICITACAO: Record<string, string> = {
   identificacao: "Identificação",
   certidao: "Certidão",
