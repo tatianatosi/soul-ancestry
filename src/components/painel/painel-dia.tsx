@@ -239,9 +239,12 @@ export function PainelDia() {
             <li>Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na maior urgência aplicável.</li>
             <li>Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios na ficha do caso.</li>
 
-            <li>Itens sem responsável são falha de qualidade e precisam de dono antes de entrar na execução.</li>
-            <li>Registros de demonstração ficam ocultos por padrão e não alteram indicadores reais.</li>
+            <li>Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na ficha do registro.</li>
+            <li>Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em número.</li>
+            <li>Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir demonstrações”.</li>
+            <li>Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários — aqui só priorização.</li>
             <li>Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até confirmação documental.</li>
+
           </ul>
         ) : null}
       </div>
