@@ -15,6 +15,7 @@ import {
   salvarDadoPiloto,
   verificarDadoPiloto,
 } from "@/lib/piloto.functions";
+import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
 
 const TITULO = "Piloto real — conferir dados | Clube Ancestral";
 const DESCRICAO =
@@ -61,6 +62,28 @@ function Pagina() {
         </Painel>
       )}
       {q.data?.caso && <Conteudo dados={q.data as any} />}
+      <Painel titulo="Ciclo completo — fases 1 a 4">
+        <p className="text-sm text-navy/70">{NOTA_CICLO}</p>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          {FASES_CICLO_PILOTO.map((f) => (
+            <div key={f.codigo} className="rounded-lg border border-navy/10 p-3">
+              <p className="font-serif text-base text-navy">
+                Fase {f.numero} — {f.nome}
+              </p>
+              <p className="text-xs text-navy/60">{f.objetivo}</p>
+              <p className="mt-1 text-[11px] uppercase tracking-wide text-navy/40">{f.condicao_entrada}</p>
+              <ul className="mt-2 space-y-1 text-xs text-navy/70">
+                {f.itens.map((i) => (
+                  <li key={i.item}>
+                    • {i.item}
+                    {i.detalhe && <span className="block pl-3 text-[11px] text-navy/45">{i.detalhe}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Painel>
     </SaasShell>
   );
 }
