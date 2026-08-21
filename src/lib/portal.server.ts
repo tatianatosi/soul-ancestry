@@ -144,3 +144,74 @@ export function acessoUtilizavel(acesso: any) {
 }
 
 export { admin as adminClient };
+
+/**
+ * Revalidação canônica de elegibilidade no servidor.
+ * Usada na criação, no reenvio e na reativação — nunca confia no payload do front.
+ * Retorna a lista de motivos de bloqueio (vazia = elegível).
+ */
+export async function revalidarElegibilidade(
+  supabase: any,
+  organizationId: string,
+  params: { clientId: string; nivel: "proposal_portal" | "client_workspace"; casoId?: string | null; autorizacaoId?: string | null },
+): Promise<string[]> {
+  const motivos: string[] = [];
+
+  if (params.autorizacaoId) {
+    const a = await supabase
+      .from("authorized_portal_emails")
+      .select("id, status, archived_at, nivel_pretendido, client_id, case_id")
+      .eq("id", params.autorizacaoId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    const auth = a.data;
+    if (!auth || auth.archived_at) motivos.push("Autorização de e-mail inexistente ou arquivada.");
+    else {
+      if (auth.status !== "aprovado") motivos.push("E-mail autorizado não está aprovado.");
+      if (auth.nivel_pretendido !== params.nivel) motivos.push("Autorização não cobre o nível de acesso.");
+      if (auth.client_id !== params.clientId) motivos.push("Autorização pertence a outra pessoa.");
+      if (params.casoId && auth.case_id && auth.case_id !== params.casoId) {
+        motivos.push("Autorização é específica de outro caso.");
+      }
+    }
+  }
+
+  if (params.nivel === "client_workspace") {
+    if (!params.casoId) {
+      motivos.push("Espaço do cliente exige um caso associado.");
+    } else {
+      const r = await supabase
+        .from("crm_casos")
+        .select(
+          "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, archived_at",
+        )
+        .eq("id", params.casoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      const caso = r.data;
+      if (!caso || caso.archived_at) motivos.push("Caso inexistente ou arquivado nesta organização.");
+      else {
+        if (caso.cliente_id !== params.clientId) motivos.push("Caso não pertence a esta pessoa.");
+        if (!caso.contrato_assinado) motivos.push("Contrato pendente.");
+        if (!caso.pagamento_confirmado) motivos.push("Pagamento pendente.");
+        if (!caso.documentos_minimos_ok) motivos.push("Documentos mínimos pendentes.");
+        if (!caso.ativado_em && !caso.onboarding_iniciado_em) motivos.push("Falta decisão humana de ativação.");
+      }
+    }
+  }
+
+  if (params.nivel === "proposal_portal") {
+    const p = await supabase
+      .from("proposals")
+      .select("id, status, archived_at, client_id, case_id")
+      .eq("organization_id", organizationId)
+      .eq("client_id", params.clientId)
+      .is("archived_at", null);
+    const validas = ((p.data ?? []) as any[]).filter((x) =>
+      ["enviada", "enviado", "aprovada", "aprovado"].includes(String(x.status ?? "").toLowerCase()),
+    );
+    if (validas.length === 0) motivos.push("Nenhuma proposta enviada ou aprovada e não arquivada para esta pessoa.");
+  }
+
+  return motivos;
+}
