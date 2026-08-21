@@ -82,6 +82,7 @@ export const EIXO_COMERCIAL: Opcao[] = [
 
 export const EIXO_FORMALIZACAO: Opcao[] = [
   { valor: "nao_iniciado", rotulo: "Não iniciado" },
+  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
   { valor: "contrato_enviado", rotulo: "Contrato enviado" },
   { valor: "contrato_assinado", rotulo: "Contrato assinado" },
   { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
