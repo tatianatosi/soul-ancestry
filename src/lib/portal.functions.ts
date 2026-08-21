@@ -705,7 +705,6 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
       patch["magic_link_uses"] = 1;
       patch["magic_link_max_uses"] = 1;
       patch["revocation_reason"] = null;
-      patch["reactivated_reason"] = data.motivo?.trim();
     }
 
 
