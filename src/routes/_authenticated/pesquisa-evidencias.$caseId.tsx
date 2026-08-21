@@ -142,35 +142,66 @@ function AreaPesquisaEvidencias() {
           />
         </div>
         <Bloco titulo="Dimensões da pesquisa">
+          {!c?.pesquisa && (
+            <p className="mb-3 rounded border border-gold/40 bg-gold/10 p-3 text-xs text-navy">
+              Área de pesquisa ainda não preparada para este caso. A preparação cria apenas o registro interno em
+              “preparação pendente”, com autorização de pesquisa externa pendente — nada é pesquisado, solicitado ou
+              publicado.
+              {d.podeEditar && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    preparar.mutate({ caseId, objetivo: `Preparação interna da pesquisa do caso ${d.caso?.codigo ?? caseId}` })
+                  }
+                  className="ml-2 rounded-full border border-navy px-3 py-1 text-[11px] font-medium text-navy"
+                >
+                  Preparar área de pesquisa
+                </button>
+              )}
+            </p>
+          )}
           <dl className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
             {[
-              { t: "Objetivo", v: d.caso?.titulo ?? "—" },
-              { t: "Trilha", v: d.caso?.pais ?? "—" },
-              { t: "Autorização", v: d.podeEditar ? "Equipe do caso com edição" : "Somente leitura" },
+              { t: "Objetivo", v: c?.pesquisa?.research_objective ?? d.caso?.titulo ?? "—" },
+              { t: "Trilha / caso", v: `${d.caso?.codigo ?? "—"} · ${c?.pesquisa?.country_context ?? d.caso?.pais ?? "—"}` },
+              { t: "Status", v: rotuloDe(STATUS_PESQUISA, c?.pesquisa?.status) },
               {
-                t: "Responsável",
-                v: d.solicitacoes.find((x: any) => x.responsible_user_id)?.responsible_user_id ?? "A definir",
+                t: "Autorização",
+                v: c?.pesquisa?.external_research_authorization_status ?? "pendente",
               },
+              { t: "Responsável", v: c?.pesquisa?.assigned_researcher_user_id ?? "A definir" },
+              { t: "Hipótese interna", v: c?.pesquisa?.internal_hypothesis ?? "Não registrada (uso interno)" },
+              { t: "Próximo marco", v: c?.pesquisa?.next_milestone ?? "Não definido" },
               {
-                t: "Status",
-                v: d.solicitacoes.length ? "Pesquisa documental em curso" : "Pesquisa não iniciada",
+                t: "Próxima ação e prazo",
+                v: c?.pesquisa?.next_research_action
+                  ? `${c.pesquisa.next_research_action}${
+                      c.pesquisa.next_research_action_due_at
+                        ? ` — até ${String(c.pesquisa.next_research_action_due_at).slice(0, 10)}`
+                        : ""
+                    }`
+                  : "Sem próxima ação registrada",
               },
-              {
-                t: "Próximo marco",
-                v:
-                  d.solicitacoes
-                    .filter((x: any) => x.next_action)
-                    .sort((a: any, b: any) => String(a.next_action_due ?? "9999").localeCompare(String(b.next_action_due ?? "9999")))[0]
-                    ?.next_action ?? "Sem próxima ação registrada",
-              },
-              { t: "Hipótese interna", v: "Uso interno — nunca projetada ao cliente." },
-            ].map((c) => (
-              <div key={c.t} className="rounded border border-navy/10 p-3">
-                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</dt>
-                <dd className="text-sm text-navy">{String(c.v)}</dd>
+              { t: "Alertas ativos", v: d.alertas.filter((a: any) => a.status === "aberto").length },
+            ].map((x) => (
+              <div key={x.t} className="rounded border border-navy/10 p-3">
+                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{x.t}</dt>
+                <dd className="text-sm text-navy">{String(x.v)}</dd>
               </div>
             ))}
           </dl>
+        </Bloco>
+        <Bloco titulo="Cadeia da pesquisa">
+          <ol className="flex flex-wrap gap-2 text-xs">
+            {CADEIA_PESQUISA.map((e, i) => (
+              <li key={e.etapa} className="rounded-full border border-navy/20 px-3 py-1 text-navy/80">
+                {i + 1}. {e.rotulo}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-2 text-xs text-navy/60">
+            Nenhum elo é pulado: documento, evidência, achado e entrega ao cliente são registros distintos.
+          </p>
         </Bloco>
         </section>
       )}
@@ -180,19 +211,23 @@ function AreaPesquisaEvidencias() {
           <Bloco titulo="Ficha genealógica do caso">
             <div className="grid gap-2 text-sm md:grid-cols-2 xl:grid-cols-4">
               {[
-                { t: "Pessoas", v: d.pessoas.length },
-                { t: "Variantes de nome", v: "ver ficha" },
-                { t: "Núcleo e relações", v: "ver ficha" },
-                { t: "Ramos e gerações", v: "ver ficha" },
-                { t: "Localidades", v: "ver ficha" },
-                { t: "Lacunas", v: d.alertas.filter((a: any) => a.status === "aberto").length },
-              ].map((c) => (
-                <div key={c.t} className="rounded border border-navy/10 p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</p>
-                  <p className="text-sm text-navy">{String(c.v)}</p>
+                { t: "Pessoas", v: c?.pessoas.length ?? 0 },
+                { t: "Variantes de nome", v: c?.variantes.length ?? 0 },
+                { t: "Relações", v: c?.relacoes.length ?? 0 },
+                { t: "Eventos", v: c?.eventos.length ?? 0 },
+                { t: "Linhagens", v: c?.linhagens.length ?? 0 },
+                { t: "Lacunas e pendências", v: c?.pendencias.filter((p: any) => p.status !== "resolvido").length ?? 0 },
+              ].map((x) => (
+                <div key={x.t} className="rounded border border-navy/10 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{x.t}</p>
+                  <p className="text-sm text-navy">{String(x.v)}</p>
                 </div>
               ))}
             </div>
+            <p className="mt-3 text-xs text-navy/60">
+              Upload de fonte ou documento não cria pessoa, relação, evento nem linhagem. Cada registro exige evidência
+              de origem ou marca explícita de hipótese interna.
+            </p>
             <Link
               to="/pessoas-linhagens/$caseId"
               params={{ caseId }}
@@ -201,8 +236,51 @@ function AreaPesquisaEvidencias() {
               Abrir ficha genealógica interna →
             </Link>
           </Bloco>
+
+          <Bloco titulo="Timeline interna derivada">
+            {(c?.eventos.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhum evento registrado. Nada é inferido automaticamente.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-navy">
+                {c!.eventos
+                  .slice()
+                  .sort((a: any, b: any) => String(a.data_inicio ?? "9999").localeCompare(String(b.data_inicio ?? "9999")))
+                  .map((e: any) => (
+                    <li key={e.id} className="border-b border-navy/10 py-1">
+                      <strong>{String(e.data_inicio ?? "data a confirmar").slice(0, 10)}</strong> — {e.tipo}
+                      {e.titulo ? `: ${e.titulo}` : ""} {e.local ? `· ${e.local}` : ""}
+                      <span className="ml-2 text-xs text-navy/60">
+                        {e.confirmado ? "confirmado por evidência" : "hipótese interna"}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </Bloco>
+
+          <Bloco titulo="Árvore interna derivada (relações)">
+            {(c?.relacoes.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhuma relação registrada.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-navy">
+                {c!.relacoes.map((r: any) => {
+                  const a = c!.pessoas.find((p: any) => p.id === r.person_a_id)?.canonical_name ?? "—";
+                  const b = c!.pessoas.find((p: any) => p.id === r.person_b_id)?.canonical_name ?? "—";
+                  return (
+                    <li key={r.id} className="border-b border-navy/10 py-1">
+                      {a} → <em>{r.relationship_type}</em> → {b}
+                      <span className="ml-2 text-xs text-navy/60">
+                        confiança {r.confidence_level} · {r.supporting_evidence_count ?? 0} evidência(s)
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Bloco>
         </section>
       )}
+
 
       {d && secao === "validacao" && (
         <section className="space-y-3">
