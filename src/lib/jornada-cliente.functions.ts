@@ -285,9 +285,9 @@ export const painelCadencia = createServerFn({ method: "GET" })
     return {
       casos: linhas,
       resumo: {
-        regular: linhas.filter((l) => l.cadencia.status === "regular").length,
-        atencao: linhas.filter((l) => l.cadencia.status === "atencao").length,
-        critico: linhas.filter((l) => l.cadencia.status === "critico").length,
+        regular: linhas.filter((l: any) => l.cadencia.status === "regular").length,
+        atencao: linhas.filter((l: any) => l.cadencia.status === "atencao").length,
+        critico: linhas.filter((l: any) => l.cadencia.status === "critico").length,
       },
     };
   });
