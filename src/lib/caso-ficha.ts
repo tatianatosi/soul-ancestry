@@ -221,7 +221,12 @@ export function sugestoesJornada(input: {
     out.push({ titulo: "Solicitar confirmação formal em até D+2", detalhe: "Aceite verbal registrado.", nivel: "atencao" });
   }
   if (input.eixo_comercial === "confirmacao_formal_recebida") {
-    out.push({ titulo: "Solicitar/validar cadastro e escopo em D+1", detalhe: "Confirmação formal recebida.", nivel: "atencao" });
+    out.push({
+      titulo: "Solicitar em D+1 apenas os dados necessários à formalização",
+      detalhe:
+        "Confirmação formal recebida. Limitar à qualificação de signatários, representação do menor e confirmação de escopo/condição. Coleta documental ampla, ambiente do cliente, checklist de operação e boas-vindas seguem bloqueados até a ativação.",
+      nivel: "atencao",
+    });
   }
   if (input.contrato_assinado && input.pagamento_confirmado && input.eixo_formalizacao !== "onboarding_iniciado" && input.eixo_formalizacao !== "caso_ativo") {
     out.push({ titulo: "Iniciar onboarding", detalhe: "Contrato assinado e pagamento confirmado.", nivel: "atencao" });

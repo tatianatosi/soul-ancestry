@@ -5,6 +5,13 @@
 import { montarLinhaDoTempo, rotuloEvento, faseDoEvento, type EventoTimeline } from "@/lib/timeline-caso";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { STATUS_PREPARACAO_BLUEPRINT } from "@/lib/blueprint";
+import {
+  resumoGatesAtivacao,
+  passosFormalizacao,
+  previsoesCondicionais,
+  CHECAGEM_REPRESENTACAO,
+  ESCOPO_SOLICITACAO_D1,
+} from "@/lib/gates-ativacao-ficha";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -31,9 +38,14 @@ function Evento({ e }: { e: EventoTimeline }) {
       <p className="text-xs text-navy/55">
         Fase {e.phase ?? faseDoEvento(e.event_type)} · {e.status}
         {e.occurred_at ? ` · ocorrido em ${data(e.occurred_at)}` : ""}
-        {e.due_at ? ` · previsto para ${data(e.due_at)}` : ""}
+        {e.due_at ? ` · previsão condicional para ${data(e.due_at)}` : ""}
         {e.responsavel_nome ? ` · ${e.responsavel_nome}` : ""}
       </p>
+      {e.due_at && new Date(e.due_at).getTime() > Date.now() ? (
+        <p className="mt-1 text-[11px] text-navy/55">
+          Data prevista, não contratada: depende dos gates de ativação pendentes.
+        </p>
+      ) : null}
       {e.summary_internal ? <p className="mt-1 text-xs text-navy/70">{e.summary_internal}</p> : null}
     </li>
   );
@@ -52,9 +64,111 @@ export function AbaVisaoGeral({
 }) {
   const eventos = timeline as EventoTimeline[];
   const t = montarLinhaDoTempo(eventos);
+  const gates = resumoGatesAtivacao(caso);
+  const passos = passosFormalizacao(caso);
+  const previsoes = previsoesCondicionais(caso);
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
+      <section className="rounded-xl border border-navy/15 bg-white p-5 lg:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">
+            Gates de ativação — {gates.concluidos} de {gates.total} concluídos
+          </h2>
+          <button
+            type="button"
+            disabled={!gates.elegivel}
+            className={
+              "rounded-lg px-4 py-2 text-sm font-medium " +
+              (gates.elegivel
+                ? "bg-navy text-cream"
+                : "cursor-default border border-navy/20 bg-navy/5 text-navy/70")
+            }
+          >
+            {gates.rotuloBotao}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-navy/55">
+          {gates.elegivel
+            ? "Elegível para ativação. A decisão continua sendo humana e validada no servidor."
+            : "Ativação bloqueada. Nenhuma data futura autoriza operação, cobrança ou ambiente do cliente."}
+        </p>
+        <ul className="mt-3 space-y-2 text-sm">
+          {gates.itens.map((g) => (
+            <li
+              key={g.chave}
+              className={
+                "rounded-lg border px-3 py-2 " +
+                (g.ok ? "border-navy/10 bg-navy/5 text-navy/75" : "border-terracotta/40 bg-terracotta/10 text-navy")
+              }
+            >
+              <span className="mr-2 font-mono">{g.ok ? "☑" : "◻"}</span>
+              <span className="font-medium">{g.rotulo}</span>
+              <span className="ml-2 text-xs text-navy/55">
+                Responsável: {g.responsavel}
+                {g.motivo ? ` · ${g.motivo}` : " · concluído"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <Cartao titulo="Formalização — sequência com critério de conclusão">
+        <ol className="space-y-2 text-sm">
+          {passos.map((p) => (
+            <li key={p.ordem} className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2">
+              <p className="font-medium text-navy">
+                {p.ordem}. {p.acao} {p.ok ? "· concluída" : "· pendente"}
+              </p>
+              <p className="text-xs text-navy/60">
+                Concluída quando: {p.concluidaQuando} · Responsável: {p.responsavel}
+              </p>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-navy/50">
+          Checagem formal antes da versão definitiva
+        </p>
+        <ul className="mt-1 space-y-1 text-xs text-navy/70">
+          {CHECAGEM_REPRESENTACAO.map((c) => (
+            <li key={c}>• {c}</li>
+          ))}
+        </ul>
+      </Cartao>
+
+      <Cartao titulo="Previsões condicionais (não são marcos contratados)">
+        {previsoes.length ? (
+          <ul className="space-y-2 text-sm">
+            {previsoes.map((p) => (
+              <li key={p.chave} className="rounded-lg border border-dashed border-gold/60 bg-gold/10 px-3 py-2">
+                <p className="font-medium text-navy">
+                  {p.rotulo}: {p.data}
+                  <span className="ml-2 rounded-full border border-gold/60 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/70">
+                    Previsão condicional
+                  </span>
+                </p>
+                <p className="text-xs text-navy/60">{p.condicao}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-navy/55">Nenhuma previsão registrada.</p>
+        )}
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-navy/50">
+          Solicitação em D+1 — limite de escopo
+        </p>
+        <ul className="mt-1 space-y-1 text-xs text-navy/70">
+          {ESCOPO_SOLICITACAO_D1.permitido.map((i) => (
+            <li key={i}>✓ {i}</li>
+          ))}
+          {ESCOPO_SOLICITACAO_D1.bloqueado.map((i) => (
+            <li key={i} className="text-terracotta">
+              ✕ Bloqueado até a ativação: {i}
+            </li>
+          ))}
+        </ul>
+      </Cartao>
+
       <Cartao titulo="Passado registrado">
         {t.passado.length ? (
           <ul className="space-y-3">
@@ -67,7 +181,7 @@ export function AbaVisaoGeral({
         )}
       </Cartao>
 
-      <Cartao titulo="Próximos marcos">
+      <Cartao titulo="Próximos marcos previstos (condicionais)">
         {t.proximosMarcos.length ? (
           <ul className="space-y-3">
             {t.proximosMarcos.map((e, i) => (
