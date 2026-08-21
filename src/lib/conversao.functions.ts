@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { semFixtures } from "@/lib/fixtures";
+import { semFixtures, ehFixtureLinha } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/lib/conversao";
@@ -20,11 +20,12 @@ const seguro = async (p: any) => {
 
 export const carregarConversao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data?: { incluirDemo?: boolean }) => ({ incluirDemo: data?.incluirDemo === true }))
+  .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
-    const [eventos, investimentos, campanhas, fontes, atribuicoes, leads, casos] = await Promise.all([
+    const [eventosBrutos, investimentos, campanhas, fontes, atribuicoes, leads, casos] = await Promise.all([
       seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
       seguro(eq("marketing_investments").is("archived_at", null).order("competencia", { ascending: false })),
       seguro(eq("marketing_campaigns").is("archived_at", null).order("nome")),
@@ -33,8 +34,62 @@ export const carregarConversao = createServerFn({ method: "GET" })
       seguro(eq("leads").is("archived_at", null).limit(1000)),
       seguro(eq("crm_casos").is("archived_at", null).limit(1000)),
     ]);
+
+    // Demonstração fica fora do recorte padrão; só entra com inclusão explícita.
+    const leadsDemo = new Set(leads.filter((l: any) => ehFixtureLinha(l as never)).map((l: any) => String(l.id)));
+    const casosDemo = new Set(casos.filter((c: any) => ehFixtureLinha(c as never)).map((c: any) => String(c.id)));
+    const eventoEhDemo = (e: any) =>
+      e.is_demo === true ||
+      (e.lead_id ? leadsDemo.has(String(e.lead_id)) : false) ||
+      (e.case_id ? casosDemo.has(String(e.case_id)) : false);
+
+    const eventos = (eventosBrutos as any[]).map((e) => ({
+      id: e.id,
+      event_type: e.event_type,
+      lead_id: e.lead_id ?? null,
+      case_id: e.case_id ?? null,
+      cliente_id: e.cliente_id ?? null,
+      occurred_at: e.occurred_at,
+      recorded_at: e.recorded_at ?? e.created_at ?? null,
+      recorded_by: e.recorded_by ?? e.created_by ?? null,
+      responsavel: e.responsavel ?? null,
+      responsavel_id: e.responsavel_id ?? null,
+      origem: e.origem ?? null,
+      canal: e.canal ?? null,
+      evidencia_referencia: e.evidencia_referencia ?? null,
+      observacao: e.observacao ?? null,
+      is_demo: eventoEhDemo(e),
+    }));
+
+    const rotulos = {
+      leads: (leads as any[]).map((l) => ({
+        id: String(l.id),
+        rotulo: (l.nome as string) || (l.codigo as string) || String(l.id),
+        origem: l.origem ?? null,
+        canal: l.canal ?? null,
+        estagio: l.estagio ?? null,
+        proxima_acao: l.proxima_acao ?? null,
+        proxima_acao_em: l.proxima_acao_em ?? null,
+        responsavel: l.responsavel ?? l.responsavel_nome ?? null,
+        is_demo: leadsDemo.has(String(l.id)),
+      })),
+      casos: (casos as any[]).map((c) => ({
+        id: String(c.id),
+        rotulo: (c.titulo as string) || (c.codigo as string) || String(c.id),
+        responsavel: c.responsavel_principal ?? null,
+        proxima_acao: c.proxima_acao_codigo ?? c.proxima_acao ?? null,
+        proxima_acao_em: c.prazo_proxima_acao ?? null,
+        is_demo: casosDemo.has(String(c.id)),
+      })),
+    };
+
+    const eventosVisiveis = data.incluirDemo ? eventos : eventos.filter((e) => !e.is_demo);
     return {
-      eventos,
+      incluirDemo: data.incluirDemo,
+      eventos: eventosVisiveis,
+      eventosOcultos: eventos.length - eventosVisiveis.length,
+      rotulos,
+      leadsDemoRotulos: rotulos.leads.filter((l) => l.is_demo).map((l) => l.rotulo),
       investimentos,
       campanhas,
       fontes,
@@ -44,6 +99,7 @@ export const carregarConversao = createServerFn({ method: "GET" })
       casos: semFixtures(casos as never),
     };
   });
+
 
 export const registrarEventoConversao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
