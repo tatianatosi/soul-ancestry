@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { SaasShell } from "@/components/saas/shell";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
+import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
+
 import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import {
   listarBibliotecaMestre,
