@@ -140,6 +140,20 @@ export function AtendimentoInterno() {
   }, [casoId, casoPorId, data]);
 
   const bloqueioSelecionado = casoId ? bloqueio(casoId) : null;
+  const casoSelecionado = casoId ? casoPorId.get(casoId) : undefined;
+  const estadoSelecionado = casoSelecionado ? estadoCasoAtendimento(casoSelecionado) : null;
+  const [confirmacao, setConfirmacao] = useState<Confirmacao | null>(null);
+  const [confVersao, setConfVersao] = useState("");
+  const [confMotivo, setConfMotivo] = useState("");
+  const [confSubstituta, setConfSubstituta] = useState("");
+
+  function abrirConfirmacao(c: Confirmacao) {
+    setConfVersao("");
+    setConfMotivo("");
+    setConfSubstituta("");
+    setConfirmacao(c);
+  }
+
 
   const novaSolicitacao = useMutation({
     mutationFn: () => {
