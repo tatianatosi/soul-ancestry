@@ -39,8 +39,36 @@ export interface ItemBiblioteca {
   homologado: boolean;
   /** Texto curto da regra de homologação aplicada. */
   regraHomologacao: string;
+  /** Estado de vigência canônico (só o acervo é governado por este ciclo). */
+  vigencia?: EstadoVigencia | null;
+  homologacaoCriterio?: string | null;
+  homologadoEm?: string | null;
+  /** Item que substitui este (sucessor). */
+  sucessorId?: string | null;
+  /** Item substituído por este (predecessor). */
+  predecessorId?: string | null;
   detalhes: { rotulo: string; valor: string }[];
 }
+
+export type EstadoVigencia =
+  | "rascunho"
+  | "em_revisao"
+  | "homologado"
+  | "vigente"
+  | "substituido"
+  | "suspenso"
+  | "arquivado";
+
+export const ESTADOS_VIGENCIA: { valor: EstadoVigencia; rotulo: string }[] = [
+  { valor: "rascunho", rotulo: "Rascunho" },
+  { valor: "em_revisao", rotulo: "Em revisão" },
+  { valor: "homologado", rotulo: "Homologado" },
+  { valor: "vigente", rotulo: "Vigente" },
+  { valor: "substituido", rotulo: "Substituído" },
+  { valor: "suspenso", rotulo: "Suspenso" },
+  { valor: "arquivado", rotulo: "Arquivado" },
+];
+
 
 function det(rotulo: string, valor: unknown): { rotulo: string; valor: string }[] {
   if (valor === null || valor === undefined || valor === "") return [];
@@ -56,7 +84,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
       supabase
         .from("master_library_items")
         .select(
-          "id,categoria,titulo,descricao_interna,versao,status,owner,referencia_interna,archived_at,archive_motivo,updated_at",
+          "id,categoria,titulo,descricao_interna,versao,status,owner,referencia_interna,archived_at,archive_motivo,updated_at,vigencia_estado,homologacao_criterio,homologado_em,substitui_item_id,substituido_por_item_id",
         ),
       supabase
         .from("genealogical_sources_catalog")
@@ -97,7 +125,13 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.updated_at ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
-        homologado: !r.archived_at && r.status === "aprovado",
+        homologado:
+          !r.archived_at && (r.vigencia_estado === "homologado" || r.vigencia_estado === "vigente"),
+        vigencia: (r.vigencia_estado ?? "rascunho") as EstadoVigencia,
+        homologacaoCriterio: r.homologacao_criterio ?? null,
+        homologadoEm: r.homologado_em ?? null,
+        sucessorId: r.substituido_por_item_id ?? null,
+        predecessorId: r.substitui_item_id ?? null,
         regraHomologacao: "Circula apenas material aprovado e não arquivado.",
         detalhes: [...det("Referência interna", r.referencia_interna)],
       });
@@ -274,6 +308,46 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
     if (data.fonte === "top30") patch["elegivel_para_proposta"] = false;
 
     const { error } = await supabase.from(tabela).update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
+ * Ciclo de vigência do acervo interno. A recusa efetiva (papel, versão,
+ * responsável, critério de homologação e sucessor obrigatório na substituição)
+ * é aplicada no banco pelo guard fn_biblioteca_mestre_guard.
+ */
+export const definirVigenciaItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => {
+      if (!data?.id) throw new Error("Item inválido.");
+      const estados = ESTADOS_VIGENCIA.map((e) => e.valor);
+      if (!estados.includes(data.estado)) throw new Error("Estado de vigência inválido.");
+      if (data.estado === "arquivado") {
+        throw new Error("Arquivamento é feito pelo fluxo próprio, com motivo obrigatório.");
+      }
+      if ((data.estado === "homologado" || data.estado === "vigente") && !data.criterio?.trim()) {
+        throw new Error("Homologação exige critério ou evidência registrada.");
+      }
+      if (data.estado === "substituido" && !data.sucessorId) {
+        throw new Error("Item substituído deve apontar para o item sucessor.");
+      }
+      return {
+        id: data.id,
+        estado: data.estado,
+        criterio: data.criterio?.trim() || null,
+        sucessorId: data.sucessorId || null,
+      };
+    },
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Cliente;
+    const patch: Record<string, unknown> = { vigencia_estado: data.estado };
+    if (data.criterio) patch["homologacao_criterio"] = data.criterio;
+    if (data.estado === "substituido") patch["substituido_por_item_id"] = data.sucessorId;
+
+    const { error } = await supabase.from("master_library_items").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

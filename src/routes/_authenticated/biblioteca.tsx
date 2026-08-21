@@ -9,8 +9,11 @@ import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-supriment
 import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import {
   arquivarItemBiblioteca,
+  definirVigenciaItem,
+  ESTADOS_VIGENCIA,
   listarBibliotecaMestre,
   listarCatalogoTop30,
+  type EstadoVigencia,
   type ItemBiblioteca,
 } from "@/lib/biblioteca-mestre.functions";
 
@@ -59,6 +62,7 @@ function BibliotecaPage() {
   const [aArquivar, setAArquivar] = useState<ItemBiblioteca | null>(null);
   const [motivo, setMotivo] = useState("");
   const [erroArquivo, setErroArquivo] = useState<string | null>(null);
+  const [erroVigencia, setErroVigencia] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const geral = useQuery({ queryKey: ["biblioteca-mestre"], queryFn: () => listarBibliotecaMestre() });
@@ -75,6 +79,16 @@ function BibliotecaPage() {
       await queryClient.invalidateQueries({ queryKey: ["biblioteca-top30"] });
     },
     onError: (e: Error) => setErroArquivo(e.message),
+  });
+
+  const vigencia = useMutation({
+    mutationFn: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) =>
+      definirVigenciaItem({ data: v }),
+    onSuccess: async () => {
+      setErroVigencia(null);
+      await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
+    },
+    onError: (e: Error) => setErroVigencia(e.message),
   });
 
   const itens = useMemo<ItemBiblioteca[]>(
@@ -299,19 +313,59 @@ function BibliotecaPage() {
                   )}
                 </div>
                 {detalhe?.id === i.id && (
-                  <dl className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
-                    {i.detalhes.length === 0 ? (
-                      <p className="text-muted-foreground">Sem campos adicionais registrados.</p>
-                    ) : (
-                      i.detalhes.map((d) => (
-                        <div key={d.rotulo} className="flex gap-2">
-                          <dt className="shrink-0 text-muted-foreground">{d.rotulo}:</dt>
-                          <dd className="text-foreground">{d.valor}</dd>
-                        </div>
-                      ))
+                  <div className="mt-3 space-y-3 border-t border-border pt-3 text-xs">
+                    <dl className="space-y-1">
+                      {i.detalhes.length === 0 ? (
+                        <p className="text-muted-foreground">Sem campos adicionais registrados.</p>
+                      ) : (
+                        i.detalhes.map((d) => (
+                          <div key={d.rotulo} className="flex gap-2">
+                            <dt className="shrink-0 text-muted-foreground">{d.rotulo}:</dt>
+                            <dd className="text-foreground">{d.valor}</dd>
+                          </div>
+                        ))
+                      )}
+                    </dl>
+                    {i.fonte === "acervo" && (
+                      <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                        <p className="text-foreground">
+                          Vigência atual:{" "}
+                          <strong>
+                            {ESTADOS_VIGENCIA.find((e) => e.valor === (i.vigencia ?? "rascunho"))?.rotulo}
+                          </strong>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Critério/evidência de homologação: {i.homologacaoCriterio ?? "não registrado"}
+                          {i.homologadoEm ? ` · homologado em ${String(i.homologadoEm).slice(0, 10)}` : ""}
+                        </p>
+                        {i.predecessorId && (
+                          <p className="text-muted-foreground">
+                            Substitui o item anterior: <code>{i.predecessorId}</code>
+                          </p>
+                        )}
+                        {i.sucessorId && (
+                          <p className="text-muted-foreground">
+                            Substituído pelo sucessor: <code>{i.sucessorId}</code>
+                          </p>
+                        )}
+                        {!i.arquivado && (
+                          <FormularioVigencia
+                            item={i}
+                            candidatos={itens.filter((c) => c.fonte === "acervo" && c.id !== i.id && !c.arquivado)}
+                            onSalvar={(v) => vigencia.mutate(v)}
+                            salvando={vigencia.isPending}
+                            erro={erroVigencia}
+                          />
+                        )}
+                        <p className="text-muted-foreground">
+                          Homologar ou tornar vigente exige versão, responsável e critério, e é validado no banco —
+                          um item sem esses dados é recusado no servidor.
+                        </p>
+                      </div>
                     )}
-                  </dl>
+                  </div>
                 )}
+
               </li>
             ))}
           </ul>
@@ -364,5 +418,88 @@ function BibliotecaPage() {
         {sub === "governanca" && <ManifestoResgate />}
       </div>
     </SaasShell>
+  );
+}
+
+function FormularioVigencia({
+  item,
+  candidatos,
+  onSalvar,
+  salvando,
+  erro,
+}: {
+  item: ItemBiblioteca;
+  candidatos: ItemBiblioteca[];
+  onSalvar: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => void;
+  salvando: boolean;
+  erro: string | null;
+}) {
+  const [estado, setEstado] = useState<EstadoVigencia>((item.vigencia ?? "rascunho") as EstadoVigencia);
+  const [criterio, setCriterio] = useState(item.homologacaoCriterio ?? "");
+  const [sucessor, setSucessor] = useState(item.sucessorId ?? "");
+
+  return (
+    <form
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null });
+      }}
+    >
+      <label className="block">
+        <span className="text-muted-foreground">Novo estado de vigência</span>
+        <select
+          value={estado}
+          onChange={(e) => setEstado(e.target.value as EstadoVigencia)}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        >
+          {ESTADOS_VIGENCIA.filter((o) => o.valor !== "arquivado").map((o) => (
+            <option key={o.valor} value={o.valor}>
+              {o.rotulo}
+            </option>
+          ))}
+        </select>
+      </label>
+      {(estado === "homologado" || estado === "vigente") && (
+        <label className="block">
+          <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+          <textarea
+            value={criterio}
+            onChange={(e) => setCriterio(e.target.value)}
+            rows={2}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          />
+        </label>
+      )}
+      {estado === "substituido" && (
+        <label className="block">
+          <span className="text-muted-foreground">Item sucessor</span>
+          <select
+            value={sucessor}
+            onChange={(e) => setSucessor(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          >
+            <option value="">Selecione o sucessor</option>
+            {candidatos.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.titulo} {c.versao ? `(v${c.versao})` : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {erro && (
+        <p role="alert" className="text-destructive">
+          {erro}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={salvando}
+        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60"
+      >
+        {salvando ? "Registrando…" : "Registrar mudança de vigência"}
+      </button>
+    </form>
   );
 }
