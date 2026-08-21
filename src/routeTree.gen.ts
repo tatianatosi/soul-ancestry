@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as PrototipoRouteImport } from './routes/prototipo'
+import { Route as MockupRouteImport } from './routes/mockup'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcessoRouteImport } from './routes/acesso'
@@ -93,6 +94,11 @@ const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
 const PrototipoRoute = PrototipoRouteImport.update({
   id: '/prototipo',
   path: '/prototipo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MockupRoute = MockupRouteImport.update({
+  id: '/mockup',
+  path: '/mockup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevolutivaRoute = DevolutivaRouteImport.update({
@@ -499,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
@@ -574,6 +581,7 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
@@ -652,6 +660,7 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/prototipo': typeof PrototipoRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
@@ -730,6 +739,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/prototipo'
     | '/studio-devolutivas'
     | '/acessos-portal'
@@ -805,6 +815,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/prototipo'
     | '/studio-devolutivas'
     | '/acessos-portal'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/prototipo'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
@@ -960,6 +972,7 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  MockupRoute: typeof MockupRoute
   PrototipoRoute: typeof PrototipoRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
@@ -985,6 +998,13 @@ declare module '@tanstack/react-router' {
       path: '/prototipo'
       fullPath: '/prototipo'
       preLoaderRoute: typeof PrototipoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mockup': {
+      id: '/mockup'
+      path: '/mockup'
+      fullPath: '/mockup'
+      preLoaderRoute: typeof MockupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devolutiva': {
@@ -1668,6 +1688,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  MockupRoute: MockupRoute,
   PrototipoRoute: PrototipoRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
