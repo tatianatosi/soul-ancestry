@@ -75,8 +75,10 @@ function Conversao() {
 
     const rotulos = { leads: new Map(leadsTodos.map((l) => [l.id, l.nome || l.codigo || l.id])) };
     const estados = montarEstados(eventos, rotulos);
+    const estadosTodos = montarEstados(eventosTodos, rotulos);
     const funil = montarFunil(eventos, estados);
-    const saude = montarSaude(estados, leads as LeadMinimo[]);
+    const saude = montarSaude(estados, leads as LeadMinimo[], Date.now(), estadosTodos);
+
 
     const origens = new Map<string, number>();
     for (const e of eventos) {
