@@ -194,9 +194,6 @@ function formatar(valor: unknown): string | null {
 
 export function previsoesCondicionais(caso: Linha): PrevisaoCondicional[] {
   const itens: (PrevisaoCondicional | null)[] = [
-    formatar(caso["data_confirmacao_formal_proposta"])
-      ? null
-      : null,
     formatar(caso["prazo_proxima_acao"])
       ? {
           chave: "completude_proposta",
