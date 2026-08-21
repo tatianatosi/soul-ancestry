@@ -63,6 +63,17 @@ function CasosPage() {
             ),
           },
           { chave: "titulo", rotulo: "Título" },
+          {
+            chave: "piloto",
+            rotulo: "Papel do registro",
+            render: (l) =>
+              ehFixture(l["codigo"] as string | null) || l["demo"]
+                ? "Demonstração — não operacional"
+                : l["piloto"]
+                  ? "Piloto real — caso operacional de referência"
+                  : "Caso operacional",
+          },
+
           { chave: "tipo_servico", rotulo: "Tipo de serviço" },
           { chave: "fase", rotulo: "Fase" },
           { chave: "prioridade", rotulo: "Prioridade" },
