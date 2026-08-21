@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
+import { AREAS_RESPONSAVEIS, EIXO_COMERCIAL, listaPrioritaria, rotulo } from "@/lib/crm-desk";
 
 /**
  * Painel Hoje do Desk comercial: filas ordenadas por criticidade e leitura
@@ -11,11 +13,19 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 export function PainelDeskHoje() {
   const carregar = useServerFn(painelHojeDesk);
   const q = useQuery({ queryKey: ["painel-desk-hoje"], queryFn: () => carregar(), retry: false });
+  const [area, setArea] = useState("");
+  const [responsavel, setResponsavel] = useState("");
+  const [etapa, setEtapa] = useState("");
 
   if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando filas do Desk…</p>;
   if (q.isError || !q.data) return null;
 
   const { filas, metricas } = q.data;
+  const responsaveis = Array.from(
+    new Set(filas.flatMap((f) => f.itens.map((i) => i.responsavel)).filter(Boolean) as string[]),
+  ).sort();
+  const priorizada = listaPrioritaria(filas, { area, responsavel, etapa });
+  const hoje = new Date().toISOString().slice(0, 10);
 
   return (
     <section className="mt-8">
@@ -24,6 +34,54 @@ export function PainelDeskHoje() {
         <Link to="/leads" className="text-xs text-navy/60 underline">
           Abrir CRM de leads
         </Link>
+      </div>
+
+      <div className="mb-3 grid gap-2 rounded-xl border border-navy/10 bg-white p-3 sm:grid-cols-3">
+        <label className="text-xs text-navy/60">
+          Área responsável
+          <select
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+          >
+            <option value="">Todas</option>
+            {AREAS_RESPONSAVEIS.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-navy/60">
+          Responsável nominal
+          <select
+            value={responsavel}
+            onChange={(e) => setResponsavel(e.target.value)}
+            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+          >
+            <option value="">Todos</option>
+            {responsaveis.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-navy/60">
+          Etapa (eixo comercial)
+          <select
+            value={etapa}
+            onChange={(e) => setEtapa(e.target.value)}
+            className="mt-1 w-full rounded border border-navy/15 bg-white px-2 py-1 text-sm text-navy"
+          >
+            <option value="">Todas</option>
+            {EIXO_COMERCIAL.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -54,6 +112,31 @@ export function PainelDeskHoje() {
           </div>
         ))}
       </div>
+
+      <div className="mt-4 rounded-xl border border-navy/10 bg-white p-4">
+        <p className="text-xs uppercase tracking-wide text-navy/50">
+          Lista priorizada por data da próxima ação ({priorizada.length})
+        </p>
+        <ul className="mt-2 divide-y divide-navy/5 text-xs text-navy/70">
+          {priorizada.slice(0, 25).map((i, idx) => {
+            const d = i.data ? String(i.data).slice(0, 10) : null;
+            const atraso = d && d < hoje;
+            return (
+              <li key={`${i.fila}-${i.id}-${idx}`} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
+                <span className={atraso ? "font-medium text-terracotta" : "font-medium text-navy"}>{d ?? "sem data"}</span>
+                <span className="text-navy">{i.rotulo}</span>
+                <span className="text-navy/50">· {i.fila}</span>
+                <span className="text-navy/45">· {i.detalhe}</span>
+                <span className="text-navy/45">
+                  · {i.responsavel ?? "sem responsável"} / {i.area ? rotulo("area_responsavel", i.area) : "sem área"}
+                </span>
+              </li>
+            );
+          })}
+          {!priorizada.length ? <li className="py-1.5">Nada priorizado nos filtros atuais.</li> : null}
+        </ul>
+      </div>
+
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-navy/10 bg-white p-4">
