@@ -107,7 +107,7 @@ function LeadsPage() {
   const data = (k: string) => String((editado as Record<string, unknown>)[k] ?? "").slice(0, 10);
 
   return (
-    <SaasShell titulo="CRM de leads" descricao="Desk comercial diário: entrada, Discovery, proposta e formalização.">
+    <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
       <NovoLeadDialog
         aberto={novoLeadAberto}
         onFechar={() => setNovoLeadAberto(false)}
@@ -445,7 +445,7 @@ function LeadsPage() {
         <FluxoComercialCanonico />
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div id="crm-contatos" className="mt-6 scroll-mt-24 space-y-3">
         <h2 className="font-serif text-xl text-navy">Contatos, conversas e eventos de funil</h2>
         <p className="text-xs text-navy/55">
           Núcleo operacional canônico do Desk. Conversas são imutáveis e eventos sensíveis exigem confirmação humana e evidência
