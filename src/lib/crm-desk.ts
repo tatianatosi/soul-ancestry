@@ -217,6 +217,7 @@ export function resultadoComercialDerivado(l: LeadDesk): string {
   if (l.eixo_formalizacao === "pagamento_inicial_confirmado") return "Ganho — pagamento confirmado";
   if (l.eixo_formalizacao === "contrato_assinado") return "Ganho — contrato assinado";
   if (l.eixo_formalizacao === "contrato_enviado") return "Em formalização";
+  if (l.eixo_formalizacao === "confirmacao_formal_recebida") return "Aceite confirmado — formalização pendente";
   if (l.eixo_comercial === "nutricao") return "Em nutrição";
   return "Em andamento comercial";
 }
