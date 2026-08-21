@@ -44,6 +44,9 @@ export function EntidadeCrud({
   dominio,
   campoEstado = "status",
   extra,
+  filtrarLinhas,
+  classeLinha,
+  topo,
 }: {
   entidade: Entidade;
   titulo: string;
@@ -53,6 +56,12 @@ export function EntidadeCrud({
   dominio?: Dominio;
   campoEstado?: string;
   extra?: (linha: Record<string, unknown>, recarregar: () => void) => React.ReactNode;
+  /** Filtro somente de apresentação (ex.: isolar casos demonstrativos). */
+  filtrarLinhas?: (linha: Record<string, unknown>) => boolean;
+  /** Classe adicional por linha (ex.: destaque visual de registro demonstrativo). */
+  classeLinha?: (linha: Record<string, unknown>) => string | undefined;
+  /** Controles extras exibidos acima da tabela. */
+  topo?: React.ReactNode;
 }) {
   const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
