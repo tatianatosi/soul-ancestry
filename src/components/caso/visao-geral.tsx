@@ -38,9 +38,14 @@ function Evento({ e }: { e: EventoTimeline }) {
       <p className="text-xs text-navy/55">
         Fase {e.phase ?? faseDoEvento(e.event_type)} · {e.status}
         {e.occurred_at ? ` · ocorrido em ${data(e.occurred_at)}` : ""}
-        {e.due_at ? ` · previsto para ${data(e.due_at)}` : ""}
+        {e.due_at ? ` · previsão condicional para ${data(e.due_at)}` : ""}
         {e.responsavel_nome ? ` · ${e.responsavel_nome}` : ""}
       </p>
+      {e.due_at && new Date(e.due_at).getTime() > Date.now() ? (
+        <p className="mt-1 text-[11px] text-navy/55">
+          Data prevista, não contratada: depende dos gates de ativação pendentes.
+        </p>
+      ) : null}
       {e.summary_internal ? <p className="mt-1 text-xs text-navy/70">{e.summary_internal}</p> : null}
     </li>
   );
