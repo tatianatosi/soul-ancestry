@@ -56,21 +56,38 @@ export function useSaas() {
  * Nenhum módulo foi removido — os secundários aparecem como subitens
  * da seção correspondente quando ela está aberta.
  */
-const NAV = [
+type SubItem = { to: string; label: string; hash?: string } | { grupo: string };
+
+type SecaoNav = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  agrupador?: boolean;
+  sub: readonly SubItem[];
+};
+
+const NAV: readonly SecaoNav[] = [
   {
     to: "/painel",
     label: "Visão geral",
     icon: LayoutDashboard,
-    sub: [{ to: "/relatorios", label: "Relatórios" }],
+    sub: [
+      { to: "/painel", label: "Painel Hoje" },
+      { to: "/relatorios", label: "Relatórios" },
+    ],
   },
   {
     to: "/leads",
     label: "Comercial",
     icon: Users,
     sub: [
+      { grupo: "CRM Vivo" },
+      { to: "/leads", label: "Leads e triagem" },
+      { to: "/leads", hash: "crm-contatos", label: "Contatos, conversas e eventos" },
       { to: "/propostas", label: "Propostas" },
-      { to: "/conversao", label: "Conversão e marketing" },
-      { to: "/clientes", label: "Clientes" },
+      { to: "/conversao", label: "Conversão e handoff" },
+      { grupo: "Relacionamento" },
+      { to: "/clientes", label: "Clientes e núcleos vinculados" },
       { to: "/acessos-portal", label: "Acessos ao portal" },
       { to: "/atendimento", label: "Atendimento ao cliente" },
     ],
@@ -80,6 +97,7 @@ const NAV = [
     label: "Casos e núcleos",
     icon: FolderOpen,
     sub: [
+      { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos e dossiês" },
       { to: "/piloto", label: "Piloto real" },
       { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
@@ -120,6 +138,7 @@ const NAV = [
     to: "/biblioteca",
     label: "Governança e biblioteca",
     icon: Library,
+    agrupador: true,
     sub: [
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/fontes-genealogicas", label: "Bases Genealógicas" },
@@ -137,7 +156,8 @@ const NAV = [
       { to: "/configuracoes", label: "Configurações" },
     ],
   },
-] as const;
+];
+
 
 export function SaasShell({
   titulo,
