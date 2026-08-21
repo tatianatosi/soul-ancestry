@@ -418,6 +418,10 @@ export const CATALOGOS: Record<string, Opcao[]> = {
   despesas_terceiros_faixa: DESPESAS_TERCEIROS_FAIXA,
   objecao_predominante: OBJECOES,
   nivel_intencao: NIVEIS_INTENCAO,
+  consentimento_status: CONSENTIMENTO_STATUS,
+  consentimento_canal: CANAIS_CONSENTIMENTO,
+  pais_linha_prioritaria: PAISES_LINHA_PRIORITARIA,
+  pesquisa_previa_autorizacao: PESQUISA_PREVIA_AUTORIZACAO,
 };
 
 export const CAMPOS_TEXTO_LIVRE = [
