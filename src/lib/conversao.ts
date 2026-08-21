@@ -238,11 +238,12 @@ export function calcularQuadroMetricas(m: MetricasConversao): LinhaQuadro[] {
       detalhe: `${m.porCanal.length} canal(is) e ${m.porCampanha.length} campanha(s) com registro`,
     },
     {
-      metrica: "Custo por lead",
-      formula: "Investimento ÷ leads qualificados",
-      valor: moeda(razao(m.investimentoTotal, qualificados)),
-      detalhe: `${qualificados} lead(s) qualificado(s)`,
+      metrica: "Leads qualificados",
+      formula: "Leads com qualificação registrada por evento",
+      valor: String(qualificados),
+      detalhe: "Custo por lead fica fora do primeiro release.",
     },
+
     {
       metrica: "Taxa de Discovery",
       formula: "Discoveries realizadas ÷ leads qualificados",
@@ -275,10 +276,10 @@ export function calcularQuadroMetricas(m: MetricasConversao): LinhaQuadro[] {
       valor: percentual(razao(pagamentos, c["contrato_assinado"] ?? 0)),
     },
     {
-      metrica: "CAC",
-      formula: "Investimento atribuível ÷ clientes com pagamento inicial confirmado",
-      valor: moeda(m.cac),
-      detalhe: `${pagamentos} pagamento(s) inicial(is)`,
+      metrica: "Pagamentos iniciais confirmados",
+      formula: "Eventos de pagamento inicial confirmados no Asaas",
+      valor: String(pagamentos),
+      detalhe: "CAC e ROI ficam fora do primeiro release.",
     },
     {
       metrica: "Tempo de conversão",
