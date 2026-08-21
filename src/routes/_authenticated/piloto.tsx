@@ -16,6 +16,8 @@ import {
   verificarDadoPiloto,
 } from "@/lib/piloto.functions";
 import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
+import { agruparBloqueiosPorGate, type RequisitoBloqueio } from "@/lib/gates-piloto";
+
 
 const TITULO = "Piloto real — conferir dados | Clube Ancestral";
 const DESCRICAO =
@@ -182,13 +184,41 @@ function Conteudo({ dados }: { dados: any }) {
         </Painel>
       ))}
 
-      <Painel titulo="Bloqueios críticos">
-        <div className="space-y-3">
-          {bloqueios.map((b) => (
-            <LinhaBloqueio key={b["id"]} bloqueio={b} aoSalvar={invalidar} />
+      <Painel titulo="Bloqueios críticos por gate">
+        <p className="text-sm text-navy/70">
+          Os bloqueios são resolvidos em sequência. Um gate posterior só deve ser trabalhado depois que o anterior
+          estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
+          automaticamente.
+        </p>
+        <div className="mt-3 space-y-4">
+          {agruparBloqueiosPorGate(bloqueios).map((g) => (
+            <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-serif text-base text-navy">
+                  Gate {g.gate.numero} — {g.gate.nome}: {g.total - g.abertos}/{g.total}
+                </p>
+                <Selo
+                  texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
+                  tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
+                />
+              </div>
+              <p className="text-xs text-navy/60">{g.gate.objetivo}</p>
+              <div className="mt-2 space-y-3">
+                {g.itens.map((i) => (
+                  <LinhaBloqueio
+                    key={i.bloqueio["id"]}
+                    bloqueio={i.bloqueio}
+                    requisito={i.requisito}
+                    dependenciaPendente={!g.liberado}
+                    aoSalvar={invalidar}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </Painel>
+
 
       <Painel titulo="Contrato aplicável">
         <p className="text-sm text-navy/80">
@@ -313,9 +343,20 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
   );
 }
 
-function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; aoSalvar: () => void }) {
+function LinhaBloqueio({
+  bloqueio,
+  requisito,
+  dependenciaPendente,
+  aoSalvar,
+}: {
+  bloqueio: Record<string, any>;
+  requisito: RequisitoBloqueio;
+  dependenciaPendente: boolean;
+  aoSalvar: () => void;
+}) {
   const resolver = useServerFn(resolverBloqueioPiloto);
   const [justificativa, setJustificativa] = useState("");
+  const [formAberto, setFormAberto] = useState(false);
   const aberto = bloqueio["status"] === "aberto";
 
   const m = useMutation({
@@ -323,6 +364,7 @@ function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; 
       resolver({ data: { id: bloqueio["id"], status, justificativa } }),
     onSuccess: () => {
       toast.success("Bloqueio atualizado.");
+      setFormAberto(false);
       aoSalvar();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -334,32 +376,72 @@ function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; 
         <p className="text-sm text-navy">{bloqueio["descricao"]}</p>
         <Selo texto={aberto ? "Aberto" : bloqueio["status"] === "resolvido" ? "Resolvido" : "Não aplicável"} tom={aberto ? "erro" : "ok"} />
       </div>
-      {aberto ? (
-        <div className="mt-2 flex flex-wrap gap-2">
-          <input
-            className={`${inputCls} md:w-2/3`}
-            value={justificativa}
-            onChange={(e) => setJustificativa(e.target.value)}
-            placeholder="Justificativa da resolução (mín. 10 caracteres)"
-          />
-          <button
-            onClick={() => m.mutate("resolvido")}
-            className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
-            disabled={m.isPending}
-          >
-            Resolver
-          </button>
-          <button
-            onClick={() => m.mutate("nao_aplicavel")}
-            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-            disabled={m.isPending}
-          >
-            Não aplicável
-          </button>
+      <dl className="mt-1 grid gap-x-4 gap-y-0.5 text-[11px] text-navy/60 md:grid-cols-3">
+        <div>
+          <dt className="inline font-semibold">Responsável: </dt>
+          <dd className="inline">{requisito.responsavel}</dd>
         </div>
+        <div>
+          <dt className="inline font-semibold">Origem permitida: </dt>
+          <dd className="inline">{requisito.origem}</dd>
+        </div>
+        <div className="md:col-span-3">
+          <dt className="inline font-semibold">Evidência mínima: </dt>
+          <dd className="inline">{requisito.evidencia}</dd>
+        </div>
+      </dl>
+      {aberto ? (
+        dependenciaPendente ? (
+          <p className="mt-2 text-xs text-terracotta">
+            Aguardando conclusão do gate anterior. Resolver este item fora de ordem não libera o gate.
+          </p>
+        ) : !formAberto ? (
+          <button
+            onClick={() => setFormAberto(true)}
+            className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
+          >
+            Resolver — registrar evidência
+          </button>
+        ) : (
+          <div className="mt-2 space-y-2">
+            <input
+              className={`${inputCls} md:w-2/3`}
+              value={justificativa}
+              onChange={(e) => setJustificativa(e.target.value)}
+              placeholder="Evidência e justificativa (mín. 10 caracteres)"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => m.mutate("resolvido")}
+                className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-60"
+                disabled={m.isPending || justificativa.trim().length < 10}
+              >
+                Confirmar resolução com evidência
+              </button>
+              <button
+                onClick={() => m.mutate("nao_aplicavel")}
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-60"
+                disabled={m.isPending || justificativa.trim().length < 10}
+              >
+                Não aplicável
+              </button>
+              <button
+                onClick={() => setFormAberto(false)}
+                className="rounded-lg px-3 py-1.5 text-xs text-navy/60"
+              >
+                Cancelar
+              </button>
+            </div>
+            <p className="text-[11px] text-navy/50">
+              O registro é auditado com ator, data/hora e justificativa. O status do gate só muda quando todos os
+              itens do gate estiverem concluídos.
+            </p>
+          </div>
+        )
       ) : (
         <p className="mt-1 text-xs text-navy/60">Justificativa: {bloqueio["justificativa"]}</p>
       )}
+
     </div>
   );
 }
