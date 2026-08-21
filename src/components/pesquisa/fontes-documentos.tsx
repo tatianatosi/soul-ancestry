@@ -25,6 +25,7 @@ import {
   registrarFonteDocumento,
   verFonteDocumento,
 } from "@/lib/fontes-documentos.functions";
+import { VinculosDoDocumento } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -331,7 +332,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
         <table className="w-full min-w-[900px] text-left text-xs">
           <thead className="text-navy/50">
             <tr>
-              {["Título", "Tipo", "Pessoa", "Origem/emissor", "Data", "Local", "Status", "Qualidade", "Inclusão", "Autor", "Ações"].map((h) => (
+              {["Título", "Tipo", "Pessoa", "Origem/emissor", "Data", "Local", "Status", "Qualidade", "Inclusão", "Autor", "Vínculos", "Ações"].map((h) => (
                 <th key={h} className="py-2 pr-3 font-medium uppercase tracking-wide">
                   {h}
                 </th>
@@ -341,7 +342,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
           <tbody>
             {visiveis.length === 0 && (
               <tr>
-                <td colSpan={11} className="py-3 text-sm text-navy/60">
+                <td colSpan={12} className="py-3 text-sm text-navy/60">
                   Nenhum documento catalogado neste caso.
                 </td>
               </tr>
@@ -358,6 +359,9 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
                 <td className="py-2 pr-3">{l.qualidade}</td>
                 <td className="py-2 pr-3">{l.incluido_em}</td>
                 <td className="py-2 pr-3">{l.autor}</td>
+                <td className="py-2 pr-3">
+                  {Number(documentos.find((doc) => String(doc["id"]) === l.id)?.["vinculos_ativos"] ?? 0)}
+                </td>
                 <td className="py-2 pr-3">
                   <div className="flex flex-wrap gap-2">
                     <button type="button" className="text-navy underline" onClick={() => setDetalheId(l.id)}>
@@ -428,6 +432,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
               Preparar para extração assistida — em breve
             </span>
           </div>
+          <VinculosDoDocumento caseId={caseId} sourceDocumentId={String(detalhe["id"])} onMudou={recarregar} />
         </div>
       )}
     </section>
