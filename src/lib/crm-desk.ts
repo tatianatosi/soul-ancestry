@@ -403,9 +403,12 @@ export function montarFilasHoje(input: {
         .map((c) => ({
           id: c.id,
           rotulo: `${c.codigo ?? "caso"} · ${c.titulo ?? "sem título"}`,
-          detalhe: "Documentos mínimos pendentes",
+          detalhe: "Documentos aguardados — pendência documental",
           data: c.prazo_proxima_acao,
           tipo: "caso" as const,
+          area: "operacoes",
+          responsavel: null,
+          etapa: "caso_ativo",
         })),
     },
   ].map((f) => ({
@@ -417,6 +420,33 @@ export function montarFilasHoje(input: {
 
   return filas.sort((a, b) => a.criticidade - b.criticidade);
 }
+
+/**
+ * Lista única priorizada do Painel Hoje: ordenada pela DATA DA PRÓXIMA AÇÃO
+ * (mais antiga primeiro) e, em empate, pela criticidade da fila.
+ * Itens sem data ficam ao final, nunca ordenados por data de criação.
+ */
+export function listaPrioritaria(
+  filas: Fila[],
+  filtro?: { area?: string; responsavel?: string; etapa?: string },
+): (ItemFila & { fila: string; criticidade: number })[] {
+  const linhas = filas.flatMap((f) =>
+    f.itens.map((i) => ({ ...i, fila: f.rotulo, criticidade: f.criticidade })),
+  );
+  const visiveis = linhas.filter((i) => {
+    if (filtro?.area && i.area !== filtro.area) return false;
+    if (filtro?.responsavel && i.responsavel !== filtro.responsavel) return false;
+    if (filtro?.etapa && i.etapa !== filtro.etapa) return false;
+    return true;
+  });
+  return visiveis.sort((a, b) => {
+    const da = a.data ? String(a.data).slice(0, 10) : "9999-12-31";
+    const db = b.data ? String(b.data).slice(0, 10) : "9999-12-31";
+    if (da !== db) return da.localeCompare(db);
+    return a.criticidade - b.criticidade;
+  });
+}
+
 
 /* ------------------------------------------------------------------ *
  * Métricas comerciais e operacionais
