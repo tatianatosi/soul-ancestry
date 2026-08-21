@@ -238,11 +238,12 @@ export function calcularQuadroMetricas(m: MetricasConversao): LinhaQuadro[] {
       detalhe: `${m.porCanal.length} canal(is) e ${m.porCampanha.length} campanha(s) com registro`,
     },
     {
-      metrica: "Custo por lead",
-      formula: "Investimento ÷ leads qualificados",
-      valor: moeda(razao(m.investimentoTotal, qualificados)),
-      detalhe: `${qualificados} lead(s) qualificado(s)`,
+      metrica: "Leads qualificados",
+      formula: "Leads com qualificação registrada por evento",
+      valor: String(qualificados),
+      detalhe: "Custo por lead fica fora do primeiro release.",
     },
+
     {
       metrica: "Taxa de Discovery",
       formula: "Discoveries realizadas ÷ leads qualificados",
