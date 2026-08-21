@@ -9,6 +9,7 @@
 /** Telas principais do Desk que recebem módulos contextuais. */
 export type TelaDesk =
   | "overview"
+  | "crm"
   | "casos"
   | "checklist"
   | "juridica"
@@ -18,6 +19,7 @@ export type TelaDesk =
 
 export const TELA_DESK_LABEL: Record<TelaDesk, string> = {
   overview: "Visão Geral",
+  crm: "CRM Vivo",
   casos: "Casos 360",
   checklist: "Checklist semanal",
   juridica: "Validação Jurídica",
