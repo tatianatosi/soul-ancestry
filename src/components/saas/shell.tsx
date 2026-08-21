@@ -203,8 +203,8 @@ export function SaasShell({
   const itens = ehAdmin
     ? [
         ...NAV,
-        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound } as const,
-        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck } as const,
+        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound, sub: [] } as const,
+        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck, sub: [] } as const,
       ]
     : NAV;
 
