@@ -95,7 +95,7 @@ export const referenciasOps = createServerFn({ method: "GET" })
         .order("codigo"),
       supabase
         .from("staff_access")
-        .select("auth_user_id,nome,email,role,status")
+        .select("auth_user_id,nome:full_name,email,role,status")
         .eq("organization_id", ctx.organizationId)
         .eq("status", "active")
         .is("archived_at", null),
