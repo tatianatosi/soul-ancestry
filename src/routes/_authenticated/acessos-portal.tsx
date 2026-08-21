@@ -143,6 +143,13 @@ function AcessosPortalPage() {
 
   const casosDoCliente = casos.filter((c) => c.cliente_id === clientId);
   const emailsDoCliente = clientId ? emailsElegiveis(autorizacoes, clientId, nivel) : [];
+  const grupos = classificarPessoas(pessoas, nivel, autorizacoes, casos, propostas);
+  const pessoaSelecionada = pessoas.find((p) => p.id === clientId) ?? null;
+  const bloqueioSelecionado = pessoaSelecionada
+    ? bloqueioDaPessoa(pessoaSelecionada, nivel, autorizacoes, casos, propostas)
+    : null;
+  const acessosVisiveis = (q.data?.acessos ?? []).filter((a) => incluirDemo || !a.is_demo);
+  const acessosDemoOcultos = (q.data?.acessos ?? []).filter((a) => a.is_demo).length;
 
   return (
     <SaasShell
