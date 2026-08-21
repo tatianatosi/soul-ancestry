@@ -5088,6 +5088,7 @@ export type Database = {
           eixo_operacao: string
           escopo_excluido_resumido: string | null
           escopo_incluido_resumido: string | null
+          estado_de_autorizacao_pesquisa: string
           fase: string | null
           hipotese_elegibilidade: string | null
           hipotese_trabalho_interna: string | null
@@ -5200,6 +5201,7 @@ export type Database = {
           eixo_operacao?: string
           escopo_excluido_resumido?: string | null
           escopo_incluido_resumido?: string | null
+          estado_de_autorizacao_pesquisa?: string
           fase?: string | null
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
@@ -5312,6 +5314,7 @@ export type Database = {
           eixo_operacao?: string
           escopo_excluido_resumido?: string | null
           escopo_incluido_resumido?: string | null
+          estado_de_autorizacao_pesquisa?: string
           fase?: string | null
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
@@ -9281,6 +9284,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           cliente_id: string | null
+          contact_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -9289,7 +9293,11 @@ export type Database = {
           ordem: number
           organization_id: string
           papel: string
+          papel_no_caso: string | null
           processo: string | null
+          representacao_documentada: boolean
+          representacao_necessaria: boolean
+          status_cadastral: string
           updated_at: string
           updated_by: string | null
           vinculo: string | null
@@ -9299,6 +9307,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           cliente_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -9307,7 +9316,11 @@ export type Database = {
           ordem?: number
           organization_id: string
           papel: string
+          papel_no_caso?: string | null
           processo?: string | null
+          representacao_documentada?: boolean
+          representacao_necessaria?: boolean
+          status_cadastral?: string
           updated_at?: string
           updated_by?: string | null
           vinculo?: string | null
@@ -9317,6 +9330,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           cliente_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -9325,7 +9339,11 @@ export type Database = {
           ordem?: number
           organization_id?: string
           papel?: string
+          papel_no_caso?: string | null
           processo?: string | null
+          representacao_documentada?: boolean
+          representacao_necessaria?: boolean
+          status_cadastral?: string
           updated_at?: string
           updated_by?: string | null
           vinculo?: string | null
@@ -9343,6 +9361,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleo_membros_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -9368,6 +9393,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           case_id: string | null
+          contratante_contact_id: string | null
           contratante_nome: string | null
           created_at: string
           created_by: string | null
@@ -9380,6 +9406,7 @@ export type Database = {
           nome: string
           organization_id: string
           responsavel_nome: string | null
+          status: string
           updated_at: string
           updated_by: string | null
         }
@@ -9389,6 +9416,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          contratante_contact_id?: string | null
           contratante_nome?: string | null
           created_at?: string
           created_by?: string | null
@@ -9401,6 +9429,7 @@ export type Database = {
           nome: string
           organization_id: string
           responsavel_nome?: string | null
+          status?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -9410,6 +9439,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          contratante_contact_id?: string | null
           contratante_nome?: string | null
           created_at?: string
           created_by?: string | null
@@ -9422,6 +9452,7 @@ export type Database = {
           nome?: string
           organization_id?: string
           responsavel_nome?: string | null
+          status?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -9438,6 +9469,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nucleos_familiares_contratante_contact_id_fkey"
+            columns: ["contratante_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
