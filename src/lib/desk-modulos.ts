@@ -55,6 +55,11 @@ export type ModuloDesk = {
 };
 
 export const MODULOS_DESK: ModuloDesk[] = [
+  // ---------------- CRM VIVO ----------------
+  { id: "crm-leads", nome: "Leads e triagem", tela: "crm", destino: "/leads", forma: "subrota", descricao: "Fila de leads, discovery e próxima ação por responsável." },
+  { id: "crm-propostas", nome: "Propostas", tela: "crm", destino: "/propostas · /casos/$id (aba Comercial)", forma: "subrota", descricao: "Propostas e páginas 1–7 homologadas. Aceite verbal não libera contrato nem App." },
+  { id: "crm-clientes-nucleos", nome: "Clientes e núcleos", tela: "crm", destino: "/clientes", forma: "subrota", descricao: "Clientes, núcleos familiares e vínculos com casos." },
+
   // ---------------- CASOS 360 ----------------
   { id: "caso-visao-geral", nome: "Visão Geral do Caso", tela: "casos", destino: "/casos/$id (aba Visão Geral)", forma: "aba_interna", descricao: "Estado consolidado, marcos e bloqueios do caso." },
   { id: "caso-discovery", nome: "Discovery, brief e interações", tela: "casos", destino: "/casos/$id (aba Caso)", forma: "aba_interna", descricao: "Brief interno, interações registradas e origem do lead." },
