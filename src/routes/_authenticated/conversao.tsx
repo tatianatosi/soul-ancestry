@@ -222,11 +222,14 @@ function Conversao() {
                   </p>
                 ))
               )}
+              <p className="text-navy/50">Taxa exibe “—” quando não há denominador; nenhum zero artificial é apresentado.</p>
               {dados.funil[0]!.eventos === 0 && dados.eventos.length > 0 && (
                 <p className="text-terracotta">
-                  “Lead criado” em zero com eventos posteriores registrados: falta importar o evento de entrada dos leads.
+                  ⚠ Alerta de integridade: evento inicial ausente ou fora do filtro — há eventos posteriores registrados sem
+                  “Lead criado”. Não interprete como funil vazio.
                 </p>
               )}
+
             </div>
           </Bloco>
 
