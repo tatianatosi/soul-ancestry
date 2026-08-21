@@ -545,9 +545,12 @@ function AcessosPortalPage() {
                           ) : (
                             <button
                               onClick={async () => {
-                                await alterar({ data: { acessoId: a.id, status: "active" } });
+                                const motivo = window.prompt("Motivo da reativação:") ?? "";
+                                if (motivo.trim().length < 5) return;
+                                await alterar({ data: { acessoId: a.id, status: "active", motivo } });
                                 invalidar();
                               }}
+
                               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
                             >
                               Reativar
