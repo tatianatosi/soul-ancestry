@@ -68,6 +68,7 @@ export const MODULOS_DESK: ModuloDesk[] = [
   { id: "caso-achados", nome: "Achados e encontros de linhagem", tela: "casos", destino: "/casos/$id (aba Técnico)", forma: "painel", descricao: "Achados registrados e pontos de convergência de linhagem." },
   { id: "caso-onboarding", nome: "Onboarding", tela: "casos", destino: "/onboarding/$id", forma: "subrota", descricao: "Checks de ativação e liberação do caso." },
   { id: "caso-formalizacao", nome: "Formalização", tela: "casos", destino: "/casos/$id/contrato/preparar", forma: "subrota", descricao: "Preparação contratual, parâmetros e gates." },
+  { id: "caso-go-live", nome: "Go-live", tela: "casos", destino: "/casos/$id (aba Fechamento) · /onboarding/$id", forma: "aba_interna", descricao: "Os 9 gates de fechamento e liberação do caso ativo. Nenhuma liberação automática." },
   { id: "caso-dossie", nome: "Dossiê e fila Drive", tela: "casos", destino: "/casos/$id (aba Visão Geral → dossiê)", forma: "painel", descricao: "Estado de preparação do dossiê. Nenhuma pasta é criada aqui." },
   { id: "caso-historico", nome: "Histórico e auditoria do caso", tela: "casos", destino: "/casos/$id (log) · /auditoria", forma: "painel", descricao: "Log granular de alterações do caso." },
 
