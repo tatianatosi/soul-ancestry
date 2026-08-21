@@ -229,30 +229,153 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as any;
-    const [acessos, casosAcesso, clientes, casos] = await Promise.all([
+    const [acessos, casosAcesso, clientes, casos, autorizacoes] = await Promise.all([
       supabase
         .from("client_portal_access")
         .select(
-          "id, client_id, email, access_status, access_level, invited_at, invitation_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, archived_at, created_at",
+          "id, client_id, email, access_status, access_level, finalidade, authorized_email_id, invited_at, invitation_expires_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at, first_authenticated_at, last_authenticated_at, revocation_reason, is_demo, archived_at, created_at",
         )
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("client_portal_case_access")
         .select("id, client_portal_access_id, case_id, access_status, granted_at"),
-      supabase.from("clientes").select("id, nome, email").is("archived_at", null),
+      supabase.from("clientes").select("id, nome, email, classificacao, is_demo").is("archived_at", null),
       supabase
         .from("crm_casos")
-        .select("id, codigo, titulo, cliente_id, ativo, contrato_assinado, pagamento_confirmado, app_access_status")
+        .select(
+          "id, codigo, titulo, cliente_id, ativo, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, onboarding_iniciado_em, app_access_status, demo",
+        )
         .is("archived_at", null),
+      supabase
+        .from("authorized_portal_emails")
+        .select(
+          "id, client_id, case_id, email, finalidade, nivel_pretendido, status, validado_em, motivo_recusa, is_demo, archived_at, created_at",
+        )
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
     ]);
     return {
       acessos: (acessos.data ?? []) as any[],
       casosAcesso: (casosAcesso.data ?? []) as any[],
       clientes: (clientes.data ?? []) as any[],
       casos: (casos.data ?? []) as any[],
+      autorizacoes: (autorizacoes.data ?? []) as any[],
     };
   });
+
+/* ---- E-mails previamente autorizados ---- */
+
+export const registrarEmailAutorizado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      clientId: string;
+      casoId?: string | null;
+      email: string;
+      finalidade: string;
+      nivel: "proposal_portal" | "client_workspace";
+      isDemo?: boolean;
+    }) => {
+      if (!data.finalidade || data.finalidade.trim().length < 5) {
+        throw new Error("Descreva a finalidade do acesso (mínimo 5 caracteres).");
+      }
+      return data;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const helpers = await import("./portal.server");
+    const supabase = context.supabase as any;
+    const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
+
+    const email = helpers.normalizarEmail(data.email);
+    if (!helpers.emailValido(email)) throw new Error("E-mail inválido.");
+
+    const cliente = await supabase
+      .from("clientes")
+      .select("id, is_demo")
+      .eq("id", data.clientId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!cliente.data) throw new Error("Pessoa não encontrada nesta organização.");
+
+    const inserido = await supabase
+      .from("authorized_portal_emails")
+      .insert({
+        organization_id: organizationId,
+        client_id: data.clientId,
+        case_id: data.casoId ?? null,
+        email,
+        finalidade: data.finalidade.trim(),
+        nivel_pretendido: data.nivel,
+        status: "pendente",
+        is_demo: data.isDemo ?? cliente.data.is_demo ?? false,
+        created_by: context.userId,
+      })
+      .select("id")
+      .maybeSingle();
+    if (inserido.error) throw new Error(inserido.error.message);
+
+    await helpers.registrarAuditoria({
+      organizationId,
+      userId: context.userId as string,
+      acao: "email_portal_autorizado_registrado",
+      entidadeId: inserido.data.id,
+      metadados: { email, nivel: data.nivel, finalidade: data.finalidade.trim() },
+    });
+    return { id: inserido.data.id as string };
+  });
+
+export const validarEmailAutorizado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; status: "aprovado" | "recusado" | "revogado"; motivo?: string }) => {
+    if (data.status !== "aprovado" && (!data.motivo || data.motivo.trim().length < 5)) {
+      throw new Error("Informe o motivo (mínimo 5 caracteres).");
+    }
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const helpers = await import("./portal.server");
+    const supabase = context.supabase as any;
+    const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
+
+    const { error } = await supabase
+      .from("authorized_portal_emails")
+      .update({
+        status: data.status,
+        validado_por: context.userId,
+        validado_em: new Date().toISOString(),
+        motivo_recusa: data.status === "aprovado" ? null : data.motivo?.trim(),
+        updated_by: context.userId,
+      })
+      .eq("id", data.id)
+      .eq("organization_id", organizationId);
+    if (error) throw new Error(error.message);
+
+    if (data.status === "revogado") {
+      // revogar acessos vivos originados desta autorização
+      await supabase
+        .from("client_portal_access")
+        .update({
+          access_status: "revoked",
+          revoked_at: new Date().toISOString(),
+          revoked_by: context.userId,
+          revocation_reason: data.motivo?.trim() ?? "Autorização de e-mail revogada",
+        })
+        .eq("authorized_email_id", data.id)
+        .eq("organization_id", organizationId);
+    }
+
+    await helpers.registrarAuditoria({
+      organizationId,
+      userId: context.userId as string,
+      acao: `email_portal_${data.status}`,
+      entidadeId: data.id,
+      metadados: { motivo: data.motivo ?? null },
+    });
+    return { ok: true };
+  });
+
 
 export const listarEventosAcesso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
