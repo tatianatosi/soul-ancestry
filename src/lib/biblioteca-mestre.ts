@@ -108,3 +108,63 @@ export function subareaBiblioteca(chave: string): SubareaBibliotecaMeta | null {
 export function exposicaoAppCliente(): false {
   return false;
 }
+
+/** Status canônicos de itens versionados da Biblioteca. */
+export const STATUS_BIBLIOTECA = ["rascunho", "em_revisao", "aprovado", "arquivado"] as const;
+export type StatusBiblioteca = (typeof STATUS_BIBLIOTECA)[number];
+
+/** Domínios de taxonomia controlada reutilizados por Pesquisa e Evidências. */
+export const DOMINIOS_TAXONOMIA = [
+  "tipo_fonte",
+  "tipo_documento",
+  "tipo_evidencia",
+  "estado_evidencia",
+  "tipo_achado",
+  "tipo_relacao",
+  "tipo_evento",
+  "linha_transmissao",
+  "pais_localidade",
+  "etiqueta_operacional",
+  "categoria_risco",
+  "estado_pesquisa",
+  "estado_relatorio",
+] as const;
+export type DominioTaxonomia = (typeof DOMINIOS_TAXONOMIA)[number];
+
+/**
+ * Regra jurídica só é aplicável a um caso quando aprovada, vigente e não arquivada.
+ * Nunca produz conclusão automática: apenas habilita a referência para revisão humana.
+ */
+export function regraAplicavelACaso(
+  regra: { status: string; vigencia_inicio?: string | null; vigencia_fim?: string | null; archived_at?: string | null },
+  hoje = new Date(),
+): boolean {
+  if (regra.archived_at) return false;
+  if (regra.status !== "aprovado") return false;
+  const dia = hoje.toISOString().slice(0, 10);
+  if (regra.vigencia_inicio && regra.vigencia_inicio > dia) return false;
+  if (regra.vigencia_fim && regra.vigencia_fim < dia) return false;
+  return true;
+}
+
+/** Somente item homologado, vigente e não arquivado pode ser selecionado em proposta. */
+export function itemElegivelParaProposta(item: {
+  status_homologacao?: string | null;
+  elegivel_para_proposta?: boolean | null;
+  archived_at?: string | null;
+  vigencia_fim?: string | null;
+}): boolean {
+  if (item.archived_at) return false;
+  if (item.status_homologacao !== "homologado") return false;
+  if (!item.elegivel_para_proposta) return false;
+  if (item.vigencia_fim && item.vigencia_fim < new Date().toISOString().slice(0, 10)) return false;
+  return true;
+}
+
+/** Arquivamento lógico exige motivo; exclusão física nunca é permitida. */
+export function validarArquivamento(motivo: string): { ok: boolean; erro?: string } {
+  if (!motivo || motivo.trim().length < 5) {
+    return { ok: false, erro: "Informe o motivo do arquivamento (mínimo 5 caracteres)." };
+  }
+  return { ok: true };
+}
