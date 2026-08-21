@@ -75,10 +75,14 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
         titulo: (c.titulo ?? "Caso") as string,
         status: (c.status ?? "") as string,
         temPlano: !!plano,
-        temProduto: !!plano?.case_service_id,
+        temProduto: !!(plano?.product_catalog_id ?? plano?.case_service_id),
         fase: (plano?.fase_jornada ?? null) as string | null,
         proximaMicroentrega: (plano?.proxima_microentrega ?? null) as string | null,
+        responsavel: (plano?.responsavel_user_id ?? null) as string | null,
+        proximaAcao: (plano?.proxima_acao ?? null) as string | null,
+        prazoProximaAcao: (plano?.prazo_proxima_acao ?? null) as string | null,
         dias_sem_touchpoint: dias,
+
       };
     });
 
