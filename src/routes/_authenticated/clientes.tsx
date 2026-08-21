@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, ShieldCheck, Users } from "lucide-react";
@@ -13,14 +13,17 @@ import {
   ORIGENS,
   PAISES,
   STATUS_COMERCIAL,
+  destinoDoRegistro,
   elegibilidadeAtivacao,
   filtrarClientes,
+  normalizarPais,
   participantesDeNucleo,
   rotuloClassificacao,
   rotuloDe,
   type Filtros,
   type PessoaLista,
 } from "@/lib/clientes-lista";
+
 import { rotuloEstado } from "@/lib/estados";
 import { cn } from "@/lib/utils";
 
@@ -137,11 +140,20 @@ function ClientesPage() {
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
+            checked={filtros.incluirParticipantes}
+            onChange={(e) => setFiltros((f) => ({ ...f, incluirParticipantes: e.target.checked }))}
+          />
+          Incluir participantes de núcleo
+        </label>
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
             checked={filtros.incluirDemonstracoes}
             onChange={(e) => setFiltros((f) => ({ ...f, incluirDemonstracoes: e.target.checked }))}
           />
           Incluir demonstrações
         </label>
+
         {podeEscrever && !somenteLeitura ? (
           <button
             type="button"
@@ -194,7 +206,7 @@ function ClientesPage() {
                       </td>
                       <td className="px-4 py-2">{rotuloDe(ORIGENS, p.origem)}</td>
                       <td className="px-4 py-2">{rotuloDe(STATUS_COMERCIAL, p.status_comercial)}</td>
-                      <td className="px-4 py-2">{p.pais_interesse ?? "—"}</td>
+                      <td className="px-4 py-2">{normalizarPais(p.pais_interesse) ?? "—"}</td>
                       <td className="px-4 py-2">{p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}</td>
                       <td className="px-4 py-2">
                         {p.archived_at ? (
@@ -240,10 +252,18 @@ function ClientesPage() {
       </section>
 
       <section className="mt-6 rounded-lg border border-border">
-        <header className="flex items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium">
+        <header className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium">
           <Users className="h-4 w-4" /> Participantes de núcleo familiar ({participantes.length})
+          <Link to="/nucleos" className="ml-auto text-xs font-normal text-primary underline">
+            Abrir Núcleos e dossiês
+          </Link>
         </header>
-        {participantes.length === 0 ? (
+        {!filtros.incluirParticipantes ? (
+          <p className="px-4 py-4 text-sm text-muted-foreground">
+            Beneficiários e membros do núcleo não são clientes independentes. Os dados pessoais deles são tratados em
+            Núcleos e dossiês; marque “Incluir participantes de núcleo” para conferir o vínculo aqui.
+          </p>
+        ) : participantes.length === 0 ? (
           <p className="px-4 py-4 text-sm text-muted-foreground">Nenhum participante registrado.</p>
         ) : (
           <ul className="divide-y divide-border">
@@ -258,6 +278,7 @@ function ClientesPage() {
                       ? p.participacoes.map((v) => `${v.nucleo ?? "Núcleo"} — ${v.papel ?? "participante"}`).join(" · ")
                       : "Vínculo registrado no dossiê do caso."}
                   </p>
+                  <p className="text-[11px] text-muted-foreground">{destinoDoRegistro(p)}</p>
                 </div>
                 <button
                   type="button"
@@ -279,24 +300,37 @@ function ClientesPage() {
       </section>
 
       <section className="mt-6 rounded-lg border border-border">
-        <header className="border-b border-border px-4 py-3 text-sm font-medium">
+        <header className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3 text-sm font-medium">
           Pré-clientes e casos em formalização ({preClientes.length})
+          <Link to="/casos" className="ml-auto text-xs font-normal text-primary underline">
+            Abrir Casos 360
+          </Link>
         </header>
-        <ul className="divide-y divide-border">
-          {preClientes.map((p) => (
-            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-              <span>
-                {p.nome} {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {rotuloDe(STATUS_COMERCIAL, p.status_comercial)} · {p.contratoAssinado ? "contrato assinado" : "sem contrato assinado"} ·{" "}
-                {p.pagamentoConfirmado ? "pagamento confirmado" : "sem pagamento inicial"}
-              </span>
-            </li>
-          ))}
-          {preClientes.length === 0 ? <li className="px-4 py-4 text-sm text-muted-foreground">Nenhum pré-cliente.</li> : null}
-        </ul>
+        {!filtros.incluirPreClientes ? (
+          <p className="px-4 py-4 text-sm text-muted-foreground">
+            Pré-onboarding é estado interno do caso: esses registros seguem como lead, oportunidade e caso em
+            formalização até contrato assinado, pagamento inicial confirmado e decisão humana de ativação. Marque
+            “Incluir pré-clientes” para vê-los aqui.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {preClientes.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                <span>
+                  {p.nome} {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
+                  <span className="block text-[11px] text-muted-foreground">{destinoDoRegistro(p)}</span>
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {rotuloDe(STATUS_COMERCIAL, p.status_comercial)} · {p.contratoAssinado ? "contrato assinado" : "sem contrato assinado"} ·{" "}
+                  {p.pagamentoConfirmado ? "pagamento confirmado" : "sem pagamento inicial"}
+                </span>
+              </li>
+            ))}
+            {preClientes.length === 0 ? <li className="px-4 py-4 text-sm text-muted-foreground">Nenhum pré-cliente.</li> : null}
+          </ul>
+        )}
       </section>
+
 
       {ativando ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4">
