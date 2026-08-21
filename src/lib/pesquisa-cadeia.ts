@@ -8,13 +8,14 @@
 
 /** Ordem canônica da cadeia. Nenhum elo pode ser pulado. */
 export const CADEIA_PESQUISA = [
-  { etapa: "ficha", rotulo: "Ficha genealógica", produz: "pessoa, relação, evento, ramo, linhagem ou lacuna" },
-  { etapa: "fonte", rotulo: "Fonte/documento", produz: "material bruto recebido ou referência externa" },
-  { etapa: "evidencia", rotulo: "Evidência", produz: "interpretação revisável vinculada a fonte/pessoa/pesquisa" },
-  { etapa: "validacao", rotulo: "Validação", produz: "confirma, diverge, é insuficiente ou gera pendência" },
+  { etapa: "ficha", rotulo: "Ficha genealógica", produz: "pessoa, relação, ramo ou lacuna" },
+  { etapa: "fonte", rotulo: "Fonte/documento", produz: "material bruto e origem" },
+  { etapa: "evidencia", rotulo: "Evidência", produz: "registro interpretado, revisável e vinculado" },
+  { etapa: "validacao", rotulo: "Validação", produz: "confirma, diverge ou cria pendência" },
   { etapa: "achado", rotulo: "Achado", produz: "conclusão operacional interna revisada" },
-  { etapa: "relatorio", rotulo: "Relatório F1/F2 ou entrega", produz: "somente versão sanitizada aprovada" },
-  { etapa: "app", rotulo: "App Cliente", produz: "somente projeção autorizada e publicada" },
+  { etapa: "relatorio", rotulo: "Relatório F1/F2 ou microentrega", produz: "conteúdo aprovado e sanitizado" },
+
+  { etapa: "app", rotulo: "App Cliente", produz: "somente conteúdo explicitamente autorizado e publicado" },
 ] as const;
 
 export type EtapaCadeia = (typeof CADEIA_PESQUISA)[number]["etapa"];
