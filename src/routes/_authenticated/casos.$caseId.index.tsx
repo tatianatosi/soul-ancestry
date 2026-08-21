@@ -22,6 +22,16 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
+import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 
 import {
