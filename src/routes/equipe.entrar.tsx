@@ -72,7 +72,7 @@ function EntrarEquipe() {
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
-      <form onSubmit={onSubmit} className="space-y-4" autoComplete="on">
+      <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
         <div>
           <label htmlFor="email" className="text-sm font-medium text-navy">
             E-mail corporativo
