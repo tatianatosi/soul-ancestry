@@ -454,7 +454,12 @@ function LeadsPage() {
         </p>
         <PainelCanonicoCrm podeEscrever={podeEscrever} />
       </div>
+
+      <div id="crm-templates" className="mt-6 scroll-mt-24">
+        <TemplatesWhatsapp />
+      </div>
       <PainelDeskHoje />
+
     </SaasShell>
   );
 }
