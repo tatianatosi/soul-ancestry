@@ -380,3 +380,82 @@ export function gatesClienteAtivo(input: {
     { chave: "plano", rotulo: "Plano inicial/checklist criados", ok: Boolean(input.plano_inicial_ok) },
   ];
 }
+
+/* ---------------- Prompt 05: eixos independentes da lista de Casos ---------------- */
+
+/** Hipótese é sempre provisória: nunca equivale a elegibilidade definitiva. */
+export const HIPOTESE_ELEGIBILIDADE: Opcao[] = [
+  { valor: "nao_avaliada", rotulo: "Não avaliada" },
+  { valor: "possivel", rotulo: "Possível (hipótese)" },
+  { valor: "em_validacao_documental", rotulo: "Em validação documental" },
+  { valor: "documentalmente_confirmada", rotulo: "Documentalmente confirmada" },
+  { valor: "inconclusiva", rotulo: "Inconclusiva" },
+];
+
+export const SITUACAO_FINANCEIRA: Opcao[] = [
+  { valor: "sem_cobranca", rotulo: "Sem cobrança" },
+  { valor: "cobranca_prevista", rotulo: "Cobrança prevista" },
+  { valor: "cobranca_emitida", rotulo: "Cobrança emitida" },
+  { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
+  { valor: "pagamento_parcial", rotulo: "Pagamento parcial" },
+  { valor: "inadimplente", rotulo: "Inadimplente" },
+  { valor: "quitado", rotulo: "Quitado" },
+  { valor: "isencao_autorizada", rotulo: "Isenção autorizada" },
+];
+
+export const SITUACAO_OPERACIONAL: Opcao[] = [
+  { valor: "nao_iniciada", rotulo: "Não iniciada" },
+  { valor: "preparacao_interna", rotulo: "Preparação interna" },
+  { valor: "aguardando_documentos_cliente", rotulo: "Aguardando documentos do cliente" },
+  { valor: "pesquisa_em_andamento", rotulo: "Pesquisa em andamento" },
+  { valor: "aguardando_instituicao_externa", rotulo: "Aguardando instituição externa" },
+  { valor: "entrega_em_preparacao", rotulo: "Entrega em preparação" },
+  { valor: "em_execucao", rotulo: "Em execução" },
+  { valor: "suspensa", rotulo: "Suspensa" },
+  { valor: "concluida", rotulo: "Concluída" },
+  { valor: "arquivada", rotulo: "Arquivada" },
+];
+
+/** Datas futuras de contrato/pagamento/onboarding são previsão condicional, nunca fato. */
+export function qualificarData(valor: unknown, agora: Date = new Date()): { texto: string; condicional: boolean } {
+  const bruto = typeof valor === "string" ? valor.trim() : "";
+  if (!bruto) return { texto: "—", condicional: false };
+  const data = new Date(bruto.length <= 10 ? `${bruto}T12:00:00` : bruto);
+  if (Number.isNaN(data.getTime())) return { texto: "—", condicional: false };
+  const texto = data.toLocaleDateString("pt-BR");
+  return { texto, condicional: data.getTime() > agora.getTime() };
+}
+
+/** Próxima ação só é acionável com título, responsável, prazo, dependência e critério. */
+export type ProximaAcaoCampos = {
+  proxima_acao?: unknown;
+  proxima_acao_responsavel?: unknown;
+  prazo_proxima_acao?: unknown;
+  proxima_acao_dependencia?: unknown;
+  proxima_acao_criterio_conclusao?: unknown;
+};
+
+export function lacunasProximaAcao(c: ProximaAcaoCampos): string[] {
+  const falta: string[] = [];
+  const preenchido = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  if (!preenchido(c.proxima_acao)) falta.push("título");
+  if (!preenchido(c.proxima_acao_responsavel)) falta.push("responsável");
+  if (!preenchido(c.prazo_proxima_acao)) falta.push("prazo");
+  if (!preenchido(c.proxima_acao_dependencia)) falta.push("dependência");
+  if (!preenchido(c.proxima_acao_criterio_conclusao)) falta.push("critério de conclusão");
+  return falta;
+}
+
+/** Papel do registro na lista: operacional, referência (piloto) ou demonstração. */
+export function papelDoRegistro(linha: { papel_registro?: unknown; demo?: unknown; piloto?: unknown }): {
+  valor: "operacional" | "referencia" | "demo";
+  rotulo: string;
+} {
+  if (linha.demo === true || linha.papel_registro === "demonstracao") {
+    return { valor: "demo", rotulo: "Demonstração" };
+  }
+  if (linha.piloto === true || linha.papel_registro === "piloto_real") {
+    return { valor: "referencia", rotulo: "Referência" };
+  }
+  return { valor: "operacional", rotulo: "Operacional" };
+}
