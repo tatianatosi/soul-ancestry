@@ -486,8 +486,9 @@ export function escadaConversao(l: LeadDesk): DegrauEscada[] {
   const idx = (v: string) => ordemFormal.indexOf(v);
   const atingiu = (v: string) => idx(f) >= 0 && idx(v) >= 0 && idx(f) >= idx(v);
 
-  const aceiteVerbal = c === "negociacao" || c === "proposta_enviada" || idx(f) > 0 || atingiu("confirmacao_formal_recebida");
-  const confirmacao = atingiu("confirmacao_formal_recebida");
+  const aceiteVerbal = c === "negociacao" || c === "proposta_enviada" || idx(f) > 0;
+  /** Confirmação formal no lead = preparação da formalização iniciada (contrato enviado em diante). */
+  const confirmacao = atingiu("contrato_enviado");
   const contratoOk = atingiu("contrato_assinado");
   const pagamentoOk = atingiu("pagamento_inicial_confirmado");
   const onboardingOk = atingiu("onboarding_iniciado");

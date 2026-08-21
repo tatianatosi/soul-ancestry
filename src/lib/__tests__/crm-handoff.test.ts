@@ -19,7 +19,7 @@ describe("escada de conversão", () => {
       ...base,
       nome: "Ana Luiza",
       eixo_comercial: "negociacao",
-      eixo_formalizacao: "confirmacao_formal_recebida",
+      eixo_formalizacao: "contrato_enviado",
     };
     const e = escadaConversao(ana);
     expect(e[1]?.estado).toBe("concluido");
