@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { semCache } from "@/lib/no-store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -14,6 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const meusCasos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
@@ -51,6 +53,7 @@ export const meuCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
@@ -157,6 +160,7 @@ export const prepararEnvioDocumento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string; nome: string; tamanho: number }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
@@ -187,6 +191,7 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
     }) => data,
   )
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
@@ -241,6 +246,7 @@ export const baixarEntrega = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { documentoId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const portal = await import("./portal.server");
     const supabase = context.supabase as any;
@@ -286,6 +292,7 @@ export const abrirTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string; assunto: string; categoria: string; mensagem: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
@@ -328,6 +335,7 @@ export const meuTicket = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { ticketId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
@@ -359,6 +367,7 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { ticketId: string; mensagem: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
@@ -379,6 +388,7 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
 export const minhasEntregas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
@@ -419,6 +429,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
 export const minhasFaturas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const h = await import("./portal-cliente.server");
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
