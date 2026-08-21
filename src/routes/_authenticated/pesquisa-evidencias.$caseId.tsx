@@ -544,7 +544,7 @@ function AreaPesquisaEvidencias() {
                     {r.version}
                     <span className="block text-xs text-navy/60">
                       {relatorioVisivelAoCliente(r)
-                        ? `publicado ao cliente em ${String(r.published_at ?? "").slice(0, 10)}`
+                        ? `publicado ao cliente em ${String(r.approved_at ?? "").slice(0, 10)}`
                         : "não visível no App Cliente — exige aprovação e resumo sanitizado"}
                       {r.internal_reference ? ` · referência interna ${r.internal_reference}` : ""}
                     </span>
