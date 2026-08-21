@@ -206,7 +206,7 @@ function ClientesPage() {
                       </td>
                       <td className="px-4 py-2">{rotuloDe(ORIGENS, p.origem)}</td>
                       <td className="px-4 py-2">{rotuloDe(STATUS_COMERCIAL, p.status_comercial)}</td>
-                      <td className="px-4 py-2">{p.pais_interesse ?? "—"}</td>
+                      <td className="px-4 py-2">{normalizarPais(p.pais_interesse) ?? "—"}</td>
                       <td className="px-4 py-2">{p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}</td>
                       <td className="px-4 py-2">
                         {p.archived_at ? (
