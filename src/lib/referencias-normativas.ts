@@ -54,9 +54,17 @@ export interface ReferenciaNormativa {
 
 /** Bloqueia qualquer objeto que carregue campo técnico ou sensível. */
 export function referenciaSegura(obj: Record<string, unknown>): boolean {
-  return !Object.keys(obj).some((k) =>
-    CAMPOS_PROIBIDOS_NA_PONTE.some((p) => k.toLowerCase().includes(p)),
-  );
+  return !Object.keys(obj).some((k) => {
+    const tokens = k
+      .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean);
+    return CAMPOS_PROIBIDOS_NA_PONTE.some((p) => {
+      const alvo = p.split("_");
+      return alvo.every((t) => tokens.includes(t));
+    });
+  });
 }
 
 function norm(v: unknown): string {
