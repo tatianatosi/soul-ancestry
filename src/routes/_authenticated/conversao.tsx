@@ -23,9 +23,9 @@ import { CHECKLIST_ONBOARDING, FASES_ONBOARDING, REGRA_VALOR_PERCEBIDO } from "@
 export const Route = createFileRoute("/_authenticated/conversao")({
   head: () => ({
     meta: [
-      { title: "Conversão e marketing — Clube Ancestral" },
-      { name: "description", content: "Investimento, leads, custo por lead, CAC, conversão por etapa e regra de aceite padrão." },
-      { property: "og:title", content: "Conversão e marketing — Clube Ancestral" },
+      { title: "Conversão e aceite padrão — Clube Ancestral" },
+      { name: "description", content: "Funil por eventos imutáveis, quatro momentos de aceite, saúde comercial e onboarding padrão." },
+      { property: "og:title", content: "Conversão e aceite padrão — Clube Ancestral" },
       { property: "og:description", content: "Métricas internas de conversão e onboarding padrão do Desk Intelligence." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
