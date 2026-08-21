@@ -123,7 +123,7 @@ function AcessosPortalPage() {
   const mConvite = useMutation({
     mutationFn: () => criar({ data: { clientId, autorizacaoId, nivel, casoId: casoId || undefined } }),
     onSuccess: () => {
-      setMsg("Convite criado e link mágico de uso único enviado (validade de 48h).");
+      setMsg("Convite criado e link mágico de uso único enviado (validade de 24h; reenvios valem 20 minutos).");
       setErro(null);
       setAutorizacaoId("");
       setCasoId("");

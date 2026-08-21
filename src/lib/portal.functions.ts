@@ -17,6 +17,19 @@ export const solicitarLinkAcesso = createServerFn({ method: "POST" })
       (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : "");
     const redirectTo = `${origem}/acesso/confirmar`;
 
+    // Limite de emissão por e-mail e por origem: reduz abuso e enumeração.
+    const { limiteExcedido } = await import("./equipe.server");
+    const origemBruta =
+      getRequestHeader("cf-connecting-ip") ??
+      getRequestHeader("x-forwarded-for") ??
+      getRequestHeader("origin") ??
+      "desconhecida";
+    const [porEmail, porOrigem] = await Promise.all([
+      limiteExcedido("portal_magic_link_email", email, 3, 15),
+      limiteExcedido("portal_magic_link_origem", origemBruta, 20, 15),
+    ]);
+    if (porEmail || porOrigem) return { ok: true };
+
     const acesso = await helpers.acessoPorEmail(email);
     if (!helpers.acessoUtilizavel(acesso)) {
       if (acesso) {
@@ -39,14 +52,17 @@ export const solicitarLinkAcesso = createServerFn({ method: "POST" })
 
     const userId = acesso.auth_user_id ?? (await helpers.garantirUsuarioAuth(email));
 
-    // Link de uso único e com expiração: cada envio zera o contador e reabre a janela.
+    // Uso único e janela curta. Cada novo envio reabre a janela a partir de
+    // agora e mantém o contador em um uso: o link anterior deixa de servir
+    // assim que qualquer um deles for consumido.
+    const { LINK_LOGIN_VALIDADE_MINUTOS } = await import("./portal-elegibilidade");
     await helpers.adminClient
       .from("client_portal_access")
       .update({
         ...(userId && !acesso.auth_user_id ? { auth_user_id: userId } : {}),
         magic_link_uses: 0,
         magic_link_max_uses: 1,
-        magic_link_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        magic_link_expires_at: new Date(Date.now() + LINK_LOGIN_VALIDADE_MINUTOS * 60 * 1000).toISOString(),
       })
       .eq("id", acesso.id);
 
@@ -458,7 +474,8 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
     }
 
     const agora = new Date();
-    const expira = new Date(agora.getTime() + 48 * 60 * 60 * 1000);
+    const { CONVITE_VALIDADE_HORAS } = await import("./portal-elegibilidade");
+    const expira = new Date(agora.getTime() + CONVITE_VALIDADE_HORAS * 60 * 60 * 1000);
 
     const inserido = await supabase
       .from("client_portal_access")
@@ -546,7 +563,10 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
       throw new Error("Acesso indisponível para reenvio.");
     }
 
-    const expira = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    // Reenvio: janela curta e novo uso único. O link anterior deixa de valer
+    // porque a janela e o contador são regravados no mesmo registro.
+    const { LINK_LOGIN_VALIDADE_MINUTOS } = await import("./portal-elegibilidade");
+    const expira = new Date(Date.now() + LINK_LOGIN_VALIDADE_MINUTOS * 60 * 1000).toISOString();
     await supabase
       .from("client_portal_access")
       .update({
