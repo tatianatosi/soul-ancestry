@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.fn_biblioteca_mestre_guard() FROM anon, authenticated, public;
