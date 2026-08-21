@@ -200,7 +200,7 @@ export function SaasShell({
 
   // Admin não ganha abas novas: os módulos administrativos entram como
   // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
-  const itens = NAV.map((item) =>
+  const itens: SecaoNav[] = NAV.map((item) =>
     ehAdmin && item.to === "/biblioteca"
       ? {
           ...item,
@@ -218,7 +218,7 @@ export function SaasShell({
     <div className="flex min-h-screen bg-cream text-navy">
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex-col border-r border-navy/20 bg-navy px-3 py-5 text-cream lg:static lg:flex",
+          "fixed inset-y-0 left-0 z-40 w-64 shrink-0 flex-col overflow-y-auto border-r border-navy/20 bg-navy px-3 py-5 text-cream lg:static lg:flex",
           aberto ? "flex" : "hidden",
         )}
       >
@@ -227,42 +227,73 @@ export function SaasShell({
           <p className="text-[11px] uppercase tracking-widest text-cream/60">Gestão de pesquisa</p>
         </div>
         <nav className="flex-1 space-y-1">
-          {itens.map(({ to, label, icon: Icon, sub }) => {
-            const subitens = (sub ?? []) as readonly { to: string; label: string }[];
-            const secaoAtiva = rota === to || subitens.some((s) => rota.startsWith(s.to));
+          {itens.map((item) => {
+            const { to, label, icon: Icon, sub, agrupador } = item;
+            const links = sub.filter((s): s is { to: string; label: string; hash?: string } => "to" in s);
+            const rotaAtiva = rota === to || links.some((s) => rota.startsWith(s.to));
+            const expandida = rotaAtiva || secaoAberta === to;
             return (
               <div key={to}>
-                <Link
-                  to={to}
-                  onClick={() => setAberto(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                    rota === to ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Link>
-                {secaoAtiva && subitens.length ? (
+                {agrupador ? (
+                  <button
+                    type="button"
+                    onClick={() => setSecaoAberta((v) => (v === to ? null : to))}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                      rotaAtiva ? "bg-cream/15 text-cream font-medium" : "text-cream/80 hover:bg-cream/10",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="flex-1">{label}</span>
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")} />
+                  </button>
+                ) : (
+                  <Link
+                    to={to}
+                    onClick={() => {
+                      setAberto(false);
+                      setSecaoAberta(to);
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      rota === to ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </Link>
+                )}
+                {expandida && sub.length ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
-                    {subitens.map((s) => (
-                      <Link
-                        key={s.to}
-                        to={s.to}
-                        onClick={() => setAberto(false)}
-                        className={cn(
-                          "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                          rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
-                        )}
-                      >
-                        {s.label}
-                      </Link>
-                    ))}
+                    {sub.map((s, i) =>
+                      "grupo" in s ? (
+                        <p
+                          key={`g-${s.grupo}`}
+                          className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gold"
+                        >
+                          {s.grupo}
+                        </p>
+                      ) : (
+                        <Link
+                          key={`${s.to}-${s.hash ?? i}`}
+                          to={s.to}
+                          hash={s.hash}
+                          onClick={() => setAberto(false)}
+                          className={cn(
+                            "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                            rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
+                          )}
+                        >
+                          {s.label}
+                        </Link>
+                      ),
+                    )}
                   </div>
                 ) : null}
               </div>
             );
           })}
+
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
