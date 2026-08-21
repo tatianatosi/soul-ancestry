@@ -166,6 +166,12 @@ function Conteudo({ dados }: { dados: any }) {
             Bloqueios críticos abertos: <strong>{criticosAbertos.length}</strong> — a ativação operacional permanece
             NO_GO enquanto houver qualquer um deles.
           </li>
+          {gatePendente && (
+            <li>
+              Primeiro gate não atendido: <strong>{gatePendente.gate.nome}</strong> ({gatePendente.abertos} item(ns)
+              aberto(s)). Evidências exigidas listadas abaixo, no bloco do gate.
+            </li>
+          )}
         </ul>
         <p className="mt-2 text-xs text-navy/60">
           A importação de dados não cria cobranças, pesquisa externa, solicitações institucionais, entregas nem
@@ -186,17 +192,18 @@ function Conteudo({ dados }: { dados: any }) {
 
       <Painel titulo="Bloqueios críticos por gate">
         <p className="text-sm text-navy/70">
-          Os bloqueios são resolvidos em sequência. Um gate posterior só deve ser trabalhado depois que o anterior
-          estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
+          Os bloqueios são resolvidos em sequência (A a H). Um gate posterior só deve ser trabalhado depois que o
+          anterior estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
           automaticamente.
         </p>
         <div className="mt-3 space-y-4">
-          {agruparBloqueiosPorGate(bloqueios).map((g) => (
+          {agrupados.map((g) => (
             <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-serif text-base text-navy">
-                  Gate {g.gate.numero} — {g.gate.nome}: {g.total - g.abertos}/{g.total}
+                  Gate {g.gate.nome}: {g.total - g.abertos}/{g.total}
                 </p>
+
                 <Selo
                   texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
                   tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
