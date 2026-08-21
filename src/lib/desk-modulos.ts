@@ -144,14 +144,27 @@ export function moduloEhAbaPrincipal(id: string): boolean {
 }
 
 /** Verifica se, a partir de Casos 360, é possível alcançar um domínio. */
-export function casos360Alcanca(dominio: "pesquisa" | "proposta" | "formalizacao" | "onboarding"): boolean {
+export function casos360Alcanca(
+  dominio: "pesquisa" | "proposta" | "formalizacao" | "onboarding" | "go_live",
+): boolean {
   const mapa: Record<string, string> = {
     pesquisa: "caso-pesquisa",
     proposta: "caso-proposta-blueprint",
     formalizacao: "caso-formalizacao",
     onboarding: "caso-onboarding",
+    go_live: "caso-go-live",
   };
   return modulosDaTela("casos").some((m) => m.id === mapa[dominio]);
+}
+
+/** Verifica se, a partir do CRM Vivo, é possível alcançar um domínio comercial. */
+export function crmVivoAlcanca(dominio: "leads" | "propostas" | "clientes"): boolean {
+  const mapa: Record<string, string> = {
+    leads: "crm-leads",
+    propostas: "crm-propostas",
+    clientes: "crm-clientes-nucleos",
+  };
+  return modulosDaTela("crm").some((m) => m.id === mapa[dominio]);
 }
 
 /** Verifica se, a partir da Biblioteca Mestre, é possível alcançar um domínio. */
