@@ -5,6 +5,8 @@ import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesq
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+const VAZIO_UUID = "00000000-0000-0000-0000-000000000000";
+
 /**
  * Leitura e escrita da cadeia de Pesquisa Genealógica e Evidências.
  * Nenhuma função aqui contata instituição, dispara OCR/IA, envia mensagem,
@@ -50,15 +52,20 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
         supabase
           .from("research_name_variants")
           .select("id,person_id,variant_name,variant_type,status")
-          .eq("organization_id", organizationId),
+          .eq("organization_id", organizationId)
+          .is("archived_at", null),
         supabase
           .from("research_relationships")
           .select("id,relationship_type,person_a_id,person_b_id,confidence_level,status,supporting_evidence_count")
-          .eq("organization_id", organizationId),
+          .eq("organization_id", organizationId)
+          .eq("research_case_id", researchCaseId ?? VAZIO_UUID)
+          .is("archived_at", null),
         supabase
           .from("research_events")
           .select("id,tipo,titulo,data_inicio,local,person_id,confirmado,evidencia_id")
-          .eq("organization_id", organizationId),
+          .eq("organization_id", organizationId)
+          .eq("case_id", data.caseId)
+          .is("archived_at", null),
         supabase
           .from("lineage_paths")
           .select("id,case_id,nome_da_linha,tipo_da_linha,status,objetivo,proximo_marco,geracao_alvo,responsavel")
@@ -70,7 +77,7 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
             "id,title,source_type,repository_or_institution,source_location,access_level,source_status,consulted_at,consulted_by,result_summary_internal,external_source,archived_at,archive_reason",
           )
           .eq("organization_id", organizationId)
-          .eq("research_case_id", researchCaseId ?? "00000000-0000-0000-0000-000000000000"),
+          .eq("research_case_id", researchCaseId ?? VAZIO_UUID),
         supabase
           .from("evidences")
           .select(
@@ -101,7 +108,8 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           .from("research_pending_items")
           .select("id,title,description,status,category,severity,due_at,responsible_user_id,blocking_reason")
           .eq("organization_id", organizationId)
-          .eq("case_id", data.caseId),
+          .eq("research_case_id", researchCaseId ?? VAZIO_UUID)
+          .is("archived_at", null),
       ]);
 
     return {
