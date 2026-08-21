@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import { AppSwitcher } from "@/components/brand";
 import { ClienteApp } from "@/components/cliente-app";
 import { DeskApp } from "@/components/desk-app";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { caso?: string } => ({
@@ -31,6 +32,21 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const [app, setApp] = useState<"cliente" | "desk">("cliente");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let ativo = true;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (ativo && data.user) {
+        void navigate({ to: "/painel", replace: true });
+      }
+    });
+
+    return () => {
+      ativo = false;
+    };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-cream">
