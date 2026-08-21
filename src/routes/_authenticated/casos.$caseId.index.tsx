@@ -239,12 +239,13 @@ function FichaCaso() {
     return () => window.removeEventListener("beforeunload", h);
   }, [sujo]);
 
-  // ...e também na navegação interna entre abas/rotas do Desk.
-  useBlocker({
-    shouldBlockFn: () =>
-      sujo && !window.confirm("Há alterações não salvas nesta ficha. Sair mesmo assim?"),
+  // ...e também na navegação interna entre abas/rotas do Desk (salvar / descartar / cancelar).
+  const bloqueio = useBlocker({
+    shouldBlockFn: () => sujo,
     enableBeforeUnload: false,
+    withResolver: true,
   });
+
 
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
