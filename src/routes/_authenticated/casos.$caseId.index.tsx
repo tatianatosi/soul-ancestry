@@ -786,7 +786,53 @@ function FichaCaso() {
           )}
         </Secao>
       ) : null}
+
+      <MapaPersistenciaCaso />
+
+      <AlertDialog open={bloqueio.status === "blocked"}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Há alterações não salvas nesta ficha</AlertDialogTitle>
+            <AlertDialogDescription>
+              {Object.keys(form).length} campo(s) alterado(s) ainda não foram gravados no banco. Escolha o que fazer
+              antes de sair.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <button
+              onClick={() => bloqueio.reset?.()}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+            >
+              Cancelar e continuar editando
+            </button>
+            <button
+              onClick={() => {
+                setForm({});
+                bloqueio.proceed?.();
+              }}
+              className="rounded-lg border border-terracotta/40 px-3 py-2 text-sm text-navy"
+            >
+              Descartar alterações
+            </button>
+            <button
+              disabled={bloqueado || mSalvar.isPending}
+              onClick={async () => {
+                try {
+                  await mSalvar.mutateAsync();
+                  bloqueio.proceed?.();
+                } catch {
+                  bloqueio.reset?.();
+                }
+              }}
+              className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream disabled:opacity-40"
+            >
+              {mSalvar.isPending ? "Salvando…" : "Salvar e sair"}
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SaasShell>
+
   );
 }
 
