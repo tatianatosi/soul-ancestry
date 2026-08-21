@@ -635,6 +635,9 @@ function FichaCaso() {
               <Link to="/ordens-servico" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
                 Ordens de serviço
               </Link>
+              <Link to="/nucleos" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
+                Núcleos familiares e dossiê-mãe
+              </Link>
             </div>
           </Secao>
         </div>
