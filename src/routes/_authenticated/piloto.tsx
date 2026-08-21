@@ -120,7 +120,10 @@ function Conteudo({ dados }: { dados: any }) {
   const pendentes = campos.filter((c) => c["obrigatorio"] && !c["valor"]);
   const naoVerificados = campos.filter((c) => c["valor"] && !c["verificado"]);
   const criticosAbertos = bloqueios.filter((b) => b["status"] === "aberto" && b["criticidade"] === "critico");
+  const agrupados = agruparBloqueiosPorGate(bloqueios);
+  const gatePendente = primeiroGatePendente(agrupados);
   const secoes = [...new Set(campos.map((c) => c["secao"] as string))];
+
 
   return (
     <div className="space-y-4">
