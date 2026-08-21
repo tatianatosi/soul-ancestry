@@ -105,7 +105,25 @@ export const Route = createFileRoute("/api/pesquisa-assistente")({
           demo: ehDemo,
         };
 
+        // Trava dura: sem autorização de pesquisa registrada no caso, o assistente permanece inerte.
+        const autorizacao = String(caso.data["estado_de_autorizacao_pesquisa"] ?? "nao_autorizada");
+        if (autorizacao !== "autorizada") {
+          return json(
+            {
+              ...identificacao,
+              estado_de_autorizacao_pesquisa: autorizacao,
+              erro: "pesquisa_nao_autorizada",
+              mensagem:
+                "Pesquisa não autorizada para este caso. O assistente permanece inerte até a autorização ser registrada na ficha do caso.",
+              orientacao:
+                "Próximo passo: upload humano controlado dos documentos, catalogação e revisão. Nenhuma extração automática é executada agora.",
+            },
+            409,
+          );
+        }
+
         // Etapa 1: a interface confere qual case_id será analisado antes de executar.
+
         if (body.verificar) {
           return json(
             {
