@@ -39,6 +39,7 @@ export const carregarConversao = createServerFn({ method: "GET" })
       fontes,
       atribuicoes,
       leads: semFixtures(leads as never),
+      leadsTodos: leads,
       casos: semFixtures(casos as never),
     };
   });
