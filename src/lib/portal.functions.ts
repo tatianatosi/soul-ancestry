@@ -229,7 +229,7 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as any;
-    const [acessos, casosAcesso, clientes, casos, autorizacoes] = await Promise.all([
+    const [acessos, casosAcesso, clientes, casos, autorizacoes, propostas] = await Promise.all([
       supabase
         .from("client_portal_access")
         .select(
@@ -254,6 +254,7 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
         )
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
+      supabase.from("proposals").select("id, client_id, case_id, status, archived_at").is("archived_at", null),
     ]);
     return {
       acessos: (acessos.data ?? []) as any[],
@@ -261,6 +262,7 @@ export const listarAcessosPortal = createServerFn({ method: "GET" })
       clientes: (clientes.data ?? []) as any[],
       casos: (casos.data ?? []) as any[],
       autorizacoes: (autorizacoes.data ?? []) as any[],
+      propostas: (propostas.data ?? []) as any[],
     };
   });
 
