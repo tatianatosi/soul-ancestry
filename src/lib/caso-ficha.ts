@@ -33,6 +33,13 @@ export const EIXO_FORMALIZACAO: Opcao[] = [
   { valor: "arquivado", rotulo: "Arquivado" },
 ];
 
+/** Papel do registro: separa caso operacional, piloto real e dado de demonstração. */
+export const PAPEL_REGISTRO: Opcao[] = [
+  { valor: "operacional", rotulo: "Caso operacional" },
+  { valor: "piloto_real", rotulo: "Piloto real — caso operacional de referência" },
+  { valor: "demonstracao", rotulo: "Demonstração — não operacional" },
+];
+
 export const STATUS_DERIVADO: Opcao[] = [
   { valor: "pre_onboarding_bloqueado", rotulo: "Pré-onboarding bloqueado" },
   { valor: "formalizacao_pendente", rotulo: "Formalização pendente" },

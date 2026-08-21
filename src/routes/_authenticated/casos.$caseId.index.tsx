@@ -355,7 +355,14 @@ function FichaCaso() {
           {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem App Cliente.
         </p>
       ) : null}
-      <VinculoNucleo caseId={String(caso["id"])} codigoCaso={(caso["codigo"] as string | null) ?? null} />
+      <VinculoNucleo
+        caseId={String(caso["id"])}
+        codigoCaso={(caso["codigo"] as string | null) ?? null}
+        papelRegistro={(caso["papel_registro"] as string | null) ?? null}
+        finalidade={(caso["finalidade_registro"] as string | null) ?? null}
+        estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
+      />
+
 
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">{erro}</p>

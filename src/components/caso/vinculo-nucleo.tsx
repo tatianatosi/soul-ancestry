@@ -27,9 +27,15 @@ const ROTULO_STATUS: Record<string, string> = {
 export function VinculoNucleo({
   caseId,
   codigoCaso,
+  papelRegistro,
+  finalidade,
+  estadoDerivado,
 }: {
   caseId: string;
   codigoCaso: string | null;
+  papelRegistro?: string | null;
+  finalidade?: string | null;
+  estadoDerivado?: string | null;
 }) {
   const carregar = useServerFn(listarNucleos);
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
@@ -38,9 +44,28 @@ export function VinculoNucleo({
   const principal = vinculados[0] ?? null;
   const duplicado = vinculados.length > 1;
 
+  const papel =
+    papelRegistro === "piloto_real"
+      ? "Piloto real — caso operacional de referência"
+      : papelRegistro === "demonstracao"
+        ? "Demonstração — não operacional"
+        : "Caso operacional";
+
   return (
     <section className="mb-4 rounded-xl border border-gold/40 bg-cream/60 px-4 py-3">
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
+        <span className="rounded-full border border-navy/20 bg-white px-2 py-0.5 uppercase tracking-wide text-navy/70">
+          {papel}
+        </span>
+        {estadoDerivado === "pre_onboarding_bloqueado" ? (
+          <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 uppercase tracking-wide text-navy">
+            Pré-onboarding bloqueado
+          </span>
+        ) : null}
+      </div>
+      {finalidade ? <p className="mb-2 text-xs text-navy/60">Finalidade do registro: {finalidade}</p> : null}
       <div className="grid gap-2 text-sm text-navy/75 sm:grid-cols-2">
+
         <p>
           <span className="text-[11px] uppercase tracking-wide text-navy/45">Núcleo familiar</span>
           <br />
