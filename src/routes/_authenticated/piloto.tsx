@@ -300,7 +300,9 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const vazio = !campo["valor"];
+  const estado = estadoDoCampo(campo);
+  const origemAtual = ORIGENS.find((o) => o.valor === campo["origem"])?.rotulo ?? "sem origem declarada";
+  const fmt = (v: string | null) => (v ? new Date(v).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—");
 
   return (
     <div className="rounded-lg border border-navy/15 bg-white p-3">
@@ -308,14 +310,28 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
         <p className="text-sm font-medium text-navy">
           {campo["label"]} {campo["obrigatorio"] ? <span className="text-terracotta">*</span> : null}
         </p>
-        {vazio ? (
-          <Selo texto="Pendência — sem dado" tom="erro" />
-        ) : campo["verificado"] ? (
-          <Selo texto="Verificado" tom="ok" />
-        ) : (
-          <Selo texto="Não verificado" tom="alerta" />
-        )}
+        <Selo texto={estado.rotulo} tom={estado.tom} />
       </div>
+      <dl className="mt-1 grid gap-x-4 gap-y-0.5 text-[11px] text-navy/60 md:grid-cols-3">
+        <div>
+          <dt className="inline font-semibold">Origem: </dt>
+          <dd className="inline">{campo["valor"] ? origemAtual : "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Referência: </dt>
+          <dd className="inline">{campo["origem_detalhe"] ?? "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Captura: </dt>
+          <dd className="inline">{campo["valor"] ? fmt(campo["updated_at"]) : "—"}</dd>
+        </div>
+        <div>
+          <dt className="inline font-semibold">Verificação: </dt>
+          <dd className="inline">{campo["verificado"] ? fmt(campo["verificado_em"]) : "pendente de revisão humana"}</dd>
+        </div>
+      </dl>
+      {estado.nota && <p className="mt-1 text-[11px] text-terracotta">{estado.nota}</p>}
+
       <div className="mt-2 grid gap-2 md:grid-cols-3">
         <input
           className={inputCls}
