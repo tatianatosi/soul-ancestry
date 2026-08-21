@@ -651,7 +651,7 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
 export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { acessoId: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => {
-    if (data.status !== "active" && (!data.motivo || data.motivo.trim().length < 5)) {
+    if (!data.motivo || data.motivo.trim().length < 5) {
       throw new Error("Informe um motivo com pelo menos 5 caracteres.");
     }
     return data;
@@ -668,6 +668,47 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
       patch["revocation_reason"] = data.motivo?.trim();
     }
     if (data.status === "suspended") patch["revocation_reason"] = data.motivo?.trim();
+
+    if (data.status === "active") {
+      // Reativação: revalida elegibilidade e nunca reaproveita token anterior.
+      const atual = await supabase
+        .from("client_portal_access")
+        .select("id, access_level, client_id, authorized_email_id")
+        .eq("id", data.acessoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (!atual.data) throw new Error("Acesso não encontrado.");
+      const vinc = await supabase
+        .from("client_portal_case_access")
+        .select("case_id")
+        .eq("client_portal_access_id", data.acessoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      const motivosReativacao = await helpers.revalidarElegibilidade(supabase, organizationId, {
+        clientId: atual.data.client_id,
+        nivel: atual.data.access_level,
+        casoId: vinc.data?.case_id ?? null,
+        autorizacaoId: atual.data.authorized_email_id,
+      });
+      if (motivosReativacao.length > 0) {
+        await helpers.registrarAuditoria({
+          organizationId,
+          userId: context.userId as string,
+          acao: "reativacao_acesso_bloqueada",
+          entidadeId: data.acessoId,
+          metadados: { motivos: motivosReativacao },
+        });
+        throw new Error(`Acesso bloqueado: ${motivosReativacao.join(" ")}`);
+      }
+      // Invalida qualquer link mágico emitido antes da suspensão.
+      patch["magic_link_expires_at"] = new Date(Date.now() - 1000).toISOString();
+      patch["magic_link_uses"] = 1;
+      patch["magic_link_max_uses"] = 1;
+      patch["revocation_reason"] = null;
+      patch["reactivated_reason"] = data.motivo?.trim();
+    }
+
+
 
     const { error } = await supabase
       .from("client_portal_access")
