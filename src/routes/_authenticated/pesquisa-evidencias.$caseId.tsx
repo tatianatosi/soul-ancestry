@@ -40,6 +40,11 @@ import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
+import {
+  ConsultaBasesHomologadas,
+  DecisoesNormativasDoCaso,
+  ReferenciasNormativasAplicaveis,
+} from "@/components/pesquisa/referencias-normativas";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -235,6 +240,7 @@ function AreaPesquisaEvidencias() {
             ))}
           </dl>
         </Bloco>
+        <ReferenciasNormativasAplicaveis caseId={caseId} />
         <Bloco titulo="Origem dos insumos — Biblioteca Mestre">
           <CadeiaSuprimentoPesquisa />
         </Bloco>
@@ -492,6 +498,7 @@ function AreaPesquisaEvidencias() {
 
       {d && secao === "fontes" && (
         <div className="space-y-3">
+          <ConsultaBasesHomologadas caseId={caseId} />
           <Bloco titulo="Fontes e documentos">
             <p className="text-xs text-navy/60">
               Material bruto e referências privadas do caso. Nenhuma consulta externa, contato com arquivo/cartório ou
@@ -595,6 +602,7 @@ function AreaPesquisaEvidencias() {
 
       {d && secao === "alertas" && (
         <section className="space-y-3">
+          <DecisoesNormativasDoCaso caseId={caseId} />
           <Bloco titulo="Alertas internos">
             {d.alertas.length === 0 && <p className="text-sm text-navy/60">Nenhum alerta registrado.</p>}
             {d.alertas.map((a: any) => (
