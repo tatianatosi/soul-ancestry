@@ -120,14 +120,29 @@ export const listarFontesDocumentos = createServerFn({ method: "GET" })
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
 
-    const [pessoas, equipe] = await Promise.all([
+    const [pessoas, equipe, vinculos] = await Promise.all([
       pessoasDoCaso(supabase, organizationId, data.caseId),
       supabase.from("profiles").select("id,nome").limit(200),
+      supabase
+        .from("case_source_document_links")
+        .select("source_document_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
     ]);
+
+    const contagem: Record<string, number> = {};
+    for (const v of (vinculos.data ?? []) as any[]) {
+      const k = String(v.source_document_id);
+      contagem[k] = (contagem[k] ?? 0) + 1;
+    }
 
     return {
       podeEditar: PAPEIS_EDITA.includes(papel),
-      documentos: (linhas ?? []) as Record<string, any>[],
+      documentos: ((linhas ?? []) as Record<string, any>[]).map((d) => ({
+        ...d,
+        vinculos_ativos: contagem[String(d["id"])] ?? 0,
+      })),
       pessoas,
       equipe: ((equipe.data ?? []) as any[]).map((e) => ({ id: String(e.id), nome: String(e.nome ?? "Equipe") })),
     };
