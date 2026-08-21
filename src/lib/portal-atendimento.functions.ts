@@ -9,6 +9,7 @@ import {
   VISIBILIDADE_FATURA_LABEL,
   bloqueioAtendimento,
   bloqueioFatura,
+  sanitizarParaLog,
 } from "@/lib/atendimento";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -37,6 +38,10 @@ async function auditar(
   entidadeId: string,
   metadados: any,
 ) {
+  const limpos: any = {};
+  for (const [k, v] of Object.entries(metadados ?? {})) {
+    limpos[k] = typeof v === "string" ? sanitizarParaLog(v, 600) : v;
+  }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   await supabaseAdmin.from("audit_logs").insert({
     organization_id: organizationId,
@@ -44,7 +49,7 @@ async function auditar(
     acao,
     entidade,
     entidade_id: entidadeId,
-    metadados,
+    metadados: limpos,
   });
 }
 
@@ -195,13 +200,54 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
     if (!data.responsavelId) throw new Error("Informe o responsável interno.");
     if (!data.prazo) throw new Error("Informe o prazo.");
 
+    // Permissão sempre por caso + organização: nunca confie no id vindo da URL.
     const caso = await supabase
       .from("crm_casos")
-      .select("id, cliente_id")
+      .select(
+        "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, responsavel_id, demo",
+      )
       .eq("id", data.casoId)
       .eq("organization_id", organizationId)
+      .is("archived_at", null)
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    const bloqueio = bloqueioAtendimento(caso.data as any);
+    if (bloqueio.bloqueado) {
+      await auditar(
+        organizationId,
+        context.userId as string,
+        "solicitacao_documento_bloqueada",
+        "crm_casos",
+        data.casoId,
+        { resultado: "bloqueado", motivo: bloqueio.motivos.join("; "), categoria, finalidade },
+      );
+      throw new Error(`Caso sem portal elegível: ${bloqueio.motivos.join("; ")}.`);
+    }
+
+    // Responsável precisa ser pessoa ativa da mesma organização.
+    const responsavel = await supabase
+      .from("staff_access")
+      .select("auth_user_id")
+      .eq("organization_id", organizationId)
+      .eq("auth_user_id", data.responsavelId)
+      .eq("status", "active")
+      .is("archived_at", null)
+      .maybeSingle();
+    if (!responsavel.data) throw new Error("Responsável interno inválido para esta organização.");
+
+    // Participante informado por id precisa pertencer ao mesmo caso.
+    if (data.participanteId) {
+      const dep = await supabase
+        .from("case_dependents")
+        .select("id")
+        .eq("id", data.participanteId)
+        .eq("case_id", data.casoId)
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .maybeSingle();
+      if (!dep.data) throw new Error("Participante não pertence a este caso.");
+    }
 
     const r = await supabase
       .from("portal_document_requests")
@@ -549,6 +595,46 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
     const corpo = texto(data.mensagem, 4000);
     if (!corpo) throw new Error("Escreva a resposta.");
 
+    // O ticket precisa ser desta organização (evita acesso por id de URL/API).
+    const ticket = await supabase
+      .from("portal_tickets")
+      .select("id, case_id")
+      .eq("id", data.ticketId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (!ticket.data) throw new Error("Ticket não encontrado nesta organização.");
+
+    // Resposta visível ao cliente só em caso elegível; o restante fica interno.
+    if (!data.interna) {
+      const caso = ticket.data.case_id
+        ? await supabase
+            .from("crm_casos")
+            .select(
+              "id, cliente_id, contrato_assinado, pagamento_confirmado, documentos_minimos_ok, ativado_em, data_ativacao, eixo_comercial, eixo_formalizacao, responsavel_id, demo",
+            )
+            .eq("id", ticket.data.case_id)
+            .eq("organization_id", organizationId)
+            .maybeSingle()
+        : null;
+      const b = caso?.data
+        ? bloqueioAtendimento(caso.data as any)
+        : { bloqueado: true, motivos: ["Ticket sem caso elegível vinculado"] };
+      if (b.bloqueado) {
+        await auditar(
+          organizationId,
+          context.userId as string,
+          "resposta_cliente_bloqueada",
+          "portal_tickets",
+          data.ticketId,
+          { resultado: "bloqueado", motivo: b.motivos.join("; "), case_id: ticket.data.case_id },
+        );
+        throw new Error(
+          `Resposta ao cliente bloqueada: ${b.motivos.join("; ")}. Registre como nota interna.`,
+        );
+      }
+    }
+
     const r = await supabase.from("portal_ticket_messages").insert({
       organization_id: organizationId,
       ticket_id: data.ticketId,
@@ -559,6 +645,14 @@ export const responderTicketEquipe = createServerFn({ method: "POST" })
       created_by: context.userId,
     });
     if (r.error) throw new Error(r.error.message);
+    await auditar(
+      organizationId,
+      context.userId as string,
+      data.interna ? "ticket_nota_interna" : "ticket_resposta_cliente",
+      "portal_tickets",
+      data.ticketId,
+      { case_id: ticket.data.case_id, visivel_cliente: !data.interna },
+    );
     return { ok: true };
   });
 
