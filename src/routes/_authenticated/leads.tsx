@@ -145,7 +145,13 @@ function LeadsPage() {
                   >
                     <span className="block font-medium text-navy">
                       {l.codigo ?? "—"} · {l.nome}
+                      {l.dados_teste ? (
+                        <span className="ml-2 rounded border border-navy/20 bg-cream px-1.5 py-0.5 align-middle text-[10px] uppercase tracking-wide text-navy/60">
+                          dado de teste
+                        </span>
+                      ) : null}
                     </span>
+
                     <span className="block text-[11px] text-navy/55">
                       {rotulo("eixo_comercial", l.eixo_comercial)} · {rotulo("eixo_formalizacao", l.eixo_formalizacao)} ·{" "}
                       {resultadoComercialDerivado(l)}
