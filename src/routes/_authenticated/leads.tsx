@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
@@ -411,6 +412,15 @@ function LeadsPage() {
             servidor e no banco.
           </p>
         </div>
+      </div>
+
+      <div className="mt-6 space-y-3">
+        <h2 className="font-serif text-xl text-navy">Fluxo comercial canônico</h2>
+        <p className="text-xs text-navy/55">
+          Contatos, oportunidades, Discovery, aceite verbal e confirmação formal. Nenhum registro aqui cria contrato, cobrança,
+          assinatura, onboarding, pesquisa externa ou App Cliente.
+        </p>
+        <FluxoComercialCanonico />
       </div>
     </SaasShell>
   );

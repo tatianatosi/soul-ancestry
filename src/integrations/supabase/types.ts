@@ -3128,6 +3128,77 @@ export type Database = {
           },
         ]
       }
+      contacts: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          data_origin: string
+          email: string | null
+          id: string
+          nome: string
+          observacao_interna: string | null
+          organization_id: string
+          origem: string
+          origem_detalhe: string | null
+          responsavel_user_id: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          email?: string | null
+          id?: string
+          nome: string
+          observacao_interna?: string | null
+          organization_id: string
+          origem?: string
+          origem_detalhe?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_origin?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          observacao_interna?: string | null
+          organization_id?: string
+          origem?: string
+          origem_detalhe?: string | null
+          responsavel_user_id?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_annexes: {
         Row: {
           annex_code: string
@@ -4660,6 +4731,7 @@ export type Database = {
           canal: string | null
           case_id: string | null
           cliente_id: string | null
+          contact_id: string | null
           created_at: string
           created_by: string | null
           event_type: string
@@ -4669,6 +4741,7 @@ export type Database = {
           lead_source_id: string | null
           observacao: string | null
           occurred_at: string
+          opportunity_id: string | null
           organization_id: string
           origem: string | null
           responsavel: string | null
@@ -4679,6 +4752,7 @@ export type Database = {
           canal?: string | null
           case_id?: string | null
           cliente_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string | null
           event_type: string
@@ -4688,6 +4762,7 @@ export type Database = {
           lead_source_id?: string | null
           observacao?: string | null
           occurred_at?: string
+          opportunity_id?: string | null
           organization_id: string
           origem?: string | null
           responsavel?: string | null
@@ -4698,6 +4773,7 @@ export type Database = {
           canal?: string | null
           case_id?: string | null
           cliente_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string | null
           event_type?: string
@@ -4707,6 +4783,7 @@ export type Database = {
           lead_source_id?: string | null
           observacao?: string | null
           occurred_at?: string
+          opportunity_id?: string | null
           organization_id?: string
           origem?: string | null
           responsavel?: string | null
@@ -4721,10 +4798,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversion_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversion_events_lead_source_id_fkey"
             columns: ["lead_source_id"]
             isOneToOne: false
             referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_events_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
         ]
@@ -5086,15 +5177,19 @@ export type Database = {
           canal: string
           case_id: string
           client_id: string | null
+          consentimento_gravacao: boolean | null
+          contact_id: string | null
           corrige_interacao_id: string | null
           created_at: string
           data_origin: string
           direcao: string
           id: string
           ocorrido_em: string
+          opportunity_id: string | null
           organization_id: string
           origem: string
           origem_id: string | null
+          origem_referencia_interna: string | null
           prazo_proxima_acao: string | null
           proxima_acao: string | null
           registrado_por: string | null
@@ -5107,15 +5202,19 @@ export type Database = {
           canal?: string
           case_id: string
           client_id?: string | null
+          consentimento_gravacao?: boolean | null
+          contact_id?: string | null
           corrige_interacao_id?: string | null
           created_at?: string
           data_origin?: string
           direcao?: string
           id?: string
           ocorrido_em?: string
+          opportunity_id?: string | null
           organization_id: string
           origem?: string
           origem_id?: string | null
+          origem_referencia_interna?: string | null
           prazo_proxima_acao?: string | null
           proxima_acao?: string | null
           registrado_por?: string | null
@@ -5128,15 +5227,19 @@ export type Database = {
           canal?: string
           case_id?: string
           client_id?: string | null
+          consentimento_gravacao?: boolean | null
+          contact_id?: string | null
           corrige_interacao_id?: string | null
           created_at?: string
           data_origin?: string
           direcao?: string
           id?: string
           ocorrido_em?: string
+          opportunity_id?: string | null
           organization_id?: string
           origem?: string
           origem_id?: string | null
+          origem_referencia_interna?: string | null
           prazo_proxima_acao?: string | null
           proxima_acao?: string | null
           registrado_por?: string | null
@@ -5175,10 +5278,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "crm_interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "crm_interactions_corrige_interacao_id_fkey"
             columns: ["corrige_interacao_id"]
             isOneToOne: false
             referencedRelation: "crm_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
           {
@@ -5308,6 +5425,100 @@ export type Database = {
             columns: ["substituida_por"]
             isOneToOne: false
             referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_assessments: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          ascendente_ou_geracao_informada: string | null
+          complexidade_percebida: string | null
+          confianca_triagem: string | null
+          created_at: string
+          created_by: string | null
+          estado_documental_inicial: string | null
+          estrutura_familiar: string | null
+          id: string
+          interaction_id: string | null
+          linha_transmissao: string | null
+          notas_internas: string | null
+          objetivo_principal: string
+          opportunity_id: string
+          organization_id: string
+          pais_linha_prioritaria: string | null
+          riscos_internos: string | null
+          sinal_aderencia_preliminar: string | null
+          via_preliminar: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ascendente_ou_geracao_informada?: string | null
+          complexidade_percebida?: string | null
+          confianca_triagem?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado_documental_inicial?: string | null
+          estrutura_familiar?: string | null
+          id?: string
+          interaction_id?: string | null
+          linha_transmissao?: string | null
+          notas_internas?: string | null
+          objetivo_principal: string
+          opportunity_id: string
+          organization_id: string
+          pais_linha_prioritaria?: string | null
+          riscos_internos?: string | null
+          sinal_aderencia_preliminar?: string | null
+          via_preliminar?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          ascendente_ou_geracao_informada?: string | null
+          complexidade_percebida?: string | null
+          confianca_triagem?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado_documental_inicial?: string | null
+          estrutura_familiar?: string | null
+          id?: string
+          interaction_id?: string | null
+          linha_transmissao?: string | null
+          notas_internas?: string | null
+          objetivo_principal?: string
+          opportunity_id?: string
+          organization_id?: string
+          pais_linha_prioritaria?: string | null
+          riscos_internos?: string | null
+          sinal_aderencia_preliminar?: string | null
+          via_preliminar?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_assessments_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "crm_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_assessments_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_assessments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -9277,6 +9488,127 @@ export type Database = {
           versao?: string
         }
         Relationships: []
+      }
+      opportunities: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueio_interno: string | null
+          case_id: string | null
+          citizenship_track_id: string | null
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          etapa_comercial: string
+          id: string
+          lead_id: string | null
+          objetivo_declarado: string
+          organization_id: string
+          pais_linha_prioritaria: string | null
+          prazo_proxima_acao: string | null
+          proxima_acao: string | null
+          responsavel_nome: string | null
+          responsavel_user_id: string | null
+          resumo_interno: string | null
+          updated_at: string
+          updated_by: string | null
+          via_preliminar: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_interno?: string | null
+          case_id?: string | null
+          citizenship_track_id?: string | null
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          etapa_comercial?: string
+          id?: string
+          lead_id?: string | null
+          objetivo_declarado: string
+          organization_id: string
+          pais_linha_prioritaria?: string | null
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          resumo_interno?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          via_preliminar?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueio_interno?: string | null
+          case_id?: string | null
+          citizenship_track_id?: string | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          etapa_comercial?: string
+          id?: string
+          lead_id?: string | null
+          objetivo_declarado?: string
+          organization_id?: string
+          pais_linha_prioritaria?: string | null
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
+          responsavel_nome?: string | null
+          responsavel_user_id?: string | null
+          resumo_interno?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          via_preliminar?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_citizenship_track_id_fkey"
+            columns: ["citizenship_track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ops_excecoes: {
         Row: {
