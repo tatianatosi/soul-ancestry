@@ -15,7 +15,7 @@ export const CADEIA_PESQUISA = [
   { etapa: "achado", rotulo: "Achado", produz: "conclusão operacional interna revisada" },
   { etapa: "relatorio", rotulo: "Relatório F1/F2 ou microentrega", produz: "conteúdo aprovado e sanitizado" },
 
-  { etapa: "app", rotulo: "App Cliente", produz: "somente projeção autorizada e publicada" },
+  { etapa: "app", rotulo: "App Cliente", produz: "somente conteúdo explicitamente autorizado e publicado" },
 ] as const;
 
 export type EtapaCadeia = (typeof CADEIA_PESQUISA)[number]["etapa"];
