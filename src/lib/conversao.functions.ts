@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { semFixtures } from "@/lib/fixtures";
+import { semFixtures, ehFixtureLinha } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/lib/conversao";
