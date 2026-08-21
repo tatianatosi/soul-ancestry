@@ -52,22 +52,21 @@ export const painelCatalogoHomologacao = createServerFn({ method: "GET" })
     const emRevisao = itens.filter((i) => i.status_homologacao === "em_revisao");
     const liberados = itens.filter((i) => i.elegivel_para_proposta);
 
-    // Casos/propostas travados por SKU não homologado (leitura, sem efeito colateral).
+    // Casos travados por SKU não homologado (leitura, sem efeito colateral).
     const skusLiberados = new Set(liberados.map((i) => i.sku));
     const { data: casos } = await supabase
-      .from("crm_casos")
-      .select("id,codigo,nome,sku_recomendado,estagio")
-      .is("archived_at", null)
+      .from("casos")
+      .select("id,case_id,case_nome,produto_sku,status")
       .limit(300);
 
     const casosBloqueados = (casos ?? [])
-      .filter((c: any) => c.sku_recomendado && !skusLiberados.has(c.sku_recomendado))
+      .filter((c: any) => c.produto_sku && !skusLiberados.has(c.produto_sku))
       .map((c: any) => ({
         id: c.id as string,
-        codigo: (c.codigo ?? "") as string,
-        nome: (c.nome ?? "Caso") as string,
-        sku: c.sku_recomendado as string,
-        estagio: (c.estagio ?? "") as string,
+        codigo: (c.case_id ?? "") as string,
+        nome: (c.case_nome ?? "Caso") as string,
+        sku: c.produto_sku as string,
+        estagio: (c.status ?? "") as string,
       }));
 
     return {
