@@ -1,7 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
-import { CLASSIFICACAO_ENTREGA, PAPEIS_ENTREGA, PAPEIS_FATURA } from "@/lib/atendimento";
+import {
+  CLASSIFICACAO_ENTREGA,
+  PAPEIS_ENTREGA,
+  PAPEIS_FATURA,
+  VISIBILIDADE_ENTREGA_LABEL,
+  VISIBILIDADE_FATURA_LABEL,
+  bloqueioAtendimento,
+  bloqueioFatura,
+} from "@/lib/atendimento";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
