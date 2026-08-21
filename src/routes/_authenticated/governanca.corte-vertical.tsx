@@ -155,6 +155,42 @@ function CorteVertical() {
           </table>
           <p className="mt-3 text-xs text-navy/60">{NOTA_EVIDENCIA}</p>
         </Bloco>
+
+        <Bloco titulo="João — posição na escada, sem antecipar etapas">
+          <div className="grid gap-1 text-xs">
+            <p className="text-navy">{JOAO_ESTADO_ESCADA.caso}</p>
+            <p className="text-navy/60">Evidência atual: {JOAO_ESTADO_ESCADA.evidencia}</p>
+            <p className="text-navy/70">Próximo passo: {JOAO_ESTADO_ESCADA.proximoPasso}</p>
+          </div>
+          <ul className="mt-4 grid gap-1.5">
+            {avaliarEscadaOnboarding(JOAO_ESTADO_ESCADA.degrauAtual).map((d) => (
+              <li key={d.estado} className="flex flex-wrap items-baseline gap-2 border-t border-navy/5 py-1.5">
+                <span className="text-[10px] text-navy/40">{d.ordem}</span>
+                <span
+                  className={
+                    d.situacao === "concluido"
+                      ? "rounded-full bg-navy/5 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/60"
+                      : d.situacao === "atual"
+                        ? "rounded-full bg-gold/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy"
+                        : "rounded-full bg-terracotta/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-terracotta"
+                  }
+                >
+                  {d.situacao === "concluido" ? "Concluído" : d.situacao === "atual" ? "Atual" : "Bloqueado"}
+                </span>
+                <span className="text-xs text-navy">{d.estado}</span>
+                <span className="text-xs text-navy/50">{d.motivo}</span>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-4 grid gap-1">
+            {JOAO_ESTADO_ESCADA.naoAntecipar.map((n) => (
+              <li key={n} className="text-xs text-terracotta">
+                • {n}
+              </li>
+            ))}
+          </ul>
+        </Bloco>
+
       </div>
     </SaasShell>
   );
