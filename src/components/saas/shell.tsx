@@ -12,6 +12,7 @@ import {
   Library,
   LogOut,
   Menu,
+  ChevronDown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -175,6 +176,7 @@ export function SaasShell({
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const [aberto, setAberto] = useState(false);
+  const [secaoAberta, setSecaoAberta] = useState<string | null>(null);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
 
   // Sessão autenticada sem autorização interna ativa não permanece na área protegida.
