@@ -22,10 +22,28 @@ import {
   painelPesquisaEvidencias,
   salvarSolicitacaoDocumental,
 } from "@/lib/documentos-solicitacoes.functions";
+import {
+  CADEIA_PESQUISA,
+  PROJECAO_ACHADO,
+  STATUS_EVIDENCIA,
+  STATUS_PESQUISA,
+  STATUS_RELATORIO,
+  gatilhosDaEvidencia,
+  relatorioVisivelAoCliente,
+} from "@/lib/pesquisa-cadeia";
+import {
+  cadeiaPesquisaDoCaso,
+  mudarEstadoEvidencia,
+  prepararAreaPesquisa,
+} from "@/lib/pesquisa-cadeia.functions";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+function rotuloDe(lista: readonly { id: string; rotulo: string }[], id?: string | null) {
+  return lista.find((x) => x.id === id)?.rotulo ?? id ?? "—";
+}
 
 export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseId")({
   head: () => ({
@@ -87,7 +105,31 @@ function AreaPesquisaEvidencias() {
     onError: (e: any) => toast.error(String(e?.message ?? e)),
   });
 
+  const cadeia = useQuery({
+    queryKey: ["cadeia-pesquisa", caseId],
+    queryFn: () => cadeiaPesquisaDoCaso({ data: { caseId } }),
+  });
+
+  const preparar = useMutation({
+    mutationFn: (v: { caseId: string; objetivo: string }) => prepararAreaPesquisa({ data: v }),
+    onSuccess: () => {
+      toast.success("Área de pesquisa preparada (sem pesquisa externa).");
+      void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
+    },
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
+  });
+
+  const mudarEvidencia = useMutation({
+    mutationFn: (v: { id: string; status: string }) => mudarEstadoEvidencia({ data: v }),
+    onSuccess: () => {
+      toast.success("Situação da evidência atualizada.");
+      void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
+    },
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
+  });
+
   const d = painel.data as any;
+  const c = cadeia.data as any;
   const check = validarSolicitacao(form);
   const exigeAcao = STATUS_EXIGE_ACAO.includes(String(form["status"]));
 
