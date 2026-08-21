@@ -121,6 +121,7 @@ const NAV = [
     label: "Governança e biblioteca",
     icon: Library,
     sub: [
+      { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
       { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
       { to: "/governanca/decisoes", label: "Decisões operacionais" },
       { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade" },
