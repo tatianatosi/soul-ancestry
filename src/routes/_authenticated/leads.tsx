@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
+import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
@@ -60,6 +61,7 @@ function LeadsPage() {
   const [filtroArea, setFiltroArea] = useState("");
   const [busca, setBusca] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [novoLeadAberto, setNovoLeadAberto] = useState(false);
 
   const leads = (q.data ?? []) as LeadComPendencias[];
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
@@ -105,6 +107,16 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM de leads" descricao="Desk comercial diário: entrada, Discovery, proposta e formalização.">
+      <NovoLeadDialog
+        aberto={novoLeadAberto}
+        onFechar={() => setNovoLeadAberto(false)}
+        onCriado={(id) => {
+          setNovoLeadAberto(false);
+          setRascunho({});
+          setSelecionado(id);
+          setMsg("Lead criado em Triagem.");
+        }}
+      />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="space-y-3">
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
@@ -117,8 +129,7 @@ function LeadsPage() {
                   type="button"
                   className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
                   onClick={() => {
-                    setSelecionado(null);
-                    setRascunho({ nome: "" });
+                    setNovoLeadAberto(true);
                     setMsg(null);
                   }}
                 >
