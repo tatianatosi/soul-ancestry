@@ -373,6 +373,104 @@ export type Database = {
         }
         Relationships: []
       }
+      authorized_portal_emails: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          finalidade: string
+          id: string
+          is_demo: boolean
+          motivo_recusa: string | null
+          nivel_pretendido: Database["public"]["Enums"]["portal_access_level"]
+          notes_internal: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          validado_em: string | null
+          validado_por: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          finalidade: string
+          id?: string
+          is_demo?: boolean
+          motivo_recusa?: string | null
+          nivel_pretendido?: Database["public"]["Enums"]["portal_access_level"]
+          notes_internal?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validado_em?: string | null
+          validado_por?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          finalidade?: string
+          id?: string
+          is_demo?: boolean
+          motivo_recusa?: string | null
+          nivel_pretendido?: Database["public"]["Enums"]["portal_access_level"]
+          notes_internal?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          validado_em?: string | null
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authorized_portal_emails_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "authorized_portal_emails_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "authorized_portal_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "authorized_portal_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blueprint_parameters: {
         Row: {
           archive_motivo: string | null
@@ -2668,22 +2766,30 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           auth_user_id: string | null
+          authorized_email_id: string | null
           client_id: string
           created_at: string
           created_by: string | null
           demo: boolean
           email: string
+          finalidade: string | null
           first_authenticated_at: string | null
           id: string
           invitation_expires_at: string | null
           invited_at: string | null
           invited_by: string | null
+          is_demo: boolean
           last_authenticated_at: string | null
+          magic_link_expires_at: string | null
+          magic_link_max_uses: number
+          magic_link_uses: number
           notes_internal: string | null
           organization_id: string
           revocation_reason: string | null
           revoked_at: string | null
           revoked_by: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -2694,22 +2800,30 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           auth_user_id?: string | null
+          authorized_email_id?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
           demo?: boolean
           email: string
+          finalidade?: string | null
           first_authenticated_at?: string | null
           id?: string
           invitation_expires_at?: string | null
           invited_at?: string | null
           invited_by?: string | null
+          is_demo?: boolean
           last_authenticated_at?: string | null
+          magic_link_expires_at?: string | null
+          magic_link_max_uses?: number
+          magic_link_uses?: number
           notes_internal?: string | null
           organization_id: string
           revocation_reason?: string | null
           revoked_at?: string | null
           revoked_by?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2720,26 +2834,41 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           auth_user_id?: string | null
+          authorized_email_id?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
           demo?: boolean
           email?: string
+          finalidade?: string | null
           first_authenticated_at?: string | null
           id?: string
           invitation_expires_at?: string | null
           invited_at?: string | null
           invited_by?: string | null
+          is_demo?: boolean
           last_authenticated_at?: string | null
+          magic_link_expires_at?: string | null
+          magic_link_max_uses?: number
+          magic_link_uses?: number
           notes_internal?: string | null
           organization_id?: string
           revocation_reason?: string | null
           revoked_at?: string | null
           revoked_by?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "client_portal_access_authorized_email_id_fkey"
+            columns: ["authorized_email_id"]
+            isOneToOne: false
+            referencedRelation: "authorized_portal_emails"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_portal_access_client_id_fkey"
             columns: ["client_id"]

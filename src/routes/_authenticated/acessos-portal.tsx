@@ -11,8 +11,26 @@ import {
   definirLiberacaoCaso,
   listarAcessosPortal,
   listarEventosAcesso,
+  registrarEmailAutorizado,
   reenviarConvitePortal,
+  validarEmailAutorizado,
 } from "@/lib/portal.functions";
+import {
+  bloqueioDaPessoa,
+  bloqueioDoCaso,
+  emailsElegiveis,
+  estadoDoLink,
+  EVENTO_LABEL,
+  NIVEL_DESCRICAO,
+  NIVEL_LABEL,
+  STATUS_ACESSO_LABEL,
+  STATUS_AUTORIZACAO_LABEL,
+  type AutorizacaoEmail,
+  type CasoPortal,
+  type NivelPortal,
+  type PessoaPortal,
+} from "@/lib/portal-elegibilidade";
+
 
 export const Route = createFileRoute("/_authenticated/acessos-portal")({
   head: () => ({
@@ -29,19 +47,8 @@ export const Route = createFileRoute("/_authenticated/acessos-portal")({
   component: AcessosPortalPage,
 });
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Pendente",
-  invited: "Convidado",
-  active: "Ativo",
-  suspended: "Suspenso",
-  revoked: "Revogado",
-  expired: "Expirado",
-};
-
-const NIVEL_LABEL: Record<string, string> = {
-  proposal_portal: "Portal de proposta",
-  client_workspace: "Espaço do cliente",
-};
+const STATUS_LABEL = STATUS_ACESSO_LABEL;
+const NIVEL_LABEL_MAP: Record<string, string> = NIVEL_LABEL;
 
 function AcessosPortalPage() {
   const { papeis } = useSaas();
@@ -55,25 +62,64 @@ function AcessosPortalPage() {
   const definirCaso = useServerFn(definirCasoDoAcesso);
   const liberar = useServerFn(definirLiberacaoCaso);
   const eventos = useServerFn(listarEventosAcesso);
+  const registrarEmail = useServerFn(registrarEmailAutorizado);
+  const validarEmail = useServerFn(validarEmailAutorizado);
 
   const q = useQuery({ queryKey: ["acessos-portal"], queryFn: () => listar({}) });
   const [msg, setMsg] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [detalhe, setDetalhe] = useState<string | null>(null);
 
+  // Autorização prévia de e-mail
+  const [aClientId, setAClientId] = useState("");
+  const [aEmail, setAEmail] = useState("");
+  const [aFinalidade, setAFinalidade] = useState("");
+  const [aNivel, setANivel] = useState<NivelPortal>("proposal_portal");
+  const [aCasoId, setACasoId] = useState("");
+
+  // Convite
   const [clientId, setClientId] = useState("");
-  const [email, setEmail] = useState("");
-  const [nivel, setNivel] = useState<"proposal_portal" | "client_workspace">("proposal_portal");
+  const [nivel, setNivel] = useState<NivelPortal>("proposal_portal");
+  const [autorizacaoId, setAutorizacaoId] = useState("");
   const [casoId, setCasoId] = useState("");
 
   const invalidar = () => queryClient.invalidateQueries({ queryKey: ["acessos-portal"] });
 
-  const mConvite = useMutation({
-    mutationFn: () => criar({ data: { clientId, email, nivel, casoId: casoId || undefined } }),
+  const pessoas = (q.data?.clientes ?? []) as PessoaPortal[];
+  const casos = (q.data?.casos ?? []) as CasoPortal[];
+  const autorizacoes = (q.data?.autorizacoes ?? []) as AutorizacaoEmail[];
+
+  const mAutorizacao = useMutation({
+    mutationFn: () =>
+      registrarEmail({
+        data: {
+          clientId: aClientId,
+          casoId: aCasoId || null,
+          email: aEmail,
+          finalidade: aFinalidade,
+          nivel: aNivel,
+        },
+      }),
     onSuccess: () => {
-      setMsg("Convite criado e link de acesso enviado.");
+      setMsg("E-mail registrado. Falta a validação humana para liberar convites.");
       setErro(null);
-      setEmail("");
+      setAEmail("");
+      setAFinalidade("");
+      setACasoId("");
+      invalidar();
+    },
+    onError: (e: Error) => {
+      setErro(e.message);
+      setMsg(null);
+    },
+  });
+
+  const mConvite = useMutation({
+    mutationFn: () => criar({ data: { clientId, autorizacaoId, nivel, casoId: casoId || undefined } }),
+    onSuccess: () => {
+      setMsg("Convite criado e link mágico de uso único enviado (validade de 48h).");
+      setErro(null);
+      setAutorizacaoId("");
       setCasoId("");
       invalidar();
     },
@@ -89,61 +135,230 @@ function AcessosPortalPage() {
     enabled: !!detalhe,
   });
 
-  const casosDoCliente = (q.data?.casos ?? []).filter((c) => c.cliente_id === clientId);
+  const casosDoCliente = casos.filter((c) => c.cliente_id === clientId);
+  const emailsDoCliente = clientId ? emailsElegiveis(autorizacoes, clientId, nivel) : [];
 
   return (
     <SaasShell
       titulo="Acessos ao portal"
-      descricao="Clientes entram apenas por link mágico enviado a e-mail previamente autorizado."
+      descricao="Clientes entram apenas por link mágico de uso único, enviado a e-mail previamente autorizado e validado."
     >
       {!podeGerir ? (
         <EstadoVazio mensagem="Apenas admin e operações podem gerenciar acessos ao portal." />
       ) : (
         <div className="space-y-8">
+          <section className="grid gap-3 md:grid-cols-2">
+            {(["proposal_portal", "client_workspace"] as NivelPortal[]).map((n) => (
+              <div key={n} className="rounded-xl border border-navy/10 bg-cream/40 p-4">
+                <p className="font-medium">{NIVEL_LABEL[n]}</p>
+                <p className="mt-1 text-sm text-navy/60">{NIVEL_DESCRICAO[n]}</p>
+              </div>
+            ))}
+          </section>
+
           <section className="rounded-xl border border-navy/10 bg-white p-5">
-            <h2 className="font-serif text-xl">Novo convite</h2>
+            <h2 className="font-serif text-xl">E-mails autorizados</h2>
             <p className="mt-1 text-sm text-navy/60">
-              Sem senha e sem autocadastro. Para o espaço do cliente é obrigatório associar um caso elegível
-              (contrato assinado, pagamento confirmado e documentos mínimos).
+              Sem senha e sem autocadastro. Todo e-mail precisa de finalidade registrada e validação humana antes de
+              qualquer convite. Participante do núcleo familiar não recebe acesso apenas por pertencer ao núcleo.
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="text-sm">
-                Cliente
+                Pessoa
                 <select
-                  value={clientId}
+                  value={aClientId}
                   onChange={(e) => {
-                    setClientId(e.target.value);
-                    setCasoId("");
+                    setAClientId(e.target.value);
+                    setACasoId("");
                   }}
                   className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
                 >
                   <option value="">Selecione…</option>
-                  {(q.data?.clientes ?? []).map((c) => (
+                  {pessoas.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.nome}
+                      {c.classificacao === "participante_familiar" ? " (participante do núcleo)" : ""}
+                      {c.is_demo ? " · demo" : ""}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="text-sm">
-                E-mail autorizado
+                E-mail
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={aEmail}
+                  onChange={(e) => setAEmail(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
-                  placeholder="cliente@exemplo.com"
+                  placeholder="pessoa@exemplo.com"
                 />
               </label>
               <label className="text-sm">
-                Nível de acesso
+                Nível pretendido
                 <select
-                  value={nivel}
-                  onChange={(e) => setNivel(e.target.value as typeof nivel)}
+                  value={aNivel}
+                  onChange={(e) => setANivel(e.target.value as NivelPortal)}
                   className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
                 >
                   <option value="proposal_portal">Portal de proposta</option>
                   <option value="client_workspace">Espaço do cliente</option>
+                </select>
+              </label>
+              <label className="text-sm">
+                Caso (opcional, restringe a autorização)
+                <select
+                  value={aCasoId}
+                  onChange={(e) => setACasoId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+                >
+                  <option value="">Sem caso específico</option>
+                  {casos
+                    .filter((c) => c.cliente_id === aClientId)
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.codigo} — {c.titulo}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label className="text-sm md:col-span-2">
+                Finalidade do acesso
+                <input
+                  value={aFinalidade}
+                  onChange={(e) => setAFinalidade(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+                  placeholder="Ex.: leitura da proposta aprovada do caso familiar"
+                />
+              </label>
+            </div>
+            <button
+              onClick={() => mAutorizacao.mutate()}
+              disabled={!aClientId || !aEmail || aFinalidade.trim().length < 5 || mAutorizacao.isPending}
+              className="mt-4 rounded-lg border border-navy/20 px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {mAutorizacao.isPending ? "Registrando…" : "Registrar e-mail para validação"}
+            </button>
+
+            <ul className="mt-5 space-y-2">
+              {autorizacoes.length === 0 ? (
+                <li className="text-sm text-navy/60">Nenhum e-mail autorizado registrado.</li>
+              ) : (
+                autorizacoes.map((a) => {
+                  const pessoa = pessoas.find((p) => p.id === a.client_id);
+                  return (
+                    <li
+                      key={a.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm"
+                    >
+                      <span className="min-w-0">
+                        <strong>{pessoa?.nome ?? "Pessoa"}</strong> · {a.email}
+                        <span className="block text-xs text-navy/60">
+                          {NIVEL_LABEL[a.nivel_pretendido]} · {STATUS_AUTORIZACAO_LABEL[a.status] ?? a.status} ·{" "}
+                          {a.finalidade}
+                          {a.is_demo ? " · demo" : ""}
+                        </span>
+                      </span>
+                      <span className="flex gap-2">
+                        {a.status !== "aprovado" ? (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await validarEmail({ data: { id: a.id, status: "aprovado" } });
+                                invalidar();
+                              } catch (e) {
+                                setErro((e as Error).message);
+                              }
+                            }}
+                            className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
+                          >
+                            Aprovar
+                          </button>
+                        ) : null}
+                        {a.status !== "recusado" && a.status !== "revogado" ? (
+                          <button
+                            onClick={async () => {
+                              const motivo = window.prompt("Motivo da recusa/revogação:") ?? "";
+                              if (motivo.trim().length < 5) return;
+                              try {
+                                await validarEmail({
+                                  data: { id: a.id, status: a.status === "aprovado" ? "revogado" : "recusado", motivo },
+                                });
+                                invalidar();
+                              } catch (e) {
+                                setErro((e as Error).message);
+                              }
+                            }}
+                            className="rounded-lg border border-terracotta/40 px-2.5 py-1 text-xs text-terracotta"
+                          >
+                            {a.status === "aprovado" ? "Revogar" : "Recusar"}
+                          </button>
+                        ) : null}
+                      </span>
+                    </li>
+                  );
+                })
+              )}
+            </ul>
+          </section>
+
+          <section className="rounded-xl border border-navy/10 bg-white p-5">
+            <h2 className="font-serif text-xl">Novo convite</h2>
+            <p className="mt-1 text-sm text-navy/60">
+              O seletor mostra somente pessoas e casos elegíveis para o nível escolhido; itens bloqueados aparecem
+              desabilitados com o motivo.
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm">
+                Nível de acesso
+                <select
+                  value={nivel}
+                  onChange={(e) => {
+                    setNivel(e.target.value as NivelPortal);
+                    setAutorizacaoId("");
+                    setCasoId("");
+                  }}
+                  className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+                >
+                  <option value="proposal_portal">Portal de proposta</option>
+                  <option value="client_workspace">Espaço do cliente</option>
+                </select>
+              </label>
+              <label className="text-sm">
+                Pessoa
+                <select
+                  value={clientId}
+                  onChange={(e) => {
+                    setClientId(e.target.value);
+                    setAutorizacaoId("");
+                    setCasoId("");
+                  }}
+                  className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+                >
+                  <option value="">Selecione…</option>
+                  {pessoas.map((p) => {
+                    const b = bloqueioDaPessoa(p, nivel, autorizacoes, casos);
+                    return (
+                      <option key={p.id} value={p.id} disabled={b.bloqueado}>
+                        {p.nome}
+                        {b.bloqueado ? ` — ${b.motivos[0]}` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+              <label className="text-sm">
+                E-mail autorizado
+                <select
+                  value={autorizacaoId}
+                  onChange={(e) => setAutorizacaoId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+                >
+                  <option value="">Selecione…</option>
+                  {emailsDoCliente.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.email} — {a.finalidade}
+                    </option>
+                  ))}
                 </select>
               </label>
               {nivel === "client_workspace" ? (
@@ -155,19 +370,27 @@ function AcessosPortalPage() {
                     className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
                   >
                     <option value="">Selecione…</option>
-                    {casosDoCliente.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.codigo} — {c.titulo}
-                        {c.contrato_assinado && c.pagamento_confirmado ? "" : " (inelegível)"}
-                      </option>
-                    ))}
+                    {casosDoCliente.map((c) => {
+                      const b = bloqueioDoCaso(c);
+                      return (
+                        <option key={c.id} value={c.id} disabled={b.bloqueado}>
+                          {c.codigo} — {c.titulo}
+                          {b.bloqueado ? ` — ${b.motivos[0]}` : ""}
+                        </option>
+                      );
+                    })}
                   </select>
                 </label>
               ) : null}
             </div>
             <button
               onClick={() => mConvite.mutate()}
-              disabled={!clientId || !email || mConvite.isPending}
+              disabled={
+                !clientId ||
+                !autorizacaoId ||
+                (nivel === "client_workspace" && !casoId) ||
+                mConvite.isPending
+              }
               className="mt-4 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
             >
               {mConvite.isPending ? "Enviando…" : "Criar convite e enviar link"}
@@ -175,6 +398,7 @@ function AcessosPortalPage() {
             {msg ? <p className="mt-3 text-sm text-green-700">{msg}</p> : null}
             {erro ? <p className="mt-3 text-sm text-terracotta">{erro}</p> : null}
           </section>
+
 
           <section>
             <h2 className="font-serif text-xl">Acessos</h2>
@@ -196,11 +420,15 @@ function AcessosPortalPage() {
                           <p className="font-medium">{cliente?.nome ?? "Cliente"}</p>
                           <p className="text-sm text-navy/60">{a.email}</p>
                           <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
-                            {NIVEL_LABEL[a.access_level]} · {STATUS_LABEL[a.access_status]}
+                            {NIVEL_LABEL_MAP[a.access_level]} · {STATUS_LABEL[a.access_status]} · link:{" "}
+                            {estadoDoLink(a)}
+                            {a.is_demo ? " · demo" : ""}
                             {a.last_authenticated_at
                               ? ` · último acesso ${new Date(a.last_authenticated_at).toLocaleString("pt-BR")}`
                               : ""}
                           </p>
+                          {a.finalidade ? <p className="mt-1 text-xs text-navy/60">Finalidade: {a.finalidade}</p> : null}
+
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
@@ -359,7 +587,9 @@ function AcessosPortalPage() {
                           <ul className="mt-2 space-y-1 text-sm text-navy/70">
                             {(qEventos.data ?? []).map((ev) => (
                               <li key={ev.id}>
-                                {new Date(ev.occurred_at).toLocaleString("pt-BR")} — {ev.event_type}
+                                {new Date(ev.occurred_at).toLocaleString("pt-BR")} —{" "}
+                                {EVENTO_LABEL[ev.event_type] ?? ev.event_type}
+
                               </li>
                             ))}
                             {qEventos.data && qEventos.data.length === 0 ? <li>Sem eventos registrados.</li> : null}

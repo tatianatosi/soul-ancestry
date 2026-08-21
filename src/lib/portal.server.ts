@@ -120,12 +120,15 @@ export async function enviarLinkMagico(email: string, redirectTo: string) {
 export async function acessoPorEmail(email: string) {
   const { data } = await admin
     .from("client_portal_access")
-    .select("id, organization_id, client_id, email, access_status, access_level, invitation_expires_at, auth_user_id")
+    .select(
+      "id, organization_id, client_id, email, access_status, access_level, invitation_expires_at, auth_user_id, first_authenticated_at, magic_link_uses, magic_link_max_uses, magic_link_expires_at",
+    )
     .eq("email", normalizarEmail(email))
     .is("archived_at", null)
     .limit(1);
   return (data ?? [])[0] ?? null;
 }
+
 
 export function acessoUtilizavel(acesso: any) {
   if (!acesso) return false;
