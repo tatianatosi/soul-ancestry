@@ -4956,6 +4956,7 @@ export type Database = {
           event_type: string
           evidencia_referencia: string | null
           id: string
+          is_demo: boolean
           lead_id: string | null
           lead_source_id: string | null
           observacao: string | null
@@ -4963,6 +4964,8 @@ export type Database = {
           opportunity_id: string | null
           organization_id: string
           origem: string | null
+          recorded_at: string
+          recorded_by: string | null
           responsavel: string | null
           responsavel_id: string | null
         }
@@ -4977,6 +4980,7 @@ export type Database = {
           event_type: string
           evidencia_referencia?: string | null
           id?: string
+          is_demo?: boolean
           lead_id?: string | null
           lead_source_id?: string | null
           observacao?: string | null
@@ -4984,6 +4988,8 @@ export type Database = {
           opportunity_id?: string | null
           organization_id: string
           origem?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
           responsavel?: string | null
           responsavel_id?: string | null
         }
@@ -4998,6 +5004,7 @@ export type Database = {
           event_type?: string
           evidencia_referencia?: string | null
           id?: string
+          is_demo?: boolean
           lead_id?: string | null
           lead_source_id?: string | null
           observacao?: string | null
@@ -5005,6 +5012,8 @@ export type Database = {
           opportunity_id?: string | null
           organization_id?: string
           origem?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
           responsavel?: string | null
           responsavel_id?: string | null
         }
