@@ -473,6 +473,26 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       }
     }
 
+    // Revalidação canônica no servidor (payload do front nunca é fonte de verdade).
+    const motivos = await helpers.revalidarElegibilidade(supabase, organizationId, {
+      clientId: data.clientId,
+      nivel: data.nivel,
+      casoId: data.casoId ?? null,
+      autorizacaoId: data.autorizacaoId,
+    });
+    if (motivos.length > 0) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "convite_portal_bloqueado",
+        entidadeId: data.autorizacaoId,
+        metadados: { nivel: data.nivel, caso_id: data.casoId ?? null, motivos },
+      });
+      throw new Error(`Acesso bloqueado: ${motivos.join(" ")}`);
+    }
+
+
+
     const agora = new Date();
     const { CONVITE_VALIDADE_HORAS } = await import("./portal-elegibilidade");
     const expira = new Date(agora.getTime() + CONVITE_VALIDADE_HORAS * 60 * 60 * 1000);
@@ -554,7 +574,7 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
 
     const acesso = await supabase
       .from("client_portal_access")
-      .select("id, email, access_status")
+      .select("id, email, access_status, access_level, client_id, authorized_email_id")
       .eq("id", data.acessoId)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -562,6 +582,33 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
     if (["revoked", "suspended", "expired"].includes(acesso.data.access_status)) {
       throw new Error("Acesso indisponível para reenvio.");
     }
+
+    // Elegibilidade pode ter mudado depois do convite: revalidar antes de reemitir.
+    const vinculo = await supabase
+      .from("client_portal_case_access")
+      .select("case_id")
+      .eq("client_portal_access_id", data.acessoId)
+      .eq("organization_id", organizationId)
+      .eq("access_status", "active")
+      .maybeSingle();
+    const motivosReenvio = await helpers.revalidarElegibilidade(supabase, organizationId, {
+      clientId: acesso.data.client_id,
+      nivel: acesso.data.access_level,
+      casoId: vinculo.data?.case_id ?? null,
+      autorizacaoId: acesso.data.authorized_email_id,
+    });
+    if (motivosReenvio.length > 0) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "reenvio_convite_bloqueado",
+        entidadeId: data.acessoId,
+        metadados: { motivos: motivosReenvio },
+      });
+      throw new Error(`Acesso bloqueado: ${motivosReenvio.join(" ")}`);
+    }
+
+
 
     // Reenvio: janela curta e novo uso único. O link anterior deixa de valer
     // porque a janela e o contador são regravados no mesmo registro.
@@ -604,7 +651,7 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
 export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { acessoId: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => {
-    if (data.status !== "active" && (!data.motivo || data.motivo.trim().length < 5)) {
+    if (!data.motivo || data.motivo.trim().length < 5) {
       throw new Error("Informe um motivo com pelo menos 5 caracteres.");
     }
     return data;
@@ -621,6 +668,46 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
       patch["revocation_reason"] = data.motivo?.trim();
     }
     if (data.status === "suspended") patch["revocation_reason"] = data.motivo?.trim();
+
+    if (data.status === "active") {
+      // Reativação: revalida elegibilidade e nunca reaproveita token anterior.
+      const atual = await supabase
+        .from("client_portal_access")
+        .select("id, access_level, client_id, authorized_email_id")
+        .eq("id", data.acessoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (!atual.data) throw new Error("Acesso não encontrado.");
+      const vinc = await supabase
+        .from("client_portal_case_access")
+        .select("case_id")
+        .eq("client_portal_access_id", data.acessoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      const motivosReativacao = await helpers.revalidarElegibilidade(supabase, organizationId, {
+        clientId: atual.data.client_id,
+        nivel: atual.data.access_level,
+        casoId: vinc.data?.case_id ?? null,
+        autorizacaoId: atual.data.authorized_email_id,
+      });
+      if (motivosReativacao.length > 0) {
+        await helpers.registrarAuditoria({
+          organizationId,
+          userId: context.userId as string,
+          acao: "reativacao_acesso_bloqueada",
+          entidadeId: data.acessoId,
+          metadados: { motivos: motivosReativacao },
+        });
+        throw new Error(`Acesso bloqueado: ${motivosReativacao.join(" ")}`);
+      }
+      // Invalida qualquer link mágico emitido antes da suspensão.
+      patch["magic_link_expires_at"] = new Date(Date.now() - 1000).toISOString();
+      patch["magic_link_uses"] = 1;
+      patch["magic_link_max_uses"] = 1;
+      patch["revocation_reason"] = null;
+    }
+
+
 
     const { error } = await supabase
       .from("client_portal_access")
