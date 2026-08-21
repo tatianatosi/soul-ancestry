@@ -531,7 +531,21 @@ export const historicoVigenciaItem = createServerFn({ method: "GET" })
       )
       .eq("item_id", data.id)
       .order("created_at", { ascending: false });
-    return { eventos: (eventos ?? []) as Record<string, unknown>[] };
+    return {
+      eventos: ((eventos ?? []) as any[]).map((e) => ({
+        id: String(e.id),
+        estadoAnterior: (e.estado_anterior ?? null) as string | null,
+        estadoNovo: String(e.estado_novo ?? ""),
+        justificativa: (e.justificativa ?? null) as string | null,
+        versao: (e.versao ?? null) as string | null,
+        responsavel: (e.responsavel ?? null) as string | null,
+        criterioRegistrado: Boolean(e.criterio_registrado),
+        sucessorId: (e.sucessor_id ?? null) as string | null,
+        predecessorId: (e.predecessor_id ?? null) as string | null,
+        atorUserId: (e.ator_user_id ?? null) as string | null,
+        registradoEm: (e.created_at ?? null) as string | null,
+      })),
+    };
   });
 
 
