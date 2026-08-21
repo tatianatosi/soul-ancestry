@@ -121,21 +121,43 @@ export function PainelDeskHoje() {
       </div>
 
       <div className="mt-4 rounded-xl border border-navy/10 bg-white p-4">
-        <p className="text-xs uppercase tracking-wide text-navy/50">
-          Lista priorizada por data da próxima ação ({priorizada.length})
-        </p>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-xs uppercase tracking-wide text-navy/50">
+            Lista priorizada por prazo da próxima ação ({priorizada.length})
+          </p>
+          <p className="text-[11px] text-navy/45">
+            {contagem.atrasado} em atraso · {contagem.hoje} para hoje · {contagem.futuro} futuras · {contagem.sem_data} sem prazo
+          </p>
+        </div>
         <ul className="mt-2 divide-y divide-navy/5 text-xs text-navy/70">
           {priorizada.slice(0, 25).map((i, idx) => {
             const d = i.data ? String(i.data).slice(0, 10) : null;
-            const atraso = d && d < hoje;
+            const p = classificarPrazo(d, hoje);
+            const cor =
+              p.chave === "atrasado"
+                ? "text-terracotta"
+                : p.chave === "hoje"
+                  ? "text-navy"
+                  : "text-navy/60";
             return (
-              <li key={`${i.fila}-${i.id}-${idx}`} className="flex flex-wrap items-baseline gap-x-2 py-1.5">
-                <span className={atraso ? "font-medium text-terracotta" : "font-medium text-navy"}>{d ?? "sem data"}</span>
+              <li
+                key={`${i.fila}-${i.id}-${idx}`}
+                className={`flex flex-wrap items-baseline gap-x-2 py-1.5 ${p.chave === "atrasado" ? "bg-terracotta/5" : ""}`}
+              >
+                <span className={`font-medium ${cor}`}>{d ?? "sem prazo"}</span>
+                <span
+                  className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                    p.chave === "atrasado" ? "border-terracotta/40 text-terracotta" : "border-navy/15 text-navy/55"
+                  }`}
+                >
+                  {p.rotulo}
+                </span>
                 <span className="text-navy">{i.rotulo}</span>
-                <span className="text-navy/50">· {i.fila}</span>
+                <span className="text-navy/50">· motivo: {i.fila}</span>
                 <span className="text-navy/45">· {i.detalhe}</span>
                 <span className="text-navy/45">
                   · {i.responsavel ?? "sem responsável"} / {i.area ? rotulo("area_responsavel", i.area) : "sem área"}
+                  {i.etapa ? ` / ${rotulo("eixo_comercial", i.etapa)}` : ""}
                 </span>
               </li>
             );
@@ -143,6 +165,7 @@ export function PainelDeskHoje() {
           {!priorizada.length ? <li className="py-1.5">Nada priorizado nos filtros atuais.</li> : null}
         </ul>
       </div>
+
 
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
