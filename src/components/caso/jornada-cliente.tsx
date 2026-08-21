@@ -1,0 +1,461 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+
+import {
+  carregarJornadaCaso,
+  criarMicroentregaCliente,
+  definirEsperaExterna,
+  registrarInteracao,
+  transicionarMicroentrega,
+} from "@/lib/jornada-cliente.functions";
+import {
+  FASES_JORNADA,
+  ROTULO_FASE,
+  ROTULO_TIPO_ENTREGA,
+  TIPOS_ENTREGA,
+  TRANSICOES_ENTREGA,
+  type StatusAprovacao,
+} from "@/lib/jornada-cliente";
+
+/* ------------------------------ primitivos ------------------------------ */
+
+function Secao({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <h3 className="font-serif text-lg text-navy">{titulo}</h3>
+      {descricao ? <p className="mt-1 text-xs text-navy/55">{descricao}</p> : null}
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function Campo({
+  label,
+  valor,
+  onChange,
+  area,
+  tipo = "text",
+  desabilitado,
+}: {
+  label: string;
+  valor: string;
+  onChange: (v: string) => void;
+  area?: boolean;
+  tipo?: string;
+  desabilitado?: boolean;
+}) {
+  const cls =
+    "mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-60";
+  return (
+    <label className="block text-xs uppercase tracking-wide text-navy/50">
+      {label}
+      {area ? (
+        <textarea rows={3} className={cls} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+      ) : (
+        <input type={tipo} className={cls} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+      )}
+    </label>
+  );
+}
+
+function Selecao({
+  label,
+  valor,
+  onChange,
+  opcoes,
+  desabilitado,
+}: {
+  label: string;
+  valor: string;
+  onChange: (v: string) => void;
+  opcoes: { valor: string; rotulo: string }[];
+  desabilitado?: boolean;
+}) {
+  return (
+    <label className="block text-xs uppercase tracking-wide text-navy/50">
+      {label}
+      <select
+        className="mt-1 w-full rounded-lg border border-navy/15 bg-cream/40 px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:opacity-60"
+        value={valor}
+        disabled={desabilitado}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {opcoes.map((o) => (
+          <option key={o.valor} value={o.valor}>
+            {o.rotulo}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+const CORES_CADENCIA: Record<string, string> = {
+  regular: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  atencao: "bg-amber-50 text-amber-900 border-amber-200",
+  critico: "bg-terracotta/10 text-terracotta border-terracotta/30",
+};
+
+/* -------------------------------- painel -------------------------------- */
+
+export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqueado?: boolean }) {
+  const qc = useQueryClient();
+  const carregar = useServerFn(carregarJornadaCaso);
+  const registrar = useServerFn(registrarInteracao);
+  const espera = useServerFn(definirEsperaExterna);
+  const criarEntrega = useServerFn(criarMicroentregaCliente);
+  const transicionar = useServerFn(transicionarMicroentrega);
+
+  const q = useQuery({
+    queryKey: ["jornada-cliente", casoId],
+    queryFn: () => carregar({ data: { casoId } }),
+  });
+
+  const invalidar = () => qc.invalidateQueries({ queryKey: ["jornada-cliente", casoId] });
+  const somenteLeitura = bloqueado || !q.data?.podeEscrever;
+
+  const [inter, setInter] = useState({
+    tipo: "call",
+    ocorridoEm: "",
+    resumo: "",
+    resultado: "",
+    proximaAcao: "",
+    prazo: "",
+    visibilidade: "interna",
+    touchpoint: false,
+    feito: "",
+    aguardando: "",
+    naoDepende: "",
+    marco: "",
+  });
+
+  const [entrega, setEntrega] = useState({
+    tipo: "atualizacao_de_fase",
+    fase: "onboarding",
+    titulo: "",
+    resumo: "",
+    deepLink: "",
+    referencia: "",
+  });
+
+  const mRegistrar = useMutation({
+    mutationFn: () =>
+      registrar({
+        data: {
+          casoId,
+          tipo: inter.tipo,
+          ocorridoEm: inter.ocorridoEm || undefined,
+          resumoInterno: inter.resumo,
+          resultado: inter.resultado || null,
+          proximaAcao: inter.proximaAcao || null,
+          prazoProximaAcao: inter.prazo || null,
+          visibilidade: inter.visibilidade as "interna" | "cliente_aprovado",
+          contaComoTouchpoint: inter.touchpoint,
+          touchpoint: inter.touchpoint
+            ? {
+                oQueFoiFeito: inter.feito,
+                oQueEstaAguardando: inter.aguardando,
+                oQueNaoDependeDoCliente: inter.naoDepende,
+                proximoMarcoVerificavel: inter.marco,
+              }
+            : undefined,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Interação registrada. Registros são imutáveis.");
+      setInter((s) => ({ ...s, resumo: "", resultado: "", proximaAcao: "", prazo: "", feito: "", aguardando: "", naoDepende: "", marco: "" }));
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mEntrega = useMutation({
+    mutationFn: () =>
+      criarEntrega({
+        data: {
+          casoId,
+          tipo: entrega.tipo,
+          fase: entrega.fase,
+          tituloCliente: entrega.titulo,
+          resumoAprovado: entrega.resumo,
+          deepLink: entrega.deepLink || null,
+          referenciaInterna: entrega.referencia || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Micro-entrega criada em rascunho.");
+      setEntrega((s) => ({ ...s, titulo: "", resumo: "", deepLink: "", referencia: "" }));
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mTransicao = useMutation({
+    mutationFn: (v: { entregaId: string; para: StatusAprovacao }) => transicionar({ data: v }),
+    onSuccess: () => {
+      toast.success("Status atualizado.");
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mEspera = useMutation({
+    mutationFn: (v: { aguardando: boolean; motivo?: string }) => espera({ data: { casoId, ...v } }),
+    onSuccess: () => {
+      toast.success("Espera institucional atualizada.");
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const [motivoEspera, setMotivoEspera] = useState("");
+  const caso = q.data?.caso as Record<string, unknown> | undefined;
+  const cadencia = q.data?.cadencia;
+
+  const publicadas = useMemo(
+    () => (q.data?.entregas ?? []).filter((e) => e['approval_status'] === "publicado").length,
+    [q.data?.entregas],
+  );
+
+  if (q.isLoading) return <p className="text-sm text-navy/55">Carregando jornada…</p>;
+  if (q.error) return <p className="text-sm text-terracotta">{(q.error as Error).message}</p>;
+
+  return (
+    <div className="space-y-4">
+      <Secao titulo="Saúde do caso" descricao="Cadência de contato e espera institucional. Nenhuma projeção de prazo ou resultado.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className={"rounded-lg border p-4 " + (CORES_CADENCIA[cadencia?.status ?? "regular"] ?? "")}>
+            <p className="text-[11px] uppercase tracking-wide opacity-70">Cadência</p>
+            <p className="mt-1 font-serif text-2xl capitalize">{cadencia?.status ?? "—"}</p>
+            <p className="mt-1 text-xs">{cadencia?.motivo}</p>
+          </div>
+          <div className="rounded-lg border border-navy/10 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">Dias sem touchpoint</p>
+            <p className="mt-1 font-serif text-2xl text-navy">{cadencia?.diasSemTouchpoint ?? 0}</p>
+            <p className="mt-1 text-xs text-navy/55">Limite operacional: 14 dias.</p>
+          </div>
+          <div className="rounded-lg border border-navy/10 p-4">
+            <p className="text-[11px] uppercase tracking-wide text-navy/50">Micro-entregas publicadas</p>
+            <p className="mt-1 font-serif text-2xl text-navy">{publicadas}</p>
+            <p className="mt-1 text-xs text-navy/55">Somente publicadas aparecem no App Cliente.</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-navy/10 p-4">
+          <p className="text-xs text-navy/55">
+            Próximo marco verificável: <span className="text-navy">{String(caso?.['proximo_marco_verificavel'] ?? "não registrado")}</span>
+          </p>
+          {caso?.['aguardando_instituicao_externa'] ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-navy/15 px-3 py-1 text-xs text-navy/70">
+                Aguardando instituição externa — {String(caso['motivo_espera_externa'] ?? "")}
+              </span>
+              <button
+                type="button"
+                disabled={somenteLeitura}
+                className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
+                onClick={() => mEspera.mutate({ aguardando: false })}
+              >
+                Encerrar espera
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="min-w-[16rem] flex-1">
+                <Campo label="Motivo da espera institucional" valor={motivoEspera} onChange={setMotivoEspera} desabilitado={somenteLeitura} />
+              </div>
+              <button
+                type="button"
+                disabled={somenteLeitura || !motivoEspera.trim()}
+                className="rounded-lg bg-navy px-3 py-2 text-xs text-cream disabled:opacity-50"
+                onClick={() => mEspera.mutate({ aguardando: true, motivo: motivoEspera })}
+              >
+                Registrar espera
+              </button>
+            </div>
+          )}
+        </div>
+      </Secao>
+
+      <Secao
+        titulo="Interações internas"
+        descricao="Registro imutável. Correções não editam o histórico: geram novo registro vinculado."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Selecao
+            label="Tipo"
+            valor={inter.tipo}
+            onChange={(v) => setInter((s) => ({ ...s, tipo: v }))}
+            desabilitado={somenteLeitura}
+            opcoes={[
+              { valor: "call", rotulo: "Call" },
+              { valor: "whatsapp", rotulo: "WhatsApp" },
+              { valor: "email", rotulo: "E-mail" },
+              { valor: "reuniao", rotulo: "Reunião" },
+              { valor: "sistema", rotulo: "Sistema" },
+              { valor: "outro", rotulo: "Outro" },
+            ]}
+          />
+          <Campo label="Ocorrido em" tipo="datetime-local" valor={inter.ocorridoEm} onChange={(v) => setInter((s) => ({ ...s, ocorridoEm: v }))} desabilitado={somenteLeitura} />
+          <div className="sm:col-span-2">
+            <Campo label="Resumo interno" area valor={inter.resumo} onChange={(v) => setInter((s) => ({ ...s, resumo: v }))} desabilitado={somenteLeitura} />
+          </div>
+          <Campo label="Resultado" valor={inter.resultado} onChange={(v) => setInter((s) => ({ ...s, resultado: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Próxima ação" valor={inter.proximaAcao} onChange={(v) => setInter((s) => ({ ...s, proximaAcao: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Prazo da próxima ação" tipo="date" valor={inter.prazo} onChange={(v) => setInter((s) => ({ ...s, prazo: v }))} desabilitado={somenteLeitura} />
+          <Selecao
+            label="Visibilidade"
+            valor={inter.visibilidade}
+            onChange={(v) => setInter((s) => ({ ...s, visibilidade: v }))}
+            desabilitado={somenteLeitura}
+            opcoes={[
+              { valor: "interna", rotulo: "Interna" },
+              { valor: "cliente_aprovado", rotulo: "Aprovada para o cliente" },
+            ]}
+          />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-navy/70">
+          <input
+            type="checkbox"
+            checked={inter.touchpoint}
+            disabled={somenteLeitura}
+            onChange={(e) => setInter((s) => ({ ...s, touchpoint: e.target.checked }))}
+          />
+          Conta como touchpoint com o cliente (exige as quatro respostas)
+        </label>
+
+        {inter.touchpoint ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="O que foi feito" area valor={inter.feito} onChange={(v) => setInter((s) => ({ ...s, feito: v }))} desabilitado={somenteLeitura} />
+            <Campo label="O que está sendo aguardado" area valor={inter.aguardando} onChange={(v) => setInter((s) => ({ ...s, aguardando: v }))} desabilitado={somenteLeitura} />
+            <Campo label="O que não depende do cliente" area valor={inter.naoDepende} onChange={(v) => setInter((s) => ({ ...s, naoDepende: v }))} desabilitado={somenteLeitura} />
+            <Campo label="Próximo marco verificável" area valor={inter.marco} onChange={(v) => setInter((s) => ({ ...s, marco: v }))} desabilitado={somenteLeitura} />
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          disabled={somenteLeitura || !inter.resumo.trim() || mRegistrar.isPending}
+          className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
+          onClick={() => mRegistrar.mutate()}
+        >
+          Registrar interação
+        </button>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+              <tr>
+                <th className="py-2 pr-3">Quando</th>
+                <th className="py-2 pr-3">Tipo</th>
+                <th className="py-2 pr-3">Resumo interno</th>
+                <th className="py-2 pr-3">Próxima ação</th>
+                <th className="py-2 pr-3">Visibilidade</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-navy/5">
+              {(q.data?.interacoes ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-3 text-navy/55">
+                    Nenhuma interação registrada.
+                  </td>
+                </tr>
+              ) : (
+                (q.data?.interacoes ?? []).map((i) => (
+                  <tr key={String(i['id'])} className="align-top">
+                    <td className="py-2 pr-3 text-navy/70">{String(i['ocorrido_em'] ?? "").slice(0, 16).replace("T", " ")}</td>
+                    <td className="py-2 pr-3 text-navy/70">{String(i['tipo'] ?? "")}</td>
+                    <td className="py-2 pr-3 text-navy">{String(i['resumo_interno'] ?? "")}</td>
+                    <td className="py-2 pr-3 text-navy/70">
+                      {String(i['proxima_acao'] ?? "—")}
+                      {i['prazo_proxima_acao'] ? ` · ${String(i['prazo_proxima_acao'])}` : ""}
+                    </td>
+                    <td className="py-2 pr-3 text-navy/70">{i['visibilidade'] === "cliente_aprovado" ? "Aprovada ao cliente" : "Interna"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Secao>
+
+      <Secao
+        titulo="Micro-entregas ao cliente"
+        descricao="Texto já aprovado para o cliente. Só o status “publicado” aparece no App Cliente."
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Selecao
+            label="Tipo de entrega"
+            valor={entrega.tipo}
+            onChange={(v) => setEntrega((s) => ({ ...s, tipo: v }))}
+            desabilitado={somenteLeitura}
+            opcoes={TIPOS_ENTREGA.map((t) => ({ valor: t, rotulo: ROTULO_TIPO_ENTREGA[t] }))}
+          />
+          <Selecao
+            label="Fase da jornada"
+            valor={entrega.fase}
+            onChange={(v) => setEntrega((s) => ({ ...s, fase: v }))}
+            desabilitado={somenteLeitura}
+            opcoes={FASES_JORNADA.map((f) => ({ valor: f, rotulo: ROTULO_FASE[f] }))}
+          />
+          <div className="sm:col-span-2">
+            <Campo label="Título para o cliente" valor={entrega.titulo} onChange={(v) => setEntrega((s) => ({ ...s, titulo: v }))} desabilitado={somenteLeitura} />
+          </div>
+          <div className="sm:col-span-2">
+            <Campo label="Resumo aprovado" area valor={entrega.resumo} onChange={(v) => setEntrega((s) => ({ ...s, resumo: v }))} desabilitado={somenteLeitura} />
+          </div>
+          <Campo label="Deep link no App Cliente" valor={entrega.deepLink} onChange={(v) => setEntrega((s) => ({ ...s, deepLink: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Referência interna" valor={entrega.referencia} onChange={(v) => setEntrega((s) => ({ ...s, referencia: v }))} desabilitado={somenteLeitura} />
+        </div>
+
+        <button
+          type="button"
+          disabled={somenteLeitura || !entrega.titulo.trim() || !entrega.resumo.trim() || mEntrega.isPending}
+          className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
+          onClick={() => mEntrega.mutate()}
+        >
+          Criar rascunho de micro-entrega
+        </button>
+
+        <div className="space-y-3">
+          {(q.data?.entregas ?? []).length === 0 ? (
+            <p className="text-sm text-navy/55">Nenhuma micro-entrega registrada.</p>
+          ) : (
+            (q.data?.entregas ?? []).map((e) => {
+              const status = String(e['approval_status'] ?? "rascunho") as StatusAprovacao;
+              return (
+                <div key={String(e['id'])} className="rounded-lg border border-navy/10 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-navy">{String(e['title_client'] ?? "")}</p>
+                    <span className="rounded-full border border-navy/15 px-3 py-1 text-[11px] uppercase tracking-wide text-navy/60">{status}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-navy/60">{String(e['summary_approved'] ?? "")}</p>
+                  <p className="mt-1 text-[11px] text-navy/45">
+                    {ROTULO_TIPO_ENTREGA[String(e['deliverable_type']) as keyof typeof ROTULO_TIPO_ENTREGA] ?? String(e['deliverable_type'] ?? "")}
+                    {e['journey_phase'] ? ` · ${ROTULO_FASE[String(e['journey_phase']) as keyof typeof ROTULO_FASE] ?? String(e['journey_phase'])}` : ""}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(TRANSICOES_ENTREGA[status] ?? []).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        disabled={somenteLeitura || mTransicao.isPending}
+                        className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
+                        onClick={() => mTransicao.mutate({ entregaId: String(e['id']), para: p })}
+                      >
+                        {p === "publicado" ? "Publicar no App Cliente" : `Mover para ${p}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </Secao>
+    </div>
+  );
+}

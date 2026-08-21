@@ -2329,10 +2329,12 @@ export type Database = {
           archived_by: string | null
           available_at: string | null
           case_id: string
+          client_id: string | null
           created_at: string
           created_by: string | null
           deep_link: string | null
           deliverable_type: string
+          fallback_whatsapp_enviado: boolean
           family_id: string | null
           id: string
           internal_reference: string | null
@@ -2354,10 +2356,12 @@ export type Database = {
           archived_by?: string | null
           available_at?: string | null
           case_id: string
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           deep_link?: string | null
           deliverable_type: string
+          fallback_whatsapp_enviado?: boolean
           family_id?: string | null
           id?: string
           internal_reference?: string | null
@@ -2379,10 +2383,12 @@ export type Database = {
           archived_by?: string | null
           available_at?: string | null
           case_id?: string
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           deep_link?: string | null
           deliverable_type?: string
+          fallback_whatsapp_enviado?: boolean
           family_id?: string | null
           id?: string
           internal_reference?: string | null
@@ -2410,6 +2416,20 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_deliverables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_deliverables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
             referencedColumns: ["id"]
           },
           {
@@ -4656,6 +4676,7 @@ export type Database = {
         Row: {
           aceite_comercial_em: string | null
           aceite_comercial_registrado_por: string | null
+          aguardando_instituicao_externa: boolean
           alert_status: string
           alert_triggered_at: string | null
           alias_historico: string | null
@@ -4711,6 +4732,7 @@ export type Database = {
           link_origem_interna: string | null
           marcos_gerais_da_proposta: string | null
           modelo: string
+          motivo_espera_externa: string | null
           organization_id: string
           origem_brief: string | null
           pagamento_confirmado: boolean
@@ -4726,6 +4748,8 @@ export type Database = {
           proxima_acao: string | null
           proxima_acao_codigo: string | null
           proxima_acao_justificativa: string | null
+          proxima_atualizacao_limite_em: string | null
+          proximo_marco_verificavel: string | null
           radar_aderencia_percentual: number | null
           requires_human_approval: boolean
           responsavel_id: string | null
@@ -4750,6 +4774,7 @@ export type Database = {
           target_audience: string
           tipo_servico: string | null
           titulo: string
+          ultima_atualizacao_material_em: string | null
           ultimo_touchpoint_em: string | null
           updated_at: string
           updated_by: string | null
@@ -4760,6 +4785,7 @@ export type Database = {
         Insert: {
           aceite_comercial_em?: string | null
           aceite_comercial_registrado_por?: string | null
+          aguardando_instituicao_externa?: boolean
           alert_status?: string
           alert_triggered_at?: string | null
           alias_historico?: string | null
@@ -4815,6 +4841,7 @@ export type Database = {
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
           modelo?: string
+          motivo_espera_externa?: string | null
           organization_id: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -4830,6 +4857,8 @@ export type Database = {
           proxima_acao?: string | null
           proxima_acao_codigo?: string | null
           proxima_acao_justificativa?: string | null
+          proxima_atualizacao_limite_em?: string | null
+          proximo_marco_verificavel?: string | null
           radar_aderencia_percentual?: number | null
           requires_human_approval?: boolean
           responsavel_id?: string | null
@@ -4854,6 +4883,7 @@ export type Database = {
           target_audience?: string
           tipo_servico?: string | null
           titulo: string
+          ultima_atualizacao_material_em?: string | null
           ultimo_touchpoint_em?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -4864,6 +4894,7 @@ export type Database = {
         Update: {
           aceite_comercial_em?: string | null
           aceite_comercial_registrado_por?: string | null
+          aguardando_instituicao_externa?: boolean
           alert_status?: string
           alert_triggered_at?: string | null
           alias_historico?: string | null
@@ -4919,6 +4950,7 @@ export type Database = {
           link_origem_interna?: string | null
           marcos_gerais_da_proposta?: string | null
           modelo?: string
+          motivo_espera_externa?: string | null
           organization_id?: string
           origem_brief?: string | null
           pagamento_confirmado?: boolean
@@ -4934,6 +4966,8 @@ export type Database = {
           proxima_acao?: string | null
           proxima_acao_codigo?: string | null
           proxima_acao_justificativa?: string | null
+          proxima_atualizacao_limite_em?: string | null
+          proximo_marco_verificavel?: string | null
           radar_aderencia_percentual?: number | null
           requires_human_approval?: boolean
           responsavel_id?: string | null
@@ -4958,6 +4992,7 @@ export type Database = {
           target_audience?: string
           tipo_servico?: string | null
           titulo?: string
+          ultima_atualizacao_material_em?: string | null
           ultimo_touchpoint_em?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -4993,6 +5028,8 @@ export type Database = {
         Row: {
           canal: string
           case_id: string
+          client_id: string | null
+          corrige_interacao_id: string | null
           created_at: string
           data_origin: string
           direcao: string
@@ -5001,12 +5038,19 @@ export type Database = {
           organization_id: string
           origem: string
           origem_id: string | null
+          prazo_proxima_acao: string | null
+          proxima_acao: string | null
           registrado_por: string | null
+          resultado: string | null
           resumo_interno: string
+          tipo: string
+          visibilidade: string
         }
         Insert: {
           canal?: string
           case_id: string
+          client_id?: string | null
+          corrige_interacao_id?: string | null
           created_at?: string
           data_origin?: string
           direcao?: string
@@ -5015,12 +5059,19 @@ export type Database = {
           organization_id: string
           origem?: string
           origem_id?: string | null
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
           registrado_por?: string | null
+          resultado?: string | null
           resumo_interno: string
+          tipo?: string
+          visibilidade?: string
         }
         Update: {
           canal?: string
           case_id?: string
+          client_id?: string | null
+          corrige_interacao_id?: string | null
           created_at?: string
           data_origin?: string
           direcao?: string
@@ -5029,8 +5080,13 @@ export type Database = {
           organization_id?: string
           origem?: string
           origem_id?: string | null
+          prazo_proxima_acao?: string | null
+          proxima_acao?: string | null
           registrado_por?: string | null
+          resultado?: string | null
           resumo_interno?: string
+          tipo?: string
+          visibilidade?: string
         }
         Relationships: [
           {
@@ -5045,6 +5101,27 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_meu_cadastro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_corrige_interacao_id_fkey"
+            columns: ["corrige_interacao_id"]
+            isOneToOne: false
+            referencedRelation: "crm_interactions"
             referencedColumns: ["id"]
           },
           {
@@ -13742,6 +13819,13 @@ export type Database = {
           check_key: string
           label: string
           motivo: string
+        }[]
+      }
+      caso_saude_cadencia: {
+        Args: { _case: string }
+        Returns: {
+          dias_sem_touchpoint: number
+          status_cadencia: string
         }[]
       }
       consentimento_ativo: {

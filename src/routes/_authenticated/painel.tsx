@@ -6,6 +6,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { PainelHoje } from "@/components/painel/painel-hoje";
 import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
 import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
+import { PainelCadencia } from "@/components/painel/painel-cadencia";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -59,6 +60,7 @@ function Painel() {
       <PainelHoje />
       <PendenciasCriticasPesquisa />
       <PainelDeskHoje />
+      <PainelCadencia />
 
 
 
