@@ -203,4 +203,19 @@ export function estadoDoLink(acesso: {
   return "valido";
 }
 
-export const LINK_VALIDADE_HORAS = 48;
+/**
+ * Janelas de validade do link mágico.
+ *
+ * Login/reenvio é curto por padrão: reduz a exposição se o e-mail for
+ * encaminhado ou acessado por terceiros. O convite inicial pode durar até
+ * 24h porque o primeiro clique passa pela confirmação em /acesso/confirmar,
+ * que consome o uso imediatamente.
+ */
+export const LINK_LOGIN_VALIDADE_MINUTOS = 20;
+export const CONVITE_VALIDADE_HORAS = 24;
+
+export function rotuloValidadeLink(contexto: "login" | "convite"): string {
+  return contexto === "login"
+    ? `${LINK_LOGIN_VALIDADE_MINUTOS} minutos`
+    : `${CONVITE_VALIDADE_HORAS} horas`;
+}
