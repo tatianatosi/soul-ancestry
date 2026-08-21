@@ -10846,9 +10846,12 @@ export type Database = {
           created_by: string | null
           data_ultima_validacao: string | null
           elegivel_para_proposta: boolean
+          entregas_principais: string | null
           escopo_aprovado: string | null
           exige_case_service: boolean
           exige_justificativa_escopo: boolean
+          faixa_prioridade: string
+          familia_comercial: string | null
           gera_comunicacao_automatica: boolean
           homologado_em: string | null
           homologado_por: string | null
@@ -10859,10 +10862,13 @@ export type Database = {
           observacao_de_governanca: string | null
           organization_id: string
           origem_legada_referencia: string | null
+          papel_comercial: string | null
           parcelas_padrao: number | null
+          permite_recorrencia: boolean
           preco_comercial_vigente: number | null
           preco_historico_legado: number | null
           prioridade_catalogo: string
+          produto_pai_id: string | null
           regra_uso: string | null
           requer_fechamento_humano: boolean
           responsavel_homologacao: string | null
@@ -10888,9 +10894,12 @@ export type Database = {
           created_by?: string | null
           data_ultima_validacao?: string | null
           elegivel_para_proposta?: boolean
+          entregas_principais?: string | null
           escopo_aprovado?: string | null
           exige_case_service?: boolean
           exige_justificativa_escopo?: boolean
+          faixa_prioridade?: string
+          familia_comercial?: string | null
           gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
@@ -10901,10 +10910,13 @@ export type Database = {
           observacao_de_governanca?: string | null
           organization_id: string
           origem_legada_referencia?: string | null
+          papel_comercial?: string | null
           parcelas_padrao?: number | null
+          permite_recorrencia?: boolean
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
+          produto_pai_id?: string | null
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
           responsavel_homologacao?: string | null
@@ -10930,9 +10942,12 @@ export type Database = {
           created_by?: string | null
           data_ultima_validacao?: string | null
           elegivel_para_proposta?: boolean
+          entregas_principais?: string | null
           escopo_aprovado?: string | null
           exige_case_service?: boolean
           exige_justificativa_escopo?: boolean
+          faixa_prioridade?: string
+          familia_comercial?: string | null
           gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
@@ -10943,10 +10958,13 @@ export type Database = {
           observacao_de_governanca?: string | null
           organization_id?: string
           origem_legada_referencia?: string | null
+          papel_comercial?: string | null
           parcelas_padrao?: number | null
+          permite_recorrencia?: boolean
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
           prioridade_catalogo?: string
+          produto_pai_id?: string | null
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
           responsavel_homologacao?: string | null
@@ -10960,7 +10978,15 @@ export type Database = {
           vigencia_fim?: string | null
           vigencia_inicio?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "product_catalog_produto_pai_id_fkey"
+            columns: ["produto_pai_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -13594,18 +13620,24 @@ export type Database = {
           contract_id: string | null
           created_at: string
           created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
           demo: boolean
           id: string
+          justificativa: string | null
           moeda: string
           motivo: string
+          opportunity_id: string | null
           organization_id: string
           preco_total: number | null
+          product_catalog_id: string | null
           responsavel: string
           sku: string
           status: string
           updated_at: string
           updated_by: string | null
           valido_ate: string
+          valor_excepcional: number | null
         }
         Insert: {
           aprovado_em?: string | null
@@ -13618,18 +13650,24 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           demo?: boolean
           id?: string
+          justificativa?: string | null
           moeda?: string
           motivo: string
+          opportunity_id?: string | null
           organization_id: string
           preco_total?: number | null
+          product_catalog_id?: string | null
           responsavel: string
           sku: string
           status?: string
           updated_at?: string
           updated_by?: string | null
           valido_ate: string
+          valor_excepcional?: number | null
         }
         Update: {
           aprovado_em?: string | null
@@ -13642,18 +13680,24 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
           demo?: boolean
           id?: string
+          justificativa?: string | null
           moeda?: string
           motivo?: string
+          opportunity_id?: string | null
           organization_id?: string
           preco_total?: number | null
+          product_catalog_id?: string | null
           responsavel?: string
           sku?: string
           status?: string
           updated_at?: string
           updated_by?: string | null
           valido_ate?: string
+          valor_excepcional?: number | null
         }
         Relationships: [
           {
@@ -13678,10 +13722,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sku_price_exceptions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sku_price_exceptions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sku_price_exceptions_product_catalog_id_fkey"
+            columns: ["product_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
             referencedColumns: ["id"]
           },
         ]
