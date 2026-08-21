@@ -49,7 +49,35 @@ const CAMPOS_LEAD = [
   "observacoes",
   "ultimo_followup_em",
   "pais_interesse",
+  // Ficha de Discovery/triagem (CA 04 v1.1)
+  "status_call",
+  "elegibilidade_preliminar",
+  "confianca_triagem",
+  "geracao_ascendente",
+  "linha_transmissao",
+  "risco_ruptura",
+  "complexidade_documental",
+  "estado_documental_inicial",
+  "pendencia_documental_prioritaria",
+  "exige_idioma_entrevista",
+  "requerentes_potenciais",
+  "estrutura_familiar",
+  "objecao_predominante",
+  "nivel_intencao",
+  "produtos_recomendados",
+  "sku_referencia",
+  "despesas_terceiros_status",
+  "despesas_terceiros_regra",
+  "despesas_terceiros_faixa",
+  "consentimento_gravacao",
+  "spin_situacao",
+  "spin_problema",
+  "spin_implicacao",
+  "spin_necessidade",
+  "gravacao_link_interno",
+  "dossie_link_interno",
 ] as const;
+
 
 function limpar(entrada: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
