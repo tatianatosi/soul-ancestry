@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import {
   APROVACAO_CLIENTE,
+  ESTADOS_VALIDACAO,
   CAMPOS_NUNCA_NO_APP,
   NIVEIS_ACESSO_PEDIDO,
   PRIORIDADES,
@@ -52,7 +53,7 @@ const VAZIO: Record<string, unknown> = {
 function AreaPesquisaEvidencias() {
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
-  const [secao, setSecao] = useState<SecaoPesquisa>("documentos");
+  const [secao, setSecao] = useState<SecaoPesquisa>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
   const [editandoId, setEditandoId] = useState<string | null>(null);
 
@@ -121,11 +122,16 @@ function AreaPesquisaEvidencias() {
         ))}
       </nav>
 
+      <p className="-mt-3 text-xs text-navy/60">
+        {SECOES.find((s) => s.id === secao)?.funcao}
+      </p>
+
       {painel.isLoading && <p className="text-sm text-navy/60">Carregando área de pesquisa…</p>}
       {painel.error && <p className="text-sm text-terracotta">{String((painel.error as any).message)}</p>}
 
       {d && secao === "visao" && (
-        <section className="grid gap-3 md:grid-cols-4">
+        <section className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-4">
           <Cartao titulo="Solicitações" valor={d.solicitacoes.length} nota="Pedidos documentais registrados." />
           <Cartao titulo="Evidências" valor={d.evidencias.length} nota="Itens na biblioteca do caso." />
           <Cartao titulo="Alertas abertos" valor={d.alertas.filter((a: any) => a.status === "aberto").length} nota="Pendências internas." />
@@ -134,6 +140,116 @@ function AreaPesquisaEvidencias() {
             valor={d.comunicacoes.filter((c: any) => !c.sent_at).length}
             nota="Comunicações não enviadas, com aprovação humana pendente."
           />
+        </div>
+        <Bloco titulo="Dimensões da pesquisa">
+          <dl className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
+            {[
+              { t: "Objetivo", v: d.caso?.titulo ?? "—" },
+              { t: "Trilha", v: d.caso?.pais ?? "—" },
+              { t: "Autorização", v: d.podeEditar ? "Equipe do caso com edição" : "Somente leitura" },
+              {
+                t: "Responsável",
+                v: d.solicitacoes.find((x: any) => x.responsible_user_id)?.responsible_user_id ?? "A definir",
+              },
+              {
+                t: "Status",
+                v: d.solicitacoes.length ? "Pesquisa documental em curso" : "Pesquisa não iniciada",
+              },
+              {
+                t: "Próximo marco",
+                v:
+                  d.solicitacoes
+                    .filter((x: any) => x.next_action)
+                    .sort((a: any, b: any) => String(a.next_action_due ?? "9999").localeCompare(String(b.next_action_due ?? "9999")))[0]
+                    ?.next_action ?? "Sem próxima ação registrada",
+              },
+              { t: "Hipótese interna", v: "Uso interno — nunca projetada ao cliente." },
+            ].map((c) => (
+              <div key={c.t} className="rounded border border-navy/10 p-3">
+                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</dt>
+                <dd className="text-sm text-navy">{String(c.v)}</dd>
+              </div>
+            ))}
+          </dl>
+        </Bloco>
+        </section>
+      )}
+
+      {d && secao === "ficha" && (
+        <section className="space-y-3">
+          <Bloco titulo="Ficha genealógica do caso">
+            <div className="grid gap-2 text-sm md:grid-cols-2 xl:grid-cols-4">
+              {[
+                { t: "Pessoas", v: d.pessoas.length },
+                { t: "Variantes de nome", v: "ver ficha" },
+                { t: "Núcleo e relações", v: "ver ficha" },
+                { t: "Ramos e gerações", v: "ver ficha" },
+                { t: "Localidades", v: "ver ficha" },
+                { t: "Lacunas", v: d.alertas.filter((a: any) => a.status === "aberto").length },
+              ].map((c) => (
+                <div key={c.t} className="rounded border border-navy/10 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</p>
+                  <p className="text-sm text-navy">{String(c.v)}</p>
+                </div>
+              ))}
+            </div>
+            <Link
+              to="/pessoas-linhagens/$caseId"
+              params={{ caseId }}
+              className="mt-3 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+            >
+              Abrir ficha genealógica interna →
+            </Link>
+          </Bloco>
+        </section>
+      )}
+
+      {d && secao === "validacao" && (
+        <section className="space-y-3">
+          <Bloco titulo="Validação e pendências">
+            <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-4">
+              {ESTADOS_VALIDACAO.map((e) => (
+                <div key={e.id} className="rounded border border-navy/10 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{e.rotulo}</p>
+                  <p className="text-lg font-semibold text-navy">
+                    {d.solicitacoes.filter((x: any) => x.status === e.id).length}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-navy/60">
+              Contagem sobre os pedidos documentais do caso. Evidências em revisão:{" "}
+              {d.evidencias.filter((x: any) => x.workflow_status === "em_revisao").length}; validadas:{" "}
+              {d.evidencias.filter((x: any) => x.workflow_status === "validada").length}.
+            </p>
+          </Bloco>
+        </section>
+      )}
+
+      {d && secao === "achados" && (
+        <section className="space-y-3">
+          <Bloco titulo="Achados e microentregas">
+            <p className="text-xs text-navy/60">
+              Achado interno → aprovação interna → versão sanitizada → entrega ao cliente. Nada chega ao App Cliente sem
+              projeção aprovada.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-4">
+              <Link
+                to="/achados/$caseId"
+                params={{ caseId }}
+                className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+              >
+                Abrir achados genealógicos →
+              </Link>
+              <Link
+                to="/biblioteca-evidencias/$caseId"
+                params={{ caseId }}
+                className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+              >
+                Projeções autorizadas e microentregas →
+              </Link>
+            </div>
+          </Bloco>
         </section>
       )}
 
@@ -148,11 +264,14 @@ function AreaPesquisaEvidencias() {
       )}
 
       {d && secao === "fontes" && (
-        <Lista
-          titulo="Fontes e consultas"
-          nota="Acervos registrados internamente. Nenhuma consulta externa é executada aqui."
-          itens={d.fontes.map((f: any) => `${f.title} (${f.source_type})`)}
-        />
+        <div className="space-y-3">
+          <Lista
+            titulo="Fontes e consultas"
+            nota="Arquivos, cartórios, acervos, registros, bases e fontes familiares. Nenhuma consulta externa é executada aqui."
+            itens={d.fontes.map((f: any) => `${f.title} (${f.source_type})`)}
+          />
+          <SecaoFontesDocumentos caseId={caseId} />
+        </div>
       )}
 
       {d && secao === "evidencias" && (
@@ -168,21 +287,11 @@ function AreaPesquisaEvidencias() {
         </div>
       )}
 
-      {d && secao === "hipoteses" && (
-        <Lista
-          titulo="Hipóteses e lacunas"
-          nota="Trabalho interno de pesquisa; nunca projetado ao cliente."
-          itens={[]}
-          link={{ to: "/pesquisa-modulo/$id", rotulo: "Abrir módulo de pesquisa →" }}
-          caseId={caseId}
-        />
-      )}
-
       {d && secao === "relatorios" && (
         <div className="space-y-3">
           <Lista
-            titulo="Relatórios de fase"
-            nota="Consolidações internas por fase, sem juízo de mérito no material do cliente."
+            titulo="Relatórios F1/F2"
+            nota="Rascunho, revisão interna, versão aprovada e publicação controlada — sem juízo de mérito no material do cliente."
             itens={[]}
             link={{ to: "/pesquisa-modulo/$id", rotulo: "Abrir relatórios de pesquisa →" }}
             caseId={caseId}
@@ -216,9 +325,7 @@ function AreaPesquisaEvidencias() {
         </section>
       )}
 
-      {secao === "fontes_documentos" && <SecaoFontesDocumentos caseId={caseId} />}
-
-      {d && secao === "documentos" && (
+      {d && secao === "evidencias" && (
         <section className="space-y-4">
           <LastroDeFontes caseId={caseId} tipoAlvo="solicitacao" />
           <Bloco titulo="Documentos e Solicitações">
