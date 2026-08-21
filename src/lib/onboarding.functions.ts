@@ -156,26 +156,45 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase);
     const papeis = await meusPapeis(supabase, organizationId);
-    if (!podeAtivar(papeis)) return { ok: false, pendencias: ["Somente admin ou operações podem ativar."] };
+    if (!podeAtivar(papeis)) {
+      await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+        resumo: "Tentativa de ativação recusada: papel sem permissão",
+      });
+      return { ok: false, pendencias: ["Somente admin ou operações podem ativar."] };
+    }
 
-    const pend = await supabase.rpc("case_activation_pendencias", { _case: data.casoId });
-    const lista = ((pend.data ?? []) as { label: string; motivo: string }[]).map(
-      (p) => `${p.label} (${p.motivo})`,
-    );
-    if (lista.length > 0) return { ok: false, pendencias: lista };
+    // Fonte de verdade: os 14 requisitos obrigatórios avaliados no banco.
+    const bloq = await supabase.rpc("case_activacao_bloqueios", { _case: data.casoId });
+    const lista = ((bloq.data ?? []) as string[]).slice();
+    if (bloq.error) lista.push(bloq.error.message);
+
+    if (lista.length > 0) {
+      await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+        resumo: `Tentativa de ativação recusada: ${lista.length} requisito(s) obrigatório(s) fora de validado`,
+        pendencias: lista,
+      });
+      return { ok: false, pendencias: lista };
+    }
 
     const { error } = await supabase
       .from("crm_casos")
       .update({ status: "ativo", ativo: true })
       .eq("id", data.casoId)
       .eq("organization_id", organizationId);
-    if (error) return { ok: false, pendencias: [error.message] };
+    if (error) {
+      await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+        resumo: "Ativação recusada pelo banco",
+        pendencias: [error.message],
+      });
+      return { ok: false, pendencias: [error.message] };
+    }
 
     await registrar(supabase, organizationId, "caso_ativado", data.casoId, {
-      resumo: "Caso ativado com todos os requisitos válidos",
+      resumo: "Caso ativado com todos os 14 requisitos obrigatórios validados",
     });
     return { ok: true, pendencias: [] as string[] };
   });
+
 
 export const suspenderCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
