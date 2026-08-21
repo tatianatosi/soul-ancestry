@@ -525,8 +525,8 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
     erros.push({ campo: "produtos_recomendados", motivo: "Produto fora da lista controlada." });
   }
 
-  if (String(l.status_via) === "encerrada_novos_pedidos" && (l.produtos_recomendados ?? []).includes("protocolo_acompanhamento")) {
-    erros.push({ campo: "produtos_recomendados", motivo: "Via encerrada para novos pedidos: permitido apenas diagnóstico, pesquisa de alternativas ou nutrição." });
+  if (String(l.status_via) === "inviavel_preliminar" && (l.produtos_recomendados ?? []).includes("protocolo_acompanhamento")) {
+    erros.push({ campo: "produtos_recomendados", motivo: "Via inviável em triagem preliminar: permitido apenas diagnóstico, pesquisa de alternativas ou nutrição." });
   }
 
   if (String(l.eixo_formalizacao) === "caso_ativo" && vazio(l.case_id)) {
