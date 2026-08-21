@@ -15043,6 +15043,24 @@ export type Database = {
       }
       can_write: { Args: { _org: string }; Returns: boolean }
       can_write_financeiro: { Args: { _org: string }; Returns: boolean }
+      case_activacao_bloqueios: { Args: { _case: string }; Returns: string[] }
+      case_activation_gates: {
+        Args: { _case: string }
+        Returns: {
+          check_key: string
+          dominio: string
+          estado: string
+          evidencia: string
+          isencao_expira_em: string
+          isencao_motivo: string
+          label: string
+          motivo: string
+          obrigatorio: boolean
+          origem: string
+          validado_em: string
+          validado_por: string
+        }[]
+      }
       case_activation_pendencias: {
         Args: { _case: string }
         Returns: {
