@@ -181,7 +181,7 @@ export function AbaVisaoGeral({
         )}
       </Cartao>
 
-      <Cartao titulo="Próximos marcos">
+      <Cartao titulo="Próximos marcos previstos (condicionais)">
         {t.proximosMarcos.length ? (
           <ul className="space-y-3">
             {t.proximosMarcos.map((e, i) => (
