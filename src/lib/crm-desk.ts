@@ -509,6 +509,20 @@ export type LeadDesk = {
   spin_necessidade?: boolean | null;
   gravacao_link_interno?: string | null;
   dossie_link_interno?: string | null;
+  /* Consentimento, trilha e pesquisa prévia (Discovery v1.0) */
+  consentimento_status?: string | null;
+  consentimento_em?: string | null;
+  consentimento_canal?: string | null;
+  consentimento_versao_aviso?: string | null;
+  nacionalidades_interesse?: string[] | null;
+  pais_linha_prioritaria?: string | null;
+  localidades_conhecidas?: string | null;
+  documentos_chave?: string[] | null;
+  trilha_referencia_id?: string | null;
+  marco_referencia_id?: string | null;
+  pesquisa_previa_autorizacao?: string | null;
+  pesquisa_previa_escopo?: string[] | null;
+  pesquisa_previa_limite?: string | null;
 };
 
 /** Resultado comercial é DERIVADO: nunca substitui os dois eixos. */
