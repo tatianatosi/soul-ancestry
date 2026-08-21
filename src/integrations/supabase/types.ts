@@ -6336,6 +6336,161 @@ export type Database = {
           },
         ]
       }
+      editorial_content_items: {
+        Row: {
+          approval_at: string | null
+          approval_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          content_body: string | null
+          content_type: string
+          country_or_service: string | null
+          created_at: string
+          created_by: string | null
+          funnel_stage: string | null
+          id: string
+          is_demo: boolean
+          organization_id: string
+          owner_id: string | null
+          planned_for: string | null
+          published_at: string | null
+          review_notes: string | null
+          source_references: Json
+          status: string
+          target_audience: string | null
+          theme: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approval_at?: string | null
+          approval_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          content_body?: string | null
+          content_type: string
+          country_or_service?: string | null
+          created_at?: string
+          created_by?: string | null
+          funnel_stage?: string | null
+          id?: string
+          is_demo?: boolean
+          organization_id: string
+          owner_id?: string | null
+          planned_for?: string | null
+          published_at?: string | null
+          review_notes?: string | null
+          source_references?: Json
+          status?: string
+          target_audience?: string | null
+          theme?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approval_at?: string | null
+          approval_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          content_body?: string | null
+          content_type?: string
+          country_or_service?: string | null
+          created_at?: string
+          created_by?: string | null
+          funnel_stage?: string | null
+          id?: string
+          is_demo?: boolean
+          organization_id?: string
+          owner_id?: string | null
+          planned_for?: string | null
+          published_at?: string | null
+          review_notes?: string | null
+          source_references?: Json
+          status?: string
+          target_audience?: string | null
+          theme?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_content_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_content_links: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          editorial_content_item_id: string
+          id: string
+          link_type: string
+          linked_entity_id: string | null
+          linked_entity_type: string
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          editorial_content_item_id: string
+          id?: string
+          link_type: string
+          linked_entity_id?: string | null
+          linked_entity_type: string
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          editorial_content_item_id?: string
+          id?: string
+          link_type?: string
+          linked_entity_id?: string | null
+          linked_entity_type?: string
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_content_links_editorial_content_item_id_fkey"
+            columns: ["editorial_content_item_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_content_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_labels: {
         Row: {
           applied_at: string
@@ -9302,6 +9457,363 @@ export type Database = {
             columns: ["substituido_por_item_id"]
             isOneToOne: false
             referencedRelation: "master_library_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_template_categories: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          organization_id: string
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          organization_id: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          organization_id?: string
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_template_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_template_usage: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          bloqueado: boolean
+          bloqueios: Json
+          case_id: string | null
+          channel: string
+          created_at: string
+          created_by: string | null
+          external_evidence_reference: string | null
+          external_send_status: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          opportunity_id: string | null
+          organization_id: string
+          person_id: string | null
+          purpose: string | null
+          rendered_preview: string | null
+          template_id: string
+          template_version: number
+          updated_at: string
+          updated_by: string | null
+          used_at: string
+          used_by: string | null
+          variables_used: Json
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueado?: boolean
+          bloqueios?: Json
+          case_id?: string | null
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          external_evidence_reference?: string | null
+          external_send_status?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          opportunity_id?: string | null
+          organization_id: string
+          person_id?: string | null
+          purpose?: string | null
+          rendered_preview?: string | null
+          template_id: string
+          template_version: number
+          updated_at?: string
+          updated_by?: string | null
+          used_at?: string
+          used_by?: string | null
+          variables_used?: Json
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bloqueado?: boolean
+          bloqueios?: Json
+          case_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          external_evidence_reference?: string | null
+          external_send_status?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          opportunity_id?: string | null
+          organization_id?: string
+          person_id?: string | null
+          purpose?: string | null
+          rendered_preview?: string | null
+          template_id?: string
+          template_version?: number
+          updated_at?: string
+          updated_by?: string | null
+          used_at?: string
+          used_by?: string | null
+          variables_used?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_template_usage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_template_usage_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_template_versions: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          body_snapshot: string
+          change_reason: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          status_snapshot: string
+          subject_snapshot: string | null
+          template_id: string
+          updated_at: string
+          updated_by: string | null
+          variables_snapshot: Json
+          version: number
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          body_snapshot: string
+          change_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          status_snapshot: string
+          subject_snapshot?: string | null
+          template_id: string
+          updated_at?: string
+          updated_by?: string | null
+          variables_snapshot?: Json
+          version: number
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          body_snapshot?: string
+          change_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          status_snapshot?: string
+          subject_snapshot?: string | null
+          template_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables_snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_template_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          audience: string
+          body: string
+          category_id: string
+          channel: string
+          created_at: string
+          created_by: string | null
+          effective_from: string | null
+          effective_until: string | null
+          id: string
+          is_demo: boolean
+          key: string
+          name: string
+          objective: string | null
+          organization_id: string
+          prohibited_claims: Json
+          required_variables: Json
+          requires_gate_validation: boolean
+          requires_human_review: boolean
+          safe_variables: Json
+          stage_scope: string | null
+          status: string
+          subject: string | null
+          supersedes_template_id: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          audience: string
+          body: string
+          category_id: string
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          is_demo?: boolean
+          key: string
+          name: string
+          objective?: string | null
+          organization_id: string
+          prohibited_claims?: Json
+          required_variables?: Json
+          requires_gate_validation?: boolean
+          requires_human_review?: boolean
+          safe_variables?: Json
+          stage_scope?: string | null
+          status?: string
+          subject?: string | null
+          supersedes_template_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          audience?: string
+          body?: string
+          category_id?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string | null
+          effective_until?: string | null
+          id?: string
+          is_demo?: boolean
+          key?: string
+          name?: string
+          objective?: string | null
+          organization_id?: string
+          prohibited_claims?: Json
+          required_variables?: Json
+          requires_gate_validation?: boolean
+          requires_human_review?: boolean
+          safe_variables?: Json
+          stage_scope?: string | null
+          status?: string
+          subject?: string | null
+          supersedes_template_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "message_template_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_templates_supersedes_template_id_fkey"
+            columns: ["supersedes_template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -15135,6 +15647,18 @@ export type Database = {
       contract_pode_ler: { Args: { _org: string }; Returns: boolean }
       contract_pode_preparar: { Args: { _org: string }; Returns: boolean }
       fn_linguagem_proibida: { Args: { _txt: string }; Returns: string }
+      fn_validar_uso_template: {
+        Args: {
+          _actor_id?: string
+          _case_id?: string
+          _channel?: string
+          _lead_id?: string
+          _opportunity_id?: string
+          _person_id?: string
+          _template_id: string
+        }
+        Returns: Json
+      }
       gerar_case_id: {
         Args: { _ano?: number; _demo?: boolean; _modelo: string; _org: string }
         Returns: string
