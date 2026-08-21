@@ -38,12 +38,17 @@ export const solicitarLinkAcesso = createServerFn({ method: "POST" })
     });
 
     const userId = acesso.auth_user_id ?? (await helpers.garantirUsuarioAuth(email));
-    if (userId && !acesso.auth_user_id) {
-      await helpers.adminClient
-        .from("client_portal_access")
-        .update({ auth_user_id: userId })
-        .eq("id", acesso.id);
-    }
+
+    // Link de uso único e com expiração: cada envio zera o contador e reabre a janela.
+    await helpers.adminClient
+      .from("client_portal_access")
+      .update({
+        ...(userId && !acesso.auth_user_id ? { auth_user_id: userId } : {}),
+        magic_link_uses: 0,
+        magic_link_max_uses: 1,
+        magic_link_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      })
+      .eq("id", acesso.id);
 
     await helpers.enviarLinkMagico(email, redirectTo);
     await helpers.registrarEvento({
@@ -55,6 +60,7 @@ export const solicitarLinkAcesso = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
 
 /** Pós-autenticação: autenticar não é autorizar. Valida vínculo e devolve destino. */
 export const confirmarAcessoPortal = createServerFn({ method: "POST" })
