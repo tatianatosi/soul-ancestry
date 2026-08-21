@@ -161,6 +161,12 @@ function CasosPage() {
             >
               Pronto para ativar?
             </Link>
+            <Link
+              to="/nucleos"
+              className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+            >
+              Núcleos familiares
+            </Link>
 
             {podeEscrever && !linha["ativo"] ? (
               <button
