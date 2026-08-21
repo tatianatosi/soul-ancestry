@@ -44,7 +44,7 @@ function EsqueciSenha() {
           Se houver uma conta autorizada para este e-mail, enviaremos instruções.
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} method="post" action="?" className="space-y-4">
           <div>
             <label htmlFor="email" className="text-sm font-medium text-navy">
               E-mail

@@ -164,7 +164,7 @@ function PrimeiroAcesso() {
   }
 
   return (
-    <form onSubmit={criarConta} className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
+    <form onSubmit={criarConta} method="post" action="?" className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
       <p className="text-sm font-medium text-navy">Primeiro acesso da organização</p>
       <p className="text-xs text-navy/60">
         Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador. Depois disso, novos
