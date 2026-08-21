@@ -368,10 +368,26 @@ function BibliotecaPage() {
                             erro={erroVigencia}
                           />
                         )}
+                        {dependencias.length > 0 && (
+                          <div className="rounded-lg border border-border p-2">
+                            <p className="font-medium">Revalidar dependências após a troca de vigência</p>
+                            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                              {dependencias.map((d) => (
+                                <li key={d.id}>
+                                  • {d.titulo} {d.versao ? `(v${d.versao})` : ""} — {d.vinculo}: {d.pendencia}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         <p className="text-muted-foreground">
-                          Homologar ou tornar vigente exige versão, responsável e critério, e é validado no banco —
-                          um item sem esses dados é recusado no servidor.
+                          Homologar, tornar vigente, substituir, suspender ou arquivar exige perfil admin/operações e é
+                          validado no banco: versão, responsável, critério, sucessor recíproco e motivo de suspensão são
+                          obrigatórios, e cada transição grava evento append-only com ator, data, estado anterior e novo.
+                          Item substituído, suspenso ou arquivado continua legível, mas sai dos seletores de nova
+                          utilização (proposta, contrato, OS e templates).
                         </p>
+
                       </div>
                     )}
                   </div>
