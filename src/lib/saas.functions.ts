@@ -159,6 +159,15 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "alert_status",
     "dossie_mae_referencia",
     "case_service_id",
+    // Prompt 05 — eixos independentes e próxima ação completa
+    "situacao_financeira",
+    "situacao_operacional",
+    "proxima_acao_responsavel",
+    "proxima_acao_dependencia",
+    "proxima_acao_criterio_conclusao",
+    "data_prevista_contrato",
+    "data_prevista_pagamento",
+    "data_prevista_onboarding",
   ],
   case_members: [
     "case_id",
