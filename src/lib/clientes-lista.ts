@@ -87,14 +87,50 @@ export type PessoaLista = {
 export type Filtros = {
   estado: "ativos" | "suspensos" | "encerrados" | "arquivados";
   incluirPreClientes: boolean;
+  incluirParticipantes: boolean;
   incluirDemonstracoes: boolean;
 };
 
 export const FILTROS_PADRAO: Filtros = {
   estado: "ativos",
   incluirPreClientes: false,
+  incluirParticipantes: false,
   incluirDemonstracoes: false,
 };
+
+/** Grafia canônica de país — evita alternância Austria/Áustria nas listas. */
+const PAIS_CANONICO: Record<string, string> = {
+  austria: "Áustria",
+  italia: "Itália",
+  polonia: "Polônia",
+  romenia: "Romênia",
+  lituania: "Lituânia",
+  hungria: "Hungria",
+  espanha: "Espanha",
+  portugal: "Portugal",
+  alemanha: "Alemanha",
+};
+
+export function normalizarPais(valor: unknown): string | null {
+  if (typeof valor !== "string" || !valor.trim()) return null;
+  const bruto = valor.trim();
+  const chave = bruto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  return PAIS_CANONICO[chave] ?? bruto;
+}
+
+/** Onde o registro deve ser tratado enquanto não for cliente ativo. */
+export function destinoDoRegistro(p: PessoaLista): string {
+  if (p.is_demo) return "Registro de demonstração — fora das listas e métricas reais.";
+  if (p.classificacao === "participante_familiar")
+    return "Beneficiário/membro do núcleo — tratar em Núcleos e dossiês.";
+  if (p.classificacao === "pre_cliente")
+    return "Lead + caso em formalização — ainda não é cliente ativo.";
+  return "Cliente ativo.";
+}
+
 
 const ESTADO_ALVO: Record<Filtros["estado"], string> = {
   ativos: "ativo",
