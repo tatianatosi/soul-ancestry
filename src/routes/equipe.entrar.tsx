@@ -106,10 +106,10 @@ function EntrarEquipe() {
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
         <button
           type="submit"
-          disabled={carregando}
+          disabled={carregando || !pronto}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {carregando ? "Entrando…" : "Entrar"}
+          {!pronto ? "Carregando…" : carregando ? "Entrando…" : "Entrar"}
         </button>
       </form>
 
