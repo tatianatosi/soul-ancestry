@@ -63,6 +63,7 @@ function Painel() {
       <PainelHoje />
       <PendenciasCriticasPesquisa />
       <PainelDeskHoje />
+      <PainelFormalizacao />
       <PainelCadencia />
       <MetricasJornada />
       <PainelOnboardingJornada />
