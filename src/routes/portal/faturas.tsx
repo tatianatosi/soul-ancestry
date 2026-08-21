@@ -22,12 +22,18 @@ export const Route = createFileRoute("/portal/faturas")({
 
 function FaturasPage() {
   const carregar = useServerFn(minhasFaturas);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-faturas"], queryFn: () => carregar({}) });
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["portal-faturas"],
+    queryFn: () => carregar({}),
+    retry: false,
+  });
 
   return (
     <PortalShell titulo="Faturas" descricao="Aparecem apenas as faturas liberadas pela equipe.">
       {isLoading ? (
         <PortalVazio mensagem="Carregando…" />
+      ) : isError ? (
+        <PortalVazio mensagem="Este acesso não está autorizado a ver faturas. Fale com a equipe." />
       ) : !data || data.length === 0 ? (
         <PortalVazio mensagem="Nenhuma fatura liberada para visualização." />
       ) : (
