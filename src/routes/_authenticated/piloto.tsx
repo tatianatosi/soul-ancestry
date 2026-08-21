@@ -182,13 +182,41 @@ function Conteudo({ dados }: { dados: any }) {
         </Painel>
       ))}
 
-      <Painel titulo="Bloqueios críticos">
-        <div className="space-y-3">
-          {bloqueios.map((b) => (
-            <LinhaBloqueio key={b["id"]} bloqueio={b} aoSalvar={invalidar} />
+      <Painel titulo="Bloqueios críticos por gate">
+        <p className="text-sm text-navy/70">
+          Os bloqueios são resolvidos em sequência. Um gate posterior só deve ser trabalhado depois que o anterior
+          estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
+          automaticamente.
+        </p>
+        <div className="mt-3 space-y-4">
+          {agruparBloqueiosPorGate(bloqueios).map((g) => (
+            <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-serif text-base text-navy">
+                  Gate {g.gate.numero} — {g.gate.nome}: {g.total - g.abertos}/{g.total}
+                </p>
+                <Selo
+                  texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
+                  tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
+                />
+              </div>
+              <p className="text-xs text-navy/60">{g.gate.objetivo}</p>
+              <div className="mt-2 space-y-3">
+                {g.itens.map((i) => (
+                  <LinhaBloqueio
+                    key={i.bloqueio["id"]}
+                    bloqueio={i.bloqueio}
+                    requisito={i.requisito}
+                    dependenciaPendente={!g.liberado}
+                    aoSalvar={invalidar}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </Painel>
+
 
       <Painel titulo="Contrato aplicável">
         <p className="text-sm text-navy/80">
