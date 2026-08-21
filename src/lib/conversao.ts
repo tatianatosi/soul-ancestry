@@ -212,3 +212,138 @@ export function calcularMetricas(
 export const moeda = (v: number | null | undefined) =>
   v == null ? "—" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const percentual = (v: number | null | undefined) => (v == null ? "—" : `${(v * 100).toFixed(1)}%`);
+
+/* ─────────── Quadro normativo de métricas (fórmulas operacionais) ─────────── */
+
+export type LinhaQuadro = {
+  metrica: string;
+  formula: string;
+  valor: string;
+  detalhe?: string;
+};
+
+const razao = (a: number, b: number) => (b ? a / b : null);
+
+/** Quadro de 11 métricas comerciais derivadas da sequência de eventos. */
+export function calcularQuadroMetricas(m: MetricasConversao): LinhaQuadro[] {
+  const c = m.contagem;
+  const qualificados = c["lead_qualificado"] ?? 0;
+  const propostas = c["proposta_enviada"] ?? 0;
+  const pagamentos = c["pagamento_inicial_confirmado"] ?? 0;
+  return [
+    {
+      metrica: "Leads por origem",
+      formula: "Leads únicos por canal / campanha / período",
+      valor: String(c["lead_criado"] ?? 0),
+      detalhe: `${m.porCanal.length} canal(is) e ${m.porCampanha.length} campanha(s) com registro`,
+    },
+    {
+      metrica: "Custo por lead",
+      formula: "Investimento ÷ leads qualificados",
+      valor: moeda(razao(m.investimentoTotal, qualificados)),
+      detalhe: `${qualificados} lead(s) qualificado(s)`,
+    },
+    {
+      metrica: "Taxa de Discovery",
+      formula: "Discoveries realizadas ÷ leads qualificados",
+      valor: percentual(razao(c["discovery_realizada"] ?? 0, qualificados)),
+    },
+    {
+      metrica: "Taxa proposta",
+      formula: "Propostas enviadas ÷ Discoveries realizadas",
+      valor: percentual(razao(propostas, c["discovery_realizada"] ?? 0)),
+    },
+    {
+      metrica: "Aceite verbal",
+      formula: "Aceites verbais ÷ propostas enviadas",
+      valor: percentual(razao(c["aceite_verbal_confirmado"] ?? 0, propostas)),
+    },
+    {
+      metrica: "Confirmação formal",
+      formula: "Aceites formalmente registrados ÷ aceites verbais",
+      valor: percentual(razao(c["confirmacao_formal_recebida"] ?? 0, c["aceite_verbal_confirmado"] ?? 0)),
+      detalhe: `${Math.max(0, (c["aceite_verbal_confirmado"] ?? 0) - (c["confirmacao_formal_recebida"] ?? 0))} aceite(s) verbal(is) sem formalização`,
+    },
+    {
+      metrica: "Conversão em contrato",
+      formula: "Contratos assinados ÷ propostas enviadas",
+      valor: percentual(razao(c["contrato_assinado"] ?? 0, propostas)),
+    },
+    {
+      metrica: "Conversão em pagamento",
+      formula: "Pagamentos confirmados ÷ contratos assinados",
+      valor: percentual(razao(pagamentos, c["contrato_assinado"] ?? 0)),
+    },
+    {
+      metrica: "CAC",
+      formula: "Investimento atribuível ÷ clientes com pagamento inicial confirmado",
+      valor: moeda(m.cac),
+      detalhe: `${pagamentos} pagamento(s) inicial(is)`,
+    },
+    {
+      metrica: "Tempo de conversão",
+      formula: "Dias entre entrada do lead e pagamento inicial",
+      valor: m.tempoMedioEntradaPagamentoDias == null ? "—" : `${m.tempoMedioEntradaPagamentoDias.toFixed(1)} dias`,
+    },
+  ];
+}
+
+/* ─────────── Saúde comercial ─────────── */
+
+export type CasoSaude = {
+  id: string;
+  codigo?: string | null;
+  titulo?: string | null;
+  responsavel_principal?: string | null;
+  proxima_acao_codigo?: string | null;
+  proxima_acao?: string | null;
+  prazo_proxima_acao?: string | null;
+  eixo_comercial?: string | null;
+  eixo_formalizacao?: string | null;
+  updated_at?: string | null;
+};
+
+export type LeadSaude = {
+  id: string;
+  codigo?: string | null;
+  nome?: string | null;
+  status?: string | null;
+  proxima_acao?: string | null;
+  prazo_proxima_acao?: string | null;
+};
+
+export type SaudeComercial = {
+  leadsSemProximaAcao: { id: string; rotulo: string }[];
+  followupsVencidos: { id: string; rotulo: string; prazo: string }[];
+  propostasSemResposta: { id: string; rotulo: string }[];
+  aceiteVerbalSemFormalizacao: { id: string; rotulo: string }[];
+};
+
+const ATIVO_ENCERRADO = ["perdido", "descartado", "arquivado", "convertido", "ganho"];
+
+export function calcularSaudeComercial(leads: LeadSaude[], casos: CasoSaude[], agora = Date.now()): SaudeComercial {
+  const rotuloCaso = (c: CasoSaude) => c.titulo || c.codigo || c.id;
+  const ativos = leads.filter((l) => !ATIVO_ENCERRADO.includes(String(l.status ?? "").toLowerCase()));
+
+  const followupsVencidos = [
+    ...ativos
+      .filter((l) => l.prazo_proxima_acao && new Date(l.prazo_proxima_acao).getTime() < agora)
+      .map((l) => ({ id: l.id, rotulo: l.nome || l.codigo || l.id, prazo: l.prazo_proxima_acao as string })),
+    ...casos
+      .filter((c) => c.prazo_proxima_acao && new Date(c.prazo_proxima_acao).getTime() < agora)
+      .map((c) => ({ id: c.id, rotulo: rotuloCaso(c), prazo: c.prazo_proxima_acao as string })),
+  ];
+
+  return {
+    leadsSemProximaAcao: ativos
+      .filter((l) => !l.proxima_acao)
+      .map((l) => ({ id: l.id, rotulo: l.nome || l.codigo || l.id })),
+    followupsVencidos,
+    propostasSemResposta: casos
+      .filter((c) => c.eixo_comercial === "proposta_enviada")
+      .map((c) => ({ id: c.id, rotulo: rotuloCaso(c) })),
+    aceiteVerbalSemFormalizacao: casos
+      .filter((c) => c.eixo_comercial === "aceite_verbal_confirmado")
+      .map((c) => ({ id: c.id, rotulo: rotuloCaso(c) })),
+  };
+}
