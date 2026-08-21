@@ -8,13 +8,15 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import {
-  casosHoje,
+  cadenciaRelevante,
+  chavesExibidas,
   comercialHoje,
   consolidarDia,
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
   textoDiasSemTouchpoint,
+  textoPrazo,
   type ItemDia,
 } from "@/lib/painel-dia";
 
@@ -38,7 +40,7 @@ function Linha({ item }: { item: ItemDia }) {
     <li className="rounded-lg border border-navy/10 px-3 py-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <LinkItem item={item}>{item.rotulo}</LinkItem>
-        <span className="text-xs text-navy/60">{item.data ? item.data.split("-").reverse().join("/") : "sem prazo"}</span>
+        <span className="text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
       <p className="mt-0.5 text-xs text-navy/65">{item.acao}</p>
       <p className="mt-0.5 text-xs">
@@ -59,6 +61,7 @@ function Linha({ item }: { item: ItemDia }) {
     </li>
   );
 }
+
 
 /** Painel Hoje enxuto: fila priorizada, exceções com dono, comercial e casos do dia. */
 export function PainelDia() {
