@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
+import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
