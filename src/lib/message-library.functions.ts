@@ -86,6 +86,15 @@ export interface VersaoTemplate {
   criadoEm: string;
 }
 
+export interface UsoTemplate {
+  id: string;
+  versao: number;
+  canal: string;
+  finalidade: string | null;
+  situacao: string;
+  em: string;
+}
+
 export interface ConteudoEditorial {
   id: string;
   titulo: string;
@@ -485,7 +494,7 @@ export const listarUsosTemplate = createServerFn({ method: "GET" })
     if (!data?.templateId) throw new Error("Modelo inválido.");
     return { templateId: data.templateId };
   })
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context, data }): Promise<{ usos: UsoTemplate[] }> => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase);
