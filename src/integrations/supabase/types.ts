@@ -5090,6 +5090,7 @@ export type Database = {
           escopo_incluido_resumido: string | null
           estado_de_autorizacao_pesquisa: string
           fase: string | null
+          finalidade_registro: string | null
           hipotese_elegibilidade: string | null
           hipotese_trabalho_interna: string | null
           id: string
@@ -5109,6 +5110,7 @@ export type Database = {
           pagamento_confirmado: boolean
           pais: string | null
           pais_linha_prioritaria: string | null
+          papel_registro: string
           piloto: boolean
           prazo_proxima_acao: string | null
           preparacao_status: string | null
@@ -5203,6 +5205,7 @@ export type Database = {
           escopo_incluido_resumido?: string | null
           estado_de_autorizacao_pesquisa?: string
           fase?: string | null
+          finalidade_registro?: string | null
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
           id?: string
@@ -5222,6 +5225,7 @@ export type Database = {
           pagamento_confirmado?: boolean
           pais?: string | null
           pais_linha_prioritaria?: string | null
+          papel_registro?: string
           piloto?: boolean
           prazo_proxima_acao?: string | null
           preparacao_status?: string | null
@@ -5316,6 +5320,7 @@ export type Database = {
           escopo_incluido_resumido?: string | null
           estado_de_autorizacao_pesquisa?: string
           fase?: string | null
+          finalidade_registro?: string | null
           hipotese_elegibilidade?: string | null
           hipotese_trabalho_interna?: string | null
           id?: string
@@ -5335,6 +5340,7 @@ export type Database = {
           pagamento_confirmado?: boolean
           pais?: string | null
           pais_linha_prioritaria?: string | null
+          papel_registro?: string
           piloto?: boolean
           prazo_proxima_acao?: string | null
           preparacao_status?: string | null
