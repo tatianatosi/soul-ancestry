@@ -304,6 +304,90 @@ export const NIVEIS_INTENCAO: Opcao[] = [
   { valor: "sem_intencao", rotulo: "Sem intenção atual" },
 ];
 
+/* Consentimento de gravação/transcrição (CA-LOVABLE-CRM-Discovery v1.0) */
+export const CONSENTIMENTO_STATUS: Opcao[] = [
+  { valor: "nao_solicitado", rotulo: "Não solicitado" },
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "concedido", rotulo: "Concedido" },
+  { valor: "recusado", rotulo: "Recusado" },
+];
+
+export const CANAIS_CONSENTIMENTO: Opcao[] = [
+  { valor: "verbal_em_call", rotulo: "Verbal registrado na call" },
+  { valor: "whatsapp", rotulo: "WhatsApp" },
+  { valor: "email", rotulo: "E-mail" },
+  { valor: "formulario", rotulo: "Formulário" },
+  { valor: "termo_assinado", rotulo: "Termo assinado" },
+];
+
+export const PAISES_LINHA_PRIORITARIA: Opcao[] = [
+  { valor: "italia", rotulo: "Itália" },
+  { valor: "portugal", rotulo: "Portugal" },
+  { valor: "espanha", rotulo: "Espanha" },
+  { valor: "alemanha", rotulo: "Alemanha" },
+  { valor: "austria", rotulo: "Áustria" },
+  { valor: "polonia", rotulo: "Polônia" },
+  { valor: "hungria", rotulo: "Hungria" },
+  { valor: "luxemburgo", rotulo: "Luxemburgo" },
+  { valor: "croacia", rotulo: "Croácia" },
+  { valor: "romenia", rotulo: "Romênia" },
+  { valor: "multipais", rotulo: "Multipaís" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const PESQUISA_PREVIA_AUTORIZACAO: Opcao[] = [
+  { valor: "nao_solicitada", rotulo: "Não solicitada" },
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "registrada", rotulo: "Registrada" },
+  { valor: "nao_autorizada", rotulo: "Não autorizada" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+];
+
+export const PESQUISA_PREVIA_ESCOPO: Opcao[] = [
+  { valor: "triagem_publica", rotulo: "Triagem pública" },
+  { valor: "documentos_fornecidos", rotulo: "Documentos fornecidos" },
+  { valor: "pesquisa_genealogica", rotulo: "Pesquisa genealógica" },
+  { valor: "outro", rotulo: "Outro" },
+];
+
+export const DOCUMENTOS_CHAVE: Opcao[] = [
+  { valor: "certidao_nascimento", rotulo: "Certidão de nascimento" },
+  { valor: "certidao_casamento", rotulo: "Certidão de casamento" },
+  { valor: "certidao_obito", rotulo: "Certidão de óbito" },
+  { valor: "passaporte", rotulo: "Passaporte" },
+  { valor: "registro_imigracao", rotulo: "Registro de imigração" },
+  { valor: "registro_militar", rotulo: "Registro militar" },
+  { valor: "registro_religioso", rotulo: "Registro religioso" },
+  { valor: "naturalizacao_negativa", rotulo: "Naturalização/negativa de naturalização" },
+  { valor: "registro_consular", rotulo: "Registro consular" },
+  { valor: "prova_perseguicao", rotulo: "Prova de perseguição" },
+  { valor: "documento_pessoal_requerente", rotulo: "Documento pessoal do requerente" },
+  { valor: "nenhum_ainda", rotulo: "Nenhum ainda" },
+];
+
+/** Status de uso da trilha jurídica de referência (Biblioteca Mestre). */
+export const STATUS_TRILHA: Opcao[] = [
+  { valor: "aberta", rotulo: "Aberta" },
+  { valor: "aberta_com_requisito", rotulo: "Aberta com requisito específico" },
+  { valor: "aberta_com_prazo", rotulo: "Aberta com prazo" },
+  { valor: "restrita", rotulo: "Restrita" },
+  { valor: "encerrada", rotulo: "Encerrada para novos pedidos" },
+  { valor: "em_confirmacao_juridica", rotulo: "Em confirmação jurídica" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+];
+
+/** Situação do marco jurídico de referência. */
+export const STATUS_MARCO: Opcao[] = [
+  { valor: "vigente", rotulo: "Vigente" },
+  { valor: "a_revisar", rotulo: "A revisar" },
+  { valor: "desatualizado", rotulo: "Desatualizado" },
+  { valor: "historico", rotulo: "Histórico" },
+  { valor: "encerrado", rotulo: "Encerrado" },
+];
+
+/** Marcos que não podem sustentar rota/protocolo nem comunicação externa. */
+export const MARCOS_BLOQUEIA_EXTERNO = ["a_revisar", "desatualizado", "encerrado"];
+
 /** Todos os catálogos classificatórios por campo. Entrada fora da lista é rejeitada. */
 export const CATALOGOS: Record<string, Opcao[]> = {
   area_responsavel: AREAS_RESPONSAVEIS,
