@@ -1,3 +1,5 @@
+import { PainelCatalogo } from "@/components/painel/painel-catalogo";
+import { PainelTop30 } from "@/components/painel/painel-top30";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -6,8 +8,6 @@ import { useState } from "react";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
-import { PainelCatalogo } from "@/components/painel/painel-catalogo";
-import { PainelTop30 } from "@/components/painel/painel-top30";
   ROTULO_STATUS_CONTRATO,
   ROTULO_TIPO_INSTRUMENTO,
   Selo,
