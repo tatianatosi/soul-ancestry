@@ -1,115 +1,95 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 import {
+  NUCLEO_AMBIENTES,
+  NUCLEO_DOSSIE_STATUS,
+  NUCLEO_NIVEIS_ACESSO,
+  NUCLEO_PAPEIS,
   listarNucleos,
   salvarDossieNucleo,
-  NUCLEO_AMBIENTES,
-  NUCLEO_NIVEIS_ACESSO,
-  NUCLEO_DOSSIE_STATUS,
 } from "@/lib/nucleos-desk.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
     meta: [
-      { title: "Núcleos familiares e dossiês — Clube Ancestral" },
+      { title: "Núcleos familiares — Clube Ancestral" },
       {
         name: "description",
-        content: "Núcleos familiares, requerentes vinculados e cadastro controlado do dossiê-mãe.",
+        content: "Núcleos familiares, requerentes vinculados e situação do dossiê-mãe autorizado.",
       },
-      { property: "og:title", content: "Núcleos familiares e dossiês — Clube Ancestral" },
-      {
-        property: "og:description",
-        content: "Cadastro do dossiê-mãe com ambiente autorizado, nível de acesso e responsável nominal.",
-      },
+      { property: "og:title", content: "Núcleos familiares — Clube Ancestral" },
+      { property: "og:description", content: "Dossiê-mãe único por núcleo e requerentes individuais." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: Nucleos,
+  component: NucleosPage,
 });
 
-const AMBIENTE_LABEL: Record<string, string> = {
-  drive_clube_ancestral: "Drive Clube Ancestral",
-  desk_intelligence: "Desk Intelligence",
-  acervo_interno: "Acervo interno",
+const rotulo = (v: string) =>
+  v.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+
+const opcoes = (lista: readonly string[]) => lista.map((v) => ({ valor: v, rotulo: rotulo(v) }));
+
+const CORES_STATUS: Record<string, string> = {
+  nao_iniciado: "bg-navy/10 text-navy/70",
+  em_preparacao: "bg-gold/20 text-navy",
+  ativo: "bg-emerald-100 text-emerald-800",
+  arquivado: "bg-navy/5 text-navy/50",
 };
 
-const ACESSO_LABEL: Record<string, string> = {
-  restrito: "Restrito",
-  equipe: "Equipe",
-  coordenacao: "Coordenação",
+type Rascunho = {
+  dossie_mae: string;
+  ambiente: string;
+  nivel_acesso: string;
+  link_interno: string;
+  responsavel_nome: string;
+  dossie_status: string;
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  nao_iniciado: "Não iniciado",
-  em_preparacao: "Em preparação",
-  ativo: "Ativo",
-  arquivado: "Arquivado",
-};
-
-const PAPEL_LABEL: Record<string, string> = {
-  contratante_signatario: "Contratante signatário",
-  requerente: "Requerente",
-  dependente: "Dependente",
-  referencia_genealogica: "Referência genealógica",
-};
-
-type Nucleo = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-function Nucleos() {
+function NucleosPage() {
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarNucleos);
   const salvar = useServerFn(salvarDossieNucleo);
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
   const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState("");
-  const [editando, setEditando] = useState<string | null>(null);
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [filtroStatus, setFiltroStatus] = useState("");
+  const [selecionado, setSelecionado] = useState<string | null>(null);
+  const [rascunho, setRascunho] = useState<Rascunho | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
-  const lista = useMemo(() => {
-    const filtro = busca.trim().toLowerCase();
-    return ((q.data ?? []) as Nucleo[]).filter((n) => {
-      const statusOk = !statusFiltro || n.dossie_status === statusFiltro;
-      const texto = `${n.nome ?? ""} ${n.dossie_mae ?? ""} ${n.contratante_nome ?? ""} ${n.caso?.codigo ?? ""} ${(n.membros ?? [])
-        .map((m: Nucleo) => m.nome)
-        .join(" ")}`.toLowerCase();
-      return statusOk && (!filtro || texto.includes(filtro));
+  const nucleos = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return (q.data ?? []).filter((n) => {
+      if (filtroStatus && (n.dossie_status ?? "nao_iniciado") !== filtroStatus) return false;
+      if (!termo) return true;
+      const alvo = [n.nome, n.contratante_nome, n.dossie_mae, n.caso?.codigo, n.caso?.titulo]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return alvo.includes(termo);
     });
-  }, [q.data, busca, statusFiltro]);
+  }, [q.data, busca, filtroStatus]);
 
-  const mut = useMutation({
-    mutationFn: (dados: Record<string, string>) =>
-      salvar({
-        data: {
-          nucleoId: dados.nucleoId as string,
-          dossie_mae: dados.dossie_mae ?? "",
-          ambiente: dados.ambiente ?? "",
-          nivel_acesso: dados.nivel_acesso ?? "",
-          link_interno: dados.link_interno ?? "",
-          responsavel_nome: dados.responsavel_nome ?? "",
-          dossie_status: dados.dossie_status ?? "nao_iniciado",
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Dossiê-mãe atualizado.");
-      setEditando(null);
-      queryClient.invalidateQueries({ queryKey: ["nucleos-desk"] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao salvar."),
-  });
+  const atual = useMemo(
+    () => (q.data ?? []).find((n) => n.id === selecionado) ?? null,
+    [q.data, selecionado],
+  );
 
-  function abrirEdicao(n: Nucleo) {
-    setEditando(n.id);
-    setForm({
-      nucleoId: n.id,
+  const abrir = (n: NonNullable<typeof atual>) => {
+    setSelecionado(n.id);
+    setErro(null);
+    setOk(null);
+    setRascunho({
       dossie_mae: n.dossie_mae ?? "",
       ambiente: n.ambiente ?? "",
       nivel_acesso: n.nivel_acesso ?? "",
@@ -117,207 +97,203 @@ function Nucleos() {
       responsavel_nome: n.responsavel_nome ?? "",
       dossie_status: n.dossie_status ?? "nao_iniciado",
     });
-  }
+  };
 
-  const inputCls =
-    "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold";
+  const m = useMutation({
+    mutationFn: (data: Rascunho & { nucleoId: string }) => salvar({ data }),
+    onSuccess: async () => {
+      setErro(null);
+      setOk("Dossiê-mãe atualizado.");
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+    },
+    onError: (e: Error) => {
+      setOk(null);
+      setErro(e.message);
+    },
+  });
 
   return (
     <SaasShell
-      titulo="Núcleos familiares e dossiês"
-      descricao="Um dossiê-mãe por núcleo. Campos classificatórios são listas fechadas; dossiê ativo exige identificação, ambiente autorizado, link interno, nível de acesso e responsável nominal."
+      titulo="Núcleos familiares"
+      descricao="Um dossiê-mãe por núcleo. Requerentes têm registro individual vinculado."
     >
-      {q.isLoading ? (
-        <EstadoVazio mensagem="Carregando núcleos…" />
-      ) : q.isError ? (
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."} />
-      ) : (
-        <>
-          <div className="mb-5 flex flex-wrap gap-3">
-            <input
-              className={`${inputCls} max-w-sm`}
-              placeholder="Buscar por núcleo, dossiê, caso ou requerente"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+      <div className="space-y-5">
+        <Secao titulo="Buscar núcleos" descricao="Filtre por nome, contratante, dossiê ou caso vinculado.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Texto label="Busca" valor={busca} onChange={setBusca} />
+            <Selecao
+              label="Situação do dossiê"
+              valor={filtroStatus}
+              opcoes={opcoes(NUCLEO_DOSSIE_STATUS)}
+              onChange={setFiltroStatus}
             />
-            <select className={`${inputCls} max-w-[220px]`} value={statusFiltro} onChange={(e) => setStatusFiltro(e.target.value)}>
-              <option value="">Todas as situações do dossiê</option>
-              {NUCLEO_DOSSIE_STATUS.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABEL[s]}
-                </option>
-              ))}
-            </select>
           </div>
+        </Secao>
 
-          {!lista.length ? (
-            <EstadoVazio mensagem="Nenhum núcleo familiar encontrado com os filtros atuais." />
-          ) : (
-            <div className="space-y-4">
-              {lista.map((n) => (
-                <section key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="font-serif text-lg text-navy">{n.nome}</h2>
-                      <p className="text-xs text-navy/60">
-                        {n.caso ? `${n.caso.codigo} · ${n.caso.titulo}` : "Sem caso vinculado"}
-                        {n.contratante_nome ? ` · Contratante: ${n.contratante_nome}` : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full border border-navy/15 px-3 py-1 text-[11px] uppercase tracking-wide text-navy/70">
-                        Dossiê: {STATUS_LABEL[n.dossie_status] ?? n.dossie_status}
-                      </span>
-                      {podeEscrever ? (
-                        <button
-                          className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy hover:bg-navy/5"
-                          onClick={() => (editando === n.id ? setEditando(null) : abrirEdicao(n))}
-                        >
-                          {editando === n.id ? "Cancelar" : "Editar dossiê"}
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
+        {q.isLoading ? <p className="text-sm text-navy/60">Carregando núcleos…</p> : null}
+        {q.error ? <p className="text-sm text-red-700">{(q.error as Error).message}</p> : null}
+        {!q.isLoading && !q.error && nucleos.length === 0 ? (
+          <p className="text-sm text-navy/60">Nenhum núcleo familiar encontrado com os filtros atuais.</p>
+        ) : null}
 
-                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-navy/50">Dossiê-mãe</dt>
-                      <dd>{n.dossie_mae || "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-navy/50">Ambiente autorizado</dt>
-                      <dd>{n.ambiente ? (AMBIENTE_LABEL[n.ambiente] ?? n.ambiente) : "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-navy/50">Nível de acesso</dt>
-                      <dd>{n.nivel_acesso ? (ACESSO_LABEL[n.nivel_acesso] ?? n.nivel_acesso) : "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-navy/50">Responsável nominal</dt>
-                      <dd>{n.responsavel_nome || "—"}</dd>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <dt className="text-[11px] uppercase tracking-wide text-navy/50">Link interno</dt>
-                      <dd className="truncate">{n.link_interno || "—"}</dd>
-                    </div>
-                  </dl>
-
-                  {editando === n.id ? (
-                    <form
-                      className="mt-4 grid gap-3 rounded-lg border border-navy/10 bg-cream/50 p-4 sm:grid-cols-2"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        mut.mutate(form);
-                      }}
-                    >
-                      <label className="text-sm">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">ID/nome do dossiê-mãe</span>
-                        <input
-                          className={inputCls}
-                          value={form.dossie_mae ?? ""}
-                          onChange={(e) => setForm((f) => ({ ...f, dossie_mae: e.target.value }))}
-                        />
-                      </label>
-                      <label className="text-sm">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Responsável nominal</span>
-                        <input
-                          className={inputCls}
-                          value={form.responsavel_nome ?? ""}
-                          onChange={(e) => setForm((f) => ({ ...f, responsavel_nome: e.target.value }))}
-                        />
-                      </label>
-                      <label className="text-sm">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Ambiente autorizado</span>
-                        <select
-                          className={inputCls}
-                          value={form.ambiente ?? ""}
-                          onChange={(e) => setForm((f) => ({ ...f, ambiente: e.target.value }))}
-                        >
-                          <option value="">Selecionar</option>
-                          {NUCLEO_AMBIENTES.map((a) => (
-                            <option key={a} value={a}>
-                              {AMBIENTE_LABEL[a]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-sm">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Nível de acesso</span>
-                        <select
-                          className={inputCls}
-                          value={form.nivel_acesso ?? ""}
-                          onChange={(e) => setForm((f) => ({ ...f, nivel_acesso: e.target.value }))}
-                        >
-                          <option value="">Selecionar</option>
-                          {NUCLEO_NIVEIS_ACESSO.map((a) => (
-                            <option key={a} value={a}>
-                              {ACESSO_LABEL[a]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-sm sm:col-span-2">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Link interno do dossiê</span>
-                        <input
-                          className={inputCls}
-                          placeholder="https://…"
-                          value={form.link_interno ?? ""}
-                          onChange={(e) => setForm((f) => ({ ...f, link_interno: e.target.value }))}
-                        />
-                      </label>
-                      <label className="text-sm">
-                        <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Situação do dossiê</span>
-                        <select
-                          className={inputCls}
-                          value={form.dossie_status ?? "nao_iniciado"}
-                          onChange={(e) => setForm((f) => ({ ...f, dossie_status: e.target.value }))}
-                        >
-                          {NUCLEO_DOSSIE_STATUS.map((s) => (
-                            <option key={s} value={s}>
-                              {STATUS_LABEL[s]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <div className="flex items-end">
-                        <button
-                          type="submit"
-                          disabled={mut.isPending}
-                          className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-60"
-                        >
-                          {mut.isPending ? "Salvando…" : "Salvar dossiê"}
-                        </button>
-                      </div>
-                    </form>
-                  ) : null}
-
-                  <div className="mt-4">
-                    <p className="mb-2 text-[11px] uppercase tracking-wide text-navy/50">
-                      Requerentes e membros ({(n.membros ?? []).length})
+        <div className="grid gap-4 lg:grid-cols-2">
+          {nucleos.map((n) => {
+            const status = n.dossie_status ?? "nao_iniciado";
+            return (
+              <article key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-serif text-lg text-navy">{n.nome}</h3>
+                    <p className="text-xs text-navy/55">
+                      {n.contratante_nome ? `Contratante: ${n.contratante_nome}` : "Contratante não definido"}
                     </p>
-                    {!(n.membros ?? []).length ? (
-                      <p className="text-sm text-navy/60">Nenhum requerente vinculado ao núcleo.</p>
-                    ) : (
-                      <ul className="grid gap-2 sm:grid-cols-2">
-                        {(n.membros as Nucleo[]).map((m) => (
-                          <li key={m.id} className="rounded-lg border border-navy/10 px-3 py-2 text-sm">
-                            <span className="font-medium">{m.nome}</span>
-                            <span className="block text-xs text-navy/60">
-                              {PAPEL_LABEL[m.papel] ?? m.papel}
-                              {m.vinculo ? ` · ${m.vinculo}` : ""}
-                              {m.processo ? ` · ${m.processo}` : ""}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                   </div>
-                </section>
-              ))}
+                  <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] ${CORES_STATUS[status] ?? ""}`}>
+                    {rotulo(status)}
+                  </span>
+                </div>
+
+                {n.caso ? (
+                  <p className="mt-2 text-xs text-navy/60">
+                    Caso vinculado:{" "}
+                    <Link
+                      to="/casos/$caseId"
+                      params={{ caseId: n.caso.id }}
+                      className="text-navy underline underline-offset-2"
+                    >
+                      {n.caso.codigo ?? n.caso.titulo}
+                    </Link>
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-navy/45">Sem caso operacional vinculado.</p>
+                )}
+
+                <div className="mt-3 space-y-1 text-xs text-navy/70">
+                  <p>Dossiê-mãe: {n.dossie_mae || "—"}</p>
+                  <p>
+                    Ambiente: {n.ambiente ? rotulo(n.ambiente) : "—"} · Acesso:{" "}
+                    {n.nivel_acesso ? rotulo(n.nivel_acesso) : "—"}
+                  </p>
+                  <p>Responsável: {n.responsavel_nome || "—"}</p>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/45">Requerentes e vínculos</p>
+                  {n.membros.length === 0 ? (
+                    <p className="text-xs text-navy/50">Nenhum requerente cadastrado.</p>
+                  ) : (
+                    <ul className="mt-1 space-y-1">
+                      {NUCLEO_PAPEIS.filter((p) => n.membros.some((m2) => m2.papel === p)).map((papel) => (
+                        <li key={papel} className="text-xs text-navy/70">
+                          <span className="font-medium text-navy">{rotulo(papel)}:</span>{" "}
+                          {n.membros
+                            .filter((m2) => m2.papel === papel)
+                            .map((m2) => m2.nome)
+                            .join(", ")}
+                        </li>
+                      ))}
+                      {n.membros.some((m2) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel)) ? (
+                        <li className="text-xs text-navy/70">
+                          <span className="font-medium text-navy">Outros:</span>{" "}
+                          {n.membros
+                            .filter((m2) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel))
+                            .map((m2) => m2.nome)
+                            .join(", ")}
+                        </li>
+                      ) : null}
+                    </ul>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => abrir(n)}
+                  className="mt-4 rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy hover:border-gold"
+                >
+                  {selecionado === n.id ? "Editando dossiê-mãe" : "Editar dossiê-mãe"}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+
+        {atual && rascunho ? (
+          <Secao
+            titulo={`Dossiê-mãe — ${atual.nome}`}
+            descricao="Campos classificatórios usam listas controladas. O dossiê só pode ficar ativo com ambiente, link interno, nível de acesso e responsável nominal."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Texto
+                label="ID/nome do dossiê-mãe"
+                valor={rascunho.dossie_mae}
+                onChange={(v) => setRascunho({ ...rascunho, dossie_mae: v })}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Ambiente autorizado"
+                valor={rascunho.ambiente}
+                opcoes={opcoes(NUCLEO_AMBIENTES)}
+                onChange={(v) => setRascunho({ ...rascunho, ambiente: v })}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Nível de acesso"
+                valor={rascunho.nivel_acesso}
+                opcoes={opcoes(NUCLEO_NIVEIS_ACESSO)}
+                onChange={(v) => setRascunho({ ...rascunho, nivel_acesso: v })}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Link interno do dossiê"
+                valor={rascunho.link_interno}
+                onChange={(v) => setRascunho({ ...rascunho, link_interno: v })}
+                desabilitado={!podeEscrever}
+                ajuda="URL do ambiente autorizado. Arquivos não são replicados no Desk."
+              />
+              <Texto
+                label="Responsável nominal"
+                valor={rascunho.responsavel_nome}
+                onChange={(v) => setRascunho({ ...rascunho, responsavel_nome: v })}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Situação do dossiê"
+                valor={rascunho.dossie_status}
+                opcoes={opcoes(NUCLEO_DOSSIE_STATUS)}
+                onChange={(v) => setRascunho({ ...rascunho, dossie_status: v })}
+                desabilitado={!podeEscrever}
+              />
             </div>
-          )}
-        </>
-      )}
+
+            {erro ? <p className="mt-3 text-sm text-red-700">{erro}</p> : null}
+            {ok ? <p className="mt-3 text-sm text-emerald-700">{ok}</p> : null}
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                disabled={!podeEscrever || m.isPending}
+                onClick={() => m.mutate({ nucleoId: atual.id, ...rascunho })}
+                className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
+              >
+                {m.isPending ? "Gravando…" : "Salvar dossiê-mãe"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelecionado(null);
+                  setRascunho(null);
+                }}
+                className="rounded-lg border border-navy/15 px-4 py-2 text-sm text-navy"
+              >
+                Fechar
+              </button>
+            </div>
+            {!podeEscrever ? (
+              <p className="mt-2 text-xs text-navy/50">Seu perfil tem acesso somente de leitura.</p>
+            ) : null}
+          </Secao>
+        ) : null}
+      </div>
     </SaasShell>
   );
 }
