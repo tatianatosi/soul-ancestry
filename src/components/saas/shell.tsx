@@ -143,6 +143,7 @@ const NAV: readonly SecaoNav[] = [
     agrupador: true,
     sub: [
       { to: "/biblioteca", label: "Biblioteca Mestre" },
+      { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
       { to: "/fontes-genealogicas", label: "Bases Genealógicas" },
       { to: "/governanca/matriz-conformidade", label: "Matrizes conceituais" },
       { to: "/governanca/indicadores", label: "Indicadores e métricas" },
