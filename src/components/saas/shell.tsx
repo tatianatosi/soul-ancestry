@@ -188,13 +188,20 @@ export function SaasShell({
 
 
 
-  const itens = ehAdmin
-    ? [
-        ...NAV,
-        { to: "/equipe", label: "Usuários e papéis", icon: UsersRound, sub: [] } as const,
-        { to: "/auditoria", label: "Auditoria", icon: ShieldCheck, sub: [] } as const,
-      ]
-    : NAV;
+  // Admin não ganha abas novas: os módulos administrativos entram como
+  // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
+  const itens = NAV.map((item) =>
+    ehAdmin && item.to === "/biblioteca"
+      ? {
+          ...item,
+          sub: [
+            ...item.sub,
+            { to: "/equipe", label: "Usuários e papéis" },
+            { to: "/auditoria", label: "Auditoria" },
+          ],
+        }
+      : item,
+  );
 
 
   return (
