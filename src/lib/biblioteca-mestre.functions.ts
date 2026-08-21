@@ -298,17 +298,44 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Cliente;
     const tabela = FONTES_BIBLIOTECA[data.fonte];
 
+    // Leitura prévia sob RLS: item de outra organização não é arquivável e o
+    // acesso negado é auditado sem expor conteúdo do registro.
+    const { data: atual } = await supabase
+      .from(tabela)
+      .select("id,organization_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!atual) {
+      await registrarAuditoriaBiblioteca(supabase, {
+        organizationId: null,
+        userId: context.userId,
+        acao: "biblioteca_acesso_negado",
+        entidadeId: data.id,
+        metadados: { fonte: data.fonte, tentativa: "arquivar" },
+      });
+      throw new Error("Item não encontrado nesta organização.");
+    }
+
     // Arquivamento lógico: nunca há exclusão física de item da Biblioteca Mestre.
     const patch: Record<string, unknown> = {
       archived_at: new Date().toISOString(),
       archive_motivo: data.motivo,
     };
+    if (data.fonte === "acervo") patch["archived_by"] = context.userId;
     if (data.fonte === "acervo" || data.fonte === "juridico") patch["status"] = "arquivado";
     if (data.fonte === "dicionarios" || data.fonte === "trilhas") patch["ativo"] = false;
     if (data.fonte === "top30") patch["elegivel_para_proposta"] = false;
 
     const { error } = await supabase.from(tabela).update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    await registrarAuditoriaBiblioteca(supabase, {
+      organizationId: atual.organization_id ?? null,
+      userId: context.userId,
+      acao: "biblioteca_arquivamento",
+      entidadeId: data.id,
+      metadados: { fonte: data.fonte, motivo: data.motivo },
+    });
     return { ok: true };
   });
 
@@ -330,8 +357,9 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       if ((data.estado === "homologado" || data.estado === "vigente") && !data.criterio?.trim()) {
         throw new Error("Homologação exige critério ou evidência registrada.");
       }
-      if (data.estado === "substituido" && !data.sucessorId) {
-        throw new Error("Item substituído deve apontar para o item sucessor.");
+      if (data.estado === "substituido") {
+        if (!data.sucessorId) throw new Error("Item substituído deve apontar para o item sucessor.");
+        if (data.sucessorId === data.id) throw new Error("Um item não pode substituir a si mesmo.");
       }
       return {
         id: data.id,
@@ -343,11 +371,96 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const supabase = context.supabase as unknown as Cliente;
+
+    const { data: atual } = await supabase
+      .from("master_library_items")
+      .select("id,organization_id,vigencia_estado,versao,owner,substituido_por_item_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!atual) {
+      await registrarAuditoriaBiblioteca(supabase, {
+        organizationId: null,
+        userId: context.userId,
+        acao: "biblioteca_acesso_negado",
+        entidadeId: data.id,
+        metadados: { tentativa: "vigencia", estado: data.estado },
+      });
+      throw new Error("Item não encontrado nesta organização.");
+    }
+    if ((data.estado === "homologado" || data.estado === "vigente") && (!atual.versao || !atual.owner)) {
+      throw new Error("Item sem versão e responsável não pode ser homologado ou tornado vigente.");
+    }
+
     const patch: Record<string, unknown> = { vigencia_estado: data.estado };
     if (data.criterio) patch["homologacao_criterio"] = data.criterio;
-    if (data.estado === "substituido") patch["substituido_por_item_id"] = data.sucessorId;
+    if (data.estado === "homologado" || data.estado === "vigente") {
+      patch["homologado_por"] = context.userId;
+      patch["homologado_em"] = new Date().toISOString();
+    }
+
+    if (data.estado === "substituido") {
+      // Sucessor precisa existir na mesma organização e não pode ser um item
+      // que já é substituído por este (evita ciclo de substituição).
+      const { data: sucessor } = await supabase
+        .from("master_library_items")
+        .select("id,organization_id,substituido_por_item_id,substitui_item_id")
+        .eq("id", data.sucessorId)
+        .maybeSingle();
+      if (!sucessor || sucessor.organization_id !== atual.organization_id) {
+        throw new Error("Item sucessor não encontrado nesta organização.");
+      }
+      if (sucessor.substituido_por_item_id === data.id) {
+        throw new Error("Substituição circular não é permitida.");
+      }
+      patch["substituido_por_item_id"] = data.sucessorId;
+
+      // Reciprocidade: o sucessor referencia explicitamente seu predecessor.
+      if (sucessor.substitui_item_id !== data.id) {
+        const { error: erroSucessor } = await supabase
+          .from("master_library_items")
+          .update({ substitui_item_id: data.id })
+          .eq("id", data.sucessorId);
+        if (erroSucessor) throw new Error(erroSucessor.message);
+      }
+    }
 
     const { error } = await supabase.from("master_library_items").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    await registrarAuditoriaBiblioteca(supabase, {
+      organizationId: atual.organization_id ?? null,
+      userId: context.userId,
+      acao: "biblioteca_vigencia",
+      entidadeId: data.id,
+      metadados: {
+        de: atual.vigencia_estado ?? null,
+        para: data.estado,
+        criterio: data.criterio ? "registrado" : "nao_informado",
+        sucessorId: data.estado === "substituido" ? data.sucessorId : null,
+      },
+    });
     return { ok: true };
   });
+
+/** Auditoria append-only da Biblioteca Mestre, sem conteúdo sensível do item. */
+async function registrarAuditoriaBiblioteca(
+  supabase: Cliente,
+  evento: {
+    organizationId: string | null;
+    userId: string | null;
+    acao: string;
+    entidadeId: string;
+    metadados: Record<string, unknown>;
+  },
+) {
+  if (!evento.organizationId) return;
+  await supabase.from("audit_logs").insert({
+    organization_id: evento.organizationId,
+    user_id: evento.userId,
+    entidade: "biblioteca_mestre",
+    entidade_id: evento.entidadeId,
+    acao: evento.acao,
+    metadados: evento.metadados,
+  });
+}
+
