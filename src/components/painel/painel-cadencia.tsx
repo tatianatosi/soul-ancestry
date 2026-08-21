@@ -51,7 +51,7 @@ export function PainelCadencia() {
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm hover:bg-navy/5"
             >
               <span className="text-navy">
-                {String(c['case_id'] ?? c['titulo'] ?? "Caso")} · {String(c['cliente_nome'] ?? "")}
+                {String(c['codigo'] ?? c['titulo'] ?? "Caso")}
               </span>
               <span className="text-xs text-navy/60">
                 {c.cadencia.diasSemTouchpoint} dias · {c.cadencia.status}
