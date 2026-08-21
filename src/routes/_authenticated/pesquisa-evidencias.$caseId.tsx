@@ -234,15 +234,44 @@ function AreaPesquisaEvidencias() {
           </dl>
         </Bloco>
         <Bloco titulo="Cadeia da pesquisa">
-          <ol className="flex flex-wrap gap-2 text-xs">
-            {CADEIA_PESQUISA.map((e, i) => (
-              <li key={e.etapa} className="rounded-full border border-navy/20 px-3 py-1 text-navy/80">
-                {i + 1}. {e.rotulo}
-              </li>
-            ))}
+          <ol className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+            {CADEIA_PESQUISA.map((e, i) => {
+              const registros: Record<string, number> = {
+                ficha:
+                  (c?.pessoas.length ?? 0) +
+                  (c?.relacoes.length ?? 0) +
+                  (c?.linhagens.length ?? 0) +
+                  (c?.pendencias.length ?? 0),
+                fonte: c?.fontes.length ?? 0,
+                evidencia: c?.evidencias.length ?? 0,
+                validacao: (c?.evidencias ?? []).filter((x: any) =>
+                  ["validada_internamente", "divergente", "insuficiente", "em_revisao"].includes(x.workflow_status),
+                ).length,
+                achado: c?.achados.length ?? 0,
+                relatorio: c?.relatorios.length ?? 0,
+                app: (c?.achados ?? []).filter((a: any) => a.client_projection_status === "publicado_cliente").length,
+              };
+              const total = registros[e.etapa] ?? 0;
+              return (
+                <li
+                  key={e.etapa}
+                  className={`rounded-lg border p-3 ${
+                    total > 0 ? "border-gold/50 bg-gold/5" : "border-navy/10 bg-cream/30"
+                  }`}
+                >
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">Elo {i + 1}</p>
+                  <p className="mt-0.5 text-sm font-medium text-navy">{e.rotulo}</p>
+                  <p className="mt-1 text-xs text-navy/60">→ {e.produz}</p>
+                  <p className="mt-2 font-serif text-lg text-navy">{total}</p>
+                  <p className="text-[11px] text-navy/50">registros neste caso</p>
+                </li>
+              );
+            })}
           </ol>
-          <p className="mt-2 text-xs text-navy/60">
-            Nenhum elo é pulado: documento, evidência, achado e entrega ao cliente são registros distintos.
+          <p className="mt-3 text-xs text-navy/60">
+            Nenhum elo é pulado: ficha, fonte, evidência, validação, achado, relatório e projeção ao App Cliente são
+            registros distintos. Validação não conclui direito, upload não cria genealogia, e o App Cliente só exibe o
+            que foi explicitamente autorizado e publicado.
           </p>
         </Bloco>
         </section>
