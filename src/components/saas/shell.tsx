@@ -5,25 +5,11 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard,
   Users,
-  UserCheck,
   FolderOpen,
   FileSearch,
-  ListChecks,
   FileSignature,
-  Wallet,
-  BarChart3,
-  BadgeCheck,
-  Settings,
-  FileText,
   ClipboardList,
-  ShieldCheck,
-  KeyRound,
   Library,
-  UsersRound,
-  MessagesSquare,
-  Plug,
-
-
   LogOut,
   Menu,
 } from "lucide-react";
