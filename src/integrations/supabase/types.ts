@@ -9363,10 +9363,13 @@ export type Database = {
           created_by: string | null
           descricao: string | null
           dossie_mae: string | null
+          dossie_status: string
           id: string
+          link_interno: string | null
           nivel_acesso: string | null
           nome: string
           organization_id: string
+          responsavel_nome: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -9381,10 +9384,13 @@ export type Database = {
           created_by?: string | null
           descricao?: string | null
           dossie_mae?: string | null
+          dossie_status?: string
           id?: string
+          link_interno?: string | null
           nivel_acesso?: string | null
           nome: string
           organization_id: string
+          responsavel_nome?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -9399,10 +9405,13 @@ export type Database = {
           created_by?: string | null
           descricao?: string | null
           dossie_mae?: string | null
+          dossie_status?: string
           id?: string
+          link_interno?: string | null
           nivel_acesso?: string | null
           nome?: string
           organization_id?: string
+          responsavel_nome?: string | null
           updated_at?: string
           updated_by?: string | null
         }
