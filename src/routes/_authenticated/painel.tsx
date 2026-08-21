@@ -66,6 +66,7 @@ function Painel() {
       <PainelDeskHoje />
       <PainelFormalizacao />
       <PainelCatalogo />
+      <PainelTop30 />
       <PainelCadencia />
       <MetricasJornada />
       <PainelOnboardingJornada />
