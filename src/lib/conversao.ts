@@ -276,10 +276,10 @@ export function calcularQuadroMetricas(m: MetricasConversao): LinhaQuadro[] {
       valor: percentual(razao(pagamentos, c["contrato_assinado"] ?? 0)),
     },
     {
-      metrica: "CAC",
-      formula: "Investimento atribuível ÷ clientes com pagamento inicial confirmado",
-      valor: moeda(m.cac),
-      detalhe: `${pagamentos} pagamento(s) inicial(is)`,
+      metrica: "Pagamentos iniciais confirmados",
+      formula: "Eventos de pagamento inicial confirmados no Asaas",
+      valor: String(pagamentos),
+      detalhe: "CAC e ROI ficam fora do primeiro release.",
     },
     {
       metrica: "Tempo de conversão",
