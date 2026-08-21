@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { SaasShell } from "@/components/saas/shell";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
@@ -8,6 +8,7 @@ import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-supriment
 
 import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import {
+  arquivarItemBiblioteca,
   listarBibliotecaMestre,
   listarCatalogoTop30,
   type ItemBiblioteca,
@@ -53,10 +54,28 @@ function BibliotecaPage() {
   const [status, setStatus] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [pais, setPais] = useState("");
+  const [arquivamento, setArquivamento] = useState<"ativos" | "arquivados" | "todos">("ativos");
   const [detalhe, setDetalhe] = useState<ItemBiblioteca | null>(null);
+  const [aArquivar, setAArquivar] = useState<ItemBiblioteca | null>(null);
+  const [motivo, setMotivo] = useState("");
+  const [erroArquivo, setErroArquivo] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const geral = useQuery({ queryKey: ["biblioteca-mestre"], queryFn: () => listarBibliotecaMestre() });
   const catalogo = useQuery({ queryKey: ["biblioteca-top30"], queryFn: () => listarCatalogoTop30() });
+
+  const arquivar = useMutation({
+    mutationFn: (v: { id: string; fonte: ItemBiblioteca["fonte"]; motivo: string }) =>
+      arquivarItemBiblioteca({ data: v }),
+    onSuccess: async () => {
+      setAArquivar(null);
+      setMotivo("");
+      setErroArquivo(null);
+      await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
+      await queryClient.invalidateQueries({ queryKey: ["biblioteca-top30"] });
+    },
+    onError: (e: Error) => setErroArquivo(e.message),
+  });
 
   const itens = useMemo<ItemBiblioteca[]>(
     () => [...(geral.data?.itens ?? []), ...(catalogo.data?.itens ?? [])],
@@ -65,7 +84,10 @@ function BibliotecaPage() {
 
   const contadores = useMemo(() => {
     const m = new Map<string, number>();
-    for (const i of itens) m.set(i.subarea, (m.get(i.subarea) ?? 0) + 1);
+    for (const i of itens) {
+      const chave = i.arquivado ? "arquivo" : i.subarea;
+      m.set(chave, (m.get(chave) ?? 0) + 1);
+    }
     return m;
   }, [itens]);
 
@@ -84,7 +106,9 @@ function BibliotecaPage() {
   const lista = useMemo(() => {
     const q = busca.trim().toLowerCase();
     return itens.filter((i) => {
-      if (i.subarea !== sub) return false;
+      if (sub === "arquivo" ? !i.arquivado : i.arquivado || i.subarea !== sub) return false;
+      if (arquivamento === "ativos" && i.arquivado) return false;
+      if (arquivamento === "arquivados" && !i.arquivado) return false;
       if (status && i.status !== status) return false;
       if (responsavel && i.responsavel !== responsavel) return false;
       if (pais && i.pais !== pais) return false;
@@ -93,7 +117,7 @@ function BibliotecaPage() {
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q));
     });
-  }, [itens, sub, busca, status, responsavel, pais]);
+  }, [itens, sub, busca, status, responsavel, pais, arquivamento]);
 
   const meta = SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub)!;
   const carregando = geral.isLoading || catalogo.isLoading;
@@ -195,6 +219,16 @@ function BibliotecaPage() {
               </option>
             ))}
           </select>
+          <select
+            value={arquivamento}
+            onChange={(e) => setArquivamento(e.target.value as typeof arquivamento)}
+            aria-label="Filtrar por situação de arquivamento"
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="ativos">Somente vigentes</option>
+            <option value="arquivados">Somente arquivados</option>
+            <option value="todos">Vigentes e arquivados</option>
+          </select>
         </section>
 
         {carregando ? (
@@ -215,11 +249,24 @@ function BibliotecaPage() {
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{i.subtitulo}</p>
                     )}
                   </div>
-                  {i.status && (
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                      {i.status}
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {i.status && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        {i.status}
+                      </span>
+                    )}
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${
+                        i.arquivado
+                          ? "bg-muted text-muted-foreground"
+                          : i.homologado
+                            ? "bg-primary/10 text-primary"
+                            : "bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {i.arquivado ? "Arquivado" : i.homologado ? "Homologado" : "Não homologado"}
                     </span>
-                  )}
+                  </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   {i.codigo && <span>Código: {i.codigo}</span>}
@@ -228,13 +275,29 @@ function BibliotecaPage() {
                   {i.revisadoEm && <span>Revisão: {String(i.revisadoEm).slice(0, 10)}</span>}
                   {i.arquivado && <span>Arquivado: {i.motivoArquivo ?? "sem motivo registrado"}</span>}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setDetalhe(detalhe?.id === i.id ? null : i)}
-                  className="mt-3 text-xs font-medium text-primary underline-offset-2 hover:underline"
-                >
-                  {detalhe?.id === i.id ? "Fechar detalhe" : "Ver detalhe e vínculos"}
-                </button>
+                <p className="mt-2 text-xs text-muted-foreground">Regra: {i.regraHomologacao}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setDetalhe(detalhe?.id === i.id ? null : i)}
+                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    {detalhe?.id === i.id ? "Fechar detalhe" : "Ver detalhe e vínculos"}
+                  </button>
+                  {!i.arquivado && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAArquivar(i);
+                        setMotivo("");
+                        setErroArquivo(null);
+                      }}
+                      className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+                    >
+                      Arquivar item
+                    </button>
+                  )}
+                </div>
                 {detalhe?.id === i.id && (
                   <dl className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
                     {i.detalhes.length === 0 ? (
@@ -252,6 +315,50 @@ function BibliotecaPage() {
               </li>
             ))}
           </ul>
+        )}
+
+        {aArquivar && (
+          <section
+            role="dialog"
+            aria-label="Arquivamento lógico de item da Biblioteca"
+            className="rounded-xl border border-border bg-card p-4"
+          >
+            <h2 className="text-sm font-medium text-foreground">Arquivar “{aArquivar.titulo}”</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Não existe exclusão física: o item deixa de ser elegível, permanece rastreável no Arquivo histórico e o
+              motivo fica registrado.
+            </p>
+            <textarea
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              rows={2}
+              aria-label="Motivo do arquivamento"
+              placeholder="Motivo do arquivamento (mínimo 5 caracteres)"
+              className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+            {erroArquivo && (
+              <p role="alert" className="mt-2 text-xs text-destructive">
+                {erroArquivo}
+              </p>
+            )}
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                disabled={arquivar.isPending}
+                onClick={() => arquivar.mutate({ id: aArquivar.id, fonte: aArquivar.fonte, motivo })}
+                className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground disabled:opacity-60"
+              >
+                {arquivar.isPending ? "Arquivando…" : "Confirmar arquivamento"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAArquivar(null)}
+                className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground"
+              >
+                Cancelar
+              </button>
+            </div>
+          </section>
         )}
 
         {sub === "governanca" && <ManifestoResgate />}
