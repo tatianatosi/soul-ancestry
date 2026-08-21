@@ -150,6 +150,8 @@ export type ContextoDiagnostico = {
     proxima_microentrega?: string | null;
     proxima_atualizacao_limite_em?: string | null;
     ultima_atualizacao_cliente_em?: string | null;
+    pendencias_cliente_qtd?: number | null;
+    pendencias_cliente?: string[] | null;
     archived_at?: string | null;
   } | null;
   nucleoValidado?: boolean;
