@@ -5235,6 +5235,9 @@ export type Database = {
           data_entrada: string
           data_entrada_caso: string | null
           data_origin: string
+          data_prevista_contrato: string | null
+          data_prevista_onboarding: string | null
+          data_prevista_pagamento: string | null
           data_proposta: string | null
           demo: boolean
           documentos_minimos_ok: boolean
@@ -5247,7 +5250,7 @@ export type Database = {
           estado_de_autorizacao_pesquisa: string
           fase: string | null
           finalidade_registro: string | null
-          hipotese_elegibilidade: string | null
+          hipotese_elegibilidade: string
           hipotese_trabalho_interna: string | null
           id: string
           id_canonico_decidido: string | null
@@ -5276,7 +5279,10 @@ export type Database = {
           proposta_url_interna: string | null
           proxima_acao: string | null
           proxima_acao_codigo: string | null
+          proxima_acao_criterio_conclusao: string | null
+          proxima_acao_dependencia: string | null
           proxima_acao_justificativa: string | null
+          proxima_acao_responsavel: string | null
           proxima_atualizacao_limite_em: string | null
           proximo_marco_verificavel: string | null
           radar_aderencia_percentual: number | null
@@ -5291,6 +5297,8 @@ export type Database = {
           riscos_identificados: string[]
           selo_interno: string | null
           sinal_aderencia_preliminar: string | null
+          situacao_financeira: string
+          situacao_operacional: string
           status: string
           status_caso_derivado: string | null
           status_radar: string
@@ -5350,6 +5358,9 @@ export type Database = {
           data_entrada?: string
           data_entrada_caso?: string | null
           data_origin?: string
+          data_prevista_contrato?: string | null
+          data_prevista_onboarding?: string | null
+          data_prevista_pagamento?: string | null
           data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
@@ -5362,7 +5373,7 @@ export type Database = {
           estado_de_autorizacao_pesquisa?: string
           fase?: string | null
           finalidade_registro?: string | null
-          hipotese_elegibilidade?: string | null
+          hipotese_elegibilidade?: string
           hipotese_trabalho_interna?: string | null
           id?: string
           id_canonico_decidido?: string | null
@@ -5391,7 +5402,10 @@ export type Database = {
           proposta_url_interna?: string | null
           proxima_acao?: string | null
           proxima_acao_codigo?: string | null
+          proxima_acao_criterio_conclusao?: string | null
+          proxima_acao_dependencia?: string | null
           proxima_acao_justificativa?: string | null
+          proxima_acao_responsavel?: string | null
           proxima_atualizacao_limite_em?: string | null
           proximo_marco_verificavel?: string | null
           radar_aderencia_percentual?: number | null
@@ -5406,6 +5420,8 @@ export type Database = {
           riscos_identificados?: string[]
           selo_interno?: string | null
           sinal_aderencia_preliminar?: string | null
+          situacao_financeira?: string
+          situacao_operacional?: string
           status?: string
           status_caso_derivado?: string | null
           status_radar?: string
@@ -5465,6 +5481,9 @@ export type Database = {
           data_entrada?: string
           data_entrada_caso?: string | null
           data_origin?: string
+          data_prevista_contrato?: string | null
+          data_prevista_onboarding?: string | null
+          data_prevista_pagamento?: string | null
           data_proposta?: string | null
           demo?: boolean
           documentos_minimos_ok?: boolean
@@ -5477,7 +5496,7 @@ export type Database = {
           estado_de_autorizacao_pesquisa?: string
           fase?: string | null
           finalidade_registro?: string | null
-          hipotese_elegibilidade?: string | null
+          hipotese_elegibilidade?: string
           hipotese_trabalho_interna?: string | null
           id?: string
           id_canonico_decidido?: string | null
@@ -5506,7 +5525,10 @@ export type Database = {
           proposta_url_interna?: string | null
           proxima_acao?: string | null
           proxima_acao_codigo?: string | null
+          proxima_acao_criterio_conclusao?: string | null
+          proxima_acao_dependencia?: string | null
           proxima_acao_justificativa?: string | null
+          proxima_acao_responsavel?: string | null
           proxima_atualizacao_limite_em?: string | null
           proximo_marco_verificavel?: string | null
           radar_aderencia_percentual?: number | null
@@ -5521,6 +5543,8 @@ export type Database = {
           riscos_identificados?: string[]
           selo_interno?: string | null
           sinal_aderencia_preliminar?: string | null
+          situacao_financeira?: string
+          situacao_operacional?: string
           status?: string
           status_caso_derivado?: string | null
           status_radar?: string

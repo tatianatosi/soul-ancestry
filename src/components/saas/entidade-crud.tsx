@@ -44,6 +44,9 @@ export function EntidadeCrud({
   dominio,
   campoEstado = "status",
   extra,
+  filtrarLinhas,
+  classeLinha,
+  topo,
 }: {
   entidade: Entidade;
   titulo: string;
@@ -53,6 +56,12 @@ export function EntidadeCrud({
   dominio?: Dominio;
   campoEstado?: string;
   extra?: (linha: Record<string, unknown>, recarregar: () => void) => React.ReactNode;
+  /** Filtro somente de apresentação (ex.: isolar casos demonstrativos). */
+  filtrarLinhas?: (linha: Record<string, unknown>) => boolean;
+  /** Classe adicional por linha (ex.: destaque visual de registro demonstrativo). */
+  classeLinha?: (linha: Record<string, unknown>) => string | undefined;
+  /** Controles extras exibidos acima da tabela. */
+  topo?: React.ReactNode;
 }) {
   const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
@@ -158,7 +167,8 @@ export function EntidadeCrud({
 
 
 
-  const linhas = (q.data ?? []) as Record<string, unknown>[];
+  const todas = (q.data ?? []) as Record<string, unknown>[];
+  const linhas = filtrarLinhas ? todas.filter(filtrarLinhas) : todas;
 
   return (
     <div className="space-y-4">
@@ -171,6 +181,7 @@ export function EntidadeCrud({
           />
           Mostrar arquivados
         </label>
+        {topo}
         {podeEscrever ? (
           <button
             onClick={() => {
@@ -217,7 +228,7 @@ export function EntidadeCrud({
               {linhas.map((linha) => {
                 const arquivado = Boolean(linha["archived_at"]);
                 return (
-                  <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55")}>
+                  <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55", classeLinha?.(linha))}>
                     {colunas.map((c) => (
                       <td key={c.chave} className="px-4 py-3 align-top">
                         {c.render ? c.render(linha) : (linha[c.chave] as string) || "—"}
