@@ -219,3 +219,55 @@ export const ESCADA_ONBOARDING_PADRAO: DegrauOnboarding[] = [
 
 export const NOTA_EVIDENCIA =
   "Transcrição ou registro de WhatsApp é evidência de conversa. O aceite formal é um evento próprio, associado à oportunidade — “disse que fechou” nunca equivale a contrato, pagamento ou cliente ativo.";
+
+export type SituacaoDegrau = "concluido" | "atual" | "bloqueado";
+
+export type DegrauAvaliado = DegrauOnboarding & {
+  ordem: number;
+  situacao: SituacaoDegrau;
+  motivo: string;
+};
+
+/**
+ * Avalia a escada padrão sem antecipar etapas: tudo acima do degrau atual
+ * permanece bloqueado até a evidência exigida do degrau corrente existir.
+ */
+export function avaliarEscadaOnboarding(estadoAtual: string, evidenciaRegistrada = true): DegrauAvaliado[] {
+  const indiceAtual = ESCADA_ONBOARDING_PADRAO.findIndex((d) => d.estado === estadoAtual);
+  return ESCADA_ONBOARDING_PADRAO.map((d, i) => {
+    if (indiceAtual < 0) {
+      return { ...d, ordem: i + 1, situacao: "bloqueado" as const, motivo: "Estado atual não reconhecido." };
+    }
+    if (i < indiceAtual) {
+      return { ...d, ordem: i + 1, situacao: "concluido" as const, motivo: "Evidência exigida registrada." };
+    }
+    if (i === indiceAtual) {
+      return {
+        ...d,
+        ordem: i + 1,
+        situacao: "atual" as const,
+        motivo: evidenciaRegistrada ? "Evidência registrada. Executar o próximo passo." : "Evidência exigida ainda pendente.",
+      };
+    }
+    return {
+      ...d,
+      ordem: i + 1,
+      situacao: "bloqueado" as const,
+      motivo: `Depende de “${ESCADA_ONBOARDING_PADRAO[i - 1]!.estado}”. Não antecipar.`,
+    };
+  });
+}
+
+export const JOAO_ESTADO_ESCADA = {
+  caso: "Nacionalidade portuguesa — titular individual",
+  degrauAtual: "Confirmação formal",
+  evidencia: "Confirmação por escrito registrada em WhatsApp.",
+  proximoPasso: "Preparar formalização: cadastro, escopo e condição comercial definidos.",
+  naoAntecipar: [
+    "Nenhum contrato ou Ordem de Serviço é emitido antes da formalização concluída.",
+    "Nenhuma cobrança é autorizada antes de contrato assinado com evidência interna.",
+    "Pagamento previsto não é pagamento confirmado — só o evento transacional no Asaas conta.",
+    "Onboarding e caso ativo permanecem fechados até os gates anteriores serem cumpridos.",
+  ],
+} as const;
+
