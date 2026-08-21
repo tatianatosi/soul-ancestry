@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { cn } from "@/lib/utils";
 import { RadarChart } from "./cliente-app";
 import { BrandLogo } from "./brand";
