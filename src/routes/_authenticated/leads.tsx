@@ -25,7 +25,24 @@ import {
   PROXIMAS_ACOES,
   RESULTADOS_DISCOVERY,
   SERVICOS_INICIAIS,
+  STATUS_CALL,
   STATUS_VIA,
+  ELEGIBILIDADE_PRELIMINAR,
+  CONFIANCA_TRIAGEM,
+  GERACOES_ASCENDENTE,
+  LINHAS_TRANSMISSAO,
+  RISCOS_RUPTURA,
+  COMPLEXIDADE_DOCUMENTAL,
+  ESTADO_DOCUMENTAL_INICIAL,
+  PENDENCIAS_DOCUMENTAIS,
+  EXIGE_IDIOMA_ENTREVISTA,
+  ESTRUTURAS_FAMILIARES,
+  OBJECOES,
+  NIVEIS_INTENCAO,
+  PRODUTOS_RECOMENDADOS,
+  DESPESAS_TERCEIROS_STATUS,
+  DESPESAS_TERCEIROS_REGRA,
+  DESPESAS_TERCEIROS_FAIXA,
   VIAS_JURIDICAS,
   resultadoComercialDerivado,
   rotulo,
@@ -325,6 +342,88 @@ function LeadsPage() {
                 />
               </div>
             </div>
+          </Secao>
+
+          <Secao
+            titulo="Triagem preliminar (Discovery)"
+            descricao="Leitura comercial/técnica preliminar. Não é decisão jurídica final nem promessa de resultado."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao label="Status da call" valor={campo("status_call")} opcoes={STATUS_CALL} onChange={set("status_call")} desabilitado={!podeEscrever} />
+              <Selecao label="Elegibilidade preliminar" valor={campo("elegibilidade_preliminar")} opcoes={ELEGIBILIDADE_PRELIMINAR} onChange={set("elegibilidade_preliminar")} desabilitado={!podeEscrever} />
+              <Selecao label="Confiança da triagem" valor={campo("confianca_triagem")} opcoes={CONFIANCA_TRIAGEM} onChange={set("confianca_triagem")} desabilitado={!podeEscrever} />
+              <Selecao label="Geração do ascendente" valor={campo("geracao_ascendente")} opcoes={GERACOES_ASCENDENTE} onChange={set("geracao_ascendente")} desabilitado={!podeEscrever} />
+              <Selecao label="Linha de transmissão" valor={campo("linha_transmissao")} opcoes={LINHAS_TRANSMISSAO} onChange={set("linha_transmissao")} desabilitado={!podeEscrever} />
+              <Selecao label="Risco de ruptura" valor={campo("risco_ruptura")} opcoes={RISCOS_RUPTURA} onChange={set("risco_ruptura")} desabilitado={!podeEscrever} />
+              <Selecao label="Complexidade documental" valor={campo("complexidade_documental")} opcoes={COMPLEXIDADE_DOCUMENTAL} onChange={set("complexidade_documental")} desabilitado={!podeEscrever} />
+              <Selecao label="Estado documental inicial" valor={campo("estado_documental_inicial")} opcoes={ESTADO_DOCUMENTAL_INICIAL} onChange={set("estado_documental_inicial")} desabilitado={!podeEscrever} />
+              <Selecao label="Pendência documental prioritária" valor={campo("pendencia_documental_prioritaria")} opcoes={PENDENCIAS_DOCUMENTAIS} onChange={set("pendencia_documental_prioritaria")} desabilitado={!podeEscrever} />
+              <Selecao label="Exige idioma/entrevista" valor={campo("exige_idioma_entrevista")} opcoes={EXIGE_IDIOMA_ENTREVISTA} onChange={set("exige_idioma_entrevista")} desabilitado={!podeEscrever} />
+              <Texto label="Requerentes potenciais" tipo="number" valor={campo("requerentes_potenciais")} onChange={(v) => set("requerentes_potenciais")(v === "" ? null : Number(v))} desabilitado={!podeEscrever} />
+              <Selecao label="Estrutura familiar" valor={campo("estrutura_familiar")} opcoes={ESTRUTURAS_FAMILIARES} onChange={set("estrutura_familiar")} desabilitado={!podeEscrever} />
+              <Selecao label="Objeção predominante" valor={campo("objecao_predominante")} opcoes={OBJECOES} onChange={set("objecao_predominante")} desabilitado={!podeEscrever} />
+              <Selecao label="Nível de intenção" valor={campo("nivel_intencao")} opcoes={NIVEIS_INTENCAO} onChange={set("nivel_intencao")} desabilitado={!podeEscrever} />
+            </div>
+          </Secao>
+
+          <Secao titulo="SPIN e registro da conversa" descricao="Gravação e transcrição só com consentimento explícito registrado.">
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                ["spin_situacao", "Situação mapeada"],
+                ["spin_problema", "Problema explicitado"],
+                ["spin_implicacao", "Implicação discutida"],
+                ["spin_necessidade", "Necessidade de solução declarada"],
+              ].map(([k, label]) => (
+                <label key={k} className="flex items-center gap-2 text-sm text-navy">
+                  <input type="checkbox" checked={bool(k)} disabled={!podeEscrever} onChange={(e) => set(k)(e.target.checked)} />
+                  {label}
+                </label>
+              ))}
+              <label className="flex items-center gap-2 text-sm text-navy">
+                <input type="checkbox" checked={bool("consentimento_gravacao")} disabled={!podeEscrever} onChange={(e) => set("consentimento_gravacao")(e.target.checked)} />
+                Consentimento de gravação registrado
+              </label>
+              <Texto label="Gravação (referência interna)" valor={campo("gravacao_link_interno")} onChange={set("gravacao_link_interno")} desabilitado={!podeEscrever || !bool("consentimento_gravacao")} />
+              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} desabilitado={!podeEscrever} />
+            </div>
+          </Secao>
+
+          <Secao
+            titulo="Recomendação comercial e despesas de terceiros"
+            descricao="Preço, condição e link de cobrança vêm da Planilha Mestre de Produtos/SKUs. O CRM registra apenas a recomendação e a referência."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <p className="mb-2 text-sm font-medium text-navy">Produtos/serviços recomendados</p>
+                <div className="grid gap-1 md:grid-cols-3">
+                  {PRODUTOS_RECOMENDADOS.map((o) => {
+                    const atuais = (editado.produtos_recomendados ?? []) as string[];
+                    return (
+                      <label key={o.valor} className="flex items-center gap-2 text-sm text-navy/80">
+                        <input
+                          type="checkbox"
+                          disabled={!podeEscrever}
+                          checked={atuais.includes(o.valor)}
+                          onChange={(e) =>
+                            set("produtos_recomendados")(
+                              e.target.checked ? [...atuais, o.valor] : atuais.filter((v) => v !== o.valor),
+                            )
+                          }
+                        />
+                        {o.rotulo}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <Texto label="Referência de SKU (Planilha Mestre)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} desabilitado={!podeEscrever} />
+              <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} desabilitado={!podeEscrever} />
+              <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} desabilitado={!podeEscrever} />
+              <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} desabilitado={!podeEscrever} />
+            </div>
+            <p className="mt-2 text-xs text-navy/60">
+              Despesas de terceiros são sempre do cliente: o Clube não antecipa nem reembolsa. Nenhum valor ou link de cobrança é editável aqui.
+            </p>
           </Secao>
 
           <Secao
