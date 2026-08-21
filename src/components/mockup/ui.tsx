@@ -72,7 +72,7 @@ export function Dot({ tom = "neutro" }: { tom?: Tom }) {
 export function Tabela({ colunas, linhas }: { colunas: string[]; linhas: ReactNode[][] }) {
   return (
     <div className="-mx-1 overflow-x-auto">
-      <table className="w-full min-w-[560px] text-left text-sm">
+      <table className="w-full min-w-[420px] text-left text-sm">
         <thead>
           <tr className="text-[10px] uppercase tracking-[0.14em] text-navy/50">
             {colunas.map((c) => (
