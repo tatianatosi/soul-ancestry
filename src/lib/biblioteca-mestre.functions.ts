@@ -40,13 +40,13 @@ export interface ItemBiblioteca {
   /** Texto curto da regra de homologação aplicada. */
   regraHomologacao: string;
   /** Estado de vigência canônico (só o acervo é governado por este ciclo). */
-  vigencia: EstadoVigencia | null;
-  homologacaoCriterio: string | null;
-  homologadoEm: string | null;
+  vigencia?: EstadoVigencia | null;
+  homologacaoCriterio?: string | null;
+  homologadoEm?: string | null;
   /** Item que substitui este (sucessor). */
-  sucessorId: string | null;
+  sucessorId?: string | null;
   /** Item substituído por este (predecessor). */
-  predecessorId: string | null;
+  predecessorId?: string | null;
   detalhes: { rotulo: string; valor: string }[];
 }
 
@@ -84,7 +84,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
       supabase
         .from("master_library_items")
         .select(
-          "id,categoria,titulo,descricao_interna,versao,status,owner,referencia_interna,archived_at,archive_motivo,updated_at",
+          "id,categoria,titulo,descricao_interna,versao,status,owner,referencia_interna,archived_at,archive_motivo,updated_at,vigencia_estado,homologacao_criterio,homologado_em,substitui_item_id,substituido_por_item_id",
         ),
       supabase
         .from("genealogical_sources_catalog")
@@ -125,7 +125,13 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
         revisadoEm: r.updated_at ?? null,
         arquivado: Boolean(r.archived_at),
         motivoArquivo: r.archive_motivo ?? null,
-        homologado: !r.archived_at && r.status === "aprovado",
+        homologado:
+          !r.archived_at && (r.vigencia_estado === "homologado" || r.vigencia_estado === "vigente"),
+        vigencia: (r.vigencia_estado ?? "rascunho") as EstadoVigencia,
+        homologacaoCriterio: r.homologacao_criterio ?? null,
+        homologadoEm: r.homologado_em ?? null,
+        sucessorId: r.substituido_por_item_id ?? null,
+        predecessorId: r.substitui_item_id ?? null,
         regraHomologacao: "Circula apenas material aprovado e não arquivado.",
         detalhes: [...det("Referência interna", r.referencia_interna)],
       });
