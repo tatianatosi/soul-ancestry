@@ -37,6 +37,8 @@ import {
   prepararAreaPesquisa,
 } from "@/lib/pesquisa-cadeia.functions";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
+import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
+
 import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
