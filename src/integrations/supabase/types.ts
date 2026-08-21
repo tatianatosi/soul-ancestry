@@ -2842,6 +2842,10 @@ export type Database = {
           archive_motivo: string | null
           archived_at: string | null
           archived_by: string | null
+          ativacao_decidida_em: string | null
+          ativacao_decidida_por: string | null
+          ativacao_justificativa: string | null
+          classificacao: string
           created_at: string
           created_by: string | null
           data_origin: string
@@ -2849,6 +2853,7 @@ export type Database = {
           documento: string | null
           email: string | null
           id: string
+          is_demo: boolean
           nome: string
           nome_social: string | null
           observacoes: string | null
@@ -2856,6 +2861,7 @@ export type Database = {
           origem: string | null
           pais_interesse: string | null
           status: string
+          status_comercial: string | null
           telefone: string | null
           updated_at: string
           updated_by: string | null
@@ -2864,6 +2870,10 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          ativacao_decidida_em?: string | null
+          ativacao_decidida_por?: string | null
+          ativacao_justificativa?: string | null
+          classificacao?: string
           created_at?: string
           created_by?: string | null
           data_origin?: string
@@ -2871,6 +2881,7 @@ export type Database = {
           documento?: string | null
           email?: string | null
           id?: string
+          is_demo?: boolean
           nome: string
           nome_social?: string | null
           observacoes?: string | null
@@ -2878,6 +2889,7 @@ export type Database = {
           origem?: string | null
           pais_interesse?: string | null
           status?: string
+          status_comercial?: string | null
           telefone?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -2886,6 +2898,10 @@ export type Database = {
           archive_motivo?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          ativacao_decidida_em?: string | null
+          ativacao_decidida_por?: string | null
+          ativacao_justificativa?: string | null
+          classificacao?: string
           created_at?: string
           created_by?: string | null
           data_origin?: string
@@ -2893,6 +2909,7 @@ export type Database = {
           documento?: string | null
           email?: string | null
           id?: string
+          is_demo?: boolean
           nome?: string
           nome_social?: string | null
           observacoes?: string | null
@@ -2900,6 +2917,7 @@ export type Database = {
           origem?: string | null
           pais_interesse?: string | null
           status?: string
+          status_comercial?: string | null
           telefone?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -14911,6 +14929,7 @@ export type Database = {
         Args: { _alerta_em: string; _prazo_em: string; _status: string }
         Returns: string
       }
+      pais_canonico: { Args: { _valor: string }; Returns: string }
       pode_iniciar_pesquisa_externa: { Args: { _rc: string }; Returns: Json }
       pode_pesquisar_caso: { Args: { _case: string }; Returns: boolean }
       portal_caso_permitido: { Args: { _case: string }; Returns: boolean }
