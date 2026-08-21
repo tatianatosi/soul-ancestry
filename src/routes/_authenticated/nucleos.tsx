@@ -44,6 +44,21 @@ const CORES_STATUS: Record<string, string> = {
   arquivado: "bg-navy/5 text-navy/50",
 };
 
+type Membro = { id: string; nome: string; papel: string };
+type Nucleo = {
+  id: string;
+  nome: string;
+  contratante_nome: string | null;
+  dossie_mae: string | null;
+  ambiente: string | null;
+  nivel_acesso: string | null;
+  link_interno: string | null;
+  responsavel_nome: string | null;
+  dossie_status: string | null;
+  caso: { id: string; codigo: string | null; titulo: string | null } | null;
+  membros: Membro[];
+};
+
 type Rascunho = {
   dossie_mae: string;
   ambiente: string;
@@ -69,7 +84,7 @@ function NucleosPage() {
 
   const nucleos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return (q.data ?? []).filter((n) => {
+    return ((q.data ?? []) as Nucleo[]).filter((n) => {
       if (filtroStatus && (n.dossie_status ?? "nao_iniciado") !== filtroStatus) return false;
       if (!termo) return true;
       const alvo = [n.nome, n.contratante_nome, n.dossie_mae, n.caso?.codigo, n.caso?.titulo]
@@ -81,11 +96,11 @@ function NucleosPage() {
   }, [q.data, busca, filtroStatus]);
 
   const atual = useMemo(
-    () => (q.data ?? []).find((n) => n.id === selecionado) ?? null,
+    () => ((q.data ?? []) as Nucleo[]).find((n) => n.id === selecionado) ?? null,
     [q.data, selecionado],
   );
 
-  const abrir = (n: NonNullable<typeof atual>) => {
+  const abrir = (n: Nucleo) => {
     setSelecionado(n.id);
     setErro(null);
     setOk(null);
@@ -137,7 +152,7 @@ function NucleosPage() {
         ) : null}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          {nucleos.map((n) => {
+          {nucleos.map((n: Nucleo) => {
             const status = n.dossie_status ?? "nao_iniciado";
             return (
               <article key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
@@ -183,21 +198,21 @@ function NucleosPage() {
                     <p className="text-xs text-navy/50">Nenhum requerente cadastrado.</p>
                   ) : (
                     <ul className="mt-1 space-y-1">
-                      {NUCLEO_PAPEIS.filter((p) => n.membros.some((m2) => m2.papel === p)).map((papel) => (
+                      {NUCLEO_PAPEIS.filter((p) => n.membros.some((m2: Membro) => m2.papel === p)).map((papel) => (
                         <li key={papel} className="text-xs text-navy/70">
                           <span className="font-medium text-navy">{rotulo(papel)}:</span>{" "}
                           {n.membros
-                            .filter((m2) => m2.papel === papel)
-                            .map((m2) => m2.nome)
+                            .filter((m2: Membro) => m2.papel === papel)
+                            .map((m2: Membro) => m2.nome)
                             .join(", ")}
                         </li>
                       ))}
-                      {n.membros.some((m2) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel)) ? (
+                      {n.membros.some((m2: Membro) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel)) ? (
                         <li className="text-xs text-navy/70">
                           <span className="font-medium text-navy">Outros:</span>{" "}
                           {n.membros
-                            .filter((m2) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel))
-                            .map((m2) => m2.nome)
+                            .filter((m2: Membro) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel))
+                            .map((m2: Membro) => m2.nome)
                             .join(", ")}
                         </li>
                       ) : null}
