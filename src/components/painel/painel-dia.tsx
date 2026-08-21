@@ -183,39 +183,35 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 4 — Casos hoje */}
+      {/* 4 — Casos com prazo em atenção */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos hoje</h2>
+          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
-        <ul className="mt-3 space-y-2 text-sm">
-          {casos.map((i) => (
-            <Linha key={`caso-hoje-${i.id}`} item={i} />
-          ))}
-          {casos.length === 0 ? (
-            <li className="text-xs text-navy/50">Nenhum documento, contrato ou ação de caso com prazo hoje ou vencido.</li>
-          ) : null}
-        </ul>
-
+        <p className="mt-1 text-xs text-navy/50">
+          Cadência aparece somente quando há regra ativa e situação de atenção ou crítica. Ausência de prazo é exibida como
+          “Sem prazo definido”, nunca como número. Os prazos do dia já estão na fila priorizada.
+        </p>
         {cadencia.length > 0 ? (
-          <div className="mt-4 border-t border-navy/10 pt-3">
-            <p className="text-xs uppercase tracking-wide text-navy/50">Cadência em atenção ou crítica</p>
-            <ul className="mt-2 space-y-1 text-xs text-navy/65">
-              {cadencia.map((c: any) => (
-                <li key={String(c["id"])}>
-                  <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
-                    {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
-                  </Link>{" "}
-                  · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+          <ul className="mt-3 space-y-1 text-xs text-navy/65">
+            {cadencia.map((c: any) => (
+              <li key={String(c["id"])}>
+                <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
+                  {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
+                </Link>{" "}
+                · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status} ·{" "}
+                {textoPrazo(c["prazo_proxima_acao"] ? String(c["prazo_proxima_acao"]).slice(0, 10) : null)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
+        )}
       </section>
+
 
       {/* 5 — Atalhos */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
