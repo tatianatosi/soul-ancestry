@@ -574,7 +574,7 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
 
     const acesso = await supabase
       .from("client_portal_access")
-      .select("id, email, access_status")
+      .select("id, email, access_status, access_level, client_id, authorized_email_id")
       .eq("id", data.acessoId)
       .eq("organization_id", organizationId)
       .maybeSingle();
@@ -582,6 +582,33 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
     if (["revoked", "suspended", "expired"].includes(acesso.data.access_status)) {
       throw new Error("Acesso indisponível para reenvio.");
     }
+
+    // Elegibilidade pode ter mudado depois do convite: revalidar antes de reemitir.
+    const vinculo = await supabase
+      .from("client_portal_case_access")
+      .select("case_id")
+      .eq("client_portal_access_id", data.acessoId)
+      .eq("organization_id", organizationId)
+      .eq("access_status", "active")
+      .maybeSingle();
+    const motivosReenvio = await helpers.revalidarElegibilidade(supabase, organizationId, {
+      clientId: acesso.data.client_id,
+      nivel: acesso.data.access_level,
+      casoId: vinculo.data?.case_id ?? null,
+      autorizacaoId: acesso.data.authorized_email_id,
+    });
+    if (motivosReenvio.length > 0) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "reenvio_convite_bloqueado",
+        entidadeId: data.acessoId,
+        metadados: { motivos: motivosReenvio },
+      });
+      throw new Error(`Acesso bloqueado: ${motivosReenvio.join(" ")}`);
+    }
+
+
 
     // Reenvio: janela curta e novo uso único. O link anterior deixa de valer
     // porque a janela e o contador são regravados no mesmo registro.
