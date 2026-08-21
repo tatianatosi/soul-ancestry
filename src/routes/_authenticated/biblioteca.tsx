@@ -81,15 +81,26 @@ function BibliotecaPage() {
     onError: (e: Error) => setErroArquivo(e.message),
   });
 
+  const [dependencias, setDependencias] = useState<
+    { id: string; titulo: string; versao: string | null; vinculo: string; pendencia: string }[]
+  >([]);
   const vigencia = useMutation({
-    mutationFn: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) =>
-      definirVigenciaItem({ data: v }),
-    onSuccess: async () => {
+    mutationFn: (v: {
+      id: string;
+      estado: EstadoVigencia;
+      criterio?: string;
+      sucessorId?: string | null;
+      justificativa?: string;
+      motivoSuspensao?: string;
+    }) => definirVigenciaItem({ data: v }),
+    onSuccess: async (r) => {
       setErroVigencia(null);
+      setDependencias((r?.dependencias ?? []) as never);
       await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
     },
     onError: (e: Error) => setErroVigencia(e.message),
   });
+
 
   const itens = useMemo<ItemBiblioteca[]>(
     () => [...(geral.data?.itens ?? []), ...(catalogo.data?.itens ?? [])],
