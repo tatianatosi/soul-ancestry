@@ -347,7 +347,14 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
 export const definirVigenciaItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => {
+    (data: {
+      id: string;
+      estado: EstadoVigencia;
+      criterio?: string;
+      sucessorId?: string | null;
+      justificativa?: string;
+      motivoSuspensao?: string;
+    }) => {
       if (!data?.id) throw new Error("Item inválido.");
       const estados = ESTADOS_VIGENCIA.map((e) => e.valor);
       if (!estados.includes(data.estado)) throw new Error("Estado de vigência inválido.");
@@ -361,11 +368,16 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         if (!data.sucessorId) throw new Error("Item substituído deve apontar para o item sucessor.");
         if (data.sucessorId === data.id) throw new Error("Um item não pode substituir a si mesmo.");
       }
+      if (data.estado === "suspenso" && (data.motivoSuspensao ?? "").trim().length < 5) {
+        throw new Error("Suspensão exige motivo registrado (mínimo 5 caracteres).");
+      }
       return {
         id: data.id,
         estado: data.estado,
         criterio: data.criterio?.trim() || null,
         sucessorId: data.sucessorId || null,
+        justificativa: data.justificativa?.trim() || null,
+        motivoSuspensao: data.motivoSuspensao?.trim() || null,
       };
     },
   )
@@ -374,7 +386,9 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
 
     const { data: atual } = await supabase
       .from("master_library_items")
-      .select("id,organization_id,vigencia_estado,versao,owner,substituido_por_item_id")
+      .select(
+        "id,organization_id,vigencia_estado,versao,owner,substituido_por_item_id,substitui_item_id",
+      )
       .eq("id", data.id)
       .maybeSingle();
     if (!atual) {
@@ -391,12 +405,36 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       throw new Error("Item sem versão e responsável não pode ser homologado ou tornado vigente.");
     }
 
-    const patch: Record<string, unknown> = { vigencia_estado: data.estado };
+    // Sucessor só entra em vigência com o predecessor já encerrado.
+    if (data.estado === "vigente" && atual.substitui_item_id) {
+      const { data: pred } = await supabase
+        .from("master_library_items")
+        .select("id,vigencia_estado")
+        .eq("id", atual.substitui_item_id)
+        .maybeSingle();
+      if (!ESTADOS_ENCERRADOS.includes(String(pred?.vigencia_estado ?? "") as EstadoVigencia)) {
+        throw new Error(
+          "Sucessor só pode ficar vigente após o predecessor ser substituído, suspenso ou arquivado.",
+        );
+      }
+    }
+
+    const patch: Record<string, unknown> = {
+      vigencia_estado: data.estado,
+      vigencia_justificativa: data.justificativa,
+    };
     if (data.criterio) patch["homologacao_criterio"] = data.criterio;
     if (data.estado === "homologado" || data.estado === "vigente") {
       patch["homologado_por"] = context.userId;
       patch["homologado_em"] = new Date().toISOString();
     }
+    if (data.estado === "suspenso") {
+      patch["suspensao_motivo"] = data.motivoSuspensao;
+      patch["suspenso_por"] = context.userId;
+      patch["suspenso_em"] = new Date().toISOString();
+    }
+
+
 
     if (data.estado === "substituido") {
       // Sucessor precisa existir na mesma organização e não pode ser um item
