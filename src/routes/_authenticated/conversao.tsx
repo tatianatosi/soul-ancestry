@@ -233,67 +233,18 @@ function Conversao() {
             </div>
           </Bloco>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Bloco titulo="Investimento e custo por canal">
-              {(metricas?.porCanal ?? []).length === 0 ? (
-                <EstadoVazio mensagem="Sem investimento registrado." />
-              ) : (
-                <table className="w-full text-left text-xs">
-                  <thead className="text-[10px] uppercase text-navy/50">
-                    <tr>
-                      <th className="py-1 pr-3">Canal</th>
-                      <th className="py-1 pr-3">Investimento</th>
-                      <th className="py-1 pr-3">Leads</th>
-                      <th className="py-1 pr-3">Qualificados</th>
-                      <th className="py-1 pr-3">CPL</th>
-                      <th className="py-1">CPLQ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(metricas?.porCanal ?? []).map((c) => (
-                      <tr key={c.canal} className="border-t border-navy/5">
-                        <td className="py-1 pr-3">{c.canal}</td>
-                        <td className="py-1 pr-3">{moeda(c.investimento)}</td>
-                        <td className="py-1 pr-3">{c.leads}</td>
-                        <td className="py-1 pr-3">{c.qualificados}</td>
-                        <td className="py-1 pr-3">{moeda(c.cpl)}</td>
-                        <td className="py-1">{moeda(c.cplq)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Bloco>
+          <Bloco titulo="Fora do primeiro release">
+            <ul className="grid gap-1 sm:grid-cols-2">
+              {FORA_DO_PRIMEIRO_RELEASE.map((i) => (
+                <li key={i} className="text-xs text-terracotta">
+                  • {i}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-navy/60">{NOTA_FORA_DO_RELEASE}</p>
+            <p className="mt-1 text-xs text-navy/60">{NOTA_PLACEGO}</p>
+          </Bloco>
 
-            <Bloco titulo="Campanhas e CAC">
-              {(metricas?.porCampanha ?? []).length === 0 ? (
-                <EstadoVazio mensagem="Sem campanha registrada." />
-              ) : (
-                <table className="w-full text-left text-xs">
-                  <thead className="text-[10px] uppercase text-navy/50">
-                    <tr>
-                      <th className="py-1 pr-3">Campanha</th>
-                      <th className="py-1 pr-3">Investimento</th>
-                      <th className="py-1 pr-3">Leads</th>
-                      <th className="py-1 pr-3">Convertidos</th>
-                      <th className="py-1">CAC</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(metricas?.porCampanha ?? []).map((c) => (
-                      <tr key={c.campanha} className="border-t border-navy/5">
-                        <td className="py-1 pr-3">{c.campanha}</td>
-                        <td className="py-1 pr-3">{moeda(c.investimento)}</td>
-                        <td className="py-1 pr-3">{c.leads}</td>
-                        <td className="py-1 pr-3">{c.convertidos}</td>
-                        <td className="py-1">{moeda(c.cac)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </Bloco>
-          </div>
 
           <Bloco titulo="Taxa de conversão por etapa">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
