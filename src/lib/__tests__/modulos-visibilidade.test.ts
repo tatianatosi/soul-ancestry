@@ -88,3 +88,15 @@ describe("App Cliente — visibilidade progressiva", () => {
     expect(ehEntrega("microentrega")).toBe(true);
   });
 });
+
+import { crmVivoAlcanca } from "@/lib/desk-modulos";
+
+describe("rotas contextuais citadas (CRM/Casos/App)", () => {
+  it("CRM Vivo alcança Propostas sem virar aba nova", () => {
+    expect(crmVivoAlcanca("propostas")).toBe(true);
+  });
+  it("Casos 360 alcança Formalização e Go-live", () => {
+    expect(casos360Alcanca("formalizacao")).toBe(true);
+    expect(casos360Alcanca("go_live")).toBe(true);
+  });
+});

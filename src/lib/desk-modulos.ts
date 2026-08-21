@@ -9,6 +9,7 @@
 /** Telas principais do Desk que recebem módulos contextuais. */
 export type TelaDesk =
   | "overview"
+  | "crm"
   | "casos"
   | "checklist"
   | "juridica"
@@ -18,6 +19,7 @@ export type TelaDesk =
 
 export const TELA_DESK_LABEL: Record<TelaDesk, string> = {
   overview: "Visão Geral",
+  crm: "CRM Vivo",
   casos: "Casos 360",
   checklist: "Checklist semanal",
   juridica: "Validação Jurídica",
@@ -53,6 +55,11 @@ export type ModuloDesk = {
 };
 
 export const MODULOS_DESK: ModuloDesk[] = [
+  // ---------------- CRM VIVO ----------------
+  { id: "crm-leads", nome: "Leads e triagem", tela: "crm", destino: "/leads", forma: "subrota", descricao: "Fila de leads, discovery e próxima ação por responsável." },
+  { id: "crm-propostas", nome: "Propostas", tela: "crm", destino: "/propostas · /casos/$id (aba Comercial)", forma: "subrota", descricao: "Propostas e páginas 1–7 homologadas. Aceite verbal não libera contrato nem App." },
+  { id: "crm-clientes-nucleos", nome: "Clientes e núcleos", tela: "crm", destino: "/clientes", forma: "subrota", descricao: "Clientes, núcleos familiares e vínculos com casos." },
+
   // ---------------- CASOS 360 ----------------
   { id: "caso-visao-geral", nome: "Visão Geral do Caso", tela: "casos", destino: "/casos/$id (aba Visão Geral)", forma: "aba_interna", descricao: "Estado consolidado, marcos e bloqueios do caso." },
   { id: "caso-discovery", nome: "Discovery, brief e interações", tela: "casos", destino: "/casos/$id (aba Caso)", forma: "aba_interna", descricao: "Brief interno, interações registradas e origem do lead." },
@@ -66,6 +73,7 @@ export const MODULOS_DESK: ModuloDesk[] = [
   { id: "caso-achados", nome: "Achados e encontros de linhagem", tela: "casos", destino: "/casos/$id (aba Técnico)", forma: "painel", descricao: "Achados registrados e pontos de convergência de linhagem." },
   { id: "caso-onboarding", nome: "Onboarding", tela: "casos", destino: "/onboarding/$id", forma: "subrota", descricao: "Checks de ativação e liberação do caso." },
   { id: "caso-formalizacao", nome: "Formalização", tela: "casos", destino: "/casos/$id/contrato/preparar", forma: "subrota", descricao: "Preparação contratual, parâmetros e gates." },
+  { id: "caso-go-live", nome: "Go-live", tela: "casos", destino: "/casos/$id (aba Fechamento) · /onboarding/$id", forma: "aba_interna", descricao: "Os 9 gates de fechamento e liberação do caso ativo. Nenhuma liberação automática." },
   { id: "caso-dossie", nome: "Dossiê e fila Drive", tela: "casos", destino: "/casos/$id (aba Visão Geral → dossiê)", forma: "painel", descricao: "Estado de preparação do dossiê. Nenhuma pasta é criada aqui." },
   { id: "caso-historico", nome: "Histórico e auditoria do caso", tela: "casos", destino: "/casos/$id (log) · /auditoria", forma: "painel", descricao: "Log granular de alterações do caso." },
 
@@ -136,14 +144,27 @@ export function moduloEhAbaPrincipal(id: string): boolean {
 }
 
 /** Verifica se, a partir de Casos 360, é possível alcançar um domínio. */
-export function casos360Alcanca(dominio: "pesquisa" | "proposta" | "formalizacao" | "onboarding"): boolean {
+export function casos360Alcanca(
+  dominio: "pesquisa" | "proposta" | "formalizacao" | "onboarding" | "go_live",
+): boolean {
   const mapa: Record<string, string> = {
     pesquisa: "caso-pesquisa",
     proposta: "caso-proposta-blueprint",
     formalizacao: "caso-formalizacao",
     onboarding: "caso-onboarding",
+    go_live: "caso-go-live",
   };
   return modulosDaTela("casos").some((m) => m.id === mapa[dominio]);
+}
+
+/** Verifica se, a partir do CRM Vivo, é possível alcançar um domínio comercial. */
+export function crmVivoAlcanca(dominio: "leads" | "propostas" | "clientes"): boolean {
+  const mapa: Record<string, string> = {
+    leads: "crm-leads",
+    propostas: "crm-propostas",
+    clientes: "crm-clientes-nucleos",
+  };
+  return modulosDaTela("crm").some((m) => m.id === mapa[dominio]);
 }
 
 /** Verifica se, a partir da Biblioteca Mestre, é possível alcançar um domínio. */
