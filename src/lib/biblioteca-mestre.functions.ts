@@ -311,3 +311,43 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Ciclo de vigência do acervo interno. A recusa efetiva (papel, versão,
+ * responsável, critério de homologação e sucessor obrigatório na substituição)
+ * é aplicada no banco pelo guard fn_biblioteca_mestre_guard.
+ */
+export const definirVigenciaItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => {
+      if (!data?.id) throw new Error("Item inválido.");
+      const estados = ESTADOS_VIGENCIA.map((e) => e.valor);
+      if (!estados.includes(data.estado)) throw new Error("Estado de vigência inválido.");
+      if (data.estado === "arquivado") {
+        throw new Error("Arquivamento é feito pelo fluxo próprio, com motivo obrigatório.");
+      }
+      if ((data.estado === "homologado" || data.estado === "vigente") && !data.criterio?.trim()) {
+        throw new Error("Homologação exige critério ou evidência registrada.");
+      }
+      if (data.estado === "substituido" && !data.sucessorId) {
+        throw new Error("Item substituído deve apontar para o item sucessor.");
+      }
+      return {
+        id: data.id,
+        estado: data.estado,
+        criterio: data.criterio?.trim() || null,
+        sucessorId: data.sucessorId || null,
+      };
+    },
+  )
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Cliente;
+    const patch: Record<string, unknown> = { vigencia_estado: data.estado };
+    if (data.criterio) patch["homologacao_criterio"] = data.criterio;
+    if (data.estado === "substituido") patch["substituido_por_item_id"] = data.sucessorId;
+
+    const { error } = await supabase.from("master_library_items").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
