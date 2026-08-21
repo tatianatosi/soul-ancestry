@@ -201,14 +201,21 @@ function CasosPage() {
                   <span className="block space-y-1">
                     <Badge texto="Não elegível — ativação bloqueada" tom="alerta" />
                     <span className="block text-[11px] text-navy/55">
-                      {e.validados}/{e.total} requisitos validados
+                      {e.validados}/{e.total} requisitos validados no banco
                     </span>
+                    <ul className="ml-3 list-disc space-y-0.5 text-[11px] text-navy/70">
+                      {e.motivos.slice(0, 3).map((m) => (
+                        <li key={m}>{m}</li>
+                      ))}
+                      {e.motivos.length > 3 ? <li>+{e.motivos.length - 3} outros requisitos pendentes</li> : null}
+                    </ul>
                   </span>
                 );
               }
               return <Badge texto="Requisitos completos — ativação disponível no painel" tom="gold" />;
             },
           },
+
         ]}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
