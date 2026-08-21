@@ -181,3 +181,38 @@ export function agruparBloqueiosPorGate<T extends Record<string, any>>(
     return { gate, itens, abertos, total: itens.length, liberado };
   });
 }
+
+/** Fontes brutas: subsidiam captura, mas nunca validam por si só. */
+export const FONTES_BRUTAS = ["whatsapp_confirmado", "reuniao_transcricao"];
+
+export type EstadoCampo = "sem_dado" | "capturado" | "em_revisao" | "verificado";
+
+export function estadoDoCampo(campo: Record<string, any>): {
+  estado: EstadoCampo;
+  rotulo: string;
+  tom: "ok" | "alerta" | "erro";
+  nota: string | null;
+} {
+  if (!campo["valor"]) {
+    return { estado: "sem_dado", rotulo: "Sem dado", tom: "erro", nota: null };
+  }
+  if (campo["verificado"]) {
+    return { estado: "verificado", rotulo: "Verificado", tom: "ok", nota: null };
+  }
+  const bruta = FONTES_BRUTAS.includes(String(campo["origem"]));
+  return bruta
+    ? {
+        estado: "capturado",
+        rotulo: "Capturado — fonte bruta",
+        tom: "erro",
+        nota: "WhatsApp, reunião e transcrição são insumos: não validam parentesco, elegibilidade, rota jurídica, valor final ou condição contratual.",
+      }
+    : { estado: "em_revisao", rotulo: "Em revisão", tom: "alerta", nota: null };
+}
+
+/** Primeiro gate com bloqueio aberto, na ordem canônica. */
+export function primeiroGatePendente<T extends Record<string, any>>(
+  agrupados: BloqueioAgrupado<T>[],
+): BloqueioAgrupado<T> | null {
+  return agrupados.find((g) => g.abertos > 0) ?? null;
+}
