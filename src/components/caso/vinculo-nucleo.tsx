@@ -27,9 +27,15 @@ const ROTULO_STATUS: Record<string, string> = {
 export function VinculoNucleo({
   caseId,
   codigoCaso,
+  papelRegistro,
+  finalidade,
+  estadoDerivado,
 }: {
   caseId: string;
   codigoCaso: string | null;
+  papelRegistro?: string | null;
+  finalidade?: string | null;
+  estadoDerivado?: string | null;
 }) {
   const carregar = useServerFn(listarNucleos);
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
