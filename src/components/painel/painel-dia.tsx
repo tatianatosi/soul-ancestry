@@ -70,7 +70,11 @@ export function PainelDia() {
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
 
-  const qDesk = useQuery({ queryKey: ["painel-desk-hoje"], queryFn: () => carregarDesk(), retry: false });
+  const qDesk = useQuery({
+    queryKey: ["painel-desk-hoje", incluirDemo],
+    queryFn: () => carregarDesk({ data: { incluirDemo } }),
+    retry: false,
+  });
   const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
@@ -79,14 +83,14 @@ export function PainelDia() {
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
   const itens = consolidarDia(filas, { incluirDemo });
+  // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const excecoes = excecoesQueExigemDono(itens, filas, hoje);
-  const comercial = comercialHoje(filas, { incluirDemo });
-  const casos = casosHoje(itens, hoje);
-  const cadencia = ((qCad.data?.casos ?? []) as any[])
-    .filter((c) => c.cadencia?.status === "atencao" || c.cadencia?.status === "critico")
-    .sort((a, b) => (b.cadencia.diasSemTouchpoint ?? 0) - (a.cadencia.diasSemTouchpoint ?? 0))
-    .slice(0, 6);
+  const usados = chavesExibidas(priorizada);
+  const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
+  for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
+  const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
+  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
+
 
   return (
     <div className="space-y-6">
