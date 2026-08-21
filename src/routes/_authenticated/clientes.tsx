@@ -137,11 +137,20 @@ function ClientesPage() {
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
+            checked={filtros.incluirParticipantes}
+            onChange={(e) => setFiltros((f) => ({ ...f, incluirParticipantes: e.target.checked }))}
+          />
+          Incluir participantes de núcleo
+        </label>
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
             checked={filtros.incluirDemonstracoes}
             onChange={(e) => setFiltros((f) => ({ ...f, incluirDemonstracoes: e.target.checked }))}
           />
           Incluir demonstrações
         </label>
+
         {podeEscrever && !somenteLeitura ? (
           <button
             type="button"
