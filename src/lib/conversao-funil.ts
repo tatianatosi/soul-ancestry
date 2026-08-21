@@ -166,6 +166,45 @@ export function montarEstados(
     .sort((a, b) => (b.ultimoEvento ?? "").localeCompare(a.ultimoEvento ?? ""));
 }
 
+
+/* ─────────── Máquina de estados (espelha o guard do banco) ─────────── */
+
+/** Pré-requisitos obrigatórios de cada evento. Nenhum salto de etapa é aceito. */
+export const PRE_REQUISITOS: Record<string, string[]> = {
+  lead_qualificado: ["lead_criado"],
+  discovery_agendada: ["lead_qualificado"],
+  discovery_realizada: ["discovery_agendada"],
+  proposta_enviada: ["discovery_realizada"],
+  aceite_verbal_confirmado: ["proposta_enviada"],
+  confirmacao_formal_pendente: ["aceite_verbal_confirmado"],
+  confirmacao_formal_recebida: ["aceite_verbal_confirmado"],
+  formalizacao_em_preparacao: ["confirmacao_formal_recebida"],
+  contrato_enviado: ["confirmacao_formal_recebida"],
+  contrato_assinado: ["contrato_enviado"],
+  pagamento_inicial_confirmado: ["contrato_assinado"],
+  onboarding_iniciado: ["contrato_assinado", "pagamento_inicial_confirmado"],
+  caso_ativo: ["onboarding_iniciado"],
+};
+
+const ROTULO_EVENTO: Record<string, string> = Object.fromEntries(ESCADA.map((e) => [e.codigo, e.rotulo]));
+
+/** Valida o avanço a partir dos eventos já registrados da mesma entidade. */
+export function validarTransicaoEvento(
+  destino: string,
+  alcancados: Iterable<string>,
+): { permitido: boolean; motivos: string[] } {
+  const set = new Set(alcancados);
+  const motivos: string[] = [];
+  for (const req of PRE_REQUISITOS[destino] ?? []) {
+    if (!set.has(req)) {
+      motivos.push(
+        `Transição bloqueada: “${ROTULO_EVENTO[destino] ?? destino}” exige “${ROTULO_EVENTO[req] ?? req}” registrado antes. O evento anterior não é criado automaticamente.`,
+      );
+    }
+  }
+  return { permitido: motivos.length === 0, motivos };
+}
+
 /* ─────────── Funil de eventos ─────────── */
 
 export type LinhaFunil = {

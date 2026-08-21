@@ -3,6 +3,7 @@ import { semFixtures } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/lib/conversao";
+import { validarTransicaoEvento } from "@/lib/conversao-funil";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -65,6 +66,22 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
+
+    // Máquina de estados no servidor: nenhuma chamada direta salta etapa obrigatória.
+    if (!data.lead_id && !data.case_id) throw new Error("Evento exige vínculo com lead ou caso.");
+    const anteriores = await seguro(
+      supabase
+        .from("conversion_events")
+        .select("event_type")
+        .eq("organization_id", organizationId)
+        .or(data.case_id ? `case_id.eq.${data.case_id}` : `lead_id.eq.${data.lead_id}`),
+    );
+    const transicao = validarTransicaoEvento(
+      data.event_type,
+      anteriores.map((e: any) => String(e.event_type)),
+    );
+    if (!transicao.permitido) throw new Error(transicao.motivos.join(" "));
+
     const { error } = await supabase.from("conversion_events").insert({
       ...data,
       lead_id: data.lead_id || null,
