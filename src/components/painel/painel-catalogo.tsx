@@ -17,6 +17,8 @@ export function PainelCatalogo() {
   if (q.isError || !q.data) return null;
 
   const { filas, resumo } = q.data;
+  type Item = (typeof filas.bloqueados)[number];
+  type Caso = (typeof filas.casosBloqueados)[number];
 
   const blocos = [
     { chave: "sem-homologacao", rotulo: "SKUs ativos sem homologação", itens: filas.ativosSemHomologacao },
@@ -42,7 +44,7 @@ export function PainelCatalogo() {
               <span className="font-serif text-2xl text-navy">{b.itens.length}</span>
             </div>
             <ul className="mt-2 space-y-1 text-xs text-navy/60">
-              {b.itens.slice(0, 6).map((i) => (
+              {b.itens.slice(0, 6).map((i: Item) => (
                 <li key={`${b.chave}-${i.sku}`}>
                   <span className="font-medium text-navy/80">{i.sku}</span> — {i.nome_produto} ·{" "}
                   {ROTULO_STATUS_PRODUTO[i.status_produto as keyof typeof ROTULO_STATUS_PRODUTO] ?? i.status_produto} ·{" "}
@@ -61,7 +63,7 @@ export function PainelCatalogo() {
             <span className="font-serif text-2xl text-navy">{filas.casosBloqueados.length}</span>
           </div>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
-            {filas.casosBloqueados.slice(0, 6).map((c) => (
+            {filas.casosBloqueados.slice(0, 6).map((c: Caso) => (
               <li key={c.id}>
                 {c.codigo || c.nome} — SKU {c.sku} não liberado ({c.estagio || "sem estágio"})
               </li>

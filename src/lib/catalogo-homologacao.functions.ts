@@ -47,18 +47,20 @@ export const painelCatalogoHomologacao = createServerFn({ method: "GET" })
         };
       });
 
+    type Item = (typeof itens)[number];
+
     const ativosSemHomologacao = itens.filter(
-      (i) => i.status_produto === "ativo" && i.status_homologacao !== "homologado",
+      (i: Item) => i.status_produto === "ativo" && i.status_homologacao !== "homologado",
     );
     const linkPendente = itens.filter(
-      (i) => i.status_produto === "ativo" && (i.status_link_asaas === "pendente" || i.status_link_asaas === "desatualizado"),
+      (i: Item) => i.status_produto === "ativo" && (i.status_link_asaas === "pendente" || i.status_link_asaas === "desatualizado"),
     );
-    const bloqueados = itens.filter((i) => i.status_homologacao === "bloqueado");
-    const emRevisao = itens.filter((i) => i.status_homologacao === "em_revisao");
-    const liberados = itens.filter((i) => i.elegivel_para_proposta);
+    const bloqueados = itens.filter((i: Item) => i.status_homologacao === "bloqueado");
+    const emRevisao = itens.filter((i: Item) => i.status_homologacao === "em_revisao");
+    const liberados = itens.filter((i: Item) => i.elegivel_para_proposta);
 
     // Casos travados por SKU não homologado (leitura, sem efeito colateral).
-    const skusLiberados = new Set(liberados.map((i) => i.sku));
+    const skusLiberados = new Set(liberados.map((i: Item) => i.sku));
     const { data: casos } = await supabase
       .from("casos")
       .select("id,case_id,case_nome,produto_sku,status")
