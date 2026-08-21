@@ -188,6 +188,7 @@ const ABAS = [
   { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "onboarding", rotulo: "Onboarding" },
+  { id: "jornada", rotulo: "Jornada do cliente" },
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "log", rotulo: "Registro de alterações" },
