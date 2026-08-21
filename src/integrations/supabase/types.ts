@@ -6052,7 +6052,10 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          entrega_classificacao: string | null
           entrega_cliente: boolean
+          entrega_responsavel_id: string | null
+          entrega_versao: string | null
           file_hash: string | null
           id: string
           liberado_cliente: boolean
@@ -6063,6 +6066,9 @@ export type Database = {
           observacoes: string | null
           organization_id: string
           origem: string
+          recolhido_em: string | null
+          recolhido_por: string | null
+          recolhimento_motivo: string | null
           revisado_em: string | null
           revisado_por: string | null
           revisao_motivo: string | null
@@ -6076,6 +6082,7 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           versao: number
+          versao_substituta: string | null
           visibilidade: string
         }
         Insert: {
@@ -6089,7 +6096,10 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          entrega_classificacao?: string | null
           entrega_cliente?: boolean
+          entrega_responsavel_id?: string | null
+          entrega_versao?: string | null
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
@@ -6100,6 +6110,9 @@ export type Database = {
           observacoes?: string | null
           organization_id: string
           origem?: string
+          recolhido_em?: string | null
+          recolhido_por?: string | null
+          recolhimento_motivo?: string | null
           revisado_em?: string | null
           revisado_por?: string | null
           revisao_motivo?: string | null
@@ -6113,6 +6126,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           versao?: number
+          versao_substituta?: string | null
           visibilidade?: string
         }
         Update: {
@@ -6126,7 +6140,10 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          entrega_classificacao?: string | null
           entrega_cliente?: boolean
+          entrega_responsavel_id?: string | null
+          entrega_versao?: string | null
           file_hash?: string | null
           id?: string
           liberado_cliente?: boolean
@@ -6137,6 +6154,9 @@ export type Database = {
           observacoes?: string | null
           organization_id?: string
           origem?: string
+          recolhido_em?: string | null
+          recolhido_por?: string | null
+          recolhimento_motivo?: string | null
           revisado_em?: string | null
           revisado_por?: string | null
           revisao_motivo?: string | null
@@ -6150,6 +6170,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           versao?: number
+          versao_substituta?: string | null
           visibilidade?: string
         }
         Relationships: [
@@ -10693,16 +10714,21 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           case_id: string
+          categoria: string | null
           client_id: string | null
           created_at: string
           created_by: string | null
           descricao: string | null
           document_id: string | null
+          finalidade: string | null
           id: string
           motivo_recusa: string | null
           obrigatorio: boolean
           organization_id: string
+          participante_id: string | null
+          participante_nome: string | null
           prazo: string | null
+          responsavel_id: string | null
           status: string
           titulo: string
           updated_at: string
@@ -10713,16 +10739,21 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id: string
+          categoria?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           descricao?: string | null
           document_id?: string | null
+          finalidade?: string | null
           id?: string
           motivo_recusa?: string | null
           obrigatorio?: boolean
           organization_id: string
+          participante_id?: string | null
+          participante_nome?: string | null
           prazo?: string | null
+          responsavel_id?: string | null
           status?: string
           titulo: string
           updated_at?: string
@@ -10733,16 +10764,21 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string
+          categoria?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
           descricao?: string | null
           document_id?: string | null
+          finalidade?: string | null
           id?: string
           motivo_recusa?: string | null
           obrigatorio?: boolean
           organization_id?: string
+          participante_id?: string | null
+          participante_nome?: string | null
           prazo?: string | null
+          responsavel_id?: string | null
           status?: string
           titulo?: string
           updated_at?: string
@@ -14969,6 +15005,7 @@ export type Database = {
           obrigatorio: boolean
         }[]
       }
+      atendimento_bloqueios: { Args: { _case: string }; Returns: string[] }
       bootstrap_minha_organizacao: { Args: { _nome?: string }; Returns: string }
       bootstrap_permitido: { Args: never; Returns: boolean }
       bootstrap_primeiro_admin: {
