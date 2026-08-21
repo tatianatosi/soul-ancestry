@@ -5,7 +5,16 @@ import { useMemo } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { carregarConversao, garantirTemplateOnboarding } from "@/lib/conversao.functions";
-import { ESTADOS_ACEITE, EVENTOS_CONVERSAO, calcularMetricas, moeda, percentual } from "@/lib/conversao";
+import {
+  ESTADOS_ACEITE,
+  EVENTOS_CONVERSAO,
+  calcularMetricas,
+  calcularQuadroMetricas,
+  calcularSaudeComercial,
+  moeda,
+  percentual,
+} from "@/lib/conversao";
+import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
 import { CHECKLIST_ONBOARDING, FASES_ONBOARDING, REGRA_VALOR_PERCEBIDO } from "@/lib/onboarding-padrao";
 
 export const Route = createFileRoute("/_authenticated/conversao")({
@@ -46,6 +55,12 @@ function Conversao() {
     );
   }, [q.data]);
 
+  const quadro = useMemo(() => (metricas ? calcularQuadroMetricas(metricas) : []), [metricas]);
+  const saude = useMemo(
+    () => calcularSaudeComercial(((q.data?.leads ?? []) as never), ((q.data?.casos ?? []) as never)),
+    [q.data],
+  );
+
   return (
     <SaasShell
       titulo="Conversão, marketing e aceite padrão"
@@ -73,6 +88,66 @@ function Conversao() {
               </div>
             ))}
           </div>
+
+          <Bloco titulo="Quadro de métricas comerciais">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[10px] uppercase text-navy/50">
+                <tr>
+                  <th className="py-1 pr-3">Métrica</th>
+                  <th className="py-1 pr-3">Fórmula operacional</th>
+                  <th className="py-1">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quadro.map((l) => (
+                  <tr key={l.metrica} className="border-t border-navy/5 align-top">
+                    <td className="py-1.5 pr-3 text-navy">{l.metrica}</td>
+                    <td className="py-1.5 pr-3 text-navy/60">
+                      {l.formula}
+                      {l.detalhe && <span className="block text-[10px] text-navy/40">{l.detalhe}</span>}
+                    </td>
+                    <td className="py-1.5 font-medium text-navy">{l.valor}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-navy/5 align-top">
+                  <td className="py-1.5 pr-3 text-navy">Saúde comercial</td>
+                  <td className="py-1.5 pr-3 text-navy/60">
+                    Leads ativos sem próxima ação, follow-ups vencidos e propostas sem resposta
+                  </td>
+                  <td className="py-1.5 font-medium text-navy">
+                    {saude.leadsSemProximaAcao.length + saude.followupsVencidos.length + saude.propostasSemResposta.length}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="mt-3 text-xs text-navy/60">
+              A conversão é medida como sequência de eventos, não como um único status: o intervalo entre aceite verbal e
+              confirmação formal fica explícito.
+            </p>
+          </Bloco>
+
+          <Bloco titulo="Saúde comercial">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { r: "Leads ativos sem próxima ação", l: saude.leadsSemProximaAcao },
+                { r: "Follow-ups vencidos", l: saude.followupsVencidos },
+                { r: "Propostas sem resposta", l: saude.propostasSemResposta },
+                { r: "Aceite verbal sem confirmação formal", l: saude.aceiteVerbalSemFormalizacao },
+              ].map((g) => (
+                <div key={g.r} className="rounded-lg border border-navy/10 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-navy/50">{g.r}</p>
+                  <p className="font-serif text-2xl text-navy">{g.l.length}</p>
+                  <ul className="mt-1 space-y-0.5 text-[11px] text-navy/60">
+                    {g.l.slice(0, 4).map((i) => (
+                      <li key={i.id}>• {i.rotulo}</li>
+                    ))}
+                    {g.l.length > 4 && <li className="text-navy/40">+ {g.l.length - 4} outro(s)</li>}
+                    {g.l.length === 0 && <li className="text-navy/40">Sem pendência.</li>}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </Bloco>
 
           <Bloco titulo="Funil por evento">
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

@@ -23,14 +23,24 @@ export const carregarConversao = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
-    const [eventos, investimentos, campanhas, fontes, atribuicoes] = await Promise.all([
+    const [eventos, investimentos, campanhas, fontes, atribuicoes, leads, casos] = await Promise.all([
       seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
       seguro(eq("marketing_investments").is("archived_at", null).order("competencia", { ascending: false })),
       seguro(eq("marketing_campaigns").is("archived_at", null).order("nome")),
       seguro(eq("lead_sources").is("archived_at", null).order("nome")),
       seguro(eq("attribution_records").is("archived_at", null).limit(500)),
+      seguro(eq("leads").is("archived_at", null).limit(1000)),
+      seguro(eq("crm_casos").is("archived_at", null).limit(1000)),
     ]);
-    return { eventos, investimentos, campanhas, fontes, atribuicoes };
+    return {
+      eventos,
+      investimentos,
+      campanhas,
+      fontes,
+      atribuicoes,
+      leads: semFixtures(leads as never),
+      casos: semFixtures(casos as never),
+    };
   });
 
 export const registrarEventoConversao = createServerFn({ method: "POST" })
