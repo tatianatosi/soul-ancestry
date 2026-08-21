@@ -8,6 +8,7 @@ import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criti
 import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
 import { PainelCadencia } from "@/components/painel/painel-cadencia";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
+import { PainelCatalogo } from "@/components/painel/painel-catalogo";
 import { MetricasJornada } from "@/components/painel/metricas-jornada";
 import { PainelOnboardingJornada } from "@/components/painel/painel-onboarding-jornada";
 import { listarRegistros, type Entidade } from "@/lib/saas.functions";
