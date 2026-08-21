@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -211,7 +212,7 @@ export const salvarVisaoPesquisa = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Muda a situação de uma evidência com nota interna obrigatória de validação. */
+/** Muda a situação de uma evidência: só transições permitidas, com autor, justificativa e origem. */
 export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; status: string; nota?: string }) => {
@@ -223,24 +224,57 @@ export const mudarEstadoEvidencia = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode alterar evidências.");
 
+    const atual = await supabase
+      .from("evidences")
+      .select("id,workflow_status,data_origin,evidence_nature")
+      .eq("id", data.id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (atual.error) throw new Error(atual.error.message);
+    if (!atual.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    const de = String((atual.data as any).workflow_status ?? "recebida");
+    const origem = String((atual.data as any).data_origin ?? (atual.data as any).evidence_nature ?? "");
+    const check = validarTransicaoEvidencia({
+      de,
+      para: data.status,
+      autor: context.userId as string,
+      justificativa: data.nota ?? "",
+      origem,
+    });
+    if (!check.ok) throw new Error(check.erro as string);
+
     const revisando = ["validada_internamente", "aprovada_para_entrega_cliente", "em_revisao"].includes(data.status);
+    const agora = new Date().toISOString();
     const r = await supabase
       .from("evidences")
       .update({
         workflow_status: data.status,
         validation_notes_internal: data.nota?.trim() || null,
         reviewed_by: revisando ? context.userId : undefined,
-        reviewed_at: revisando ? new Date().toISOString() : undefined,
+        reviewed_at: revisando ? agora : undefined,
         updated_by: context.userId,
       })
       .eq("id", data.id)
       .eq("organization_id", organizationId)
+      .eq("workflow_status", de)
       .select("id,workflow_status")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    await supabase.from("research_audit_events").insert({
+      organization_id: organizationId,
+      entity_type: "evidences",
+      entity_id: data.id,
+      event_type: `estado:${de}->${data.status}`,
+      actor_user_id: context.userId,
+      metadata: { justificativa: data.nota?.trim() ?? "", origem },
+    } as any);
+
     return { ok: true, status: r.data.workflow_status };
   });
+
 
 /** Arquivamento lógico de registros da cadeia; exclusão física é proibida no banco. */
 export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })
