@@ -28,7 +28,6 @@ import {
   LayoutGrid,
   Users,
   ListChecks,
-  Radar as RadarIcon,
   Bell,
   Library,
   TrendingUp,
@@ -40,12 +39,7 @@ import {
   Clock,
   Scale,
   Radio,
-  Wallet,
-  Plug,
-  Smartphone,
   FileText,
-  Rocket,
-  FileSignature,
   Link2,
 } from "lucide-react";
 import { PainelModulosContextuais, AssistenteLateral } from "@/components/desk/modulos-contextuais";
