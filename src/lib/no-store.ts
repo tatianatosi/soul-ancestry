@@ -7,7 +7,7 @@ import { setResponseHeaders } from "@tanstack/react-start/server";
  */
 export function semCache(): void {
   try {
-    setResponseHeaders({
+    (setResponseHeaders as unknown as (h: Record<string, string>) => void)({
       "Cache-Control": "no-store, no-cache, must-revalidate, private",
       Pragma: "no-cache",
       Expires: "0",

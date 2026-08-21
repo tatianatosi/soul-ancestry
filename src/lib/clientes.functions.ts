@@ -20,6 +20,7 @@ const seguro = async (p: any): Promise<any[]> => {
 export const listarPessoasCliente = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PessoaLista[]> => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
