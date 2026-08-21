@@ -430,20 +430,29 @@ function FormularioVigencia({
 }: {
   item: ItemBiblioteca;
   candidatos: ItemBiblioteca[];
-  onSalvar: (v: { id: string; estado: EstadoVigencia; criterio?: string; sucessorId?: string | null }) => void;
+  onSalvar: (v: {
+    id: string;
+    estado: EstadoVigencia;
+    criterio?: string;
+    sucessorId?: string | null;
+    justificativa?: string;
+    motivoSuspensao?: string;
+  }) => void;
   salvando: boolean;
   erro: string | null;
 }) {
   const [estado, setEstado] = useState<EstadoVigencia>((item.vigencia ?? "rascunho") as EstadoVigencia);
   const [criterio, setCriterio] = useState(item.homologacaoCriterio ?? "");
   const [sucessor, setSucessor] = useState(item.sucessorId ?? "");
+  const [justificativa, setJustificativa] = useState("");
+  const [motivoSuspensao, setMotivoSuspensao] = useState("");
 
   return (
     <form
       className="space-y-2"
       onSubmit={(e) => {
         e.preventDefault();
-        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null });
+        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null, justificativa, motivoSuspensao });
       }}
     >
       <label className="block">
@@ -471,6 +480,17 @@ function FormularioVigencia({
           />
         </label>
       )}
+      {estado === "suspenso" && (
+        <label className="block">
+          <span className="text-muted-foreground">Motivo da suspensão (bloqueia novo uso imediatamente)</span>
+          <textarea
+            value={motivoSuspensao}
+            onChange={(e) => setMotivoSuspensao(e.target.value)}
+            rows={2}
+            className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+          />
+        </label>
+      )}
       {estado === "substituido" && (
         <label className="block">
           <span className="text-muted-foreground">Item sucessor</span>
@@ -488,6 +508,16 @@ function FormularioVigencia({
           </select>
         </label>
       )}
+      <label className="block">
+        <span className="text-muted-foreground">Justificativa da mudança (registro append-only)</span>
+        <textarea
+          value={justificativa}
+          onChange={(e) => setJustificativa(e.target.value)}
+          rows={2}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+
       {erro && (
         <p role="alert" className="text-destructive">
           {erro}
