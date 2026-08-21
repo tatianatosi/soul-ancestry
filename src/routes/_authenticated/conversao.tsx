@@ -75,8 +75,10 @@ function Conversao() {
 
     const rotulos = { leads: new Map(leadsTodos.map((l) => [l.id, l.nome || l.codigo || l.id])) };
     const estados = montarEstados(eventos, rotulos);
+    const estadosTodos = montarEstados(eventosTodos, rotulos);
     const funil = montarFunil(eventos, estados);
-    const saude = montarSaude(estados, leads as LeadMinimo[]);
+    const saude = montarSaude(estados, leads as LeadMinimo[], Date.now(), estadosTodos);
+
 
     const origens = new Map<string, number>();
     for (const e of eventos) {
@@ -100,8 +102,13 @@ function Conversao() {
     { r: "Leads ativos sem próxima ação", l: dados.saude.leadsSemProximaAcao },
     { r: "Follow-ups vencidos", l: dados.saude.followupsVencidos },
     { r: "Propostas sem resposta", l: dados.saude.propostasSemResposta },
-    { r: "Aceite verbal sem confirmação formal", l: dados.saude.aceiteVerbalSemFormalizacao },
-    { r: "Inconsistências de sequência", l: dados.saude.inconsistencias },
+    {
+      r: "Aceite verbal sem confirmação formal",
+      l: dados.saude.aceiteVerbalSemFormalizacao,
+      nota: "Sempre exibido quando o estado existe, inclusive em registros de demonstração.",
+    },
+    { r: "Inconsistências de sequência", l: dados.saude.inconsistencias, nota: "Inclui integridade de eventos fora do filtro." },
+
   ];
 
   return (
@@ -203,9 +210,8 @@ function Conversao() {
                     <td className="py-1.5 pr-3 text-navy/50">{l.momento}</td>
                     <td className="py-1.5 pr-3 font-medium text-navy">{l.eventos}</td>
                     <td className="py-1.5 pr-3 text-navy/70">{l.entidades}</td>
-                    <td className="py-1.5 text-navy/70">
-                      {l.denominador === 0 ? "sem base" : percentualOuTraco(l.taxa)}
-                    </td>
+                    <td className="py-1.5 text-navy/70">{percentualOuTraco(l.taxa)}</td>
+
                   </tr>
                 ))}
               </tbody>
@@ -221,11 +227,14 @@ function Conversao() {
                   </p>
                 ))
               )}
+              <p className="text-navy/50">Taxa exibe “—” quando não há denominador; nenhum zero artificial é apresentado.</p>
               {dados.funil[0]!.eventos === 0 && dados.eventos.length > 0 && (
                 <p className="text-terracotta">
-                  “Lead criado” em zero com eventos posteriores registrados: falta importar o evento de entrada dos leads.
+                  ⚠ Alerta de integridade: evento inicial ausente ou fora do filtro — há eventos posteriores registrados sem
+                  “Lead criado”. Não interprete como funil vazio.
                 </p>
               )}
+
             </div>
           </Bloco>
 
@@ -235,6 +244,8 @@ function Conversao() {
                 <div key={g.r} className="rounded-lg border border-navy/10 p-3">
                   <p className="text-[10px] uppercase tracking-wide text-navy/50">{g.r}</p>
                   <p className="font-serif text-2xl text-navy">{g.l.length}</p>
+                  {"nota" in g && g.nota && <p className="text-[10px] text-navy/40">{g.nota}</p>}
+
                   <ul className="mt-1 space-y-0.5 text-[11px] text-navy/60">
                     {g.l.slice(0, 5).map((i) => (
                       <li key={i.id}>

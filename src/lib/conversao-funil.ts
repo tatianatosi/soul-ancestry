@@ -224,8 +224,37 @@ export type LeadMinimo = {
 
 const ENCERRADOS = ["perdido", "descartado", "arquivado", "convertido", "ganho"];
 
-export function montarSaude(estados: EstadoEntidade[], leads: LeadMinimo[], agora = Date.now()): SaudeFunil {
+export function montarSaude(
+  estados: EstadoEntidade[],
+  leads: LeadMinimo[],
+  agora = Date.now(),
+  /** Universo completo (inclusive demonstração) — usado para não zerar indicadores existentes. */
+  estadosTodos: EstadoEntidade[] = estados,
+): SaudeFunil {
   const ativos = estados.filter((e) => !e.perdido);
+  const chavesVisiveis = new Set(estados.map((e) => e.chave));
+
+  /** Estado pendente de formalização nunca pode aparecer como zero: varre o universo completo. */
+  const aceiteVerbalSemFormalizacao = estadosTodos
+    .filter((e) => !e.perdido && e.alcancados["aceite_verbal_confirmado"] && !e.alcancados["confirmacao_formal_recebida"])
+    .map((e) => {
+      const foraDoRecorte = !chavesVisiveis.has(e.chave);
+      return {
+        id: e.chave,
+        rotulo: e.rotulo,
+        detalhe: `Aceite verbal em ${new Date(e.alcancados["aceite_verbal_confirmado"]!.occurred_at).toLocaleDateString("pt-BR")} — falta confirmação escrita.${
+          foraDoRecorte ? " Registro de demonstração, fora das métricas, mas exibido por existir pendência real de formalização." : ""
+        }`,
+      };
+    });
+
+  const inconsistencias = estadosTodos
+    .filter((e) => e.inconsistencias.length > 0)
+    .map((e) => ({
+      id: e.chave,
+      rotulo: e.rotulo,
+      detalhe: `${e.inconsistencias.join(" ")}${chavesVisiveis.has(e.chave) ? "" : " (registro de demonstração)"}`,
+    }));
 
   return {
     leadsSemProximaAcao: leads
@@ -237,18 +266,11 @@ export function montarSaude(estados: EstadoEntidade[], leads: LeadMinimo[], agor
     propostasSemResposta: ativos
       .filter((e) => e.etapaAtual === "proposta_enviada")
       .map((e) => ({ id: e.chave, rotulo: e.rotulo, detalhe: "Sem aceite verbal nem perda registrada." })),
-    aceiteVerbalSemFormalizacao: ativos
-      .filter((e) => e.alcancados["aceite_verbal_confirmado"] && !e.alcancados["confirmacao_formal_recebida"])
-      .map((e) => ({
-        id: e.chave,
-        rotulo: e.rotulo,
-        detalhe: `Aceite verbal em ${new Date(e.alcancados["aceite_verbal_confirmado"]!.occurred_at).toLocaleDateString("pt-BR")} — falta confirmação escrita.`,
-      })),
-    inconsistencias: estados
-      .filter((e) => e.inconsistencias.length > 0)
-      .map((e) => ({ id: e.chave, rotulo: e.rotulo, detalhe: e.inconsistencias.join(" ") })),
+    aceiteVerbalSemFormalizacao,
+    inconsistencias,
   };
 }
+
 
 export const REFERENCIA_ACEITE: { titulo: string; itens: string[] }[] = [
   {
