@@ -428,6 +428,15 @@ function LeadsPage() {
         </p>
         <FluxoComercialCanonico />
       </div>
+
+      <div className="mt-6 space-y-3">
+        <h2 className="font-serif text-xl text-navy">Contatos, conversas e eventos de funil</h2>
+        <p className="text-xs text-navy/55">
+          Núcleo operacional canônico do Desk. Conversas são imutáveis e eventos sensíveis exigem confirmação humana e evidência
+          interna. Nada aqui envia mensagem nem gera ato externo.
+        </p>
+        <PainelCanonicoCrm podeEscrever={podeEscrever} />
+      </div>
     </SaasShell>
   );
 }
