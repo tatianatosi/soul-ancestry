@@ -67,7 +67,7 @@ export type EntradaVinculo = {
 
 export type Resultado = { ok: true } | { ok: false; erros: string[] };
 
-export const PAPEIS_VINCULA = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
+export const PAPEIS_VINCULA = ["admin", "operacoes", "pesquisador"];
 
 export function validarVinculo(e: EntradaVinculo): Resultado {
   const erros: string[] = [];

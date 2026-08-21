@@ -103,9 +103,10 @@ export const listarVinculosFonte = createServerFn({ method: "GET" })
       supabase.from("research_people").select("id,canonical_name").eq("organization_id", organizationId).is("archived_at", null),
       supabase
         .from("case_reports")
-        .select("id,titulo_interno")
+        .select("id,titulo")
         .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId),
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
     ]);
 
     return {
@@ -118,7 +119,7 @@ export const listarVinculosFonte = createServerFn({ method: "GET" })
           rotulo: `${s.document_type ?? "Solicitação"}${s.full_name_text ? ` — ${s.full_name_text}` : ""}`,
         })),
         pessoa: ((pessoas.data ?? []) as any[]).map((p) => ({ id: String(p.id), rotulo: String(p.canonical_name ?? "Pessoa") })),
-        relatorio: ((relatorios.data ?? []) as any[]).map((r) => ({ id: String(r.id), rotulo: String(r.titulo_interno ?? "Relatório") })),
+        relatorio: ((relatorios.data ?? []) as any[]).map((r) => ({ id: String(r.id), rotulo: String(r.titulo ?? "Relatório") })),
       },
     };
   });
