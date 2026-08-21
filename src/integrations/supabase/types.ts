@@ -1285,6 +1285,7 @@ export type Database = {
           pendencias_cliente: string[]
           pendencias_internas: string[]
           prazo_proxima_acao: string | null
+          product_catalog_id: string | null
           proxima_acao: string | null
           proxima_atualizacao_limite_em: string | null
           proxima_microentrega: string | null
@@ -1315,6 +1316,7 @@ export type Database = {
           pendencias_cliente?: string[]
           pendencias_internas?: string[]
           prazo_proxima_acao?: string | null
+          product_catalog_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
@@ -1345,6 +1347,7 @@ export type Database = {
           pendencias_cliente?: string[]
           pendencias_internas?: string[]
           prazo_proxima_acao?: string | null
+          product_catalog_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
@@ -1375,6 +1378,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_plans_product_catalog_id_fkey"
+            columns: ["product_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
             referencedColumns: ["id"]
           },
         ]

@@ -22,7 +22,7 @@ export function PainelTop30() {
   if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando base comercial Top 30…</p>;
   if (q.isError || !q.data) return null;
 
-  const { resumo, top10, top30, filas, fases } = q.data;
+  const { resumo, top10, top30, filas, fases, pendenciasPorResponsavel } = q.data;
   type Produto = (typeof top10)[number];
   type Caso = (typeof filas.semPlano)[number];
 
@@ -114,6 +114,20 @@ export function PainelTop30() {
         ))}
 
         <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Pendências por responsável</p>
+          <ul className="mt-2 space-y-1 text-xs text-navy/60">
+            {pendenciasPorResponsavel.slice(0, 8).map((r) => (
+              <li key={r.responsavel}>
+                {r.responsavel === "sem-responsavel" ? "Sem responsável definido" : `Responsável ${r.responsavel.slice(0, 8)}`} —{" "}
+                {r.pendencias} pendência(s) em {r.casos} caso(s)
+              </li>
+            ))}
+            {!pendenciasPorResponsavel.length ? <li>Nenhum caso com plano registrado.</li> : null}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+
           <p className="text-xs uppercase tracking-wide text-navy/50">Casos por fase da jornada</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {fases.map((f) => (

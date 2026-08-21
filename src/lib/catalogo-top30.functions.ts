@@ -17,17 +17,18 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       supabase
         .from("product_catalog")
         .select(
-          "id,code,nome_comercial,familia_comercial,tipo_oferta,faixa_prioridade,papel_comercial,status_homologacao,elegivel_para_proposta,permite_recorrencia,preco_comercial_vigente,preco_historico_legado,condicao_comercial_padrao,observacao_de_governanca",
+          "id,code,nome_comercial,familia_comercial,tipo_oferta,prioridade_catalogo,faixa_prioridade,papel_comercial,status_homologacao,elegivel_para_proposta,permite_recorrencia,preco_comercial_vigente,preco_historico_legado,condicao_comercial_padrao,observacao_de_governanca",
         )
         .is("archived_at", null)
         .order("code"),
       supabase
         .from("case_plans")
         .select(
-          "id,case_id,fase_jornada,marco_atual,proxima_acao,prazo_proxima_acao,proxima_microentrega,dias_sem_touchpoint,status_saude,status,case_service_id",
+          "id,case_id,fase_jornada,marco_atual,responsavel_user_id,proxima_acao,prazo_proxima_acao,proxima_microentrega,dias_sem_touchpoint,status_saude,status,case_service_id,product_catalog_id",
         )
         .is("archived_at", null)
         .limit(500),
+
       supabase.from("crm_casos").select("id,codigo,titulo,status,ultimo_touchpoint_em").limit(500),
       supabase
         .from("client_deliverables")
@@ -45,7 +46,7 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
         nome: (r.nome_comercial ?? r.code) as string,
         familia: (r.familia_comercial ?? "—") as string,
         tipo: (r.tipo_oferta ?? "—") as string,
-        faixa: (r.faixa_prioridade ?? "HISTORICO") as "TOP_10" | "TOP_30" | "HISTORICO",
+        faixa: (r.prioridade_catalogo ?? r.faixa_prioridade ?? "HISTORICO") as "TOP_10" | "TOP_30" | "HISTORICO",
         papel: (r.papel_comercial ?? "") as string,
         status_homologacao: (r.status_homologacao ?? "em_revisao") as string,
         elegivel: !!r.elegivel_para_proposta && r.status_homologacao === "homologado",
@@ -74,10 +75,14 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
         titulo: (c.titulo ?? "Caso") as string,
         status: (c.status ?? "") as string,
         temPlano: !!plano,
-        temProduto: !!plano?.case_service_id,
+        temProduto: !!(plano?.product_catalog_id ?? plano?.case_service_id),
         fase: (plano?.fase_jornada ?? null) as string | null,
         proximaMicroentrega: (plano?.proxima_microentrega ?? null) as string | null,
+        responsavel: (plano?.responsavel_user_id ?? null) as string | null,
+        proximaAcao: (plano?.proxima_acao ?? null) as string | null,
+        prazoProximaAcao: (plano?.prazo_proxima_acao ?? null) as string | null,
         dias_sem_touchpoint: dias,
+
       };
     });
 
@@ -102,6 +107,16 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
 
     const fases = agrupar(listaCasos.filter((c: Caso) => c.fase).map((c: Caso) => c.fase as string));
 
+    const porResponsavel = new Map<string, { responsavel: string; casos: number; pendencias: number }>();
+    for (const c of listaCasos as Caso[]) {
+      const chave = c.responsavel ?? "sem-responsavel";
+      const atual = porResponsavel.get(chave) ?? { responsavel: chave, casos: 0, pendencias: 0 };
+      atual.casos += 1;
+      if (!c.temProduto || !c.temPlano || !c.proximaMicroentrega || c.dias_sem_touchpoint >= 10) atual.pendencias += 1;
+      porResponsavel.set(chave, atual);
+    }
+    const pendenciasPorResponsavel = [...porResponsavel.values()].sort((a, b) => b.pendencias - a.pendencias);
+
     return {
       resumo: {
         top10: top10.length,
@@ -114,7 +129,9 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       top30,
       filas,
       fases,
+      pendenciasPorResponsavel,
     };
+
   });
 
 function diasDesde(iso: string | null): number {
