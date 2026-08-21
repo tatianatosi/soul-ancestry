@@ -87,7 +87,7 @@ export function PainelTop30() {
             <span className="font-serif text-2xl text-navy">{filas.entregasPendentes.length}</span>
           </div>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
-            {filas.entregasPendentes.slice(0, 6).map((d) => (
+            {filas.entregasPendentes.slice(0, 6).map((d: { id: string; titulo: string; status: string }) => (
               <li key={d.id}>
                 {d.titulo} · {d.status}
               </li>
