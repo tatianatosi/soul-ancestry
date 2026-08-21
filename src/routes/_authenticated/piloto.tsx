@@ -471,7 +471,14 @@ function LinhaBloqueio({
           </div>
         )
       ) : (
-        <p className="mt-1 text-xs text-navy/60">Justificativa: {bloqueio["justificativa"]}</p>
+        <p className="mt-1 text-xs text-navy/60">
+          Resultado: {bloqueio["status"] === "resolvido" ? "resolvido" : "não aplicável"} em{" "}
+          {bloqueio["resolvido_em"]
+            ? new Date(bloqueio["resolvido_em"]).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })
+            : "—"}
+          . Justificativa: {bloqueio["justificativa"]}
+        </p>
+
       )}
 
     </div>
