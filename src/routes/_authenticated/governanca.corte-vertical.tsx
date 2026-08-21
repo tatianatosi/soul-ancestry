@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import {
   ANA_BLOQUEIOS,
+  avaliarEscadaOnboarding,
+  JOAO_ESTADO_ESCADA,
   ANA_ESTADO_REAL,
   ANA_NOTA_COMERCIAL,
   ENTIDADES_VERTICAIS,
