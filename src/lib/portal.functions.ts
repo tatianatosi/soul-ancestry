@@ -563,7 +563,10 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
       throw new Error("Acesso indisponível para reenvio.");
     }
 
-    const expira = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    // Reenvio: janela curta e novo uso único. O link anterior deixa de valer
+    // porque a janela e o contador são regravados no mesmo registro.
+    const { LINK_LOGIN_VALIDADE_MINUTOS } = await import("./portal-elegibilidade");
+    const expira = new Date(Date.now() + LINK_LOGIN_VALIDADE_MINUTOS * 60 * 1000).toISOString();
     await supabase
       .from("client_portal_access")
       .update({
