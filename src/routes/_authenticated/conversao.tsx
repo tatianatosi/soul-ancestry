@@ -205,9 +205,8 @@ function Conversao() {
                     <td className="py-1.5 pr-3 text-navy/50">{l.momento}</td>
                     <td className="py-1.5 pr-3 font-medium text-navy">{l.eventos}</td>
                     <td className="py-1.5 pr-3 text-navy/70">{l.entidades}</td>
-                    <td className="py-1.5 text-navy/70">
-                      {l.denominador === 0 ? "sem base" : percentualOuTraco(l.taxa)}
-                    </td>
+                    <td className="py-1.5 text-navy/70">{percentualOuTraco(l.taxa)}</td>
+
                   </tr>
                 ))}
               </tbody>
