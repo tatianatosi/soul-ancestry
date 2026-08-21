@@ -8634,40 +8634,66 @@ export type Database = {
           call_realizada_em: string | null
           case_id: string | null
           codigo: string | null
+          complexidade_documental: string | null
+          confianca_triagem: string | null
+          consentimento_gravacao: boolean
           contrato_link_interno: string | null
           created_at: string
           created_by: string | null
           dados_teste: boolean
           data_origin: string
           demo: boolean
+          despesas_terceiros_faixa: string | null
+          despesas_terceiros_regra: string | null
+          despesas_terceiros_status: string | null
           discovery_resultado: string | null
+          dossie_link_interno: string | null
           eixo_comercial: string
           eixo_formalizacao: string
+          elegibilidade_preliminar: string | null
           email: string | null
+          estado_documental_inicial: string | null
           estagio: string
+          estrutura_familiar: string | null
+          exige_idioma_entrevista: string | null
+          geracao_ascendente: string | null
+          gravacao_link_interno: string | null
           id: string
           indicado_por: string | null
+          linha_transmissao: string | null
           marco_preliminar: string | null
           motivo_perda: string | null
           nacionalidade: string | null
           narrativa_familiar: string | null
+          nivel_intencao: string | null
           nome: string
           nucleo_id: string | null
+          objecao_predominante: string | null
           objetivo: string | null
           observacoes: string | null
           organization_id: string
           origem: string | null
           pagamento_previsto_em: string | null
           pais_interesse: string | null
+          pendencia_documental_prioritaria: string | null
+          produtos_recomendados: string[]
           proposta_link_interno: string | null
           proposta_referencia_interna: string | null
           proxima_acao: string | null
           proxima_acao_em: string | null
+          requerentes_potenciais: number | null
           responsavel_nome: string | null
           responsavel_user_id: string | null
           resumo_call: string | null
           resumo_validado: boolean
+          risco_ruptura: string | null
           servico_inicial_aprovado: string | null
+          sku_referencia: string | null
+          spin_implicacao: boolean
+          spin_necessidade: boolean
+          spin_problema: boolean
+          spin_situacao: boolean
+          status_call: string | null
           status_via: string | null
           telefone: string | null
           ultimo_followup_em: string | null
@@ -8685,40 +8711,66 @@ export type Database = {
           call_realizada_em?: string | null
           case_id?: string | null
           codigo?: string | null
+          complexidade_documental?: string | null
+          confianca_triagem?: string | null
+          consentimento_gravacao?: boolean
           contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
           data_origin?: string
           demo?: boolean
+          despesas_terceiros_faixa?: string | null
+          despesas_terceiros_regra?: string | null
+          despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
+          dossie_link_interno?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
+          elegibilidade_preliminar?: string | null
           email?: string | null
+          estado_documental_inicial?: string | null
           estagio?: string
+          estrutura_familiar?: string | null
+          exige_idioma_entrevista?: string | null
+          geracao_ascendente?: string | null
+          gravacao_link_interno?: string | null
           id?: string
           indicado_por?: string | null
+          linha_transmissao?: string | null
           marco_preliminar?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
           narrativa_familiar?: string | null
+          nivel_intencao?: string | null
           nome: string
           nucleo_id?: string | null
+          objecao_predominante?: string | null
           objetivo?: string | null
           observacoes?: string | null
           organization_id: string
           origem?: string | null
           pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          pendencia_documental_prioritaria?: string | null
+          produtos_recomendados?: string[]
           proposta_link_interno?: string | null
           proposta_referencia_interna?: string | null
           proxima_acao?: string | null
           proxima_acao_em?: string | null
+          requerentes_potenciais?: number | null
           responsavel_nome?: string | null
           responsavel_user_id?: string | null
           resumo_call?: string | null
           resumo_validado?: boolean
+          risco_ruptura?: string | null
           servico_inicial_aprovado?: string | null
+          sku_referencia?: string | null
+          spin_implicacao?: boolean
+          spin_necessidade?: boolean
+          spin_problema?: boolean
+          spin_situacao?: boolean
+          status_call?: string | null
           status_via?: string | null
           telefone?: string | null
           ultimo_followup_em?: string | null
@@ -8736,40 +8788,66 @@ export type Database = {
           call_realizada_em?: string | null
           case_id?: string | null
           codigo?: string | null
+          complexidade_documental?: string | null
+          confianca_triagem?: string | null
+          consentimento_gravacao?: boolean
           contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
           data_origin?: string
           demo?: boolean
+          despesas_terceiros_faixa?: string | null
+          despesas_terceiros_regra?: string | null
+          despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
+          dossie_link_interno?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
+          elegibilidade_preliminar?: string | null
           email?: string | null
+          estado_documental_inicial?: string | null
           estagio?: string
+          estrutura_familiar?: string | null
+          exige_idioma_entrevista?: string | null
+          geracao_ascendente?: string | null
+          gravacao_link_interno?: string | null
           id?: string
           indicado_por?: string | null
+          linha_transmissao?: string | null
           marco_preliminar?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
           narrativa_familiar?: string | null
+          nivel_intencao?: string | null
           nome?: string
           nucleo_id?: string | null
+          objecao_predominante?: string | null
           objetivo?: string | null
           observacoes?: string | null
           organization_id?: string
           origem?: string | null
           pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          pendencia_documental_prioritaria?: string | null
+          produtos_recomendados?: string[]
           proposta_link_interno?: string | null
           proposta_referencia_interna?: string | null
           proxima_acao?: string | null
           proxima_acao_em?: string | null
+          requerentes_potenciais?: number | null
           responsavel_nome?: string | null
           responsavel_user_id?: string | null
           resumo_call?: string | null
           resumo_validado?: boolean
+          risco_ruptura?: string | null
           servico_inicial_aprovado?: string | null
+          sku_referencia?: string | null
+          spin_implicacao?: boolean
+          spin_necessidade?: boolean
+          spin_problema?: boolean
+          spin_situacao?: boolean
+          status_call?: string | null
           status_via?: string | null
           telefone?: string | null
           ultimo_followup_em?: string | null
