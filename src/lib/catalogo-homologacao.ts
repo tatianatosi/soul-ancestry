@@ -102,3 +102,35 @@ export function referenciaDeSku(i: ItemCatalogoRef) {
     data_ultima_validacao: i.data_ultima_validacao,
   };
 }
+
+/**
+ * Decisão inicial de governança (referência somente leitura).
+ * Não cria produto, preço, link nem cobrança: apenas trava o uso comercial
+ * destes SKUs até homologação explícita na Planilha Mestre.
+ */
+export const DECISOES_INICIAIS: Record<
+  string,
+  { status_homologacao: StatusHomologacao; preco_referencia: number | null; observacao: string }
+> = {
+  "CA-CID-006": {
+    status_homologacao: "em_revisao",
+    preco_referencia: 280,
+    observacao: "Preço comercial vigente de referência R$ 280. Em revisão até validação do link Asaas e homologação explícita.",
+  },
+  "CA-MEM-003": {
+    status_homologacao: "em_revisao",
+    preco_referencia: 297,
+    observacao: "Preço comercial vigente de referência R$ 297. Em revisão até validação do link Asaas e homologação explícita.",
+  },
+  "CA-HIST-005": {
+    status_homologacao: "bloqueado",
+    preco_referencia: null,
+    observacao: "Bloqueado. Não exibir em proposta até validação de escopo, preço e condição.",
+  },
+};
+
+/** SKU sem homologação nunca entra em proposta, contrato, cobrança ou onboarding. */
+export function bloqueadoPorDecisaoInicial(sku: string): boolean {
+  const d = DECISOES_INICIAIS[sku];
+  return !!d && d.status_homologacao !== "homologado";
+}
