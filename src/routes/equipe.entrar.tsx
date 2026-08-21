@@ -11,6 +11,7 @@ import {
   prepararLoginEquipe,
 } from "@/lib/equipe.functions";
 import { EquipeMoldura } from "@/components/equipe/moldura";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 
 export const Route = createFileRoute("/equipe/entrar")({
