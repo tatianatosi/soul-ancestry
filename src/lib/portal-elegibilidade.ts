@@ -85,7 +85,18 @@ export type PessoaPortal = {
   is_demo: boolean;
 };
 
+export type PropostaPortal = {
+  id: string;
+  client_id: string | null;
+  case_id: string | null;
+  status: string | null;
+  archived_at: string | null;
+};
+
 export type Bloqueio = { bloqueado: boolean; motivos: string[] };
+
+/** Motivo canônico exibido no seletor quando faltam as travas operacionais. */
+export const MOTIVO_GATES = "Acesso bloqueado: contrato/pagamento/documentos pendentes";
 
 /** Caso elegível ao Espaço do cliente. */
 export function bloqueioDoCaso(caso: CasoPortal): Bloqueio {
@@ -99,12 +110,20 @@ export function bloqueioDoCaso(caso: CasoPortal): Bloqueio {
   return { bloqueado: motivos.length > 0, motivos };
 }
 
+/** Propostas que autorizam leitura no Portal de proposta. */
+export function propostasAutorizadas(propostas: PropostaPortal[], clientId: string): PropostaPortal[] {
+  return propostas.filter(
+    (p) => !p.archived_at && p.client_id === clientId && ["enviada", "aprovada"].includes(p.status ?? ""),
+  );
+}
+
 /** Pessoa elegível ao nível escolhido: exige autorização aprovada e finalidade registrada. */
 export function bloqueioDaPessoa(
   pessoa: PessoaPortal,
   nivel: NivelPortal,
   autorizacoes: AutorizacaoEmail[],
   casos: CasoPortal[],
+  propostas: PropostaPortal[] = [],
 ): Bloqueio {
   const motivos: string[] = [];
   const aprovadas = autorizacoes.filter(
@@ -113,16 +132,44 @@ export function bloqueioDaPessoa(
   if (aprovadas.length === 0) {
     motivos.push(
       pessoa.classificacao === "participante_familiar"
-        ? "Bloqueado: participante do núcleo exige autorização e finalidade próprias"
+        ? "Bloqueado: participante do núcleo — sem regra e autorização documental própria"
         : "Bloqueado: nenhum e-mail autorizado e aprovado para este nível",
     );
   }
   if (nivel === "client_workspace") {
     const meus = casos.filter((c) => c.cliente_id === pessoa.id);
     if (meus.length === 0) motivos.push("Bloqueado: pessoa sem caso associado");
-    else if (meus.every((c) => bloqueioDoCaso(c).bloqueado)) motivos.push("Bloqueado: nenhum caso elegível");
+    else if (meus.every((c) => bloqueioDoCaso(c).bloqueado)) motivos.push(MOTIVO_GATES);
+  } else if (propostasAutorizadas(propostas, pessoa.id).length === 0) {
+    motivos.push("Bloqueado: sem proposta enviada ou aprovada para leitura");
   }
   return { bloqueado: motivos.length > 0, motivos };
+}
+
+export type PessoaAvaliada = { pessoa: PessoaPortal; bloqueio: Bloqueio };
+
+/**
+ * Separa o seletor em três grupos: elegíveis (podem receber convite),
+ * bloqueados (somente leitura do motivo) e demonstrações (isoladas das métricas).
+ */
+export function classificarPessoas(
+  pessoas: PessoaPortal[],
+  nivel: NivelPortal,
+  autorizacoes: AutorizacaoEmail[],
+  casos: CasoPortal[],
+  propostas: PropostaPortal[] = [],
+): { elegiveis: PessoaAvaliada[]; bloqueadas: PessoaAvaliada[]; demo: PessoaAvaliada[] } {
+  const elegiveis: PessoaAvaliada[] = [];
+  const bloqueadas: PessoaAvaliada[] = [];
+  const demo: PessoaAvaliada[] = [];
+  for (const pessoa of pessoas) {
+    const bloqueio = bloqueioDaPessoa(pessoa, nivel, autorizacoes, casos, propostas);
+    const item = { pessoa, bloqueio };
+    if (pessoa.is_demo) demo.push(item);
+    else if (bloqueio.bloqueado) bloqueadas.push(item);
+    else elegiveis.push(item);
+  }
+  return { elegiveis, bloqueadas, demo };
 }
 
 /** E-mails aprovados que podem receber convite naquele nível, para aquela pessoa. */
@@ -135,6 +182,7 @@ export function emailsElegiveis(
     (a) => !a.archived_at && a.status === "aprovado" && a.nivel_pretendido === nivel && a.client_id === clientId,
   );
 }
+
 
 export type EstadoLink = "valido" | "expirado" | "esgotado" | "indisponivel";
 
