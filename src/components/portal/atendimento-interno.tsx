@@ -556,7 +556,18 @@ export function AtendimentoInterno() {
                   <div className="flex items-center gap-2">
                     <Selo texto={f.liberada_cliente ? "Visível" : "Oculta"} tom={f.liberada_cliente ? "ok" : "neutro"} />
                     <button
-                      onClick={() => alternarFatura.mutate({ faturaId: f.id, liberar: !f.liberada_cliente })}
+                      onClick={() =>
+                        abrirConfirmacao({
+                          tipo: "fatura",
+                          liberar: !f.liberada_cliente,
+                          id: f.id,
+                          caso: f.case_id ? nomeCaso(f.case_id) : "sem caso vinculado",
+                          item: f.descricao ?? f.numero ?? "Fatura",
+                          classificacao: "fatura vinculada ao caso autorizado",
+                          visibilidade: VISIBILIDADE_FATURA_LABEL,
+                          responsavel: "membro autenticado",
+                        })
+                      }
                       disabled={impedido}
                       className="inline-flex items-center gap-1 rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
                     >
