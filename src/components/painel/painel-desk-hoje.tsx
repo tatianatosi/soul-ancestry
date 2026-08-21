@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
-import { AREAS_RESPONSAVEIS, EIXO_COMERCIAL, listaPrioritaria, rotulo } from "@/lib/crm-desk";
+import { AREAS_RESPONSAVEIS, EIXO_COMERCIAL, classificarPrazo, listaPrioritaria, rotulo } from "@/lib/crm-desk";
 
 /**
  * Painel Hoje do Desk comercial: filas ordenadas por criticidade e leitura
@@ -26,6 +26,13 @@ export function PainelDeskHoje() {
   ).sort();
   const priorizada = listaPrioritaria(filas, { area, responsavel, etapa });
   const hoje = new Date().toISOString().slice(0, 10);
+  const contagem = priorizada.reduce(
+    (acc, i) => {
+      acc[classificarPrazo(i.data, hoje).chave] += 1;
+      return acc;
+    },
+    { atrasado: 0, hoje: 0, futuro: 0, sem_data: 0 } as Record<"atrasado" | "hoje" | "futuro" | "sem_data", number>,
+  );
 
   return (
     <section className="mt-8">
