@@ -25,22 +25,26 @@ export const painelCatalogoHomologacao = createServerFn({ method: "GET" })
     const vistos = new Set<string>();
     const itens = (data ?? [])
       .filter((r: any) => (vistos.has(r.code) ? false : (vistos.add(r.code), true)))
-      .map((r: any) => ({
-        sku: r.code as string,
-        nome_produto: (r.nome_comercial ?? r.code) as string,
-        status_produto: (r.status_produto ?? "ativo") as string,
-        status_homologacao: (r.status_homologacao ?? "em_revisao") as string,
-        preco_comercial_vigente: r.preco_comercial_vigente as number | null,
-        condicao_comercial_vigente: (r.condicao_comercial_padrao ?? null) as string | null,
-        versao_vigencia: r.versao_vigencia as string | null,
-        data_ultima_validacao: r.data_ultima_validacao as string | null,
-        responsavel_homologacao: r.responsavel_homologacao as string | null,
-        link_asaas_validado: r.link_asaas_validado as string | null,
-        status_link_asaas: (r.status_link_asaas ?? "pendente") as string,
-        escopo_aprovado: r.escopo_aprovado as string | null,
-        observacao_de_governanca: r.observacao_de_governanca as string | null,
-        elegivel_para_proposta: !!r.elegivel_para_proposta,
-      }));
+      .map((r: any) => {
+        const decisao = DECISOES_INICIAIS[r.code as string];
+        const status_homologacao = (decisao?.status_homologacao ?? r.status_homologacao ?? "em_revisao") as string;
+        return {
+          sku: r.code as string,
+          nome_produto: (r.nome_comercial ?? r.code) as string,
+          status_produto: (r.status_produto ?? "ativo") as string,
+          status_homologacao,
+          preco_comercial_vigente: (r.preco_comercial_vigente ?? decisao?.preco_referencia ?? null) as number | null,
+          condicao_comercial_vigente: (r.condicao_comercial_padrao ?? null) as string | null,
+          versao_vigencia: r.versao_vigencia as string | null,
+          data_ultima_validacao: r.data_ultima_validacao as string | null,
+          responsavel_homologacao: r.responsavel_homologacao as string | null,
+          link_asaas_validado: r.link_asaas_validado as string | null,
+          status_link_asaas: (r.status_link_asaas ?? "pendente") as string,
+          escopo_aprovado: r.escopo_aprovado as string | null,
+          observacao_de_governanca: (decisao?.observacao ?? r.observacao_de_governanca ?? null) as string | null,
+          elegivel_para_proposta: !!r.elegivel_para_proposta && status_homologacao === "homologado",
+        };
+      });
 
     const ativosSemHomologacao = itens.filter(
       (i) => i.status_produto === "ativo" && i.status_homologacao !== "homologado",
