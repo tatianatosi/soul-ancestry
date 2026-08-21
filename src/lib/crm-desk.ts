@@ -309,7 +309,17 @@ export const ROTULO_FILA: Record<string, string> = {
   casos_pendencia_documental: "Casos com pendência documental",
 };
 
-export type ItemFila = { id: string; rotulo: string; detalhe: string; data: string | null; tipo: "lead" | "caso" };
+export type ItemFila = {
+  id: string;
+  rotulo: string;
+  detalhe: string;
+  data: string | null;
+  tipo: "lead" | "caso";
+  /** Filtros operacionais do Painel Hoje. */
+  area: string | null;
+  responsavel: string | null;
+  etapa: string | null;
+};
 export type Fila = { chave: string; rotulo: string; criticidade: number; itens: ItemFila[] };
 
 const dia = (d: string | Date) => new Date(d).toISOString().slice(0, 10);
@@ -329,7 +339,11 @@ export function montarFilasHoje(input: {
     detalhe,
     data,
     tipo: "lead",
+    area: l.area_responsavel ?? null,
+    responsavel: l.responsavel_nome ?? null,
+    etapa: l.eixo_comercial ?? null,
   });
+
 
   const filas: Fila[] = [
     {
