@@ -17,17 +17,18 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       supabase
         .from("product_catalog")
         .select(
-          "id,code,nome_comercial,familia_comercial,tipo_oferta,faixa_prioridade,papel_comercial,status_homologacao,elegivel_para_proposta,permite_recorrencia,preco_comercial_vigente,preco_historico_legado,condicao_comercial_padrao,observacao_de_governanca",
+          "id,code,nome_comercial,familia_comercial,tipo_oferta,prioridade_catalogo,faixa_prioridade,papel_comercial,status_homologacao,elegivel_para_proposta,permite_recorrencia,preco_comercial_vigente,preco_historico_legado,condicao_comercial_padrao,observacao_de_governanca",
         )
         .is("archived_at", null)
         .order("code"),
       supabase
         .from("case_plans")
         .select(
-          "id,case_id,fase_jornada,marco_atual,proxima_acao,prazo_proxima_acao,proxima_microentrega,dias_sem_touchpoint,status_saude,status,case_service_id",
+          "id,case_id,fase_jornada,marco_atual,responsavel_user_id,proxima_acao,prazo_proxima_acao,proxima_microentrega,dias_sem_touchpoint,status_saude,status,case_service_id,product_catalog_id",
         )
         .is("archived_at", null)
         .limit(500),
+
       supabase.from("crm_casos").select("id,codigo,titulo,status,ultimo_touchpoint_em").limit(500),
       supabase
         .from("client_deliverables")
