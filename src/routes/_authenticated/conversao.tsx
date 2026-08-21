@@ -244,6 +244,8 @@ function Conversao() {
                 <div key={g.r} className="rounded-lg border border-navy/10 p-3">
                   <p className="text-[10px] uppercase tracking-wide text-navy/50">{g.r}</p>
                   <p className="font-serif text-2xl text-navy">{g.l.length}</p>
+                  {"nota" in g && g.nota && <p className="text-[10px] text-navy/40">{g.nota}</p>}
+
                   <ul className="mt-1 space-y-0.5 text-[11px] text-navy/60">
                     {g.l.slice(0, 5).map((i) => (
                       <li key={i.id}>
