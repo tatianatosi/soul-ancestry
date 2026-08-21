@@ -14,6 +14,7 @@ import { AbaProximaAcao } from "@/components/caso/proxima-acao";
 import { AbaEtiquetas } from "@/components/caso/etiquetas-caso";
 import { AbaOnboarding } from "@/components/caso/onboarding-caso";
 import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
+import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
@@ -189,6 +190,7 @@ const ABAS = [
   { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "onboarding", rotulo: "Onboarding" },
+  { id: "fechamento", rotulo: "Fechamento" },
   { id: "jornada", rotulo: "Jornada do cliente" },
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
@@ -731,6 +733,8 @@ function FichaCaso() {
           onMudou={recarregar}
         />
       ) : null}
+
+      {aba === "fechamento" ? <AbaFechamento casoId={id} bloqueado={bloqueado} /> : null}
 
       {aba === "jornada" ? <AbaJornadaCliente casoId={id} bloqueado={bloqueado} /> : null}
 
