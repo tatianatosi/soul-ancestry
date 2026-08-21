@@ -166,7 +166,7 @@ function PropostasPage() {
 
   return (
     <SaasShell
-      titulo="Propostas"
+      titulo="CRM Vivo — Propostas"
       descricao="Versões, escopo, condições e validade. Só uma proposta aprovada por cliente."
       acoes={
         podeComercial ? (

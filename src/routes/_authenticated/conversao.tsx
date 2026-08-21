@@ -80,7 +80,7 @@ function Conversao() {
 
   return (
     <SaasShell
-      titulo="Conversão, marketing e aceite padrão"
+      titulo="CRM Vivo — Conversão e handoff"
       descricao="Leitura interna de funil e investimento. Nenhuma cobrança, mensagem ou automação é disparada aqui."
     >
       {q.isLoading ? (
