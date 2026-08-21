@@ -167,7 +167,8 @@ export function EntidadeCrud({
 
 
 
-  const linhas = (q.data ?? []) as Record<string, unknown>[];
+  const todas = (q.data ?? []) as Record<string, unknown>[];
+  const linhas = filtrarLinhas ? todas.filter(filtrarLinhas) : todas;
 
   return (
     <div className="space-y-4">
@@ -180,6 +181,7 @@ export function EntidadeCrud({
           />
           Mostrar arquivados
         </label>
+        {topo}
         {podeEscrever ? (
           <button
             onClick={() => {
@@ -226,7 +228,7 @@ export function EntidadeCrud({
               {linhas.map((linha) => {
                 const arquivado = Boolean(linha["archived_at"]);
                 return (
-                  <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55")}>
+                  <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55", classeLinha?.(linha))}>
                     {colunas.map((c) => (
                       <td key={c.chave} className="px-4 py-3 align-top">
                         {c.render ? c.render(linha) : (linha[c.chave] as string) || "—"}
