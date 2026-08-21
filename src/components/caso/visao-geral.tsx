@@ -5,6 +5,13 @@
 import { montarLinhaDoTempo, rotuloEvento, faseDoEvento, type EventoTimeline } from "@/lib/timeline-caso";
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { STATUS_PREPARACAO_BLUEPRINT } from "@/lib/blueprint";
+import {
+  resumoGatesAtivacao,
+  passosFormalizacao,
+  previsoesCondicionais,
+  CHECAGEM_REPRESENTACAO,
+  ESCOPO_SOLICITACAO_D1,
+} from "@/lib/gates-ativacao-ficha";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
