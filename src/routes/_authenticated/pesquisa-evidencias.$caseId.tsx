@@ -22,10 +22,28 @@ import {
   painelPesquisaEvidencias,
   salvarSolicitacaoDocumental,
 } from "@/lib/documentos-solicitacoes.functions";
+import {
+  CADEIA_PESQUISA,
+  PROJECAO_ACHADO,
+  STATUS_EVIDENCIA,
+  STATUS_PESQUISA,
+  STATUS_RELATORIO,
+  gatilhosDaEvidencia,
+  relatorioVisivelAoCliente,
+} from "@/lib/pesquisa-cadeia";
+import {
+  cadeiaPesquisaDoCaso,
+  mudarEstadoEvidencia,
+  prepararAreaPesquisa,
+} from "@/lib/pesquisa-cadeia.functions";
 import { SecaoFontesDocumentos } from "@/components/pesquisa/fontes-documentos";
 import { LastroDeFontes } from "@/components/pesquisa/fontes-vinculos";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+function rotuloDe(lista: readonly { id: string; rotulo: string }[], id?: string | null) {
+  return lista.find((x) => x.id === id)?.rotulo ?? id ?? "—";
+}
 
 export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseId")({
   head: () => ({
@@ -87,7 +105,31 @@ function AreaPesquisaEvidencias() {
     onError: (e: any) => toast.error(String(e?.message ?? e)),
   });
 
+  const cadeia = useQuery({
+    queryKey: ["cadeia-pesquisa", caseId],
+    queryFn: () => cadeiaPesquisaDoCaso({ data: { caseId } }),
+  });
+
+  const preparar = useMutation({
+    mutationFn: (v: { caseId: string; objetivo: string }) => prepararAreaPesquisa({ data: v }),
+    onSuccess: () => {
+      toast.success("Área de pesquisa preparada (sem pesquisa externa).");
+      void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
+    },
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
+  });
+
+  const mudarEvidencia = useMutation({
+    mutationFn: (v: { id: string; status: string }) => mudarEstadoEvidencia({ data: v }),
+    onSuccess: () => {
+      toast.success("Situação da evidência atualizada.");
+      void qc.invalidateQueries({ queryKey: ["cadeia-pesquisa", caseId] });
+    },
+    onError: (e: any) => toast.error(String(e?.message ?? e)),
+  });
+
   const d = painel.data as any;
+  const c = cadeia.data as any;
   const check = validarSolicitacao(form);
   const exigeAcao = STATUS_EXIGE_ACAO.includes(String(form["status"]));
 
@@ -142,35 +184,66 @@ function AreaPesquisaEvidencias() {
           />
         </div>
         <Bloco titulo="Dimensões da pesquisa">
+          {!c?.pesquisa && (
+            <p className="mb-3 rounded border border-gold/40 bg-gold/10 p-3 text-xs text-navy">
+              Área de pesquisa ainda não preparada para este caso. A preparação cria apenas o registro interno em
+              “preparação pendente”, com autorização de pesquisa externa pendente — nada é pesquisado, solicitado ou
+              publicado.
+              {d.podeEditar && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    preparar.mutate({ caseId, objetivo: `Preparação interna da pesquisa do caso ${d.caso?.codigo ?? caseId}` })
+                  }
+                  className="ml-2 rounded-full border border-navy px-3 py-1 text-[11px] font-medium text-navy"
+                >
+                  Preparar área de pesquisa
+                </button>
+              )}
+            </p>
+          )}
           <dl className="grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
             {[
-              { t: "Objetivo", v: d.caso?.titulo ?? "—" },
-              { t: "Trilha", v: d.caso?.pais ?? "—" },
-              { t: "Autorização", v: d.podeEditar ? "Equipe do caso com edição" : "Somente leitura" },
+              { t: "Objetivo", v: c?.pesquisa?.research_objective ?? d.caso?.titulo ?? "—" },
+              { t: "Trilha / caso", v: `${d.caso?.codigo ?? "—"} · ${c?.pesquisa?.country_context ?? d.caso?.pais ?? "—"}` },
+              { t: "Status", v: rotuloDe(STATUS_PESQUISA, c?.pesquisa?.status) },
               {
-                t: "Responsável",
-                v: d.solicitacoes.find((x: any) => x.responsible_user_id)?.responsible_user_id ?? "A definir",
+                t: "Autorização",
+                v: c?.pesquisa?.external_research_authorization_status ?? "pendente",
               },
+              { t: "Responsável", v: c?.pesquisa?.assigned_researcher_user_id ?? "A definir" },
+              { t: "Hipótese interna", v: c?.pesquisa?.internal_hypothesis ?? "Não registrada (uso interno)" },
+              { t: "Próximo marco", v: c?.pesquisa?.next_milestone ?? "Não definido" },
               {
-                t: "Status",
-                v: d.solicitacoes.length ? "Pesquisa documental em curso" : "Pesquisa não iniciada",
+                t: "Próxima ação e prazo",
+                v: c?.pesquisa?.next_research_action
+                  ? `${c.pesquisa.next_research_action}${
+                      c.pesquisa.next_research_action_due_at
+                        ? ` — até ${String(c.pesquisa.next_research_action_due_at).slice(0, 10)}`
+                        : ""
+                    }`
+                  : "Sem próxima ação registrada",
               },
-              {
-                t: "Próximo marco",
-                v:
-                  d.solicitacoes
-                    .filter((x: any) => x.next_action)
-                    .sort((a: any, b: any) => String(a.next_action_due ?? "9999").localeCompare(String(b.next_action_due ?? "9999")))[0]
-                    ?.next_action ?? "Sem próxima ação registrada",
-              },
-              { t: "Hipótese interna", v: "Uso interno — nunca projetada ao cliente." },
-            ].map((c) => (
-              <div key={c.t} className="rounded border border-navy/10 p-3">
-                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</dt>
-                <dd className="text-sm text-navy">{String(c.v)}</dd>
+              { t: "Alertas ativos", v: d.alertas.filter((a: any) => a.status === "aberto").length },
+            ].map((x) => (
+              <div key={x.t} className="rounded border border-navy/10 p-3">
+                <dt className="text-[11px] uppercase tracking-wide text-navy/50">{x.t}</dt>
+                <dd className="text-sm text-navy">{String(x.v)}</dd>
               </div>
             ))}
           </dl>
+        </Bloco>
+        <Bloco titulo="Cadeia da pesquisa">
+          <ol className="flex flex-wrap gap-2 text-xs">
+            {CADEIA_PESQUISA.map((e, i) => (
+              <li key={e.etapa} className="rounded-full border border-navy/20 px-3 py-1 text-navy/80">
+                {i + 1}. {e.rotulo}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-2 text-xs text-navy/60">
+            Nenhum elo é pulado: documento, evidência, achado e entrega ao cliente são registros distintos.
+          </p>
         </Bloco>
         </section>
       )}
@@ -180,19 +253,23 @@ function AreaPesquisaEvidencias() {
           <Bloco titulo="Ficha genealógica do caso">
             <div className="grid gap-2 text-sm md:grid-cols-2 xl:grid-cols-4">
               {[
-                { t: "Pessoas", v: d.pessoas.length },
-                { t: "Variantes de nome", v: "ver ficha" },
-                { t: "Núcleo e relações", v: "ver ficha" },
-                { t: "Ramos e gerações", v: "ver ficha" },
-                { t: "Localidades", v: "ver ficha" },
-                { t: "Lacunas", v: d.alertas.filter((a: any) => a.status === "aberto").length },
-              ].map((c) => (
-                <div key={c.t} className="rounded border border-navy/10 p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</p>
-                  <p className="text-sm text-navy">{String(c.v)}</p>
+                { t: "Pessoas", v: c?.pessoas.length ?? 0 },
+                { t: "Variantes de nome", v: c?.variantes.length ?? 0 },
+                { t: "Relações", v: c?.relacoes.length ?? 0 },
+                { t: "Eventos", v: c?.eventos.length ?? 0 },
+                { t: "Linhagens", v: c?.linhagens.length ?? 0 },
+                { t: "Lacunas e pendências", v: c?.pendencias.filter((p: any) => p.status !== "resolvido").length ?? 0 },
+              ].map((x) => (
+                <div key={x.t} className="rounded border border-navy/10 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{x.t}</p>
+                  <p className="text-sm text-navy">{String(x.v)}</p>
                 </div>
               ))}
             </div>
+            <p className="mt-3 text-xs text-navy/60">
+              Upload de fonte ou documento não cria pessoa, relação, evento nem linhagem. Cada registro exige evidência
+              de origem ou marca explícita de hipótese interna.
+            </p>
             <Link
               to="/pessoas-linhagens/$caseId"
               params={{ caseId }}
@@ -201,12 +278,72 @@ function AreaPesquisaEvidencias() {
               Abrir ficha genealógica interna →
             </Link>
           </Bloco>
+
+          <Bloco titulo="Timeline interna derivada">
+            {(c?.eventos.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhum evento registrado. Nada é inferido automaticamente.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-navy">
+                {c!.eventos
+                  .slice()
+                  .sort((a: any, b: any) => String(a.data_inicio ?? "9999").localeCompare(String(b.data_inicio ?? "9999")))
+                  .map((e: any) => (
+                    <li key={e.id} className="border-b border-navy/10 py-1">
+                      <strong>{String(e.data_inicio ?? "data a confirmar").slice(0, 10)}</strong> — {e.tipo}
+                      {e.titulo ? `: ${e.titulo}` : ""} {e.local ? `· ${e.local}` : ""}
+                      <span className="ml-2 text-xs text-navy/60">
+                        {e.confirmado ? "confirmado por evidência" : "hipótese interna"}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </Bloco>
+
+          <Bloco titulo="Árvore interna derivada (relações)">
+            {(c?.relacoes.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhuma relação registrada.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-navy">
+                {c!.relacoes.map((r: any) => {
+                  const a = c!.pessoas.find((p: any) => p.id === r.person_a_id)?.canonical_name ?? "—";
+                  const b = c!.pessoas.find((p: any) => p.id === r.person_b_id)?.canonical_name ?? "—";
+                  return (
+                    <li key={r.id} className="border-b border-navy/10 py-1">
+                      {a} → <em>{r.relationship_type}</em> → {b}
+                      <span className="ml-2 text-xs text-navy/60">
+                        confiança {r.confidence_level} · {r.supporting_evidence_count ?? 0} evidência(s)
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Bloco>
         </section>
       )}
 
+
       {d && secao === "validacao" && (
         <section className="space-y-3">
-          <Bloco titulo="Validação e pendências">
+          <Bloco titulo="Situação das evidências">
+            <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-4">
+              {STATUS_EVIDENCIA.map((e) => (
+                <div key={e.id} className="rounded border border-navy/10 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">{e.rotulo}</p>
+                  <p className="text-lg font-semibold text-navy">
+                    {(c?.evidencias ?? []).filter((x: any) => x.workflow_status === e.id).length}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-navy/60">
+              Validar internamente não significa cidadania reconhecida, direito confirmado, conclusão jurídica nem via
+              aprovada.
+            </p>
+          </Bloco>
+
+          <Bloco titulo="Pendências derivadas (internas)">
             <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-4">
               {ESTADOS_VALIDACAO.map((e) => (
                 <div key={e.id} className="rounded border border-navy/10 p-3">
@@ -217,22 +354,39 @@ function AreaPesquisaEvidencias() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-navy/60">
-              Contagem sobre os pedidos documentais do caso. Evidências em revisão:{" "}
-              {d.evidencias.filter((x: any) => x.workflow_status === "em_revisao").length}; validadas:{" "}
-              {d.evidencias.filter((x: any) => x.workflow_status === "validada").length}.
-            </p>
+            {(c?.pendencias.length ?? 0) > 0 && (
+              <ul className="mt-3 space-y-1 text-sm text-navy">
+                {c!.pendencias.map((p: any) => (
+                  <li key={p.id} className="border-b border-navy/10 py-1">
+                    <strong>{p.title}</strong> — {p.status} / {p.severity}
+                    {p.due_at ? ` — prazo ${String(p.due_at).slice(0, 10)}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
           </Bloco>
         </section>
       )}
 
       {d && secao === "achados" && (
         <section className="space-y-3">
-          <Bloco titulo="Achados e microentregas">
+          <Bloco titulo="Achados internos">
             <p className="text-xs text-navy/60">
-              Achado interno → aprovação interna → versão sanitizada → entrega ao cliente. Nada chega ao App Cliente sem
-              projeção aprovada.
+              Achado interno → revisão → versão sanitizada separada → entrega ao cliente. Evidência nunca é projetada
+              diretamente ao App Cliente.
             </p>
+            {(c?.achados.length ?? 0) === 0 ? (
+              <p className="mt-3 text-sm text-navy/60">Nenhum achado registrado.</p>
+            ) : (
+              <ul className="mt-3 space-y-1 text-sm text-navy">
+                {c!.achados.map((a: any) => (
+                  <li key={a.id} className="border-b border-navy/10 py-1">
+                    <strong>{a.title}</strong> — revisão {a.validation_status} · confiança {a.confidence} · projeção{" "}
+                    {rotuloDe(PROJECAO_ACHADO, a.client_projection_status)}
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className="mt-3 flex flex-wrap gap-4">
               <Link
                 to="/achados/$caseId"
@@ -254,51 +408,155 @@ function AreaPesquisaEvidencias() {
       )}
 
       {d && secao === "pessoas" && (
-        <Lista
-          titulo="Pessoas, famílias e ramos"
-          nota="Origem canônica das pessoas do caso."
-          itens={d.pessoas.map((p: any) => p.canonical_name)}
-          link={{ to: "/pessoas-linhagens/$caseId", rotulo: "Abrir pessoas e linhagens →" }}
-          caseId={caseId}
-        />
+        <section className="space-y-3">
+          <Bloco titulo="Pessoas, famílias e ramos">
+            {(c?.pessoas.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">
+                Nenhuma pessoa registrada. Pessoas, relações e linhagens não são criadas por suposição nem por upload.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead className="text-xs uppercase tracking-wide text-navy/60">
+                    <tr>
+                      <th className="py-2">Nome</th>
+                      <th>Papel na linhagem</th>
+                      <th>Geração</th>
+                      <th>Linha de transmissão</th>
+                      <th>País/localidade</th>
+                      <th>Identificação</th>
+                      <th>Variantes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {c!.pessoas.map((p: any) => (
+                      <tr key={p.id} className="border-t border-navy/10">
+                        <td className="py-2">{p.canonical_name}</td>
+                        <td>{p.papel_na_linhagem ?? "—"}</td>
+                        <td>{p.geracao ?? "—"}</td>
+                        <td>{p.linha_transmissao ?? "—"}</td>
+                        <td>{p.pais_localidade ?? "—"}</td>
+                        <td>{p.identity_status ?? "—"}</td>
+                        <td>{c!.variantes.filter((v: any) => v.person_id === p.id).length}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <Link
+              to="/pessoas-linhagens/$caseId"
+              params={{ caseId }}
+              className="mt-3 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+            >
+              Abrir pessoas e linhagens →
+            </Link>
+          </Bloco>
+        </section>
       )}
 
       {d && secao === "fontes" && (
         <div className="space-y-3">
-          <Lista
-            titulo="Fontes e consultas"
-            nota="Arquivos, cartórios, acervos, registros, bases e fontes familiares. Nenhuma consulta externa é executada aqui."
-            itens={d.fontes.map((f: any) => `${f.title} (${f.source_type})`)}
-          />
+          <Bloco titulo="Fontes e documentos">
+            <p className="text-xs text-navy/60">
+              Material bruto e referências privadas do caso. Nenhuma consulta externa, contato com arquivo/cartório ou
+              extração automática é executada aqui.
+            </p>
+            {(c?.fontes.length ?? 0) === 0 ? (
+              <p className="mt-3 text-sm text-navy/60">Nenhuma fonte registrada.</p>
+            ) : (
+              <ul className="mt-3 space-y-1 text-sm text-navy">
+                {c!.fontes.map((f: any) => (
+                  <li key={f.id} className="border-b border-navy/10 py-1">
+                    <strong>{f.title}</strong> — {f.source_type}
+                    {f.repository_or_institution ? ` · ${f.repository_or_institution}` : ""}
+                    {f.source_location ? ` · ${f.source_location}` : ""}
+                    <span className="block text-xs text-navy/60">
+                      acesso {f.access_level} · situação {f.source_status}
+                      {f.consulted_at ? ` · consultada em ${String(f.consulted_at).slice(0, 10)}` : ""}
+                      {f.archived_at ? ` · arquivada: ${f.archive_reason ?? "sem motivo"}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Bloco>
           <SecaoFontesDocumentos caseId={caseId} />
         </div>
       )}
 
       {d && secao === "evidencias" && (
         <div className="space-y-3">
-        <Lista
-          titulo="Evidências e validações"
-          nota="Nada chega ao App sem projeção aprovada e conteúdo sanitizado."
-          itens={d.evidencias.map((e: any) => `${e.title_internal} — ${e.workflow_status} / ${e.confidence_level}`)}
-          link={{ to: "/biblioteca-evidencias/$caseId", rotulo: "Abrir biblioteca de evidências →" }}
-          caseId={caseId}
-        />
-        <LastroDeFontes caseId={caseId} tipoAlvo="evidencia" />
+          <Bloco titulo="Evidências e validação">
+            {(c?.evidencias.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhuma evidência registrada.</p>
+            ) : (
+              <ul className="space-y-2 text-sm text-navy">
+                {c!.evidencias.map((e: any) => (
+                  <li key={e.id} className="border-b border-navy/10 py-2">
+                    <strong>{e.title_internal}</strong> — {rotuloDe(STATUS_EVIDENCIA, e.workflow_status)} · confiança{" "}
+                    {e.confidence_level} · revisão jurídica {e.legal_review_status}
+                    <span className="block text-xs text-navy/60">
+                      {e.reviewed_at ? `revisada em ${String(e.reviewed_at).slice(0, 10)}` : "sem revisão registrada"}
+                      {e.validation_notes_internal ? ` · nota interna: ${e.validation_notes_internal}` : ""}
+                    </span>
+                    <ul className="mt-1 space-y-0.5">
+                      {gatilhosDaEvidencia(e.workflow_status).map((g) => (
+                        <li key={g.titulo} className="text-xs text-navy/70">
+                          Gatilho interno · {g.titulo} — {g.detalhe}
+                          {g.prazoEmDias !== null ? ` (prazo interno ${g.prazoEmDias} dia(s))` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    {d.podeEditar && (
+                      <select
+                        aria-label={`Situação da evidência ${e.title_internal}`}
+                        value={e.workflow_status}
+                        onChange={(ev) => mudarEvidencia.mutate({ id: e.id, status: ev.target.value })}
+                        className="mt-1 rounded border border-navy/20 px-2 py-1 text-xs"
+                      >
+                        {STATUS_EVIDENCIA.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.rotulo}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Bloco>
+          <LastroDeFontes caseId={caseId} tipoAlvo="evidencia" />
         </div>
       )}
 
       {d && secao === "relatorios" && (
         <div className="space-y-3">
-          <Lista
-            titulo="Relatórios F1/F2"
-            nota="Rascunho, revisão interna, versão aprovada e publicação controlada — sem juízo de mérito no material do cliente."
-            itens={[]}
-            link={{ to: "/pesquisa-modulo/$id", rotulo: "Abrir relatórios de pesquisa →" }}
-            caseId={caseId}
-          />
+          <Bloco titulo="Relatórios F1/F2">
+            {(c?.relatorios.length ?? 0) === 0 ? (
+              <p className="text-sm text-navy/60">Nenhum relatório registrado para este caso.</p>
+            ) : (
+              <ul className="space-y-1 text-sm text-navy">
+                {c!.relatorios.map((r: any) => (
+                  <li key={r.id} className="border-b border-navy/10 py-1">
+                    <strong>{r.report_type}</strong> — {r.title} · {rotuloDe(STATUS_RELATORIO, r.status)} · versão{" "}
+                    {r.version}
+                    <span className="block text-xs text-navy/60">
+                      {relatorioVisivelAoCliente(r)
+                        ? `publicado ao cliente em ${String(r.approved_at ?? "").slice(0, 10)}`
+                        : "não visível no App Cliente — exige aprovação e resumo sanitizado"}
+                      {r.internal_reference ? ` · referência interna ${r.internal_reference}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Bloco>
           <LastroDeFontes caseId={caseId} tipoAlvo="relatorio" />
         </div>
       )}
+
 
       {d && secao === "alertas" && (
         <section className="space-y-3">

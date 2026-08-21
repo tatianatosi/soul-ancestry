@@ -77,7 +77,7 @@ const NAV = [
   { to: "/conversao", label: "Conversão e marketing", icon: BarChart3 },
   { to: "/importacoes", label: "Importações e migração", icon: Plug },
   { to: "/pesquisa", label: "Pesquisa genealógica", icon: FileSearch },
-  { to: "/pesquisa-modulo", label: "Pesquisa e evidências", icon: FileSearch },
+  { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências", icon: FileSearch },
   { to: "/evidencias", label: "Evidências", icon: FileSearch },
   { to: "/tarefas", label: "Tarefas", icon: ListChecks },
   { to: "/ops", label: "Desk Operacional", icon: ClipboardList },

@@ -5910,6 +5910,7 @@ export type Database = {
           title_internal: string
           updated_at: string
           updated_by: string | null
+          validation_notes_internal: string | null
           workflow_status: string
         }
         Insert: {
@@ -5943,6 +5944,7 @@ export type Database = {
           title_internal: string
           updated_at?: string
           updated_by?: string | null
+          validation_notes_internal?: string | null
           workflow_status?: string
         }
         Update: {
@@ -5976,6 +5978,7 @@ export type Database = {
           title_internal?: string
           updated_at?: string
           updated_by?: string | null
+          validation_notes_internal?: string | null
           workflow_status?: string
         }
         Relationships: [
@@ -6443,6 +6446,8 @@ export type Database = {
           archived_by: string | null
           case_id: string
           client_deliverable_id: string | null
+          client_projection_status: string
+          confidence: string
           confirmed_facts: string | null
           created_at: string
           created_by: string | null
@@ -6483,6 +6488,8 @@ export type Database = {
           archived_by?: string | null
           case_id: string
           client_deliverable_id?: string | null
+          client_projection_status?: string
+          confidence?: string
           confirmed_facts?: string | null
           created_at?: string
           created_by?: string | null
@@ -6523,6 +6530,8 @@ export type Database = {
           archived_by?: string | null
           case_id?: string
           client_deliverable_id?: string | null
+          client_projection_status?: string
+          confidence?: string
           confirmed_facts?: string | null
           created_at?: string
           created_by?: string | null
@@ -11416,7 +11425,9 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           assigned_researcher_user_id: string | null
+          authorized_scope: string | null
           case_id: string
+          citizenship_track_id: string | null
           client_summary_status: string
           confidence_level: string
           country_context: string | null
@@ -11425,14 +11436,18 @@ export type Database = {
           demo: boolean
           external_research_authorization_status: string
           external_research_gate_status: string
+          family_id: string | null
           family_line_summary_internal: string | null
           id: string
+          internal_hypothesis: string | null
           internal_risk_summary: string | null
+          next_milestone: string | null
           next_research_action: string | null
           next_research_action_due_at: string | null
           organization_id: string
           research_objective: string
           research_scope_summary: string | null
+          research_type: string
           status: string
           updated_at: string
           updated_by: string | null
@@ -11442,7 +11457,9 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           assigned_researcher_user_id?: string | null
+          authorized_scope?: string | null
           case_id: string
+          citizenship_track_id?: string | null
           client_summary_status?: string
           confidence_level?: string
           country_context?: string | null
@@ -11451,14 +11468,18 @@ export type Database = {
           demo?: boolean
           external_research_authorization_status?: string
           external_research_gate_status?: string
+          family_id?: string | null
           family_line_summary_internal?: string | null
           id?: string
+          internal_hypothesis?: string | null
           internal_risk_summary?: string | null
+          next_milestone?: string | null
           next_research_action?: string | null
           next_research_action_due_at?: string | null
           organization_id: string
           research_objective?: string
           research_scope_summary?: string | null
+          research_type?: string
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -11468,7 +11489,9 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           assigned_researcher_user_id?: string | null
+          authorized_scope?: string | null
           case_id?: string
+          citizenship_track_id?: string | null
           client_summary_status?: string
           confidence_level?: string
           country_context?: string | null
@@ -11477,14 +11500,18 @@ export type Database = {
           demo?: boolean
           external_research_authorization_status?: string
           external_research_gate_status?: string
+          family_id?: string | null
           family_line_summary_internal?: string | null
           id?: string
+          internal_hypothesis?: string | null
           internal_risk_summary?: string | null
+          next_milestone?: string | null
           next_research_action?: string | null
           next_research_action_due_at?: string | null
           organization_id?: string
           research_objective?: string
           research_scope_summary?: string | null
+          research_type?: string
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -11502,6 +11529,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_cases_citizenship_track_id_fkey"
+            columns: ["citizenship_track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
             referencedColumns: ["id"]
           },
           {
@@ -12308,14 +12342,20 @@ export type Database = {
           death_date: string | null
           death_date_precision: string | null
           death_place: string | null
+          family_member_id: string | null
           gender_or_descriptor: string | null
+          genealogical_person_profile_id: string | null
+          geracao: string | null
           id: string
           identity_status: string
           is_minor: boolean
+          linha_transmissao: string | null
           living_status: string
           nationality_context: string | null
           notes_internal: string | null
           organization_id: string
+          pais_localidade: string | null
+          papel_na_linhagem: string | null
           person_status: string
           preferred_display_name: string | null
           research_case_id: string
@@ -12337,14 +12377,20 @@ export type Database = {
           death_date?: string | null
           death_date_precision?: string | null
           death_place?: string | null
+          family_member_id?: string | null
           gender_or_descriptor?: string | null
+          genealogical_person_profile_id?: string | null
+          geracao?: string | null
           id?: string
           identity_status?: string
           is_minor?: boolean
+          linha_transmissao?: string | null
           living_status?: string
           nationality_context?: string | null
           notes_internal?: string | null
           organization_id: string
+          pais_localidade?: string | null
+          papel_na_linhagem?: string | null
           person_status?: string
           preferred_display_name?: string | null
           research_case_id: string
@@ -12366,14 +12412,20 @@ export type Database = {
           death_date?: string | null
           death_date_precision?: string | null
           death_place?: string | null
+          family_member_id?: string | null
           gender_or_descriptor?: string | null
+          genealogical_person_profile_id?: string | null
+          geracao?: string | null
           id?: string
           identity_status?: string
           is_minor?: boolean
+          linha_transmissao?: string | null
           living_status?: string
           nationality_context?: string | null
           notes_internal?: string | null
           organization_id?: string
+          pais_localidade?: string | null
+          papel_na_linhagem?: string | null
           person_status?: string
           preferred_display_name?: string | null
           research_case_id?: string
@@ -12383,6 +12435,13 @@ export type Database = {
           visible_to_client_summary?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "research_people_genealogical_person_profile_id_fkey"
+            columns: ["genealogical_person_profile_id"]
+            isOneToOne: false
+            referencedRelation: "genealogical_person_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "research_people_organization_id_fkey"
             columns: ["organization_id"]
@@ -12501,6 +12560,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          approved_summary_client: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
@@ -12509,23 +12569,29 @@ export type Database = {
           content: string
           created_at: string
           created_by: string | null
+          evidence_summary_internal: string | null
           file_hash: string | null
           file_path: string | null
           generated_from_snapshot_at: string | null
           id: string
+          internal_reference: string | null
           organization_id: string
+          published_at: string | null
           report_type: string
           research_case_id: string
+          responsible_user_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
           title: string
           updated_at: string
           updated_by: string | null
+          version: string
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_summary_client?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -12534,23 +12600,29 @@ export type Database = {
           content?: string
           created_at?: string
           created_by?: string | null
+          evidence_summary_internal?: string | null
           file_hash?: string | null
           file_path?: string | null
           generated_from_snapshot_at?: string | null
           id?: string
+          internal_reference?: string | null
           organization_id: string
+          published_at?: string | null
           report_type?: string
           research_case_id: string
+          responsible_user_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
           title: string
           updated_at?: string
           updated_by?: string | null
+          version?: string
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_summary_client?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
@@ -12559,19 +12631,24 @@ export type Database = {
           content?: string
           created_at?: string
           created_by?: string | null
+          evidence_summary_internal?: string | null
           file_hash?: string | null
           file_path?: string | null
           generated_from_snapshot_at?: string | null
           id?: string
+          internal_reference?: string | null
           organization_id?: string
+          published_at?: string | null
           report_type?: string
           research_case_id?: string
+          responsible_user_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
           title?: string
           updated_at?: string
           updated_by?: string | null
+          version?: string
         }
         Relationships: [
           {
@@ -12598,6 +12675,8 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           citation_text: string | null
+          consulted_at: string | null
+          consulted_by: string | null
           created_at: string
           created_by: string | null
           external_source: boolean
@@ -12607,8 +12686,10 @@ export type Database = {
           publication_or_record_date: string | null
           repository_or_institution: string | null
           research_case_id: string | null
+          result_summary_internal: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          source_location: string | null
           source_status: string
           source_type: string
           title: string
@@ -12623,6 +12704,8 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           citation_text?: string | null
+          consulted_at?: string | null
+          consulted_by?: string | null
           created_at?: string
           created_by?: string | null
           external_source?: boolean
@@ -12632,8 +12715,10 @@ export type Database = {
           publication_or_record_date?: string | null
           repository_or_institution?: string | null
           research_case_id?: string | null
+          result_summary_internal?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          source_location?: string | null
           source_status?: string
           source_type?: string
           title: string
@@ -12648,6 +12733,8 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           citation_text?: string | null
+          consulted_at?: string | null
+          consulted_by?: string | null
           created_at?: string
           created_by?: string | null
           external_source?: boolean
@@ -12657,8 +12744,10 @@ export type Database = {
           publication_or_record_date?: string | null
           repository_or_institution?: string | null
           research_case_id?: string | null
+          result_summary_internal?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          source_location?: string | null
           source_status?: string
           source_type?: string
           title?: string
