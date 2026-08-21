@@ -77,6 +77,7 @@ import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
 import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
 import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
+import { Route as AuthenticatedGovernancaIndicadoresRouteImport } from './routes/_authenticated/governanca.indicadores'
 import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './routes/_authenticated/governanca.identificadores'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
@@ -451,6 +452,12 @@ const AuthenticatedGovernancaInventarioRecuperacaoRoute =
     path: '/governanca/inventario-recuperacao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaIndicadoresRoute =
+  AuthenticatedGovernancaIndicadoresRouteImport.update({
+    id: '/governanca/indicadores',
+    path: '/governanca/indicadores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaIdentificadoresRoute =
   AuthenticatedGovernancaIdentificadoresRouteImport.update({
     id: '/governanca/identificadores',
@@ -569,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
+  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
@@ -647,6 +655,7 @@ export interface FileRoutesByTo {
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
+  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
@@ -728,6 +737,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
+  '/_authenticated/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/_authenticated/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
@@ -809,6 +819,7 @@ export interface FileRouteTypes {
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/identificadores'
+    | '/governanca/indicadores'
     | '/governanca/inventario-recuperacao'
     | '/governanca/matriz-conformidade'
     | '/governanca/modulos-contextuais'
@@ -887,6 +898,7 @@ export interface FileRouteTypes {
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/identificadores'
+    | '/governanca/indicadores'
     | '/governanca/inventario-recuperacao'
     | '/governanca/matriz-conformidade'
     | '/governanca/modulos-contextuais'
@@ -967,6 +979,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/criterios-aceite'
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/identificadores'
+    | '/_authenticated/governanca/indicadores'
     | '/_authenticated/governanca/inventario-recuperacao'
     | '/_authenticated/governanca/matriz-conformidade'
     | '/_authenticated/governanca/modulos-contextuais'
@@ -1487,6 +1500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/indicadores': {
+      id: '/_authenticated/governanca/indicadores'
+      path: '/governanca/indicadores'
+      fullPath: '/governanca/indicadores'
+      preLoaderRoute: typeof AuthenticatedGovernancaIndicadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/identificadores': {
       id: '/_authenticated/governanca/identificadores'
       path: '/governanca/identificadores'
@@ -1596,6 +1616,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaIdentificadoresRoute: typeof AuthenticatedGovernancaIdentificadoresRoute
+  AuthenticatedGovernancaIndicadoresRoute: typeof AuthenticatedGovernancaIndicadoresRoute
   AuthenticatedGovernancaInventarioRecuperacaoRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
@@ -1658,6 +1679,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
   AuthenticatedGovernancaIdentificadoresRoute:
     AuthenticatedGovernancaIdentificadoresRoute,
+  AuthenticatedGovernancaIndicadoresRoute:
+    AuthenticatedGovernancaIndicadoresRoute,
   AuthenticatedGovernancaInventarioRecuperacaoRoute:
     AuthenticatedGovernancaInventarioRecuperacaoRoute,
   AuthenticatedGovernancaMatrizConformidadeRoute:
