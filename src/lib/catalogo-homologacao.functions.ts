@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { DECISOES_INICIAIS } from "@/lib/catalogo-homologacao";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
