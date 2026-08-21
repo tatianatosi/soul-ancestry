@@ -343,9 +343,20 @@ function LinhaCampo({ campo, aoSalvar }: { campo: Record<string, any>; aoSalvar:
   );
 }
 
-function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; aoSalvar: () => void }) {
+function LinhaBloqueio({
+  bloqueio,
+  requisito,
+  dependenciaPendente,
+  aoSalvar,
+}: {
+  bloqueio: Record<string, any>;
+  requisito: RequisitoBloqueio;
+  dependenciaPendente: boolean;
+  aoSalvar: () => void;
+}) {
   const resolver = useServerFn(resolverBloqueioPiloto);
   const [justificativa, setJustificativa] = useState("");
+  const [formAberto, setFormAberto] = useState(false);
   const aberto = bloqueio["status"] === "aberto";
 
   const m = useMutation({
@@ -353,6 +364,7 @@ function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; 
       resolver({ data: { id: bloqueio["id"], status, justificativa } }),
     onSuccess: () => {
       toast.success("Bloqueio atualizado.");
+      setFormAberto(false);
       aoSalvar();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -364,32 +376,72 @@ function LinhaBloqueio({ bloqueio, aoSalvar }: { bloqueio: Record<string, any>; 
         <p className="text-sm text-navy">{bloqueio["descricao"]}</p>
         <Selo texto={aberto ? "Aberto" : bloqueio["status"] === "resolvido" ? "Resolvido" : "Não aplicável"} tom={aberto ? "erro" : "ok"} />
       </div>
-      {aberto ? (
-        <div className="mt-2 flex flex-wrap gap-2">
-          <input
-            className={`${inputCls} md:w-2/3`}
-            value={justificativa}
-            onChange={(e) => setJustificativa(e.target.value)}
-            placeholder="Justificativa da resolução (mín. 10 caracteres)"
-          />
-          <button
-            onClick={() => m.mutate("resolvido")}
-            className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream"
-            disabled={m.isPending}
-          >
-            Resolver
-          </button>
-          <button
-            onClick={() => m.mutate("nao_aplicavel")}
-            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-            disabled={m.isPending}
-          >
-            Não aplicável
-          </button>
+      <dl className="mt-1 grid gap-x-4 gap-y-0.5 text-[11px] text-navy/60 md:grid-cols-3">
+        <div>
+          <dt className="inline font-semibold">Responsável: </dt>
+          <dd className="inline">{requisito.responsavel}</dd>
         </div>
+        <div>
+          <dt className="inline font-semibold">Origem permitida: </dt>
+          <dd className="inline">{requisito.origem}</dd>
+        </div>
+        <div className="md:col-span-3">
+          <dt className="inline font-semibold">Evidência mínima: </dt>
+          <dd className="inline">{requisito.evidencia}</dd>
+        </div>
+      </dl>
+      {aberto ? (
+        dependenciaPendente ? (
+          <p className="mt-2 text-xs text-terracotta">
+            Aguardando conclusão do gate anterior. Resolver este item fora de ordem não libera o gate.
+          </p>
+        ) : !formAberto ? (
+          <button
+            onClick={() => setFormAberto(true)}
+            className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
+          >
+            Resolver — registrar evidência
+          </button>
+        ) : (
+          <div className="mt-2 space-y-2">
+            <input
+              className={`${inputCls} md:w-2/3`}
+              value={justificativa}
+              onChange={(e) => setJustificativa(e.target.value)}
+              placeholder="Evidência e justificativa (mín. 10 caracteres)"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => m.mutate("resolvido")}
+                className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-60"
+                disabled={m.isPending || justificativa.trim().length < 10}
+              >
+                Confirmar resolução com evidência
+              </button>
+              <button
+                onClick={() => m.mutate("nao_aplicavel")}
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-60"
+                disabled={m.isPending || justificativa.trim().length < 10}
+              >
+                Não aplicável
+              </button>
+              <button
+                onClick={() => setFormAberto(false)}
+                className="rounded-lg px-3 py-1.5 text-xs text-navy/60"
+              >
+                Cancelar
+              </button>
+            </div>
+            <p className="text-[11px] text-navy/50">
+              O registro é auditado com ator, data/hora e justificativa. O status do gate só muda quando todos os
+              itens do gate estiverem concluídos.
+            </p>
+          </div>
+        )
       ) : (
         <p className="mt-1 text-xs text-navy/60">Justificativa: {bloqueio["justificativa"]}</p>
       )}
+
     </div>
   );
 }
