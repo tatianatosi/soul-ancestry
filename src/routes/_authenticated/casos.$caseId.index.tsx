@@ -732,6 +732,8 @@ function FichaCaso() {
         />
       ) : null}
 
+      {aba === "jornada" ? <AbaJornadaCliente casoId={id} bloqueado={bloqueado} /> : null}
+
       {aba === "log" ? (
         <Secao titulo="Registro de alterações" descricao="Quem alterou, quando e o quê. Nada é apagado.">
           {(q.data?.log ?? []).length === 0 ? (
