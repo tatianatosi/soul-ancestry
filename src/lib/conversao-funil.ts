@@ -46,7 +46,8 @@ export const PROXIMA_ACAO: Record<string, string> = {
   discovery_realizada: "Preparar e enviar proposta a partir do catálogo homologado.",
   proposta_enviada: "Acompanhar resposta da proposta. Nenhuma cobrança é liberada.",
   aceite_verbal_confirmado: "Solicitar confirmação escrita simples (print, WhatsApp, e-mail) e registrá-la.",
-  confirmacao_formal_recebida: "Preparar ficha, escopo e prévia contratual. Não emitir cobrança.",
+  confirmacao_formal_recebida:
+    "Reconhecer a proposta ativa ou criar versão para ajuste; reconciliar SKU, preço, escopo, parcelamento e vencimento; preencher dados rastreáveis de partes e participantes; gerar prévia interna única de contrato, Anexo I e OS; submeter à revisão humana. Não libera contrato final, assinatura nem cobrança.",
   contrato_enviado: "Aguardar assinatura com referência externa verificável.",
   contrato_assinado: "Decidir cobrança manualmente e registrar pagamento inicial pela fonte financeira.",
   pagamento_inicial_confirmado: "Iniciar onboarding (núcleo, dossiê-mãe, checklist, plano de ação).",
