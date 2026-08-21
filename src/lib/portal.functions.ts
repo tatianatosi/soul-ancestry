@@ -473,6 +473,26 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
       }
     }
 
+    // Revalidação canônica no servidor (payload do front nunca é fonte de verdade).
+    const motivos = await helpers.revalidarElegibilidade(supabase, organizationId, {
+      clientId: data.clientId,
+      nivel: data.nivel,
+      casoId: data.casoId ?? null,
+      autorizacaoId: data.autorizacaoId,
+    });
+    if (motivos.length > 0) {
+      await helpers.registrarAuditoria({
+        organizationId,
+        userId: context.userId as string,
+        acao: "convite_portal_bloqueado",
+        entidadeId: data.autorizacaoId,
+        metadados: { nivel: data.nivel, caso_id: data.casoId ?? null, motivos },
+      });
+      throw new Error(`Acesso bloqueado: ${motivos.join(" ")}`);
+    }
+
+
+
     const agora = new Date();
     const { CONVITE_VALIDADE_HORAS } = await import("./portal-elegibilidade");
     const expira = new Date(agora.getTime() + CONVITE_VALIDADE_HORAS * 60 * 60 * 1000);
