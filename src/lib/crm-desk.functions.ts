@@ -149,7 +149,8 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
 /** Painel Hoje + métricas comerciais e operacionais. */
 export const painelHojeDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: { incluirDemo?: boolean }) => ({ incluirDemo: d?.incluirDemo === true }))
+  .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const [{ data: leads }, { data: casos }] = await Promise.all([
       supabase.from("leads").select("*").limit(1000),
@@ -159,14 +160,16 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
         .is("archived_at", null)
         .limit(1000),
     ]);
-    // Fixtures de demonstração ficam fora das filas e métricas do Desk.
-    const listaLeads = semFixtures((leads ?? []) as never) as unknown as LeadDesk[];
-    const listaCasos = semFixtures((casos ?? []) as never) as any[];
+    // Fixtures de demonstração ficam fora das filas e métricas por padrão;
+    // só entram quando o filtro explícito "Incluir demonstrações" é acionado.
+    const listaLeads = (data.incluirDemo ? (leads ?? []) : semFixtures((leads ?? []) as never)) as unknown as LeadDesk[];
+    const listaCasos = (data.incluirDemo ? (casos ?? []) : semFixtures((casos ?? []) as never)) as any[];
     return {
       filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
     };
   });
+
 
 /* ---------------- Dependentes ---------------- */
 

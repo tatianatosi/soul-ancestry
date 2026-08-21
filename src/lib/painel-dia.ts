@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Painel Hoje — consolidação diária.
  *
@@ -93,55 +94,110 @@ export function consolidarDia(filas: Fila[], opcoes?: { incluirDemo?: boolean })
   return opcoes?.incluirDemo ? lista : lista.filter((i) => !i.demo);
 }
 
-const porPrazo = (a: ItemDia, b: ItemDia) =>
-  (a.data ?? "9999-12-31").localeCompare(b.data ?? "9999-12-31") ||
-  (a.responsavel ?? "zzz").localeCompare(b.responsavel ?? "zzz");
+/** Ordenação por prazo sem sentinelas numéricas: sem prazo vai para o fim. */
+const porPrazo = (a: ItemDia, b: ItemDia) => {
+  if (a.data && b.data && a.data !== b.data) return a.data < b.data ? -1 : 1;
+  if (a.data && !b.data) return -1;
+  if (!a.data && b.data) return 1;
+  return (a.responsavel ?? "").localeCompare(b.responsavel ?? "");
+};
+
+/** Texto de prazo sem número artificial. */
+export function textoPrazo(data: string | null, aplicavel = true): string {
+  if (data) return data.split("-").reverse().join("/");
+  return aplicavel ? "Sem prazo definido" : "Prazo não aplicável";
+}
 
 export type FilaDia = { chave: "vencidas" | "hoje" | "proximos7"; rotulo: string; itens: ItemDia[] };
 
-/** Fila priorizada única: vencidas, hoje e próximos 7 dias. */
+/**
+ * Fila priorizada única: vencidas → hoje → próximos 7 dias.
+ * Precedência exclusiva: um registro nunca aparece em duas faixas.
+ */
 export function filaPriorizada(itens: ItemDia[], hoje = hojeISO()): FilaDia[] {
   const limite = somarDias(hoje, 7);
-  const comData = itens.filter((i) => i.data);
+  const vencidas: ItemDia[] = [];
+  const doDia: ItemDia[] = [];
+  const proximos: ItemDia[] = [];
+  for (const i of itens) {
+    if (!i.data) continue;
+    if (i.data < hoje) vencidas.push(i);
+    else if (i.data === hoje) doDia.push(i);
+    else if (i.data <= limite) proximos.push(i);
+  }
   return [
-    { chave: "vencidas", rotulo: "Vencidas", itens: comData.filter((i) => i.data! < hoje).sort(porPrazo) },
-    { chave: "hoje", rotulo: "Hoje", itens: comData.filter((i) => i.data === hoje).sort(porPrazo) },
-    {
-      chave: "proximos7",
-      rotulo: "Próximos 7 dias",
-      itens: comData.filter((i) => i.data! > hoje && i.data! <= limite).sort(porPrazo),
-    },
+    { chave: "vencidas", rotulo: "Vencidas", itens: vencidas.sort(porPrazo) },
+    { chave: "hoje", rotulo: "Hoje", itens: doDia.sort(porPrazo) },
+    { chave: "proximos7", rotulo: "Próximos 7 dias", itens: proximos.sort(porPrazo) },
   ];
 }
 
 export type Excecao = { chave: string; rotulo: string; itens: ItemDia[] };
 
-/** Exceções que exigem dono — somente itens acionáveis. */
-export function excecoesQueExigemDono(itens: ItemDia[], filas: Fila[], hoje = hojeISO()): Excecao[] {
+const chaveDe = (i: { tipo: string; id: string }) => `${i.tipo}:${i.id}`;
+
+/**
+ * Exceções que exigem dono — apenas registros que NÃO estão na fila priorizada,
+ * para que nenhum item apareça duas vezes na tela.
+ */
+export function excecoesQueExigemDono(
+  itens: ItemDia[],
+  filas: Fila[],
+  hoje = hojeISO(),
+  jaExibidos?: Set<string>,
+): Excecao[] {
   const bloqueioIds = new Set(
-    filas.filter((f) => FILAS_BLOQUEIO.has(f.chave)).flatMap((f) => f.itens.map((i) => `${i.tipo}:${i.id}`)),
+    filas.filter((f) => FILAS_BLOQUEIO.has(f.chave)).flatMap((f) => f.itens.map(chaveDe)),
   );
-  const naFila = new Set(
-    filaPriorizada(itens, hoje)
-      .flatMap((f) => f.itens)
-      .map((i) => `${i.tipo}:${i.id}`),
-  );
-  const sem = (fn: (i: ItemDia) => boolean) => itens.filter(fn).sort(porPrazo);
+  const usados =
+    jaExibidos ??
+    new Set(
+      filaPriorizada(itens, hoje)
+        .flatMap((f) => f.itens)
+        .map(chaveDe),
+    );
+  const restantes = itens.filter((i) => !usados.has(chaveDe(i)));
+  const vistos = new Set<string>();
+  const sem = (fn: (i: ItemDia) => boolean) =>
+    restantes
+      .filter((i) => !vistos.has(chaveDe(i)) && fn(i))
+      .map((i) => {
+        vistos.add(chaveDe(i));
+        return i;
+      })
+      .sort(porPrazo);
   return [
     { chave: "sem_responsavel", rotulo: "Sem responsável", itens: sem((i) => i.semResponsavel) },
     { chave: "sem_proxima_acao", rotulo: "Sem próxima ação ou prazo", itens: sem((i) => i.semPrazo) },
     {
       chave: "bloqueio_critico",
-      rotulo: "Bloqueio crítico acionável",
-      itens: sem((i) => bloqueioIds.has(`${i.tipo}:${i.id}`) && (naFila.has(`${i.tipo}:${i.id}`) || i.semPrazo)),
+      rotulo: "Bloqueio crítico sem prazo",
+      itens: sem((i) => bloqueioIds.has(chaveDe(i))),
     },
   ].filter((e) => e.itens.length > 0);
 }
 
-/** Comercial de hoje: calls, propostas sem follow-up e leads sem disciplina. */
-export function comercialHoje(filas: Fila[], opcoes?: { incluirDemo?: boolean }) {
+/**
+ * Comercial de hoje: apenas ações vencidas, de hoje ou dos próximos 7 dias,
+ * excluindo registros já exibidos em outros blocos do painel.
+ */
+export function comercialHoje(
+  filas: Fila[],
+  opcoes?: { incluirDemo?: boolean; hoje?: string; jaExibidos?: Set<string> },
+) {
+  const hoje = opcoes?.hoje ?? hojeISO();
+  const limite = somarDias(hoje, 7);
+  const usados = opcoes?.jaExibidos ?? new Set<string>();
   const filtrar = (chave: string) =>
-    (filas.find((f) => f.chave === chave)?.itens ?? []).filter((i) => opcoes?.incluirDemo || !eDemo(i.rotulo));
+    (filas.find((f) => f.chave === chave)?.itens ?? []).filter((i) => {
+      if (!opcoes?.incluirDemo && eDemo(i.rotulo)) return false;
+      if (usados.has(chaveDe(i))) return false;
+      const d = i.data ? String(i.data).slice(0, 10) : null;
+      if (!d) return false;
+      if (d > limite) return false;
+      usados.add(chaveDe(i));
+      return true;
+    });
   return {
     calls: filtrar("calls_hoje"),
     propostas: filtrar("propostas_sem_followup"),
@@ -149,9 +205,9 @@ export function comercialHoje(filas: Fila[], opcoes?: { incluirDemo?: boolean })
   };
 }
 
-/** Casos com documento, contrato ou ação com prazo vencido/para hoje. */
-export function casosHoje(itens: ItemDia[], hoje = hojeISO()) {
-  return itens.filter((i) => i.tipo === "caso" && i.data && i.data <= hoje).sort(porPrazo);
+/** Chaves já exibidas, para garantir item único por registro. */
+export function chavesExibidas(grupos: { itens: { tipo: string; id: string }[] }[]): Set<string> {
+  return new Set(grupos.flatMap((g) => g.itens.map(chaveDe)));
 }
 
 /** Dias sem touchpoint apresentáveis. Sentinelas (999, 9999) viram texto. */
@@ -161,4 +217,19 @@ export function textoDiasSemTouchpoint(dias: unknown): string {
   return `${n} dia${n === 1 ? "" : "s"} sem contato`;
 }
 
+/** Cadência exibível: somente com regra ativa e situação de atenção/crítica. */
+export function cadenciaRelevante(casos: readonly Record<string, any>[], limite = 6) {
+  return casos
+    .filter((c) => {
+      const cad = (c as any).cadencia;
+      if (!cad) return false;
+      if (cad.status !== "atencao" && cad.status !== "critico") return false;
+      const dias = Number(cad.diasSemTouchpoint);
+      return Number.isFinite(dias) && dias >= 0 && dias < 365;
+    })
+    .sort((a, b) => Number((b as any).cadencia.diasSemTouchpoint) - Number((a as any).cadencia.diasSemTouchpoint))
+    .slice(0, limite);
+}
+
 export const FILAS_COMERCIAIS_CHAVES = FILAS_COMERCIAIS;
+

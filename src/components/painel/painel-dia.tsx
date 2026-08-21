@@ -8,13 +8,15 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import {
-  casosHoje,
+  cadenciaRelevante,
+  chavesExibidas,
   comercialHoje,
   consolidarDia,
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
   textoDiasSemTouchpoint,
+  textoPrazo,
   type ItemDia,
 } from "@/lib/painel-dia";
 
@@ -38,7 +40,7 @@ function Linha({ item }: { item: ItemDia }) {
     <li className="rounded-lg border border-navy/10 px-3 py-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <LinkItem item={item}>{item.rotulo}</LinkItem>
-        <span className="text-xs text-navy/60">{item.data ? item.data.split("-").reverse().join("/") : "sem prazo"}</span>
+        <span className="text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
       <p className="mt-0.5 text-xs text-navy/65">{item.acao}</p>
       <p className="mt-0.5 text-xs">
@@ -60,6 +62,7 @@ function Linha({ item }: { item: ItemDia }) {
   );
 }
 
+
 /** Painel Hoje enxuto: fila priorizada, exceções com dono, comercial e casos do dia. */
 export function PainelDia() {
   const carregarDesk = useServerFn(painelHojeDesk);
@@ -67,7 +70,11 @@ export function PainelDia() {
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
 
-  const qDesk = useQuery({ queryKey: ["painel-desk-hoje"], queryFn: () => carregarDesk(), retry: false });
+  const qDesk = useQuery({
+    queryKey: ["painel-desk-hoje", incluirDemo],
+    queryFn: () => carregarDesk({ data: { incluirDemo } }),
+    retry: false,
+  });
   const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
@@ -76,14 +83,14 @@ export function PainelDia() {
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
   const itens = consolidarDia(filas, { incluirDemo });
+  // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const excecoes = excecoesQueExigemDono(itens, filas, hoje);
-  const comercial = comercialHoje(filas, { incluirDemo });
-  const casos = casosHoje(itens, hoje);
-  const cadencia = ((qCad.data?.casos ?? []) as any[])
-    .filter((c) => c.cadencia?.status === "atencao" || c.cadencia?.status === "critico")
-    .sort((a, b) => (b.cadencia.diasSemTouchpoint ?? 0) - (a.cadencia.diasSemTouchpoint ?? 0))
-    .slice(0, 6);
+  const usados = chavesExibidas(priorizada);
+  const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
+  for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
+  const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
+  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
+
 
   return (
     <div className="space-y-6">
@@ -176,39 +183,35 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 4 — Casos hoje */}
+      {/* 4 — Casos com prazo em atenção */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos hoje</h2>
+          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
-        <ul className="mt-3 space-y-2 text-sm">
-          {casos.map((i) => (
-            <Linha key={`caso-hoje-${i.id}`} item={i} />
-          ))}
-          {casos.length === 0 ? (
-            <li className="text-xs text-navy/50">Nenhum documento, contrato ou ação de caso com prazo hoje ou vencido.</li>
-          ) : null}
-        </ul>
-
+        <p className="mt-1 text-xs text-navy/50">
+          Cadência aparece somente quando há regra ativa e situação de atenção ou crítica. Ausência de prazo é exibida como
+          “Sem prazo definido”, nunca como número. Os prazos do dia já estão na fila priorizada.
+        </p>
         {cadencia.length > 0 ? (
-          <div className="mt-4 border-t border-navy/10 pt-3">
-            <p className="text-xs uppercase tracking-wide text-navy/50">Cadência em atenção ou crítica</p>
-            <ul className="mt-2 space-y-1 text-xs text-navy/65">
-              {cadencia.map((c: any) => (
-                <li key={String(c["id"])}>
-                  <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
-                    {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
-                  </Link>{" "}
-                  · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+          <ul className="mt-3 space-y-1 text-xs text-navy/65">
+            {cadencia.map((c: any) => (
+              <li key={String(c["id"])}>
+                <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
+                  {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
+                </Link>{" "}
+                · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status} ·{" "}
+                {textoPrazo(c["prazo_proxima_acao"] ? String(c["prazo_proxima_acao"]).slice(0, 10) : null)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
+        )}
       </section>
+
 
       {/* 5 — Atalhos */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
@@ -229,14 +232,19 @@ export function PainelDia() {
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
         <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
-          {ajuda ? "Ocultar" : "Como ler estas informações"}
+          {ajuda ? "Ocultar ajuda" : "Como ler estas informações"}
         </button>
         {ajuda ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-xs">
+            <li>Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na maior urgência aplicável.</li>
             <li>Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios na ficha do caso.</li>
-            <li>Itens sem responsável são falha de qualidade e precisam de dono antes de entrar na execução.</li>
-            <li>Registros de demonstração ficam ocultos por padrão e não alteram indicadores reais.</li>
+
+            <li>Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na ficha do registro.</li>
+            <li>Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em número.</li>
+            <li>Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir demonstrações”.</li>
+            <li>Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários — aqui só priorização.</li>
             <li>Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até confirmação documental.</li>
+
           </ul>
         ) : null}
       </div>
