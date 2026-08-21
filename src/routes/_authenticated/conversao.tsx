@@ -16,7 +16,7 @@ import {
   type EventoBruto,
   type LeadMinimo,
 } from "@/lib/conversao-funil";
-import { ehFixtureLinha } from "@/lib/fixtures";
+
 
 export const Route = createFileRoute("/_authenticated/conversao")({
   head: () => ({
