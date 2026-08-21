@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
+import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -182,6 +183,9 @@ function LeadsPage() {
 
         <div className="space-y-3">
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
+
+          {atual ? <HandoffLead lead={editado} /> : null}
+
 
           {erros.length ? (
             <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">

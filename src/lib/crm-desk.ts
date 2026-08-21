@@ -451,6 +451,139 @@ export function listaPrioritaria(
   });
 }
 
+/** Classifica o prazo da próxima ação: atraso, hoje ou futuro. Nunca usa data de criação. */
+export function classificarPrazo(
+  data: string | null | undefined,
+  hoje: string,
+): { chave: "atrasado" | "hoje" | "futuro" | "sem_data"; rotulo: string } {
+  if (!data) return { chave: "sem_data", rotulo: "Sem prazo definido" };
+  const d = String(data).slice(0, 10);
+  if (d < hoje) return { chave: "atrasado", rotulo: "Em atraso" };
+  if (d === hoje) return { chave: "hoje", rotulo: "Para hoje" };
+  return { chave: "futuro", rotulo: "Próxima ação futura" };
+}
+
+/* ------------------------------------------------------------------ *
+ * Escada de conversão e handoff Discovery → oportunidade → operação
+ * ------------------------------------------------------------------ */
+
+export type DegrauEscada = {
+  chave: "aceite_verbal" | "confirmacao_formal" | "contrato_cobranca" | "onboarding";
+  rotulo: string;
+  estado: "concluido" | "em_andamento" | "bloqueado";
+  nota: string;
+};
+
+/**
+ * Escada canônica: aceite verbal → confirmação formal → contrato e cobrança → onboarding.
+ * Aceite verbal NÃO cria cliente nem libera contrato, cobrança, onboarding,
+ * pesquisa externa ou App Cliente. Nenhum estado é avançado automaticamente aqui.
+ */
+export function escadaConversao(l: LeadDesk): DegrauEscada[] {
+  const f = String(l.eixo_formalizacao ?? "");
+  const c = String(l.eixo_comercial ?? "");
+  const ordemFormal = EIXO_FORMALIZACAO.map((o) => o.valor);
+  const idx = (v: string) => ordemFormal.indexOf(v);
+  const atingiu = (v: string) => idx(f) >= 0 && idx(v) >= 0 && idx(f) >= idx(v);
+
+  const aceiteVerbal = c === "negociacao" || c === "proposta_enviada" || idx(f) > 0;
+  /** Confirmação formal no lead = preparação da formalização iniciada (contrato enviado em diante). */
+  const confirmacao = atingiu("contrato_enviado");
+  const contratoOk = atingiu("contrato_assinado");
+  const pagamentoOk = atingiu("pagamento_inicial_confirmado");
+  const onboardingOk = atingiu("onboarding_iniciado");
+
+  return [
+    {
+      chave: "aceite_verbal",
+      rotulo: "Aceite verbal",
+      estado: aceiteVerbal ? "concluido" : "em_andamento",
+      nota: "Não cria cliente e não libera contrato, cobrança, assinatura, onboarding, pesquisa externa nem App Cliente.",
+    },
+    {
+      chave: "confirmacao_formal",
+      rotulo: "Confirmação formal",
+      estado: confirmacao ? "concluido" : aceiteVerbal ? "em_andamento" : "bloqueado",
+      nota: "Libera apenas a preparação da formalização.",
+    },
+    {
+      chave: "contrato_cobranca",
+      rotulo: "Contrato e cobrança",
+      estado: contratoOk && pagamentoOk ? "concluido" : confirmacao ? "em_andamento" : "bloqueado",
+      nota: contratoOk
+        ? pagamentoOk
+          ? "Contrato assinado e pagamento inicial confirmado."
+          : "Contrato assinado; pagamento inicial ainda não confirmado."
+        : "Bloqueado até confirmação formal registrada.",
+    },
+    {
+      chave: "onboarding",
+      rotulo: "Onboarding",
+      estado: onboardingOk ? "concluido" : contratoOk && pagamentoOk ? "em_andamento" : "bloqueado",
+      nota: "Exige contrato assinado, pagamento inicial confirmado e demais gates do caso.",
+    },
+  ];
+}
+
+export type Handoff = {
+  confirmado: string[];
+  falta: string[];
+  responsavel: string | null;
+  area: string | null;
+  proximaAcao: string | null;
+  prazo: string | null;
+  bloqueios: { alvo: "proposta" | "formalizacao" | "onboarding"; motivo: string }[];
+  operavel: boolean;
+};
+
+/**
+ * Leitura de handoff Discovery → oportunidade → operação.
+ * Somente deriva do registro existente: não cria segunda ficha nem avança estados.
+ */
+export function handoffLead(l: LeadDesk): Handoff {
+  const vazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
+  const confirmado: string[] = [];
+  const falta: string[] = [];
+
+  const marcar = (ok: boolean, texto: string) => (ok ? confirmado : falta).push(texto);
+  marcar(!vazio(l.objetivo), "Interesse inicial declarado");
+  marcar(!vazio(l.nacionalidade), "Nacionalidade de interesse");
+  marcar(!vazio(l.via_juridica_preliminar), "Via jurídica preliminar (sinal interno, não é parecer)");
+  marcar(!vazio(l.call_realizada_em), "Call de Discovery realizada");
+  marcar(!vazio(l.discovery_resultado), "Resultado da Discovery registrado");
+  marcar(Boolean(l.resumo_validado), "Resumo da call validado");
+  marcar(!vazio(l.responsavel_nome), "Responsável nominal definido");
+  marcar(!vazio(l.proxima_acao) && !vazio(l.proxima_acao_em), "Próxima ação com prazo");
+
+  const bloqueios: Handoff["bloqueios"] = [];
+  if (vazio(l.discovery_resultado) || !l.resumo_validado) {
+    bloqueios.push({ alvo: "proposta", motivo: "Proposta exige Discovery com resultado e resumo validado." });
+  }
+  if (vazio(l.responsavel_nome) || vazio(l.proxima_acao) || vazio(l.proxima_acao_em)) {
+    bloqueios.push({ alvo: "proposta", motivo: "Oportunidade sem responsável, próxima ação ou prazo não é operável." });
+  }
+  const escada = escadaConversao(l);
+  const confirmacaoOk = escada[1]?.estado === "concluido";
+  if (!confirmacaoOk) {
+    bloqueios.push({ alvo: "formalizacao", motivo: "Formalização só é preparada após confirmação formal registrada." });
+  }
+  if (escada[2]?.estado !== "concluido") {
+    bloqueios.push({ alvo: "onboarding", motivo: "Onboarding bloqueado até contrato assinado e pagamento inicial confirmado." });
+  }
+
+  return {
+    confirmado,
+    falta,
+    responsavel: l.responsavel_nome ?? null,
+    area: l.area_responsavel ?? null,
+    proximaAcao: l.proxima_acao ?? null,
+    prazo: l.proxima_acao_em ? String(l.proxima_acao_em).slice(0, 10) : null,
+    bloqueios,
+    operavel: !vazio(l.responsavel_nome) && !vazio(l.proxima_acao) && !vazio(l.proxima_acao_em),
+  };
+}
+
+
 
 /* ------------------------------------------------------------------ *
  * Métricas comerciais e operacionais
