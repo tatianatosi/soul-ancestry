@@ -10844,6 +10844,7 @@ export type Database = {
           condicao_comercial_padrao: string | null
           created_at: string
           created_by: string | null
+          data_ultima_validacao: string | null
           elegivel_para_proposta: boolean
           escopo_aprovado: string | null
           exige_case_service: boolean
@@ -10853,7 +10854,9 @@ export type Database = {
           homologado_por: string | null
           id: string
           jornada_fase: string | null
+          link_asaas_validado: string | null
           nome_comercial: string
+          observacao_de_governanca: string | null
           organization_id: string
           origem_legada_referencia: string | null
           parcelas_padrao: number | null
@@ -10862,10 +10865,14 @@ export type Database = {
           prioridade_catalogo: string
           regra_uso: string | null
           requer_fechamento_humano: boolean
+          responsavel_homologacao: string | null
           status_homologacao: string
+          status_link_asaas: string
+          status_produto: string
           tipo_oferta: string
           updated_at: string
           updated_by: string | null
+          versao_vigencia: string | null
           vigencia_fim: string | null
           vigencia_inicio: string | null
         }
@@ -10879,6 +10886,7 @@ export type Database = {
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
+          data_ultima_validacao?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
           exige_case_service?: boolean
@@ -10888,7 +10896,9 @@ export type Database = {
           homologado_por?: string | null
           id?: string
           jornada_fase?: string | null
+          link_asaas_validado?: string | null
           nome_comercial: string
+          observacao_de_governanca?: string | null
           organization_id: string
           origem_legada_referencia?: string | null
           parcelas_padrao?: number | null
@@ -10897,10 +10907,14 @@ export type Database = {
           prioridade_catalogo?: string
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
+          responsavel_homologacao?: string | null
           status_homologacao?: string
+          status_link_asaas?: string
+          status_produto?: string
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
+          versao_vigencia?: string | null
           vigencia_fim?: string | null
           vigencia_inicio?: string | null
         }
@@ -10914,6 +10928,7 @@ export type Database = {
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
+          data_ultima_validacao?: string | null
           elegivel_para_proposta?: boolean
           escopo_aprovado?: string | null
           exige_case_service?: boolean
@@ -10923,7 +10938,9 @@ export type Database = {
           homologado_por?: string | null
           id?: string
           jornada_fase?: string | null
+          link_asaas_validado?: string | null
           nome_comercial?: string
+          observacao_de_governanca?: string | null
           organization_id?: string
           origem_legada_referencia?: string | null
           parcelas_padrao?: number | null
@@ -10932,10 +10949,14 @@ export type Database = {
           prioridade_catalogo?: string
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
+          responsavel_homologacao?: string | null
           status_homologacao?: string
+          status_link_asaas?: string
+          status_produto?: string
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
+          versao_vigencia?: string | null
           vigencia_fim?: string | null
           vigencia_inicio?: string | null
         }
