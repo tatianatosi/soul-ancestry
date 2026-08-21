@@ -16,6 +16,8 @@ import {
   verificarDadoPiloto,
 } from "@/lib/piloto.functions";
 import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
+import { agruparBloqueiosPorGate, type RequisitoBloqueio } from "@/lib/gates-piloto";
+
 
 const TITULO = "Piloto real — conferir dados | Clube Ancestral";
 const DESCRICAO =
