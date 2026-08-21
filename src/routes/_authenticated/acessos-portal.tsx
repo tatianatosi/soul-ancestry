@@ -317,9 +317,24 @@ function AcessosPortalPage() {
           <section className="rounded-xl border border-navy/10 bg-white p-5">
             <h2 className="font-serif text-xl">Novo convite</h2>
             <p className="mt-1 text-sm text-navy/60">
-              O seletor mostra somente pessoas e casos elegíveis para o nível escolhido; itens bloqueados aparecem
-              desabilitados com o motivo.
+              O seletor de pessoa lista somente quem é elegível ao nível escolhido. Registros bloqueados ficam fora da
+              lista por padrão e, quando exibidos, aparecem desabilitados com o motivo. Demonstrações ficam isoladas e
+              não entram nas métricas de clientes reais.
             </p>
+            <div className="mt-3 flex flex-wrap gap-4 text-sm text-navy/70">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={mostrarBloqueados}
+                  onChange={(e) => setMostrarBloqueados(e.target.checked)}
+                />
+                Mostrar bloqueados (somente leitura do motivo)
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
+                Incluir demonstrações
+              </label>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="text-sm">
                 Nível de acesso
@@ -327,6 +342,7 @@ function AcessosPortalPage() {
                   value={nivel}
                   onChange={(e) => {
                     setNivel(e.target.value as NivelPortal);
+                    setClientId("");
                     setAutorizacaoId("");
                     setCasoId("");
                   }}
@@ -348,17 +364,57 @@ function AcessosPortalPage() {
                   className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
                 >
                   <option value="">Selecione…</option>
-                  {pessoas.map((p) => {
-                    const b = bloqueioDaPessoa(p, nivel, autorizacoes, casos);
-                    return (
-                      <option key={p.id} value={p.id} disabled={b.bloqueado}>
-                        {p.nome}
-                        {b.bloqueado ? ` — ${b.motivos[0]}` : ""}
-                      </option>
-                    );
-                  })}
+                  {grupos.elegiveis.length > 0 ? (
+                    <optgroup label="Elegíveis">
+                      {grupos.elegiveis.map(({ pessoa }) => (
+                        <option key={pessoa.id} value={pessoa.id}>
+                          {pessoa.nome}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
+                  {mostrarBloqueados && grupos.bloqueadas.length > 0 ? (
+                    <optgroup label="Bloqueados (sem elegibilidade operacional)">
+                      {grupos.bloqueadas.map(({ pessoa, bloqueio }) => (
+                        <option key={pessoa.id} value={pessoa.id} disabled>
+                          {pessoa.nome} — {bloqueio.motivos[0]}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
+                  {incluirDemo && grupos.demo.length > 0 ? (
+                    <optgroup label="Demonstração (fora das métricas reais)">
+                      {grupos.demo.map(({ pessoa, bloqueio }) => (
+                        <option key={pessoa.id} value={pessoa.id} disabled={bloqueio.bloqueado}>
+                          {pessoa.nome} · demo
+                          {bloqueio.bloqueado ? ` — ${bloqueio.motivos[0]}` : ""}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
                 </select>
+                {grupos.elegiveis.length === 0 ? (
+                  <span className="mt-1 block text-xs text-terracotta">
+                    Nenhuma pessoa elegível para {NIVEL_LABEL[nivel]} no momento.
+                    {nivel === "client_workspace" ? ` ${MOTIVO_GATES}.` : ""}
+                  </span>
+                ) : null}
+                {!mostrarBloqueados && grupos.bloqueadas.length > 0 ? (
+                  <span className="mt-1 block text-xs text-navy/50">
+                    {grupos.bloqueadas.length} registro(s) ocultos por falta de elegibilidade.
+                  </span>
+                ) : null}
               </label>
+            </div>
+            {bloqueioSelecionado?.bloqueado ? (
+              <ul className="mt-3 space-y-1 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-xs text-terracotta">
+                {bloqueioSelecionado.motivos.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+
               <label className="text-sm">
                 E-mail autorizado
                 <select
