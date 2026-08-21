@@ -91,8 +91,8 @@ function Conversao() {
         <div className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              { r: "Investimento registrado", v: moeda(metricas?.investimentoTotal ?? 0) },
-              { r: "CAC", v: moeda(metricas?.cac ?? null) },
+              { r: "Leads com evento registrado", v: String((q.data?.leadsTodos ?? []).length) },
+              { r: "Aceites formais confirmados", v: String(((q.data?.eventos ?? []) as { event_type: string }[]).filter((e) => e.event_type === "confirmacao_formal_recebida").length) },
               {
                 r: "Tempo entrada → pagamento",
                 v: metricas?.tempoMedioEntradaPagamentoDias == null ? "—" : `${metricas.tempoMedioEntradaPagamentoDias.toFixed(1)} dias`,
