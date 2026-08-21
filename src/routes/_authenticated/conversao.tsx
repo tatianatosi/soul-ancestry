@@ -128,9 +128,7 @@ function Conversao() {
               {incluirDemo
                 ? `Exibindo operação real + demonstração: ${dados.ocultosLeads.length} registro(s) de teste incluídos nas contagens.`
                 : dados.ocultosLeads.length > 0
-                  ? `Demonstração excluída das métricas: ${dados.ocultosLeads.length} lead(s) e ${dados.ocultosEventos} evento(s) de teste ocultos (${dados.ocultosLeads
-                      .map((l) => l.nome ?? l.codigo)
-                      .join(", ")}).`
+                  ? `Demonstração excluída das métricas: ${dados.ocultosLeads.length} lead(s) e ${dados.ocultosEventos} evento(s) de teste ocultos (${dados.ocultosLeads.join(", ")}).`
                   : "Somente operação real. Nenhum registro de demonstração encontrado."}
             </span>
             <label className="flex items-center gap-2">
