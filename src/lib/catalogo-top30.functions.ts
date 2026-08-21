@@ -107,6 +107,16 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
 
     const fases = agrupar(listaCasos.filter((c: Caso) => c.fase).map((c: Caso) => c.fase as string));
 
+    const porResponsavel = new Map<string, { responsavel: string; casos: number; pendencias: number }>();
+    for (const c of listaCasos as Caso[]) {
+      const chave = c.responsavel ?? "sem-responsavel";
+      const atual = porResponsavel.get(chave) ?? { responsavel: chave, casos: 0, pendencias: 0 };
+      atual.casos += 1;
+      if (!c.temProduto || !c.temPlano || !c.proximaMicroentrega || c.dias_sem_touchpoint >= 10) atual.pendencias += 1;
+      porResponsavel.set(chave, atual);
+    }
+    const pendenciasPorResponsavel = [...porResponsavel.values()].sort((a, b) => b.pendencias - a.pendencias);
+
     return {
       resumo: {
         top10: top10.length,
@@ -119,7 +129,9 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       top30,
       filas,
       fases,
+      pendenciasPorResponsavel,
     };
+
   });
 
 function diasDesde(iso: string | null): number {
