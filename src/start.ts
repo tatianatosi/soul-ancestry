@@ -23,15 +23,13 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
  * pessoais: nada pode ficar em cache de navegador, CDN ou proxy, para que
  * troca de usuário, sessão ou organização nunca reexiba registros anteriores.
  */
-const noStoreMiddleware = createMiddleware().server(async ({ next }) => {
+const noStoreMiddleware = createMiddleware({ type: "function" }).server(async ({ next }) => {
   try {
-    const { setResponseHeaders } = await import("@tanstack/react-start/server");
-    setResponseHeaders({
-      "Cache-Control": "no-store, no-cache, must-revalidate, private",
-      Pragma: "no-cache",
-      Expires: "0",
-      Vary: "Authorization, Cookie",
-    } as Record<string, string>);
+    const { setResponseHeader } = await import("@tanstack/react-start/server");
+    setResponseHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    setResponseHeader("Pragma", "no-cache");
+    setResponseHeader("Expires", "0");
+    setResponseHeader("Vary", "Authorization, Cookie");
   } catch {
     /* fora de um contexto de requisição */
   }
