@@ -420,11 +420,15 @@ function AcessosPortalPage() {
                           <p className="font-medium">{cliente?.nome ?? "Cliente"}</p>
                           <p className="text-sm text-navy/60">{a.email}</p>
                           <p className="mt-1 text-xs uppercase tracking-wide text-navy/50">
-                            {NIVEL_LABEL[a.access_level]} · {STATUS_LABEL[a.access_status]}
+                            {NIVEL_LABEL_MAP[a.access_level]} · {STATUS_LABEL[a.access_status]} · link:{" "}
+                            {estadoDoLink(a)}
+                            {a.is_demo ? " · demo" : ""}
                             {a.last_authenticated_at
                               ? ` · último acesso ${new Date(a.last_authenticated_at).toLocaleString("pt-BR")}`
                               : ""}
                           </p>
+                          {a.finalidade ? <p className="mt-1 text-xs text-navy/60">Finalidade: {a.finalidade}</p> : null}
+
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <button
