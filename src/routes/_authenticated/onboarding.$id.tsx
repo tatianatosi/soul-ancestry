@@ -138,19 +138,26 @@ function OnboardingPage() {
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
           <section className="rounded-xl border border-navy/10 bg-white p-4">
             <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-navy">Pronto para ativar?</h2>
+              <h2 className="text-base font-semibold text-navy">Requisitos de ativação</h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   ativo ? "bg-emerald-100 text-emerald-800" : pronto ? "bg-gold/20 text-navy" : "bg-terracotta/10 text-terracotta"
                 }`}
               >
-                {ativo ? "Caso ativo" : pronto ? "Requisitos completos" : `${pendencias.length} pendência(s)`}
+                {ativo
+                  ? "Caso ativo"
+                  : pronto
+                    ? "Requisitos completos"
+                    : `Não elegível — ativação bloqueada (${pendencias.length} pendência(s))`}
               </span>
             </header>
 
             {!pronto ? (
               <div className="mb-4 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-sm text-navy">
-                <p className="font-medium">Ativação bloqueada pelos seguintes requisitos:</p>
+                <p className="font-medium">
+                  Não elegível — ativação bloqueada. Painel em modo somente leitura para ativação enquanto houver
+                  pendência; datas futuras de contrato, pagamento ou onboarding são previsão condicional.
+                </p>
                 <ul className="mt-1 list-disc pl-5 text-navy/75">
                   {pendencias.map((p) => (
                     <li key={p.check_key}>
@@ -222,14 +229,19 @@ function OnboardingPage() {
             </ul>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {dados.podeAtivar && !ativo ? (
+              {dados.podeAtivar && !ativo && pronto ? (
                 <button
                   onClick={() => mAtivar.mutate()}
-                  disabled={!pronto}
-                  className="rounded-md bg-navy px-3 py-1.5 text-sm text-cream disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-md bg-navy px-3 py-1.5 text-sm text-cream"
                 >
                   Ativar caso
                 </button>
+              ) : null}
+              {!ativo && !pronto ? (
+                <p className="text-xs text-navy/55">
+                  Sem botão de ativação: o checklist obrigatório ainda não está completo. A validação final é feita pelo
+                  banco de dados.
+                </p>
               ) : null}
               {dados.podeAtivar && ativo ? (
                 <button
