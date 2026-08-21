@@ -17,6 +17,7 @@ import { AbaJornadaCliente } from "@/components/caso/jornada-cliente";
 import { AbaFechamento } from "@/components/caso/fechamento";
 import { AbaCadastro } from "@/components/caso/cadastro-checklist";
 import { PainelFichaPiloto } from "@/components/caso/ficha-piloto-genealogica";
+import { VinculoNucleo } from "@/components/caso/vinculo-nucleo";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
@@ -354,6 +355,8 @@ function FichaCaso() {
           {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem App Cliente.
         </p>
       ) : null}
+      <VinculoNucleo caseId={String(caso["id"])} codigoCaso={(caso["codigo"] as string | null) ?? null} />
+
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">{erro}</p>
       ) : null}

@@ -95,10 +95,19 @@ function NucleosPage() {
     });
   }, [q.data, busca, filtroStatus]);
 
+  const casosDuplicados = useMemo(() => {
+    const contagem = new Map<string, number>();
+    for (const n of (q.data ?? []) as Nucleo[]) {
+      if (n.caso) contagem.set(n.caso.id, (contagem.get(n.caso.id) ?? 0) + 1);
+    }
+    return new Set([...contagem.entries()].filter(([, c]) => c > 1).map(([id]) => id));
+  }, [q.data]);
+
   const atual = useMemo(
     () => ((q.data ?? []) as Nucleo[]).find((n) => n.id === selecionado) ?? null,
     [q.data, selecionado],
   );
+
 
   const abrir = (n: Nucleo) => {
     setSelecionado(n.id);
@@ -182,6 +191,14 @@ function NucleosPage() {
                 ) : (
                   <p className="mt-2 text-xs text-navy/45">Sem caso operacional vinculado.</p>
                 )}
+
+                {n.caso && casosDuplicados.has(n.caso.id) ? (
+                  <p className="mt-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-[11px] text-navy">
+                    Duplicidade: outro núcleo aponta para o mesmo caso. Mantenha um único núcleo e um único dossiê-mãe
+                    por caso; arquive o excedente em vez de mesclar.
+                  </p>
+                ) : null}
+
 
                 <div className="mt-3 space-y-1 text-xs text-navy/70">
                   <p>Dossiê-mãe: {n.dossie_mae || "—"}</p>
