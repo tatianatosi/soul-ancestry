@@ -232,11 +232,13 @@ export function PainelDia() {
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
         <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
-          {ajuda ? "Ocultar" : "Como ler estas informações"}
+          {ajuda ? "Ocultar ajuda" : "Como ler estas informações"}
         </button>
         {ajuda ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-xs">
+            <li>Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na maior urgência aplicável.</li>
             <li>Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios na ficha do caso.</li>
+
             <li>Itens sem responsável são falha de qualidade e precisam de dono antes de entrar na execução.</li>
             <li>Registros de demonstração ficam ocultos por padrão e não alteram indicadores reais.</li>
             <li>Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até confirmação documental.</li>
