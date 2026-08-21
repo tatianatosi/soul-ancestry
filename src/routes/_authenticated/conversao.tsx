@@ -17,6 +17,7 @@ import {
   percentual,
 } from "@/lib/conversao";
 import { FASES_CICLO_PILOTO, NOTA_CICLO } from "@/lib/ciclo-piloto-ana";
+import { FORA_DO_PRIMEIRO_RELEASE, NOTA_FORA_DO_RELEASE, NOTA_PLACEGO } from "@/lib/corte-vertical";
 import { CHECKLIST_ONBOARDING, FASES_ONBOARDING, REGRA_VALOR_PERCEBIDO } from "@/lib/onboarding-padrao";
 
 export const Route = createFileRoute("/_authenticated/conversao")({
