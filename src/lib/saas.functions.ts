@@ -87,6 +87,8 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "origem",
     "pais_interesse",
     "status",
+    "status_comercial",
+    "classificacao",
     "observacoes",
   ],
   client_contacts: ["client_id", "nome", "relacao", "email", "telefone", "principal", "observacoes"],

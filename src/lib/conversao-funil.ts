@@ -144,7 +144,7 @@ export function montarEstados(
       const ultimo = ordenados[ordenados.length - 1];
       return {
         chave,
-        tipo: chave.startsWith("lead") ? ("lead" as const),
+        tipo: chave.startsWith("lead") ? ("lead" as const) : ("caso" as const),
         leadId,
         caseId,
         rotulo,
