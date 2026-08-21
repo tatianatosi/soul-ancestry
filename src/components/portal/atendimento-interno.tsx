@@ -197,21 +197,78 @@ export function AtendimentoInterno() {
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-sm text-navy/60">Caso</label>
-        <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={`${inputCls} max-w-md`}>
-          <option value="">Todos os casos</option>
-          {casos.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.codigo ? `${c.codigo} · ` : ""}
-              {c.titulo}
-              {bloqueioAtendimento(c).bloqueado ? " — bloqueado" : ""}
-            </option>
-          ))}
-        </select>
-        {bloqueioSelecionado?.bloqueado ? <Selo texto="Portal não elegível" tom="alerta" /> : null}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-sm text-navy/60">Caso</label>
+          <select value={casoId} onChange={(e) => setCasoId(e.target.value)} className={`${inputCls} max-w-xl`}>
+            <option value="">Todos os casos</option>
+            {(["apto", "demo", "bloqueado"] as const).map((situacao) => {
+              const grupo = casos.filter((c) => estadoCasoAtendimento(c).situacao === situacao);
+              if (grupo.length === 0) return null;
+              return (
+                <optgroup
+                  key={situacao}
+                  label={
+                    situacao === "apto"
+                      ? "Aptos ao portal"
+                      : situacao === "demo"
+                        ? "Demonstração (isolada dos indicadores reais)"
+                        : "Bloqueados para conteúdo client-facing"
+                  }
+                >
+                  {grupo.map((c) => {
+                    const e = estadoCasoAtendimento(c);
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {c.codigo ? `${c.codigo} · ` : ""}
+                        {c.titulo} — {e.rotulo}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              );
+            })}
+          </select>
+          {estadoSelecionado ? (
+            <Selo
+              texto={estadoSelecionado.rotulo}
+              tom={estadoSelecionado.situacao === "bloqueado" ? "alerta" : "ok"}
+            />
+          ) : null}
+        </div>
+        {bloqueioSelecionado ? <Bloqueado motivos={bloqueioSelecionado.motivos} /> : null}
+        <ul className="grid gap-1.5 md:grid-cols-3">
+          {casos.map((c) => {
+            const e = estadoCasoAtendimento(c);
+            return (
+              <li
+                key={c.id}
+                className={`rounded-lg border px-3 py-2 text-xs ${
+                  e.situacao === "bloqueado"
+                    ? "border-terracotta/30 bg-terracotta/5"
+                    : e.situacao === "demo"
+                      ? "border-dashed border-gold/50 bg-gold/5"
+                      : "border-navy/10 bg-white"
+                }`}
+              >
+                <p className="font-medium text-navy">
+                  {c.codigo ? `${c.codigo} · ` : ""}
+                  {c.titulo}
+                </p>
+                <p className="mt-0.5 text-navy/60">{e.rotulo}</p>
+                <p className="mt-0.5 text-navy/45">
+                  {e.situacao === "bloqueado"
+                    ? "Sem solicitação documental, entrega, fatura ou ticket de portal."
+                    : e.situacao === "demo"
+                      ? "Apenas ambiente demonstrativo."
+                      : "Ações client-facing liberadas com confirmação."}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       </div>
-      {bloqueioSelecionado ? <Bloqueado motivos={bloqueioSelecionado.motivos} /> : null}
+
 
       {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
 
