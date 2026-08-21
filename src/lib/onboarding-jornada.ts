@@ -241,7 +241,8 @@ export function derivarEstadoCaso(caso: CasoDiagnostico, diag: DiagnosticoOnboar
   if (caso.archived_at || caso.eixo_operacao === "arquivado") return "arquivado";
   if (caso.eixo_operacao === "caso_ativo") {
     if (caso.aguardando_instituicao_externa) return "aguardando_terceiro";
-    if ((ctx.plano?.pendencias_cliente_qtd ?? 0) > 0) return "aguardando_cliente";
+    const pendCliente = ctx.plano?.pendencias_cliente_qtd ?? ctx.plano?.pendencias_cliente?.length ?? 0;
+    if (pendCliente > 0) return "aguardando_cliente";
     return "em_execucao";
   }
   if (caso.eixo_operacao === "onboarding_iniciado") return "onboarding_pendente";
