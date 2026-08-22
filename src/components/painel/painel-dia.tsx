@@ -122,8 +122,12 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
+  const cards = cardsHoje(filas, { incluirDemo });
+  const opcoes = opcoesFiltroDia(itens);
+  const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
   const usados = chavesExibidas(priorizada);
   const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
+
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
