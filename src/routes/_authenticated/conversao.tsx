@@ -192,6 +192,32 @@ function Conversao() {
           </Bloco>
 
           <Bloco titulo="Funil de eventos" aviso="Contagem de eventos, entidades e taxa entre etapas">
+            {(() => {
+              const comTaxa = dados.funil.filter((l) => typeof l.taxa === "number");
+              const pior = comTaxa.length
+                ? comTaxa.reduce((a, b) => ((b.taxa as number) < (a.taxa as number) ? b : a))
+                : null;
+              return (
+                <div className="mb-3 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/50">Gargalo principal</p>
+                  {pior ? (
+                    <>
+                      <p className="mt-1 text-sm text-navy">
+                        <strong>{pior.rotulo}</strong> — passagem de {percentualOuTraco(pior.taxa)} vs. etapa anterior (
+                        {pior.entidades} lead/caso).
+                      </p>
+                      <a href="/leads" className="mt-1 inline-block text-xs text-navy underline">
+                        Abrir lista filtrada de leads nesta etapa
+                      </a>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-sm text-navy/60">
+                      Sem denominador suficiente para apontar gargalo. Nenhuma etapa é estimada.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
             <table className="w-full text-left text-xs">
               <thead className="text-[10px] uppercase text-navy/50">
                 <tr>
