@@ -5,19 +5,20 @@ import {
   MODULOS_COBERTOS,
   operacaoDoModulo,
   podeOperarModulo,
+  REGRAS_GERAIS,
   resumoCobertura,
   validarOperacaoModulo,
 } from "@/lib/modo-proprietaria-cobertura";
 
 describe("cobertura obrigatória do modo proprietária", () => {
-  it("cobre os sete módulos exigidos, todos com operações e entidade canônica", () => {
+  it("cobre as dez áreas exigidas, todos com operações e entidade canônica", () => {
     expect(COBERTURA_MODULOS.map((m) => m.id)).toEqual([...MODULOS_COBERTOS]);
     for (const m of COBERTURA_MODULOS) {
       expect(m.operacoes.length).toBeGreaterThan(0);
       expect(m.regras.length).toBeGreaterThan(0);
       for (const o of m.operacoes) expect(o.entidade).toMatch(/\w/);
     }
-    expect(resumoCobertura()).toHaveLength(7);
+    expect(resumoCobertura()).toHaveLength(10);
   });
 
   it("libera operação interna só para a proprietária", () => {
@@ -44,7 +45,7 @@ describe("cobertura obrigatória do modo proprietária", () => {
 
   it("nunca aprova projeção do App Cliente com dado TESTE/DEMO", () => {
     const v = validarOperacaoModulo("admin", {
-      modulo: "financeiro_app_cliente",
+      modulo: "app_cliente",
       operacao: "aprovar_projecao_app",
       dados_teste: true,
     });
@@ -54,5 +55,38 @@ describe("cobertura obrigatória do modo proprietária", () => {
 
   it("mantém SKU em revisão como override permitido na formalização", () => {
     expect(podeOperarModulo("admin", "formalizacao", "override_sku_em_revisao")).toBe(true);
+  });
+});
+
+describe("ampliação para todas as áreas do Desk", () => {
+  it("inclui comercial/catálogo, caso/dossiê, financeiro e App Cliente como áreas próprias", () => {
+    const ids = COBERTURA_MODULOS.map((m) => m.id);
+    expect(ids).toContain("comercial_catalogo");
+    expect(ids).toContain("caso_dossie");
+    expect(ids).toContain("financeiro");
+    expect(ids).toContain("app_cliente");
+  });
+
+  it("declara a regra geral aplicável a todas as áreas", () => {
+    expect(REGRAS_GERAIS.length).toBeGreaterThanOrEqual(6);
+    expect(REGRAS_GERAIS.join(" ")).toContain("entidade canônica");
+    expect(REGRAS_GERAIS.join(" ")).toContain("RLS");
+  });
+
+  it("permite override de SKU em revisão e homologação auditada no catálogo", () => {
+    expect(podeOperarModulo("admin", "comercial_catalogo", "selecionar_sku_em_revisao")).toBe(true);
+    expect(podeOperarModulo("admin", "comercial_catalogo", "homologar_sku")).toBe(true);
+    expect(podeOperarModulo("financeiro", "comercial_catalogo", "homologar_sku")).toBe(false);
+  });
+
+  it("mantém cobrança e publicação como confirmação final, nunca operação direta", () => {
+    const cobranca = validarOperacaoModulo("admin", { modulo: "financeiro", operacao: "emitir_cobranca" });
+    expect(cobranca.valida).toBe(false);
+    const publicar = validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: "publicar_no_app_cliente" });
+    expect(publicar.valida).toBe(false);
+  });
+
+  it("grava correção de caso na entidade canônica crm_casos", () => {
+    expect(operacaoDoModulo("caso_dossie", "editar_caso")?.entidade).toBe("crm_casos");
   });
 });

@@ -457,62 +457,6 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 3a — Indicadores com manifestação no dia: quatro grupos, uma linha por registro */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Indicadores com manifestação no dia</h2>
-          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-            registro canônico dos 16 indicadores
-          </Link>
-        </div>
-        <p className="mt-1 text-xs text-navy/50">
-          Cada registro aparece uma única vez, no maior nível de severidade aplicável. Sinais de conversão e integridade estão
-          absorvidos nestes grupos. Nada é disparado a partir daqui.
-        </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          {GRUPOS_INDICADOR.map((g) => {
-            const linhas = agrupado[g.chave];
-            return (
-              <div key={g.chave} className="rounded-lg border border-navy/10 p-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="font-mono text-[10px] text-navy/40">{g.codigos}</span>
-                </div>
-                <ul className="mt-2 space-y-1.5 text-xs">
-                  {linhas.map((l) => (
-                    <li key={l.chave} className="rounded border border-navy/10 px-2 py-1.5">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <span
-                          className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                            l.severidade === "P0"
-                              ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                              : l.severidade === "P1"
-                                ? "border-gold/50 bg-gold/10 text-navy"
-                                : "border-navy/20 text-navy/60"
-                          }`}
-                        >
-                          {l.severidade}
-                        </span>
-                        <span className="text-navy">{l.motivo}</span>
-                        <span className="font-mono text-[10px] text-navy/40">{l.codigo}</span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-navy/60">
-                        Responsável: {l.responsavel ?? "sem responsável definido"} · {l.prazo}
-                      </p>
-                    </li>
-                  ))}
-                  {linhas.length === 0 ? (
-                    <li className="text-[11px] text-navy/50">Sem dados suficientes para sinalizar neste grupo hoje.</li>
-                  ) : null}
-                </ul>
-                <Link to={g.rota} className="mt-2 inline-block text-xs text-navy underline underline-offset-2">
-                  {g.acao}
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       {/* 4 — Casos com prazo em atenção */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
@@ -583,6 +527,63 @@ export function PainelDia() {
               {a.rotulo}
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* 6 — Sinais de atenção: alertas derivados, separados da fila de trabalho. */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
+          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            registro canônico dos 16 indicadores
+          </Link>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">
+          Cada registro aparece uma única vez, no maior nível de severidade aplicável. Sinais de conversão e integridade estão
+          absorvidos nestes grupos. Nada é disparado a partir daqui.
+        </p>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          {GRUPOS_INDICADOR.map((g) => {
+            const linhas = agrupado[g.chave];
+            return (
+              <div key={g.chave} className="rounded-lg border border-navy/10 p-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="font-mono text-[10px] text-navy/40">{g.codigos}</span>
+                </div>
+                <ul className="mt-2 space-y-1.5 text-xs">
+                  {linhas.map((l) => (
+                    <li key={l.chave} className="rounded border border-navy/10 px-2 py-1.5">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span
+                          className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                            l.severidade === "P0"
+                              ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                              : l.severidade === "P1"
+                                ? "border-gold/50 bg-gold/10 text-navy"
+                                : "border-navy/20 text-navy/60"
+                          }`}
+                        >
+                          {l.severidade}
+                        </span>
+                        <span className="text-navy">{l.motivo}</span>
+                        <span className="font-mono text-[10px] text-navy/40">{l.codigo}</span>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-navy/60">
+                        Responsável: {l.responsavel ?? "sem responsável definido"} · {l.prazo}
+                      </p>
+                    </li>
+                  ))}
+                  {linhas.length === 0 ? (
+                    <li className="text-[11px] text-navy/50">Sem dados suficientes para sinalizar neste grupo hoje.</li>
+                  ) : null}
+                </ul>
+                <Link to={g.rota} className="mt-2 inline-block text-xs text-navy underline underline-offset-2">
+                  {g.acao}
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </section>
 
