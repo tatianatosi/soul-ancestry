@@ -54,6 +54,11 @@ function CatalogoPage() {
       descricao="Leitura do catálogo já saneado. Preço, status, categoria e Pareto vêm da planilha mestre. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
     >
 
+      <ReferenciaCatalogo />
+      <div className="mt-6">
+        <CatalogoSaneamento />
+      </div>
+
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { r: "SKUs na fonte", v: mapa.totais.totalSkus },
