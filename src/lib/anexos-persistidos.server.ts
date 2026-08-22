@@ -25,10 +25,42 @@ function statusPersistido(a: { aplicavel: boolean; pendencias: string[]; estado:
   return "prepared";
 }
 
+/** Domínio aceito pelo banco (contract_annexes.annex_type). */
+export type TipoAnexoPersistido =
+  | "scope"
+  | "service_order"
+  | "financial_schedule"
+  | "external_expenses"
+  | "privacy_data"
+  | "family_structure"
+  | "document_list"
+  | "authorization"
+  | "other";
+
+const TIPO_POR_CODIGO: Record<string, TipoAnexoPersistido> = {
+  ANEXO_I_ORDEM_SERVICO: "service_order",
+  ANEXO_II_DESPESAS_EXTERNAS: "external_expenses",
+  ANEXO_III_AUTORIZACAO_PESQUISA: "authorization",
+  ANEXO_IV_PROCURACAO: "authorization",
+  ANEXO_V_ALTERACAO_ESCOPO: "scope",
+  "ANX-ESCOPO": "scope",
+  "ANX-COMERCIAL": "financial_schedule",
+  "ANX-INDIVIDUAL": "family_structure",
+  "ANX-PRIVACIDADE": "privacy_data",
+  "ANX-REPRESENTACAO": "authorization",
+  "ANX-DOCUMENTOS": "document_list",
+};
+
+export function tipoAnexoPersistido(codigo: string): TipoAnexoPersistido {
+  return TIPO_POR_CODIGO[codigo] ?? "other";
+}
+
 export type InstanciaAnexo = {
   annex_code: string;
   title: string;
-  annex_type: "governado" | "interno";
+  annex_type: TipoAnexoPersistido;
+  /** Natureza da instância: anexo governado I–V ou anexo interno por regra de produto. */
+  natureza: "governado" | "interno";
   applicability_rule: string;
   source: string;
   model_version: string;
@@ -47,9 +79,11 @@ export function instanciasDeAnexos(input: {
   const governados: InstanciaAnexo[] = input.anexos.map((a) => ({
     annex_code: a.codigo,
     title: a.titulo,
-    annex_type: "governado",
+    annex_type: tipoAnexoPersistido(a.codigo),
+    natureza: "governado",
     applicability_rule: a.regra,
     source: "contrato-base + ficha do caso",
+
     model_version: MODELO_VERSAO_ANEXO[a.codigo] ?? "modelo versionado",
     required_for_contract: a.aplicavel && a.obrigatorio,
     status: statusPersistido(a),
@@ -72,13 +106,15 @@ export function instanciasDeAnexos(input: {
   const internos: InstanciaAnexo[] = input.internos.map((i) => ({
     annex_code: i.codigo,
     title: i.titulo,
-    annex_type: "interno",
+    annex_type: tipoAnexoPersistido(i.codigo),
+    natureza: "interno",
     applicability_rule: i.motivo,
     source: "regra de produto/escopo",
     model_version: "ANX-INTERNO-v1.0",
     required_for_contract: true,
     status: "prepared",
-    structured_data: { motivo: i.motivo },
+    structured_data: { motivo: i.motivo, natureza: "interno" },
+
     rendered_html: `<h3>${i.codigo} — ${i.titulo}</h3><p>${i.motivo}</p>`,
     reason_not_applicable: null,
   }));
