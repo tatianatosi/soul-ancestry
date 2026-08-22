@@ -10,19 +10,24 @@ import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
+  aplicarFiltrosDia,
   cadenciaRelevante,
+  cardsHoje,
   chavesExibidas,
   comercialHoje,
   consolidarDia,
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
+  opcoesFiltroDia,
   textoDiasSemTouchpoint,
   textoPrazo,
   agruparLinhasIndicadores,
+  type FiltrosDia,
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+
 
 function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
   if (item.tipo === "caso") {
@@ -104,6 +109,8 @@ export function PainelDia() {
   const carregarCadencia = useServerFn(painelCadencia);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
+  const [filtros, setFiltros] = useState<FiltrosDia>({ responsavel: "", area: "", etapa: "" });
+
 
   const qDesk = useQuery({
     queryKey: ["painel-desk-hoje", incluirDemo],
@@ -120,8 +127,12 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
+  const cards = cardsHoje(filas, { incluirDemo });
+  const opcoes = opcoesFiltroDia(itens);
+  const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
   const usados = chavesExibidas(priorizada);
   const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
+
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
@@ -319,11 +330,50 @@ export function PainelDia() {
         </label>
       </div>
 
+      {/* 0 — Cards do dia */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
+            <p className="mt-1 font-serif text-2xl text-navy">{c.total}</p>
+            <p className="mt-1 text-[11px] text-navy/55">{c.leitura}</p>
+          </div>
+        ))}
+      </section>
+
       {/* 1 — Minha fila priorizada */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {(
+              [
+                ["responsavel", "Responsável", opcoes.responsaveis, ""],
+                ["area", "Área", opcoes.areas, "area_responsavel"],
+                ["etapa", "Etapa", opcoes.etapas, "eixo_comercial"],
+              ] as const
+            ).map(([campo, rotuloCampo, lista, catalogo]) => (
+              <label key={campo} className="flex items-center gap-1 text-navy/60">
+                {rotuloCampo}
+                <select
+                  className="rounded border border-navy/15 bg-white px-2 py-1 text-navy"
+                  value={filtros[campo] ?? ""}
+                  onChange={(e) => setFiltros((f) => ({ ...f, [campo]: e.target.value }))}
+                >
+                  <option value="">Todos</option>
+                  {lista.map((v) => (
+                    <option key={v} value={v}>
+                      {catalogo ? rotuloCatalogo(catalogo, v) : v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
         <div className="mt-3 grid gap-4 lg:grid-cols-3">
-          {priorizada.map((f) => (
+          {priorizadaVisivel.map((f) => (
             <div key={f.chave}>
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
@@ -338,6 +388,7 @@ export function PainelDia() {
           ))}
         </div>
       </section>
+
 
       {/* 2 — Exceções que exigem dono */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
