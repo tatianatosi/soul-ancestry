@@ -195,28 +195,47 @@ export function PainelDia() {
 
       {/* 3b — Sinais de conversão e integridade */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">Sinais de conversão e integridade</h2>
-          <Link to="/governanca/indicadores" className="text-xs text-navy/60 underline">
-            Definição dos indicadores
+          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            como o indicador é calculado
           </Link>
         </div>
         {sinais.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhum sinal aberto: nada é preenchido automaticamente quando falta base.</p>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
-            {sinais.map((s) => (
-              <li
-                key={s.codigo}
-                className={
-                  s.severidade === "critico"
-                    ? "rounded-lg border border-terracotta/40 bg-terracotta/5 px-3 py-2 text-terracotta"
-                    : "rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-navy/75"
-                }
-              >
-                {s.texto}
-              </li>
-            ))}
+            {[...sinais]
+              .sort((a, b) => (a.severidade === b.severidade ? 0 : a.severidade === "critico" ? -1 : 1))
+              .map((s) => (
+                <li
+                  key={s.codigo}
+                  className={`rounded-lg border px-3 py-2 ${
+                    s.severidade === "critico" ? "border-terracotta/40 bg-terracotta/5" : "border-gold/40 bg-gold/10"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
+                        s.severidade === "critico"
+                          ? "border-terracotta/50 text-terracotta"
+                          : "border-navy/20 text-navy/60"
+                      }`}
+                    >
+                      {s.severidade === "critico" ? "Crítico" : "Atenção"}
+                    </span>
+                    <span className={s.severidade === "critico" ? "font-medium text-terracotta" : "font-medium text-navy"}>
+                      {s.texto}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy/65">
+                    <span>Ação: {s.acao ?? "definir responsável e próxima ação"}</span>
+                    <Link to={s.rota} className="font-medium text-navy underline underline-offset-2">
+                      Abrir {s.destino ?? "lista filtrada"}
+                    </Link>
+                  </div>
+                </li>
+              ))}
           </ul>
         )}
       </section>
