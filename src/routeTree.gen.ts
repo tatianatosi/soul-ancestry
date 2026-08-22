@@ -83,6 +83,7 @@ import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './ro
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedGovernancaCorteVerticalRouteImport } from './routes/_authenticated/governanca.corte-vertical'
+import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
 import { Route as AuthenticatedBibliotecaEvidenciasCaseIdRouteImport } from './routes/_authenticated/biblioteca-evidencias.$caseId'
@@ -489,6 +490,12 @@ const AuthenticatedGovernancaCorteVerticalRoute =
     path: '/governanca/corte-vertical',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaContratoBaseRoute =
+  AuthenticatedGovernancaContratoBaseRouteImport.update({
+    id: '/governanca/contrato-base',
+    path: '/governanca/contrato-base',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/contratos/$id',
@@ -580,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -660,6 +668,7 @@ export interface FileRoutesByTo {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -743,6 +752,7 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/_authenticated/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
@@ -826,6 +836,7 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/governanca/contrato-base'
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
@@ -906,6 +917,7 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/governanca/contrato-base'
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
@@ -988,6 +1000,7 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca-evidencias/$caseId'
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
+    | '/_authenticated/governanca/contrato-base'
     | '/_authenticated/governanca/corte-vertical'
     | '/_authenticated/governanca/criterios-aceite'
     | '/_authenticated/governanca/decisoes'
@@ -1555,6 +1568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaCorteVerticalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/contrato-base': {
+      id: '/_authenticated/governanca/contrato-base'
+      path: '/governanca/contrato-base'
+      fullPath: '/governanca/contrato-base'
+      preLoaderRoute: typeof AuthenticatedGovernancaContratoBaseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contratos/$id': {
       id: '/_authenticated/contratos/$id'
       path: '/contratos/$id'
@@ -1633,6 +1653,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
+  AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
   AuthenticatedGovernancaCorteVerticalRoute: typeof AuthenticatedGovernancaCorteVerticalRoute
   AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
@@ -1694,6 +1715,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContratoParametrosIdRoute:
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
+  AuthenticatedGovernancaContratoBaseRoute:
+    AuthenticatedGovernancaContratoBaseRoute,
   AuthenticatedGovernancaCorteVerticalRoute:
     AuthenticatedGovernancaCorteVerticalRoute,
   AuthenticatedGovernancaCriteriosAceiteRoute:
