@@ -477,7 +477,60 @@ export function PainelDia() {
         )}
       </section>
 
-      {/* 3 — Comercial hoje */}
+      {/* 3 — Sinais de atenção: faixa compacta. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
+          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            registro canônico dos indicadores
+          </Link>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">
+          Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não geram nova linha de ação.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {GRUPOS_INDICADOR.map((g) => {
+            const linhas = agrupado[g.chave];
+            const grave = maiorGravidade(linhas);
+            return (
+              <div key={g.chave} className="rounded-lg border border-navy/10 px-3 py-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-serif text-lg text-navy">{linhas.length}</span>
+                    {grave ? (
+                      <span
+                        className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                          grave === "P0"
+                            ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                            : grave === "P1"
+                              ? "border-gold/50 bg-gold/10 text-navy"
+                              : "border-navy/20 text-navy/60"
+                        }`}
+                      >
+                        {grave}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
+                <div className="mt-1 flex flex-wrap gap-3">
+                  <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
+                    {g.acao}
+                  </Link>
+                  {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
+                    <Link to="/catalogo" className="text-[11px] text-navy underline underline-offset-2">
+                      Governança de Catálogo ({bloqueadosCatalogo.length}) — {EXCECAO_CONDICAO_COMERCIAL}
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 4 — Comercial hoje */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="font-serif text-lg text-navy">Comercial hoje</h2>
@@ -515,11 +568,10 @@ export function PainelDia() {
         </div>
       </section>
 
-
-      {/* 4 — Casos em atenção: cadência crítica e bloqueio de cadeia, em uma única visão. */}
+      {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos em atenção</h2>
+          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="text-xs text-navy/60 underline">
             Casos 360
           </Link>
@@ -543,33 +595,9 @@ export function PainelDia() {
         ) : (
           <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
         )}
-
-        {/* Bloqueio de cadeia operacional. O Painel Hoje não é catálogo: sem SKU, preço ou edição de portfólio. */}
-        {bloqueadosCatalogo.length > 0 ? (
-          <div className="mt-4 border-t border-navy/10 pt-3">
-            <div className="flex items-baseline justify-between">
-              <p className="text-xs uppercase tracking-wide text-navy/50">
-                Bloqueio por condição comercial · {bloqueadosCatalogo.length}
-              </p>
-              <Link to="/catalogo" className="text-xs text-navy/60 underline">
-                Governança de Catálogo
-              </Link>
-            </div>
-            <ul className="mt-2 space-y-1 text-xs text-navy/65">
-              {bloqueadosCatalogo.map((c) => (
-                <li key={c.case_id}>
-                  <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
-                    {String(c.rotulo)}
-                  </Link>{" "}
-                  — {EXCECAO_CONDICAO_COMERCIAL}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </section>
 
-      {/* 5 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
+      {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Atalhos</h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
@@ -589,62 +617,6 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 6 — Sinais de atenção: alertas derivados, separados da fila de trabalho. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
-          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-            registro canônico dos 16 indicadores
-          </Link>
-        </div>
-        <p className="mt-1 text-xs text-navy/50">
-          Cada registro aparece uma única vez, no maior nível de severidade aplicável. Sinais de conversão e integridade estão
-          absorvidos nestes grupos. Nada é disparado a partir daqui.
-        </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          {GRUPOS_INDICADOR.map((g) => {
-            const linhas = agrupado[g.chave];
-            return (
-              <div key={g.chave} className="rounded-lg border border-navy/10 p-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="font-mono text-[10px] text-navy/40">{g.codigos}</span>
-                </div>
-                <ul className="mt-2 space-y-1.5 text-xs">
-                  {linhas.map((l) => (
-                    <li key={l.chave} className="rounded border border-navy/10 px-2 py-1.5">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <span
-                          className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                            l.severidade === "P0"
-                              ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                              : l.severidade === "P1"
-                                ? "border-gold/50 bg-gold/10 text-navy"
-                                : "border-navy/20 text-navy/60"
-                          }`}
-                        >
-                          {l.severidade}
-                        </span>
-                        <span className="text-navy">{l.motivo}</span>
-                        <span className="font-mono text-[10px] text-navy/40">{l.codigo}</span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-navy/60">
-                        Responsável: {l.responsavel ?? "sem responsável definido"} · {l.prazo}
-                      </p>
-                    </li>
-                  ))}
-                  {linhas.length === 0 ? (
-                    <li className="text-[11px] text-navy/50">Sem dados suficientes para sinalizar neste grupo hoje.</li>
-                  ) : null}
-                </ul>
-                <Link to={g.rota} className="mt-2 inline-block text-xs text-navy underline underline-offset-2">
-                  {g.acao}
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
         <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
