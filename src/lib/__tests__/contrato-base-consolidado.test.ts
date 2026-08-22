@@ -1,6 +1,4 @@
-import {
-  SECOES_DOCUMENTO_PUBLICADO,
-  clausulasSemSecaoPublicada, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   CLAUSULAS_FIXAS,
@@ -10,6 +8,7 @@ import {
   PROIBICOES_IDENTIFICACAO,
   VARIAVEIS_PERMITIDAS,
 } from "@/lib/contrato-base-consolidado";
+import { SECOES_DOCUMENTO_PUBLICADO, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
 import {
   VARIAVEIS_TESTE,
   anexosDaPreviaTeste,
