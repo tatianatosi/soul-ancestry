@@ -8,12 +8,11 @@
  *  - nada aqui cria despesa, cobrança, pesquisa externa, procuração ou assinatura.
  */
 
+import { CLAUSULA_DESPESAS_TERCEIROS, ROTULO_ESTADO_DESPESA } from "@/lib/despesas-terceiros";
 import {
-  CLAUSULA_DESPESAS_TERCEIROS,
   MARCA_RASCUNHO,
   POLITICAS_DESPESA,
   ROTULO_POLITICA_DESPESA,
-  ROTULO_ESTADO_DESPESA,
   type AnexoGovernado,
   type EntradaAnexosIaV,
 } from "@/lib/anexos-i-v";
@@ -108,7 +107,7 @@ function documentoAnexoI(anexo: AnexoGovernado, e: EntradaAnexosIaV): DocumentoA
     {
       tipo: "lista",
       titulo: "5. Condições específicas",
-      itens: propostaValida?.condicoesEspecificas ?? [],
+      itens: propostaValida?.limitesDependencias ?? [],
       vazio: "Condições específicas não declaradas em fonte válida.",
     },
     {
