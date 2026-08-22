@@ -1,0 +1,55 @@
+{
+  "status_auth": "signed_out",
+  "antes": {
+    "audit_logs": {
+      "erro": "sessao_indisponivel"
+    },
+    "case_aliases": {
+      "erro": "sessao_indisponivel"
+    },
+    "catalog_audit_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "contract_annexes": {
+      "erro": "sessao_indisponivel"
+    },
+    "contract_review_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "conversion_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "owner_override_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "research_audit_events": {
+      "erro": "sessao_indisponivel"
+    }
+  },
+  "depois": {
+    "audit_logs": {
+      "erro": "sessao_indisponivel"
+    },
+    "case_aliases": {
+      "erro": "sessao_indisponivel"
+    },
+    "catalog_audit_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "contract_annexes": {
+      "erro": "sessao_indisponivel"
+    },
+    "contract_review_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "conversion_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "owner_override_events": {
+      "erro": "sessao_indisponivel"
+    },
+    "research_audit_events": {
+      "erro": "sessao_indisponivel"
+    }
+  }
+}
