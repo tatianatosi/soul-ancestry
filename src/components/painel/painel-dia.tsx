@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
+import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
+import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
 import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
@@ -46,7 +48,7 @@ function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso
   );
 }
 
-function Linha({ item }: { item: ItemDia }) {
+function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?: boolean; aoSalvar?: () => void }) {
   return (
     <li className="rounded-lg border border-navy/10 px-3 py-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -69,6 +71,9 @@ function Linha({ item }: { item: ItemDia }) {
           +{item.bloqueios.length} bloqueio{item.bloqueios.length === 1 ? "" : "s"} no mesmo registro — abrir a ficha para a lista
           completa.
         </p>
+      ) : null}
+      {proprietaria ? (
+        <AcoesRapidasProprietaria tipo={item.tipo === "caso" ? "caso" : "lead"} id={item.id} aoSalvar={aoSalvar} />
       ) : null}
     </li>
   );
@@ -120,6 +125,9 @@ export function PainelDia() {
     queryFn: () => carregarDesk({ data: { incluirDemo } }),
     retry: false,
   });
+  const carregarModo = useServerFn(estadoModoProprietaria);
+  const qModo = useQuery({ queryKey: ["painel-modo-proprietaria"], queryFn: () => carregarModo(), retry: false });
+  const proprietaria = qModo.data?.ativo === true;
   const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
   const carregarBloqueios = useServerFn(casosBloqueadosPorCatalogo);
   const qCatalogo = useQuery({
@@ -395,7 +403,12 @@ export function PainelDia() {
               </p>
               <ul className="mt-2 space-y-2 text-sm">
                 {f.itens.map((i) => (
-                  <Linha key={`${f.chave}-${i.tipo}-${i.id}`} item={i} />
+                  <Linha
+                    key={`${f.chave}-${i.tipo}-${i.id}`}
+                    item={i}
+                    proprietaria={proprietaria}
+                    aoSalvar={() => void qDesk.refetch()}
+                  />
                 ))}
                 {f.itens.length === 0 ? <li className="text-xs text-navy/50">Nada nesta faixa.</li> : null}
               </ul>
@@ -419,7 +432,12 @@ export function PainelDia() {
                 </p>
                 <ul className="mt-2 space-y-2 text-sm">
                   {e.itens.slice(0, 6).map((i) => (
-                    <Linha key={`${e.chave}-${i.tipo}-${i.id}`} item={i} />
+                    <Linha
+                      key={`${e.chave}-${i.tipo}-${i.id}`}
+                      item={i}
+                      proprietaria={proprietaria}
+                      aoSalvar={() => void qDesk.refetch()}
+                    />
                   ))}
                 </ul>
               </div>
