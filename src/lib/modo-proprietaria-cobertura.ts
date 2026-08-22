@@ -140,6 +140,16 @@ export const COBERTURA_MODULOS: Modulo[] = [
       { id: "editar_despesas", rotulo: "Editar despesas estimadas", entidade: "expense_estimates" },
       { id: "editar_anexos_proposta", rotulo: "Editar anexos da proposta", entidade: "contract_annexes" },
       {
+        id: "revisar_paginas_canva",
+        rotulo: "Importar e revisar páginas da proposta Canva (sem URL externa)",
+        entidade: "proposal_canva_pages",
+      },
+      {
+        id: "registrar_nao_localizado_conflito",
+        rotulo: "Registrar 'não localizado na proposta', conflito ou dado a confirmar",
+        entidade: "proposal_canva_pages",
+      },
+      {
         id: "avancar_proposta_com_pendencia",
         rotulo: "Avançar proposta com pendências assumidas",
         entidade: "proposals",
