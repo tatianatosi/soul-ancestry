@@ -25,6 +25,9 @@ import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
 import { anexosIaV, entradaDeValores, gatesBloqueados } from "@/lib/anexos-i-v";
+import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
+import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
 import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
 import {
@@ -198,16 +201,16 @@ function Pagina() {
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
 
   // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
-  const anexosGovernados = anexosIaV(
-    entradaDeValores({
-      caseId: d.caso.codigo,
-      clienteNome: null,
-      responsavel: null,
-      contratoBaseVersao: CONTRATO_BASE_VERSAO,
-      modelo: "MODELO-ESTUDO",
-      valores: (d.valores ?? []) as any[],
-    }),
-  );
+  const entradaAnexos = entradaDeValores({
+    caseId: d.caso.codigo,
+    clienteNome: null,
+    responsavel: null,
+    contratoBaseVersao: CONTRATO_BASE_VERSAO,
+    modelo: "MODELO-ESTUDO",
+    valores: (d.valores ?? []) as any[],
+  });
+  const anexosGovernados = anexosIaV(entradaAnexos);
+  const perfilInstitucional = perfilInstitucionalRenderizado();
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
@@ -215,6 +218,21 @@ function Pagina() {
     metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
     revisorHumanoAprovado: Boolean(finalAprovada),
     conflitos: [],
+  });
+  const clausulasAvaliadas = avaliarMatrizClausulas({
+    modelo: "MODELO-ESTUDO",
+    entradaAnexos,
+    anexos: anexosGovernados,
+    conflitos: [],
+    politicaPrivacidadeVigente: false,
+    foroConfigurado: false,
+    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    revisaoJuridicaAprovada: Boolean(finalAprovada),
+  });
+  const previaFinalCaso = previaFinalLiberada({
+    modelo: "MODELO-ESTUDO",
+    linhas: clausulasAvaliadas,
+    bloqueiosGates: gatesContratuais,
   });
 
 
