@@ -103,9 +103,33 @@ export type ResultadoDerivacao = {
   bloqueios: Bloqueio[];
 };
 
+/**
+ * Valores de catálogo que registram AUSÊNCIA de informação. Eles existem na
+ * ficha para não forçar preenchimento apressado, mas não podem contar como
+ * entrada registrada: senão a jornada avançaria de fase sem base.
+ */
+export const VALORES_SEM_INFORMACAO = new Set<string>([
+  "nao_informado",
+  "a_confirmar",
+  "a_definir",
+  "nao_identificado",
+  "nao_confirmada",
+  "sem_dados",
+  "objetivo_a_definir",
+  "nacionalidade_a_confirmar",
+  "via_a_confirmar",
+  "servico_a_definir",
+  "em_investigacao",
+  "nao_solicitada",
+  "pendente",
+]);
+
 function preenchido(v: unknown): boolean {
-  if (Array.isArray(v)) return v.length > 0;
-  if (typeof v === "string") return v.trim().length > 0 && v !== "nao_informado" && v !== "a_confirmar";
+  if (Array.isArray(v)) return v.some((item) => preenchido(item));
+  if (typeof v === "string") {
+    const t = v.trim();
+    return t.length > 0 && !VALORES_SEM_INFORMACAO.has(t);
+  }
   return v !== null && v !== undefined && v !== "";
 }
 
