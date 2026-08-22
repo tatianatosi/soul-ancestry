@@ -189,6 +189,9 @@ function Formalizacao() {
   const caso = useActiveCase();
   const contrato = caso.contrato;
   const procuracoes = caso.procuracoes;
+  const ctxProcuracaoEuropeia = resolverContextoEuropeu({
+    casoConfirmado: { pais: caso.rota?.pais_principal ?? null, versao: null },
+  });
   const f = caso.familia_direta;
 
   const pessoas = [
