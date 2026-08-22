@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
-import { ContratoBaseTexto } from "@/components/contrato/contrato-base-texto";
+import { ContratoBaseLeitor } from "@/components/contrato/contrato-base-leitor";
 import { CorpoContratualVersionado } from "@/components/contrato/corpo-contratual";
-import { SECOES_DOCUMENTO_PUBLICADO, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
+
 import {
   BLOQUEIOS_CANONICOS,
   CONTRATO_BASE_DATA,
