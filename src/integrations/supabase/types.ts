@@ -5102,6 +5102,7 @@ export type Database = {
           archived_by: string | null
           category: string
           commercial_condition_id: string | null
+          conteudo_hash: string | null
           contract_id: string
           created_at: string
           created_by: string | null
@@ -5109,9 +5110,12 @@ export type Database = {
           display_order: number
           id: string
           organization_id: string
+          previous_version_id: string | null
           proposal_id: string | null
           requires_human_validation: boolean
+          scope_version: number
           service_order_id: string | null
+          source_annex_id: string | null
           source_reference: string | null
           source_type: string
           status: string
@@ -5125,6 +5129,7 @@ export type Database = {
           archived_by?: string | null
           category: string
           commercial_condition_id?: string | null
+          conteudo_hash?: string | null
           contract_id: string
           created_at?: string
           created_by?: string | null
@@ -5132,9 +5137,12 @@ export type Database = {
           display_order?: number
           id?: string
           organization_id: string
+          previous_version_id?: string | null
           proposal_id?: string | null
           requires_human_validation?: boolean
+          scope_version?: number
           service_order_id?: string | null
+          source_annex_id?: string | null
           source_reference?: string | null
           source_type?: string
           status?: string
@@ -5148,6 +5156,7 @@ export type Database = {
           archived_by?: string | null
           category?: string
           commercial_condition_id?: string | null
+          conteudo_hash?: string | null
           contract_id?: string
           created_at?: string
           created_by?: string | null
@@ -5155,9 +5164,12 @@ export type Database = {
           display_order?: number
           id?: string
           organization_id?: string
+          previous_version_id?: string | null
           proposal_id?: string | null
           requires_human_validation?: boolean
+          scope_version?: number
           service_order_id?: string | null
+          source_annex_id?: string | null
           source_reference?: string | null
           source_type?: string
           status?: string
@@ -5188,6 +5200,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contract_scope_items_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_scope_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contract_scope_items_proposal_id_fkey"
             columns: ["proposal_id"]
             isOneToOne: false
@@ -5199,6 +5218,13 @@ export type Database = {
             columns: ["service_order_id"]
             isOneToOne: false
             referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_scope_items_source_annex_id_fkey"
+            columns: ["source_annex_id"]
+            isOneToOne: false
+            referencedRelation: "contract_annexes"
             referencedColumns: ["id"]
           },
         ]
@@ -17177,10 +17203,12 @@ export type Database = {
           id: string
           internal_notes: string | null
           organization_id: string
+          previous_version_id: string | null
           proposal_id: string | null
           responsible_user_id: string | null
           scope_summary: string | null
           service_order_number: string
+          source_annex_id: string | null
           start_condition_notes: string | null
           start_condition_status: string
           start_date: string | null
@@ -17208,10 +17236,12 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           organization_id: string
+          previous_version_id?: string | null
           proposal_id?: string | null
           responsible_user_id?: string | null
           scope_summary?: string | null
           service_order_number: string
+          source_annex_id?: string | null
           start_condition_notes?: string | null
           start_condition_status?: string
           start_date?: string | null
@@ -17239,10 +17269,12 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           organization_id?: string
+          previous_version_id?: string | null
           proposal_id?: string | null
           responsible_user_id?: string | null
           scope_summary?: string | null
           service_order_number?: string
+          source_annex_id?: string | null
           start_condition_notes?: string | null
           start_condition_status?: string
           start_date?: string | null
@@ -17295,10 +17327,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "service_orders_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "service_orders_proposal_id_fkey"
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_source_annex_id_fkey"
+            columns: ["source_annex_id"]
+            isOneToOne: false
+            referencedRelation: "contract_annexes"
             referencedColumns: ["id"]
           },
         ]
