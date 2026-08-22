@@ -540,6 +540,8 @@ export function PainelDia() {
         )}
       </section>
 
+      <FilaRevisaoJuridica compacto />
+
       {/* 3 — Sinais de atenção: faixa compacta. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
