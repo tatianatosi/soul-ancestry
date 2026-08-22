@@ -110,23 +110,28 @@ export function exigeConfirmacaoFinal(acao: string): acao is AcaoExterna {
 /** Campos obrigatórios da janela final de confirmação. */
 export const CAMPOS_CONFIRMACAO = [
   "acao",
+  "organizacao",
+  "caso",
   "destinatario",
   "conteudo",
   "valor",
-  "caso",
   "anexos",
-  "impacto",
   "dados_enviados",
+  "impacto",
   "aviso_irreversibilidade",
+  "motivo_confirmacao",
+  "confirmacao_manual",
 ] as const;
 
 export type CampoConfirmacao = (typeof CAMPOS_CONFIRMACAO)[number];
 
 export type PedidoConfirmacao = {
   acao: string;
+  organizacao?: string | null;
   destinatario?: string | null;
   conteudo?: string | null;
   valor?: number | string | null;
+  moeda?: string | null;
   caso?: string | null;
   anexos?: string[] | null;
   impacto?: string | null;
@@ -147,37 +152,48 @@ export type Confirmacao = {
 
 const ROTULO_CAMPO: Record<CampoConfirmacao, string> = {
   acao: "Ação",
-  destinatario: "Destinatário",
-  conteudo: "Conteúdo",
-  valor: "Valor",
+  organizacao: "Organização",
   caso: "Caso",
+  destinatario: "Destinatário",
+  conteudo: "Conteúdo ou documento",
+  valor: "Valor e moeda",
   anexos: "Anexos",
-  impacto: "Impacto",
   dados_enviados: "Dados que serão enviados",
+  impacto: "Impacto",
   aviso_irreversibilidade: "Aviso de irreversibilidade",
+  motivo_confirmacao: "Motivo da confirmação",
+  confirmacao_manual: "Confirmação manual",
 };
 
 export const AVISO_IRREVERSIVEL =
   "Esta ação é externa e irreversível. Nada é disparado automaticamente: só ocorre após a confirmação manual da proprietária.";
 
+/** Ações externas sem valor financeiro: o campo é textual, nunca inferido. */
+const SEM_VALOR_FINANCEIRO = "Sem valor financeiro";
+
 /** Monta a janela final de confirmação, listando exatamente o que será feito. */
 export function montarConfirmacao(pedido: PedidoConfirmacao): Confirmacao {
   const anexos = pedido.anexos ?? [];
+  const moeda = (pedido.moeda ?? "BRL").trim() || "BRL";
   const bruto: Record<CampoConfirmacao, string> = {
     acao: exigeConfirmacaoFinal(pedido.acao) ? ROTULO_ACAO_EXTERNA[pedido.acao] : pedido.acao,
+    organizacao: (pedido.organizacao ?? "").trim(),
+    caso: (pedido.caso ?? "").trim(),
     destinatario: (pedido.destinatario ?? "").trim(),
     conteudo: (pedido.conteudo ?? "").trim(),
     valor:
       pedido.valor === null || pedido.valor === undefined || pedido.valor === ""
-        ? ""
+        ? SEM_VALOR_FINANCEIRO
         : typeof pedido.valor === "number"
-          ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pedido.valor)
-          : String(pedido.valor),
-    caso: (pedido.caso ?? "").trim(),
+          ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: moeda }).format(pedido.valor)
+          : `${String(pedido.valor)} ${moeda}`,
     anexos: anexos.length ? anexos.join(", ") : "Sem anexos",
-    impacto: (pedido.impacto ?? "").trim(),
     dados_enviados: pedido.dados_enviados ? JSON.stringify(pedido.dados_enviados) : "",
+    impacto: (pedido.impacto ?? "").trim(),
     aviso_irreversibilidade: AVISO_IRREVERSIVEL,
+    motivo_confirmacao:
+      (pedido.motivo ?? "").trim().length >= MOTIVO_MINIMO ? (pedido.motivo ?? "").trim() : "",
+    confirmacao_manual: pedido.confirmacao_manual === true ? "Confirmada manualmente" : "",
   };
 
   const faltantes = CAMPOS_CONFIRMACAO.filter((c) => bruto[c].trim() === "");
@@ -195,6 +211,7 @@ export function montarConfirmacao(pedido: PedidoConfirmacao): Confirmacao {
     aviso: AVISO_IRREVERSIVEL,
   };
 }
+
 
 export const MOTIVO_MINIMO = 10;
 

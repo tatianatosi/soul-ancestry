@@ -164,6 +164,7 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
       destinatario?: string | null;
       conteudo?: string | null;
       valor?: number | string | null;
+      moeda?: string | null;
       caso?: string | null;
       anexos?: string[] | null;
       impacto?: string | null;
@@ -194,7 +195,11 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
     }
 
 
-    const confirmacao = montarConfirmacao({ ...data, irreversivel: true });
+    const confirmacao = montarConfirmacao({
+      ...data,
+      organizacao: organizationId,
+      irreversivel: true,
+    });
     if (!confirmacao.pronta) {
       throw new Error(
         `Janela de confirmação incompleta: ${confirmacao.faltantes.join(", ")}.`,

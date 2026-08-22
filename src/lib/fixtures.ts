@@ -9,12 +9,33 @@
 export const FIXTURE_ORIGIN = "fixture_demo";
 export const ROTULO_DEMONSTRACAO = "DEMONSTRAÇÃO/FIXTURE";
 
-export type LinhaComOrigem = { data_origin?: string | null; demo?: boolean | null };
+export type LinhaComOrigem = {
+  data_origin?: string | null;
+  demo?: boolean | null;
+  is_demo?: boolean | null;
+  dados_teste?: boolean | null;
+  codigo?: string | null;
+  titulo?: string | null;
+  nome?: string | null;
+};
 
-/** Verdadeiro quando a linha é fixture de demonstração. */
+/**
+ * Rede de segurança determinística de exibição: código/título marcados como
+ * TESTE, DEMO ou FIXTURE contam como fixture mesmo quando a coluna booleana
+ * ainda não foi corrigida no banco. Nada é apagado nem alterado por isto.
+ */
+const PADRAO_ROTULO_DEMO = /\b(teste|demo|demonstra\w*|fixture|sandbox)\b/i;
+
+export function rotuloIndicaDemo(texto: string | null | undefined): boolean {
+  return PADRAO_ROTULO_DEMO.test(texto ?? "");
+}
+
+/** Verdadeiro quando a linha é fixture de demonstração ou massa de teste. */
 export function ehFixtureLinha(linha: LinhaComOrigem | null | undefined): boolean {
   if (!linha) return false;
-  return (linha.data_origin ?? "") === FIXTURE_ORIGIN || linha.demo === true;
+  if ((linha.data_origin ?? "") === FIXTURE_ORIGIN) return true;
+  if (linha.demo === true || linha.is_demo === true || linha.dados_teste === true) return true;
+  return [linha.codigo, linha.titulo, linha.nome].some(rotuloIndicaDemo);
 }
 
 /** Remove fixtures de qualquer lista operacional. */
