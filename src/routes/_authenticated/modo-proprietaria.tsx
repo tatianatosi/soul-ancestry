@@ -31,7 +31,10 @@ function ModoProprietariaPage() {
       titulo="Modo Proprietária Administradora"
       descricao="Operação interna total: editar, versionar, homologar, aprovar e avançar qualquer elo da cadeia mediante decisão humana auditada. RLS, auditoria, histórico e triggers de integridade permanecem ativos. Ações externas e irreversíveis exigem confirmação final explícita e nunca são disparadas automaticamente."
     >
-      <PainelModoProprietaria />
+      <div className="space-y-8">
+        <PainelModoProprietaria />
+        <VarreduraAutorizacoes />
+      </div>
     </SaasShell>
   );
 }
