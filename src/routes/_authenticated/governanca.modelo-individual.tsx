@@ -50,8 +50,69 @@ const CLASSE_ROTULO: Record<string, string> = {
   nao_aplicavel_por_padrao: "Não aplicável por padrão",
 };
 
+function RegistroVersionado() {
+  const queryClient = useQueryClient();
+  const ler = useServerFn(lerRegistroModeloIndividual);
+  const registrar = useServerFn(registrarModeloIndividual);
+
+  const { data } = useQuery({ queryKey: ["modelo-individual-registro"], queryFn: () => ler({}) });
+  const mutation = useMutation({
+    mutationFn: () => registrar({}),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] }),
+  });
+
+  const modelo = data?.modelo as
+    | { versao: string; status: string; autor: string | null; criado_em: string }
+    | null
+    | undefined;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Registro versionado (organização)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {modelo ? (
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge variant="outline">{modelo.versao}</Badge>
+            <Badge variant="outline">{modelo.status}</Badge>
+            <Badge variant="outline">{modelo.autor ?? "—"}</Badge>
+            <Badge variant="outline">
+              Registrado em {new Date(modelo.criado_em).toLocaleDateString("pt-BR")}
+            </Badge>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">
+            Modelo ainda não registrado nesta organização. O registro é apenas de governança
+            interna e não libera contrato, assinatura ou cobrança.
+          </p>
+        )}
+        {!modelo && (
+          <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            Registrar modelo v1.0 (under_legal_review)
+          </Button>
+        )}
+        {mutation.isError && (
+          <p className="text-xs text-terracotta">{(mutation.error as Error).message}</p>
+        )}
+        {(data?.eventos ?? []).length > 0 && (
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {(data?.eventos ?? []).map((ev: { id: string; evento: string; detalhe: string | null; criado_em: string }) => (
+              <li key={ev.id}>
+                {new Date(ev.criado_em).toLocaleString("pt-BR")} · {ev.evento}
+                {ev.detalhe ? ` · ${ev.detalhe}` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function ModeloIndividualPage() {
   const previa = previaTesteModeloIndividual();
+
 
   return (
     <SaasShell
