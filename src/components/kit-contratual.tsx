@@ -17,7 +17,14 @@ import {
   STATUS_ETAPA_LABEL,
   mensagemDocumento,
 } from "@/lib/visibilidade";
-import type { CaseContratacao, EstadoDocumento } from "@/types/case";
+import type { CaseContratacao, CaseData, EstadoDocumento } from "@/types/case";
+import {
+  AVISO_PREPARO_PROCURACAO,
+  bloqueiosProcuracaoEuropeia,
+  resolverContextoEuropeu,
+  TITULO_PROCURACAO_BRASIL,
+  type ContextoProcuracaoEuropeia,
+} from "@/lib/procuracao-europeia";
 import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace } from "lucide-react";
 
 
@@ -34,7 +41,7 @@ type ModeloId =
   | "despesas"
   | "autorizacao"
   | "procuracao_br"
-  | "procuracao_it"
+  | "procuracao_eu"
   | "alteracao_escopo";
 
 type CardKit = {
@@ -50,11 +57,11 @@ type CardKit = {
   modelo?: ModeloId;
 };
 
-function cards(c: CaseContratacao | undefined, responsavel: string, criacao: string): CardKit[] {
+function cards(c: CaseContratacao | undefined, responsavel: string, criacao: string, ctx: ContextoProcuracaoEuropeia): CardKit[] {
   const os = c?.ordem_servico;
   const d = c?.despesas_externas;
   const br = c?.autorizacoes.procuracao_brasileira;
-  const it = c?.autorizacoes.procuracao_italiana;
+  const eu = c?.autorizacoes.procuracao_italiana;
   const pesquisa = c?.autorizacoes.pesquisa_especifica ?? [];
   const alt = c?.alteracoes_escopo ?? [];
 
@@ -108,7 +115,7 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
     },
     {
       id: "proc_br",
-      titulo: "Procuração Brasileira",
+      titulo: TITULO_PROCURACAO_BRASIL,
       icone: Stamp,
       status: br ? PROCURACAO_LABEL[br.status] : "Não iniciada",
       versao: texto(br?.finalidade, "Finalidade a definir"),
@@ -119,16 +126,20 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
       modelo: "procuracao_br",
     },
     {
-      id: "proc_it",
-      titulo: "Procuração Italiana",
+      id: "proc_eu",
+      titulo: ctx.state === "confirmado" ? ctx.title : "Procuração para atuação no país/órgão europeu aplicável",
       icone: Landmark,
-      status: it ? PROCURACAO_LABEL[it.status] : "Não iniciada",
-      versao: texto(it?.finalidade, "Finalidade a definir"),
+      status: bloqueiosProcuracaoEuropeia(ctx).bloqueado
+        ? "Não iniciada"
+        : eu
+          ? PROCURACAO_LABEL[eu.status]
+          : "Não iniciada",
+      versao: texto(eu?.finalidade, "Finalidade a definir"),
       criacao,
       aceite: NAO_INICIADO,
       responsavel,
-      proximaAcao: "Não preparar antes de confirmar o órgão italiano competente.",
-      modelo: "procuracao_it",
+      proximaAcao: AVISO_PREPARO_PROCURACAO,
+      modelo: "procuracao_eu",
     },
     {
       id: "escopo",
@@ -175,7 +186,7 @@ function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumen
       return c.autorizacoes.procuracao_brasileira.status === "nao_iniciada"
         ? "nao_criado"
         : "rascunho";
-    case "proc_it":
+    case "proc_eu":
       return c.autorizacoes.procuracao_italiana.status === "nao_iniciada"
         ? "nao_criado"
         : "rascunho";
@@ -386,8 +397,8 @@ const TITULOS: Record<ModeloId, string> = {
   ordem_servico: "Ordem de Serviço — prévia interna",
   despesas: "Controle de Despesas Externas — prévia interna",
   autorizacao: "Autorização Específica de Pesquisa — prévia interna",
-  procuracao_br: "Procuração Brasileira — prévia interna",
-  procuracao_it: "Procuração Italiana — prévia interna",
+  procuracao_br: `${TITULO_PROCURACAO_BRASIL} — prévia interna`,
+  procuracao_eu: "Procuração europeia — prévia interna",
   alteracao_escopo: "Termo de Alteração de Escopo — prévia interna",
 };
 
@@ -529,8 +540,8 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
             </>
           )}
 
-          {(id === "procuracao_br" || id === "procuracao_it") && (
-            <ProcuracaoPreview italiana={id === "procuracao_it"} />
+          {(id === "procuracao_br" || id === "procuracao_eu") && (
+            <ProcuracaoPreview europeia={id === "procuracao_eu"} />
           )}
 
           {id === "alteracao_escopo" && (
