@@ -20,6 +20,15 @@ import {
 } from "@/components/comercial/base";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import {
+  cac,
+  cpl,
+  formatarIndicador,
+  previsoesControladas,
+  resultadoCaixa,
+  roi,
+  type EntradaFinanceira,
+} from "@/lib/indicadores-marketing";
+import {
   conciliarPagamento,
   listarAjustes,
   listarComercial,
@@ -65,6 +74,7 @@ function FinanceiroPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [ajuste, setAjuste] = useState({ valor: "", motivo: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
+  const [realidadeAberta, setRealidadeAberta] = useState(true);
 
   const recurso = aba === "faturas" ? "invoices" : "payments";
   const q = useQuery({
@@ -75,6 +85,11 @@ function FinanceiroPage() {
   const qFaturas = useQuery({
     queryKey: ["financeiro", "invoices", ""],
     queryFn: () => listar({ data: { recurso: "invoices" } }),
+    enabled: podeFinanceiro,
+  });
+  const qPagamentos = useQuery({
+    queryKey: ["financeiro", "payments", ""],
+    queryFn: () => listar({ data: { recurso: "payments" } }),
     enabled: podeFinanceiro,
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}), enabled: podeFinanceiro });
@@ -141,6 +156,21 @@ function FinanceiroPage() {
   };
   const rotulos = aba === "faturas" ? ROTULO_FATURA : ROTULO_PAGAMENTO;
 
+  const pagamentos = (qPagamentos.data ?? []) as Linha[];
+  const soma = (rows: Linha[], filtro: (l: Linha) => boolean) =>
+    rows.filter(filtro).reduce((t, l) => t + (Number(l["valor"]) || 0), 0);
+  const recebida = soma(pagamentos, (l) => l["status"] === "confirmado" && Boolean(l["pago_em"]));
+  const contratada = soma(faturas, (l) => l["status"] !== "cancelada");
+  const pendentes = soma(faturas, (l) => l["status"] === "emitida" || l["status"] === "enviada");
+  const vencidas = soma(faturas, (l) => l["status"] === "vencida");
+  const base: EntradaFinanceira = {
+    receita_recebida: qPagamentos.isLoading ? null : recebida,
+    receita_contratada: contratada,
+    cobrancas_pendentes: pendentes,
+    cobrancas_vencidas: vencidas,
+  };
+  const previsoes = previsoesControladas({ contratada_nao_recebida: Math.max(contratada - recebida, 0) });
+
   return (
     <SaasShell
       titulo="Financeiro"
@@ -177,6 +207,57 @@ function FinanceiroPage() {
             </button>
           ))}
         </div>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-4">
+          <button
+            type="button"
+            onClick={() => setRealidadeAberta((v) => !v)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-sm font-medium text-navy">Realidade financeira do Clube Ancestral</span>
+            <span className="text-xs text-navy/50">{realidadeAberta ? "recolher" : "expandir"}</span>
+          </button>
+          <p className="mt-1 text-xs text-navy/55">
+            Receita recebida nunca é somada à contratada, previsão não vira caixa e despesa paga diretamente pelo cliente ao terceiro
+            não entra como custo do Clube. Indicador sem base declarada aparece como “Sem dados suficientes”.
+          </p>
+          {realidadeAberta ? (
+            <div className="mt-3 space-y-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { rotulo: "Receita recebida", valor: formatarIndicador(base.receita_recebida === null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: recebida, unidade: "moeda" }) },
+                  { rotulo: "Cobranças pendentes", valor: moeda(pendentes, "BRL") },
+                  { rotulo: "Cobranças vencidas", valor: moeda(vencidas, "BRL") },
+                  { rotulo: "Resultado de caixa", valor: formatarIndicador(resultadoCaixa(base)) },
+                ].map((c) => (
+                  <div key={c.rotulo} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
+                    <p className="mt-1 text-sm font-medium text-navy">{c.valor}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {[
+                  { rotulo: "CPL", valor: formatarIndicador(cpl(base)) },
+                  { rotulo: "CAC", valor: formatarIndicador(cac(base)) },
+                  { rotulo: "ROI de mídia", valor: formatarIndicador(roi(base)) },
+                ].map((c) => (
+                  <div key={c.rotulo} className="rounded-lg border border-navy/10 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
+                    <p className="mt-1 text-sm text-navy/70">{c.valor}</p>
+                  </div>
+                ))}
+              </div>
+              <ul className="space-y-1 text-xs text-navy/65">
+                {previsoes.map((p) => (
+                  <li key={p.chave}>
+                    • {p.rotulo}: <strong>{formatarIndicador(p.valor)}</strong> — não conta como receita.
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
 
         <FiltroStatus rotulos={rotulos} valor={status} aoMudar={setStatus} />
 
