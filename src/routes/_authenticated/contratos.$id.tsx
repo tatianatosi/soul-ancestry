@@ -30,6 +30,7 @@ import {
   salvarOrdemServico,
   solicitarRevisaoHumana,
   tentarEtapaExterna,
+  visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
@@ -681,7 +682,9 @@ function Validacoes({ dados }: { dados: any }) {
 
 function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
   const baixar = useServerFn(baixarVersaoInterna);
+  const visualizar = useServerFn(visualizarVersaoInterna);
   const [erro, setErro] = useState<string | null>(null);
+  const [previa, setPrevia] = useState<{ html: string; versao: number; rascunho: boolean } | null>(null);
   return (
     <div className="space-y-3">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -695,7 +698,22 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
               {v.rendered_file_hash ? `hash ${String(v.rendered_file_hash).slice(0, 12)}…` : v.render_error ? "falha de renderização" : "—"}
             </td>
             <td className="px-3 py-2">
-              {v.rendered_file_path ? (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      setErro(null);
+                      const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
+                      setPrevia({ html: r.html, versao: r.versao, rascunho: r.rascunho });
+                    } catch (e) {
+                      setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
+                    }
+                  }}
+                  className="text-xs underline"
+                >
+                  Ver prévia interna
+                </button>
+                {v.rendered_file_path ? (
                 <button
                   onClick={async () => {
                     try {
@@ -707,16 +725,38 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
                   }}
                   className="text-xs underline"
                 >
-                  Abrir (auditado)
+                  Baixar arquivo
                 </button>
-              ) : null}
+                ) : null}
+              </div>
             </td>
           </tr>
         ))}
       </Tabela>
+      {previa ? (
+        <section className="overflow-hidden rounded-lg border border-navy/15 bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy/10 bg-cream/60 px-3 py-2">
+            <div>
+              <p className="text-sm font-medium text-navy">Prévia interna · versão {previa.versao}</p>
+              <p className="text-xs text-terracotta">
+                {previa.rascunho ? "RASCUNHO INTERNO — campos pendentes permanecem sinalizados" : "Versão aprovada para preparação interna"}
+              </p>
+            </div>
+            <button onClick={() => setPrevia(null)} className="text-xs text-navy/70 underline">
+              Fechar prévia
+            </button>
+          </div>
+          <iframe
+            title={`Prévia interna da versão ${previa.versao}`}
+            srcDoc={previa.html}
+            sandbox=""
+            className="h-[65vh] min-h-[480px] w-full bg-white"
+          />
+        </section>
+      ) : null}
       <p className="text-xs text-navy/60">
-        Arquivos ficam em armazenamento privado por organização e versão, sem URL pública. Versão congelada não é
-        editada: gere uma nova versão de trabalho.
+        A prévia interna permanece disponível mesmo com pendências e não envia, assina ou publica o documento. Arquivos ficam em
+        armazenamento privado por organização e versão, sem URL pública. Versão congelada não é editada: gere uma nova versão de trabalho.
       </p>
     </div>
   );

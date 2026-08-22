@@ -498,7 +498,9 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
         contract_id: data.contract_id,
         version_number: proxima,
         status: "working",
-        generated_content: { ...conteudo, html: undefined },
+        // Mantém a representação HTML junto da versão para que a prévia interna
+        // continue disponível mesmo se o arquivo privado precisar ser reprocessado.
+        generated_content: conteudo,
         source_template_id: contrato.data.template_id,
         change_summary: data.change_summary ?? null,
         created_from_version_id: ultima.data?.id ?? null,
@@ -804,6 +806,64 @@ export const criarExcecao = createServerFn({ method: "POST" })
   });
 
 /** Download interno auditado: URL assinada de curta duração, nunca registrada em log. */
+export const visualizarVersaoInterna = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string; version_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+
+    const { data: versao } = await supabase
+      .from("contract_versions")
+      .select("id,contract_id,generated_content,rendered_file_path,render_error,version_number,status")
+      .eq("organization_id", organizationId)
+      .eq("contract_id", data.contract_id)
+      .eq("id", data.version_id)
+      .maybeSingle();
+    if (!versao) throw new Error("Versão não encontrada neste instrumento.");
+
+    const persistido = versao.generated_content as { html?: unknown } | null;
+    let html = typeof persistido?.html === "string" ? persistido.html : null;
+    let origem: "conteudo_persistido" | "arquivo_privado" = "conteudo_persistido";
+
+    if (!html && versao.rendered_file_path) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const helpers = await import("./contratos.server");
+      const { data: arquivo, error } = await supabaseAdmin.storage
+        .from(helpers.BUCKET_CONTRATOS)
+        .download(versao.rendered_file_path);
+      if (!error && arquivo) {
+        html = await arquivo.text();
+        origem = "arquivo_privado";
+      }
+    }
+
+    if (!html) {
+      throw new Error(
+        versao.render_error
+          ? `Prévia indisponível: a renderização registrada falhou (${versao.render_error}).`
+          : "Prévia indisponível: esta versão legada não possui conteúdo renderizado.",
+      );
+    }
+
+    await evento(
+      supabase,
+      organizationId,
+      data.contract_id,
+      "document_previewed",
+      { versao: versao.version_number, origem, somente_leitura: true },
+      versao.id,
+    );
+    return {
+      html,
+      versao: versao.version_number as number,
+      status: versao.status as string,
+      origem,
+      rascunho: versao.status !== "approved_for_send",
+    };
+  });
+
+/** Download interno auditado: URL assinada de curta duração, nunca registrada em log. */
 export const baixarVersaoInterna = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contract_id: string; version_id: string }) => data)
@@ -816,6 +876,7 @@ export const baixarVersaoInterna = createServerFn({ method: "POST" })
       .from("contract_versions")
       .select("id,rendered_file_path,version_number")
       .eq("organization_id", organizationId)
+      .eq("contract_id", data.contract_id)
       .eq("id", data.version_id)
       .maybeSingle();
     if (!versao?.rendered_file_path) throw new Error("Versão sem arquivo renderizado.");
