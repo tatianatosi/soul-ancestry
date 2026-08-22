@@ -159,7 +159,7 @@ function MatrizModelosPage() {
   const qualificacao = qualificacaoInstitucionalRenderizada();
 
   return (
-    <SaasShell title="Matriz de modelos contratuais" subtitle="Composição de pessoas, anexos e gates sobre o contrato-base único">
+    <SaasShell titulo="Matriz de modelos contratuais" descricao="Composição de pessoas, anexos e gates sobre o contrato-base único">
       <div className="space-y-6">
         <AvisoRascunho />
 
