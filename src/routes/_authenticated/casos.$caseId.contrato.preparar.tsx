@@ -355,6 +355,28 @@ function Pagina() {
             }}
           />
 
+          <Painel titulo="Perfil institucional e matriz de cláusulas A–P">
+            <PerfilInstitucionalBloco
+              campos={perfilInstitucional.campos}
+              versao={perfilInstitucional.versao}
+              status={perfilInstitucional.status}
+              pendencias={perfilInstitucional.pendencias}
+            />
+            <div className="mt-3">
+              <MatrizClausulas linhas={clausulasAvaliadas} />
+            </div>
+            <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                Prévia final — {previaFinalCaso.liberada ? "liberada" : "bloqueada"}
+              </p>
+              <ul className="mt-1 space-y-1">
+                {previaFinalCaso.motivos.map((m) => (
+                  <li key={m}>• {m}</li>
+                ))}
+              </ul>
+            </div>
+          </Painel>
+
           <Painel titulo="Anexos I–V governados">
             <p className="mb-2 text-xs text-navy/60">
               Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
@@ -365,6 +387,7 @@ function Pagina() {
               <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
             </div>
           </Painel>
+
         </div>
 
         <div id="ficha" className="space-y-4">
