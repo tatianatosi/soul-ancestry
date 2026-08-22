@@ -53,25 +53,40 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     let saida = (linhas ?? []) as Record<string, any>[];
 
-    // Defesa em profundidade: pagamento herda a marca da fatura.
-    if (data.recurso === "payments" && !incluirDemos && saida.length > 0) {
-      const ids = [...new Set(saida.map((l) => l["invoice_id"]).filter(Boolean))];
-      if (ids.length > 0) {
-        const { data: faturas } = await supabase
-          .from("invoices")
-          .select("id,dados_teste")
-          .eq("organization_id", organizationId)
-          .in("id", ids);
-        const demos = new Set(
-          ((faturas ?? []) as { id: string; dados_teste: boolean | null }[])
-            .filter((f) => f.dados_teste === true)
-            .map((f) => f.id),
-        );
-        saida = saida.filter((l) => !demos.has(String(l["invoice_id"])));
+    // Defesa em profundidade: a marca de origem também vale quando está na entidade relacionada
+    // (cliente demonstrativo ou fatura demonstrativa). Nada é alterado no banco, apenas ocultado.
+    if (!incluirDemos && saida.length > 0) {
+      const clientesDemo = new Set<string>();
+      const { data: cli } = await supabase
+        .from("clientes")
+        .select("id,is_demo")
+        .eq("organization_id", organizationId)
+        .eq("is_demo", true);
+      for (const c of (cli ?? []) as { id: string }[]) clientesDemo.add(c.id);
+
+      if (data.recurso === "invoices" || data.recurso === "proposals") {
+        saida = saida.filter((l) => !clientesDemo.has(String(l["client_id"])));
+      }
+      if (data.recurso === "payments") {
+        const ids = [...new Set(saida.map((l) => l["invoice_id"]).filter(Boolean))];
+        if (ids.length > 0) {
+          const { data: faturas } = await supabase
+            .from("invoices")
+            .select("id,dados_teste,client_id")
+            .eq("organization_id", organizationId)
+            .in("id", ids);
+          const demos = new Set(
+            ((faturas ?? []) as { id: string; dados_teste: boolean | null; client_id: string | null }[])
+              .filter((f) => f.dados_teste === true || (f.client_id ? clientesDemo.has(f.client_id) : false))
+              .map((f) => f.id),
+          );
+          saida = saida.filter((l) => !demos.has(String(l["invoice_id"])));
+        }
       }
     }
     return saida;
   });
+
 
 
 /** Catálogos auxiliares (clientes, casos, contratos, faturas) para vínculos e rótulos. */
