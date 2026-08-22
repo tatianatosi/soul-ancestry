@@ -560,13 +560,14 @@ export function PainelDia() {
 
       {/* 4 — Comercial hoje */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Comercial hoje</h2>
-          <Link to="/conversao" className="text-xs text-navy/60 underline">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
+          <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
             Conversão e funil
           </Link>
         </div>
-        <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
+        <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+
           {[
             { rotulo: "Calls de hoje", itens: comercial.calls },
             { rotulo: "Propostas sem follow-up", itens: comercial.propostas },
