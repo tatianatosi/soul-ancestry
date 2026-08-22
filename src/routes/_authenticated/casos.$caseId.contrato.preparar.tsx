@@ -367,12 +367,19 @@ function Pagina() {
           />
 
           <Painel titulo="Perfil institucional e matriz de cláusulas A–P">
+            <p className="mb-2 text-[11px] text-navy/60">
+              Texto jurídico fixo não é editável por caso.{" "}
+              <Link to="/governanca/contrato-base" className="text-terracotta underline">
+                Ver contrato-base
+              </Link>
+            </p>
             <PerfilInstitucionalBloco
               campos={perfilInstitucional.campos}
               versao={perfilInstitucional.versao}
               status={perfilInstitucional.status}
               pendencias={perfilInstitucional.pendencias}
             />
+
             <div className="mt-3">
               <MatrizClausulas linhas={clausulasAvaliadas} />
 
