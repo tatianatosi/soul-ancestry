@@ -235,7 +235,7 @@ export const FILAS_COMERCIAIS_CHAVES = FILAS_COMERCIAIS;
 
 
 /** Grupos de manifestação de indicadores no Painel Hoje. */
-export type GrupoIndicadorDia = "conversao" | "radar" | "casos" | "comunicacao";
+export type GrupoIndicadorDia = "integridade" | "formalizacao" | "operacao" | "financeiro" | "cliente";
 
 export type LinhaIndicadorDia = {
   /** Chave de deduplicação: o mesmo fato só aparece uma vez, na maior severidade. */
@@ -265,7 +265,13 @@ export function deduplicarLinhasIndicadores(linhas: LinhaIndicadorDia[]): LinhaI
 
 /** Agrupa as linhas deduplicadas por grupo do Painel Hoje. */
 export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<GrupoIndicadorDia, LinhaIndicadorDia[]> {
-  const base: Record<GrupoIndicadorDia, LinhaIndicadorDia[]> = { conversao: [], radar: [], casos: [], comunicacao: [] };
+  const base: Record<GrupoIndicadorDia, LinhaIndicadorDia[]> = {
+    integridade: [],
+    formalizacao: [],
+    operacao: [],
+    financeiro: [],
+    cliente: [],
+  };
   for (const l of deduplicarLinhasIndicadores(linhas)) base[l.grupo].push(l);
   return base;
 }

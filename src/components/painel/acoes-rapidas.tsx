@@ -9,9 +9,16 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { corrigirFilaCanonica } from "@/lib/modo-proprietaria.functions";
+import { corrigirFilaCanonica, registrarOverrideProprietaria } from "@/lib/modo-proprietaria.functions";
 
 type Tipo = "lead" | "oportunidade" | "caso" | "tarefa";
+
+const ENTIDADE: Record<Tipo, string> = {
+  lead: "leads",
+  oportunidade: "opportunities",
+  caso: "crm_casos",
+  tarefa: "tarefas",
+};
 
 export function AcoesRapidasProprietaria({
   tipo,
@@ -23,6 +30,7 @@ export function AcoesRapidasProprietaria({
   aoSalvar?: () => void;
 }) {
   const corrigir = useServerFn(corrigirFilaCanonica);
+  const assumir = useServerFn(registrarOverrideProprietaria);
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState({ responsavel: "", prazo: "", proxima: "", motivo: "", fonte: "" });
   const [erros, setErros] = useState<string[]>([]);
@@ -48,6 +56,31 @@ export function AcoesRapidasProprietaria({
     },
     onError: (e: any) => setErros([String(e?.message ?? "Não foi possível salvar a correção.")]),
   });
+
+  // Assume a pendência por decisão humana registrada. Não executa nada externo.
+  const mAssumir = useMutation({
+    mutationFn: () =>
+      assumir({
+        data: {
+          entidade: ENTIDADE[tipo],
+          entidade_id: id,
+          gate: "pendencia_painel_hoje",
+          valor_anterior: "pendente_bloqueante",
+          valor_novo: "superado_por_decisao_proprietaria",
+          motivo: form.motivo,
+          fonte: form.fonte,
+          avanco_interno: "avancar_interno",
+          modulo: "painel_hoje",
+        },
+      }),
+    onSuccess: (r: any) => {
+      setErros(r?.erros ?? []);
+      setOk(!!r?.ok);
+      if (r?.ok) aoSalvar?.();
+    },
+    onError: (e: any) => setErros([String(e?.message ?? "Não foi possível registrar a decisão.")]),
+  });
+
 
   if (!aberto) {
     return (
@@ -119,6 +152,17 @@ export function AcoesRapidasProprietaria({
           className="rounded-md bg-navy px-2.5 py-1 text-cream disabled:opacity-50"
         >
           {m.isPending ? "Salvando…" : "Salvar correção auditada"}
+        </button>
+        <button
+          onClick={() => {
+            setOk(false);
+            setErros([]);
+            mAssumir.mutate();
+          }}
+          disabled={mAssumir.isPending || form.motivo.trim().length < 10 || !form.fonte.trim()}
+          className="rounded-md border border-gold/60 bg-gold/15 px-2.5 py-1 text-navy disabled:opacity-50"
+        >
+          {mAssumir.isPending ? "Registrando…" : "Assumir pendência e avançar"}
         </button>
         <button onClick={() => setAberto(false)} className="rounded-md border border-navy/20 px-2.5 py-1 text-navy/70">
           Fechar

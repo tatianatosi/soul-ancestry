@@ -82,32 +82,39 @@ function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?:
 
 const GRUPOS_INDICADOR = [
   {
-    chave: "conversao" as const,
-    titulo: "Conversão e integridade",
-    codigos: "IND-COM-01 · IND-COM-02 · IND-FIN-01 · IND-FIN-02",
+    chave: "integridade" as const,
+    titulo: "Integridade",
+    resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
+    rota: "/auditoria" as const,
+    acao: "Abrir auditoria e integridade",
+  },
+  {
+    chave: "formalizacao" as const,
+    titulo: "Formalização e comercial",
+    resumo: "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
     rota: "/conversao" as const,
     acao: "Abrir conversão e funil",
   },
   {
-    chave: "radar" as const,
-    titulo: "Radar e Discovery",
-    codigos: "IND-RAD-01 · IND-RAD-02",
-    rota: "/leads" as const,
-    acao: "Abrir leads e triagem",
-  },
-  {
-    chave: "casos" as const,
-    titulo: "Casos e cadência",
-    codigos: "IND-JOR-01 · IND-JOR-02 · IND-JOR-03 · IND-QUA-01",
+    chave: "operacao" as const,
+    titulo: "Casos e operação",
+    resumo: "Documentos aguardados, prazo crítico, ausência de touchpoint e rechecagem vencida.",
     rota: "/casos" as const,
     acao: "Abrir casos 360",
   },
   {
-    chave: "comunicacao" as const,
-    titulo: "Comunicação humana",
-    codigos: "IND-COM-03",
+    chave: "financeiro" as const,
+    titulo: "Financeiro",
+    resumo: "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
+    rota: "/financeiro" as const,
+    acao: "Abrir financeiro",
+  },
+  {
+    chave: "cliente" as const,
+    titulo: "Cliente",
+    resumo: "Projeção aguardando aprovação, acesso pendente e comunicação humana sugerida.",
     rota: "/atendimento" as const,
-    acao: "Abrir a fila humana em Atendimento",
+    acao: "Abrir fila humana em Atendimento",
   },
 ];
 
@@ -209,7 +216,7 @@ export function PainelDia() {
 
   addLinha(
     "propostas_sem_followup",
-    "conversao",
+    "formalizacao",
     "IND-COM-02",
     comercial.propostas.length,
     `${comercial.propostas.length} proposta(s) com follow-up vencido`,
@@ -219,7 +226,7 @@ export function PainelDia() {
   );
   addLinha(
     "aceites_sem_confirmacao",
-    "conversao",
+    "formalizacao",
     "IND-COM-02",
     qtd("aceites_sem_confirmacao"),
     `${qtd("aceites_sem_confirmacao")} aceite(s) verbal sem confirmação formal`,
@@ -229,17 +236,27 @@ export function PainelDia() {
   );
   addLinha(
     "contratos_enviados_pendentes",
-    "conversao",
+    "formalizacao",
     "IND-FIN-02",
     qtd("contratos_enviados_pendentes"),
-    `${qtd("contratos_enviados_pendentes")} contrato(s) sem referência financeira válida`,
+    `${qtd("contratos_enviados_pendentes")} contrato(s) enviado(s) sem avanço registrado`,
     "P0",
     null,
     "bloqueio de formalização",
   );
   addLinha(
+    "condicao_comercial_bloqueada",
+    "formalizacao",
+    "IND-CAT-01",
+    bloqueadosCatalogo.length,
+    `${bloqueadosCatalogo.length} caso(s) com condição comercial bloqueada`,
+    "P0",
+    null,
+    "resolver em Governança de Catálogo",
+  );
+  addLinha(
     "leads_sem_origem",
-    "radar",
+    "integridade",
     "IND-COM-01",
     qtd("leads_sem_origem"),
     `${qtd("leads_sem_origem")} lead(s) sem origem declarada`,
@@ -249,7 +266,7 @@ export function PainelDia() {
   );
   addLinha(
     "discoveries_sem_desdobramento",
-    "radar",
+    "integridade",
     "IND-RAD-01",
     qtd("discoveries_sem_desdobramento"),
     `${qtd("discoveries_sem_desdobramento")} leitura(s) sem próximo passo definido`,
@@ -259,27 +276,37 @@ export function PainelDia() {
   );
   addLinha(
     "onboardings_pendentes",
-    "casos",
+    "financeiro",
     "IND-JOR-01",
     qtd("onboardings_pendentes"),
     `${qtd("onboardings_pendentes")} caso(s) pago(s) com gates de ativação pendentes`,
     "P0",
     null,
-    "prazo de ativação em 48h",
+    "pagamento sem onboarding",
+  );
+  addLinha(
+    "pagamentos_aguardados",
+    "financeiro",
+    "IND-FIN-01",
+    qtd("pagamentos_aguardados"),
+    `${qtd("pagamentos_aguardados")} pagamento(s) inicial(is) aguardado(s)`,
+    "P1",
+    null,
+    "aguardando confirmação transacional",
   );
   addLinha(
     "casos_pendencia_documental",
-    "casos",
+    "operacao",
     "IND-QUA-01",
     qtd("casos_pendencia_documental"),
-    `${qtd("casos_pendencia_documental")} caso(s) com pendência documental`,
+    `${qtd("casos_pendencia_documental")} caso(s) com documento aguardado`,
     "P0",
     null,
     "bloqueio de qualidade",
   );
   addLinha(
     "cadencia_sem_touchpoint",
-    "casos",
+    "operacao",
     "IND-JOR-03",
     cadencia.length,
     `${cadencia.length} caso(s) acima da regra de dias sem touchpoint`,
@@ -289,7 +316,7 @@ export function PainelDia() {
   );
   addLinha(
     "comunicacao_critica",
-    "comunicacao",
+    "cliente",
     "IND-COM-03",
     sugestoesHumanas.criticos,
     `${sugestoesHumanas.criticos} contato(s) humano(s) crítico(s) sugerido(s) em rascunho`,
@@ -299,7 +326,7 @@ export function PainelDia() {
   );
   addLinha(
     "comunicacao_hoje",
-    "comunicacao",
+    "cliente",
     "IND-COM-03",
     sugestoesHumanas.hoje,
     `${sugestoesHumanas.hoje} contato(s) humano(s) sugerido(s) para hoje`,
@@ -310,14 +337,14 @@ export function PainelDia() {
 
   // Absorve os antigos “Sinais de conversão e integridade” nos mesmos grupos.
   const GRUPO_DO_SINAL: Record<string, LinhaIndicadorDia["grupo"]> = {
-    midia_sem_leads: "conversao",
-    midia_sem_classificacao: "conversao",
-    proposta_sem_followup: "conversao",
-    aceite_parado: "conversao",
-    contrato_sem_financeiro: "conversao",
-    origem_ausente: "radar",
-    discovery_parada: "radar",
-    pagamento_sem_onboarding: "casos",
+    midia_sem_leads: "integridade",
+    midia_sem_classificacao: "integridade",
+    proposta_sem_followup: "formalizacao",
+    aceite_parado: "formalizacao",
+    contrato_sem_financeiro: "formalizacao",
+    origem_ausente: "integridade",
+    discovery_parada: "integridade",
+    pagamento_sem_onboarding: "financeiro",
   };
   const CHAVE_DO_SINAL: Record<string, string> = {
     proposta_sem_followup: "propostas_sem_followup",
@@ -330,7 +357,7 @@ export function PainelDia() {
   for (const s of sinais) {
     linhasIndicadores.push({
       chave: CHAVE_DO_SINAL[s.codigo] ?? s.codigo,
-      grupo: GRUPO_DO_SINAL[s.codigo] ?? "conversao",
+      grupo: GRUPO_DO_SINAL[s.codigo] ?? "integridade",
       codigo: s.codigo,
       motivo: s.texto,
       responsavel: null,
@@ -339,6 +366,10 @@ export function PainelDia() {
     });
   }
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
+  const PESO = { P0: 3, P1: 2, P2: 1 } as const;
+  const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
+    ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
+
 
   return (
     <div className="space-y-6">
@@ -446,7 +477,60 @@ export function PainelDia() {
         )}
       </section>
 
-      {/* 3 — Comercial hoje */}
+      {/* 3 — Sinais de atenção: faixa compacta. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
+          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            registro canônico dos indicadores
+          </Link>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">
+          Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não geram nova linha de ação.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {GRUPOS_INDICADOR.map((g) => {
+            const linhas = agrupado[g.chave];
+            const grave = maiorGravidade(linhas);
+            return (
+              <div key={g.chave} className="rounded-lg border border-navy/10 px-3 py-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-serif text-lg text-navy">{linhas.length}</span>
+                    {grave ? (
+                      <span
+                        className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                          grave === "P0"
+                            ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                            : grave === "P1"
+                              ? "border-gold/50 bg-gold/10 text-navy"
+                              : "border-navy/20 text-navy/60"
+                        }`}
+                      >
+                        {grave}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
+                <div className="mt-1 flex flex-wrap gap-3">
+                  <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
+                    {g.acao}
+                  </Link>
+                  {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
+                    <Link to="/catalogo" className="text-[11px] text-navy underline underline-offset-2">
+                      Governança de Catálogo ({bloqueadosCatalogo.length}) — {EXCECAO_CONDICAO_COMERCIAL}
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 4 — Comercial hoje */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="font-serif text-lg text-navy">Comercial hoje</h2>
@@ -484,11 +568,10 @@ export function PainelDia() {
         </div>
       </section>
 
-
-      {/* 4 — Casos em atenção: cadência crítica e bloqueio de cadeia, em uma única visão. */}
+      {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos em atenção</h2>
+          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="text-xs text-navy/60 underline">
             Casos 360
           </Link>
@@ -512,33 +595,9 @@ export function PainelDia() {
         ) : (
           <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
         )}
-
-        {/* Bloqueio de cadeia operacional. O Painel Hoje não é catálogo: sem SKU, preço ou edição de portfólio. */}
-        {bloqueadosCatalogo.length > 0 ? (
-          <div className="mt-4 border-t border-navy/10 pt-3">
-            <div className="flex items-baseline justify-between">
-              <p className="text-xs uppercase tracking-wide text-navy/50">
-                Bloqueio por condição comercial · {bloqueadosCatalogo.length}
-              </p>
-              <Link to="/catalogo" className="text-xs text-navy/60 underline">
-                Governança de Catálogo
-              </Link>
-            </div>
-            <ul className="mt-2 space-y-1 text-xs text-navy/65">
-              {bloqueadosCatalogo.map((c) => (
-                <li key={c.case_id}>
-                  <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
-                    {String(c.rotulo)}
-                  </Link>{" "}
-                  — {EXCECAO_CONDICAO_COMERCIAL}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
       </section>
 
-      {/* 5 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
+      {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Atalhos</h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
@@ -558,62 +617,6 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 6 — Sinais de atenção: alertas derivados, separados da fila de trabalho. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
-          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-            registro canônico dos 16 indicadores
-          </Link>
-        </div>
-        <p className="mt-1 text-xs text-navy/50">
-          Cada registro aparece uma única vez, no maior nível de severidade aplicável. Sinais de conversão e integridade estão
-          absorvidos nestes grupos. Nada é disparado a partir daqui.
-        </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          {GRUPOS_INDICADOR.map((g) => {
-            const linhas = agrupado[g.chave];
-            return (
-              <div key={g.chave} className="rounded-lg border border-navy/10 p-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="font-mono text-[10px] text-navy/40">{g.codigos}</span>
-                </div>
-                <ul className="mt-2 space-y-1.5 text-xs">
-                  {linhas.map((l) => (
-                    <li key={l.chave} className="rounded border border-navy/10 px-2 py-1.5">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <span
-                          className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                            l.severidade === "P0"
-                              ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                              : l.severidade === "P1"
-                                ? "border-gold/50 bg-gold/10 text-navy"
-                                : "border-navy/20 text-navy/60"
-                          }`}
-                        >
-                          {l.severidade}
-                        </span>
-                        <span className="text-navy">{l.motivo}</span>
-                        <span className="font-mono text-[10px] text-navy/40">{l.codigo}</span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-navy/60">
-                        Responsável: {l.responsavel ?? "sem responsável definido"} · {l.prazo}
-                      </p>
-                    </li>
-                  ))}
-                  {linhas.length === 0 ? (
-                    <li className="text-[11px] text-navy/50">Sem dados suficientes para sinalizar neste grupo hoje.</li>
-                  ) : null}
-                </ul>
-                <Link to={g.rota} className="mt-2 inline-block text-xs text-navy underline underline-offset-2">
-                  {g.acao}
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </section>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
         <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
