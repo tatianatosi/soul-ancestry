@@ -561,8 +561,13 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       userId: context.userId as string,
     });
 
+    return {
+      versionId: versao.id as string,
+      versao: versao.version_number as number,
+      falhaRenderizacao: falha,
+      snapshotInstitucional: snapshot,
+    };
 
-    return { versionId: versao.id as string, versao: versao.version_number as number, falhaRenderizacao: falha };
   });
 
 export const executarValidacoes = createServerFn({ method: "POST" })
