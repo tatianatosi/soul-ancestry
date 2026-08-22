@@ -897,12 +897,22 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
       );
     }
 
+    const snap = (versao.institutional_profile_snapshot ?? null) as
+      | { versao?: string; status?: string; capturado_em?: string; evento?: string }
+      | null;
+
     await evento(
       supabase,
       organizationId,
       data.contract_id,
       "document_previewed",
-      { versao: versao.version_number, origem, somente_leitura: true },
+      {
+        versao: versao.version_number,
+        origem,
+        somente_leitura: true,
+        perfil_institucional: snap?.versao ?? null,
+        perfil_status: snap?.status ?? null,
+      },
       versao.id,
     );
     return {
@@ -911,8 +921,18 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
       status: versao.status as string,
       origem,
       rascunho: versao.status !== "approved_for_send",
+      perfilInstitucional: snap
+        ? {
+            versao: snap.versao ?? null,
+            status: snap.status ?? null,
+            capturadoEm: snap.capturado_em ?? null,
+            evento: snap.evento ?? null,
+            habilitaAssinatura: snap.status === "vigente",
+          }
+        : null,
     };
   });
+
 
 /** Download interno auditado: URL assinada de curta duração, nunca registrada em log. */
 export const baixarVersaoInterna = createServerFn({ method: "POST" })
