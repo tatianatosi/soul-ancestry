@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 
+import { CoberturaModulos } from "@/components/governanca/cobertura-modulos";
 import {
   ACOES_EXTERNAS,
   AVISO_IRREVERSIVEL,
