@@ -44,10 +44,10 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (data.incluirDemos === true && !incluirDemos) {
       await supabase.from("audit_logs").insert({
         organization_id: organizationId,
-        actor_id: context.userId as string,
+        user_id: context.userId as string,
         entidade: data.recurso,
         acao: "leitura_demo_bloqueada",
-        depois: { papel, motivo: "papel sem permissão para incluir demonstrações" },
+        metadados: { papel, motivo: "papel sem permissão para incluir demonstrações" },
       } as never);
     }
     let q = supabase
