@@ -577,6 +577,19 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
   const bloqueios = bloqueiosOS(conteudo);
   if (bloqueios.length) throw new Error(`OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`);
 
+  // Conciliação obrigatória contra o catálogo homologado: SKU, preço, condição
+  // e suficiência de escopo. Divergência bloqueante impede OS e contrato.
+  const { registrarConciliacao } = await import("@/lib/conciliacao-catalogo.server");
+  const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
+  const conciliacao = await registrarConciliacao(supabase, {
+    org: input.org,
+    userId: input.userId,
+    proposalId: row.id,
+  });
+  const barra = mensagemBloqueio(conciliacao);
+  if (barra) throw new Error(barra);
+
+
   const hash = hashConteudo(conteudo);
   const { data: osExistente } = await supabase
     .from("service_orders")
