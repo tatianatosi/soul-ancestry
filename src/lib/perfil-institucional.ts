@@ -179,3 +179,30 @@ export function conflitoPlanejadorProposta(input: {
     motivo: `Divergência em ${input.campo}: Planejador "${a}" x proposta "${b}". Resolução humana obrigatória — nenhum valor é sobrescrito.`,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Método institucional de assinatura                                   */
+/* ------------------------------------------------------------------ */
+
+export type EstadoMetodoAssinatura = "a_configurar" | "configurado";
+
+/**
+ * Sem configuração institucional homologada, o método fica `a_configurar`:
+ * a assinatura é bloqueada e nenhum valor falso é gravado no rascunho.
+ */
+export function estadoMetodoAssinatura(metodo?: string | null): {
+  estado: EstadoMetodoAssinatura;
+  valorRenderizado: string | null;
+  bloqueiaAssinatura: boolean;
+  motivo: string;
+} {
+  const ok = Boolean(metodo && metodo.trim());
+  return {
+    estado: ok ? "configurado" : "a_configurar",
+    valorRenderizado: ok ? String(metodo).trim() : null,
+    bloqueiaAssinatura: !ok,
+    motivo: ok
+      ? "Método institucional de assinatura configurado."
+      : "Método institucional de assinatura a configurar — assinatura bloqueada; nenhum valor é preenchido no rascunho.",
+  };
+}
