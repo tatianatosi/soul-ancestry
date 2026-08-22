@@ -84,16 +84,24 @@ export function PlanoAcaoDemo() {
       </p>
 
       <section aria-labelledby="visoes-plano">
-        <h2 id="visoes-plano" className="mb-3 font-serif text-xl text-navy">Visões operacionais</h2>
+        <h2 id="visoes-plano" className="mb-1 font-serif text-xl text-navy">Visões operacionais</h2>
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-xs text-navy/60">
+          <span>{CASO}</span>
+          <SeloFixture />
+        </p>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {VISAO.map(([rotulo, total, Icon], index) => (
-            <div key={rotulo} className="flex min-h-20 items-center gap-3 rounded-lg border border-border bg-white p-3">
+            <div key={rotulo} className="flex min-h-20 items-start gap-3 rounded-lg border border-border bg-white p-3">
               <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", index === 0 ? "bg-terracotta text-cream" : "bg-navy text-cream")}>
                 <Icon className="h-4 w-4" />
               </span>
               <div className="min-w-0">
                 <p className="text-xl font-semibold text-navy">{total}</p>
                 <p className="text-xs leading-tight text-navy/65">{rotulo}</p>
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-navy/50">
+                  <span>{CASO}</span>
+                  <SeloFixture />
+                </p>
               </div>
             </div>
           ))}
@@ -104,7 +112,11 @@ export function PlanoAcaoDemo() {
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 id="fila-plano" className="font-serif text-xl text-navy">Urgente hoje e esta semana</h2>
-            <p className="text-xs text-navy/55">Responsável: Tatiana Melani Tosi</p>
+            <p className="flex flex-wrap items-center gap-2 text-xs text-navy/55">
+              <span>{CASO}</span>
+              <SeloFixture />
+              <span>· Responsável: Tatiana Melani Tosi</span>
+            </p>
           </div>
           <span className="text-[11px] uppercase text-navy/45">3 ações abertas</span>
         </div>
@@ -117,6 +129,10 @@ export function PlanoAcaoDemo() {
                   {acao.prioridade}
                 </span>
               </div>
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-navy/60">
+                <span>{CASO}</span>
+                <SeloFixture />
+              </p>
               <h3 className="mt-2 text-sm font-semibold text-navy">{acao.titulo}</h3>
               <dl className="mt-3 space-y-2 text-xs text-navy/65">
                 <div><dt className="inline font-semibold text-navy">Instituição: </dt><dd className="inline">{acao.instituicao}</dd></div>
@@ -133,6 +149,10 @@ export function PlanoAcaoDemo() {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-lg border border-border bg-white p-4">
           <h2 className="font-serif text-lg text-navy">Estimativas de terceiros aguardando aprovação</h2>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-navy/55">
+            <span>{CASO}</span>
+            <SeloFixture />
+          </p>
           <ul className="mt-3 divide-y divide-border text-xs text-navy/70">
             <li className="py-2"><strong>Busca documental em Pistoia</strong><br />EUR 35–70 · informação institucional · pagador a definir</li>
             <li className="py-2"><strong>Cópia integral de registro</strong><br />EUR 18–32 · tabela publicada · cliente</li>
@@ -141,12 +161,17 @@ export function PlanoAcaoDemo() {
         </section>
         <section className="rounded-lg border border-border bg-white p-4">
           <h2 className="font-serif text-lg text-navy">Histórico</h2>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-navy/55">
+            <span>{CASO}</span>
+            <SeloFixture />
+          </p>
           <div className="mt-3 flex gap-3 text-xs text-navy/70">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-sage" />
             <p><strong>Referências iniciais organizadas</strong><br />Concluída em 21/08/2026 · registro interno imutável</p>
           </div>
         </section>
       </div>
+
     </div>
   );
 }
