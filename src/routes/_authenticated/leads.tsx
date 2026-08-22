@@ -272,6 +272,49 @@ function LeadsPage() {
 
           {atual ? <HandoffLead lead={editado} /> : null}
 
+          <div className="rounded-xl border border-navy/10 bg-white p-4">
+            <button
+              type="button"
+              onClick={() => setRoteiroAberto((v) => !v)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="text-sm font-medium text-navy">Roteiro vivo de Discovery</span>
+              <span className="text-xs text-navy/50">{roteiroAberto ? "recolher" : "expandir"}</span>
+            </button>
+            <p className="mt-1 text-xs text-navy/55">
+              Guia contextual de perguntas. Não é formulário obrigatório e não conclui elegibilidade, rota, prazo, preço ou contrato — toda
+              leitura é preliminar e interna.
+            </p>
+            {roteiroAberto ? (
+              <div className="mt-3 space-y-3">
+                {ROTEIRO_DISCOVERY.map((b) => (
+                  <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+                    <p className="text-sm font-medium text-navy">{b.titulo}</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-navy/70">
+                      {b.perguntas.map((p) => (
+                        <li key={p}>{p}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[11px] uppercase tracking-wide text-navy/45">Alimenta: {b.campos.join(", ")}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {sinais.length ? (
+            <div className="rounded-xl border border-gold/50 bg-gold/10 p-4">
+              <p className="text-sm font-medium text-navy">Sinais de qualidade da ficha</p>
+              <ul className="mt-2 space-y-1 text-xs text-navy/75">
+                {sinais.map((s) => (
+                  <li key={s.chave}>
+                    <strong>{s.rotulo}</strong>: {s.motivo}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
 
           {erros.length ? (
             <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
