@@ -533,7 +533,7 @@ export function PainelDia() {
       {/* 6 — Sinais de atenção: alertas derivados, separados da fila de trabalho. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Indicadores com manifestação no dia</h2>
+          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
           <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
             registro canônico dos 16 indicadores
           </Link>
