@@ -49,6 +49,11 @@ function IndicadoresPage() {
               <th className="px-3 py-2 font-medium">Fonte canônica</th>
               <th className="px-3 py-2 font-medium">Definição e origem</th>
               <th className="px-3 py-2 font-medium">Consumido em</th>
+              <th className="px-3 py-2 font-medium">Tipo de uso</th>
+              <th className="px-3 py-2 font-medium">Tela de consumo</th>
+              <th className="px-3 py-2 font-medium">Componente</th>
+              <th className="px-3 py-2 font-medium">Gatilho de sinal</th>
+              <th className="px-3 py-2 font-medium">Ação/rota</th>
             </tr>
           </thead>
           <tbody>
