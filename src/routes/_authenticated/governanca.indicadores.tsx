@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BACKLOG_POS_MIGRACAO, GATILHOS } from "@/lib/fila-comunicacao";
-import { INDICADORES, REGRAS_INDICADORES } from "@/lib/indicadores-governanca";
+import {
+  DETALHE_INDICADOR,
+  INDICADORES,
+  REGRAS_INDICADORES,
+  ROTULO_STATUS_INDICADOR,
+} from "@/lib/indicadores-governanca";
 
 export const Route = createFileRoute("/_authenticated/governanca/indicadores")({
   head: () => ({
