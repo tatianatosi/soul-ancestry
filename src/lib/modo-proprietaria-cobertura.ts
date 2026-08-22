@@ -226,8 +226,8 @@ export const COBERTURA_MODULOS: Modulo[] = [
     ],
   },
   {
-    id: "financeiro_app_cliente",
-    rotulo: "Financeiro e App Cliente",
+    id: "financeiro",
+    rotulo: "Financeiro",
     rota: "/financeiro",
     operacoes: [
       {
@@ -237,21 +237,45 @@ export const COBERTURA_MODULOS: Modulo[] = [
       },
       { id: "editar_fatura", rotulo: "Criar e editar fatura interna", entidade: "invoices" },
       { id: "conciliar_interno", rotulo: "Conciliar lançamento interno", entidade: "eventos_financeiros" },
+      { id: "editar_despesa_reembolso", rotulo: "Editar despesa e reembolso", entidade: "third_party_expenses" },
       { id: "registrar_pagamento_interno", rotulo: "Registrar pagamento interno (sem envio)", entidade: "payments" },
-      { id: "editar_projecao_app", rotulo: "Criar, editar e versionar projeção do App Cliente", entidade: "app_projections" },
-      { id: "aprovar_projecao_app", rotulo: "Aprovar projeção do App Cliente", entidade: "app_projections" },
-      { id: "retirar_projecao_app", rotulo: "Retirar projeção do App Cliente", entidade: "app_projections" },
+      {
+        id: "corrigir_vinculo_financeiro",
+        rotulo: "Corrigir vínculo caso/proposta/contrato/SKU",
+        entidade: "invoices",
+      },
+      { id: "assumir_divergencia_financeira", rotulo: "Assumir divergência por decisão auditada", entidade: "eventos_financeiros" },
     ],
     acoesExternas: [
       "emitir_cobranca",
       "enviar_cobranca",
       "criar_ou_alterar_link_asaas",
       "registrar_pagamento",
-      "publicar_no_app_cliente",
     ],
     regras: [
-      "Cobrança, link Asaas e pagamento externo exigem confirmação final explícita.",
-      "Dado TESTE, DEMO ou fixture nunca pode ser publicado no App Cliente nem entrar em KPI real.",
+      "Cobrança externa, link Asaas e pagamento externo exigem confirmação final explícita.",
+      "Dado DEMO só aparece com filtro explícito e selo, e nunca entra em métrica real.",
+    ],
+  },
+  {
+    id: "app_cliente",
+    rotulo: "App Cliente",
+    rota: "/acessos-portal",
+    operacoes: [
+      { id: "editar_projecao_app", rotulo: "Criar, editar e versionar projeção", entidade: "app_projections" },
+      { id: "aprovar_projecao_app", rotulo: "Aprovar projeção", entidade: "app_projections" },
+      { id: "retirar_projecao_app", rotulo: "Retirar ou arquivar projeção", entidade: "app_projections" },
+      {
+        id: "definir_destinatario_visibilidade",
+        rotulo: "Escolher destinatário/caso, visibilidade, conteúdo e data",
+        entidade: "app_projections",
+      },
+      { id: "revisar_sanitizacao_acesso", rotulo: "Revisar sanitização e acesso", entidade: "client_portal_access" },
+    ],
+    acoesExternas: ["publicar_no_app_cliente"],
+    regras: [
+      "Publicação só ocorre por confirmação final explícita — nunca automática.",
+      "Dado TESTE, DEMO, fixture ou conteúdo interno nunca pode ser publicado nem entrar em KPI real.",
     ],
   },
   {
