@@ -505,6 +505,22 @@ function Pagina() {
               Salvar rascunho de trabalho
             </button>
             <button
+              onClick={() => mGerar.mutate("rascunho")}
+              disabled={mGerar.isPending}
+              className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
+            >
+              Salvar e continuar depois
+            </button>
+            <span className="self-center text-[11px] text-navy/60">
+              {mGerar.isPending
+                ? "Salvando rascunho…"
+                : rascunhoAtual
+                  ? bloqueado
+                    ? "Rascunho salvo. A formalização permanece bloqueada — veja “Bloqueios acionáveis”."
+                    : "Rascunho salvo."
+                  : "Nenhum rascunho salvo ainda."}
+            </span>
+            <button
               onClick={() => {
                 const motivo = window.prompt("Motivo do retorno para ajuste (mínimo 5 caracteres)") ?? "";
                 if (motivo.trim().length >= 5) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
