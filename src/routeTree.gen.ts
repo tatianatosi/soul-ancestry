@@ -86,6 +86,7 @@ import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './r
 import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from './routes/_authenticated/governanca.modelo-familiar-casal'
 import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
 import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
+import { Route as AuthenticatedGovernancaInventarioPatrimonialRouteImport } from './routes/_authenticated/governanca.inventario-patrimonial'
 import { Route as AuthenticatedGovernancaIndicadoresRouteImport } from './routes/_authenticated/governanca.indicadores'
 import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './routes/_authenticated/governanca.identificadores'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
@@ -514,6 +515,12 @@ const AuthenticatedGovernancaInventarioRecuperacaoRoute =
     path: '/governanca/inventario-recuperacao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaInventarioPatrimonialRoute =
+  AuthenticatedGovernancaInventarioPatrimonialRouteImport.update({
+    id: '/governanca/inventario-patrimonial',
+    path: '/governanca/inventario-patrimonial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaIndicadoresRoute =
   AuthenticatedGovernancaIndicadoresRouteImport.update({
     id: '/governanca/indicadores',
@@ -650,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
+  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
@@ -739,6 +747,7 @@ export interface FileRoutesByTo {
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
+  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
   '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
@@ -831,6 +840,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/_authenticated/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
+  '/_authenticated/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
   '/_authenticated/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/_authenticated/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
@@ -923,6 +933,7 @@ export interface FileRouteTypes {
     | '/governanca/decisoes'
     | '/governanca/identificadores'
     | '/governanca/indicadores'
+    | '/governanca/inventario-patrimonial'
     | '/governanca/inventario-recuperacao'
     | '/governanca/matriz-conformidade'
     | '/governanca/modelo-familiar-casal'
@@ -1012,6 +1023,7 @@ export interface FileRouteTypes {
     | '/governanca/decisoes'
     | '/governanca/identificadores'
     | '/governanca/indicadores'
+    | '/governanca/inventario-patrimonial'
     | '/governanca/inventario-recuperacao'
     | '/governanca/matriz-conformidade'
     | '/governanca/modelo-familiar-casal'
@@ -1103,6 +1115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/identificadores'
     | '/_authenticated/governanca/indicadores'
+    | '/_authenticated/governanca/inventario-patrimonial'
     | '/_authenticated/governanca/inventario-recuperacao'
     | '/_authenticated/governanca/matriz-conformidade'
     | '/_authenticated/governanca/modelo-familiar-casal'
@@ -1691,6 +1704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/inventario-patrimonial': {
+      id: '/_authenticated/governanca/inventario-patrimonial'
+      path: '/governanca/inventario-patrimonial'
+      fullPath: '/governanca/inventario-patrimonial'
+      preLoaderRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/indicadores': {
       id: '/_authenticated/governanca/indicadores'
       path: '/governanca/indicadores'
@@ -1820,6 +1840,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaIdentificadoresRoute: typeof AuthenticatedGovernancaIdentificadoresRoute
   AuthenticatedGovernancaIndicadoresRoute: typeof AuthenticatedGovernancaIndicadoresRoute
+  AuthenticatedGovernancaInventarioPatrimonialRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRoute
   AuthenticatedGovernancaInventarioRecuperacaoRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
   AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
   AuthenticatedGovernancaModeloFamiliarCasalRoute: typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
@@ -1895,6 +1916,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaIdentificadoresRoute,
   AuthenticatedGovernancaIndicadoresRoute:
     AuthenticatedGovernancaIndicadoresRoute,
+  AuthenticatedGovernancaInventarioPatrimonialRoute:
+    AuthenticatedGovernancaInventarioPatrimonialRoute,
   AuthenticatedGovernancaInventarioRecuperacaoRoute:
     AuthenticatedGovernancaInventarioRecuperacaoRoute,
   AuthenticatedGovernancaMatrizConformidadeRoute:
