@@ -244,6 +244,10 @@ export function PainelModoProprietaria() {
         </ul>
       </div>
 
+      <CoberturaModulos />
+
+
+
       <section>
         <h2 className="text-sm font-semibold text-foreground">Decisão administrativa auditada</h2>
         <p className="mb-2 text-xs text-muted-foreground">
