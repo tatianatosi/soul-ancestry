@@ -224,7 +224,7 @@ async function gerar(chave: ChaveModelo) {
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
-                  new TextRun({ text: `${r.capa.modelo} · ${r.capa.versao} · ${r.capa.status} · página `, size: 16 }),
+                  new TextRun({ text: `${r.capa.modelo} · ${r.capa.status} · página `, size: 16 }),
                   new TextRun({ children: [PageNumber.CURRENT], size: 16 }),
                 ],
               }),
