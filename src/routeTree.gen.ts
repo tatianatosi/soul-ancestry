@@ -76,6 +76,7 @@ import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedPesquisaEvidenciasCaseIdRouteImport } from './routes/_authenticated/pesquisa-evidencias.$caseId'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
+import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from './routes/_authenticated/governanca.modelo-familiar-casal'
 import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
@@ -450,6 +451,12 @@ const AuthenticatedGovernancaModulosContextuaisRoute =
     path: '/governanca/modulos-contextuais',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaModelosContratuaisRoute =
+  AuthenticatedGovernancaModelosContratuaisRouteImport.update({
+    id: '/governanca/modelos-contratuais',
+    path: '/governanca/modelos-contratuais',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaModeloIndividualRoute =
   AuthenticatedGovernancaModeloIndividualRouteImport.update({
     id: '/governanca/modelo-individual',
@@ -611,6 +618,7 @@ export interface FileRoutesByFullPath {
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
+  '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
@@ -694,6 +702,7 @@ export interface FileRoutesByTo {
   '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
+  '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
@@ -780,6 +789,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
   '/_authenticated/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
+  '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
@@ -866,6 +876,7 @@ export interface FileRouteTypes {
     | '/governanca/matriz-conformidade'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
+    | '/governanca/modelos-contratuais'
     | '/governanca/modulos-contextuais'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
@@ -949,6 +960,7 @@ export interface FileRouteTypes {
     | '/governanca/matriz-conformidade'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
+    | '/governanca/modelos-contratuais'
     | '/governanca/modulos-contextuais'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
@@ -1034,6 +1046,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/matriz-conformidade'
     | '/_authenticated/governanca/modelo-familiar-casal'
     | '/_authenticated/governanca/modelo-individual'
+    | '/_authenticated/governanca/modelos-contratuais'
     | '/_authenticated/governanca/modulos-contextuais'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-evidencias/$caseId'
@@ -1545,6 +1558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaModulosContextuaisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/modelos-contratuais': {
+      id: '/_authenticated/governanca/modelos-contratuais'
+      path: '/governanca/modelos-contratuais'
+      fullPath: '/governanca/modelos-contratuais'
+      preLoaderRoute: typeof AuthenticatedGovernancaModelosContratuaisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/modelo-individual': {
       id: '/_authenticated/governanca/modelo-individual'
       path: '/governanca/modelo-individual'
@@ -1703,6 +1723,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
   AuthenticatedGovernancaModeloFamiliarCasalRoute: typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
+  AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaEvidenciasCaseIdRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
@@ -1776,6 +1797,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaModeloFamiliarCasalRoute,
   AuthenticatedGovernancaModeloIndividualRoute:
     AuthenticatedGovernancaModeloIndividualRoute,
+  AuthenticatedGovernancaModelosContratuaisRoute:
+    AuthenticatedGovernancaModelosContratuaisRoute,
   AuthenticatedGovernancaModulosContextuaisRoute:
     AuthenticatedGovernancaModulosContextuaisRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
