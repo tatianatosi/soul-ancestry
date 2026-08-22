@@ -223,38 +223,75 @@ function FinanceiroPage() {
           </p>
           {realidadeAberta ? (
             <div className="mt-3 space-y-3">
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { rotulo: "Receita recebida", valor: formatarIndicador(base.receita_recebida === null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: recebida, unidade: "moeda" }) },
-                  { rotulo: "Cobranças pendentes", valor: moeda(pendentes, "BRL") },
-                  { rotulo: "Cobranças vencidas", valor: moeda(vencidas, "BRL") },
-                  { rotulo: "Resultado de caixa", valor: formatarIndicador(resultadoCaixa(base)) },
-                ].map((c) => (
-                  <div key={c.rotulo} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
-                    <p className="mt-1 text-sm font-medium text-navy">{c.valor}</p>
-                  </div>
-                ))}
+              <div className="rounded-lg border border-navy/15 bg-cream/50 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                  1 · Caixa realizado — dinheiro que entrou e saiu
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {[
+                    {
+                      rotulo: "Receita recebida",
+                      valor: formatarIndicador(
+                        base.receita_recebida === null
+                          ? { estado: "sem_dados", motivo: "" }
+                          : { estado: "ok", valor: recebida, unidade: "moeda" },
+                      ),
+                    },
+                    { rotulo: "Investimento em mídia", valor: formatarIndicador(base.investimento_midia == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.investimento_midia, unidade: "moeda" }) },
+                    { rotulo: "Despesas operacionais", valor: formatarIndicador(base.despesas_operacionais == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.despesas_operacionais, unidade: "moeda" }) },
+                  ].map((c) => (
+                    <div key={c.rotulo} className="rounded border border-navy/10 bg-white p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
+                      <p className="mt-1 text-sm font-medium text-navy">{c.valor}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 rounded border border-navy/15 bg-white px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/45">Resultado de caixa do período</p>
+                  <p className="font-serif text-xl text-navy">{formatarIndicador(resultadoCaixa(base))}</p>
+                </div>
               </div>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {[
-                  { rotulo: "CPL", valor: formatarIndicador(cpl(base)) },
-                  { rotulo: "CAC", valor: formatarIndicador(cac(base)) },
-                  { rotulo: "ROI de mídia", valor: formatarIndicador(roi(base)) },
-                ].map((c) => (
-                  <div key={c.rotulo} className="rounded-lg border border-navy/10 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
-                    <p className="mt-1 text-sm text-navy/70">{c.valor}</p>
+
+              <div className="rounded-lg border border-dashed border-navy/25 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                  2 · Em aberto e previsão — ainda não é caixa
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded border border-navy/10 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/45">Cobranças pendentes</p>
+                    <p className="mt-1 text-sm text-navy/75">{moeda(pendentes, "BRL")}</p>
                   </div>
-                ))}
+                  <div className="rounded border border-terracotta/30 bg-terracotta/5 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-navy/45">Cobranças vencidas</p>
+                    <p className="mt-1 text-sm text-terracotta">{moeda(vencidas, "BRL")}</p>
+                  </div>
+                </div>
+                <ul className="mt-2 space-y-1 text-xs text-navy/65">
+                  {previsoes.map((p) => (
+                    <li key={p.chave}>
+                      • {p.rotulo}: <strong>{formatarIndicador(p.valor)}</strong> — não conta como receita.
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-1 text-xs text-navy/65">
-                {previsoes.map((p) => (
-                  <li key={p.chave}>
-                    • {p.rotulo}: <strong>{formatarIndicador(p.valor)}</strong> — não conta como receita.
-                  </li>
-                ))}
-              </ul>
+
+              <div className="rounded-lg border border-navy/10 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                  3 · Eficiência de mídia — exige atribuição declarada
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  {[
+                    { rotulo: "CPL", valor: formatarIndicador(cpl(base)) },
+                    { rotulo: "CAC", valor: formatarIndicador(cac(base)) },
+                    { rotulo: "ROI de mídia", valor: formatarIndicador(roi(base)) },
+                  ].map((c) => (
+                    <div key={c.rotulo} className="rounded border border-navy/10 p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-navy/45">{c.rotulo}</p>
+                      <p className="mt-1 text-sm text-navy/70">{c.valor}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : null}
         </section>

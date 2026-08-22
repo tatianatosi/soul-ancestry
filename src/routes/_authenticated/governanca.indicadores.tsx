@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BACKLOG_POS_MIGRACAO, GATILHOS } from "@/lib/fila-comunicacao";
-import { INDICADORES, REGRAS_INDICADORES } from "@/lib/indicadores-governanca";
+import {
+  DETALHE_INDICADOR,
+  INDICADORES,
+  REGRAS_INDICADORES,
+  ROTULO_STATUS_INDICADOR,
+} from "@/lib/indicadores-governanca";
 
 export const Route = createFileRoute("/_authenticated/governanca/indicadores")({
   head: () => ({
@@ -33,28 +38,49 @@ function IndicadoresPage() {
       </header>
 
       <section className="overflow-auto rounded-lg border border-navy/10 bg-white">
-        <table className="w-full min-w-[860px] text-left text-xs">
+        <table className="w-full min-w-[1180px] text-left text-xs">
           <thead className="bg-cream/60 text-navy/70">
             <tr>
               <th className="px-3 py-2 font-medium">Código</th>
               <th className="px-3 py-2 font-medium">Indicador</th>
-              <th className="px-3 py-2 font-medium">Matriz de origem</th>
-              <th className="px-3 py-2 font-medium">Definição</th>
+              <th className="px-3 py-2 font-medium">Fórmula</th>
+              <th className="px-3 py-2 font-medium">Período</th>
+              <th className="px-3 py-2 font-medium">Status</th>
               <th className="px-3 py-2 font-medium">Fonte canônica</th>
+              <th className="px-3 py-2 font-medium">Definição e origem</th>
               <th className="px-3 py-2 font-medium">Consumido em</th>
             </tr>
           </thead>
           <tbody>
-            {INDICADORES.map((i) => (
-              <tr key={i.codigo} className="border-t border-navy/10 align-top">
-                <td className="px-3 py-2 font-mono text-[11px] text-navy">{i.codigo}</td>
-                <td className="px-3 py-2 font-medium text-navy">{i.nome}</td>
-                <td className="px-3 py-2 text-navy/70">{i.matriz_origem}</td>
-                <td className="px-3 py-2 text-navy/70">{i.definicao}</td>
-                <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{i.fonte_canonica}</td>
-                <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
-              </tr>
-            ))}
+            {INDICADORES.map((i) => {
+              const d = DETALHE_INDICADOR[i.codigo];
+              const tom =
+                d?.status === "apurado"
+                  ? "border-navy/20 text-navy"
+                  : d?.status === "parcial"
+                    ? "border-gold/50 bg-gold/10 text-navy"
+                    : "border-terracotta/40 bg-terracotta/5 text-terracotta";
+              return (
+                <tr key={i.codigo} className="border-t border-navy/10 align-top">
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy">{i.codigo}</td>
+                  <td className="px-3 py-2 font-medium text-navy">{i.nome}</td>
+                  <td className="px-3 py-2 text-navy/70">{d?.formula ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{d?.periodo ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    <span className={`inline-block rounded-full border px-2 py-0.5 text-[10px] ${tom}`}>
+                      {d ? ROTULO_STATUS_INDICADOR[d.status] : "—"}
+                    </span>
+                    {d ? <span className="mt-1 block text-[10px] text-navy/50">{d.condicao_sem_dados}</span> : null}
+                  </td>
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{i.fonte_canonica}</td>
+                  <td className="px-3 py-2 text-navy/70">
+                    {i.definicao}
+                    <span className="mt-1 block text-[10px] text-navy/45">{i.matriz_origem}</span>
+                  </td>
+                  <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>
@@ -65,13 +91,44 @@ function IndicadoresPage() {
           Envio automático desabilitado neste corte: o Desk apenas sugere contato em rascunho, com motivo e prioridade. Aprovação e
           envio são sempre humanos.
         </p>
-        <ul className="mt-2 grid gap-1 text-xs text-navy/70 sm:grid-cols-2">
-          {GATILHOS.map((g) => (
-            <li key={g.chave}>
-              • <strong>{g.rotulo}</strong> (prioridade {g.prioridade}) — {g.motivo}
-            </li>
-          ))}
-        </ul>
+        <p className="mt-2 rounded border border-terracotta/40 bg-terracotta/5 px-2 py-1 text-[11px] text-terracotta">
+          Nenhum botão desta tela envia mensagem. Toda linha nasce como sugestão em rascunho e só sai do Desk por ação manual de
+          uma pessoa responsável, registrada em auditoria.
+        </p>
+        <div className="mt-2 overflow-auto">
+          <table className="w-full min-w-[900px] text-left text-xs">
+            <thead className="bg-cream/60 text-navy/70">
+              <tr>
+                <th className="px-3 py-2 font-medium">Gatilho</th>
+                <th className="px-3 py-2 font-medium">Motivo declarado</th>
+                <th className="px-3 py-2 font-medium">Prioridade</th>
+                <th className="px-3 py-2 font-medium">Status da sugestão</th>
+                <th className="px-3 py-2 font-medium">Template</th>
+                <th className="px-3 py-2 font-medium">Destinatário</th>
+                <th className="px-3 py-2 font-medium">Aprovação</th>
+                <th className="px-3 py-2 font-medium">Ação manual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {GATILHOS.map((g) => (
+                <tr key={g.chave} className="border-t border-navy/10 align-top">
+                  <td className="px-3 py-2 font-medium text-navy">{g.rotulo}</td>
+                  <td className="px-3 py-2 text-navy/70">{g.motivo}</td>
+                  <td className="px-3 py-2 text-navy/70">{g.prioridade}</td>
+                  <td className="px-3 py-2">
+                    <span className="inline-block rounded-full border border-gold/50 bg-gold/10 px-2 py-0.5 text-[10px] text-navy">
+                      Rascunho — não enviado
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-navy/70">Template homologado da Biblioteca de Mensagens</td>
+                  <td className="px-3 py-2 text-navy/70">Contato do caso com consentimento válido no canal</td>
+                  <td className="px-3 py-2 text-navy/70">Pendente de aprovação humana (admin ou operações)</td>
+                  <td className="px-3 py-2 text-navy/70">Copiar texto aprovado e enviar pelo canal, registrando a interação</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/45">Backlog pós-migração (fora deste corte)</p>
         <ul className="mt-1 space-y-1 text-xs text-navy/60">
           {BACKLOG_POS_MIGRACAO.map((b) => (
