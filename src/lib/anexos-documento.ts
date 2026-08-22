@@ -75,6 +75,9 @@ function documentoAnexoI(anexo: AnexoGovernado, e: EntradaAnexosIaV): DocumentoA
       itens: [
         ...(propostaValida?.servicosIncluidos ?? []).map((s) => `Incluído: ${s}`),
         ...(propostaValida?.servicosExcluidos ?? []).map((s) => `Excluído: ${s}`),
+        ...(propostaValida && propostaValida.servicosExcluidos === null
+          ? ["Exclusões: não especificado na proposta/OS — revisão humana necessária. Nenhuma redação foi criada."]
+          : []),
       ],
       vazio:
         propostaValida?.servicosExcluidos === null
