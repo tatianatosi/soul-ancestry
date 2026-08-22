@@ -169,7 +169,16 @@ function AreaPesquisaEvidencias() {
             {s.rotulo}
           </button>
         ))}
+        <Link
+          to="/plano-acao/$caseId"
+          params={{ caseId }}
+          search={{ foco: undefined }}
+          className="whitespace-nowrap rounded-full border border-gold/60 bg-gold/10 px-3 py-1 text-xs text-navy"
+        >
+          Plano de Ação de Pesquisa →
+        </Link>
       </nav>
+
 
       <p className="-mt-3 text-xs text-navy/60">
         {SECOES.find((s) => s.id === secao)?.funcao}
