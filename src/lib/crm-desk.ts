@@ -422,6 +422,8 @@ export const CATALOGOS: Record<string, Opcao[]> = {
   consentimento_canal: CANAIS_CONSENTIMENTO,
   pais_linha_prioritaria: PAISES_LINHA_PRIORITARIA,
   pesquisa_previa_autorizacao: PESQUISA_PREVIA_AUTORIZACAO,
+  status_marco: STATUS_MARCO,
+  status_trilha: STATUS_TRILHA,
 };
 
 export const CAMPOS_TEXTO_LIVRE = [
