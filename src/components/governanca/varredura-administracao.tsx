@@ -343,7 +343,7 @@ function TabelaAprovacoesPendentes() {
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-navy">
-              {linhaConfirmacao ? resumoConfirmacaoPacote(linhaConfirmacao, motivo).rotulo : "Aprovação"}
+              {linhaConfirmacao ? derivarAcaoPacote(linhaConfirmacao).rotulo : "Aprovação"}
             </DialogTitle>
             <DialogDescription>
               {linhaConfirmacao ? `${linhaConfirmacao.id} · ${linhaConfirmacao.alvo}` : ""}
