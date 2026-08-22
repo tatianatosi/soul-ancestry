@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
-import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
+import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
+import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
