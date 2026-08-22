@@ -12,7 +12,21 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "../components/ui/sonner";
 import appCss from "../styles.css?url";
 
+import { destinoLinkAuth } from "../lib/link-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+
+/**
+ * Reencaminha links oficiais de convite/definição de senha que aterrissam na
+ * home (fallback do provedor) para a rota pública correta, sem tocar no token.
+ */
+function CapturaLinkAuth() {
+  useEffect(() => {
+    const { pathname, search, hash } = window.location;
+    const destino = destinoLinkAuth(pathname, search, hash);
+    if (destino) window.location.replace(destino);
+  }, []);
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -126,6 +140,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <CapturaLinkAuth />
       <Outlet />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
