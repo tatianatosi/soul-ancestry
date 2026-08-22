@@ -26,6 +26,7 @@ import {
   anexosDaPreviaTeste,
   bloqueiosDaPreviaTeste,
   matrizRenderizacaoPreviaTeste,
+  criteriosAceiteTeste,
 } from "@/lib/contrato-base-previa";
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
 import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
@@ -40,6 +41,15 @@ import {
   previaFinalTeste,
 } from "@/lib/contrato-base-previa";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
+import {
+  ANEXOS_FAMILIARES,
+  FONTES_APENAS_APOIO,
+  GATES_BLOQUEANTES,
+  MATRIZ_ACEITE_VERSAO,
+  ORDEM_FONTES,
+  REGRAS_RASCUNHO_VERSAO,
+  aceiteConcluido,
+} from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 
 const TITULO = "Contrato-base consolidado v1.0 | Clube Ancestral";
@@ -88,6 +98,7 @@ function Pagina() {
   const anexosIV = anexosIaVTeste();
   const perfil = perfilInstitucionalRenderizado();
   const clausulas = matrizClausulasTeste();
+  const criterios = criteriosAceiteTeste();
   const previaFinal = previaFinalTeste();
   const familia = estruturaFamiliarTeste();
   const gates = gatesTeste();
@@ -315,6 +326,7 @@ function Pagina() {
                   <th className="py-1 pr-3">Fonte exigida</th>
                   <th className="py-1 pr-3">Tipo</th>
                   <th className="py-1 pr-3">Cláusulas</th>
+                  <th className="py-1 pr-3">Renderiza</th>
                   <th className="py-1 pr-3">Gate</th>
                   <th className="py-1">Situação na prévia TESTE</th>
                 </tr>
@@ -326,15 +338,83 @@ function Pagina() {
                     <td className="py-1.5 pr-3">{l.fonteExigida}</td>
                     <td className="py-1.5 pr-3">{ROTULO_TIPO_RENDER[l.tipo]}</td>
                     <td className="py-1.5 pr-3 font-mono text-[10px]">{l.clausulas.join(", ")}</td>
+                    <td className="py-1.5 pr-3">{l.renderiza === "sempre" ? "Sim" : "Quando aplicável"}</td>
                     <td className="py-1.5 pr-3">{l.gate}</td>
                     <td className={`py-1.5 ${l.situacao === "renderizado" ? "text-navy/70" : "text-terracotta"}`}>
-                      {l.situacao === "renderizado" ? "Renderizado" : "Renderizado com pendência"}
+                      {l.situacao === "renderizado"
+                        ? "Renderizado"
+                        : l.situacao === "nao_aplicavel"
+                          ? "Não aplicável"
+                          : "Renderizado com pendência"}
+                      <span className="block text-[10px] text-navy/50">{l.motivo}</span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </Bloco>
+
+        <Bloco
+          titulo={`Ordem de fontes, anexos familiares e gates — ${MATRIZ_ACEITE_VERSAO}`}
+          nota="Especificação técnica e de aceite do motor contratual. Nada é enviado, assinado, cobrado ou pesquisado a partir daqui."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Ordem de fontes</p>
+              <ol className="mt-1 space-y-0.5 text-xs text-navy/70">
+                {ORDEM_FONTES.map((f) => (
+                  <li key={f.ordem}>
+                    {f.ordem}. {f.fonte}
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-2 text-[11px] text-terracotta">{FONTES_APENAS_APOIO}</p>
+            </div>
+            <div className="rounded-lg border border-navy/10 bg-white p-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos familiares</p>
+              <table className="mt-1 w-full text-left text-[11px] text-navy/70">
+                <tbody>
+                  {ANEXOS_FAMILIARES.map((a) => (
+                    <tr key={a.anexo} className="border-t border-navy/10 align-top">
+                      <td className="py-1 pr-2 font-medium text-navy">{a.anexo}</td>
+                      <td className="py-1">{a.regra}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Rascunho e versões</p>
+              <Lista itens={REGRAS_RASCUNHO_VERSAO} />
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                Gates bloqueantes (prévia final, revisão, assinatura, financeiro, portal, pesquisa externa)
+              </p>
+              <Lista itens={GATES_BLOQUEANTES} />
+            </div>
+          </div>
+        </Bloco>
+
+        <Bloco
+          titulo={`Critérios de aceite — ${aceiteConcluido(criterios) ? "atendidos na prévia TESTE" : "pendentes"}`}
+          nota="A implementação só está concluída quando a prévia interna de TESTE demonstra os oito critérios."
+        >
+          <table className="w-full text-left text-[11px]">
+            <tbody className="text-navy/75">
+              {criterios.map((c) => (
+                <tr key={c.id} className="border-t border-navy/10 align-top">
+                  <td className="py-1.5 pr-2 font-medium text-navy">{c.id}</td>
+                  <td className="py-1.5 pr-2">{c.criterio}</td>
+                  <td className={`py-1.5 pr-2 ${c.atendido ? "text-emerald-700" : "text-terracotta"}`}>
+                    {c.atendido ? "Atendido" : "Pendente"}
+                  </td>
+                  <td className="py-1.5 text-navy/55">{c.observacao}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Bloco>
 
         <Bloco titulo="Itens a validar juridicamente" nota="Revisar antes de mudar o status para vigente ou permitir assinatura.">
