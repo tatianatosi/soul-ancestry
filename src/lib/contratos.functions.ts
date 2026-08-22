@@ -551,7 +551,23 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       versao.id,
     );
 
-    return { versionId: versao.id as string, versao: versao.version_number as number, falhaRenderizacao: falha };
+    // Snapshot institucional: a versão nasce carimbada com o perfil institucional
+    // persistido (estado under_legal_review). Nunca sobrescreve snapshot anterior.
+    const { gravarSnapshotInstitucional } = await import("@/lib/perfil-institucional-persistido.server");
+    const snapshot = await gravarSnapshotInstitucional(supabase, {
+      org: organizationId,
+      contractVersionId: versao.id,
+      evento: "versao_contratual_criada",
+      userId: context.userId as string,
+    });
+
+    return {
+      versionId: versao.id as string,
+      versao: versao.version_number as number,
+      falhaRenderizacao: falha,
+      snapshotInstitucional: snapshot,
+    };
+
   });
 
 export const executarValidacoes = createServerFn({ method: "POST" })
@@ -678,11 +694,20 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
     }
 
     const agora = new Date().toISOString();
+    // Congelamento: garante o snapshot institucional antes de travar a versão.
+    const { gravarSnapshotInstitucional } = await import("@/lib/perfil-institucional-persistido.server");
+    await gravarSnapshotInstitucional(supabase, {
+      org: organizationId,
+      contractVersionId: data.version_id,
+      evento: "versao_contratual_congelada",
+      userId: context.userId as string,
+    });
     await supabase
       .from("contract_versions")
       .update({ status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId })
       .eq("organization_id", organizationId)
       .eq("id", data.version_id);
+
     await supabase
       .from("contracts")
       .update({ status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora })
@@ -815,12 +840,38 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
 
     const { data: versao } = await supabase
       .from("contract_versions")
-      .select("id,contract_id,generated_content,rendered_file_path,render_error,version_number,status")
+      .select(
+        "id,contract_id,generated_content,rendered_file_path,render_error,version_number,status,institutional_profile_id,institutional_profile_snapshot",
+      )
       .eq("organization_id", organizationId)
       .eq("contract_id", data.contract_id)
       .eq("id", data.version_id)
       .maybeSingle();
     if (!versao) throw new Error("Versão não encontrada neste instrumento.");
+
+    // A prévia usa o perfil institucional efetivamente snapshotado nesta versão.
+    // Se ainda não houver snapshot, ele é registrado agora pelo evento de prévia
+    // — perfil persistido, nunca texto avulso.
+    const perfilServer = await import("@/lib/perfil-institucional-persistido.server");
+    if (!versao.institutional_profile_snapshot) {
+      await perfilServer.gravarSnapshotInstitucional(supabase, {
+        org: organizationId,
+        contractVersionId: versao.id,
+        evento: "versao_contratual_criada",
+        userId: context.userId as string,
+      });
+      const { data: recarregada } = await supabase
+        .from("contract_versions")
+        .select("institutional_profile_id,institutional_profile_snapshot")
+        .eq("organization_id", organizationId)
+        .eq("id", versao.id)
+        .maybeSingle();
+      if (recarregada) {
+        versao.institutional_profile_id = recarregada.institutional_profile_id;
+        versao.institutional_profile_snapshot = recarregada.institutional_profile_snapshot;
+      }
+    }
+
 
     const persistido = versao.generated_content as { html?: unknown } | null;
     let html = typeof persistido?.html === "string" ? persistido.html : null;
@@ -846,12 +897,22 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
       );
     }
 
+    const snap = (versao.institutional_profile_snapshot ?? null) as
+      | { versao?: string; status?: string; capturado_em?: string; evento?: string }
+      | null;
+
     await evento(
       supabase,
       organizationId,
       data.contract_id,
       "document_previewed",
-      { versao: versao.version_number, origem, somente_leitura: true },
+      {
+        versao: versao.version_number,
+        origem,
+        somente_leitura: true,
+        perfil_institucional: snap?.versao ?? null,
+        perfil_status: snap?.status ?? null,
+      },
       versao.id,
     );
     return {
@@ -860,8 +921,18 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
       status: versao.status as string,
       origem,
       rascunho: versao.status !== "approved_for_send",
+      perfilInstitucional: snap
+        ? {
+            versao: snap.versao ?? null,
+            status: snap.status ?? null,
+            capturadoEm: snap.capturado_em ?? null,
+            evento: snap.evento ?? null,
+            habilitaAssinatura: snap.status === "vigente",
+          }
+        : null,
     };
   });
+
 
 /** Download interno auditado: URL assinada de curta duração, nunca registrada em log. */
 export const baixarVersaoInterna = createServerFn({ method: "POST" })
