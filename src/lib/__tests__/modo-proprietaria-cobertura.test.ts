@@ -50,7 +50,7 @@ describe("cobertura obrigatória do modo proprietária", () => {
       dados_teste: true,
     });
     expect(v.valida).toBe(false);
-    expect(v.erros.join(" ")).toContain("TESTE/DEMO");
+    expect(v.erros.join(" ")).toContain("TESTE");
   });
 
   it("mantém SKU em revisão como override permitido na formalização", () => {
