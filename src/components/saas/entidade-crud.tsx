@@ -47,6 +47,7 @@ export function EntidadeCrud({
   filtrarLinhas,
   classeLinha,
   topo,
+  larguraMinima = 720,
 }: {
   entidade: Entidade;
   titulo: string;
@@ -62,6 +63,8 @@ export function EntidadeCrud({
   classeLinha?: (linha: Record<string, unknown>) => string | undefined;
   /** Controles extras exibidos acima da tabela. */
   topo?: React.ReactNode;
+  /** Largura mínima da tabela em px — evita colunas espremidas quando há muitos eixos. */
+  larguraMinima?: number;
 }) {
   const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
@@ -213,7 +216,7 @@ export function EntidadeCrud({
         <EstadoVazio mensagem={`Nenhum registro em ${titulo.toLowerCase()} ainda.`} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full text-sm" style={{ minWidth: `${larguraMinima}px` }}>
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
                 {colunas.map((c) => (
@@ -234,7 +237,7 @@ export function EntidadeCrud({
                         {c.render ? c.render(linha) : (linha[c.chave] as string) || "—"}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-right align-top">
+                    <td className="whitespace-nowrap px-4 py-3 text-right align-top">
                       <div className="flex flex-col items-end gap-2">
                         {extra ? extra(linha, recarregar) : null}
                         {arquivado ? (

@@ -161,7 +161,28 @@ export function previsoesControladas(p: {
   ];
 }
 
-export type SinalMarketing = { codigo: string; texto: string; rota: string; severidade: "critico" | "atencao" };
+export type SinalMarketing = {
+  codigo: string;
+  texto: string;
+  rota: string;
+  severidade: "critico" | "atencao";
+  /** Ação operacional esperada (linguagem de execução, nunca métrica pura). */
+  acao?: string;
+  /** Rótulo do destino onde a ação é executada. */
+  destino?: string;
+};
+
+/** Ação e destino operacional de cada sinal — camada de leitura do Painel Hoje. */
+export const ACAO_SINAL: Record<string, { acao: string; destino: string }> = {
+  midia_sem_leads: { acao: "Revisar atribuição de origem e campanha do período", destino: "Indicadores" },
+  origem_ausente: { acao: "Preencher origem do lead na ficha", destino: "CRM de leads" },
+  discovery_parada: { acao: "Definir proposta ou decisão da Discovery", destino: "CRM de leads" },
+  proposta_sem_followup: { acao: "Cobrar retorno da proposta e registrar o contato", destino: "Conversão" },
+  aceite_parado: { acao: "Obter confirmação formal por escrito", destino: "Conversão" },
+  contrato_sem_financeiro: { acao: "Vincular referência financeira ao contrato assinado", destino: "Financeiro" },
+  pagamento_sem_onboarding: { acao: "Iniciar onboarding do caso pago", destino: "Casos 360" },
+  midia_sem_classificacao: { acao: "Classificar custo de mídia por campanha e período", destino: "Financeiro" },
+};
 
 /** Sinais diários derivados de marketing e conversão (Painel Hoje e /conversao). */
 export function sinaisMarketing(dados: {
@@ -177,7 +198,7 @@ export function sinaisMarketing(dados: {
 }): SinalMarketing[] {
   const s: SinalMarketing[] = [];
   const add = (codigo: string, texto: string, rota: string, severidade: SinalMarketing["severidade"] = "atencao") =>
-    s.push({ codigo, texto, rota, severidade });
+    s.push({ codigo, texto, rota, severidade, ...(ACAO_SINAL[codigo] ?? {}) });
 
   if ((val(dados.investimento_midia) ?? 0) > 0 && (val(dados.leads_atribuiveis) ?? 0) === 0)
     add("midia_sem_leads", "Investimento de mídia registrado sem leads atribuídos no período.", "/governanca/indicadores");

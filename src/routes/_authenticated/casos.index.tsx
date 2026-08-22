@@ -72,6 +72,7 @@ function CasosPage() {
         titulo="Casos"
         podeEscrever={podeEscrever}
         dominio="caso"
+        larguraMinima={2100}
         filtrarLinhas={(l) => mostrarDemo || papelDoRegistro(l).valor !== "demo"}
         classeLinha={(l) => (papelDoRegistro(l).valor === "demo" ? "bg-terracotta/5" : undefined)}
         topo={
