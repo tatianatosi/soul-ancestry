@@ -301,7 +301,10 @@ export const REGRAS_MOTOR_ANEXO_IV: string[] = [
   "Não criar procuração real, não enviar, não assinar e não inferir poderes.",
   "Quando exigida para atividade externa, bloquear a ação até instrumento aprovado e evidência de assinatura quando aplicável.",
   "Procuração é separada de autorização de pesquisa; uma não substitui a outra.",
+  "A procuração de atuação europeia é parametrizada pelo país da proposta/OS, SKU homologado, Planejador ou caso — Itália nunca é default.",
+  "Conflito de país entre fontes canônicas, ou país a confirmar, bloqueia preparação, revisão, assinatura e uso do Anexo IV.",
 ];
+
 
 export const IMPACTOS_CONTROLADOS = ["sem_alteracao", "novo_prazo_estimado", "novo_valor", "despesa_externa_a_aprovar"] as const;
 export type ImpactoControlado = (typeof IMPACTOS_CONTROLADOS)[number];
