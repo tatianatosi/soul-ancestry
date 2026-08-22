@@ -235,7 +235,7 @@ export const FILAS_COMERCIAIS_CHAVES = FILAS_COMERCIAIS;
 
 
 /** Grupos de manifestação de indicadores no Painel Hoje. */
-export type GrupoIndicadorDia = "conversao" | "radar" | "casos" | "comunicacao";
+export type GrupoIndicadorDia = "integridade" | "formalizacao" | "operacao" | "financeiro" | "cliente";
 
 export type LinhaIndicadorDia = {
   /** Chave de deduplicação: o mesmo fato só aparece uma vez, na maior severidade. */
