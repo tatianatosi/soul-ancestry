@@ -78,7 +78,7 @@ export type InstanciaAnexo = {
   source: string;
   model_version: string;
   required_for_contract: boolean;
-  status: string;
+  status: StatusAnexoPersistido;
   structured_data: Record<string, unknown>;
   rendered_html: string;
   reason_not_applicable: string | null;
