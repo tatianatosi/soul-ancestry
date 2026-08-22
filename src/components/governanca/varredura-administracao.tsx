@@ -14,6 +14,7 @@ import {
   ROTULO_GRUPO_APROVACAO,
   ROTULO_REVERSIBILIDADE,
   confirmacaoExternaObrigatoria,
+  derivarAcaoPacote,
   resumoConfirmacaoPacote,
   type LinhaAprovacao,
 } from "@/lib/varredura-administracao";
