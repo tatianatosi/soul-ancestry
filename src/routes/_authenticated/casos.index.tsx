@@ -6,6 +6,8 @@ import { useState } from "react";
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { listarEstadoAtivacao } from "@/lib/casos-ativacao.functions";
+import { resolverCasoPorCodigo } from "@/lib/caso-busca.functions";
+import { mensagemResolucao, type ResultadoBuscaCaso } from "@/lib/caso-busca";
 import { ESTADOS, PRIORIDADES } from "@/lib/estados";
 import {
   EIXO_COMERCIAL,
