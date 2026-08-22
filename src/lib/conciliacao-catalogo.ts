@@ -132,7 +132,7 @@ export function conciliarCatalogo(e: EntradaConciliacao): ResultadoConciliacao {
 
   if (p) {
     if (!p.ativo || p.archived_at) {
-      add(COD.SKU_INATIVO, "bloqueante", `SKU ${chave} inativo ou arquivado no catálogo.`, p.ativo, false);
+      add(COD.SKU_INATIVO, "bloqueante", `SKU ${chave} inativo ou arquivado no catálogo.`, "ativo", "inativo/arquivado");
     }
     if (p.status_homologacao !== "homologado" || !p.elegivel_para_proposta) {
       add(
