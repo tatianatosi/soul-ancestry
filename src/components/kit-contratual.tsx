@@ -61,7 +61,7 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
   const os = c?.ordem_servico;
   const d = c?.despesas_externas;
   const br = c?.autorizacoes.procuracao_brasileira;
-  const eu = c?.autorizacoes.procuracao_italiana;
+  const eu = c?.autorizacoes.procuracao_europeia;
   const pesquisa = c?.autorizacoes.pesquisa_especifica ?? [];
   const alt = c?.alteracoes_escopo ?? [];
 
@@ -187,7 +187,7 @@ function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumen
         ? "nao_criado"
         : "rascunho";
     case "proc_eu":
-      return c.autorizacoes.procuracao_italiana.status === "nao_iniciada"
+      return c.autorizacoes.procuracao_europeia.status === "nao_iniciada"
         ? "nao_criado"
         : "rascunho";
     case "escopo":
@@ -585,7 +585,7 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
 
 function ProcuracaoPreview({ italiana }: { italiana: boolean }) {
   const c = useActiveCase().contratacao;
-  const p = italiana ? c?.autorizacoes.procuracao_italiana : c?.autorizacoes.procuracao_brasileira;
+  const p = italiana ? c?.autorizacoes.procuracao_europeia : c?.autorizacoes.procuracao_brasileira;
   const orgao = preenchido(p?.orgao_destinatario)
     ? p!.orgao_destinatario
     : italiana
