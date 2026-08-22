@@ -225,7 +225,7 @@ export function PainelModoProprietaria() {
     );
   }
 
-  const eventos = estado.eventos as Record<string, string>[];
+  const eventos = estado.eventos;
 
   return (
     <div className="space-y-6">
@@ -310,13 +310,13 @@ export function PainelModoProprietaria() {
               </thead>
               <tbody>
                 {eventos.map((e) => (
-                  <tr key={e['id']} className="border-t border-border">
-                    <td className="py-1">{new Date(e['created_at'] as string).toLocaleString("pt-BR")}</td>
-                    <td>{e['categoria']}</td>
-                    <td>{e['acao']}</td>
-                    <td>{e['entidade']}</td>
-                    <td className="max-w-[24ch] truncate">{e['motivo']}</td>
-                    <td>{e['executado'] ? "sim" : "não"}</td>
+                  <tr key={e.id} className="border-t border-border">
+                    <td className="py-1">{new Date(e.created_at).toLocaleString("pt-BR")}</td>
+                    <td>{e.categoria}</td>
+                    <td>{e.acao}</td>
+                    <td>{e.entidade}</td>
+                    <td className="max-w-[24ch] truncate">{e.motivo}</td>
+                    <td>{e.executado ? "sim" : "não"}</td>
                   </tr>
                 ))}
               </tbody>
