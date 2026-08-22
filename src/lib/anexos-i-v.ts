@@ -436,7 +436,7 @@ export function anexoIIDespesas(e: EntradaAnexosIaV): AnexoGovernado {
     campos,
     pendencias: pend,
     impactoAusencia: "Sem política e aprovação registradas, nenhuma despesa pode ser executada em nome da Cliente.",
-    destinos: ["previa_final", "revisao_humana", "somente_interno" as never].filter(Boolean) as GateContratual[],
+    destinos: ["previa_final", "revisao_humana", "financeiro"],
     gatesBloqueados: pend.length ? ["previa_final", "revisao_humana"] : [],
   };
 }
