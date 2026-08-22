@@ -43,6 +43,7 @@ import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
 import { Route as AuthenticatedModoProprietariaRouteImport } from './routes/_authenticated/modo-proprietaria'
+import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
@@ -270,6 +271,11 @@ const AuthenticatedModoProprietariaRoute =
     path: '/modo-proprietaria',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
+  id: '/metricas',
+  path: '/metricas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMatrizJuridicaRoute =
   AuthenticatedMatrizJuridicaRouteImport.update({
     id: '/matriz-juridica',
@@ -608,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
+  '/metricas': typeof AuthenticatedMetricasRoute
   '/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -696,6 +703,7 @@ export interface FileRoutesByTo {
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
+  '/metricas': typeof AuthenticatedMetricasRoute
   '/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -787,6 +795,7 @@ export interface FileRoutesById {
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
+  '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
   '/_authenticated/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
@@ -878,6 +887,7 @@ export interface FileRouteTypes {
     | '/integracoes'
     | '/leads'
     | '/matriz-juridica'
+    | '/metricas'
     | '/modo-proprietaria'
     | '/nucleos'
     | '/ops'
@@ -966,6 +976,7 @@ export interface FileRouteTypes {
     | '/integracoes'
     | '/leads'
     | '/matriz-juridica'
+    | '/metricas'
     | '/modo-proprietaria'
     | '/nucleos'
     | '/ops'
@@ -1056,6 +1067,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integracoes'
     | '/_authenticated/leads'
     | '/_authenticated/matriz-juridica'
+    | '/_authenticated/metricas'
     | '/_authenticated/modo-proprietaria'
     | '/_authenticated/nucleos'
     | '/_authenticated/ops'
@@ -1376,6 +1388,13 @@ declare module '@tanstack/react-router' {
       path: '/modo-proprietaria'
       fullPath: '/modo-proprietaria'
       preLoaderRoute: typeof AuthenticatedModoProprietariaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/metricas': {
+      id: '/_authenticated/metricas'
+      path: '/metricas'
+      fullPath: '/metricas'
+      preLoaderRoute: typeof AuthenticatedMetricasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/matriz-juridica': {
@@ -1778,6 +1797,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
+  AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
   AuthenticatedModoProprietariaRoute: typeof AuthenticatedModoProprietariaRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
@@ -1845,6 +1865,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
+  AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
   AuthenticatedModoProprietariaRoute: AuthenticatedModoProprietariaRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
