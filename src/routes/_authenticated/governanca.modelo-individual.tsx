@@ -145,6 +145,8 @@ function ModeloIndividualPage() {
           <p className="text-xs text-muted-foreground">Fonte canônica: {MODELO_INDIVIDUAL_FONTE}</p>
         </header>
 
+        <RegistroVersionado />
+
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
