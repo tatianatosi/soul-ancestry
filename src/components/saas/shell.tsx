@@ -130,6 +130,7 @@ const NAV: readonly SecaoNav[] = [
     label: "Contratos e financeiro",
     icon: FileSignature,
     sub: [
+      { to: "/catalogo", label: "Catálogo comercial" },
       { to: "/contrato-parametros", label: "Dados parametrizáveis" },
       { to: "/matriz-juridica", label: "Matriz jurídica interna" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
