@@ -8,6 +8,7 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
+import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
   cadenciaRelevante,
   chavesExibidas,
