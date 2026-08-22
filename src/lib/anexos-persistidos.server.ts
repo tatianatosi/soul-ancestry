@@ -106,13 +106,15 @@ export function instanciasDeAnexos(input: {
   const internos: InstanciaAnexo[] = input.internos.map((i) => ({
     annex_code: i.codigo,
     title: i.titulo,
-    annex_type: "interno",
+    annex_type: tipoAnexoPersistido(i.codigo),
+    natureza: "interno",
     applicability_rule: i.motivo,
     source: "regra de produto/escopo",
     model_version: "ANX-INTERNO-v1.0",
     required_for_contract: true,
     status: "prepared",
-    structured_data: { motivo: i.motivo },
+    structured_data: { motivo: i.motivo, natureza: "interno" },
+
     rendered_html: `<h3>${i.codigo} — ${i.titulo}</h3><p>${i.motivo}</p>`,
     reason_not_applicable: null,
   }));
