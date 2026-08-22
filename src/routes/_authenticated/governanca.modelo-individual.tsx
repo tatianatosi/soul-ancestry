@@ -54,10 +54,13 @@ function ModeloIndividualPage() {
   const previa = previaTesteModeloIndividual();
 
   return (
-    <SaasShell>
+    <SaasShell
+      titulo={`${MODELO_INDIVIDUAL_NOME} — ${MODELO_INDIVIDUAL_VERSAO}`}
+      descricao="Modelo interno versionado de composição contratual. Sem dados reais ou DEMO."
+    >
       <div className="space-y-6 p-6">
         <header className="space-y-2">
-          <h1 className="text-2xl font-semibold text-navy">
+          <h1 className="sr-only">
             {MODELO_INDIVIDUAL_NOME} — {MODELO_INDIVIDUAL_VERSAO}
           </h1>
           <div className="flex flex-wrap gap-2 text-xs">
