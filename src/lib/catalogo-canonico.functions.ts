@@ -83,11 +83,12 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
     }
 
     const usosPorSku = new Map<string, number>();
-    for (const p of (usos.data ?? []) as any[]) {
-      const sku = p.sku_principal as string | null;
-      if (!sku) continue;
-      if (["assinada", "aprovada", "recusada", "cancelada"].includes(String(p.status))) continue;
-      usosPorSku.set(sku, (usosPorSku.get(sku) ?? 0) + 1);
+    const usosPorProduto = new Map<string, number>();
+    for (const c of (usos.data ?? []) as any[]) {
+      const pid = c.product_catalog_id as string | null;
+      if (!pid) continue;
+      if (["cancelada", "encerrada", "arquivada"].includes(String(c.status))) continue;
+      usosPorProduto.set(pid, (usosPorProduto.get(pid) ?? 0) + 1);
     }
 
     const skus: SkuCanonico[] = ((produtos.data ?? []) as any[]).map((r) => ({
