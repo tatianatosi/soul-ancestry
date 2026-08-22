@@ -8,19 +8,28 @@
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 
-import { COBERTURA_MODULOS } from "@/lib/modo-proprietaria-cobertura";
+import { COBERTURA_MODULOS, REGRAS_GERAIS } from "@/lib/modo-proprietaria-cobertura";
 import { ROTULO_ACAO_EXTERNA } from "@/lib/modo-proprietaria";
 
 export function CoberturaModulos() {
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="font-serif text-lg text-foreground">Cobertura por módulo</h2>
+        <h2 className="font-serif text-lg text-foreground">Cobertura por área</h2>
         <p className="text-sm text-muted-foreground">
           Toda operação abaixo grava na entidade canônica, com autora, data/hora, valor anterior,
           valor novo, motivo e evento de auditoria. Nada é inferido.
         </p>
       </header>
+
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Regra geral — vale para todas as áreas</p>
+        <ul className="mt-2 grid gap-1 text-xs text-foreground/80 sm:grid-cols-2">
+          {REGRAS_GERAIS.map((r) => (
+            <li key={r}>• {r}</li>
+          ))}
+        </ul>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {COBERTURA_MODULOS.map((m) => (
