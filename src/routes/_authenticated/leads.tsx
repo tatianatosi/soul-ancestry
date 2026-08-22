@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
+import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
