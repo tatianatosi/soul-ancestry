@@ -46,3 +46,23 @@ describe("cards e filtros do Painel Hoje", () => {
     expect(aplicarFiltrosDia(itens, { area: "comercial", responsavel: "Tati" })).toHaveLength(1);
   });
 });
+
+describe("deduplicação de resumos", () => {
+  it("não repete item já presente na fila e oculta demonstrações", () => {
+    const usados = new Set(["lead:1"]);
+    const itens = [
+      { id: "1", tipo: "lead", rotulo: "Lead A" },
+      { id: "2", tipo: "lead", rotulo: "Lead B" },
+      { id: "3", tipo: "lead", rotulo: "Lead DEMO" },
+    ];
+    expect(itensNaoExibidos(itens, usados).map((i) => i.id)).toEqual(["2"]);
+  });
+
+  it("cadência ignora casos já exibidos na fila", () => {
+    const casos = [
+      { id: "c1", cadencia: { status: "critico", diasSemTouchpoint: 20 } },
+      { id: "c2", cadencia: { status: "critico", diasSemTouchpoint: 30 } },
+    ];
+    expect(cadenciaRelevante(casos, 6, new Set(["caso:c2"])).map((c) => c["id"])).toEqual(["c1"]);
+  });
+});
