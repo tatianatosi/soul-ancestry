@@ -101,7 +101,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     itens: [
       "1.1. A qualificação completa da CONTRATADA será obtida exclusivamente do Perfil Institucional vigente e aprovado.",
       "1.2. A qualificação do(s) CONTRATANTE(S), signatário(s), beneficiário(s), representante(s) e dependente(s) será obtida dos parâmetros contratuais rastreáveis, da Ordem de Serviço/Proposta válida e dos anexos aplicáveis.",
-      "1.3. Este Contrato-Base é complementado, quando aplicável, por: Ordem de Serviço ou Proposta Comercial aprovada, Anexo de Escopo, Anexo de Privacidade e Dados, Anexo Comercial, Anexo Individual e Anexo de Representação.",
+      "1.3. Este Contrato-Base é complementado, quando aplicável, por: Ordem de Serviço ou Proposta Comercial aprovada, Anexo I — Ordem de Serviço, Anexo de Escopo, Anexo de Privacidade e Dados, Anexo Comercial, Anexo Individual e Anexo de Representação.",
       "1.4. Em caso de divergência específica entre este contrato-base e a Ordem de Serviço/Proposta aprovada, a Ordem de Serviço/Proposta prevalecerá quanto a escopo contratado, valores, forma de pagamento, parcelas, prazos específicos e despesas específicas, desde que respeitados o contrato-base, a legislação aplicável e as aprovações exigidas.",
     ],
   },
@@ -118,7 +118,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     numero: 3,
     titulo: "Escopo, entregas e exclusões",
     itens: [
-      "3.1. Os serviços incluídos, entregas, fases, responsabilidades, limites, dependências, exclusões e marcos previstos estão descritos no Anexo de Escopo e na Ordem de Serviço/Proposta aprovada vinculada ao mesmo caso.",
+      "3.1. Os serviços incluídos, entregas, fases, responsabilidades, limites, dependências, exclusões e marcos previstos estão descritos no Anexo I — Ordem de Serviço e na Ordem de Serviço/Proposta aprovada vinculada ao mesmo caso.",
       "3.2. Somente integra o escopo o que estiver expressamente indicado em fonte válida e aprovada. A ausência de previsão não será interpretada como inclusão tácita.",
       "3.3. Salvo contratação expressa e formalização aplicável, não estão incluídos: busca presencial em cartórios ou arquivos, solicitações institucionais externas, emissão de certidões, representação jurídica, protocolo perante órgãos, acompanhamento de processo de terceiros, tradução, apostilamento, retificação, deslocamento, custas e demais despesas externas.",
       "3.4. A inclusão de serviço adicional depende de escopo, condição comercial e aprovação formal aplicáveis.",
@@ -189,7 +189,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     numero: 10,
     titulo: "Prazo, dependências e ajustes",
     itens: [
-      "10.1. Os prazos de referência, marcos, dependências documentais e condições de ajuste aplicáveis ao caso estarão na Ordem de Serviço/Proposta aprovada e no Anexo de Escopo, quando formalmente definidos.",
+      "10.1. Os prazos de referência, marcos, dependências documentais e condições de ajuste aplicáveis ao caso estarão na Ordem de Serviço/Proposta aprovada e no Anexo I — Ordem de Serviço, quando formalmente definidos.",
       "10.2. Prazos podem ser impactados por atraso no envio de informações, necessidade de correção, indisponibilidade de registros, exigências de terceiros, espera institucional, revisão especializada, mudanças normativas ou outras dependências fora do controle da CONTRATADA.",
       "10.3. Não serão apresentadas estimativas automáticas como promessa de prazo institucional, jurídico ou de resultado.",
     ],
