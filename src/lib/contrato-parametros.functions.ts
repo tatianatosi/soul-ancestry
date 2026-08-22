@@ -5,11 +5,29 @@ import {
   EVENTOS_SNAPSHOT,
   ORIGENS_PARAM,
   PLACEHOLDER_PARAM,
+  anexosPorRegra,
   confianca,
   hashConteudo,
   montarPrevia,
   type EventoSnapshot,
 } from "@/lib/contrato-parametros.server";
+import {
+  CLAUSULAS_FIXAS,
+  CONTRATO_BASE_ID,
+  CONTRATO_BASE_MODELO,
+  CONTRATO_BASE_STATUS,
+  CONTRATO_BASE_VERSAO,
+  PERFIL_INSTITUCIONAL,
+  PERFIL_INSTITUCIONAL_VERSAO,
+  PREAMBULO_CONTRATO_BASE,
+} from "@/lib/contrato-base-consolidado";
+import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
+import {
+  instanciasDeAnexos,
+  sincronizarAnexosPersistidos,
+  sincronizarComercialDaProposta,
+} from "@/lib/anexos-persistidos.server";
+
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
@@ -532,6 +550,29 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
     : null;
 
+  const valoresFicha = ((valores ?? []) as any[]).map((v) => ({
+    campo: v.campo,
+    valor: v.valor,
+    origem: v.origem,
+    status: v.status,
+  }));
+
+  const anexosInternos = anexosPorRegra({
+    produto: valoresFicha.find((v) => v.campo === "produto_sku")?.valor ?? null,
+    pais: valoresFicha.find((v) => v.campo === "pais_rota")?.valor ?? null,
+    membros: valoresFicha.find((v) => v.campo === "beneficiarios")?.valor ?? null,
+    representacao: valoresFicha.find((v) => v.campo === "representacao_legal")?.valor ?? null,
+  });
+
+  const corpo = renderCorpoContratual({
+    caseId: registro.case_id,
+    casoCodigo: caso?.codigo ?? null,
+    clienteNome: cliente?.nome ?? null,
+    responsavel: null,
+    valores: valoresFicha,
+    anexosInternos,
+  });
+
   const previa = montarPrevia({
     tipo,
     caso,
@@ -539,10 +580,12 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     templateCode: template.code,
     templateVersion: template.template_version ?? null,
     valores: (valores ?? []) as any,
+    corpo,
   });
 
-  return { registro, template, previa };
+  return { registro, template, previa, corpo, anexosInternos };
 }
+
 
 async function atualizarCompletude(supabase: Sb, id: string) {
   const completude = await supabase.rpc("contract_parameters_completude", { _id: id });
@@ -553,6 +596,36 @@ async function atualizarCompletude(supabase: Sb, id: string) {
 }
 
 /**
+ * Persistência do motor: instâncias versionadas dos anexos + condição comercial
+ * derivada da proposta/OS aprovada. Nenhuma cobrança ou envio é executado.
+ */
+async function sincronizarMotor(
+  supabase: Sb,
+  input: { registro: any; previaId: string; userId: string; corpo: any; anexosInternos: any[] },
+) {
+  const instancias = instanciasDeAnexos({ anexos: input.corpo.anexos, internos: input.anexosInternos as any });
+  const anexosPersistidos = await sincronizarAnexosPersistidos(
+    supabase,
+    {
+      organizationId: input.registro.organization_id,
+      caseId: input.registro.case_id,
+      parametersId: input.registro.id,
+      previaId: input.previaId,
+      contractId: input.registro.contract_id ?? null,
+      userId: input.userId,
+    },
+    instancias,
+  );
+  const comercial = await sincronizarComercialDaProposta(supabase, {
+    organizationId: input.registro.organization_id,
+    caseId: input.registro.case_id,
+    userId: input.userId,
+  });
+  return { anexosPersistidos, comercial };
+}
+
+
+/**
  * Rascunho de trabalho: UM por case_id + modelo ativo. Salvar atualiza o mesmo
  * rascunho; conteúdo idêntico não gera nem versão nem novo registro.
  */
@@ -561,7 +634,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; tipo: "rascunho" | "final" }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    const { registro, template, previa } = await montarDoRegistro(supabase, data.id, "rascunho");
+    const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") {
       await exigirCoerencia(supabase, registro);
       await exigirGate(supabase, {
@@ -606,6 +679,9 @@ export const gerarPrevia = createServerFn({ method: "POST" })
           placeholders_pendentes: previa.placeholdersPendentes,
           conteudo_hash: hash,
           evento: "rascunho_atualizado",
+          corpo_contratual: previa.corpoContratual,
+          legado_sem_corpo: false,
+          legado_sem_evento: false,
           template_code: template.code,
           template_version: template.template_version ?? null,
           gerado_por: context.userId,
@@ -613,6 +689,13 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         })
         .eq("id", rascunho.id);
       if (error) throw new Error(error.message);
+      const sync = await sincronizarMotor(supabase, {
+        registro,
+        previaId: rascunho.id as string,
+        userId: context.userId as string,
+        corpo,
+        anexosInternos,
+      });
       await atualizarCompletude(supabase, data.id);
       return {
         previaId: rascunho.id as string,
@@ -620,8 +703,10 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         identico: false,
         rascunho: true,
         pendentes: previa.placeholdersPendentes,
+        ...sync,
       };
     }
+
 
     const { data: nova, error } = await supabase
       .from("contract_parameter_previews")
@@ -638,6 +723,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
         html: previa.html,
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
+        corpo_contratual: previa.corpoContratual,
         template_code: template.code,
         template_version: template.template_version ?? null,
         gerado_por: context.userId,
@@ -647,8 +733,16 @@ export const gerarPrevia = createServerFn({ method: "POST" })
       .select("id,versao")
       .single();
     if (error) throw new Error(error.message);
+    const sync = await sincronizarMotor(supabase, {
+      registro,
+      previaId: nova.id as string,
+      userId: context.userId as string,
+      corpo,
+      anexosInternos,
+    });
     await atualizarCompletude(supabase, data.id);
-    return { previaId: nova.id as string, versao: 0, identico: false, rascunho: true, pendentes: previa.placeholdersPendentes };
+    return { previaId: nova.id as string, versao: 0, identico: false, rascunho: true, pendentes: previa.placeholdersPendentes, ...sync };
+
   });
 
 /**
@@ -665,7 +759,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     if (motivo.length < 5) throw new Error("Descreva o motivo da versão (mínimo 5 caracteres).");
 
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
-    const { registro, template, previa } = await montarDoRegistro(supabase, data.id, tipo as any);
+    const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
     if (tipo === "final") {
       await exigirCoerencia(supabase, registro);
       await exigirGate(supabase, {
@@ -680,6 +774,18 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
       );
     }
+    if (tipo === "final") {
+      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
+      if (anexoBloqueante) {
+        throw new Error(
+          `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
+        );
+      }
+      if (!previa.corpoContratual) {
+        throw new Error("Versão final bloqueada: prévia sem corpo contratual persistido.");
+      }
+    }
+
 
     const hash = hashConteudo(previa.conteudo);
 
@@ -719,6 +825,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         html: previa.html,
         anexos: previa.anexos,
         placeholders_pendentes: previa.placeholdersPendentes,
+        corpo_contratual: previa.corpoContratual,
         template_code: template.code,
         template_version: template.template_version ?? null,
         gerado_por: context.userId,
@@ -728,9 +835,17 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       .select("id,versao")
       .single();
     if (error) throw new Error(error.message);
+    const sync = await sincronizarMotor(supabase, {
+      registro,
+      previaId: nova.id as string,
+      userId: context.userId as string,
+      corpo,
+      anexosInternos,
+    });
     await atualizarCompletude(supabase, data.id);
-    return { previaId: nova.id as string, versao: nova.versao as number, duplicada: false, pendentes: previa.placeholdersPendentes };
+    return { previaId: nova.id as string, versao: nova.versao as number, duplicada: false, pendentes: previa.placeholdersPendentes, ...sync };
   });
+
 
 /** HTML de uma prévia congelada (visualização interna). */
 export const lerPrevia = createServerFn({ method: "GET" })
@@ -1085,4 +1200,50 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     });
 
     return { ok: true, corrigidoEm: agora };
+  });
+
+/**
+ * Persiste o corpo do contrato-base versionado (perfil institucional, preâmbulo
+ * e as 14 cláusulas fixas) nos modelos ativos, e marca as prévias anteriores ao
+ * corpo contratual como legado — inaptas a revisão e assinatura.
+ */
+export const sincronizarContratoBase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = context.supabase as Sb;
+    const org = await orgDoUsuario(supabase, context.userId as string);
+
+    const corpo = {
+      contrato_base_id: CONTRATO_BASE_ID,
+      versao: CONTRATO_BASE_VERSAO,
+      modelo: CONTRATO_BASE_MODELO,
+      status: CONTRATO_BASE_STATUS,
+      perfil_institucional_versao: PERFIL_INSTITUCIONAL_VERSAO,
+      perfil_institucional: PERFIL_INSTITUCIONAL,
+      preambulo: PREAMBULO_CONTRATO_BASE,
+      clausulas: CLAUSULAS_FIXAS,
+    };
+
+    const { data: modelos, error } = await supabase
+      .from("contract_templates")
+      .update({ default_clauses: corpo, updated_by: context.userId })
+      .eq("organization_id", org)
+      .in("code", ["MODELO-ESTUDO", "BASE-GEN-V2"])
+      .is("archived_at", null)
+      .select("id,code");
+    if (error) throw new Error(error.message);
+
+    const { data: legadas } = await supabase
+      .from("contract_parameter_previews")
+      .update({ legado_sem_corpo: true })
+      .eq("organization_id", org)
+      .eq("corpo_contratual", false)
+      .is("aprovado_por", null)
+      .select("id");
+
+    return {
+      modelos: (modelos ?? []).map((m: any) => m.code),
+      clausulas: CLAUSULAS_FIXAS.length,
+      previasLegado: (legadas ?? []).length,
+    };
   });

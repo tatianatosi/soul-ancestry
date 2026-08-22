@@ -555,6 +555,22 @@ export const registrarLiberacaoExterna = createServerFn({ method: "POST" })
       throw new Error(((gate as any).data?.mensagem as string) ?? "Pesquisa externa bloqueada.");
     }
 
+    // Gate contratual: sem Anexo III vigente não há pesquisa nominal externa.
+    const { data: rc } = await supabase
+      .from("research_cases")
+      .select("case_id")
+      .eq("id", data.researchCaseId)
+      .maybeSingle();
+    if ((rc as any)?.case_id) {
+      const { exigirAnexosDeAcaoExterna } = await import("@/lib/anexos-persistidos.server");
+      await exigirAnexosDeAcaoExterna(supabase, {
+        organizationId,
+        caseId: (rc as any).case_id as string,
+        acao: "pesquisa_externa",
+      });
+    }
+
+
     const { error } = await supabase
       .from("research_cases")
       .update({ external_research_gate_status: "released_by_authorized_user" })

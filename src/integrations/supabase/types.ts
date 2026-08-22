@@ -3602,10 +3602,13 @@ export type Database = {
         Row: {
           annex_code: string
           annex_type: string
+          annex_version: number
+          applicability_rule: string | null
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
-          contract_id: string
+          case_id: string | null
+          contract_id: string | null
           contract_version_id: string | null
           created_at: string
           created_by: string | null
@@ -3613,14 +3616,21 @@ export type Database = {
           file_path: string | null
           id: string
           internal_notes: string | null
+          is_test: boolean
+          model_version: string | null
           organization_id: string
+          parameters_id: string | null
           prepared_by: string | null
+          preview_id: string | null
           reason_not_applicable: string | null
+          rendered_html: string | null
           required_for_contract: boolean
           reviewed_at: string | null
           reviewed_by: string | null
+          source: string | null
           source_reference: string | null
           status: string
+          structured_data: Json
           title: string
           updated_at: string
           updated_by: string | null
@@ -3628,10 +3638,13 @@ export type Database = {
         Insert: {
           annex_code: string
           annex_type: string
+          annex_version?: number
+          applicability_rule?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
-          contract_id: string
+          case_id?: string | null
+          contract_id?: string | null
           contract_version_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -3639,14 +3652,21 @@ export type Database = {
           file_path?: string | null
           id?: string
           internal_notes?: string | null
+          is_test?: boolean
+          model_version?: string | null
           organization_id: string
+          parameters_id?: string | null
           prepared_by?: string | null
+          preview_id?: string | null
           reason_not_applicable?: string | null
+          rendered_html?: string | null
           required_for_contract?: boolean
           reviewed_at?: string | null
           reviewed_by?: string | null
+          source?: string | null
           source_reference?: string | null
           status?: string
+          structured_data?: Json
           title: string
           updated_at?: string
           updated_by?: string | null
@@ -3654,10 +3674,13 @@ export type Database = {
         Update: {
           annex_code?: string
           annex_type?: string
+          annex_version?: number
+          applicability_rule?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
-          contract_id?: string
+          case_id?: string | null
+          contract_id?: string | null
           contract_version_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -3665,19 +3688,40 @@ export type Database = {
           file_path?: string | null
           id?: string
           internal_notes?: string | null
+          is_test?: boolean
+          model_version?: string | null
           organization_id?: string
+          parameters_id?: string | null
           prepared_by?: string | null
+          preview_id?: string | null
           reason_not_applicable?: string | null
+          rendered_html?: string | null
           required_for_contract?: boolean
           reviewed_at?: string | null
           reviewed_by?: string | null
+          source?: string | null
           source_reference?: string | null
           status?: string
+          structured_data?: Json
           title?: string
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contract_annexes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_annexes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contract_annexes_contract_id_fkey"
             columns: ["contract_id"]
@@ -3697,6 +3741,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_annexes_parameters_id_fkey"
+            columns: ["parameters_id"]
+            isOneToOne: false
+            referencedRelation: "contract_case_parameters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_annexes_preview_id_fkey"
+            columns: ["preview_id"]
+            isOneToOne: false
+            referencedRelation: "contract_parameter_previews"
             referencedColumns: ["id"]
           },
         ]
@@ -4012,6 +4070,7 @@ export type Database = {
           congelado_em: string
           conteudo: Json
           conteudo_hash: string | null
+          corpo_contratual: boolean
           created_at: string
           created_by: string | null
           estado: string
@@ -4019,6 +4078,8 @@ export type Database = {
           gerado_por: string | null
           html: string
           id: string
+          legado_sem_corpo: boolean
+          legado_sem_evento: boolean
           motivo: string | null
           organization_id: string
           parameters_id: string
@@ -4040,6 +4101,7 @@ export type Database = {
           congelado_em?: string
           conteudo?: Json
           conteudo_hash?: string | null
+          corpo_contratual?: boolean
           created_at?: string
           created_by?: string | null
           estado?: string
@@ -4047,6 +4109,8 @@ export type Database = {
           gerado_por?: string | null
           html?: string
           id?: string
+          legado_sem_corpo?: boolean
+          legado_sem_evento?: boolean
           motivo?: string | null
           organization_id: string
           parameters_id: string
@@ -4068,6 +4132,7 @@ export type Database = {
           congelado_em?: string
           conteudo?: Json
           conteudo_hash?: string | null
+          corpo_contratual?: boolean
           created_at?: string
           created_by?: string | null
           estado?: string
@@ -4075,6 +4140,8 @@ export type Database = {
           gerado_por?: string | null
           html?: string
           id?: string
+          legado_sem_corpo?: boolean
+          legado_sem_evento?: boolean
           motivo?: string | null
           organization_id?: string
           parameters_id?: string
