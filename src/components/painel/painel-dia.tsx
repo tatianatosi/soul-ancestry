@@ -82,32 +82,39 @@ function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?:
 
 const GRUPOS_INDICADOR = [
   {
-    chave: "conversao" as const,
-    titulo: "Conversão e integridade",
-    codigos: "IND-COM-01 · IND-COM-02 · IND-FIN-01 · IND-FIN-02",
+    chave: "integridade" as const,
+    titulo: "Integridade",
+    resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
+    rota: "/auditoria" as const,
+    acao: "Abrir auditoria e integridade",
+  },
+  {
+    chave: "formalizacao" as const,
+    titulo: "Formalização e comercial",
+    resumo: "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
     rota: "/conversao" as const,
     acao: "Abrir conversão e funil",
   },
   {
-    chave: "radar" as const,
-    titulo: "Radar e Discovery",
-    codigos: "IND-RAD-01 · IND-RAD-02",
-    rota: "/leads" as const,
-    acao: "Abrir leads e triagem",
-  },
-  {
-    chave: "casos" as const,
-    titulo: "Casos e cadência",
-    codigos: "IND-JOR-01 · IND-JOR-02 · IND-JOR-03 · IND-QUA-01",
+    chave: "operacao" as const,
+    titulo: "Casos e operação",
+    resumo: "Documentos aguardados, prazo crítico, ausência de touchpoint e rechecagem vencida.",
     rota: "/casos" as const,
     acao: "Abrir casos 360",
   },
   {
-    chave: "comunicacao" as const,
-    titulo: "Comunicação humana",
-    codigos: "IND-COM-03",
+    chave: "financeiro" as const,
+    titulo: "Financeiro",
+    resumo: "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
+    rota: "/financeiro" as const,
+    acao: "Abrir financeiro",
+  },
+  {
+    chave: "cliente" as const,
+    titulo: "Cliente",
+    resumo: "Projeção aguardando aprovação, acesso pendente e comunicação humana sugerida.",
     rota: "/atendimento" as const,
-    acao: "Abrir a fila humana em Atendimento",
+    acao: "Abrir fila humana em Atendimento",
   },
 ];
 
