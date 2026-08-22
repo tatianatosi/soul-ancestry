@@ -56,6 +56,7 @@ const PROPOSTA: PropostaVinculada = {
   servicosExcluidos: ["Serviços jurídicos"],
   entregaveis: ["Relatório"],
   objetivoEtapa: "Diagnóstico inicial",
+  skuAtivoHomologado: true,
   limitesDependencias: ["Depende de documentos"],
 };
 
