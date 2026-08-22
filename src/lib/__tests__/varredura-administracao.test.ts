@@ -92,4 +92,33 @@ describe("varredura de administração e contingência", () => {
       expect(l.confirmacao.trim().length).toBeGreaterThan(0);
     }
   });
+
+  it("classifica corretamente confirmação externa por reversibilidade e texto", () => {
+    const irreversivel = PACOTE_APROVACOES.find((l) => l.id === "APR-06")!;
+    const reversivel = PACOTE_APROVACOES.find((l) => l.id === "APR-01")!;
+    expect(confirmacaoExternaObrigatoria(irreversivel)).toBe(true);
+    expect(confirmacaoExternaObrigatoria(reversivel)).toBe(false);
+  });
+
+  it("deriva ação, entidade e módulo para cada linha do pacote", () => {
+    for (const l of PACOTE_APROVACOES) {
+      const acao = derivarAcaoPacote(l);
+      expect(acao.acao).toMatch(/^(aprovar_item_pacote|confirmar_acao_externa_pacote)$/);
+      expect(acao.entidade.length).toBeGreaterThan(0);
+      expect(acao.modulo.length).toBeGreaterThan(0);
+      expect(acao.rotulo.length).toBeGreaterThan(0);
+      expect(acao.irreversivel).toBe(confirmacaoExternaObrigatoria(l));
+    }
+  });
+
+  it("monta resumo de confirmação com motivo, entidade_id e dados enviados", () => {
+    const linha = PACOTE_APROVACOES.find((l) => l.id === "APR-10")!;
+    const resumo = resumoConfirmacaoPacote(linha, "Decisão de teste.");
+    expect(resumo.entidade_id).toBe("APR-10");
+    expect(resumo.destinatario).toBe(linha.alvo);
+    expect(resumo.dados_enviados.motivo_decisao).toBe("Decisão de teste.");
+    expect(resumo.dados_enviados.reversibilidade).toBe("irreversivel");
+    expect(resumo.irreversivel).toBe(true);
+    expect(ROTULO_REVERSIBILIDADE[linha.reversibilidade]).toBe("Irreversível");
+  });
 });
