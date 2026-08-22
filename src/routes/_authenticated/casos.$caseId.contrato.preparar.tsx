@@ -382,7 +382,7 @@ function Pagina() {
               Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
               nenhum campo é preenchido por inferência.
             </p>
-            <AnexosIaV anexos={anexosGovernados} />
+            <AnexosIaV anexos={anexosGovernados} entrada={entradaAnexos} />
             <div className="mt-3">
               <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
             </div>
