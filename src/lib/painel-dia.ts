@@ -269,3 +269,59 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
   for (const l of deduplicarLinhasIndicadores(linhas)) base[l.grupo].push(l);
   return base;
 }
+
+/* ------------------------------------------------------------------ */
+/* Cards do dia e filtros da fila priorizada                          */
+/* ------------------------------------------------------------------ */
+
+export type CardHoje = {
+  chave: string;
+  rotulo: string;
+  total: number;
+  /** Leitura curta do que o número significa. Sem juízo de mérito. */
+  leitura: string;
+};
+
+/** Chaves de fila exibidas como cards fixos do Painel Hoje, na ordem canônica. */
+export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = [
+  { chave: "acoes_vencidas", rotulo: "Ações vencidas", leitura: "Próxima ação com data anterior a hoje" },
+  { chave: "acoes_hoje", rotulo: "Ações de hoje", leitura: "Próxima ação datada para hoje" },
+  { chave: "leads_sem_responsavel", rotulo: "Leads sem responsável", leitura: "Lead ativo sem dono nominal" },
+  { chave: "contratos_enviados_pendentes", rotulo: "Contratos enviados", leitura: "Aguardando assinatura" },
+  { chave: "pagamentos_aguardados", rotulo: "Pagamentos aguardados", leitura: "Contrato assinado sem pagamento confirmado" },
+  { chave: "onboardings_pendentes", rotulo: "Onboardings pendentes", leitura: "Pagamento confirmado sem onboarding iniciado" },
+  { chave: "casos_pendencia_documental", rotulo: "Documentos aguardados", leitura: "Caso com pendência documental" },
+];
+
+/** Contagem por card, respeitando o recorte de fixtures de demonstração. */
+export function cardsHoje(filas: Fila[], opcoes?: { incluirDemo?: boolean }): CardHoje[] {
+  return CARDS_HOJE.map((c) => {
+    const itens = (filas.find((f) => f.chave === c.chave)?.itens ?? []) as ItemFila[];
+    const total = opcoes?.incluirDemo ? itens.length : itens.filter((i) => !eDemo(i.rotulo)).length;
+    return { ...c, total, rotulo: c.rotulo, leitura: c.leitura };
+  });
+}
+
+export type FiltrosDia = { responsavel?: string | null; area?: string | null; etapa?: string | null };
+
+const valores = (itens: ItemDia[], campo: "responsavel" | "area" | "etapa") =>
+  [...new Set(itens.map((i) => i[campo]).filter((v): v is string => Boolean(v)))].sort((a, b) => a.localeCompare(b));
+
+/** Opções de filtro derivadas dos próprios itens do dia (sem entrada livre). */
+export function opcoesFiltroDia(itens: ItemDia[]) {
+  return {
+    responsaveis: valores(itens, "responsavel"),
+    areas: valores(itens, "area"),
+    etapas: valores(itens, "etapa"),
+  };
+}
+
+/** Aplica filtros de responsável, área e etapa. Filtro vazio não restringe. */
+export function aplicarFiltrosDia(itens: ItemDia[], filtros: FiltrosDia): ItemDia[] {
+  return itens.filter((i) => {
+    if (filtros.responsavel && i.responsavel !== filtros.responsavel) return false;
+    if (filtros.area && i.area !== filtros.area) return false;
+    if (filtros.etapa && i.etapa !== filtros.etapa) return false;
+    return true;
+  });
+}
