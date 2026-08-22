@@ -23,7 +23,7 @@ const baseEntrada = {
   autorizacaoPesquisa: null,
   procuracao: null,
   alteracaoEscopo: null,
-} as const;
+};
 
 const ctxDe = (pais: string | null, fonte: "proposta" | "planejador" | "caso" = "proposta") =>
   resolverContextoEuropeu({
