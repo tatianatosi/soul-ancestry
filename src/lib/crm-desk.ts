@@ -388,6 +388,21 @@ export const STATUS_MARCO: Opcao[] = [
 /** Marcos que não podem sustentar rota/protocolo nem comunicação externa. */
 export const MARCOS_BLOQUEIA_EXTERNO = ["a_revisar", "desatualizado", "encerrado"];
 
+/** Ambientes autorizados para o dossiê-mãe. Nenhum ambiente livre é aceito. */
+export const AMBIENTES_DOSSIE: Opcao[] = [
+  { valor: "drive_corporativo", rotulo: "Drive corporativo autorizado" },
+  { valor: "desk_intelligence", rotulo: "Desk Intelligence (dossiê interno)" },
+  { valor: "cofre_documental", rotulo: "Cofre documental restrito" },
+];
+
+/** Níveis de acesso ao dossiê-mãe. */
+export const NIVEIS_ACESSO_DOSSIE: Opcao[] = [
+  { valor: "restrito_equipe_caso", rotulo: "Restrito à equipe do caso" },
+  { valor: "restrito_operacoes", rotulo: "Restrito a operações" },
+  { valor: "restrito_admin", rotulo: "Restrito à administração" },
+];
+
+
 /** Todos os catálogos classificatórios por campo. Entrada fora da lista é rejeitada. */
 export const CATALOGOS: Record<string, Opcao[]> = {
   area_responsavel: AREAS_RESPONSAVEIS,
@@ -424,6 +439,8 @@ export const CATALOGOS: Record<string, Opcao[]> = {
   pesquisa_previa_autorizacao: PESQUISA_PREVIA_AUTORIZACAO,
   status_marco: STATUS_MARCO,
   status_trilha: STATUS_TRILHA,
+  dossie_ambiente: AMBIENTES_DOSSIE,
+  dossie_nivel_acesso: NIVEIS_ACESSO_DOSSIE,
 };
 
 export const CAMPOS_TEXTO_LIVRE = [
@@ -511,6 +528,12 @@ export type LeadDesk = {
   spin_necessidade?: boolean | null;
   gravacao_link_interno?: string | null;
   dossie_link_interno?: string | null;
+  /* Dossiê-mãe autorizado */
+  dossie_ativo?: boolean | null;
+  dossie_mae_ref?: string | null;
+  dossie_ambiente?: string | null;
+  dossie_nivel_acesso?: string | null;
+  dossie_responsavel?: string | null;
   /* Consentimento, trilha e pesquisa prévia (Discovery v1.0) */
   consentimento_status?: string | null;
   consentimento_em?: string | null;
@@ -678,6 +701,15 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
 
   if (String(l.eixo_formalizacao) === "caso_ativo" && vazio(l.case_id)) {
     erros.push({ campo: "eixo_formalizacao", motivo: "Caso ativo exige caso operacional vinculado: Discovery ou proposta não abrem caso." });
+  }
+
+  // Dossiê-mãe autorizado: só fica ativo com identificação, ambiente, link, nível de acesso e responsável.
+  if (l.dossie_ativo) {
+    if (vazio(l.dossie_mae_ref)) erros.push({ campo: "dossie_mae_ref", motivo: "Dossiê ativo exige ID/nome do dossiê-mãe." });
+    if (vazio(l.dossie_ambiente)) erros.push({ campo: "dossie_ambiente", motivo: "Dossiê ativo exige ambiente autorizado." });
+    if (vazio(l.dossie_link_interno)) erros.push({ campo: "dossie_link_interno", motivo: "Dossiê ativo exige link interno autorizado." });
+    if (vazio(l.dossie_nivel_acesso)) erros.push({ campo: "dossie_nivel_acesso", motivo: "Dossiê ativo exige nível de acesso." });
+    if (vazio(l.dossie_responsavel)) erros.push({ campo: "dossie_responsavel", motivo: "Dossiê ativo exige responsável nominal." });
   }
 
   return erros;

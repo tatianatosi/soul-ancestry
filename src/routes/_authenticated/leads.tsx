@@ -27,6 +27,8 @@ import {
   SERVICOS_INICIAIS,
   STATUS_CALL,
   STATUS_VIA,
+  AMBIENTES_DOSSIE,
+  NIVEIS_ACESSO_DOSSIE,
   ELEGIBILIDADE_PRELIMINAR,
   CONFIANCA_TRIAGEM,
   GERACOES_ASCENDENTE,
@@ -558,6 +560,40 @@ function LeadsPage() {
               <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} desabilitado={!podeEscrever} />
             </div>
           </Secao>
+
+          <Secao
+            titulo="Dossiê-mãe autorizado"
+            descricao="Dossiê só fica ativo com identificação, ambiente autorizado, link interno, nível de acesso e responsável nominal. Nada disso aparece em área de cliente."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="flex items-end gap-2 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={bool("dossie_ativo")}
+                  disabled={!podeEscrever}
+                  onChange={(e) => set("dossie_ativo")(e.target.checked)}
+                />
+                Dossiê-mãe ativo
+              </label>
+              <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} desabilitado={!podeEscrever} />
+              <Selecao
+                label="Ambiente autorizado"
+                valor={campo("dossie_ambiente")}
+                opcoes={AMBIENTES_DOSSIE}
+                onChange={set("dossie_ambiente")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Nível de acesso"
+                valor={campo("dossie_nivel_acesso")}
+                opcoes={NIVEIS_ACESSO_DOSSIE}
+                onChange={set("dossie_nivel_acesso")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto label="Responsável pelo dossiê" valor={campo("dossie_responsavel")} onChange={set("dossie_responsavel")} desabilitado={!podeEscrever} />
+            </div>
+          </Secao>
+
 
           <Secao
             titulo="Consentimento de gravação e transcrição"

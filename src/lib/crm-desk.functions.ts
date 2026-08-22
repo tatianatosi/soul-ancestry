@@ -76,6 +76,12 @@ const CAMPOS_LEAD = [
   "spin_necessidade",
   "gravacao_link_interno",
   "dossie_link_interno",
+  // Dossiê-mãe autorizado
+  "dossie_ativo",
+  "dossie_mae_ref",
+  "dossie_ambiente",
+  "dossie_nivel_acesso",
+  "dossie_responsavel",
   // Consentimento, trilha e pesquisa prévia (Discovery v1.0)
   "consentimento_status",
   "consentimento_em",
