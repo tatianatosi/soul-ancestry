@@ -88,7 +88,7 @@ describe("qualificação institucional", () => {
 describe("modelo individual", () => {
   it("aceita um requerente com acompanhante opcional limitada", () => {
     const r = validarComposicaoIndividual({
-      requerentes: [criarRequerentePrincipal({ identificado: "confirmado_humano" })],
+      requerentes: [criarRequerentePrincipal({ identificacao: "confirmado_humano" } as never)],
       acompanhante: criarAcompanhante(),
     } as never);
     expect(r.bloqueios.every((b) => !b.mensagem.includes("acompanhante"))).toBe(true);
