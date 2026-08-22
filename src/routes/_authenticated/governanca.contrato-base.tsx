@@ -28,7 +28,16 @@ import {
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
 import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
 import { MARCA_RASCUNHO } from "@/lib/anexos-i-v";
-import { CONFLITOS_TESTE, anexosIaVTeste, gatesTeste } from "@/lib/contrato-base-previa";
+import {
+  CONFLITOS_TESTE,
+  anexosIaVTeste,
+  estruturaFamiliarTeste,
+  gatesTeste,
+  matrizClausulasTeste,
+  previaFinalTeste,
+} from "@/lib/contrato-base-previa";
+import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
+import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 
 const TITULO = "Contrato-base consolidado v1.0 | Clube Ancestral";
 const DESCRICAO =
@@ -74,6 +83,10 @@ function Pagina() {
   const bloqueios = bloqueiosDaPreviaTeste(anexos);
   const matriz = matrizRenderizacaoPreviaTeste(anexos);
   const anexosIV = anexosIaVTeste();
+  const perfil = perfilInstitucionalRenderizado();
+  const clausulas = matrizClausulasTeste();
+  const previaFinal = previaFinalTeste();
+  const familia = estruturaFamiliarTeste();
   const gates = gatesTeste();
 
   return (
@@ -205,6 +218,28 @@ function Pagina() {
           </div>
 
           <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+            <div className="mb-3">
+              <PerfilInstitucionalBloco campos={perfil.campos} versao={perfil.versao} status={perfil.status} pendencias={perfil.pendencias} />
+            </div>
+            <div className="mb-3">
+              <MatrizClausulas linhas={clausulas} />
+            </div>
+            <div className="mb-3 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                Prévia final — {previaFinal.liberada ? "liberada" : "bloqueada"}
+              </p>
+              <ul className="mt-1 space-y-1">
+                {previaFinal.motivos.map((m) => (
+                  <li key={m}>• {m}</li>
+                ))}
+              </ul>
+              <p className="mt-2">
+                Caso familiar (TESTE): signatários {familia.signatarios.join(", ") || "—"} · não signatários{" "}
+                {familia.naoSignatarios.join(", ") || "—"} · ANX-INDIVIDUAL para {familia.anexosIndividuais.length}{" "}
+                requerente(s) adulto(s) · ANX-REPRESENTACAO {familia.representacaoAplicavel ? "aplicável" : "não aplicável"} ·
+                contratos paralelos: {familia.contratosParalelos}.
+              </p>
+            </div>
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos I–V governados (TESTE)</p>
             <div className="mt-2">
               <AnexosIaV anexos={anexosIV} />

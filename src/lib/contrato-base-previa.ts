@@ -9,6 +9,12 @@
 
 import { dicionarioAnexos, type RegraAnexo } from "@/lib/anexos-dicionario";
 import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
+import {
+  avaliarMatrizClausulas,
+  estruturaContratoFamiliar,
+  previaFinalLiberada,
+  type MembroFamiliar,
+} from "@/lib/matriz-clausulas";
 import { MATRIZ_RENDERIZACAO, CONTRATO_BASE_VERSAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
 import {
   anexosIaV,
@@ -262,4 +268,37 @@ export function gatesTeste() {
     revisorHumanoAprovado: false,
     conflitos: CONFLITOS_TESTE,
   });
+}
+
+/* ---------------- Matriz de cláusulas A–P na prévia TESTE ---------------- */
+
+export const MEMBROS_FAMILIARES_TESTE: MembroFamiliar[] = [
+  { nome: "TESTE Requerente Um", maiorIdade: true, requerente: true, aplicavel: true },
+  { nome: "TESTE Requerente Dois", maiorIdade: true, requerente: true, aplicavel: true },
+  { nome: "TESTE Dependente Menor", maiorIdade: false, requerente: true, aplicavel: true, representacaoNecessaria: true },
+];
+
+export function matrizClausulasTeste() {
+  return avaliarMatrizClausulas({
+    modelo: ENTRADA_TESTE_ANEXOS.modelo,
+    entradaAnexos: ENTRADA_TESTE_ANEXOS,
+    anexos: anexosIaVTeste(),
+    conflitos: CONFLITOS_TESTE,
+    politicaPrivacidadeVigente: false,
+    foroConfigurado: false,
+    metodoAssinaturaConfigurado: false,
+    revisaoJuridicaAprovada: false,
+  });
+}
+
+export function previaFinalTeste() {
+  return previaFinalLiberada({
+    modelo: ENTRADA_TESTE_ANEXOS.modelo,
+    linhas: matrizClausulasTeste(),
+    bloqueiosGates: gatesTeste(),
+  });
+}
+
+export function estruturaFamiliarTeste() {
+  return estruturaContratoFamiliar(MEMBROS_FAMILIARES_TESTE);
 }
