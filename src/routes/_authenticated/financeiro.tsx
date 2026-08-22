@@ -151,6 +151,9 @@ function FinanceiroPage() {
   const faturas = (qFaturas.data ?? []) as Linha[];
   const linhas = (q.data ?? []) as Linha[];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
+  const ehDemo = (l: Linha) =>
+    l["dados_teste"] === true ||
+    Boolean(clientes.find((c) => c.id === l["client_id"])?.["is_demo" as keyof typeof c]);
   const rotuloFatura = (id: unknown) => {
     const f = faturas.find((x) => x["id"] === id);
     return f ? `${String(f["descricao"] ?? f["numero"] ?? "Fatura")} — ${moeda(f["valor"], f["moeda"])}` : "—";
