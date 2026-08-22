@@ -109,7 +109,7 @@ export const COBERTURA_MODULOS: Modulo[] = [
   {
     id: "proposta_escopo",
     rotulo: "Proposta e escopo",
-    rota: "/comercial",
+    rota: "/propostas",
     operacoes: [
       { id: "criar_proposta", rotulo: "Criar proposta", entidade: "proposals" },
       { id: "editar_proposta", rotulo: "Editar e salvar proposta", entidade: "proposals" },
