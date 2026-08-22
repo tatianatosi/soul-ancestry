@@ -1,3 +1,5 @@
+import { montarFilasHoje } from "@/lib/crm-desk";
+import { consolidarDia } from "@/lib/painel-dia";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -192,5 +194,44 @@ describe("consolidação da cadeia", () => {
     });
     expect(item?.acao).toContain("Condição comercial");
     expect(item?.bloqueios.length).toBeGreaterThan(0);
+  });
+});
+
+describe("cadeia operacional no Painel Hoje", () => {
+  const itemCadeia = {
+    id: "c1",
+    rotulo: "CA-TESTE-001 · Caso",
+    detalhe: "Proposta estruturada: pendência",
+    data: "2026-08-20",
+    tipo: "caso" as const,
+    area: "operacoes",
+    responsavel: null,
+    etapa: "cadeia_operacional",
+  };
+
+  it("cria a fila cadeia_operacional a partir das pendências derivadas", () => {
+    const filas = montarFilasHoje({ leads: [], casos: [], cadeia: [itemCadeia] });
+    const fila = filas.find((f) => f.chave === "cadeia_operacional");
+    expect(fila?.itens).toHaveLength(1);
+    expect(fila?.rotulo).toBe("Cadeia operacional pendente");
+  });
+
+  it("mantém o caso uma única vez mesmo quando também tem pendência documental", () => {
+    const filas = montarFilasHoje({
+      leads: [],
+      casos: [
+        {
+          id: "c1",
+          codigo: "CA-TESTE-001",
+          titulo: "Caso",
+          documentos_minimos_ok: false,
+          prazo_proxima_acao: "2026-08-25",
+        },
+      ],
+      cadeia: [itemCadeia],
+    });
+    const itens = consolidarDia(filas);
+    expect(itens.filter((i) => i.id === "c1")).toHaveLength(1);
+    expect(itens[0]?.acao).toContain("Proposta estruturada");
   });
 });
