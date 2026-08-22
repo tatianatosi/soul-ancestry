@@ -198,7 +198,7 @@ export function sinaisMarketing(dados: {
 }): SinalMarketing[] {
   const s: SinalMarketing[] = [];
   const add = (codigo: string, texto: string, rota: string, severidade: SinalMarketing["severidade"] = "atencao") =>
-    s.push({ codigo, texto, rota, severidade });
+    s.push({ codigo, texto, rota, severidade, ...(ACAO_SINAL[codigo] ?? {}) });
 
   if ((val(dados.investimento_midia) ?? 0) > 0 && (val(dados.leads_atribuiveis) ?? 0) === 0)
     add("midia_sem_leads", "Investimento de mídia registrado sem leads atribuídos no período.", "/governanca/indicadores");
