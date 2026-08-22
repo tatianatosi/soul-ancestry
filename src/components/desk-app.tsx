@@ -24,6 +24,11 @@ import { ORIGEM_DADOS_CANVAS, SANEAMENTO_FONTES, SAUDE_SKU } from "@/data/saneam
 import { GoLiveDesk } from "./desk-go-live";
 import { DeskCrm } from "./desk-crm";
 import { KitContratual } from "./kit-contratual";
+import {
+  resolverContextoEuropeu,
+  TITULO_PROCURACAO_BRASIL,
+  TITULO_PROCURACAO_EUROPEIA_GENERICO,
+} from "@/lib/procuracao-europeia";
 import { TimelineContratualDesk } from "./timeline-contratual";
 import {
   LayoutGrid,
@@ -184,6 +189,9 @@ function Formalizacao() {
   const caso = useActiveCase();
   const contrato = caso.contrato;
   const procuracoes = caso.procuracoes;
+  const ctxProcuracaoEuropeia = resolverContextoEuropeu({
+    casoConfirmado: { pais: caso.rota?.pais_principal ?? null, versao: null },
+  });
   const f = caso.familia_direta;
 
   const pessoas = [
@@ -276,8 +284,8 @@ function Formalizacao() {
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           {(
             [
-              ["Procuração em português", procuracoes?.portugues],
-              ["Procuração em italiano", procuracoes?.italiano],
+              [TITULO_PROCURACAO_BRASIL, procuracoes?.portugues],
+              [ctxProcuracaoEuropeia.state === "confirmado" ? ctxProcuracaoEuropeia.title : TITULO_PROCURACAO_EUROPEIA_GENERICO, procuracoes?.italiano],
             ] as const
           ).map(([label, proc]) => (
             <div key={label} className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">

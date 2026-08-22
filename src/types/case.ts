@@ -346,7 +346,7 @@ export type CaseContratacao = {
   autorizacoes: {
     pesquisa_especifica: AutorizacaoPesquisa[];
     procuracao_brasileira: ProcuracaoDocumento;
-    procuracao_italiana: ProcuracaoDocumento;
+    procuracao_europeia: ProcuracaoDocumento;
   };
   alteracoes_escopo: AlteracaoEscopo[];
   /** Timeline contratual do caso (Desk completo, resumo na área da cliente). */

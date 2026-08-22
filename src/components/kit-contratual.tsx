@@ -17,7 +17,14 @@ import {
   STATUS_ETAPA_LABEL,
   mensagemDocumento,
 } from "@/lib/visibilidade";
-import type { CaseContratacao, EstadoDocumento } from "@/types/case";
+import type { CaseContratacao, CaseData, EstadoDocumento } from "@/types/case";
+import {
+  AVISO_PREPARO_PROCURACAO,
+  bloqueiosProcuracaoEuropeia,
+  resolverContextoEuropeu,
+  TITULO_PROCURACAO_BRASIL,
+  type ContextoProcuracaoEuropeia,
+} from "@/lib/procuracao-europeia";
 import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace } from "lucide-react";
 
 
@@ -29,12 +36,26 @@ import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace } f
 
 const NAO_INICIADO = "Ação ainda não iniciada";
 
+/**
+ * Contexto europeu do caso, somente leitura, por precedência canônica.
+ * Nesta visão o Planejador/proposta ainda não declaram país próprio, então o
+ * resolvedor lê o país confirmado no caso — sem qualquer país por default.
+ */
+function contextoEuropeuDoCaso(caso: CaseData): ContextoProcuracaoEuropeia {
+  return resolverContextoEuropeu({
+    propostaAprovadaVinculada: null,
+    produtoSkuHomologado: null,
+    planejadorHomologado: null,
+    casoConfirmado: { pais: caso.rota?.pais_principal ?? null, versao: null },
+  });
+}
+
 type ModeloId =
   | "ordem_servico"
   | "despesas"
   | "autorizacao"
   | "procuracao_br"
-  | "procuracao_it"
+  | "procuracao_eu"
   | "alteracao_escopo";
 
 type CardKit = {
@@ -50,11 +71,11 @@ type CardKit = {
   modelo?: ModeloId;
 };
 
-function cards(c: CaseContratacao | undefined, responsavel: string, criacao: string): CardKit[] {
+function cards(c: CaseContratacao | undefined, responsavel: string, criacao: string, ctx: ContextoProcuracaoEuropeia): CardKit[] {
   const os = c?.ordem_servico;
   const d = c?.despesas_externas;
   const br = c?.autorizacoes.procuracao_brasileira;
-  const it = c?.autorizacoes.procuracao_italiana;
+  const eu = c?.autorizacoes.procuracao_europeia;
   const pesquisa = c?.autorizacoes.pesquisa_especifica ?? [];
   const alt = c?.alteracoes_escopo ?? [];
 
@@ -108,7 +129,7 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
     },
     {
       id: "proc_br",
-      titulo: "Procuração Brasileira",
+      titulo: TITULO_PROCURACAO_BRASIL,
       icone: Stamp,
       status: br ? PROCURACAO_LABEL[br.status] : "Não iniciada",
       versao: texto(br?.finalidade, "Finalidade a definir"),
@@ -119,16 +140,20 @@ function cards(c: CaseContratacao | undefined, responsavel: string, criacao: str
       modelo: "procuracao_br",
     },
     {
-      id: "proc_it",
-      titulo: "Procuração Italiana",
+      id: "proc_eu",
+      titulo: ctx.state === "confirmado" ? ctx.title : "Procuração para atuação no país/órgão europeu aplicável",
       icone: Landmark,
-      status: it ? PROCURACAO_LABEL[it.status] : "Não iniciada",
-      versao: texto(it?.finalidade, "Finalidade a definir"),
+      status: bloqueiosProcuracaoEuropeia(ctx).bloqueado
+        ? "Não iniciada"
+        : eu
+          ? PROCURACAO_LABEL[eu.status]
+          : "Não iniciada",
+      versao: texto(eu?.finalidade, "Finalidade a definir"),
       criacao,
       aceite: NAO_INICIADO,
       responsavel,
-      proximaAcao: "Não preparar antes de confirmar o órgão italiano competente.",
-      modelo: "procuracao_it",
+      proximaAcao: AVISO_PREPARO_PROCURACAO,
+      modelo: "procuracao_eu",
     },
     {
       id: "escopo",
@@ -175,8 +200,8 @@ function estadoDoCard(id: string, c: CaseContratacao | undefined): EstadoDocumen
       return c.autorizacoes.procuracao_brasileira.status === "nao_iniciada"
         ? "nao_criado"
         : "rascunho";
-    case "proc_it":
-      return c.autorizacoes.procuracao_italiana.status === "nao_iniciada"
+    case "proc_eu":
+      return c.autorizacoes.procuracao_europeia.status === "nao_iniciada"
         ? "nao_criado"
         : "rascunho";
     case "escopo":
@@ -192,10 +217,12 @@ export function KitContratual() {
   const caso = useActiveCase();
   const c = caso.contratacao;
   const [area, setArea] = useState<AreaId>("visao");
+  const ctxEuropeu = contextoEuropeuDoCaso(caso);
   const itens = cards(
     c,
     texto(caso.governanca.responsavel_caso, FALLBACK.aguardando),
     texto(caso.geral.data_abertura, FALLBACK.aguardando),
+    ctxEuropeu,
   );
 
   const navegacao: { id: AreaId; label: string }[] = [
@@ -386,8 +413,8 @@ const TITULOS: Record<ModeloId, string> = {
   ordem_servico: "Ordem de Serviço — prévia interna",
   despesas: "Controle de Despesas Externas — prévia interna",
   autorizacao: "Autorização Específica de Pesquisa — prévia interna",
-  procuracao_br: "Procuração Brasileira — prévia interna",
-  procuracao_it: "Procuração Italiana — prévia interna",
+  procuracao_br: `${TITULO_PROCURACAO_BRASIL} — prévia interna`,
+  procuracao_eu: "Procuração europeia — prévia interna",
   alteracao_escopo: "Termo de Alteração de Escopo — prévia interna",
 };
 
@@ -529,8 +556,8 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
             </>
           )}
 
-          {(id === "procuracao_br" || id === "procuracao_it") && (
-            <ProcuracaoPreview italiana={id === "procuracao_it"} />
+          {(id === "procuracao_br" || id === "procuracao_eu") && (
+            <ProcuracaoPreview europeia={id === "procuracao_eu"} />
           )}
 
           {id === "alteracao_escopo" && (
@@ -572,24 +599,62 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
   );
 }
 
-function ProcuracaoPreview({ italiana }: { italiana: boolean }) {
-  const c = useActiveCase().contratacao;
-  const p = italiana ? c?.autorizacoes.procuracao_italiana : c?.autorizacoes.procuracao_brasileira;
-  const orgao = preenchido(p?.orgao_destinatario)
-    ? p!.orgao_destinatario
-    : italiana
-      ? "Órgão italiano ainda não confirmado"
-      : "A confirmar";
+function ProcuracaoPreview({ europeia }: { europeia: boolean }) {
+  const caso = useActiveCase();
+  const c = caso.contratacao;
+  const ctx = contextoEuropeuDoCaso(caso);
+  const bloqueio = bloqueiosProcuracaoEuropeia(ctx);
+  const p = europeia ? c?.autorizacoes.procuracao_europeia : c?.autorizacoes.procuracao_brasileira;
+  const orgao = preenchido(p?.orgao_destinatario) ? p!.orgao_destinatario : "A confirmar";
 
   return (
     <>
+      <Linha l="Título aplicável" v={europeia ? ctx.title : TITULO_PROCURACAO_BRASIL} />
+      {europeia && (
+        <>
+          <Linha l="Jurisdição" v={`${ctx.jurisdiction_scope} · ${ctx.country_label}`} />
+          <Linha l="Origem do país" v={ctx.source_label} />
+          <Linha
+            l="Estado do contexto"
+            v={
+              ctx.state === "confirmado"
+                ? "País confirmado por fonte canônica"
+                : ctx.state === "conflito"
+                  ? "Conflito entre fontes canônicas"
+                  : "País a confirmar"
+            }
+          />
+        </>
+      )}
       <Linha l="Finalidade específica" v={texto(p?.finalidade, NAO_INICIADO)} />
       <Linha l="Órgão destinatário" v={orgao} />
-      {italiana && <Linha l="Comune / Consulado" v="Somente após confirmação oficial" />}
       <ListaCampo l="Pessoas vinculadas" itens={lista(p?.pessoas_vinculadas)} />
-      <Linha l="Status" v={p ? PROCURACAO_LABEL[p.status] : "Não iniciada"} />
+      <Linha l="Poderes necessários" v={NAO_INICIADO} />
+      <Linha l="Idioma" v={NAO_INICIADO} />
+      <Linha l="Requisito formal (assinatura/apostila/reconhecimento)" v={NAO_INICIADO} />
+      <Linha
+        l="Status"
+        v={europeia && bloqueio.bloqueado ? "Não iniciada" : p ? PROCURACAO_LABEL[p.status] : "Não iniciada"}
+      />
       <Linha l="Validade" v={texto(p?.validade, NAO_INICIADO)} />
       <Linha l="Observações" v={texto(p?.observacoes, "Sem observações registradas")} />
+      {europeia && bloqueio.bloqueado && (
+        <div className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/5 p-3 text-[11px] text-terracotta">
+          <div className="font-semibold">Preparação bloqueada</div>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4">
+            {bloqueio.motivos.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+          {bloqueio.origemAResolver && (
+            <div className="mt-1">Resolver em: {bloqueio.origemAResolver}</div>
+          )}
+        </div>
+      )}
+      <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-2.5 text-[11px] text-navy">
+        {AVISO_PREPARO_PROCURACAO}
+      </p>
     </>
   );
 }
+

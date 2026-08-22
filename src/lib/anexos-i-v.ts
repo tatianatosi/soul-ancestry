@@ -9,6 +9,11 @@
 import { CLAUSULA_DESPESAS_TERCEIROS, ESTADOS_DESPESA, type EstadoDespesa } from "@/lib/despesas-terceiros";
 import { fonteOficialDePreco } from "@/lib/precos-sku";
 import type { EstadoAnexo } from "@/lib/anexos-dicionario";
+import {
+  AVISO_PREPARO_PROCURACAO,
+  bloqueiosProcuracaoEuropeia,
+  type ContextoProcuracaoEuropeia,
+} from "@/lib/procuracao-europeia";
 
 export const MODELOS_PERMITIDOS = ["MODELO-ESTUDO", "BASE-GEN-V2"] as const;
 export type ModeloPermitido = (typeof MODELOS_PERMITIDOS)[number];
@@ -271,7 +276,8 @@ export type EstadoProcuracaoAnexo = (typeof ESTADOS_PROCURACAO_ANEXO)[number];
 
 export type ProcuracaoAnexo = {
   exigidaPorOrgao: boolean;
-  tipo: "brasil" | "italia" | null;
+  /** Jurisdição: Brasil ou país europeu resolvido por fonte canônica (nunca default). */
+  tipo: "brasil" | "europa" | null;
   finalidade: string | null;
   orgaoDestinatario: string | null;
   pessoas: string[];
@@ -280,7 +286,14 @@ export type ProcuracaoAnexo = {
   revisaoJuridicaAprovada: boolean;
   /** Regra 5: evidência de assinatura registrada, quando aplicável. */
   evidenciaAssinatura?: string | null;
+  /** Contexto europeu resolvido (país, fonte, estado e conflito). */
+  contextoEuropeu?: ContextoProcuracaoEuropeia | null;
+  /** Campos que exigem fonte rastreável mesmo com país confirmado. */
+  idioma?: string | null;
+  modeloLocal?: string | null;
+  requisitoFormal?: string | null;
 };
+
 
 /** Modelo condicional do Anexo IV sob revisão jurídica. */
 export const ANEXO_IV_MODELO_VERSAO = "ANEXO-IV-PROCURACAO-ESPECIFICA-v1.0";
@@ -293,7 +306,10 @@ export const REGRAS_MOTOR_ANEXO_IV: string[] = [
   "Não criar procuração real, não enviar, não assinar e não inferir poderes.",
   "Quando exigida para atividade externa, bloquear a ação até instrumento aprovado e evidência de assinatura quando aplicável.",
   "Procuração é separada de autorização de pesquisa; uma não substitui a outra.",
+  "A procuração de atuação europeia é parametrizada pelo país da proposta/OS, SKU homologado, Planejador ou caso — Itália nunca é default.",
+  "Conflito de país entre fontes canônicas, ou país a confirmar, bloqueia preparação, revisão, assinatura e uso do Anexo IV.",
 ];
+
 
 export const IMPACTOS_CONTROLADOS = ["sem_alteracao", "novo_prazo_estimado", "novo_valor", "despesa_externa_a_aprovar"] as const;
 export type ImpactoControlado = (typeof IMPACTOS_CONTROLADOS)[number];
@@ -626,6 +642,9 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
   const p = e.procuracao;
   const aplicavel = Boolean(p?.exigidaPorOrgao);
   const pend: string[] = [];
+  const ctx = p?.tipo === "europa" ? (p.contextoEuropeu ?? null) : null;
+  const bloqueioPais = ctx ? bloqueiosProcuracaoEuropeia(ctx) : null;
+  if (aplicavel && bloqueioPais?.bloqueado) pend.push(...bloqueioPais.motivos);
   if (aplicavel && p) {
     if (!p.finalidade) pend.push("Finalidade específica não definida.");
     if (!p.orgaoDestinatario) pend.push("Órgão destinatário não definido.");
@@ -641,6 +660,32 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
   const campos: CampoRenderizado[] = [
     { rotulo: "Caso", valor: e.caseId, fonte: "crm_confirmado" },
     { rotulo: "Tipo", valor: p?.tipo ? p.tipo.toUpperCase() : null, fonte: "configuracao_juridica", observacaoAusencia: AUSENTE },
+    {
+      rotulo: "Jurisdição da procuração",
+      valor: p?.tipo === "brasil" ? "Brasil" : ctx ? `${ctx.jurisdiction_scope} · ${ctx.country_label}` : null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: AUSENTE,
+    },
+    {
+      rotulo: "Título aplicável",
+      valor: p?.tipo === "brasil" ? "Procuração para atuação no Brasil" : (ctx?.title ?? null),
+      fonte: "configuracao_juridica",
+      observacaoAusencia: AUSENTE,
+    },
+    {
+      rotulo: "Origem do país",
+      valor: ctx ? ctx.source_label : null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: "País europeu sem fonte canônica — não presumir Itália nem qualquer outro país.",
+    },
+    { rotulo: "Idioma", valor: p?.idioma ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: "Idioma nunca é derivado do país." },
+    { rotulo: "Modelo local", valor: p?.modeloLocal ?? null, fonte: "configuracao_juridica", observacaoAusencia: "Modelo local nunca é derivado do país." },
+    {
+      rotulo: "Requisito de assinatura/apostila/reconhecimento",
+      valor: p?.requisitoFormal ?? null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: "Requisito formal nunca é derivado do país.",
+    },
     { rotulo: "Finalidade", valor: p?.finalidade ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Órgão destinatário", valor: p?.orgaoDestinatario ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Pessoas vinculadas", valor: p?.pessoas.join(", ") || null, fonte: "crm_confirmado", observacaoAusencia: AUSENTE },
@@ -655,7 +700,7 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     {
       rotulo: "Observação",
       valor:
-        "Esta procuração será preparada e assinada apenas quando a finalidade, o destinatário e os poderes necessários estiverem definidos e aprovados.",
+        AVISO_PREPARO_PROCURACAO,
       fonte: "contrato_base",
     },
   ];
@@ -685,6 +730,10 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
  */
 export function atividadeExternaComProcuracaoLiberada(p: ProcuracaoAnexo | null): boolean {
   if (!p || !p.exigidaPorOrgao) return false;
+  if (p.tipo === "europa") {
+    if (!p.contextoEuropeu) return false;
+    if (bloqueiosProcuracaoEuropeia(p.contextoEuropeu).bloqueado) return false;
+  }
   if (!p.finalidade || !p.orgaoDestinatario || !p.pessoas.length || !p.poderes.length) return false;
   if (!p.revisaoJuridicaAprovada) return false;
   if (!["assinada", "enviada", "respondida"].includes(p.status)) return false;
