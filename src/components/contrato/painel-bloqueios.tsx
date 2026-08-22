@@ -25,6 +25,13 @@ export function PainelBloqueios({
 
   return (
     <Painel titulo={`Bloqueios acionáveis (${lista.length} · ${impeditivos} impeditivo(s))`}>
+      {lista.length > 0 && (
+        <p className="mb-3 rounded-lg border border-gold/40 bg-gold/5 p-3 text-xs text-navy/80">
+          A edição continua liberada: você pode salvar rascunho, corrigir campo, registrar fonte, conflito ou “não localizado na
+          proposta”. A formalização permanece bloqueada até resolver:{" "}
+          <strong>{lista.filter((b) => b.impeditivo).map((b) => b.titulo).join("; ") || "os itens abaixo"}</strong>.
+        </p>
+      )}
       {lista.length === 0 ? (
         <p className="text-sm text-navy/70">Sem bloqueios: geração final e solicitação de assinatura liberadas.</p>
       ) : (
