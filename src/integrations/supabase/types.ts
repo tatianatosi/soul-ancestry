@@ -18584,6 +18584,48 @@ export type Database = {
           },
         ]
       }
+      portal_projecoes: {
+        Row: {
+          case_id: string | null
+          content_sanitized: string | null
+          effective_from: string | null
+          id: string | null
+          projection_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          case_id?: string | null
+          content_sanitized?: string | null
+          effective_from?: string | null
+          id?: string | null
+          projection_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          case_id?: string | null
+          content_sanitized?: string | null
+          effective_from?: string | null
+          id?: string | null
+          projection_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_projections_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_projections_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_ops_microentregas: {
         Row: {
           archive_motivo: string | null
