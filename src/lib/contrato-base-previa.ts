@@ -9,7 +9,16 @@
 
 import { dicionarioAnexos, type RegraAnexo } from "@/lib/anexos-dicionario";
 import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
-import { MATRIZ_RENDERIZACAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
+import { MATRIZ_RENDERIZACAO, CONTRATO_BASE_VERSAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
+import {
+  anexosIaV,
+  conflitoDeFonte,
+  gatesBloqueados,
+  pendenciasDosAnexos,
+  type ConflitoFonte,
+  type EntradaAnexosIaV,
+} from "@/lib/anexos-i-v";
+
 
 export const MARCA_PREVIA_TESTE = "RASCUNHO INCOMPLETO — PRÉVIA TESTE, SEM DADOS REAIS";
 
@@ -137,4 +146,120 @@ export function matrizRenderizacaoPreviaTeste(anexos = anexosDaPreviaTeste()): S
     ...l,
     situacao: pendentes.has(l.bloco) ? "renderizado_com_pendencia" : "renderizado",
   }));
+}
+
+/* ---------------- Anexos I–V na prévia TESTE ---------------- */
+
+
+/**
+ * Entrada fictícia: proposta aprovada sem exclusões declaradas, despesa externa
+ * estimada, autorização de pesquisa sem aceite, órgão que exige procuração e
+ * alteração de escopo sem aceite. Exercita todos os bloqueios do motor.
+ */
+export const ENTRADA_TESTE_ANEXOS: EntradaAnexosIaV = {
+  caseId: "CA-TESTE-000",
+  clienteNome: "TESTE Requerente Um",
+  responsavel: "TESTE Operações",
+  dataContratacao: null,
+  contratoBaseVersao: CONTRATO_BASE_VERSAO,
+  modelo: "MODELO-ESTUDO",
+  proposta: {
+    id: "PROP-TESTE-000",
+    caseId: "CA-TESTE-000",
+    estado: "aprovada",
+    versao: "v1",
+    produtoSku: "SKU-TESTE-000",
+    produtoNome: "Produto de teste",
+    fontePreco: "planilha_mestre",
+    valorContratado: "R$ 0,00 (teste)",
+    modalidade: "Por etapas",
+    formaPagamento: "Pix",
+    parcelas: "3 etapas",
+    primeiroVencimento: null,
+    proximoVencimento: null,
+    servicosIncluidos: ["Diagnóstico documental de teste"],
+    servicosExcluidos: null,
+    entregaveis: ["Relatório de teste"],
+    objetivoEtapa: "Demonstração técnica do motor",
+    limitesDependencias: ["Depende de documentos fictícios"],
+  },
+  politicaDespesas: "pagas_diretamente_pela_cliente",
+  despesas: [
+    {
+      item: "Certidão (teste)",
+      finalidade: "Comprovação fictícia",
+      estimativa: "R$ 0,00",
+      valorReal: null,
+      estado: "estimativa_pendente",
+      pagador: "cliente",
+      aprovacaoRegistrada: false,
+      comprovante: false,
+      fonte: "planejador_homologado",
+    },
+  ],
+  autorizacaoPesquisa: {
+    finalidade: "Pesquisa fictícia de demonstração",
+    orgao: "Arquivo de teste",
+    pessoas: ["TESTE Requerente Um"],
+    documentos: ["Certidão de teste"],
+    temCustoExterno: true,
+    tetoValor: null,
+    prazoUso: null,
+    aceiteRegistrado: false,
+    aceiteEvidencia: null,
+    orgaoExigeProcuracao: true,
+    despesaVinculadaId: null,
+  },
+  procuracao: {
+    exigidaPorOrgao: true,
+    tipo: null,
+    finalidade: null,
+    orgaoDestinatario: "Arquivo de teste",
+    pessoas: [],
+    poderes: [],
+    status: "nao_iniciada",
+    revisaoJuridicaAprovada: false,
+  },
+  alteracaoEscopo: {
+    solicitada: true,
+    escopoOriginalSnapshot: "Escopo fictício de demonstração técnica da prévia.",
+    alteracao: "Inclusão de linha colateral fictícia",
+    motivo: "Demonstração do termo de alteração",
+    impactoPrazo: "sem_alteracao",
+    impactoFinanceiro: "novo_valor",
+    novoValor: "R$ 0,00 (teste)",
+    fonteNovoValor: "manual",
+    aceiteRegistrado: false,
+    aceiteEvidencia: null,
+  },
+};
+
+export const CONFLITOS_TESTE: ConflitoFonte[] = [
+  conflitoDeFonte({
+    campo: "escopo_resumo",
+    valorAtual: "Escopo fictício de demonstração técnica da prévia.",
+    origemAtual: "planejador_homologado",
+    valorConcorrente: "Escopo fictício alternativo informado por preenchimento humano.",
+    origemConcorrente: "preenchimento_humano_confirmado",
+    transicaoBloqueada: "previa_final",
+  })!,
+];
+
+export function anexosIaVTeste() {
+  return anexosIaV(ENTRADA_TESTE_ANEXOS);
+}
+
+export function pendenciasAnexosTeste() {
+  return pendenciasDosAnexos(anexosIaVTeste());
+}
+
+export function gatesTeste() {
+  return gatesBloqueados({
+    anexos: anexosIaVTeste(),
+    modelo: ENTRADA_TESTE_ANEXOS.modelo,
+    perfilInstitucionalAtivo: false,
+    metodoAssinaturaConfigurado: false,
+    revisorHumanoAprovado: false,
+    conflitos: CONFLITOS_TESTE,
+  });
 }

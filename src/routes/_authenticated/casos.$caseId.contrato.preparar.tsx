@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
+import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EscopoProposta } from "@/components/contrato/escopo-proposta";
 import { CompletudeCanva } from "@/components/contrato/completude-canva";
@@ -23,6 +24,8 @@ import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-gov
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
+import { anexosIaV, entradaDeValores, gatesBloqueados } from "@/lib/anexos-i-v";
+import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -194,6 +197,27 @@ function Pagina() {
   const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
 
+  // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
+  const anexosGovernados = anexosIaV(
+    entradaDeValores({
+      caseId: d.caso.codigo,
+      clienteNome: null,
+      responsavel: null,
+      contratoBaseVersao: CONTRATO_BASE_VERSAO,
+      modelo: "MODELO-ESTUDO",
+      valores: (d.valores ?? []) as any[],
+    }),
+  );
+  const gatesContratuais = gatesBloqueados({
+    anexos: anexosGovernados,
+    modelo: "MODELO-ESTUDO",
+    perfilInstitucionalAtivo: false,
+    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    revisorHumanoAprovado: Boolean(finalAprovada),
+    conflitos: [],
+  });
+
+
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
@@ -301,7 +325,7 @@ function Pagina() {
           <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
         </div>
 
-        <div id="anexos">
+        <div id="anexos" className="space-y-4">
           <AnexosAplicaveis
             valores={d.valores ?? []}
             anexosGerados={d.anexos ?? []}
@@ -312,6 +336,17 @@ function Pagina() {
               document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}
           />
+
+          <Painel titulo="Anexos I–V governados">
+            <p className="mb-2 text-xs text-navy/60">
+              Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
+              nenhum campo é preenchido por inferência.
+            </p>
+            <AnexosIaV anexos={anexosGovernados} />
+            <div className="mt-3">
+              <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
+            </div>
+          </Painel>
         </div>
 
         <div id="ficha" className="space-y-4">
