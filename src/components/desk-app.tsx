@@ -55,6 +55,7 @@ import {
   Link2,
 } from "lucide-react";
 import { PainelModulosContextuais, AssistenteLateral } from "@/components/desk/modulos-contextuais";
+import { PlanoAcaoDemo } from "@/components/pesquisa/plano-acao-demo";
 import type { TelaDesk } from "@/lib/desk-modulos";
 import { useActiveCase } from "@/lib/useActiveCase";
 import {
@@ -581,6 +582,7 @@ function Casos() {
 
 /* --- Checklist --- */
 function Checklist() {
+  const [visao, setVisao] = useState<"semana" | "pesquisa">("semana");
   const sections: { title: string; tone: "confirm" | "review" | "critical"; items: string[] }[] = [
     {
       title: "Confirmar",
@@ -636,6 +638,31 @@ function Checklist() {
   };
   return (
     <div className="space-y-6">
+      <nav aria-label="Visões do checklist" className="flex flex-wrap gap-2 border-b border-border pb-4">
+        <button
+          type="button"
+          onClick={() => setVisao("semana")}
+          className={cn(
+            "rounded-full border px-4 py-2 text-xs font-semibold transition",
+            visao === "semana" ? "border-navy bg-navy text-cream" : "border-navy/20 bg-white text-navy",
+          )}
+        >
+          Checklist semanal
+        </button>
+        <button
+          type="button"
+          onClick={() => setVisao("pesquisa")}
+          className={cn(
+            "rounded-full border px-4 py-2 text-xs font-semibold transition",
+            visao === "pesquisa" ? "border-navy bg-navy text-cream" : "border-navy/20 bg-white text-navy",
+          )}
+        >
+          Plano de ação de pesquisa
+        </button>
+      </nav>
+
+      {visao === "pesquisa" ? <PlanoAcaoDemo /> : (
+      <>
       <header>
         <div className="text-[11px] uppercase tracking-widest text-gold">Prioridade máxima</div>
         <h1 className="font-serif text-3xl italic text-navy">Checklist da Semana</h1>
@@ -680,6 +707,8 @@ function Checklist() {
           );
         })}
       </div>
+      </>
+      )}
     </div>
   );
 }

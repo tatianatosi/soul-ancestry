@@ -79,7 +79,7 @@ export const MODULOS_DESK: ModuloDesk[] = [
 
   // ---------------- CHECKLIST ----------------
   { id: "chk-proximas-acoes", nome: "Próximas ações", tela: "checklist", destino: "/tarefas", forma: "subrota", descricao: "Próxima ação por caso e por responsável." },
-  { id: "chk-plano-pesquisa", nome: "Plano de ação de pesquisa", tela: "checklist", destino: "/pesquisa-modulo", forma: "subrota", descricao: "Plano de pesquisa e itens pendentes." },
+  { id: "chk-plano-pesquisa", nome: "Plano de ação de pesquisa", tela: "checklist", destino: "Checklist semanal → Plano de ação de pesquisa · /plano-acao/$caseId", forma: "aba_interna", descricao: "Oito visões operacionais de ações, instituições, rechecagens e estimativas de terceiros." },
   { id: "chk-rechecagens", nome: "Rechecagens institucionais", tela: "checklist", destino: "/ops (rechecagens)", forma: "painel", descricao: "Rechecagens periódicas de fontes institucionais." },
   { id: "chk-d10-d14", nome: "D10 / D14", tela: "checklist", destino: "/ops (SLA D10/D14)", forma: "painel", descricao: "Marcos de acompanhamento D10 e D14." },
   { id: "chk-pendencias-resp", nome: "Pendências por responsável", tela: "checklist", destino: "/ops (fila por responsável)", forma: "painel", descricao: "Pendências agrupadas por pessoa responsável." },
