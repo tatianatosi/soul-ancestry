@@ -104,6 +104,8 @@ export function PainelDia() {
   const carregarCadencia = useServerFn(painelCadencia);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
+  const [filtros, setFiltros] = useState<FiltrosDia>({ responsavel: "", area: "", etapa: "" });
+
 
   const qDesk = useQuery({
     queryKey: ["painel-desk-hoje", incluirDemo],
