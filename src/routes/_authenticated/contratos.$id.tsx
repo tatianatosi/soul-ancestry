@@ -738,7 +738,12 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
   const baixar = useServerFn(baixarVersaoInterna);
   const visualizar = useServerFn(visualizarVersaoInterna);
   const [erro, setErro] = useState<string | null>(null);
-  const [previa, setPrevia] = useState<{ html: string; versao: number; rascunho: boolean } | null>(null);
+  const [previa, setPrevia] = useState<{
+    html: string;
+    versao: number;
+    rascunho: boolean;
+    perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
+  } | null>(null);
   return (
     <div className="space-y-3">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
@@ -758,7 +763,18 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
                     try {
                       setErro(null);
                       const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
-                      setPrevia({ html: r.html, versao: r.versao, rascunho: r.rascunho });
+                      setPrevia({
+                        html: r.html,
+                        versao: r.versao,
+                        rascunho: r.rascunho,
+                        perfil: r.perfilInstitucional
+                          ? {
+                              versao: r.perfilInstitucional.versao,
+                              status: r.perfilInstitucional.status,
+                              capturadoEm: r.perfilInstitucional.capturadoEm,
+                            }
+                          : null,
+                      });
                     } catch (e) {
                       setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
                     }
@@ -794,6 +810,13 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
               <p className="text-sm font-medium text-navy">Prévia interna · versão {previa.versao}</p>
               <p className="text-xs text-terracotta">
                 {previa.rascunho ? "RASCUNHO INTERNO — campos pendentes permanecem sinalizados" : "Versão aprovada para preparação interna"}
+              </p>
+              <p className="text-xs text-navy/60">
+                {previa.perfil
+                  ? `Perfil institucional ${previa.perfil.versao ?? "—"} · ${
+                      previa.perfil.status === "vigente" ? "vigente" : "em revisão jurídica (não assinável)"
+                    }`
+                  : "Perfil institucional não snapshotado nesta versão."}
               </p>
             </div>
             <button onClick={() => setPrevia(null)} className="text-xs text-navy/70 underline">
