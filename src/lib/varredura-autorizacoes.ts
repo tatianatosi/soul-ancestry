@@ -28,8 +28,13 @@ export type AreaCanonica = {
   chave: string;
   rotulo: string;
   rota: string;
+  /** Estado interno máximo que a proprietária alcança sem ato externo. */
+  estadoMaximoInterno: string;
   acoes: AcaoArea[];
 };
+
+/** Estado interno terminal: tudo pronto, aguardando confirmação manual. */
+export const ESTADO_MAXIMO_INTERNO = "pronto_para_confirmacao_externa";
 
 const interna = (
   chave: string,
