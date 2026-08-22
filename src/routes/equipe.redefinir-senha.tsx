@@ -41,9 +41,41 @@ function RedefinirSenha() {
     let cancelado = false;
     (async () => {
       let sessao = (await supabase.auth.getSession()).data.session;
+
+      // Consumo explícito do token oficial do provedor: a tela é pública e não
+      // exige sessão prévia. Aceita link de convite, de definição de senha
+      // (token_hash / token) e o formato com tokens no fragmento.
       if (!sessao) {
-        await new Promise((r) => setTimeout(r, 1200));
+        const query = new URLSearchParams(window.location.search);
+        const frag = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const tipo = (frag.get("type") ?? query.get("type") ?? "recovery") as
+          | "recovery"
+          | "invite"
+          | "signup"
+          | "email";
+        const tokenHash = query.get("token_hash") ?? query.get("token");
+        const codigo = query.get("code");
+        const access = frag.get("access_token");
+        const refresh = frag.get("refresh_token");
+        try {
+          if (access && refresh) {
+            await supabase.auth.setSession({ access_token: access, refresh_token: refresh });
+          } else if (tokenHash) {
+            await supabase.auth.verifyOtp({ type: tipo, token_hash: tokenHash });
+          } else if (codigo) {
+            await supabase.auth.exchangeCodeForSession(codigo);
+          }
+        } catch {
+          /* link inválido ou já usado: cai no aviso padrão abaixo */
+        }
+        if (window.location.hash || window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
         sessao = (await supabase.auth.getSession()).data.session;
+        if (!sessao) {
+          await new Promise((r) => setTimeout(r, 1200));
+          sessao = (await supabase.auth.getSession()).data.session;
+        }
       }
       if (cancelado) return;
       if (sessao) setPronto(true);
@@ -82,7 +114,7 @@ function RedefinirSenha() {
   }
 
   return (
-    <EquipeMoldura titulo="Definir nova senha" subtitulo="Área exclusiva da equipe Clube Ancestral.">
+    <EquipeMoldura titulo="Definir nova senha" subtitulo="Aceite de convite e definição de senha da equipe Clube Ancestral.">
       {ok ? (
         <div className="rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
           Senha atualizada. Faça login novamente com a nova senha.
