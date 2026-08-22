@@ -220,7 +220,7 @@ export function itensNaoExibidos<T extends { id: string; tipo?: string; rotulo?:
   opcoes?: { incluirDemo?: boolean; tipoPadrao?: string },
 ): T[] {
   return itens.filter((i) => {
-    if (!opcoes?.incluirDemo && eDemo(i.rotulo)) return false;
+    if (!opcoes?.incluirDemo && eDemo(String(i.rotulo ?? ""))) return false;
     return !usados.has(`${i.tipo ?? opcoes?.tipoPadrao ?? "lead"}:${i.id}`);
   });
 }

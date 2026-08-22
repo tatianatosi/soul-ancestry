@@ -23,6 +23,7 @@ import {
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
+  itensNaoExibidos,
   opcoesFiltroDia,
   textoDiasSemTouchpoint,
   textoPrazo,
@@ -48,7 +49,17 @@ function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso
   );
 }
 
-function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?: boolean; aoSalvar?: () => void }) {
+function Linha({
+  item,
+  proprietaria,
+  aoSalvar,
+  bloqueioComercial,
+}: {
+  item: ItemDia;
+  proprietaria?: boolean;
+  aoSalvar?: () => void;
+  bloqueioComercial?: boolean;
+}) {
   return (
     <li className="rounded-lg border border-navy/10 px-3 py-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -73,7 +84,12 @@ function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?:
         </p>
       ) : null}
       {proprietaria ? (
-        <AcoesRapidasProprietaria tipo={item.tipo === "caso" ? "caso" : "lead"} id={item.id} aoSalvar={aoSalvar} />
+        <AcoesRapidasProprietaria
+          tipo={item.tipo === "caso" ? "caso" : "lead"}
+          id={item.id}
+          aoSalvar={aoSalvar}
+          bloqueioComercial={bloqueioComercial}
+        />
       ) : null}
     </li>
   );
@@ -143,6 +159,9 @@ export function PainelDia() {
     retry: false,
   });
   const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
+  const idsBloqueadosCatalogo = new Set(
+    (bloqueadosCatalogo as any[]).map((b) => String(b?.case_id ?? b?.caso_id ?? b?.id ?? "")),
+  );
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
@@ -160,13 +179,17 @@ export function PainelDia() {
 
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
-  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
+  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina]) usados.add(`${i.tipo}:${i.id}`);
+  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
+  for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
-  // Somente leitura das filas já carregadas: resumo comercial não cria nem altera registro.
+  // Somente leitura das filas já carregadas: resumo comercial conta sem repetir item já presente na fila.
   const itensFila = (chave: string) =>
-    ((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]).filter(
-      (i) => incluirDemo || !/demo|teste|fixture/i.test(String(i.rotulo ?? "")),
-    );
+    itensNaoExibidos(((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]), usados, {
+      incluirDemo,
+      tipoPadrao: "lead",
+    });
+
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
     discoveries_sem_desdobramento: qtd("discoveries_sem_desdobramento"),
@@ -438,6 +461,7 @@ export function PainelDia() {
                     key={`${f.chave}-${i.tipo}-${i.id}`}
                     item={i}
                     proprietaria={proprietaria}
+                    bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                     aoSalvar={() => void qDesk.refetch()}
                   />
                 ))}
@@ -467,6 +491,7 @@ export function PainelDia() {
                       key={`${e.chave}-${i.tipo}-${i.id}`}
                       item={i}
                       proprietaria={proprietaria}
+                      bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                       aoSalvar={() => void qDesk.refetch()}
                     />
                   ))}
