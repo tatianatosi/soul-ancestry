@@ -159,6 +159,9 @@ export function PainelDia() {
     retry: false,
   });
   const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
+  const idsBloqueadosCatalogo = new Set(
+    (bloqueadosCatalogo as any[]).map((b) => String(b?.case_id ?? b?.caso_id ?? b?.id ?? "")),
+  );
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
@@ -458,6 +461,7 @@ export function PainelDia() {
                     key={`${f.chave}-${i.tipo}-${i.id}`}
                     item={i}
                     proprietaria={proprietaria}
+                    bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                     aoSalvar={() => void qDesk.refetch()}
                   />
                 ))}
@@ -487,6 +491,7 @@ export function PainelDia() {
                       key={`${e.chave}-${i.tipo}-${i.id}`}
                       item={i}
                       proprietaria={proprietaria}
+                      bloqueioComercial={idsBloqueadosCatalogo.has(i.id)}
                       aoSalvar={() => void qDesk.refetch()}
                     />
                   ))}

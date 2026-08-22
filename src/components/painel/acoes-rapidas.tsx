@@ -6,6 +6,7 @@
  * duplica item de fila e não executa nenhuma ação externa.
  */
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -24,10 +25,13 @@ export function AcoesRapidasProprietaria({
   tipo,
   id,
   aoSalvar,
+  bloqueioComercial,
 }: {
   tipo: Tipo;
   id: string;
   aoSalvar?: () => void;
+  /** Só então a Governança de Catálogo é oferecida como rota de correção. */
+  bloqueioComercial?: boolean;
 }) {
   const corrigir = useServerFn(corrigirFilaCanonica);
   const assumir = useServerFn(registrarOverrideProprietaria);
@@ -168,6 +172,29 @@ export function AcoesRapidasProprietaria({
           Fechar
         </button>
         {ok ? <span className="text-navy/70">Correção salva na entidade canônica, com auditoria.</span> : null}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-3 border-t border-gold/30 pt-2 text-[11px]">
+        <span className="text-navy/50">Abrir origem:</span>
+        {tipo === "caso" ? (
+          <Link to="/casos/$caseId" params={{ caseId: id }} className="text-navy underline underline-offset-2">
+            Caso
+          </Link>
+        ) : (
+          <Link to="/leads" className="text-navy underline underline-offset-2">
+            Lead
+          </Link>
+        )}
+        <Link to="/propostas" className="text-navy underline underline-offset-2">
+          Proposta
+        </Link>
+        <Link to="/contratos" className="text-navy underline underline-offset-2">
+          Contrato
+        </Link>
+        {bloqueioComercial ? (
+          <Link to="/catalogo" className="text-navy underline underline-offset-2">
+            Governança de Catálogo
+          </Link>
+        ) : null}
       </div>
       {erros.length > 0 ? (
         <ul className="mt-1 space-y-0.5 text-terracotta">
