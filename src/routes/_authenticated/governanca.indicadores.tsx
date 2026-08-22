@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BACKLOG_POS_MIGRACAO, GATILHOS } from "@/lib/fila-comunicacao";
 import {
   DETALHE_INDICADOR,
   INDICADORES,
+  MANIFESTACAO_INDICADOR,
   REGRAS_INDICADORES,
   ROTULO_STATUS_INDICADOR,
+  ROTULO_TIPO_USO,
 } from "@/lib/indicadores-governanca";
 
 export const Route = createFileRoute("/_authenticated/governanca/indicadores")({
@@ -38,7 +40,7 @@ function IndicadoresPage() {
       </header>
 
       <section className="overflow-auto rounded-lg border border-navy/10 bg-white">
-        <table className="w-full min-w-[1180px] text-left text-xs">
+        <table className="w-full min-w-[2000px] text-left text-xs">
           <thead className="bg-cream/60 text-navy/70">
             <tr>
               <th className="px-3 py-2 font-medium">Código</th>
@@ -49,11 +51,17 @@ function IndicadoresPage() {
               <th className="px-3 py-2 font-medium">Fonte canônica</th>
               <th className="px-3 py-2 font-medium">Definição e origem</th>
               <th className="px-3 py-2 font-medium">Consumido em</th>
+              <th className="px-3 py-2 font-medium">Tipo de uso</th>
+              <th className="px-3 py-2 font-medium">Tela de consumo</th>
+              <th className="px-3 py-2 font-medium">Componente</th>
+              <th className="px-3 py-2 font-medium">Gatilho de sinal</th>
+              <th className="px-3 py-2 font-medium">Ação/rota</th>
             </tr>
           </thead>
           <tbody>
             {INDICADORES.map((i) => {
               const d = DETALHE_INDICADOR[i.codigo];
+              const m = MANIFESTACAO_INDICADOR[i.codigo];
               const tom =
                 d?.status === "apurado"
                   ? "border-navy/20 text-navy"
@@ -78,6 +86,37 @@ function IndicadoresPage() {
                     <span className="mt-1 block text-[10px] text-navy/45">{i.matriz_origem}</span>
                   </td>
                   <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {(m?.tipos ?? []).map((t) => (
+                        <span
+                          key={t}
+                          className={`inline-block rounded-full border px-2 py-0.5 text-[10px] ${
+                            t === "bloqueio"
+                              ? "border-terracotta/40 bg-terracotta/5 text-terracotta"
+                              : t === "sinal_diario"
+                                ? "border-gold/50 bg-gold/10 text-navy"
+                                : "border-navy/20 text-navy/70"
+                          }`}
+                        >
+                          {ROTULO_TIPO_USO[t]}
+                        </span>
+                      ))}
+                      {!m ? "—" : null}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{m?.telas.join(" · ") ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{m?.componente ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{m?.gatilho ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    {m ? (
+                      <Link to={m.rota} className="text-navy underline underline-offset-2">
+                        {m.acao}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                 </tr>
               );
             })}

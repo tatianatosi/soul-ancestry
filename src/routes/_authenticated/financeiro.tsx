@@ -221,6 +221,10 @@ function FinanceiroPage() {
             Receita recebida nunca é somada à contratada, previsão não vira caixa e despesa paga diretamente pelo cliente ao terceiro
             não entra como custo do Clube. Indicador sem base declarada aparece como “Sem dados suficientes”.
           </p>
+          <p className="mt-1 text-[11px] text-navy/50">
+            Recorte único: caixa, previsão e eficiência de mídia usam o mesmo período de apuração (mês corrente). Mídia e aquisição
+            não são lidas em janela própria.
+          </p>
           {realidadeAberta ? (
             <div className="mt-3 space-y-3">
               <div className="rounded-lg border border-navy/15 bg-cream/50 p-3">
@@ -277,8 +281,22 @@ function FinanceiroPage() {
 
               <div className="rounded-lg border border-navy/10 p-3">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
-                  3 · Eficiência de mídia — exige atribuição declarada
+                  3 · Eficiência de mídia — mesmo período do caixa, exige atribuição declarada
                 </p>
+                <div className="mt-2 grid gap-2 text-[11px] sm:grid-cols-5">
+                  {[
+                    { rotulo: "Quanto investimos", valor: formatarIndicador(base.investimento_midia == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.investimento_midia, unidade: "moeda" }) },
+                    { rotulo: "Quantos chegaram", valor: formatarIndicador(base.leads_atribuiveis == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.leads_atribuiveis, unidade: "numero" }) },
+                    { rotulo: "Quantos fizeram Discovery", valor: "Sem dados suficientes" },
+                    { rotulo: "Quantos pagaram", valor: formatarIndicador(base.pagamentos_atribuiveis == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: base.pagamentos_atribuiveis, unidade: "numero" }) },
+                    { rotulo: "Quanto entrou", valor: formatarIndicador(base.receita_recebida == null ? { estado: "sem_dados", motivo: "" } : { estado: "ok", valor: recebida, unidade: "moeda" }) },
+                  ].map((c) => (
+                    <div key={c.rotulo} className="rounded border border-navy/10 bg-cream/40 p-2">
+                      <p className="uppercase tracking-wide text-navy/45">{c.rotulo}</p>
+                      <p className="mt-0.5 text-navy/75">{c.valor}</p>
+                    </div>
+                  ))}
+                </div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
                   {[
                     { rotulo: "CPL", valor: formatarIndicador(cpl(base)) },

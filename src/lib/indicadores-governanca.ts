@@ -34,7 +34,8 @@ export const INDICADORES: Indicador[] = [
     codigo: "IND-JOR-01",
     nome: "Ativados em 48h",
     matriz_origem: "Matriz da jornada de valor — 9 gates",
-    definicao: "Casos que concluíram os gates de ativação em até 48h após o pagamento inicial confirmado.",
+    definicao:
+      "Casos que concluíram os gates de ativação em até 48h. A contagem só começa quando o pagamento inicial está confirmado e os pré-requisitos de formalização aplicáveis já estão satisfeitos; casos que ainda não podiam ser ativados ficam fora do denominador.",
     fonte_canonica: "crm_casos + case_activation_checks",
     consumido_em: ["Casos → Fechamento", "Visão geral → Painel Hoje"],
   },
@@ -42,7 +43,8 @@ export const INDICADORES: Indicador[] = [
     codigo: "IND-JOR-02",
     nome: "Tempo até valor",
     matriz_origem: "Matriz da jornada de valor — 8 fases",
-    definicao: "Dias entre a ativação do caso e a primeira micro-entrega publicada ao cliente.",
+    definicao:
+      "Dias entre a ativação do caso e a primeira micro-entrega publicada e aprovada ao cliente. Entrega em rascunho não conta: o indicador mede valor percebido, não atividade interna.",
     fonte_canonica: "client_deliverables (publicadas)",
     consumido_em: ["Casos → Fechamento", "Operação"],
   },
@@ -188,16 +190,18 @@ export const DETALHE_INDICADOR: Record<string, DetalheIndicador> = {
     condicao_sem_dados: "Sem denominador na etapa anterior a taxa exibe “—”, nunca zero.",
   },
   "IND-JOR-01": {
-    formula: "casos com 9 gates concluídos ≤ 48h após pagamento inicial ÷ casos pagos",
+    formula:
+      "casos com 9 gates concluídos ≤ 48h ÷ casos com pagamento inicial confirmado E pré-requisitos de formalização satisfeitos",
     periodo: "Mês corrente",
     status: "sem_dados",
-    condicao_sem_dados: "Nenhum pagamento inicial confirmado no período.",
+    condicao_sem_dados:
+      "Nenhum caso elegível no período: sem pagamento inicial confirmado ou com pré-requisito de formalização pendente.",
   },
   "IND-JOR-02": {
-    formula: "data da 1ª micro-entrega publicada − data de ativação (dias)",
+    formula: "data da 1ª micro-entrega publicada e aprovada − data de ativação (dias)",
     periodo: "Por caso ativado",
     status: "sem_dados",
-    condicao_sem_dados: "Caso sem ativação ou sem micro-entrega publicada.",
+    condicao_sem_dados: "Caso sem ativação ou sem micro-entrega publicada e aprovada (rascunho não conta).",
   },
   "IND-JOR-03": {
     formula: "hoje − data da última interação registrada (dias corridos)",
@@ -290,3 +294,172 @@ export const REGRAS_INDICADORES = [
   "Nenhum indicador dispara ação, cobrança, comunicação ou pesquisa externa automática.",
 ];
 
+
+/**
+ * Manifestação operacional de cada indicador: onde ele aparece, em que componente,
+ * qual condição o torna sinal e qual rota abre a ação. Nenhum item dispara envio,
+ * cobrança ou pesquisa externa: a coluna “Ação/rota” apenas navega.
+ */
+export type TipoUsoIndicador = "kpi" | "sinal_diario" | "bloqueio" | "qualidade" | "contexto";
+
+export const ROTULO_TIPO_USO: Record<TipoUsoIndicador, string> = {
+  kpi: "KPI",
+  sinal_diario: "Sinal diário",
+  bloqueio: "Bloqueio operacional",
+  qualidade: "Qualidade de dados",
+  contexto: "Contexto",
+};
+
+export type ManifestacaoIndicador = {
+  tipos: TipoUsoIndicador[];
+  /** Telas de consumo, na ordem de prioridade operacional. */
+  telas: string[];
+  /** Componente concreto onde o número aparece. */
+  componente: string;
+  /** Condição objetiva que transforma o indicador em sinal acionável. */
+  gatilho: string;
+  /** Rótulo da ação e rota aberta ao clicar. */
+  acao: string;
+  rota: string;
+};
+
+export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
+  "IND-COM-01": {
+    tipos: ["kpi", "qualidade"],
+    telas: ["/conversao", "/governanca/indicadores"],
+    componente: "Card de origem no funil + fila de higiene em Painel Hoje",
+    gatilho: "Lead ativo com origem “Não classificada”.",
+    acao: "Abrir leads sem origem declarada",
+    rota: "/leads",
+  },
+  "IND-COM-02": {
+    tipos: ["kpi", "sinal_diario"],
+    telas: ["/conversao", "/painel"],
+    componente: "Tabela do funil + callout “Gargalo principal”",
+    gatilho: "Etapa com queda relevante em relação à etapa anterior.",
+    acao: "Abrir a lista de entidades daquele marco",
+    rota: "/conversao",
+  },
+  "IND-JOR-01": {
+    tipos: ["kpi", "bloqueio"],
+    telas: ["/casos", "/painel"],
+    componente: "Card de risco de onboarding + fila de casos",
+    gatilho:
+      "Pagamento inicial confirmado e pré-requisitos de formalização satisfeitos, sem ativação concluída em 48h. Sem pagamento confirmado o caso não entra na contagem.",
+    acao: "Abrir casos pagos aguardando ativação",
+    rota: "/casos",
+  },
+  "IND-JOR-02": {
+    tipos: ["kpi", "contexto"],
+    telas: ["/casos", "/operacao"],
+    componente: "Detalhe de ficha do caso + fila de cadência",
+    gatilho:
+      "Caso ativado sem primeira micro-entrega publicada e aprovada no prazo configurado. Rascunho não conta como entrega.",
+    acao: "Abrir casos ativados sem primeira entrega",
+    rota: "/casos",
+  },
+  "IND-JOR-03": {
+    tipos: ["sinal_diario"],
+    telas: ["/painel", "/casos"],
+    componente: "Fila “Casos e cadência” no Painel Hoje",
+    gatilho: "Caso sem touchpoint registrado após D7/D10/D14 configurado.",
+    acao: "Abrir casos sem contato no prazo",
+    rota: "/casos",
+  },
+  "IND-PES-01": {
+    tipos: ["contexto"],
+    telas: ["/pesquisa", "/biblioteca"],
+    componente: "Badge de maturidade na fonte + filtro do catálogo",
+    gatilho: "Fonte suspensa, a revisar ou sem a maturidade exigida pelo uso pretendido.",
+    acao: "Abrir o catálogo de fontes",
+    rota: "/biblioteca",
+  },
+  "IND-PES-02": {
+    tipos: ["contexto"],
+    telas: ["/biblioteca"],
+    componente: "Lista de backlog de ativação de fontes",
+    gatilho: "Não sobe ao Painel Hoje: serve ao planejamento de bases, não à fila do dia.",
+    acao: "Abrir backlog de fontes candidatas",
+    rota: "/biblioteca",
+  },
+  "IND-QUA-01": {
+    tipos: ["bloqueio", "qualidade"],
+    telas: ["/casos", "/qualidade", "/painel"],
+    componente: "Badge de bloqueio na ficha + fila de qualidade",
+    gatilho: "Item de checklist reprovado ou pendência sem responsável definido.",
+    acao: "Abrir pendências de qualidade",
+    rota: "/qualidade",
+  },
+  "IND-BIB-01": {
+    tipos: ["bloqueio", "contexto"],
+    telas: ["/biblioteca", "/propostas", "/contratos"],
+    componente: "Badge de vigência no item + bloqueio na criação de proposta e contrato",
+    gatilho: "Item obrigatório sem vigência ativa bloqueia novo uso em proposta ou contrato.",
+    acao: "Abrir Biblioteca Mestre por vigência",
+    rota: "/biblioteca",
+  },
+  "IND-RAD-01": {
+    tipos: ["sinal_diario", "contexto"],
+    telas: ["/leads", "/casos", "/painel"],
+    componente: "Bloco do Radar na ficha do lead + fila de triagem",
+    gatilho: "Leitura inconclusiva sem próximo passo, revisão humana obrigatória ou via restrita.",
+    acao: "Abrir leads com leitura pendente de revisão",
+    rota: "/leads",
+  },
+  "IND-RAD-02": {
+    tipos: ["qualidade"],
+    telas: ["/leads", "/painel"],
+    componente: "Faixa de completude na ficha do lead",
+    gatilho: "Completude abaixo do mínimo em call realizada ou Discovery concluída.",
+    acao: "Abrir Discovery com leitura incompleta",
+    rota: "/leads",
+  },
+  "IND-MKT-01": {
+    tipos: ["kpi", "qualidade"],
+    telas: ["/financeiro", "/conversao", "/governanca/indicadores"],
+    componente: "Card de eficiência de mídia no mesmo recorte de período do caixa",
+    gatilho: "“Sem dados suficientes” indica origens ou custos sem classificação.",
+    acao: "Abrir custos e origens sem classificação",
+    rota: "/financeiro",
+  },
+  "IND-MKT-02": {
+    tipos: ["kpi"],
+    telas: ["/financeiro", "/governanca/indicadores"],
+    componente: "Card de aquisição no bloco de eficiência de mídia",
+    gatilho: "Só calcula com pagamento confirmado e atribuição válida; caso contrário sinaliza lacuna.",
+    acao: "Abrir pagamentos confirmados e atribuição",
+    rota: "/financeiro",
+  },
+  "IND-MKT-03": {
+    tipos: ["kpi"],
+    telas: ["/financeiro", "/governanca/indicadores"],
+    componente: "Card de retorno no bloco de eficiência de mídia",
+    gatilho: "Sem atribuição não há ROI/ROAS: é lacuna de dado, nunca falha comercial.",
+    acao: "Abrir receita recebida atribuível",
+    rota: "/financeiro",
+  },
+  "IND-FIN-01": {
+    tipos: ["kpi", "sinal_diario"],
+    telas: ["/financeiro", "/painel"],
+    componente: "Card “Resultado de caixa do período”",
+    gatilho: "Resultado de caixa negativo ou dados financeiros pendentes de apuração.",
+    acao: "Abrir o caixa realizado do período",
+    rota: "/financeiro",
+  },
+  "IND-FIN-02": {
+    tipos: ["contexto"],
+    telas: ["/financeiro", "/casos"],
+    componente: "Linha de previsão no bloco “Em aberto e previsão”",
+    gatilho: "Contrato assinado sem recebimento entra como acompanhamento; nunca entra em caixa.",
+    acao: "Abrir previsão contratada não recebida",
+    rota: "/financeiro",
+  },
+  "IND-COM-03": {
+    tipos: ["sinal_diario"],
+    telas: ["/painel", "/atendimento"],
+    componente: "Fila “Comunicação humana” no Painel Hoje, sem botão de disparo",
+    gatilho: "Sugestões de contato em rascunho, ordenadas por prioridade e motivo declarado.",
+    acao: "Abrir a fila humana em Atendimento",
+    rota: "/atendimento",
+  },
+};
