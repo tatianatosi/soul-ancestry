@@ -4,6 +4,8 @@
  */
 
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
+import { documentoDoAnexo } from "@/lib/anexos-documento";
+import { AnexoDocumento } from "@/components/contrato/anexo-documento";
 import {
   ROTULO_FONTE,
   ROTULO_GATE,
@@ -11,10 +13,11 @@ import {
   pendenciasDosAnexos,
   type AnexoGovernado,
   type ConflitoFonte,
+  type EntradaAnexosIaV,
   type GateContratual,
 } from "@/lib/anexos-i-v";
 
-export function AnexosIaV({ anexos }: { anexos: AnexoGovernado[] }) {
+export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entrada?: EntradaAnexosIaV }) {
   return (
     <div className="space-y-3">
       {anexos.map((a) => (
@@ -56,6 +59,11 @@ export function AnexosIaV({ anexos }: { anexos: AnexoGovernado[] }) {
             Destino: {a.destinos.map((d) => ROTULO_GATE[d]).join(" · ")}
             {a.gatesBloqueados.length > 0 && ` · Bloqueia: ${a.gatesBloqueados.map((d) => ROTULO_GATE[d]).join(", ")}`}
           </p>
+          {entrada &&
+            (() => {
+              const doc = documentoDoAnexo(a, entrada);
+              return doc ? <AnexoDocumento documento={doc} /> : null;
+            })()}
         </article>
       ))}
     </div>
