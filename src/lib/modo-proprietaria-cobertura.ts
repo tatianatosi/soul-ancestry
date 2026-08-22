@@ -62,7 +62,7 @@ export const COBERTURA_MODULOS: Modulo[] = [
   {
     id: "planejador",
     rotulo: "Planejador",
-    rota: "/planejador",
+    rota: "/casos",
     operacoes: [
       { id: "criar_plano", rotulo: "Criar plano", entidade: "case_plans" },
       { id: "editar_plano", rotulo: "Editar e salvar plano", entidade: "case_plans" },
