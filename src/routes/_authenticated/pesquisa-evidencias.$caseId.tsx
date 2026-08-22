@@ -156,7 +156,7 @@ function AreaPesquisaEvidencias() {
         </p>
       </header>
 
-      <nav className="flex gap-2 overflow-x-auto pb-1">
+      <nav className="flex flex-wrap gap-2 pb-1">
         {SECOES.map((s) => (
           <button
             key={s.id}
@@ -173,11 +173,12 @@ function AreaPesquisaEvidencias() {
           to="/plano-acao/$caseId"
           params={{ caseId }}
           search={{ foco: undefined }}
-          className="whitespace-nowrap rounded-full border border-gold/60 bg-gold/10 px-3 py-1 text-xs text-navy"
+          className="whitespace-nowrap rounded-full border border-gold bg-gold/15 px-3 py-1 text-xs font-medium text-navy"
         >
           Plano de Ação de Pesquisa →
         </Link>
       </nav>
+
 
 
       <p className="-mt-3 text-xs text-navy/60">
