@@ -483,9 +483,10 @@ export function PainelDia() {
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
         ) : (
-          <div className="mt-3 grid gap-4 lg:grid-cols-3">
+          <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {excecoes.map((e) => (
-              <div key={e.chave}>
+              <div key={e.chave} className="min-w-0">
+
                 <p className="text-xs uppercase tracking-wide text-navy/50">
                   {e.rotulo} · {e.itens.length}
                 </p>
