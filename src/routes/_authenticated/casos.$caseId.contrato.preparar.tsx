@@ -194,6 +194,27 @@ function Pagina() {
   const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
 
+  // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
+  const anexosGovernados = anexosIaV(
+    entradaDeValores({
+      caseId: d.caso.codigo,
+      clienteNome: null,
+      responsavel: null,
+      contratoBaseVersao: CONTRATO_BASE_VERSAO,
+      modelo: "MODELO-ESTUDO",
+      valores: (d.valores ?? []) as any[],
+    }),
+  );
+  const gatesContratuais = gatesBloqueados({
+    anexos: anexosGovernados,
+    modelo: "MODELO-ESTUDO",
+    perfilInstitucionalAtivo: false,
+    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    revisorHumanoAprovado: Boolean(finalAprovada),
+    conflitos: [],
+  });
+
+
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
