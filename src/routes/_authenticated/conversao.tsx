@@ -287,6 +287,11 @@ function Conversao() {
                       </li>
                     )}
                   </ul>
+                  {g.l.length > 0 && (
+                    <a href="/leads" className="mt-2 inline-block text-[11px] text-navy underline">
+                      Abrir lista filtrada
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
