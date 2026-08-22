@@ -216,7 +216,7 @@ export function EntidadeCrud({
         <EstadoVazio mensagem={`Nenhum registro em ${titulo.toLowerCase()} ainda.`} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full text-sm" style={{ minWidth: `${larguraMinima}px` }}>
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
                 {colunas.map((c) => (
