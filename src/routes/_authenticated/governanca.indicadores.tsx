@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { BACKLOG_POS_MIGRACAO, GATILHOS } from "@/lib/fila-comunicacao";
 import { INDICADORES, REGRAS_INDICADORES } from "@/lib/indicadores-governanca";
 
 export const Route = createFileRoute("/_authenticated/governanca/indicadores")({
@@ -58,6 +59,27 @@ function IndicadoresPage() {
         </table>
       </section>
 
+      <section className="rounded-lg border border-navy/10 bg-white p-4">
+        <h2 className="font-serif text-base text-navy">Fila humana de comunicação</h2>
+        <p className="mt-1 text-[11px] text-navy/60">
+          Envio automático desabilitado neste corte: o Desk apenas sugere contato em rascunho, com motivo e prioridade. Aprovação e
+          envio são sempre humanos.
+        </p>
+        <ul className="mt-2 grid gap-1 text-xs text-navy/70 sm:grid-cols-2">
+          {GATILHOS.map((g) => (
+            <li key={g.chave}>
+              • <strong>{g.rotulo}</strong> (prioridade {g.prioridade}) — {g.motivo}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/45">Backlog pós-migração (fora deste corte)</p>
+        <ul className="mt-1 space-y-1 text-xs text-navy/60">
+          {BACKLOG_POS_MIGRACAO.map((b) => (
+            <li key={b}>• {b}</li>
+          ))}
+        </ul>
+      </section>
+
       <section className="rounded-lg border border-navy/10 bg-cream/40 p-4">
         <h2 className="font-serif text-base text-navy">Regras de uso</h2>
         <ul className="mt-2 space-y-1 text-xs text-navy/70">
@@ -69,3 +91,4 @@ function IndicadoresPage() {
     </div>
   );
 }
+
