@@ -204,16 +204,22 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
       supabase.from("leads").select("*").limit(1000),
       supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,pais,via,documentos_minimos_ok,prazo_proxima_acao,responsavel_principal,ativo,data_origin")
+        .select("id,codigo,titulo,pais,via,documentos_minimos_ok,prazo_proxima_acao,responsavel_principal,ativo,data_origin,dados_teste")
         .is("archived_at", null)
         .limit(1000),
     ]);
     // Fixtures de demonstração ficam fora das filas e métricas por padrão;
     // só entram quando o filtro explícito "Incluir demonstrações" é acionado.
     const listaLeads = (data.incluirDemo ? (leads ?? []) : semFixtures((leads ?? []) as never)) as unknown as LeadDesk[];
-    const listaCasos = (data.incluirDemo ? (casos ?? []) : semFixtures((casos ?? []) as never)) as any[];
+    const listaCasos = ((data.incluirDemo ? (casos ?? []) : semFixtures((casos ?? []) as never)) as any[]).filter(
+      // Massa TESTE nunca aparece no Painel Hoje padrão.
+      (c) => data.incluirDemo || c.dados_teste !== true,
+    );
+    const { orgDoUsuario, pendenciasCadeiaPainel } = await import("@/lib/cadeia-operacional.server");
+    const org = await orgDoUsuario(supabase, (context as any).userId);
+    const cadeia = await pendenciasCadeiaPainel(supabase, org, { incluirTeste: data.incluirDemo });
     return {
-      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos }),
+      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
     };
   });

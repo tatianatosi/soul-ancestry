@@ -724,6 +724,7 @@ export const CRITICIDADE_FILA: Record<string, number> = {
   pagamentos_aguardados: 2,
   contratos_enviados_pendentes: 3,
   onboardings_pendentes: 4,
+  cadeia_operacional: 4.5,
   acoes_hoje: 5,
   leads_sem_responsavel: 6,
   leads_sem_proxima_acao: 7,
@@ -742,6 +743,7 @@ export const ROTULO_FILA: Record<string, string> = {
   contratos_enviados_pendentes: "Contratos enviados pendentes",
   pagamentos_aguardados: "Pagamentos iniciais aguardados",
   onboardings_pendentes: "Onboardings pendentes",
+  cadeia_operacional: "Cadeia operacional pendente",
   casos_pendencia_documental: "Casos com pendência documental",
 };
 
@@ -763,6 +765,8 @@ const dia = (d: string | Date) => new Date(d).toISOString().slice(0, 10);
 export function montarFilasHoje(input: {
   leads: LeadDesk[];
   casos: { id: string; codigo: string | null; titulo: string | null; documentos_minimos_ok: boolean | null; prazo_proxima_acao: string | null }[];
+  /** Pendências já derivadas da cadeia operacional (planejador → prévia). */
+  cadeia?: ItemFila[];
   hoje?: Date;
 }): Fila[] {
   const hojeStr = dia(input.hoje ?? new Date());
@@ -831,6 +835,10 @@ export function montarFilasHoje(input: {
       itens: ativos
         .filter((l) => l.eixo_formalizacao === "pagamento_inicial_confirmado" || l.eixo_formalizacao === "cliente_ativo")
         .map((l) => itemLead(l, "Onboarding pendente de início", l.proxima_acao_em ?? null)),
+    },
+    {
+      chave: "cadeia_operacional",
+      itens: input.cadeia ?? [],
     },
     {
       chave: "casos_pendencia_documental",
