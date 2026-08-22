@@ -75,6 +75,7 @@ const NAV: readonly SecaoNav[] = [
     icon: LayoutDashboard,
     sub: [
       { to: "/painel", label: "Painel Hoje" },
+      { to: "/metricas", label: "Métricas comerciais e operacionais" },
       { to: "/relatorios", label: "Relatórios" },
     ],
   },
