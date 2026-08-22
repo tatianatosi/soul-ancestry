@@ -5101,6 +5101,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           category: string
+          commercial_condition_id: string | null
           contract_id: string
           created_at: string
           created_by: string | null
@@ -5108,7 +5109,9 @@ export type Database = {
           display_order: number
           id: string
           organization_id: string
+          proposal_id: string | null
           requires_human_validation: boolean
+          service_order_id: string | null
           source_reference: string | null
           source_type: string
           status: string
@@ -5121,6 +5124,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           category: string
+          commercial_condition_id?: string | null
           contract_id: string
           created_at?: string
           created_by?: string | null
@@ -5128,7 +5132,9 @@ export type Database = {
           display_order?: number
           id?: string
           organization_id: string
+          proposal_id?: string | null
           requires_human_validation?: boolean
+          service_order_id?: string | null
           source_reference?: string | null
           source_type?: string
           status?: string
@@ -5141,6 +5147,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           category?: string
+          commercial_condition_id?: string | null
           contract_id?: string
           created_at?: string
           created_by?: string | null
@@ -5148,7 +5155,9 @@ export type Database = {
           display_order?: number
           id?: string
           organization_id?: string
+          proposal_id?: string | null
           requires_human_validation?: boolean
+          service_order_id?: string | null
           source_reference?: string | null
           source_type?: string
           status?: string
@@ -5157,6 +5166,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contract_scope_items_commercial_condition_id_fkey"
+            columns: ["commercial_condition_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_conditions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contract_scope_items_contract_id_fkey"
             columns: ["contract_id"]
@@ -5169,6 +5185,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_scope_items_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_scope_items_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -17134,6 +17164,7 @@ export type Database = {
           archived_by: string | null
           case_id: string | null
           client_visible_summary: string | null
+          commercial_condition_id: string | null
           conteudo_hash: string | null
           contract_id: string
           contract_version_id: string | null
@@ -17164,6 +17195,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visible_summary?: string | null
+          commercial_condition_id?: string | null
           conteudo_hash?: string | null
           contract_id: string
           contract_version_id?: string | null
@@ -17194,6 +17226,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visible_summary?: string | null
+          commercial_condition_id?: string | null
           conteudo_hash?: string | null
           contract_id?: string
           contract_version_id?: string | null
@@ -17231,6 +17264,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_commercial_condition_id_fkey"
+            columns: ["commercial_condition_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_conditions"
             referencedColumns: ["id"]
           },
           {
