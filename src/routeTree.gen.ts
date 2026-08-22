@@ -34,6 +34,7 @@ import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
+import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authenticated/piloto-ana'
 import { Route as AuthenticatedPilotoRouteImport } from './routes/_authenticated/piloto'
@@ -225,6 +226,12 @@ const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
   path: '/qualidade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProximasAcoesRoute =
+  AuthenticatedProximasAcoesRouteImport.update({
+    id: '/proximas-acoes',
+    path: '/proximas-acoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   id: '/propostas',
   path: '/propostas',
@@ -638,6 +645,7 @@ export interface FileRoutesByFullPath {
   '/piloto': typeof AuthenticatedPilotoRoute
   '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
@@ -729,6 +737,7 @@ export interface FileRoutesByTo {
   '/piloto': typeof AuthenticatedPilotoRoute
   '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
@@ -823,6 +832,7 @@ export interface FileRoutesById {
   '/_authenticated/piloto': typeof AuthenticatedPilotoRoute
   '/_authenticated/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
+  '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
@@ -917,6 +927,7 @@ export interface FileRouteTypes {
     | '/piloto'
     | '/piloto-ana'
     | '/propostas'
+    | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
     | '/tarefas'
@@ -1008,6 +1019,7 @@ export interface FileRouteTypes {
     | '/piloto'
     | '/piloto-ana'
     | '/propostas'
+    | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
     | '/tarefas'
@@ -1101,6 +1113,7 @@ export interface FileRouteTypes {
     | '/_authenticated/piloto'
     | '/_authenticated/piloto-ana'
     | '/_authenticated/propostas'
+    | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
@@ -1350,6 +1363,13 @@ declare module '@tanstack/react-router' {
       path: '/qualidade'
       fullPath: '/qualidade'
       preLoaderRoute: typeof AuthenticatedQualidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/proximas-acoes': {
+      id: '/_authenticated/proximas-acoes'
+      path: '/proximas-acoes'
+      fullPath: '/proximas-acoes'
+      preLoaderRoute: typeof AuthenticatedProximasAcoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/propostas': {
@@ -1847,6 +1867,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPilotoRoute: typeof AuthenticatedPilotoRoute
   AuthenticatedPilotoAnaRoute: typeof AuthenticatedPilotoAnaRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
+  AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
@@ -1917,6 +1938,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPilotoRoute: AuthenticatedPilotoRoute,
   AuthenticatedPilotoAnaRoute: AuthenticatedPilotoAnaRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
+  AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
