@@ -101,7 +101,7 @@ describe("modo proprietária administradora", () => {
       anexos: ["Anexo I"],
       impacto: "Gera cobrança externa",
       dados_enviados: { parcela: 1 },
-    } as const;
+    };
 
     // Sem motivo suficiente ou sem checkbox manual, a janela recusa a ação.
     expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "curto" }).pronta).toBe(false);
