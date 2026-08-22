@@ -447,8 +447,10 @@ export function validarOperacaoModulo(
   if (exigeConfirmacaoFinal(entrada.operacao)) {
     erros.push("Ação externa ou irreversível exige a janela final de confirmação explícita.");
   }
-  if (entrada.dados_teste === true && entrada.operacao === "aprovar_projecao_app") {
-    erros.push("Dados TESTE/DEMO não podem ser aprovados para projeção no App Cliente.");
+  if (entrada.dados_teste === true && entrada.modulo === "app_cliente") {
+    erros.push(
+      "Dado TESTE, DEMO ou fixture não pode ser aprovado, projetado nem publicado no App Cliente.",
+    );
   }
   return { valida: erros.length === 0, erros, entidade: op?.entidade ?? null };
 }
