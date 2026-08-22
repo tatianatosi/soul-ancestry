@@ -321,6 +321,25 @@ describe("caso familiar e prévia TESTE", () => {
     expect(comRep.find((a) => a.codigo === "ANX-REPRESENTACAO")!.obrigatorio).toBe(true);
   });
 
+  it("18. isolamento por organização: rascunho e snapshot nunca cruzam organizações", () => {
+    const a = chaveRascunho("orgA", "C1", "MODELO-ESTUDO");
+    const b = chaveRascunho("orgB", "C1", "MODELO-ESTUDO");
+    expect(a).not.toBe(b);
+    let e = aplicarAcaoRascunho(estadoInicial(), { chave: a, conteudo: { v: 1 }, em: "t1" });
+    e = aplicarAcaoRascunho(e, { chave: b, conteudo: { v: 2 }, em: "t1" });
+    e = registrarEventoGovernanca(e, {
+      chave: a,
+      evento: "aprovacao",
+      motivo: "m",
+      autor: "op",
+      em: "t2",
+      versaoModelo: "MODELO-ESTUDO",
+      perfilInstitucional: "v1.0",
+    });
+    expect(e.rascunhos).toHaveLength(2);
+    expect(e.snapshots.filter((s) => s.chave === b)).toHaveLength(0);
+  });
+
   it("17. nenhuma ação de terceiro é disparada pelo motor", () => {
     const serializado = JSON.stringify(anexosIaV(BASE));
     for (const proibido of ["sendMessage", "fetch(", "asaas", "checkout", "whatsapp.send", "assinar()"]) {
