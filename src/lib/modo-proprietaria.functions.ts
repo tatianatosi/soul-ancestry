@@ -188,6 +188,10 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
     if (data.confirmacao_manual !== true) {
       throw new Error("Confirmação manual explícita da proprietária é obrigatória.");
     }
+    if (data.dados_teste === true && data.acao === "publicar_no_app_cliente") {
+      throw new Error("Dados TESTE/DEMO não podem ser publicados no App Cliente.");
+    }
+
 
     const confirmacao = montarConfirmacao({ ...data, irreversivel: true });
     if (!confirmacao.pronta) {
