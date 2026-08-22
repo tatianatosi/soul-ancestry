@@ -530,7 +530,7 @@ export function PainelDia() {
             { to: "/contratos" as const, rotulo: "Preparar contrato" },
             { to: "/atendimento" as const, rotulo: "Registrar interação" },
             { to: "/financeiro" as const, rotulo: "Registrar pagamento" },
-            { to: "/entregas" as const, rotulo: "Publicar entrega no App Cliente" },
+            { to: "/acessos-portal" as const, rotulo: "Publicar entrega no App Cliente" },
           ].map((a) => (
             <Link key={a.to} to={a.to} className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5">
               {a.rotulo}
