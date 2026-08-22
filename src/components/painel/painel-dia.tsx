@@ -146,6 +146,11 @@ export function PainelDia() {
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
+  // Somente leitura das filas já carregadas: resumo comercial não cria nem altera registro.
+  const itensFila = (chave: string) =>
+    ((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]).filter(
+      (i) => incluirDemo || !/demo|teste|fixture/i.test(String(i.rotulo ?? "")),
+    );
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
     discoveries_sem_desdobramento: qtd("discoveries_sem_desdobramento"),
@@ -435,6 +440,9 @@ export function PainelDia() {
             { rotulo: "Calls de hoje", itens: comercial.calls },
             { rotulo: "Propostas sem follow-up", itens: comercial.propostas },
             { rotulo: "Leads sem próxima ação", itens: comercial.semDisciplina },
+            { rotulo: "Aceites pendentes", itens: itensFila("aceites_sem_confirmacao") },
+            { rotulo: "Contratos enviados", itens: itensFila("contratos_enviados_pendentes") },
+            { rotulo: "Pagamentos aguardados", itens: itensFila("pagamentos_aguardados") },
           ].map((b) => (
             <div key={b.rotulo}>
               <p className="text-xs uppercase tracking-wide text-navy/50">
@@ -458,17 +466,17 @@ export function PainelDia() {
       </section>
 
 
-      {/* 4 — Casos com prazo em atenção */}
+      {/* 4 — Casos em atenção: cadência crítica e bloqueio de cadeia, em uma única visão. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
+          <h2 className="font-serif text-lg text-navy">Casos em atenção</h2>
           <Link to="/casos" className="text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
         <p className="mt-1 text-xs text-navy/50">
-          Cadência aparece somente quando há regra ativa e situação de atenção ou crítica. Ausência de prazo é exibida como
-          “Sem prazo definido”, nunca como número. Os prazos do dia já estão na fila priorizada.
+          Somente situações com ação necessária. Ausência de prazo é exibida como “Sem prazo definido”, nunca como número. Os
+          prazos do dia já estão na fila priorizada.
         </p>
         {cadencia.length > 0 ? (
           <ul className="mt-3 space-y-1 text-xs text-navy/65">
@@ -485,43 +493,44 @@ export function PainelDia() {
         ) : (
           <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
         )}
+
+        {/* Bloqueio de cadeia operacional. O Painel Hoje não é catálogo: sem SKU, preço ou edição de portfólio. */}
+        {bloqueadosCatalogo.length > 0 ? (
+          <div className="mt-4 border-t border-navy/10 pt-3">
+            <div className="flex items-baseline justify-between">
+              <p className="text-xs uppercase tracking-wide text-navy/50">
+                Bloqueio por condição comercial · {bloqueadosCatalogo.length}
+              </p>
+              <Link to="/catalogo" className="text-xs text-navy/60 underline">
+                Governança de Catálogo
+              </Link>
+            </div>
+            <ul className="mt-2 space-y-1 text-xs text-navy/65">
+              {bloqueadosCatalogo.map((c) => (
+                <li key={c.case_id}>
+                  <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
+                    {String(c.rotulo)}
+                  </Link>{" "}
+                  — {EXCECAO_CONDICAO_COMERCIAL}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </section>
 
-      {/* 4a — Exceção operacional: caso bloqueado por condição comercial não homologada.
-          O Painel Hoje não é catálogo: aqui não há SKU, preço, link ou edição de portfólio. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos bloqueados por condição comercial</h2>
-          <Link to="/catalogo" className="text-xs text-navy/60 underline">
-            Governança de Catálogo
-          </Link>
-        </div>
-        <p className="mt-1 text-xs text-navy/50">
-          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
-          proprietárias.
-        </p>
-        <ul className="mt-3 space-y-1 text-xs text-navy/65">
-          {bloqueadosCatalogo.map((c) => (
-            <li key={c.case_id}>
-              <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
-                {String(c.rotulo)}
-              </Link>{" "}
-              — {EXCECAO_CONDICAO_COMERCIAL}
-            </li>
-          ))}
-          {!bloqueadosCatalogo.length ? <li>Nenhum caso bloqueado por condição comercial.</li> : null}
-        </ul>
-      </section>
-
-      {/* 5 — Atalhos */}
+      {/* 5 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Atalhos</h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {[
-            { to: "/leads" as const, rotulo: "CRM Vivo — leads" },
-            { to: "/casos" as const, rotulo: "Casos 360" },
-            { to: "/nucleos" as const, rotulo: "Núcleos e dossiês" },
-            { to: "/importacoes" as const, rotulo: "Importações e migração" },
+            { to: "/leads" as const, rotulo: "Novo lead" },
+            { to: "/propostas" as const, rotulo: "Abrir proposta" },
+            { to: "/casos" as const, rotulo: "Abrir caso" },
+            { to: "/contratos" as const, rotulo: "Preparar contrato" },
+            { to: "/atendimento" as const, rotulo: "Registrar interação" },
+            { to: "/financeiro" as const, rotulo: "Registrar pagamento" },
+            { to: "/acessos-portal" as const, rotulo: "Publicar entrega no App Cliente" },
           ].map((a) => (
             <Link key={a.to} to={a.to} className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5">
               {a.rotulo}
