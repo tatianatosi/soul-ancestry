@@ -58,6 +58,7 @@ import {
   type Opcao,
 } from "@/lib/crm-desk";
 import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 
 function MultiSelecao({
@@ -152,6 +153,13 @@ function LeadsPage() {
           })
         : [],
     [editado, atual, rascunho, trilhaSelecionada, marcos],
+  );
+  const radar = useMemo(
+    () =>
+      calcularRadar(editado, {
+        status_marco: marcos.find((m) => m.id === editado.marco_referencia_id)?.status ?? null,
+      }),
+    [editado, marcos],
   );
   const [roteiroAberto, setRoteiroAberto] = useState(false);
 
@@ -300,6 +308,52 @@ function LeadsPage() {
                 ))}
               </div>
             ) : null}
+          </div>
+
+          <div className="rounded-xl border border-navy/10 bg-white p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-medium text-navy">Radar de elegibilidade preliminar</p>
+              <span className="rounded-full border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy">
+                {radar.rotulo} · confiança {radar.confianca} · completude {radar.completude}%
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-navy/55">
+              Leitura interna e explicável ({radar.versao}). Não é parecer jurídico, não garante direito e não define prazo, produto ou preço.
+            </p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/45">Fatores favoráveis registrados</p>
+                <ul className="mt-1 space-y-1 text-xs text-navy/70">
+                  {radar.favoraveis.length ? (
+                    radar.favoraveis.map((f) => <li key={f}>• {f}</li>)
+                  ) : (
+                    <li>Nenhum fator registrado ainda.</li>
+                  )}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-navy/45">O que confirmar e como</p>
+                <ul className="mt-1 space-y-1 text-xs text-navy/70">
+                  {radar.pendentes.length ? (
+                    radar.pendentes.slice(0, 6).map((p) => (
+                      <li key={p.fator}>
+                        • <strong>{p.fator}</strong>: {p.acao}
+                      </li>
+                    ))
+                  ) : (
+                    <li>Sem pendências de fator nesta leitura.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+            {radar.bloqueios_externos.length ? (
+              <ul className="mt-3 space-y-1 rounded-lg border border-terracotta/40 bg-terracotta/5 p-2 text-xs text-terracotta">
+                {radar.bloqueios_externos.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
+            ) : null}
+            <p className="mt-3 text-[11px] text-navy/50">{radar.observacao}</p>
           </div>
 
           {sinais.length ? (
