@@ -68,12 +68,9 @@ export const ROTULO_SLA: Record<string, string> = {
   sem_prazo: "Sem prazo",
 };
 
-export const TIPOS_EXCECAO: Record<string, string> = {
-  microentrega_caso_pausado: "Micro-entrega em caso pausado",
-  reabertura_caso: "Reabertura de caso encerrado",
-  desbloqueio_tarefa: "Desbloqueio excepcional de tarefa",
-  prazo_excedido: "Prazo excedido com autorização",
-};
+/** Catálogo canônico de exceções operacionais (fonte: varredura-autorizacoes). */
+export const TIPOS_EXCECAO: Record<string, string> = { ...TIPOS_EXCECAO_ROTULOS };
+
 
 export const CAMPOS_TAREFA = [
   "caso_id",
