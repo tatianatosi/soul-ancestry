@@ -6,7 +6,7 @@ import {
   letrasDaSecao,
   letrasSemSecaoPublicada,
 } from "@/lib/contrato-base-leitor";
-import { clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
+import { ADENDOS_TEXTUAIS, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
 
 /**
  * Aba Governança > Contrato-base: corpo integral do Contrato-Base v1.0.
@@ -222,6 +222,29 @@ export function ContratoBaseLeitor() {
             Revisão humana necessária.
           </p>
         )}
+      </div>
+      <div data-testid="contrato-base-adendos" className="mt-6 rounded-lg border border-navy/10 bg-cream/30 p-4">
+        <h3 className="font-serif text-sm text-navy">Adendos textuais em revisão jurídica</h3>
+        <p className="mt-1 text-[11px] text-navy/60">
+          Acréscimos ao contrato-base. Não reescrevem as 14 cláusulas, não habilitam assinatura e não declaram regra
+          jurídica aprovada.
+        </p>
+        {ADENDOS_TEXTUAIS.map((adendo) => (
+          <article key={adendo.id} data-testid="contrato-base-adendo" className="mt-3 border-t border-navy/10 pt-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h4 className="text-sm text-navy">{adendo.titulo}</h4>
+              <span className="rounded-full border border-terracotta/50 bg-terracotta/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-terracotta">
+                {adendo.status}
+              </span>
+            </div>
+            <p className="mt-0.5 font-mono text-[10px] text-navy/40">{adendo.id}</p>
+            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-navy/80">
+              {adendo.itens.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
       </div>
     </section>
   );
