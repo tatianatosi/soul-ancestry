@@ -5,6 +5,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Preview,
   Text,
@@ -15,17 +16,18 @@ interface ReauthenticationEmailProps {
 }
 
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Your verification code</Preview>
+    <Preview>Seu código de verificação</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm reauthentication</Heading>
-        <Text style={text}>Use the code below to confirm your identity:</Text>
+        <Text style={marca}>CLUBE ANCESTRAL</Text>
+        <Heading style={h1}>Confirmar identidade</Heading>
+        <Text style={text}>Use o código abaixo para confirmar sua identidade:</Text>
         <Text style={codeStyle}>{token}</Text>
+        <Hr style={hr} />
         <Text style={footer}>
-          This code will expire shortly. If you didn't request this, you can
-          safely ignore this email.
+          O código expira em poucos minutos. Se não foi você, ignore este e-mail.
         </Text>
       </Container>
     </Body>
@@ -34,25 +36,37 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+const main = { backgroundColor: '#F5F0E8', fontFamily: 'Georgia, "Times New Roman", serif' }
+const container = {
+  padding: '32px 28px',
+  backgroundColor: '#ffffff',
+  borderTop: '4px solid #C9A84C',
+  maxWidth: '560px',
 }
+const marca = {
+  fontSize: '12px',
+  letterSpacing: '2px',
+  color: '#C9A84C',
+  margin: '0 0 18px',
+  fontFamily: 'Arial, sans-serif',
+}
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#1B2B4B', margin: '0 0 18px' }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#1B2B4B',
+  lineHeight: '1.6',
+  margin: '0 0 16px',
+  fontFamily: 'Arial, sans-serif',
 }
 const codeStyle = {
-  fontFamily: 'Courier, monospace',
-  fontSize: '22px',
+  fontSize: '30px',
+  letterSpacing: '8px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 30px',
+  color: '#1B2B4B',
+  backgroundColor: '#F5F0E8',
+  padding: '16px 20px',
+  margin: '0 0 8px',
+  fontFamily: 'Arial, sans-serif',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const hr = { borderColor: '#F5F0E8', margin: '28px 0 16px' }
+const footer = { fontSize: '12px', color: '#6b6b6b', margin: 0, fontFamily: 'Arial, sans-serif' }
