@@ -210,6 +210,21 @@ export function chavesExibidas(grupos: { itens: { tipo: string; id: string }[] }
   return new Set(grupos.flatMap((g) => g.itens.map(chaveDe)));
 }
 
+/**
+ * Itens de uma fila que ainda não apareceram em nenhum bloco de trabalho.
+ * Usado nos resumos (comercial e prazos) para contar sem duplicar linha de ação.
+ */
+export function itensNaoExibidos<T extends { id: string; tipo?: string; rotulo?: unknown }>(
+  itens: readonly T[],
+  usados: Set<string>,
+  opcoes?: { incluirDemo?: boolean; tipoPadrao?: string },
+): T[] {
+  return itens.filter((i) => {
+    if (!opcoes?.incluirDemo && eDemo(i.rotulo)) return false;
+    return !usados.has(`${i.tipo ?? opcoes?.tipoPadrao ?? "lead"}:${i.id}`);
+  });
+}
+
 /** Dias sem touchpoint apresentáveis. Sentinelas (999, 9999) viram texto. */
 export function textoDiasSemTouchpoint(dias: unknown): string {
   const n = Number(dias);
@@ -218,11 +233,12 @@ export function textoDiasSemTouchpoint(dias: unknown): string {
 }
 
 /** Cadência exibível: somente com regra ativa e situação de atenção/crítica. */
-export function cadenciaRelevante(casos: readonly Record<string, any>[], limite = 6) {
+export function cadenciaRelevante(casos: readonly Record<string, any>[], limite = 6, jaExibidos?: Set<string>) {
   return casos
     .filter((c) => {
       const cad = (c as any).cadencia;
       if (!cad) return false;
+      if (jaExibidos?.has(`caso:${String((c as any).id)}`)) return false;
       if (cad.status !== "atencao" && cad.status !== "critico") return false;
       const dias = Number(cad.diasSemTouchpoint);
       return Number.isFinite(dias) && dias >= 0 && dias < 365;
@@ -230,6 +246,7 @@ export function cadenciaRelevante(casos: readonly Record<string, any>[], limite 
     .sort((a, b) => Number((b as any).cadencia.diasSemTouchpoint) - Number((a as any).cadencia.diasSemTouchpoint))
     .slice(0, limite);
 }
+
 
 export const FILAS_COMERCIAIS_CHAVES = FILAS_COMERCIAIS;
 
