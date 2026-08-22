@@ -210,6 +210,21 @@ export const COBERTURA_MODULOS: Modulo[] = [
     rota: "/contratos",
     operacoes: [
       {
+        id: "editar_perfil_institucional",
+        rotulo: "Editar perfil institucional permitido",
+        entidade: "institutional_profiles",
+      },
+      {
+        id: "editar_parametros_partes",
+        rotulo: "Preencher parâmetros, fontes, partes, signatários, preço e vencimentos",
+        entidade: "contract_parameter_values",
+      },
+      {
+        id: "derivar_versao_congelada",
+        rotulo: "Derivar versão editável de registro congelado",
+        entidade: "contract_versions",
+      },
+      {
         id: "editar_condicao_comercial",
         rotulo: "Criar, editar e aprovar condição comercial",
         entidade: "commercial_conditions",
