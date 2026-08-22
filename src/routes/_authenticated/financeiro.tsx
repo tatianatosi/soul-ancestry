@@ -75,11 +75,12 @@ function FinanceiroPage() {
   const [ajuste, setAjuste] = useState({ valor: "", motivo: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
   const [realidadeAberta, setRealidadeAberta] = useState(true);
+  const [incluirDemos, setIncluirDemos] = useState(false);
 
   const recurso = aba === "faturas" ? "invoices" : "payments";
   const q = useQuery({
-    queryKey: ["financeiro", recurso, status],
-    queryFn: () => listar({ data: { recurso, status: status || undefined } }),
+    queryKey: ["financeiro", recurso, status, incluirDemos],
+    queryFn: () => listar({ data: { recurso, status: status || undefined, incluirDemos } }),
     enabled: podeFinanceiro,
   });
   const qFaturas = useQuery({
