@@ -157,6 +157,7 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
       acao: string;
+      modulo?: string | null;
       entidade: string;
       entidade_id?: string | null;
       destinatario?: string | null;
