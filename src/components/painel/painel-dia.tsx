@@ -330,11 +330,50 @@ export function PainelDia() {
         </label>
       </div>
 
+      {/* 0 — Cards do dia */}
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
+            <p className="mt-1 font-serif text-2xl text-navy">{c.total}</p>
+            <p className="mt-1 text-[11px] text-navy/55">{c.leitura}</p>
+          </div>
+        ))}
+      </section>
+
       {/* 1 — Minha fila priorizada */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {(
+              [
+                ["responsavel", "Responsável", opcoes.responsaveis],
+                ["area", "Área", opcoes.areas],
+                ["etapa", "Etapa", opcoes.etapas],
+              ] as const
+            ).map(([campo, rotuloCampo, lista]) => (
+              <label key={campo} className="flex items-center gap-1 text-navy/60">
+                {rotuloCampo}
+                <select
+                  className="rounded border border-navy/15 bg-white px-2 py-1 text-navy"
+                  value={filtros[campo] ?? ""}
+                  onChange={(e) => setFiltros((f) => ({ ...f, [campo]: e.target.value }))}
+                >
+                  <option value="">Todos</option>
+                  {lista.map((v) => (
+                    <option key={v} value={v}>
+                      {rotuloCatalogo("area", v) || v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
         <div className="mt-3 grid gap-4 lg:grid-cols-3">
-          {priorizada.map((f) => (
+          {priorizadaVisivel.map((f) => (
             <div key={f.chave}>
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
@@ -349,6 +388,7 @@ export function PainelDia() {
           ))}
         </div>
       </section>
+
 
       {/* 2 — Exceções que exigem dono */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
