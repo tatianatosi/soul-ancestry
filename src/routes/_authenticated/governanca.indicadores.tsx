@@ -33,28 +33,49 @@ function IndicadoresPage() {
       </header>
 
       <section className="overflow-auto rounded-lg border border-navy/10 bg-white">
-        <table className="w-full min-w-[860px] text-left text-xs">
+        <table className="w-full min-w-[1180px] text-left text-xs">
           <thead className="bg-cream/60 text-navy/70">
             <tr>
               <th className="px-3 py-2 font-medium">Código</th>
               <th className="px-3 py-2 font-medium">Indicador</th>
-              <th className="px-3 py-2 font-medium">Matriz de origem</th>
-              <th className="px-3 py-2 font-medium">Definição</th>
+              <th className="px-3 py-2 font-medium">Fórmula</th>
+              <th className="px-3 py-2 font-medium">Período</th>
+              <th className="px-3 py-2 font-medium">Status</th>
               <th className="px-3 py-2 font-medium">Fonte canônica</th>
+              <th className="px-3 py-2 font-medium">Definição e origem</th>
               <th className="px-3 py-2 font-medium">Consumido em</th>
             </tr>
           </thead>
           <tbody>
-            {INDICADORES.map((i) => (
-              <tr key={i.codigo} className="border-t border-navy/10 align-top">
-                <td className="px-3 py-2 font-mono text-[11px] text-navy">{i.codigo}</td>
-                <td className="px-3 py-2 font-medium text-navy">{i.nome}</td>
-                <td className="px-3 py-2 text-navy/70">{i.matriz_origem}</td>
-                <td className="px-3 py-2 text-navy/70">{i.definicao}</td>
-                <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{i.fonte_canonica}</td>
-                <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
-              </tr>
-            ))}
+            {INDICADORES.map((i) => {
+              const d = DETALHE_INDICADOR[i.codigo];
+              const tom =
+                d?.status === "apurado"
+                  ? "border-navy/20 text-navy"
+                  : d?.status === "parcial"
+                    ? "border-gold/50 bg-gold/10 text-navy"
+                    : "border-terracotta/40 bg-terracotta/5 text-terracotta";
+              return (
+                <tr key={i.codigo} className="border-t border-navy/10 align-top">
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy">{i.codigo}</td>
+                  <td className="px-3 py-2 font-medium text-navy">{i.nome}</td>
+                  <td className="px-3 py-2 text-navy/70">{d?.formula ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{d?.periodo ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    <span className={`inline-block rounded-full border px-2 py-0.5 text-[10px] ${tom}`}>
+                      {d ? ROTULO_STATUS_INDICADOR[d.status] : "—"}
+                    </span>
+                    {d ? <span className="mt-1 block text-[10px] text-navy/50">{d.condicao_sem_dados}</span> : null}
+                  </td>
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{i.fonte_canonica}</td>
+                  <td className="px-3 py-2 text-navy/70">
+                    {i.definicao}
+                    <span className="mt-1 block text-[10px] text-navy/45">{i.matriz_origem}</span>
+                  </td>
+                  <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>
