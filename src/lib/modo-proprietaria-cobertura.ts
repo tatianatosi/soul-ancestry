@@ -95,6 +95,11 @@ export const COBERTURA_MODULOS: Modulo[] = [
         entidade: "case_plans",
       },
       {
+        id: "vincular_plano",
+        rotulo: "Vincular plano a lead, proposta, caso, SKU e pessoas",
+        entidade: "case_plans",
+      },
+      {
         id: "avancar_plano_incompleto",
         rotulo: "Salvar e avançar plano incompleto assumindo pendências",
         entidade: "case_plans",
