@@ -339,13 +339,15 @@ export const ROTULO_GRUPO_APROVACAO: Record<GrupoAprovacao, string> = {
   acoes_externas_preparadas: "Ações externas preparadas",
 };
 
+export type Reversibilidade = "reversivel" | "parcialmente_reversivel" | "irreversivel";
+
 export type LinhaAprovacao = {
   id: string;
   grupo: GrupoAprovacao;
   alvo: string;
   impacto: string;
   dadosEnvolvidos: string;
-  reversibilidade: "reversivel" | "parcialmente_reversivel" | "irreversivel";
+  reversibilidade: Reversibilidade;
   previa: string;
   motivo: string;
   confirmacao: string;
@@ -475,4 +477,76 @@ export function aprovacoesPorGrupo(): Record<GrupoAprovacao, LinhaAprovacao[]> {
 
 export function bloqueiosPorNatureza(natureza: NaturezaBloqueio): BloqueioMapeado[] {
   return BLOQUEIOS_REMANESCENTES.filter((b) => b.natureza === natureza);
+}
+
+/* ------------------------------------------------------------------ */
+/* Helpers de apresentação e decisão do pacote de aprovações            */
+/* ------------------------------------------------------------------ */
+
+export const ROTULO_REVERSIBILIDADE: Record<Reversibilidade, string> = {
+  reversivel: "Reversível",
+  parcialmente_reversivel: "Parcialmente reversível",
+  irreversivel: "Irreversível",
+};
+
+export function confirmacaoExternaObrigatoria(linha: LinhaAprovacao): boolean {
+  return (
+    linha.reversibilidade === "irreversivel" ||
+    linha.reversibilidade === "parcialmente_reversivel" ||
+    /confirmação externa/i.test(linha.confirmacao)
+  );
+}
+
+export type AcaoPacote = {
+  acao: string;
+  entidade: string;
+  modulo: string;
+  irreversivel: boolean;
+  rotulo: string;
+};
+
+export function derivarAcaoPacote(linha: LinhaAprovacao): AcaoPacote {
+  const externa = confirmacaoExternaObrigatoria(linha);
+  const base: Record<GrupoAprovacao, { entidade: string; modulo: string }> = {
+    saneamento_dados: { entidade: "pacote_saneamento_dados", modulo: "governanca" },
+    atribuicao_administradores: { entidade: "user_roles", modulo: "administracao_acesso" },
+    convites_comunicacoes: { entidade: "communication_queue", modulo: "comunicacao" },
+    alteracoes_integracao: { entidade: "integrations", modulo: "integracao" },
+    migration_deploy: { entidade: "migrations", modulo: "infraestrutura" },
+    backup_rollback: { entidade: "backups", modulo: "infraestrutura" },
+    acoes_externas_preparadas: { entidade: "acoes_externas_preparadas", modulo: "operacao" },
+  };
+  const { entidade, modulo } = base[linha.grupo];
+  return {
+    acao: externa ? "confirmar_acao_externa_pacote" : "aprovar_item_pacote",
+    entidade,
+    modulo,
+    irreversivel: externa,
+    rotulo: externa ? "Confirmar aprovação (externa/irreversível)" : "Assumir aprovação interna",
+  };
+}
+
+export function resumoConfirmacaoPacote(linha: LinhaAprovacao, motivo: string) {
+  const { acao, entidade, modulo, irreversivel } = derivarAcaoPacote(linha);
+  return {
+    acao,
+    entidade,
+    entidade_id: linha.id,
+    modulo,
+    impacto: linha.impacto,
+    destinatario: linha.alvo,
+    conteudo: `${linha.previa}. Motivo canônico: ${linha.motivo}`,
+    caso: null,
+    anexos: [] as string[],
+    dados_enviados: {
+      grupo: linha.grupo,
+      alvo: linha.alvo,
+      previa: linha.previa,
+      reversibilidade: linha.reversibilidade,
+      motivo_canonico: linha.motivo,
+      motivo_decisao: motivo,
+    },
+    irreversivel,
+    dados_teste: false,
+  };
 }
