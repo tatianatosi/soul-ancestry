@@ -448,3 +448,67 @@ export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(
   return { pendente: data === true };
 });
 
+
+/**
+ * Status do envio de recuperação/convite de acesso (somente admin).
+ * Combina as solicitações registradas em auditoria com os eventos de entrega
+ * do provedor de e-mail. Nunca expõe token, URL de recuperação ou credenciais.
+ */
+export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { email?: string } | undefined) => data ?? {})
+  .handler(async ({ data, context }) => {
+    const h = await import("./equipe.server");
+    await h.exigirAdminEquipe(context.userId as string);
+
+    const email = data.email ? h.normalizarEmail(data.email) : null;
+
+    let q = h.adminClient
+      .from("audit_logs")
+      .select("id, acao, entidade_id, metadados, created_at")
+      .in("acao", ["equipe_recuperacao_solicitada", "equipe_convite_enviado", "equipe_convite_reenviado"])
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (email) {
+      const staff = await h.staffPorEmail(email);
+      if (staff) q = q.eq("entidade_id", staff.id);
+    }
+    const { data: solicitacoes } = await q;
+
+    let entregas: Array<{ timestamp: string; recipient: string; event_type: string; status?: string }> = [];
+    let canal: "disponivel" | "sem_chave" | "indisponivel" = "disponivel";
+    let detalheCanal: string | null = null;
+
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) {
+      canal = "sem_chave";
+      detalheCanal = "Canal de e-mail ainda não habilitado neste ambiente.";
+    } else {
+      try {
+        const { listEmailLogs } = await import("@lovable.dev/email-js");
+        const resposta = await listEmailLogs({ recipient: email ?? undefined, limit: 20 }, { apiKey });
+        entregas = (resposta.data ?? []).map((e) => ({
+          timestamp: e.timestamp,
+          recipient: e.recipient,
+          event_type: e.event_type,
+          status: e.status,
+        }));
+      } catch (erro) {
+        canal = "indisponivel";
+        detalheCanal = erro instanceof Error ? erro.message : "Falha ao consultar os eventos de entrega.";
+      }
+    }
+
+    return {
+      email,
+      canal,
+      detalheCanal,
+      solicitacoes: (solicitacoes ?? []).map((s: any) => ({
+        id: s.id as string,
+        acao: s.acao as string,
+        criadoEm: s.created_at as string,
+      })),
+      entregas,
+    };
+  });
