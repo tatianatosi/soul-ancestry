@@ -46,6 +46,22 @@ const VISAO = [
   ["Histórico", "1", CheckCircle2],
 ] as const;
 
+/** Selo obrigatório: acompanha o nome do caso em toda subvisão e card. */
+function SeloFixture({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-terracotta",
+        className,
+      )}
+    >
+      Fixture de desenvolvimento
+    </span>
+  );
+}
+
+const CASO = "Caso Melani";
+
 export function PlanoAcaoDemo() {
   return (
     <div className="space-y-6">
@@ -53,12 +69,15 @@ export function PlanoAcaoDemo() {
         <div>
           <p className="text-[11px] uppercase tracking-widest text-gold">Pesquisa genealógica e evidências</p>
           <h1 className="font-serif text-3xl italic text-navy">Plano de ação de pesquisa</h1>
-          <p className="mt-1 text-[13px] text-navy/70">Caso Melani · fila interna de desenvolvimento</p>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-navy/70">
+            <span>{CASO}</span>
+            <SeloFixture />
+            <span>· fila interna de desenvolvimento</span>
+          </p>
         </div>
-        <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-3 py-1 text-[11px] font-semibold uppercase text-terracotta">
-          Fixture de desenvolvimento
-        </span>
+        <SeloFixture className="px-3 py-1 text-[11px]" />
       </header>
+
 
       <p className="border-l-4 border-gold bg-gold/10 px-4 py-3 text-xs text-navy/75">
         Nenhum contato, pedido externo, despesa, cobrança ou mensagem é executado nesta visão. Comunicações permanecem em rascunho e exigem aprovação humana.
