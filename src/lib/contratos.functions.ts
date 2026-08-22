@@ -551,6 +551,17 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       versao.id,
     );
 
+    // Snapshot institucional: a versão nasce carimbada com o perfil institucional
+    // persistido (estado under_legal_review). Nunca sobrescreve snapshot anterior.
+    const { gravarSnapshotInstitucional } = await import("@/lib/perfil-institucional-persistido.server");
+    const snapshot = await gravarSnapshotInstitucional(supabase, {
+      org: organizationId,
+      contractVersionId: versao.id,
+      evento: "versao_contratual_criada",
+      userId: context.userId as string,
+    });
+
+
     return { versionId: versao.id as string, versao: versao.version_number as number, falhaRenderizacao: falha };
   });
 
