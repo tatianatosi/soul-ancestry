@@ -1,8 +1,15 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  lerRegistroModeloIndividual,
+  registrarModeloIndividual,
+} from "@/lib/modelo-individual.functions";
 import {
   ANEXOS_MODELO_INDIVIDUAL,
   GATES_MODELO_INDIVIDUAL,
