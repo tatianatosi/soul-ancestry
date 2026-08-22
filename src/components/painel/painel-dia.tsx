@@ -100,6 +100,28 @@ export function PainelDia() {
     contratos_sem_referencia_financeira: qtd("contratos_enviados_pendentes"),
     pagamentos_sem_onboarding: qtd("onboardings_pendentes"),
   });
+  // IND-COM-03: contagem de contatos humanos sugeridos por prioridade do gatilho.
+  // Nada é enviado aqui; cada sugestão nasce em rascunho e depende de aprovação humana.
+  const candidatosComunicacao: { gatilho: Gatilho; total: number }[] = [
+    { gatilho: "followup_proposta", total: comercial.propostas.length },
+    { gatilho: "contrato_aguardando_assinatura", total: qtd("contratos_enviados_pendentes") },
+    { gatilho: "pagamento_inicial_aguardado", total: qtd("pagamentos_aguardados") },
+    { gatilho: "lembrete_discovery", total: comercial.calls.length },
+    { gatilho: "pendencia_documental", total: qtd("casos_pendencia_documental") },
+    { gatilho: "ausencia_touchpoint", total: cadencia.length },
+    { gatilho: "boas_vindas_onboarding", total: qtd("onboardings_pendentes") },
+  ];
+  const prioridadeDe = (g: Gatilho) => GATILHOS.find((x) => x.chave === g)?.prioridade ?? 3;
+  const sugestoesHumanas = candidatosComunicacao.reduce(
+    (acc, c) => {
+      const p = prioridadeDe(c.gatilho);
+      acc.total += c.total;
+      if (p === 1) acc.criticos += c.total;
+      else if (p === 2) acc.hoje += c.total;
+      return acc;
+    },
+    { total: 0, criticos: 0, hoje: 0 },
+  );
 
 
   return (
