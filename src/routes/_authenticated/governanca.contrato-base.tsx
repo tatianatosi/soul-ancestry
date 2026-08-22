@@ -26,6 +26,9 @@ import {
   matrizRenderizacaoPreviaTeste,
 } from "@/lib/contrato-base-previa";
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
+import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
+import { MARCA_RASCUNHO } from "@/lib/anexos-i-v";
+import { CONFLITOS_TESTE, anexosIaVTeste, gatesTeste } from "@/lib/contrato-base-previa";
 
 const TITULO = "Contrato-base consolidado v1.0 | Clube Ancestral";
 const DESCRICAO =
@@ -70,6 +73,8 @@ function Pagina() {
   const anexos = anexosDaPreviaTeste();
   const bloqueios = bloqueiosDaPreviaTeste(anexos);
   const matriz = matrizRenderizacaoPreviaTeste(anexos);
+  const anexosIV = anexosIaVTeste();
+  const gates = gatesTeste();
 
   return (
     <SaasShell titulo="Contrato-base consolidado" descricao={`Resgate v1.0 · ${CONTRATO_BASE_DATA} · não vigente`}>
@@ -196,6 +201,19 @@ function Pagina() {
             </ul>
             <p className="mt-2 rounded border border-navy/10 bg-cream/40 p-2 text-[11px] text-navy/70">
               Cláusula institucional aplicada ao ANX-COMERCIAL: {OBSERVACAO_TERCEIROS_PREVIA}
+            </p>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-navy/10 bg-white p-3">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos I–V governados (TESTE)</p>
+            <div className="mt-2">
+              <AnexosIaV anexos={anexosIV} />
+            </div>
+            <div className="mt-3">
+              <PainelPendenciasContratuais anexos={anexosIV} conflitos={CONFLITOS_TESTE} gates={gates} />
+            </div>
+            <p className="mt-2 rounded border border-navy/10 bg-cream/40 p-2 text-[11px] uppercase tracking-wide text-navy/60">
+              {MARCA_RASCUNHO}
             </p>
           </div>
 
