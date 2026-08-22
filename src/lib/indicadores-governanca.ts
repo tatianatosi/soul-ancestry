@@ -34,7 +34,8 @@ export const INDICADORES: Indicador[] = [
     codigo: "IND-JOR-01",
     nome: "Ativados em 48h",
     matriz_origem: "Matriz da jornada de valor — 9 gates",
-    definicao: "Casos que concluíram os gates de ativação em até 48h após o pagamento inicial confirmado.",
+    definicao:
+      "Casos que concluíram os gates de ativação em até 48h. A contagem só começa quando o pagamento inicial está confirmado e os pré-requisitos de formalização aplicáveis já estão satisfeitos; casos que ainda não podiam ser ativados ficam fora do denominador.",
     fonte_canonica: "crm_casos + case_activation_checks",
     consumido_em: ["Casos → Fechamento", "Visão geral → Painel Hoje"],
   },
@@ -42,7 +43,8 @@ export const INDICADORES: Indicador[] = [
     codigo: "IND-JOR-02",
     nome: "Tempo até valor",
     matriz_origem: "Matriz da jornada de valor — 8 fases",
-    definicao: "Dias entre a ativação do caso e a primeira micro-entrega publicada ao cliente.",
+    definicao:
+      "Dias entre a ativação do caso e a primeira micro-entrega publicada e aprovada ao cliente. Entrega em rascunho não conta: o indicador mede valor percebido, não atividade interna.",
     fonte_canonica: "client_deliverables (publicadas)",
     consumido_em: ["Casos → Fechamento", "Operação"],
   },
@@ -188,16 +190,18 @@ export const DETALHE_INDICADOR: Record<string, DetalheIndicador> = {
     condicao_sem_dados: "Sem denominador na etapa anterior a taxa exibe “—”, nunca zero.",
   },
   "IND-JOR-01": {
-    formula: "casos com 9 gates concluídos ≤ 48h após pagamento inicial ÷ casos pagos",
+    formula:
+      "casos com 9 gates concluídos ≤ 48h ÷ casos com pagamento inicial confirmado E pré-requisitos de formalização satisfeitos",
     periodo: "Mês corrente",
     status: "sem_dados",
-    condicao_sem_dados: "Nenhum pagamento inicial confirmado no período.",
+    condicao_sem_dados:
+      "Nenhum caso elegível no período: sem pagamento inicial confirmado ou com pré-requisito de formalização pendente.",
   },
   "IND-JOR-02": {
-    formula: "data da 1ª micro-entrega publicada − data de ativação (dias)",
+    formula: "data da 1ª micro-entrega publicada e aprovada − data de ativação (dias)",
     periodo: "Por caso ativado",
     status: "sem_dados",
-    condicao_sem_dados: "Caso sem ativação ou sem micro-entrega publicada.",
+    condicao_sem_dados: "Caso sem ativação ou sem micro-entrega publicada e aprovada (rascunho não conta).",
   },
   "IND-JOR-03": {
     formula: "hoje − data da última interação registrada (dias corridos)",
