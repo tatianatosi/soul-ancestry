@@ -157,7 +157,7 @@ export function avaliarContexto(ctx: Awaited<ReturnType<typeof contextoDaCadeia>
     valores: ctx.valores as any[],
   });
   const anexos = anexosIaV(entradaAnexos);
-  const pendencias = pendenciasDosAnexos(anexos).map((p) => ({ titulo: p.motivo }));
+  const pendencias = pendenciasDosAnexos(anexos).map((p) => ({ titulo: `${p.entidade}: ${p.motivo}` }));
   const gates = gatesBloqueados({
     anexos,
     modelo: "MODELO-ESTUDO",
