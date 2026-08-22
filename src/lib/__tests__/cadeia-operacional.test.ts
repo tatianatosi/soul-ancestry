@@ -200,7 +200,7 @@ describe("consolidação da cadeia", () => {
 describe("cadeia operacional no Painel Hoje", () => {
   const itemCadeia = {
     id: "c1",
-    rotulo: "CA-TESTE-001 · Caso",
+    rotulo: "CA-OPS-001 · Caso",
     detalhe: "Proposta estruturada: pendência",
     data: "2026-08-20",
     tipo: "caso" as const,
@@ -222,7 +222,7 @@ describe("cadeia operacional no Painel Hoje", () => {
       casos: [
         {
           id: "c1",
-          codigo: "CA-TESTE-001",
+          codigo: "CA-OPS-001",
           titulo: "Caso",
           documentos_minimos_ok: false,
           prazo_proxima_acao: "2026-08-25",
