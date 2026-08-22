@@ -23,6 +23,7 @@ import {
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
+  itensNaoExibidos,
   opcoesFiltroDia,
   textoDiasSemTouchpoint,
   textoPrazo,
@@ -48,7 +49,17 @@ function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso
   );
 }
 
-function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?: boolean; aoSalvar?: () => void }) {
+function Linha({
+  item,
+  proprietaria,
+  aoSalvar,
+  bloqueioComercial,
+}: {
+  item: ItemDia;
+  proprietaria?: boolean;
+  aoSalvar?: () => void;
+  bloqueioComercial?: boolean;
+}) {
   return (
     <li className="rounded-lg border border-navy/10 px-3 py-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -73,7 +84,12 @@ function Linha({ item, proprietaria, aoSalvar }: { item: ItemDia; proprietaria?:
         </p>
       ) : null}
       {proprietaria ? (
-        <AcoesRapidasProprietaria tipo={item.tipo === "caso" ? "caso" : "lead"} id={item.id} aoSalvar={aoSalvar} />
+        <AcoesRapidasProprietaria
+          tipo={item.tipo === "caso" ? "caso" : "lead"}
+          id={item.id}
+          aoSalvar={aoSalvar}
+          bloqueioComercial={bloqueioComercial}
+        />
       ) : null}
     </li>
   );
