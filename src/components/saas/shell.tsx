@@ -86,6 +86,7 @@ const NAV: readonly SecaoNav[] = [
     sub: [
       { grupo: "CRM Vivo" },
       { to: "/leads", label: "Leads e Discovery" },
+      { to: "/calls", label: "Painel de Calls" },
       { to: "/leads", hash: "crm-contatos", label: "Calls, conversas e interações" },
       { to: "/casos", hash: "planejador", label: "Planejador" },
       { to: "/propostas", label: "Propostas" },
