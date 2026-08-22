@@ -452,3 +452,51 @@ export const ITENS_REVISAO_JURIDICA = [
 export function contratoBaseAssinavel(status: EstadoVigenciaContratoBase = CONTRATO_BASE_STATUS) {
   return status === "vigente";
 }
+
+/* ------------------------------------------------------------------ */
+/* 8 — Adendos textuais em revisão jurídica (não reescrevem as 14)      */
+/* ------------------------------------------------------------------ */
+
+export type AdendoTextual = {
+  id: string;
+  titulo: string;
+  status: EstadoVigenciaContratoBase;
+  itens: string[];
+};
+
+/** Referência neutra ao WhatsApp institucional: nunca número pessoal. */
+export const REFERENCIA_WHATSAPP_INSTITUCIONAL =
+  "WhatsApp institucional homologado, conforme configuração vigente do Clube Ancestral.";
+
+function valorInstitucional(campo: string): string {
+  return PERFIL_INSTITUCIONAL.find((c) => c.campo === campo)?.valor ?? "";
+}
+
+/**
+ * Acréscimos textuais ao contrato-base. Ficam em `under_legal_review`:
+ * não habilitam assinatura e não declaram regra jurídica ainda não aprovada.
+ */
+export const ADENDOS_TEXTUAIS: AdendoTextual[] = [
+  {
+    id: "ADENDO-CANCELAMENTO-v1.0",
+    titulo: "Cancelamento e arrependimento",
+    status: "under_legal_review",
+    itens: [
+      "Texto em revisão jurídica: nenhuma regra de cancelamento ou arrependimento está aprovada ou é oponível nesta versão.",
+      "Pedido de cancelamento é registrado como evento formal no caso, com data, autor e motivo, sem execução automática.",
+      "Serviços já executados, entregas já publicadas e despesas de terceiros já aprovadas seguem o tratamento definido nas cláusulas vigentes e na Ordem de Serviço aprovada.",
+      "Nenhum efeito financeiro, estorno, cobrança ou encerramento é aplicado por este adendo enquanto o status permanecer em revisão jurídica.",
+    ],
+  },
+  {
+    id: "ADENDO-CANAIS-OFICIAIS-v1.0",
+    titulo: "Canais oficiais de comunicação",
+    status: "under_legal_review",
+    itens: [
+      `E-mail oficial: ${valorInstitucional("email_oficial")}.`,
+      `Site oficial: ${valorInstitucional("site")}.`,
+      REFERENCIA_WHATSAPP_INSTITUCIONAL,
+      "Comunicações contratuais válidas ocorrem apenas pelos canais oficiais institucionais; nenhum telefone ou contato pessoal é canal contratual.",
+    ],
+  },
+];
