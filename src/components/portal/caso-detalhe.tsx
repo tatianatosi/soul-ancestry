@@ -200,8 +200,31 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
       ) : null}
 
       <section>
+        <h2 className="font-serif text-xl">Publicado pela equipe</h2>
+        <p className="text-sm text-navy/60">{AVISO_PUBLICACAO_CLIENTE}</p>
+        {painel.publicacoes.length === 0 ? (
+          <div className="mt-3">
+            <PortalVazio mensagem="A equipe ainda não publicou conteúdo do seu caso aqui." />
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {painel.publicacoes.map((p) => (
+              <li key={p.id} className="rounded-xl border border-navy/10 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium">{p.tipoRotulo}</p>
+                  <Selo texto={`Publicado em ${data(p.publicadoEm)}`} />
+                </div>
+                <p className="mt-1 whitespace-pre-line text-sm text-navy/80">{p.conteudo}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
         <h2 className="font-serif text-xl">Entregas liberadas</h2>
         <p className="text-sm text-navy/60">Aparecem aqui apenas os arquivos liberados pela equipe.</p>
+
         {painel.entregas.length === 0 ? (
           <div className="mt-3">
             <PortalVazio mensagem="Nenhuma entrega liberada até o momento." />
