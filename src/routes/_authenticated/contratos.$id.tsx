@@ -662,21 +662,74 @@ function Fontes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   );
 }
 
+function ChecklistJuridico({ dados }: { dados: any }) {
+  const r = montarChecklistJuridico({
+    contrato: dados.contrato,
+    partes: dados.partes,
+    escopo: dados.escopo,
+    clausulas: dados.clausulas,
+    anexos: dados.anexos,
+    versoes: dados.versoes,
+  });
+  return (
+    <section className="space-y-3">
+      <header className="flex flex-wrap items-center gap-3">
+        <h3 className="text-sm font-semibold text-navy">Checklist jurídico automático</h3>
+        <Selo
+          texto={r.aptoParaRevisaoHumana ? "sem bloqueios formais" : `${r.bloqueios} bloqueio(s)`}
+          tom={r.aptoParaRevisaoHumana ? "ok" : "alerta"}
+        />
+        <span className="text-xs text-navy/60">
+          {r.conformes} de {r.total} conformes · {r.pendentes} pendência(s) não bloqueante(s)
+        </span>
+      </header>
+      <p className="text-xs text-navy/60">
+        Conferência formal do instrumento, derivada dos dados já cadastrados. Não altera dados, não emite juízo sobre o mérito do
+        caso e não executa nenhuma ação externa.
+      </p>
+      <Tabela cabecalho={["Grupo", "Item", "Situação", "Observação"]}>
+        {r.itens.map((i) => (
+          <tr key={i.chave} className="border-t border-navy/10 align-top">
+            <td className="px-3 py-2 text-xs text-navy/60">{i.grupo}</td>
+            <td className="px-3 py-2">{i.label}</td>
+            <td className="px-3 py-2">
+              <Selo
+                texto={i.estado === "ok" ? "conforme" : i.estado === "bloqueio" ? "bloqueio" : "pendente"}
+                tom={i.estado === "ok" ? "ok" : "alerta"}
+              />
+            </td>
+            <td className="px-3 py-2 text-navy/70">{i.detalhe}</td>
+          </tr>
+        ))}
+      </Tabela>
+    </section>
+  );
+}
+
 function Validacoes({ dados }: { dados: any }) {
   const lista = dados.validacoes as any[];
-  if (!lista.length) return <p className="text-sm text-navy/60">Nenhuma validação executada ainda.</p>;
   return (
-    <Tabela cabecalho={["Validação", "Severidade", "Situação"]}>
-      {lista.map((v) => (
-        <tr key={v.id} className="border-t border-navy/10">
-          <td className="px-3 py-2">{v.label}</td>
-          <td className="px-3 py-2">{v.severity}</td>
-          <td className="px-3 py-2">
-            <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
-          </td>
-        </tr>
-      ))}
-    </Tabela>
+    <div className="space-y-6">
+      <ChecklistJuridico dados={dados} />
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-navy">Validações registradas</h3>
+        {lista.length ? (
+          <Tabela cabecalho={["Validação", "Severidade", "Situação"]}>
+            {lista.map((v) => (
+              <tr key={v.id} className="border-t border-navy/10">
+                <td className="px-3 py-2">{v.label}</td>
+                <td className="px-3 py-2">{v.severity}</td>
+                <td className="px-3 py-2">
+                  <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
+                </td>
+              </tr>
+            ))}
+          </Tabela>
+        ) : (
+          <p className="text-sm text-navy/60">Nenhuma validação executada ainda.</p>
+        )}
+      </section>
+    </div>
   );
 }
 
