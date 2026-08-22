@@ -39,6 +39,17 @@ export const listarComercial = createServerFn({ method: "GET" })
       exigirPapel(papel, [...PAPEIS_FINANCEIRO, "operacoes", "leitura"], "Sem acesso financeiro.");
     }
     const incluirDemos = data.incluirDemos === true && PAPEIS_DEMO_VISIVEL.includes(papel);
+    // Auditoria da tentativa bloqueada de trazer dado TESTE para leitura operacional.
+    // Registra apenas metadados (recurso e papel); nenhum conteúdo sensível é gravado.
+    if (data.incluirDemos === true && !incluirDemos) {
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        user_id: context.userId as string,
+        entidade: data.recurso,
+        acao: "leitura_demo_bloqueada",
+        metadados: { papel, motivo: "papel sem permissão para incluir demonstrações" },
+      } as never);
+    }
     let q = supabase
       .from(data.recurso)
       .select("*")

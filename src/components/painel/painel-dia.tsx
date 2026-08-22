@@ -59,7 +59,8 @@ function Linha({ item }: { item: ItemDia }) {
           <span className="text-navy/60">Responsável: {item.responsavel}</span>
         ) : (
           <span className="rounded bg-terracotta/10 px-1.5 py-0.5 text-terracotta">
-            Falha de qualidade: sem responsável definido
+            Falha de qualidade: sem responsável definido · proprietário atual: Não definido · ação exigida: Atribuição humana
+            necessária
           </span>
         )}
       </p>
