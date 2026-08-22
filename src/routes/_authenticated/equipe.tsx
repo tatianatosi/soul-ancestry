@@ -90,6 +90,8 @@ function EquipePage() {
         <EstadoVazio mensagem="Apenas administradores podem gerenciar usuários e papéis." />
       ) : (
         <div className="space-y-8">
+          <StatusEnvioRecuperacao />
+
           <section className="rounded-xl border border-navy/10 bg-white p-5">
             <h2 className="font-serif text-xl">Convidar membro</h2>
             <p className="mt-1 text-sm text-navy/60">
