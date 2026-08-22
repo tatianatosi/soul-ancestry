@@ -2422,13 +2422,22 @@ export type Database = {
           code: string
           created_at: string
           created_by: string | null
+          criterio_aprovacao: string | null
           documentos_prioritarios: string | null
+          evidencia_aprovacao_referencia: string | null
           id: string
           idioma_entrevista: string | null
+          legal_reference_label: string | null
+          legal_reference_summary: string | null
+          lifecycle_status: string
           marco_juridico_referencia: string | null
           nacionalidade: string | null
+          official_source_name: string | null
+          official_source_url: string | null
           organization_id: string
+          owner_id: string | null
           pais: string
+          pesquisa_externa_aplicavel: boolean
           requisitos_entrada: string | null
           responsavel_revisao: string | null
           revisao_humana_juridica: string
@@ -2436,9 +2445,11 @@ export type Database = {
           status_atualizacao: string
           status_via: string
           texto_sanitizado_cliente: string | null
+          track_name: string | null
           ultima_revisao_em: string | null
           updated_at: string
           updated_by: string | null
+          versao: string | null
           via_preliminar: string | null
         }
         Insert: {
@@ -2450,13 +2461,22 @@ export type Database = {
           code: string
           created_at?: string
           created_by?: string | null
+          criterio_aprovacao?: string | null
           documentos_prioritarios?: string | null
+          evidencia_aprovacao_referencia?: string | null
           id?: string
           idioma_entrevista?: string | null
+          legal_reference_label?: string | null
+          legal_reference_summary?: string | null
+          lifecycle_status?: string
           marco_juridico_referencia?: string | null
           nacionalidade?: string | null
+          official_source_name?: string | null
+          official_source_url?: string | null
           organization_id: string
+          owner_id?: string | null
           pais: string
+          pesquisa_externa_aplicavel?: boolean
           requisitos_entrada?: string | null
           responsavel_revisao?: string | null
           revisao_humana_juridica?: string
@@ -2464,9 +2484,11 @@ export type Database = {
           status_atualizacao?: string
           status_via?: string
           texto_sanitizado_cliente?: string | null
+          track_name?: string | null
           ultima_revisao_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          versao?: string | null
           via_preliminar?: string | null
         }
         Update: {
@@ -2478,13 +2500,22 @@ export type Database = {
           code?: string
           created_at?: string
           created_by?: string | null
+          criterio_aprovacao?: string | null
           documentos_prioritarios?: string | null
+          evidencia_aprovacao_referencia?: string | null
           id?: string
           idioma_entrevista?: string | null
+          legal_reference_label?: string | null
+          legal_reference_summary?: string | null
+          lifecycle_status?: string
           marco_juridico_referencia?: string | null
           nacionalidade?: string | null
+          official_source_name?: string | null
+          official_source_url?: string | null
           organization_id?: string
+          owner_id?: string | null
           pais?: string
+          pesquisa_externa_aplicavel?: boolean
           requisitos_entrada?: string | null
           responsavel_revisao?: string | null
           revisao_humana_juridica?: string
@@ -2492,9 +2523,11 @@ export type Database = {
           status_atualizacao?: string
           status_via?: string
           texto_sanitizado_cliente?: string | null
+          track_name?: string | null
           ultima_revisao_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          versao?: string | null
           via_preliminar?: string | null
         }
         Relationships: []
@@ -8636,7 +8669,11 @@ export type Database = {
           codigo: string | null
           complexidade_documental: string | null
           confianca_triagem: string | null
+          consentimento_canal: string | null
+          consentimento_em: string | null
           consentimento_gravacao: boolean
+          consentimento_status: string
+          consentimento_versao_aviso: string | null
           contrato_link_interno: string | null
           created_at: string
           created_by: string | null
@@ -8647,6 +8684,7 @@ export type Database = {
           despesas_terceiros_regra: string | null
           despesas_terceiros_status: string | null
           discovery_resultado: string | null
+          documentos_chave: string[]
           dossie_link_interno: string | null
           eixo_comercial: string
           eixo_formalizacao: string
@@ -8661,9 +8699,12 @@ export type Database = {
           id: string
           indicado_por: string | null
           linha_transmissao: string | null
+          localidades_conhecidas: string | null
           marco_preliminar: string | null
+          marco_referencia_id: string | null
           motivo_perda: string | null
           nacionalidade: string | null
+          nacionalidades_interesse: string[]
           narrativa_familiar: string | null
           nivel_intencao: string | null
           nome: string
@@ -8675,7 +8716,11 @@ export type Database = {
           origem: string | null
           pagamento_previsto_em: string | null
           pais_interesse: string | null
+          pais_linha_prioritaria: string | null
           pendencia_documental_prioritaria: string | null
+          pesquisa_previa_autorizacao: string
+          pesquisa_previa_escopo: string[]
+          pesquisa_previa_limite: string | null
           produtos_recomendados: string[]
           proposta_link_interno: string | null
           proposta_referencia_interna: string | null
@@ -8696,6 +8741,7 @@ export type Database = {
           status_call: string | null
           status_via: string | null
           telefone: string | null
+          trilha_referencia_id: string | null
           ultimo_followup_em: string | null
           updated_at: string
           updated_by: string | null
@@ -8713,7 +8759,11 @@ export type Database = {
           codigo?: string | null
           complexidade_documental?: string | null
           confianca_triagem?: string | null
+          consentimento_canal?: string | null
+          consentimento_em?: string | null
           consentimento_gravacao?: boolean
+          consentimento_status?: string
+          consentimento_versao_aviso?: string | null
           contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
@@ -8724,6 +8774,7 @@ export type Database = {
           despesas_terceiros_regra?: string | null
           despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
+          documentos_chave?: string[]
           dossie_link_interno?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
@@ -8738,9 +8789,12 @@ export type Database = {
           id?: string
           indicado_por?: string | null
           linha_transmissao?: string | null
+          localidades_conhecidas?: string | null
           marco_preliminar?: string | null
+          marco_referencia_id?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
+          nacionalidades_interesse?: string[]
           narrativa_familiar?: string | null
           nivel_intencao?: string | null
           nome: string
@@ -8752,7 +8806,11 @@ export type Database = {
           origem?: string | null
           pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          pais_linha_prioritaria?: string | null
           pendencia_documental_prioritaria?: string | null
+          pesquisa_previa_autorizacao?: string
+          pesquisa_previa_escopo?: string[]
+          pesquisa_previa_limite?: string | null
           produtos_recomendados?: string[]
           proposta_link_interno?: string | null
           proposta_referencia_interna?: string | null
@@ -8773,6 +8831,7 @@ export type Database = {
           status_call?: string | null
           status_via?: string | null
           telefone?: string | null
+          trilha_referencia_id?: string | null
           ultimo_followup_em?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -8790,7 +8849,11 @@ export type Database = {
           codigo?: string | null
           complexidade_documental?: string | null
           confianca_triagem?: string | null
+          consentimento_canal?: string | null
+          consentimento_em?: string | null
           consentimento_gravacao?: boolean
+          consentimento_status?: string
+          consentimento_versao_aviso?: string | null
           contrato_link_interno?: string | null
           created_at?: string
           created_by?: string | null
@@ -8801,6 +8864,7 @@ export type Database = {
           despesas_terceiros_regra?: string | null
           despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
+          documentos_chave?: string[]
           dossie_link_interno?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
@@ -8815,9 +8879,12 @@ export type Database = {
           id?: string
           indicado_por?: string | null
           linha_transmissao?: string | null
+          localidades_conhecidas?: string | null
           marco_preliminar?: string | null
+          marco_referencia_id?: string | null
           motivo_perda?: string | null
           nacionalidade?: string | null
+          nacionalidades_interesse?: string[]
           narrativa_familiar?: string | null
           nivel_intencao?: string | null
           nome?: string
@@ -8829,7 +8896,11 @@ export type Database = {
           origem?: string | null
           pagamento_previsto_em?: string | null
           pais_interesse?: string | null
+          pais_linha_prioritaria?: string | null
           pendencia_documental_prioritaria?: string | null
+          pesquisa_previa_autorizacao?: string
+          pesquisa_previa_escopo?: string[]
+          pesquisa_previa_limite?: string | null
           produtos_recomendados?: string[]
           proposta_link_interno?: string | null
           proposta_referencia_interna?: string | null
@@ -8850,6 +8921,7 @@ export type Database = {
           status_call?: string | null
           status_via?: string | null
           telefone?: string | null
+          trilha_referencia_id?: string | null
           ultimo_followup_em?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -8871,6 +8943,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leads_marco_referencia_id_fkey"
+            columns: ["marco_referencia_id"]
+            isOneToOne: false
+            referencedRelation: "legal_reference_milestones"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leads_nucleo_id_fkey"
             columns: ["nucleo_id"]
             isOneToOne: false
@@ -8882,6 +8961,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_trilha_referencia_id_fkey"
+            columns: ["trilha_referencia_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
             referencedColumns: ["id"]
           },
         ]
@@ -9040,6 +9126,86 @@ export type Database = {
             columns: ["substituido_por_id"]
             isOneToOne: false
             referencedRelation: "legal_clause_matrix"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_reference_milestones: {
+        Row: {
+          archive_motivo: string | null
+          archived_at: string | null
+          archived_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          lifecycle_status: string
+          notes: string | null
+          official_source_url: string | null
+          organization_id: string
+          reference_type: string
+          review_required: string
+          status: string
+          summary_internal: string | null
+          track_id: string
+          updated_at: string
+          updated_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          versao: string | null
+        }
+        Insert: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          lifecycle_status?: string
+          notes?: string | null
+          official_source_url?: string | null
+          organization_id: string
+          reference_type?: string
+          review_required?: string
+          status?: string
+          summary_internal?: string | null
+          track_id: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          versao?: string | null
+        }
+        Update: {
+          archive_motivo?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          lifecycle_status?: string
+          notes?: string | null
+          official_source_url?: string | null
+          organization_id?: string
+          reference_type?: string
+          review_required?: string
+          status?: string
+          summary_internal?: string | null
+          track_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          versao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_reference_milestones_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "citizenship_tracks"
             referencedColumns: ["id"]
           },
         ]

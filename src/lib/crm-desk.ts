@@ -304,6 +304,90 @@ export const NIVEIS_INTENCAO: Opcao[] = [
   { valor: "sem_intencao", rotulo: "Sem intenção atual" },
 ];
 
+/* Consentimento de gravação/transcrição (CA-LOVABLE-CRM-Discovery v1.0) */
+export const CONSENTIMENTO_STATUS: Opcao[] = [
+  { valor: "nao_solicitado", rotulo: "Não solicitado" },
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "concedido", rotulo: "Concedido" },
+  { valor: "recusado", rotulo: "Recusado" },
+];
+
+export const CANAIS_CONSENTIMENTO: Opcao[] = [
+  { valor: "verbal_em_call", rotulo: "Verbal registrado na call" },
+  { valor: "whatsapp", rotulo: "WhatsApp" },
+  { valor: "email", rotulo: "E-mail" },
+  { valor: "formulario", rotulo: "Formulário" },
+  { valor: "termo_assinado", rotulo: "Termo assinado" },
+];
+
+export const PAISES_LINHA_PRIORITARIA: Opcao[] = [
+  { valor: "italia", rotulo: "Itália" },
+  { valor: "portugal", rotulo: "Portugal" },
+  { valor: "espanha", rotulo: "Espanha" },
+  { valor: "alemanha", rotulo: "Alemanha" },
+  { valor: "austria", rotulo: "Áustria" },
+  { valor: "polonia", rotulo: "Polônia" },
+  { valor: "hungria", rotulo: "Hungria" },
+  { valor: "luxemburgo", rotulo: "Luxemburgo" },
+  { valor: "croacia", rotulo: "Croácia" },
+  { valor: "romenia", rotulo: "Romênia" },
+  { valor: "multipais", rotulo: "Multipaís" },
+  { valor: "a_definir", rotulo: "A definir" },
+];
+
+export const PESQUISA_PREVIA_AUTORIZACAO: Opcao[] = [
+  { valor: "nao_solicitada", rotulo: "Não solicitada" },
+  { valor: "pendente", rotulo: "Pendente" },
+  { valor: "registrada", rotulo: "Registrada" },
+  { valor: "nao_autorizada", rotulo: "Não autorizada" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+];
+
+export const PESQUISA_PREVIA_ESCOPO: Opcao[] = [
+  { valor: "triagem_publica", rotulo: "Triagem pública" },
+  { valor: "documentos_fornecidos", rotulo: "Documentos fornecidos" },
+  { valor: "pesquisa_genealogica", rotulo: "Pesquisa genealógica" },
+  { valor: "outro", rotulo: "Outro" },
+];
+
+export const DOCUMENTOS_CHAVE: Opcao[] = [
+  { valor: "certidao_nascimento", rotulo: "Certidão de nascimento" },
+  { valor: "certidao_casamento", rotulo: "Certidão de casamento" },
+  { valor: "certidao_obito", rotulo: "Certidão de óbito" },
+  { valor: "passaporte", rotulo: "Passaporte" },
+  { valor: "registro_imigracao", rotulo: "Registro de imigração" },
+  { valor: "registro_militar", rotulo: "Registro militar" },
+  { valor: "registro_religioso", rotulo: "Registro religioso" },
+  { valor: "naturalizacao_negativa", rotulo: "Naturalização/negativa de naturalização" },
+  { valor: "registro_consular", rotulo: "Registro consular" },
+  { valor: "prova_perseguicao", rotulo: "Prova de perseguição" },
+  { valor: "documento_pessoal_requerente", rotulo: "Documento pessoal do requerente" },
+  { valor: "nenhum_ainda", rotulo: "Nenhum ainda" },
+];
+
+/** Status de uso da trilha jurídica de referência (Biblioteca Mestre). */
+export const STATUS_TRILHA: Opcao[] = [
+  { valor: "aberta", rotulo: "Aberta" },
+  { valor: "aberta_com_requisito", rotulo: "Aberta com requisito específico" },
+  { valor: "aberta_com_prazo", rotulo: "Aberta com prazo" },
+  { valor: "restrita", rotulo: "Restrita" },
+  { valor: "encerrada", rotulo: "Encerrada para novos pedidos" },
+  { valor: "em_confirmacao_juridica", rotulo: "Em confirmação jurídica" },
+  { valor: "nao_aplicavel", rotulo: "Não aplicável" },
+];
+
+/** Situação do marco jurídico de referência. */
+export const STATUS_MARCO: Opcao[] = [
+  { valor: "vigente", rotulo: "Vigente" },
+  { valor: "a_revisar", rotulo: "A revisar" },
+  { valor: "desatualizado", rotulo: "Desatualizado" },
+  { valor: "historico", rotulo: "Histórico" },
+  { valor: "encerrado", rotulo: "Encerrado" },
+];
+
+/** Marcos que não podem sustentar rota/protocolo nem comunicação externa. */
+export const MARCOS_BLOQUEIA_EXTERNO = ["a_revisar", "desatualizado", "encerrado"];
+
 /** Todos os catálogos classificatórios por campo. Entrada fora da lista é rejeitada. */
 export const CATALOGOS: Record<string, Opcao[]> = {
   area_responsavel: AREAS_RESPONSAVEIS,
@@ -334,6 +418,12 @@ export const CATALOGOS: Record<string, Opcao[]> = {
   despesas_terceiros_faixa: DESPESAS_TERCEIROS_FAIXA,
   objecao_predominante: OBJECOES,
   nivel_intencao: NIVEIS_INTENCAO,
+  consentimento_status: CONSENTIMENTO_STATUS,
+  consentimento_canal: CANAIS_CONSENTIMENTO,
+  pais_linha_prioritaria: PAISES_LINHA_PRIORITARIA,
+  pesquisa_previa_autorizacao: PESQUISA_PREVIA_AUTORIZACAO,
+  status_marco: STATUS_MARCO,
+  status_trilha: STATUS_TRILHA,
 };
 
 export const CAMPOS_TEXTO_LIVRE = [
@@ -421,6 +511,20 @@ export type LeadDesk = {
   spin_necessidade?: boolean | null;
   gravacao_link_interno?: string | null;
   dossie_link_interno?: string | null;
+  /* Consentimento, trilha e pesquisa prévia (Discovery v1.0) */
+  consentimento_status?: string | null;
+  consentimento_em?: string | null;
+  consentimento_canal?: string | null;
+  consentimento_versao_aviso?: string | null;
+  nacionalidades_interesse?: string[] | null;
+  pais_linha_prioritaria?: string | null;
+  localidades_conhecidas?: string | null;
+  documentos_chave?: string[] | null;
+  trilha_referencia_id?: string | null;
+  marco_referencia_id?: string | null;
+  pesquisa_previa_autorizacao?: string | null;
+  pesquisa_previa_escopo?: string[] | null;
+  pesquisa_previa_limite?: string | null;
 };
 
 /** Resultado comercial é DERIVADO: nunca substitui os dois eixos. */
@@ -511,10 +615,53 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
   if (String(l.despesas_terceiros_status) === "aprovadas") {
     if (vazio(l.despesas_terceiros_faixa)) erros.push({ campo: "despesas_terceiros_faixa", motivo: "Despesas aprovadas exigem faixa estimada registrada." });
     if (vazio(l.despesas_terceiros_regra)) erros.push({ campo: "despesas_terceiros_regra", motivo: "Despesas aprovadas exigem a regra de pagamento pelo cliente." });
+    if (String(l.despesas_terceiros_regra) === "clube_nao_antecipa") {
+      erros.push({
+        campo: "despesas_terceiros_regra",
+        motivo: "Despesa aprovada exige regra de pagamento direto do cliente ao terceiro — o Clube nunca antecipa nem reembolsa.",
+      });
+    }
+    if (vazio(l.proposta_referencia_interna)) {
+      erros.push({ campo: "proposta_referencia_interna", motivo: "Despesa aprovada exige referência de proposta/escopo aplicável." });
+    }
   }
 
-  if (!l.consentimento_gravacao && !vazio(l.gravacao_link_interno)) {
-    erros.push({ campo: "gravacao_link_interno", motivo: "Sem consentimento de gravação não é possível registrar link de gravação/transcrição." });
+  const consentido = String(l.consentimento_status) === "concedido";
+  if (consentido) {
+    if (vazio(l.consentimento_em)) erros.push({ campo: "consentimento_em", motivo: "Consentimento concedido exige data/hora do registro." });
+    if (vazio(l.consentimento_canal)) erros.push({ campo: "consentimento_canal", motivo: "Consentimento concedido exige canal do registro." });
+    if (vazio(l.consentimento_versao_aviso)) {
+      erros.push({ campo: "consentimento_versao_aviso", motivo: "Consentimento concedido exige a versão do aviso apresentada." });
+    }
+  }
+  if (!consentido && !vazio(l.gravacao_link_interno)) {
+    erros.push({
+      campo: "gravacao_link_interno",
+      motivo: "Gravação/transcrição só é permitida com consentimento concedido, datado, com canal e versão do aviso.",
+    });
+  }
+
+  const spinConcluido = Boolean(l.spin_situacao && l.spin_problema && l.spin_implicacao && l.spin_necessidade);
+  if (spinConcluido && String(l.resumo_call ?? "").trim().length < 30) {
+    erros.push({ campo: "resumo_call", motivo: "SPIN concluído exige resumo correspondente: caixas marcadas não bastam." });
+  }
+
+  if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
+    if (vazio(l.confianca_triagem)) erros.push({ campo: "confianca_triagem", motivo: "Sinal forte/provável exige confiança da triagem." });
+    if (vazio(l.linha_transmissao)) erros.push({ campo: "linha_transmissao", motivo: "Sinal forte/provável exige linha de transmissão." });
+  }
+
+  if ((l.pesquisa_previa_escopo ?? []).length > 0 && String(l.pesquisa_previa_autorizacao) !== "registrada") {
+    erros.push({ campo: "pesquisa_previa_escopo", motivo: "Escopo de pesquisa prévia exige autorização registrada." });
+  }
+  if ((l.pesquisa_previa_escopo ?? []).some((e) => !PESQUISA_PREVIA_ESCOPO.some((o) => o.valor === e))) {
+    erros.push({ campo: "pesquisa_previa_escopo", motivo: "Escopo fora da lista controlada." });
+  }
+  if ((l.nacionalidades_interesse ?? []).some((n) => !NACIONALIDADES.some((o) => o.valor === n))) {
+    erros.push({ campo: "nacionalidades_interesse", motivo: "Nacionalidade fora da lista controlada." });
+  }
+  if ((l.documentos_chave ?? []).some((d) => !DOCUMENTOS_CHAVE.some((o) => o.valor === d))) {
+    erros.push({ campo: "documentos_chave", motivo: "Documento-chave fora da lista controlada." });
   }
 
   if (l.requerentes_potenciais !== null && l.requerentes_potenciais !== undefined && Number(l.requerentes_potenciais) < 1) {

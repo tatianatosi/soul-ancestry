@@ -76,6 +76,20 @@ const CAMPOS_LEAD = [
   "spin_necessidade",
   "gravacao_link_interno",
   "dossie_link_interno",
+  // Consentimento, trilha e pesquisa prévia (Discovery v1.0)
+  "consentimento_status",
+  "consentimento_em",
+  "consentimento_canal",
+  "consentimento_versao_aviso",
+  "nacionalidades_interesse",
+  "pais_linha_prioritaria",
+  "localidades_conhecidas",
+  "documentos_chave",
+  "trilha_referencia_id",
+  "marco_referencia_id",
+  "pesquisa_previa_autorizacao",
+  "pesquisa_previa_escopo",
+  "pesquisa_previa_limite",
 ] as const;
 
 

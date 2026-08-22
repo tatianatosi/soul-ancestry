@@ -44,12 +44,54 @@ import {
   DESPESAS_TERCEIROS_REGRA,
   DESPESAS_TERCEIROS_FAIXA,
   VIAS_JURIDICAS,
+  CONSENTIMENTO_STATUS,
+  CANAIS_CONSENTIMENTO,
+  PAISES_LINHA_PRIORITARIA,
+  PESQUISA_PREVIA_AUTORIZACAO,
+  PESQUISA_PREVIA_ESCOPO,
+  DOCUMENTOS_CHAVE,
   resultadoComercialDerivado,
   rotulo,
   validarLead,
   type ErroValidacao,
   type LeadDesk,
+  type Opcao,
 } from "@/lib/crm-desk";
+import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
+
+function MultiSelecao({
+  label,
+  opcoes,
+  valores,
+  onChange,
+  desabilitado,
+}: {
+  label: string;
+  opcoes: Opcao[];
+  valores: string[];
+  onChange: (v: string[]) => void;
+  desabilitado?: boolean;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-navy/60">{label}</p>
+      <div className="grid gap-1 md:grid-cols-2">
+        {opcoes.map((o) => (
+          <label key={o.valor} className="flex items-center gap-2 text-xs text-navy">
+            <input
+              type="checkbox"
+              disabled={desabilitado}
+              checked={valores.includes(o.valor)}
+              onChange={(e) => onChange(e.target.checked ? [...valores, o.valor] : valores.filter((v) => v !== o.valor))}
+            />
+            {o.rotulo}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -88,6 +130,30 @@ function LeadsPage() {
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
   const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+
+  const carregarTrilhas = useServerFn(listarTrilhasJuridicas);
+  const qTrilhas = useQuery({ queryKey: ["trilhas-juridicas"], queryFn: () => carregarTrilhas(), retry: false });
+  const trilhas = qTrilhas.data?.trilhas ?? [];
+  const marcos = qTrilhas.data?.marcos ?? [];
+  const trilhaSelecionada = trilhas.find((t) => t.id === editado.trilha_referencia_id) ?? null;
+  const opcoesTrilhas: Opcao[] = trilhas.map((t) => ({
+    valor: t.id,
+    rotulo: `${t.pais ?? "—"} · ${t.track_name ?? t.code ?? "—"} (${rotulo("status_via", t.status_via)})`,
+  }));
+  const opcoesMarcos: Opcao[] = marcos
+    .filter((m) => !editado.trilha_referencia_id || m.track_id === editado.trilha_referencia_id)
+    .map((m) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
+  const sinais = useMemo(
+    () =>
+      atual || Object.keys(rascunho).length
+        ? sinaisQualidadeLead(editado, {
+            status_via: trilhaSelecionada?.status_via ?? editado.status_via ?? null,
+            status_marco: marcos.find((m) => m.id === editado.marco_referencia_id)?.status ?? null,
+          })
+        : [],
+    [editado, atual, rascunho, trilhaSelecionada, marcos],
+  );
+  const [roteiroAberto, setRoteiroAberto] = useState(false);
 
   const mutSalvar = useMutation({
     mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
@@ -205,6 +271,49 @@ function LeadsPage() {
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
           {atual ? <HandoffLead lead={editado} /> : null}
+
+          <div className="rounded-xl border border-navy/10 bg-white p-4">
+            <button
+              type="button"
+              onClick={() => setRoteiroAberto((v) => !v)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="text-sm font-medium text-navy">Roteiro vivo de Discovery</span>
+              <span className="text-xs text-navy/50">{roteiroAberto ? "recolher" : "expandir"}</span>
+            </button>
+            <p className="mt-1 text-xs text-navy/55">
+              Guia contextual de perguntas. Não é formulário obrigatório e não conclui elegibilidade, rota, prazo, preço ou contrato — toda
+              leitura é preliminar e interna.
+            </p>
+            {roteiroAberto ? (
+              <div className="mt-3 space-y-3">
+                {ROTEIRO_DISCOVERY.map((b) => (
+                  <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+                    <p className="text-sm font-medium text-navy">{b.titulo}</p>
+                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-navy/70">
+                      {b.perguntas.map((p) => (
+                        <li key={p}>{p}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[11px] uppercase tracking-wide text-navy/45">Alimenta: {b.campos.join(", ")}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {sinais.length ? (
+            <div className="rounded-xl border border-gold/50 bg-gold/10 p-4">
+              <p className="text-sm font-medium text-navy">Sinais de qualidade da ficha</p>
+              <ul className="mt-2 space-y-1 text-xs text-navy/75">
+                {sinais.map((s) => (
+                  <li key={s.chave}>
+                    <strong>{s.rotulo}</strong>: {s.motivo}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
 
           {erros.length ? (
@@ -379,14 +488,140 @@ function LeadsPage() {
                   {label}
                 </label>
               ))}
-              <label className="flex items-center gap-2 text-sm text-navy">
-                <input type="checkbox" checked={bool("consentimento_gravacao")} disabled={!podeEscrever} onChange={(e) => set("consentimento_gravacao")(e.target.checked)} />
-                Consentimento de gravação registrado
-              </label>
-              <Texto label="Gravação (referência interna)" valor={campo("gravacao_link_interno")} onChange={set("gravacao_link_interno")} desabilitado={!podeEscrever || !bool("consentimento_gravacao")} />
               <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} desabilitado={!podeEscrever} />
             </div>
           </Secao>
+
+          <Secao
+            titulo="Consentimento de gravação e transcrição"
+            descricao="Gravação, transcrição e uso interno só com consentimento concedido, datado, com canal e versão do aviso. Sem isso, nenhuma referência de gravação pode ser registrada."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao
+                label="Status do consentimento"
+                valor={campo("consentimento_status")}
+                opcoes={CONSENTIMENTO_STATUS}
+                onChange={set("consentimento_status")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Data/hora do consentimento"
+                tipo="datetime-local"
+                valor={String(editado.consentimento_em ?? "").slice(0, 16)}
+                onChange={set("consentimento_em")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Canal do consentimento"
+                valor={campo("consentimento_canal")}
+                opcoes={CANAIS_CONSENTIMENTO}
+                onChange={set("consentimento_canal")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Versão do aviso apresentada"
+                valor={campo("consentimento_versao_aviso")}
+                onChange={set("consentimento_versao_aviso")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Gravação (referência interna)"
+                valor={campo("gravacao_link_interno")}
+                onChange={set("gravacao_link_interno")}
+                desabilitado={!podeEscrever || campo("consentimento_status") !== "concedido"}
+              />
+              <label className="flex items-end gap-2 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={bool("consentimento_gravacao")}
+                  disabled={!podeEscrever}
+                  onChange={(e) => set("consentimento_gravacao")(e.target.checked)}
+                />
+                Consentimento confirmado na conversa
+              </label>
+            </div>
+          </Secao>
+
+          <Secao
+            titulo="Linha familiar, trilha jurídica e pesquisa prévia"
+            descricao="Trilhas e marcos são referência interna de triagem, nunca parecer jurídico nem garantia de direito. Pesquisa nominal externa exige autorização registrada."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao
+                label="País/linha prioritária"
+                valor={campo("pais_linha_prioritaria")}
+                opcoes={PAISES_LINHA_PRIORITARIA}
+                onChange={set("pais_linha_prioritaria")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Localidades conhecidas (comuna, paróquia, província)"
+                valor={campo("localidades_conhecidas")}
+                onChange={set("localidades_conhecidas")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Nacionalidades de interesse"
+                opcoes={NACIONALIDADES}
+                valores={(editado.nacionalidades_interesse ?? []) as string[]}
+                onChange={set("nacionalidades_interesse")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Documentos-chave já indicados"
+                opcoes={DOCUMENTOS_CHAVE}
+                valores={(editado.documentos_chave ?? []) as string[]}
+                onChange={set("documentos_chave")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Trilha jurídica de referência"
+                valor={campo("trilha_referencia_id")}
+                opcoes={opcoesTrilhas}
+                onChange={set("trilha_referencia_id")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Marco jurídico de referência"
+                valor={campo("marco_referencia_id")}
+                opcoes={opcoesMarcos}
+                onChange={set("marco_referencia_id")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Autorização de pesquisa prévia"
+                valor={campo("pesquisa_previa_autorizacao")}
+                opcoes={PESQUISA_PREVIA_AUTORIZACAO}
+                onChange={set("pesquisa_previa_autorizacao")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Limite declarado da pesquisa prévia"
+                valor={campo("pesquisa_previa_limite")}
+                onChange={set("pesquisa_previa_limite")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Escopo autorizado da pesquisa prévia"
+                opcoes={PESQUISA_PREVIA_ESCOPO}
+                valores={(editado.pesquisa_previa_escopo ?? []) as string[]}
+                onChange={set("pesquisa_previa_escopo")}
+                desabilitado={!podeEscrever}
+              />
+              {trilhaSelecionada ? (
+                <div className="md:col-span-2 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
+                  <p className="font-medium text-navy">
+                    {trilhaSelecionada.pais} · {trilhaSelecionada.track_name} — {rotulo("status_via", trilhaSelecionada.status_via)}
+                  </p>
+                  {trilhaSelecionada.legal_reference_summary ? <p className="mt-1">{trilhaSelecionada.legal_reference_summary}</p> : null}
+                  <p className="mt-1">
+                    Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </Secao>
+
 
           <Secao
             titulo="Recomendação comercial e despesas de terceiros"
