@@ -175,7 +175,7 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
         return linha(c, "presente", "Condição comercial derivada de fonte homologada.", "ANX-COMERCIAL");
       }
       case "J": {
-        const a = anexo("ANEXO_II_DESPESAS");
+        const a = anexo("ANEXO_II_DESPESAS_EXTERNAS");
         if (a && (a.pendencias.length > 0 || a.estado === "pendente")) {
           return linha(c, "pendente", a.pendencias[0] ?? "Política de despesas de terceiros pendente.", "Regra institucional");
         }
