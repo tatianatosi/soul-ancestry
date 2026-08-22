@@ -143,6 +143,7 @@ const NAV: readonly SecaoNav[] = [
     icon: Library,
     agrupador: true,
     sub: [
+      { to: "/modo-proprietaria", label: "Modo Proprietária Administradora" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
       { to: "/fontes-genealogicas", label: "Bases Genealógicas" },
