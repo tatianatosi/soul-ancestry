@@ -5,6 +5,8 @@
  * caso pausado/encerrado). Aqui só normalizamos campos e resolvemos contexto.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { TIPOS_EXCECAO_ROTULOS } from "@/lib/varredura-autorizacoes";
+
 export type Sb = any;
 
 export const STATUS_TAREFA = [
