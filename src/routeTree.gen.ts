@@ -100,6 +100,8 @@ import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/
 import { Route as AuthenticatedBibliotecaEvidenciasCaseIdRouteImport } from './routes/_authenticated/biblioteca-evidencias.$caseId'
 import { Route as AuthenticatedAchadosCaseIdRouteImport } from './routes/_authenticated/achados.$caseId'
 import { Route as AuthenticatedCasosCaseIdIndexRouteImport } from './routes/_authenticated/casos.$caseId.index'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as AuthenticatedCasosCaseIdContratoPrepararRouteImport } from './routes/_authenticated/casos.$caseId.contrato.preparar'
 
 const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
@@ -600,6 +602,16 @@ const AuthenticatedCasosCaseIdIndexRoute =
     path: '/casos/$caseId/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCasosCaseIdContratoPrepararRoute =
   AuthenticatedCasosCaseIdContratoPrepararRouteImport.update({
     id: '/casos/$caseId/contrato/preparar',
@@ -697,6 +709,8 @@ export interface FileRoutesByFullPath {
   '/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/casos/$caseId/': typeof AuthenticatedCasosCaseIdIndexRoute
   '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
@@ -789,6 +803,8 @@ export interface FileRoutesByTo {
   '/pesquisa-modulo': typeof AuthenticatedPesquisaModuloIndexRoute
   '/pesquisa': typeof AuthenticatedPesquisaIndexRoute
   '/privacidade': typeof AuthenticatedPrivacidadeIndexRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/casos/$caseId': typeof AuthenticatedCasosCaseIdIndexRoute
   '/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
@@ -884,6 +900,8 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa-modulo/': typeof AuthenticatedPesquisaModuloIndexRoute
   '/_authenticated/pesquisa/': typeof AuthenticatedPesquisaIndexRoute
   '/_authenticated/privacidade/': typeof AuthenticatedPrivacidadeIndexRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/_authenticated/casos/$caseId/': typeof AuthenticatedCasosCaseIdIndexRoute
   '/_authenticated/casos/$caseId/contrato/preparar': typeof AuthenticatedCasosCaseIdContratoPrepararRoute
 }
@@ -979,6 +997,8 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo/'
     | '/pesquisa/'
     | '/privacidade/'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/casos/$caseId/'
     | '/casos/$caseId/contrato/preparar'
   fileRoutesByTo: FileRoutesByTo
@@ -1071,6 +1091,8 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo'
     | '/pesquisa'
     | '/privacidade'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/casos/$caseId'
     | '/casos/$caseId/contrato/preparar'
   id:
@@ -1165,6 +1187,8 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa-modulo/'
     | '/_authenticated/pesquisa/'
     | '/_authenticated/privacidade/'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/_authenticated/casos/$caseId/'
     | '/_authenticated/casos/$caseId/contrato/preparar'
   fileRoutesById: FileRoutesById
@@ -1186,6 +1210,8 @@ export interface RootRouteChildren {
   EquipeEsqueciMinhaSenhaRoute: typeof EquipeEsqueciMinhaSenhaRoute
   EquipeRedefinirSenhaRoute: typeof EquipeRedefinirSenhaRoute
   EquipeSemPermissaoRoute: typeof EquipeSemPermissaoRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1827,6 +1853,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasosCaseIdIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/casos/$caseId/contrato/preparar': {
       id: '/_authenticated/casos/$caseId/contrato/preparar'
       path: '/casos/$caseId/contrato/preparar'
@@ -2055,6 +2095,8 @@ const rootRouteChildren: RootRouteChildren = {
   EquipeEsqueciMinhaSenhaRoute: EquipeEsqueciMinhaSenhaRoute,
   EquipeRedefinirSenhaRoute: EquipeRedefinirSenhaRoute,
   EquipeSemPermissaoRoute: EquipeSemPermissaoRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
