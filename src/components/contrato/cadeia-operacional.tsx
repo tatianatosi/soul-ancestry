@@ -80,7 +80,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
   if (q.isError) {
     return (
       <Painel titulo="Cadeia operacional">
-        <p className="text-sm text-terracota">{(q.error as Error).message}</p>
+        <p className="text-sm text-terracotta">{(q.error as Error).message}</p>
       </Painel>
     );
   }
@@ -91,10 +91,10 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
   const ocupado = mGerar.isPending || mAprovar.isPending || mEmitir.isPending;
 
   return (
-    <Painel
-      titulo="Cadeia operacional"
-      acao={<Selo tom="neutro">{d.versao}</Selo>}
-    >
+    <Painel titulo="Cadeia operacional">
+      <div className="mb-2">
+        <Selo texto={d.versao} tom="neutro" />
+      </div>
       <p className="text-xs text-navy/60">
         Fluxo único do caso {d.caso.codigo}. Cada elo mostra a fonte real do dado, a versão vigente e o motivo do bloqueio.
         Nenhuma cobrança, assinatura, comunicação ou pesquisa externa é executada aqui.
@@ -107,7 +107,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
               <span className="text-sm font-medium text-navy">
                 {i + 1}. {e.titulo}
               </span>
-              <Selo tom={TOM[e.estado] ?? "neutro"}>{ROTULO[e.estado] ?? e.estado}</Selo>
+              <Selo texto={ROTULO[e.estado] ?? e.estado} tom={TOM[e.estado] ?? "neutro"} />
             </div>
             <p className="mt-1 text-xs text-navy/60">
               Entrada: {e.entrada} · Saída: {e.saida}
@@ -115,7 +115,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
               {e.versao ? ` · Versão: ${e.versao}` : ""}
             </p>
             {e.motivos.length > 0 && (
-              <ul className="mt-1 list-disc pl-4 text-xs text-terracota">
+              <ul className="mt-1 list-disc pl-4 text-xs text-terracotta">
                 {e.motivos.slice(0, 4).map((m: string) => (
                   <li key={m}>{m}</li>
                 ))}
