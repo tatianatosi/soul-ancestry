@@ -399,15 +399,16 @@ export function PainelDia() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-navy/60">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+        <p className="min-w-0 text-sm text-navy/60">
           O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
           proprietárias.
         </p>
-        <label className="flex items-center gap-2 text-xs text-navy/60">
+        <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
           <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
           Incluir demonstrações
         </label>
+
       </div>
 
       {/* 0 — Cards do dia */}
