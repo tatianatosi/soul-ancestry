@@ -170,7 +170,7 @@ export function StatusEnvioRecuperacao() {
             <div>
               <h3 className="text-sm font-medium">Solicitações registradas em auditoria</h3>
               <ul className="mt-2 space-y-2">
-                {dados.solicitacoes.map((s) => (
+                {dados.solicitacoes.map((s: { id: string; acao: string; criadoEm: string }) => (
                   <li
                     key={s.id}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm"
