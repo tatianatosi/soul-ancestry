@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
+import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
@@ -281,6 +282,8 @@ function LeadsPage() {
           {msg ? <p className="rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
           {atual ? <HandoffLead lead={editado} /> : null}
+
+          {atual ? <DerivacaoJornada lead={editado} /> : null}
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
             <button
