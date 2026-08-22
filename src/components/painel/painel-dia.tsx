@@ -435,6 +435,9 @@ export function PainelDia() {
             { rotulo: "Calls de hoje", itens: comercial.calls },
             { rotulo: "Propostas sem follow-up", itens: comercial.propostas },
             { rotulo: "Leads sem próxima ação", itens: comercial.semDisciplina },
+            { rotulo: "Aceites pendentes", itens: itensFila("aceites_sem_confirmacao") },
+            { rotulo: "Contratos enviados", itens: itensFila("contratos_enviados_pendentes") },
+            { rotulo: "Pagamentos aguardados", itens: itensFila("pagamentos_aguardados") },
           ].map((b) => (
             <div key={b.rotulo}>
               <p className="text-xs uppercase tracking-wide text-navy/50">
