@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -30,7 +31,12 @@ const CAMPOS_PERFIL = [
   "sepultamento_localidade",
   "status_verificacao",
   "evidence_id",
+  "source_id",
   "internal_notes",
+  "nascimento_precisao",
+  "morte_precisao",
+  "responsible_user_id",
+  "client_visibility",
 ];
 
 const CAMPOS_VARIANTE = [
@@ -58,6 +64,7 @@ const CAMPOS_RELACAO = [
   "evidence_id",
   "source_id",
   "internal_notes",
+  "client_visibility",
 ];
 
 const CAMPOS_EVENTO = [
@@ -72,6 +79,10 @@ const CAMPOS_EVENTO = [
   "validation_status",
   "evidence_id",
   "source_id",
+  "family_id",
+  "impact_type",
+  "data_precisao",
+  "client_visibility",
 ];
 
 const CAMPOS_LINHAGEM = [
@@ -90,12 +101,33 @@ const CAMPOS_LINHAGEM = [
   "responsavel",
 ];
 
+const CAMPOS_MODULO = [
+  "case_id",
+  "family_id",
+  "person_id",
+  "titulo",
+  "subtipo",
+  "periodo_inicio",
+  "periodo_fim",
+  "data_precisao",
+  "localidade",
+  "descricao_interna",
+  "dados",
+  "evidence_id",
+  "source_id",
+  "institution_id",
+  "status_verificacao",
+  "client_visibility",
+  "responsible_user_id",
+];
+
 const TABELAS: Record<string, string[]> = {
   genealogical_person_profiles: CAMPOS_PERFIL,
   name_variants: CAMPOS_VARIANTE,
   genealogical_relationships: CAMPOS_RELACAO,
   genealogical_events: CAMPOS_EVENTO,
   lineage_paths: CAMPOS_LINHAGEM,
+  ...Object.fromEntries(MODULOS_HISTORICOS.map((m) => [m.tabela, CAMPOS_MODULO])),
 };
 
 type TabelaG02 = keyof typeof TABELAS;
@@ -183,8 +215,16 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
         supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
       ]);
 
+    const modulos = await Promise.all(
+      MODULOS_HISTORICOS.map(async (m) => {
+        const r = await org(m.tabela).eq("case_id", data.caseId).order("created_at", { ascending: true });
+        return [m.tabela, ((r as any).data ?? []) as any[]] as const;
+      }),
+    );
+
     return {
       podeEditar,
+      modulos: Object.fromEntries(modulos) as Record<string, any[]>,
       caso: (caso as any).data ?? null,
       pesquisas: (pesquisas.data ?? []) as any[],
       pessoas: ((pessoas as any).data ?? []) as any[],
