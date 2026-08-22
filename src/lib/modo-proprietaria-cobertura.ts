@@ -13,13 +13,27 @@ import {
   type PapelInterno,
 } from "@/lib/modo-proprietaria";
 
+/** Regras que valem para toda área coberta pelo modo proprietária. */
+export const REGRAS_GERAIS: string[] = [
+  "Salvar rascunho em qualquer estado, mesmo incompleto.",
+  "Reabrir ou derivar versão editável de registro congelado — o congelado nunca é sobrescrito.",
+  "Assumir pendência com motivo obrigatório; a pendência continua visível.",
+  "Override de gate interno com justificativa, fonte declarada, valor anterior, valor novo, autora, data e auditoria.",
+  "Nenhum valor ausente é inferido pelo sistema.",
+  "Toda edição grava na entidade canônica, nunca somente na interface.",
+  "RLS entre organizações preservada; nenhum papel além da proprietária recebe estes poderes.",
+];
+
 export const MODULOS_COBERTOS = [
   "planejador",
   "proposta_escopo",
+  "comercial_catalogo",
   "formalizacao",
   "pessoas_composicao",
+  "caso_dossie",
   "pesquisa_operacao",
-  "financeiro_app_cliente",
+  "financeiro",
+  "app_cliente",
   "painel_hoje",
 ] as const;
 
