@@ -4805,6 +4805,8 @@ export type Database = {
           frozen_by: string | null
           generated_content: Json
           id: string
+          institutional_profile_id: string | null
+          institutional_profile_snapshot: Json | null
           organization_id: string
           render_error: string | null
           rendered_file_hash: string | null
@@ -4836,6 +4838,8 @@ export type Database = {
           frozen_by?: string | null
           generated_content?: Json
           id?: string
+          institutional_profile_id?: string | null
+          institutional_profile_snapshot?: Json | null
           organization_id: string
           render_error?: string | null
           rendered_file_hash?: string | null
@@ -4867,6 +4871,8 @@ export type Database = {
           frozen_by?: string | null
           generated_content?: Json
           id?: string
+          institutional_profile_id?: string | null
+          institutional_profile_snapshot?: Json | null
           organization_id?: string
           render_error?: string | null
           rendered_file_hash?: string | null
@@ -4896,6 +4902,13 @@ export type Database = {
             columns: ["created_from_version_id"]
             isOneToOne: false
             referencedRelation: "contract_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_institutional_profile_id_fkey"
+            columns: ["institutional_profile_id"]
+            isOneToOne: false
+            referencedRelation: "institutional_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -7957,6 +7970,104 @@ export type Database = {
           updated_records?: number
         }
         Relationships: []
+      }
+      institutional_profile_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          detalhe: string | null
+          evento: string
+          id: string
+          organization_id: string
+          payload: Json
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          detalhe?: string | null
+          evento: string
+          id?: string
+          organization_id: string
+          payload?: Json
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          detalhe?: string | null
+          evento?: string
+          id?: string
+          organization_id?: string
+          payload?: Json
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institutional_profile_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "institutional_profile_events_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "institutional_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      institutional_profiles: {
+        Row: {
+          campos: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          observacao_governanca: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          versao: string
+          whatsapp_configurado: boolean
+        }
+        Insert: {
+          campos?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observacao_governanca?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao: string
+          whatsapp_configurado?: boolean
+        }
+        Update: {
+          campos?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observacao_governanca?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: string
+          whatsapp_configurado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institutional_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       institutions: {
         Row: {
