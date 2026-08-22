@@ -265,7 +265,13 @@ export function deduplicarLinhasIndicadores(linhas: LinhaIndicadorDia[]): LinhaI
 
 /** Agrupa as linhas deduplicadas por grupo do Painel Hoje. */
 export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<GrupoIndicadorDia, LinhaIndicadorDia[]> {
-  const base: Record<GrupoIndicadorDia, LinhaIndicadorDia[]> = { conversao: [], radar: [], casos: [], comunicacao: [] };
+  const base: Record<GrupoIndicadorDia, LinhaIndicadorDia[]> = {
+    integridade: [],
+    formalizacao: [],
+    operacao: [],
+    financeiro: [],
+    cliente: [],
+  };
   for (const l of deduplicarLinhasIndicadores(linhas)) base[l.grupo].push(l);
   return base;
 }
