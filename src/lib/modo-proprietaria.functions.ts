@@ -20,8 +20,29 @@ import {
   validarDecisao,
 } from "@/lib/modo-proprietaria";
 
+export type EventoOverride = {
+  id: string;
+  categoria: string;
+  acao: string;
+  entidade: string;
+  entidade_id: string | null;
+  campo: string | null;
+  motivo: string;
+  fonte: string | null;
+  impacto: string | null;
+  destinatario: string | null;
+  valor_financeiro: number | null;
+  acao_externa: boolean;
+  irreversivel: boolean;
+  confirmacao_manual: boolean;
+  executado: boolean;
+  dados_teste: boolean;
+  actor_papel: string;
+  created_at: string;
+};
+
 const COLUNAS =
-  "id,categoria,acao,entidade,entidade_id,campo,valor_anterior,valor_novo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,pendencias_assumidas,dados_teste,actor_papel,created_at";
+  "id,categoria,acao,entidade,entidade_id,campo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,dados_teste,actor_papel,created_at";
 
 /** Estado do modo, capacidades e últimas decisões registradas. */
 export const estadoModoProprietaria = createServerFn({ method: "GET" })
@@ -43,7 +64,7 @@ export const estadoModoProprietaria = createServerFn({ method: "GET" })
       papel,
       organizationId,
       capacidades: capacidadesDe(papel),
-      eventos: (eventos ?? []) as Record<string, unknown>[],
+      eventos: (eventos ?? []) as EventoOverride[],
     };
   });
 
@@ -106,7 +127,7 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
       .select(COLUNAS)
       .single();
     if (error) throw new Error(error.message);
-    return { registrado: true, evento: row as Record<string, unknown> };
+    return { registrado: true, evento: row as EventoOverride };
   });
 
 /**
@@ -184,5 +205,5 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    return { confirmada: true, executada: false, confirmacao, evento: row as Record<string, unknown> };
+    return { confirmada: true, executada: false, confirmacao, evento: row as EventoOverride };
   });
