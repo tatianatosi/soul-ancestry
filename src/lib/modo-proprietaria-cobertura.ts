@@ -202,6 +202,25 @@ export const COBERTURA_MODULOS: Modulo[] = [
     ],
   },
   {
+    id: "caso_dossie",
+    rotulo: "Caso, dossiê e operação",
+    rota: "/casos",
+    operacoes: [
+      { id: "editar_caso", rotulo: "Criar e editar caso, fase e estado interno", entidade: "crm_casos" },
+      { id: "editar_dossie", rotulo: "Editar dossiê-mãe, ambiente e referência", entidade: "nucleos_familiares" },
+      { id: "editar_nivel_acesso", rotulo: "Definir nível de acesso do caso", entidade: "crm_casos" },
+      { id: "editar_tarefas_caso", rotulo: "Editar tarefas, responsável, prazo e próxima ação", entidade: "tarefas" },
+      { id: "editar_checklist_caso", rotulo: "Editar checklist, pendências e documentos", entidade: "case_checklist_items" },
+      { id: "editar_alertas_caso", rotulo: "Editar alertas e cadência", entidade: "case_alerts" },
+      { id: "encerrar_caso", rotulo: "Encerrar caso por decisão auditada", entidade: "crm_casos" },
+    ],
+    acoesExternas: [],
+    regras: [
+      "Avanço de estado interno exige motivo registrado; nada é inferido do último editor.",
+      "Documento, entrega e cadência continuam com histórico e versão preservados.",
+    ],
+  },
+  {
     id: "pesquisa_operacao",
     rotulo: "Pesquisa e operação",
     rota: "/pesquisa",
