@@ -542,7 +542,7 @@ export function PainelDia() {
                     ) : null}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
+                <p className="mt-0.5 break-words text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
                 <div className="mt-1 flex flex-wrap gap-3">
                   <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
                     {g.acao}
