@@ -7037,6 +7037,7 @@ export type Database = {
           caso_id: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           demo: boolean
           descricao: string
           id: string
@@ -7056,6 +7057,7 @@ export type Database = {
           caso_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           demo?: boolean
           descricao: string
           id?: string
@@ -7075,6 +7077,7 @@ export type Database = {
           caso_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           demo?: boolean
           descricao?: string
           id?: string
@@ -8856,6 +8859,7 @@ export type Database = {
           contract_id: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           descricao: string | null
           emitida_em: string | null
           id: string
@@ -8886,6 +8890,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           descricao?: string | null
           emitida_em?: string | null
           id?: string
@@ -8916,6 +8921,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           descricao?: string | null
           emitida_em?: string | null
           id?: string
@@ -11838,6 +11844,7 @@ export type Database = {
           conciliacao_status: string
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           id: string
           invoice_id: string | null
           metodo: string | null
@@ -11858,6 +11865,7 @@ export type Database = {
           conciliacao_status?: string
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           id?: string
           invoice_id?: string | null
           metodo?: string | null
@@ -11878,6 +11886,7 @@ export type Database = {
           conciliacao_status?: string
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           id?: string
           invoice_id?: string | null
           metodo?: string | null
@@ -12522,6 +12531,7 @@ export type Database = {
           categoria_fonte: string | null
           code: string
           condicao_comercial_padrao: string | null
+          condicao_comercial_vigente: string | null
           created_at: string
           created_by: string | null
           dados_teste: boolean
@@ -12611,6 +12621,7 @@ export type Database = {
           categoria_fonte?: string | null
           code: string
           condicao_comercial_padrao?: string | null
+          condicao_comercial_vigente?: string | null
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
@@ -12700,6 +12711,7 @@ export type Database = {
           categoria_fonte?: string | null
           code?: string
           condicao_comercial_padrao?: string | null
+          condicao_comercial_vigente?: string | null
           created_at?: string
           created_by?: string | null
           dados_teste?: boolean
