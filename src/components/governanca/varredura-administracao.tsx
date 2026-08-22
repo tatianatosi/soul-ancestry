@@ -275,49 +275,12 @@ function TabelaAprovacoesPendentes() {
                   <p className="truncate" title={l.previa}>
                     {l.previa}
                   </p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button
-                        onClick={() => setLinhaPrevia(l)}
-                        className="mt-1 text-gold underline hover:text-gold/80"
-                      >
-                        Ver prévia
-                      </button>
-                    </DialogTrigger>
-                    {linhaPrevia?.id === l.id ? (
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle className="text-navy">
-                            Prévia — {l.id}
-                          </DialogTitle>
-                          <DialogDescription>{l.alvo}</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-3 text-sm text-navy/70">
-                          <p>
-                            <span className="text-navy/45">Grupo:</span> {ROTULO_GRUPO_APROVACAO[l.grupo]}
-                          </p>
-                          <p>
-                            <span className="text-navy/45">Prévia:</span> {l.previa}
-                          </p>
-                          <p>
-                            <span className="text-navy/45">Dados envolvidos:</span> {l.dadosEnvolvidos}
-                          </p>
-                          <p>
-                            <span className="text-navy/45">Reversibilidade:</span>{" "}
-                            {ROTULO_REVERSIBILIDADE[l.reversibilidade]}
-                          </p>
-                          <p>
-                            <span className="text-navy/45">Confirmação necessária:</span> {l.confirmacao}
-                          </p>
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setLinhaPrevia(null)}>
-                            Fechar
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    ) : null}
-                  </Dialog>
+                  <button
+                    onClick={() => setLinhaPrevia(l)}
+                    className="mt-1 text-gold underline hover:text-gold/80"
+                  >
+                    Ver prévia
+                  </button>
                 </div>
               </td>
               <td className="py-2 pr-3">
