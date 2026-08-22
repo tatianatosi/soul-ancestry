@@ -61,12 +61,15 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li className="rounded-lg border border-navy/10 px-3 py-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <LinkItem item={item}>{item.rotulo}</LinkItem>
-        <span className="text-xs text-navy/60">{textoPrazo(item.data)}</span>
+    <li className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+        <span className="min-w-0 break-words">
+          <LinkItem item={item}>{item.rotulo}</LinkItem>
+        </span>
+        <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
-      <p className="mt-0.5 text-xs text-navy/65">{item.acao}</p>
+      <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
+
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
           <span className="text-navy/60">Responsável: {item.responsavel}</span>
