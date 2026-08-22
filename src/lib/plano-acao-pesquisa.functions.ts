@@ -209,7 +209,7 @@ export const pendenciasCriticasPainel = createServerFn({ method: "GET" })
       .order("due_date", { ascending: true });
 
     const itens = ((data ?? []) as Record<string, any>[]).filter(
-      (i) => i.status !== "concluida" && i.status !== "cancelada" && i.data_origin !== "fixture_demo",
+      (i) => i.status !== "concluida" && i.status !== "cancelada" && i.data_origin !== "fixture_demo" && i.data_origin !== "development_fixture",
     );
     const ids = [...new Set(itens.map((i) => i.case_id).filter(Boolean))];
     const casos = ids.length
