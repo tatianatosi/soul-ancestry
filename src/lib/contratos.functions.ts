@@ -694,11 +694,20 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
     }
 
     const agora = new Date().toISOString();
+    // Congelamento: garante o snapshot institucional antes de travar a versão.
+    const { gravarSnapshotInstitucional } = await import("@/lib/perfil-institucional-persistido.server");
+    await gravarSnapshotInstitucional(supabase, {
+      org: organizationId,
+      contractVersionId: data.version_id,
+      evento: "versao_contratual_congelada",
+      userId: context.userId as string,
+    });
     await supabase
       .from("contract_versions")
       .update({ status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId })
       .eq("organization_id", organizationId)
       .eq("id", data.version_id);
+
     await supabase
       .from("contracts")
       .update({ status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora })
