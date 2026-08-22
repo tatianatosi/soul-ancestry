@@ -1,0 +1,641 @@
+/**
+ * Persistência da cadeia operacional. Reutiliza as entidades canônicas já
+ * existentes: case_plans, proposals, product_catalog, commercial_conditions,
+ * service_orders, contract_scope_items, contract_parameter_previews.
+ *
+ * Nada aqui assina, cobra, comunica, pesquisa fora ou cria entidade paralela.
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
+  avaliarPlanejador,
+  bloqueiosAprovacaoProposta,
+  bloqueiosOS,
+  conteudoOSDaProposta,
+  consolidarCadeia,
+  derivarCondicaoComercial,
+  hashConteudo,
+  montarEscopoEstruturado,
+  planejadorLiberaProposta,
+  type ChaveEloOperacional,
+  type EntradaPlanejador,
+  type PropostaEstruturada,
+  type SkuCanonicoProposta,
+} from "@/lib/cadeia-operacional";
+
+type Sb = any;
+
+export async function orgDoUsuario(supabase: Sb, userId: string) {
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const org = data?.organization_id as string | undefined;
+  if (!org) throw new Error("Usuário sem organização.");
+  return org;
+}
+
+async function auditar(
+  supabase: Sb,
+  input: { org: string; userId: string; acao: string; entidade: string; entidadeId: string | null; metadados: any },
+) {
+  await supabase.from("audit_logs").insert({
+    organization_id: input.org,
+    user_id: input.userId,
+    acao: input.acao,
+    entidade: input.entidade,
+    entidade_id: input.entidadeId,
+    metadados: input.metadados,
+  });
+}
+
+async function casoDaCadeia(supabase: Sb, org: string, caseId: string) {
+  const { data: caso } = await supabase
+    .from("crm_casos")
+    .select("id,codigo,titulo,organization_id,archived_at,demo,dados_teste,responsavel_id,prazo_proxima_acao")
+    .eq("id", caseId)
+    .maybeSingle();
+  if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
+  if (caso.archived_at) throw new Error("Caso arquivado: cadeia operacional bloqueada.");
+  if (caso.demo) throw new Error("Caso DEMO não alimenta a cadeia operacional.");
+  return caso;
+}
+
+function skuCanonico(row: any | null): SkuCanonicoProposta | null {
+  if (!row) return null;
+  const lista = (v: any): string[] =>
+    Array.isArray(v) ? v.map((x) => String(x).trim()).filter(Boolean) : String(v ?? "").split(/\r?\n|;/).map((t) => t.trim()).filter(Boolean);
+  const preco = row.preco_sugerido_fonte ?? row.preco_comercial_vigente ?? null;
+  return {
+    id: row.id,
+    code: row.code,
+    ativo: row.ativo !== false && !row.archived_at,
+    elegivel_para_proposta: row.elegivel_para_proposta !== false,
+    preco_sugerido: preco === null || preco === undefined ? null : Number(preco),
+    moeda: row.moeda ?? "BRL",
+    fonte_referencia:
+      row.planilha_mestre_identificador || row.planilha_mestre_versao
+        ? `Planilha Mestre ${row.planilha_mestre_versao ?? ""} · ${row.planilha_mestre_identificador ?? ""}`.trim()
+        : null,
+    inclusoes: lista(row.inclusoes),
+    exclusoes: lista(row.exclusoes),
+    entregaveis: lista(row.entregaveis),
+    dados_teste: row.dados_teste === true,
+  };
+}
+
+const SELECT_SKU =
+  "id,code,ativo,archived_at,elegivel_para_proposta,preco_sugerido_fonte,preco_comercial_vigente,moeda,planilha_mestre_versao,planilha_mestre_identificador,inclusoes,exclusoes,entregaveis,dados_teste";
+
+/* ------------------------------------------------------------------ */
+/* Elo 1 — planejador persistido (idempotente)                         */
+/* ------------------------------------------------------------------ */
+
+export async function sincronizarPlanejador(
+  supabase: Sb,
+  input: { org: string; userId: string; entrada: EntradaPlanejador },
+) {
+  const caso = await casoDaCadeia(supabase, input.org, input.entrada.caseId);
+  const saida = avaliarPlanejador(input.entrada);
+
+  const { data: existente } = await supabase
+    .from("case_plans")
+    .select("id,versao,plano_hash")
+    .eq("case_id", caso.id)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // O SKU do planejador só pode vir do catálogo canônico (Planilha Mestre).
+  const { data: skuPlano } = input.entrada.produtoSkuCodigo
+    ? await supabase
+        .from("product_catalog")
+        .select("id")
+        .eq("code", input.entrada.produtoSkuCodigo)
+        .is("archived_at", null)
+        .maybeSingle()
+    : { data: null };
+
+  const payload: Record<string, any> = {
+    organization_id: input.org,
+    case_id: caso.id,
+    product_catalog_id: skuPlano?.id ?? null,
+    objetivo: input.entrada.objetivo,
+    etapa: input.entrada.etapa,
+    composicao: input.entrada.composicao,
+    rota_confirmada: input.entrada.rotaConfirmada,
+    fase_jornada: saida.fase_jornada,
+    checklist_aplicavel: saida.checklist_aplicavel,
+    perguntas: saida.perguntas,
+    marcos: saida.marcos,
+    entregas: saida.entregas,
+    microentregas: saida.microentregas,
+    dependencias_cliente: saida.dependencias_cliente,
+    dependencias_terceiros: saida.dependencias_terceiros,
+    pendencias_cliente: saida.dependencias_cliente,
+    pendencias_internas: saida.pendencias,
+    fontes: Object.fromEntries(input.entrada.fontes.map((f) => [f.chave, { estado: f.estado, referencia: f.referencia ?? null }])),
+    regras_anexos: saida.regras_anexos,
+    responsavel_user_id: saida.responsavel_user_id,
+    proxima_acao: saida.proxima_acao,
+    prazo_proxima_acao: saida.prazo_proxima_acao,
+    revisao_humana: "pendente",
+    plano_hash: saida.hash,
+    dados_teste: caso.dados_teste === true,
+    status: "rascunho",
+    updated_by: input.userId,
+  };
+
+  // Reprocessamento idempotente: hash igual não cria versão nem duplica itens.
+  if (existente?.plano_hash === saida.hash) {
+    return { planId: existente.id, versao: existente.versao, saida, idempotente: true };
+  }
+
+  let planId = existente?.id as string | undefined;
+  let versao = (existente?.versao ?? 0) + 1;
+  payload.versao = versao;
+
+  if (planId) {
+    const { error } = await supabase.from("case_plans").update(payload).eq("id", planId);
+    if (error) throw new Error(error.message);
+  } else {
+    versao = 1;
+    payload.versao = 1;
+    const { data, error } = await supabase
+      .from("case_plans")
+      .insert({ ...payload, created_by: input.userId })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    planId = data.id;
+  }
+
+  await auditar(supabase, {
+    org: input.org,
+    userId: input.userId,
+    acao: "planejador_sincronizado",
+    entidade: "case_plans",
+    entidadeId: planId ?? null,
+    metadados: { case_id: caso.id, versao, hash: saida.hash, pendencias: saida.pendencias.length, bloqueios: saida.bloqueios.length },
+  });
+
+  return { planId: planId as string, versao, saida, idempotente: false };
+}
+
+/* ------------------------------------------------------------------ */
+/* Elo 2 — proposta estruturada derivada do planejador                 */
+/* ------------------------------------------------------------------ */
+
+export async function materializarProposta(
+  supabase: Sb,
+  input: { org: string; userId: string; caseId: string; responsavelComercial: string; responsavelOperacional: string },
+) {
+  const caso = await casoDaCadeia(supabase, input.org, input.caseId);
+
+  const { data: plano } = await supabase
+    .from("case_plans")
+    .select("*")
+    .eq("case_id", caso.id)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!plano) throw new Error("Sem planejador persistido: a proposta não pode ser materializada.");
+
+  const { data: skuRow } = plano.product_catalog_id
+    ? await supabase.from("product_catalog").select(SELECT_SKU).eq("id", plano.product_catalog_id).is("archived_at", null).maybeSingle()
+    : { data: null };
+  const sku = skuCanonico(skuRow);
+  if (!sku) throw new Error("Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.");
+
+  const entrada = entradaDoPlano(plano, caso.id, sku.code);
+  const saida = avaliarPlanejador(entrada);
+  const libera = planejadorLiberaProposta(saida);
+  if (!libera.ok)
+    throw new Error(`Planejador com pendência: ${libera.motivos.slice(0, 3).join(" · ")}${libera.motivos.length > 3 ? " …" : ""}`);
+
+
+  const { data: membros } = await supabase
+    .from("case_members")
+    .select("nome,papel,titular,contratante,dependente")
+    .eq("case_id", caso.id)
+    .is("archived_at", null);
+  const pessoas = ((membros ?? []) as any[]).map((m) => ({
+    nome: m.nome,
+    papel: m.papel ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
+  }));
+
+  const escopo = montarEscopoEstruturado({ entrada, saida, planId: plano.id, sku, pessoas });
+
+  const { data: atual } = await supabase
+    .from("proposals")
+    .select("id,versao,status,escopo_estruturado")
+    .eq("case_id", caso.id)
+    .is("archived_at", null)
+    .order("versao", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const payload: Record<string, any> = {
+    organization_id: input.org,
+    case_id: caso.id,
+    plan_id: plano.id,
+    status: "rascunho",
+    escopo: escopo.servicos_incluidos.map((s) => `• ${s}`).join("\n"),
+    exclusoes: escopo.exclusoes.map((s) => `• ${s}`).join("\n"),
+    escopo_estruturado: escopo,
+    product_catalog_id: sku.id,
+    valor: sku.preco_sugerido,
+    moeda: sku.moeda,
+    preco_fonte_referencia: sku.fonte_referencia,
+    responsavel_comercial: input.responsavelComercial,
+    responsavel_operacional: input.responsavelOperacional,
+    dados_teste: caso.dados_teste === true,
+    updated_by: input.userId,
+  };
+
+  // Conteúdo idêntico não gera nova versão.
+  if (atual && hashConteudo(atual.escopo_estruturado) === hashConteudo(escopo) && atual.status === "rascunho") {
+    return { proposalId: atual.id, versao: atual.versao, idempotente: true, escopo };
+  }
+
+  let proposalId: string;
+  let versao: number;
+  if (atual && atual.status === "rascunho") {
+    versao = atual.versao ?? 1;
+    const { error } = await supabase.from("proposals").update(payload).eq("id", atual.id);
+    if (error) throw new Error(error.message);
+    proposalId = atual.id;
+  } else {
+    versao = (atual?.versao ?? 0) + 1;
+    const { data, error } = await supabase
+      .from("proposals")
+      .insert({ ...payload, versao, derivada_de_id: atual?.id ?? null, created_by: input.userId })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    proposalId = data.id;
+    if (atual) {
+      await supabase
+        .from("proposals")
+        .update({ substituida_em: new Date().toISOString(), substituida_por_id: proposalId })
+        .eq("id", atual.id);
+    }
+  }
+
+  await auditar(supabase, {
+    org: input.org,
+    userId: input.userId,
+    acao: "proposta_estruturada_derivada_do_planejador",
+    entidade: "proposals",
+    entidadeId: proposalId,
+    metadados: { case_id: caso.id, plan_id: plano.id, versao, sku: sku.code, plano_hash: saida.hash },
+  });
+
+  return { proposalId, versao, idempotente: false, escopo };
+}
+
+function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): EntradaPlanejador {
+  const fontes = Object.entries((plano.fontes ?? {}) as Record<string, any>).map(([chave, v]) => ({
+    chave,
+    estado: (v?.estado ?? "pendente") as any,
+    referencia: v?.referencia ?? null,
+  }));
+  return {
+    caseId,
+    objetivo: plano.objetivo,
+    etapa: plano.etapa,
+    composicao: plano.composicao,
+    rotaConfirmada: plano.rota_confirmada,
+    produtoSkuCodigo: skuCodigo,
+    dadosDisponiveis: plano.checklist_aplicavel ?? [],
+    dependenciasCliente: plano.dependencias_cliente ?? [],
+    dependenciasTerceiros: plano.dependencias_terceiros ?? [],
+    fontes,
+    responsavelUserId: plano.responsavel_user_id,
+    proximaAcao: plano.proxima_acao,
+    prazoProximaAcao: plano.prazo_proxima_acao,
+    faseJornada: plano.fase_jornada,
+    checklist: plano.checklist_aplicavel ?? [],
+    perguntas: plano.perguntas ?? [],
+    marcos: plano.marcos ?? [],
+    entregas: plano.entregas ?? [],
+    microentregas: plano.microentregas ?? [],
+    regrasAnexos: plano.regras_anexos ?? [],
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Elos 3 e 4 — aprovação, condição comercial e OS/Anexo I             */
+/* ------------------------------------------------------------------ */
+
+function propostaCanonica(row: any): PropostaEstruturada {
+  const e = row.escopo_estruturado ?? null;
+  return {
+    id: row.id,
+    case_id: row.case_id,
+    plan_id: row.plan_id,
+    versao: row.versao,
+    status: row.status,
+    escopo_estruturado: e,
+    product_catalog_id: row.product_catalog_id,
+    valor: row.valor === null || row.valor === undefined ? null : Number(row.valor),
+    moeda: row.moeda,
+    preco_fonte_referencia: row.preco_fonte_referencia,
+    forma_pagamento: row.forma_pagamento,
+    parcelas_declaradas: row.parcelas_declaradas ?? null,
+    primeiro_vencimento_declarado: row.primeiro_vencimento_declarado ?? null,
+    responsavel_comercial: row.responsavel_comercial,
+    responsavel_operacional: row.responsavel_operacional,
+  };
+}
+
+export async function aprovarPropostaEstruturada(
+  supabase: Sb,
+  input: {
+    org: string;
+    userId: string;
+    proposalId: string;
+    formaPagamento?: string | null;
+    parcelasDeclaradas?: number | null;
+    primeiroVencimentoDeclarado?: string | null;
+  },
+) {
+  const { data: row } = await supabase.from("proposals").select("*").eq("id", input.proposalId).maybeSingle();
+  if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
+  const caso = await casoDaCadeia(supabase, input.org, row.case_id);
+
+  const proposta = propostaCanonica({
+    ...row,
+    forma_pagamento: input.formaPagamento ?? row.forma_pagamento,
+    parcelas_declaradas: input.parcelasDeclaradas ?? null,
+    primeiro_vencimento_declarado: input.primeiroVencimentoDeclarado ?? null,
+  });
+
+  const { data: skuRow } = await supabase.from("product_catalog").select(SELECT_SKU).eq("id", row.product_catalog_id).maybeSingle();
+  const sku = skuCanonico(skuRow);
+  const bloqueios = bloqueiosAprovacaoProposta(proposta, sku);
+  if (bloqueios.length) throw new Error(`Proposta não pode ser aprovada: ${bloqueios.join(" · ")}`);
+
+  const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
+
+  const { error: erroProposta } = await supabase
+    .from("proposals")
+    .update({
+      status: "aprovada",
+      aprovada_em: new Date().toISOString(),
+      forma_pagamento: proposta.forma_pagamento,
+      updated_by: input.userId,
+    })
+    .eq("id", row.id);
+  if (erroProposta) throw new Error(erroProposta.message);
+
+  const { data: ccExistente } = await supabase
+    .from("commercial_conditions")
+    .select("id")
+    .eq("proposal_id", row.id)
+    .is("archived_at", null)
+    .maybeSingle();
+
+  const payloadCC = {
+    organization_id: input.org,
+    case_id: caso.id,
+    proposal_id: row.id,
+    codigo: `CC-${caso.codigo}-P${row.versao}`,
+    product_catalog_id: condicao.product_catalog_id,
+    valor_total_referencia: condicao.valor_total_referencia,
+    forma_pagamento: condicao.forma_pagamento,
+    parcelas: condicao.parcelas,
+    valor_parcela: condicao.parcelas ? Number((condicao.valor_total_referencia / condicao.parcelas).toFixed(2)) : null,
+    primeiro_vencimento: condicao.primeiro_vencimento,
+    origem: condicao.origem,
+    status: condicao.pendencias.length ? "pendente" : "registrada",
+    observacao_interna: condicao.pendencias.join(" · ") || null,
+    dados_teste: caso.dados_teste === true,
+    updated_by: input.userId,
+  };
+
+  let condicaoId: string;
+  if (ccExistente?.id) {
+    const { error } = await supabase.from("commercial_conditions").update(payloadCC).eq("id", ccExistente.id);
+    if (error) throw new Error(error.message);
+    condicaoId = ccExistente.id;
+  } else {
+    const { data, error } = await supabase
+      .from("commercial_conditions")
+      .insert({ ...payloadCC, created_by: input.userId })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    condicaoId = data.id;
+  }
+
+  await auditar(supabase, {
+    org: input.org,
+    userId: input.userId,
+    acao: "proposta_aprovada_condicao_derivada",
+    entidade: "commercial_conditions",
+    entidadeId: condicaoId,
+    metadados: {
+      case_id: caso.id,
+      proposal_id: row.id,
+      sku: sku?.code,
+      fonte_preco: condicao.origem,
+      pendencias: condicao.pendencias,
+    },
+  });
+
+  return { proposalId: row.id, condicaoId, pendencias: condicao.pendencias };
+}
+
+export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId: string; proposalId: string }) {
+  const { data: row } = await supabase.from("proposals").select("*").eq("id", input.proposalId).maybeSingle();
+  if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
+  if (row.status !== "aprovada") throw new Error("OS/Anexo I exige proposta aprovada.");
+  const caso = await casoDaCadeia(supabase, input.org, row.case_id);
+
+  const { data: condicao } = await supabase
+    .from("commercial_conditions")
+    .select("id,status,primeiro_vencimento,parcelas,forma_pagamento")
+    .eq("proposal_id", row.id)
+    .is("archived_at", null)
+    .maybeSingle();
+
+  // A OS/Anexo I é peça do contrato: exige contrato-rascunho já preparado no caso.
+  const { data: contrato } = await supabase
+    .from("contracts")
+    .select("id,status")
+    .eq("case_id", caso.id)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!contrato)
+    throw new Error("OS/Anexo I exige contrato preparado para o caso (ficha contratual e minuta em rascunho).");
+
+  const conteudo = conteudoOSDaProposta(propostaCanonica(row), condicao?.id ?? null);
+  const bloqueios = bloqueiosOS(conteudo);
+  if (bloqueios.length) throw new Error(`OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`);
+
+  const hash = hashConteudo(conteudo);
+  const { data: osExistente } = await supabase
+    .from("service_orders")
+    .select("id,versao,conteudo_hash")
+    .eq("proposal_id", row.id)
+    .is("archived_at", null)
+    .order("versao", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (osExistente?.conteudo_hash === hash) {
+    return { osId: osExistente.id, versao: osExistente.versao, idempotente: true, conteudo };
+  }
+
+  const versao = (osExistente?.versao ?? 0) + 1;
+  const { data: os, error } = await supabase
+    .from("service_orders")
+    .insert({
+      organization_id: input.org,
+      case_id: caso.id,
+      contract_id: contrato.id,
+      proposal_id: row.id,
+      versao,
+      conteudo_hash: hash,
+      status: "draft",
+      start_condition_status: "pending",
+      scope_summary: [
+        `Objetivo: ${conteudo.objetivo}`,
+        ...conteudo.escopo.map((s) => `• ${s} (fonte: proposta v${row.versao} · SKU ${conteudo.sku_codigo})`),
+        ...conteudo.inclusoes.map((s) => `+ inclusão: ${s} (fonte: catálogo/Planilha Mestre)`),
+        ...conteudo.exclusoes.map((s) => `- exclusão: ${s} (fonte: catálogo/Planilha Mestre)`),
+      ].join("\n"),
+      deliverable_summary: [
+        ...conteudo.entregas.map((s) => `• entrega: ${s} (fonte: planejador)`),
+        ...conteudo.microentregas.map((s) => `• microentrega: ${s} (fonte: planejador)`),
+      ].join("\n"),
+      internal_notes: [
+        `Pessoas abrangidas: ${conteudo.pessoas.map((p) => `${p.nome} (${p.papel})`).join("; ")}`,
+        `Dependências: ${conteudo.dependencias.join("; ") || "não declaradas"}`,
+        `Condição comercial: ${condicao?.id ?? "ausente"} (${condicao?.status ?? "—"})`,
+      ].join("\n"),
+      dados_teste: caso.dados_teste === true,
+      created_by: input.userId,
+      updated_by: input.userId,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await auditar(supabase, {
+    org: input.org,
+    userId: input.userId,
+    acao: "os_anexo_i_emitida_da_proposta",
+    entidade: "service_orders",
+    entidadeId: os.id,
+    metadados: { case_id: caso.id, proposal_id: row.id, versao, hash, condicao_id: condicao?.id ?? null },
+  });
+
+  return { osId: os.id, versao, idempotente: false, conteudo };
+}
+
+/* ------------------------------------------------------------------ */
+/* Estado consolidado (leitura)                                        */
+/* ------------------------------------------------------------------ */
+
+export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId: string) {
+  const caso = await casoDaCadeia(supabase, org, caseId);
+
+  const [{ data: plano }, { data: proposta }] = await Promise.all([
+    supabase.from("case_plans").select("*").eq("case_id", caso.id).is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("proposals").select("*").eq("case_id", caso.id).is("archived_at", null).order("versao", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+
+  const [{ data: condicao }, { data: os }, { data: ficha }] = await Promise.all([
+    proposta?.id
+      ? supabase.from("commercial_conditions").select("*").eq("proposal_id", proposta.id).is("archived_at", null).maybeSingle()
+      : Promise.resolve({ data: null }),
+    proposta?.id
+      ? supabase.from("service_orders").select("*").eq("proposal_id", proposta.id).is("archived_at", null).order("versao", { ascending: false }).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from("contract_case_parameters").select("id,status,revisao_humana_em").eq("case_id", caso.id).is("archived_at", null).maybeSingle(),
+  ]);
+
+  const { data: previa } = ficha?.id
+    ? await supabase
+        .from("contract_parameter_previews")
+        .select("id,tipo,gerado_em,aprovado_em")
+        .eq("parameters_id", ficha.id)
+        .order("gerado_em", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
+  const catalogoId = proposta?.product_catalog_id ?? plano?.product_catalog_id ?? null;
+  const skuRow = catalogoId
+    ? (await supabase.from("product_catalog").select(SELECT_SKU).eq("id", catalogoId).maybeSingle()).data
+    : null;
+  const sku = skuCanonico(skuRow);
+
+  const saidaPlano = plano ? avaliarPlanejador(entradaDoPlano(plano, caso.id, sku?.code ?? null)) : null;
+  const propostaCanon = proposta ? propostaCanonica(proposta) : null;
+
+  const motivos: Record<ChaveEloOperacional, { motivos: string[]; fonte?: string | null; versao?: string | null }> = {
+    planejador: {
+      motivos: plano ? [...(saidaPlano?.bloqueios ?? []), ...(saidaPlano?.pendencias ?? [])] : ["Planejador não persistido para o caso."],
+      fonte: "case_plans",
+      versao: plano ? `v${plano.versao} · ${plano.plano_hash}` : null,
+    },
+    proposta: {
+      motivos: proposta
+        ? propostaCanon?.escopo_estruturado
+          ? []
+          : ["Proposta sem escopo estruturado derivado do planejador."]
+        : ["Proposta estruturada não materializada."],
+      fonte: "proposals",
+      versao: proposta ? `v${proposta.versao} · ${proposta.status}` : null,
+    },
+    catalogo: {
+      motivos: sku ? (sku.fonte_referencia ? [] : ["SKU sem referência da Planilha Mestre."]) : ["SKU do catálogo não vinculado à proposta."],
+      fonte: sku?.fonte_referencia ?? "product_catalog",
+      versao: sku?.code ?? null,
+    },
+    condicao_comercial: {
+      motivos: condicao
+        ? condicao.status === "pendente"
+          ? [condicao.observacao_interna ?? "Condição comercial com pendência declarada."]
+          : []
+        : ["Condição comercial não persistida a partir da proposta aprovada."],
+      fonte: condicao?.origem ?? null,
+      versao: condicao?.status ?? null,
+    },
+    os_anexo_i: {
+      motivos: os ? [] : ["OS/Anexo I ainda não emitida a partir da proposta aprovada."],
+      fonte: "service_orders",
+      versao: os ? `v${os.versao} · ${os.conteudo_hash}` : null,
+    },
+    previa: {
+      motivos: previa ? [] : ["Prévia contratual persistida ainda não gerada."],
+      fonte: "contract_parameter_previews",
+      versao: previa?.tipo ?? null,
+    },
+    revisao_humana: {
+      motivos: ficha?.revisao_humana_em ? [] : ["Revisão humana da prévia ainda não registrada."],
+      fonte: "contract_case_parameters",
+      versao: ficha?.status ?? null,
+    },
+    assinatura: { motivos: ["Assinatura permanece desabilitada nesta entrega."], fonte: "contracts", versao: null },
+  };
+
+  const cadeia = consolidarCadeia(motivos);
+  return {
+    caso: { id: caso.id, codigo: caso.codigo, titulo: caso.titulo, dados_teste: caso.dados_teste === true },
+    ...cadeia,
+    planejador: saidaPlano,
+    proposta: propostaCanon,
+    condicaoId: condicao?.id ?? null,
+    osId: os?.id ?? null,
+  };
+}

@@ -1370,29 +1370,45 @@ export type Database = {
           case_id: string
           case_service_id: string | null
           checklist_aplicavel: string[]
+          composicao: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
+          dependencias_cliente: string[]
+          dependencias_terceiros: string[]
           dias_sem_touchpoint: number
           entrega_robusta_atual: string | null
+          entregas: string[]
+          etapa: string | null
           family_id: string | null
           fase_jornada: string
+          fontes: Json
           id: string
           marco_atual: string | null
+          marcos: string[]
+          microentregas: string[]
+          objetivo: string | null
           observacao_interna: string | null
           organization_id: string
           pendencias_cliente: string[]
           pendencias_internas: string[]
+          perguntas: string[]
+          plano_hash: string | null
           prazo_proxima_acao: string | null
           product_catalog_id: string | null
           proxima_acao: string | null
           proxima_atualizacao_limite_em: string | null
           proxima_microentrega: string | null
+          regras_anexos: string[]
           responsavel_user_id: string | null
+          revisao_humana: string
+          rota_confirmada: string | null
           status: string
           status_saude: string
           ultima_atualizacao_cliente_em: string | null
           updated_at: string
           updated_by: string | null
+          versao: number
         }
         Insert: {
           archive_motivo?: string | null
@@ -1401,29 +1417,45 @@ export type Database = {
           case_id: string
           case_service_id?: string | null
           checklist_aplicavel?: string[]
+          composicao?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
+          dependencias_cliente?: string[]
+          dependencias_terceiros?: string[]
           dias_sem_touchpoint?: number
           entrega_robusta_atual?: string | null
+          entregas?: string[]
+          etapa?: string | null
           family_id?: string | null
           fase_jornada?: string
+          fontes?: Json
           id?: string
           marco_atual?: string | null
+          marcos?: string[]
+          microentregas?: string[]
+          objetivo?: string | null
           observacao_interna?: string | null
           organization_id: string
           pendencias_cliente?: string[]
           pendencias_internas?: string[]
+          perguntas?: string[]
+          plano_hash?: string | null
           prazo_proxima_acao?: string | null
           product_catalog_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
+          regras_anexos?: string[]
           responsavel_user_id?: string | null
+          revisao_humana?: string
+          rota_confirmada?: string | null
           status?: string
           status_saude?: string
           ultima_atualizacao_cliente_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          versao?: number
         }
         Update: {
           archive_motivo?: string | null
@@ -1432,29 +1464,45 @@ export type Database = {
           case_id?: string
           case_service_id?: string | null
           checklist_aplicavel?: string[]
+          composicao?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
+          dependencias_cliente?: string[]
+          dependencias_terceiros?: string[]
           dias_sem_touchpoint?: number
           entrega_robusta_atual?: string | null
+          entregas?: string[]
+          etapa?: string | null
           family_id?: string | null
           fase_jornada?: string
+          fontes?: Json
           id?: string
           marco_atual?: string | null
+          marcos?: string[]
+          microentregas?: string[]
+          objetivo?: string | null
           observacao_interna?: string | null
           organization_id?: string
           pendencias_cliente?: string[]
           pendencias_internas?: string[]
+          perguntas?: string[]
+          plano_hash?: string | null
           prazo_proxima_acao?: string | null
           product_catalog_id?: string | null
           proxima_acao?: string | null
           proxima_atualizacao_limite_em?: string | null
           proxima_microentrega?: string | null
+          regras_anexos?: string[]
           responsavel_user_id?: string | null
+          revisao_humana?: string
+          rota_confirmada?: string | null
           status?: string
           status_saude?: string
           ultima_atualizacao_cliente_em?: string | null
           updated_at?: string
           updated_by?: string | null
+          versao?: number
         }
         Relationships: [
           {
@@ -3297,6 +3345,7 @@ export type Database = {
           condicao_aplicavel: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           data_origin: string
           forma_pagamento: string | null
           homologado_em: string | null
@@ -3308,6 +3357,7 @@ export type Database = {
           parcelas: number | null
           primeiro_vencimento: string | null
           product_catalog_id: string | null
+          proposal_id: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -3325,6 +3375,7 @@ export type Database = {
           condicao_aplicavel?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           data_origin?: string
           forma_pagamento?: string | null
           homologado_em?: string | null
@@ -3336,6 +3387,7 @@ export type Database = {
           parcelas?: number | null
           primeiro_vencimento?: string | null
           product_catalog_id?: string | null
+          proposal_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -3353,6 +3405,7 @@ export type Database = {
           condicao_aplicavel?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           data_origin?: string
           forma_pagamento?: string | null
           homologado_em?: string | null
@@ -3364,6 +3417,7 @@ export type Database = {
           parcelas?: number | null
           primeiro_vencimento?: string | null
           product_catalog_id?: string | null
+          proposal_id?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -3398,6 +3452,13 @@ export type Database = {
             columns: ["product_catalog_id"]
             isOneToOne: false
             referencedRelation: "product_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_conditions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -5645,6 +5706,7 @@ export type Database = {
           contrato_assinado: boolean
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           data_ativacao: string | null
           data_confirmacao_formal_proposta: string | null
           data_entrada: string
@@ -5768,6 +5830,7 @@ export type Database = {
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           data_ativacao?: string | null
           data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
@@ -5891,6 +5954,7 @@ export type Database = {
           contrato_assinado?: boolean
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           data_ativacao?: string | null
           data_confirmacao_formal_proposta?: string | null
           data_entrada?: string
@@ -12858,10 +12922,12 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           deck_referencia_interna: string | null
           derivada_de_id: string | null
           enviada_em: string | null
           escopo: string | null
+          escopo_estruturado: Json | null
           escopo_paginas: Json
           exclusoes: string | null
           extracao_em: string | null
@@ -12877,7 +12943,12 @@ export type Database = {
           origem: string
           origem_referencia: string | null
           paginas_registradas: number[]
+          plan_id: string | null
+          preco_fonte_referencia: string | null
+          product_catalog_id: string | null
           recusada_em: string | null
+          responsavel_comercial: string | null
+          responsavel_operacional: string | null
           restauracao_motivo: string | null
           restaurado_em: string | null
           restaurado_por: string | null
@@ -12902,10 +12973,12 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           deck_referencia_interna?: string | null
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          escopo_estruturado?: Json | null
           escopo_paginas?: Json
           exclusoes?: string | null
           extracao_em?: string | null
@@ -12921,7 +12994,12 @@ export type Database = {
           origem?: string
           origem_referencia?: string | null
           paginas_registradas?: number[]
+          plan_id?: string | null
+          preco_fonte_referencia?: string | null
+          product_catalog_id?: string | null
           recusada_em?: string | null
+          responsavel_comercial?: string | null
+          responsavel_operacional?: string | null
           restauracao_motivo?: string | null
           restaurado_em?: string | null
           restaurado_por?: string | null
@@ -12946,10 +13024,12 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           deck_referencia_interna?: string | null
           derivada_de_id?: string | null
           enviada_em?: string | null
           escopo?: string | null
+          escopo_estruturado?: Json | null
           escopo_paginas?: Json
           exclusoes?: string | null
           extracao_em?: string | null
@@ -12965,7 +13045,12 @@ export type Database = {
           origem?: string
           origem_referencia?: string | null
           paginas_registradas?: number[]
+          plan_id?: string | null
+          preco_fonte_referencia?: string | null
+          product_catalog_id?: string | null
           recusada_em?: string | null
+          responsavel_comercial?: string | null
+          responsavel_operacional?: string | null
           restauracao_motivo?: string | null
           restaurado_em?: string | null
           restaurado_por?: string | null
@@ -13029,6 +13114,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "case_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_product_catalog_id_fkey"
+            columns: ["product_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalog"
             referencedColumns: ["id"]
           },
           {
@@ -15150,16 +15249,19 @@ export type Database = {
           archived_by: string | null
           case_id: string | null
           client_visible_summary: string | null
+          conteudo_hash: string | null
           contract_id: string
           contract_version_id: string | null
           created_at: string
           created_by: string | null
+          dados_teste: boolean
           deliverable_summary: string | null
           demo: boolean
           end_date: string | null
           id: string
           internal_notes: string | null
           organization_id: string
+          proposal_id: string | null
           responsible_user_id: string | null
           scope_summary: string | null
           service_order_number: string
@@ -15169,6 +15271,7 @@ export type Database = {
           status: string
           updated_at: string
           updated_by: string | null
+          versao: number
         }
         Insert: {
           archive_reason?: string | null
@@ -15176,16 +15279,19 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visible_summary?: string | null
+          conteudo_hash?: string | null
           contract_id: string
           contract_version_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           deliverable_summary?: string | null
           demo?: boolean
           end_date?: string | null
           id?: string
           internal_notes?: string | null
           organization_id: string
+          proposal_id?: string | null
           responsible_user_id?: string | null
           scope_summary?: string | null
           service_order_number: string
@@ -15195,6 +15301,7 @@ export type Database = {
           status?: string
           updated_at?: string
           updated_by?: string | null
+          versao?: number
         }
         Update: {
           archive_reason?: string | null
@@ -15202,16 +15309,19 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           client_visible_summary?: string | null
+          conteudo_hash?: string | null
           contract_id?: string
           contract_version_id?: string | null
           created_at?: string
           created_by?: string | null
+          dados_teste?: boolean
           deliverable_summary?: string | null
           demo?: boolean
           end_date?: string | null
           id?: string
           internal_notes?: string | null
           organization_id?: string
+          proposal_id?: string | null
           responsible_user_id?: string | null
           scope_summary?: string | null
           service_order_number?: string
@@ -15221,6 +15331,7 @@ export type Database = {
           status?: string
           updated_at?: string
           updated_by?: string | null
+          versao?: number
         }
         Relationships: [
           {
@@ -15256,6 +15367,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
