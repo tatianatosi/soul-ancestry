@@ -14,10 +14,19 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Lista um recurso comercial/financeiro com filtro por status. */
+/** Lista um recurso comercial/financeiro com filtro por status.
+ *  Registros DEMO/TESTE (dados_teste = true) ficam fora por padrão — inclusive quando
+ *  a marca está na entidade relacionada (fatura de um pagamento). Só perfis internos
+ *  autorizados podem pedir a inclusão explícita com incluirDemos. */
 export const listarComercial = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { recurso: Recurso; status?: string; incluirArquivados?: boolean; apenasArquivados?: boolean }) => {
+  .inputValidator((data: {
+    recurso: Recurso;
+    status?: string;
+    incluirArquivados?: boolean;
+    apenasArquivados?: boolean;
+    incluirDemos?: boolean;
+  }) => {
     if (!RECURSOS.includes(data.recurso)) throw new Error("Recurso inválido.");
     return data;
   })
@@ -27,6 +36,7 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (data.recurso === "invoices" || data.recurso === "payments") {
       exigirPapel(papel, [...PAPEIS_FINANCEIRO, "operacoes", "leitura"], "Sem acesso financeiro.");
     }
+    const incluirDemos = data.incluirDemos === true && PAPEIS_DEMO_VISIVEL.includes(papel);
     let q = supabase
       .from(data.recurso)
       .select("*")
@@ -35,11 +45,32 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (data.status) q = q.eq("status", data.status);
     if (data.apenasArquivados) q = q.not("archived_at", "is", null);
     else if (!data.incluirArquivados) q = q.is("archived_at", null);
+    if (!incluirDemos && TEM_MARCA_TESTE.includes(data.recurso)) q = q.or("dados_teste.is.null,dados_teste.eq.false");
 
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
-    return (linhas ?? []) as Record<string, any>[];
+    let saida = (linhas ?? []) as Record<string, any>[];
+
+    // Defesa em profundidade: pagamento herda a marca da fatura.
+    if (data.recurso === "payments" && !incluirDemos && saida.length > 0) {
+      const ids = [...new Set(saida.map((l) => l["invoice_id"]).filter(Boolean))];
+      if (ids.length > 0) {
+        const { data: faturas } = await supabase
+          .from("invoices")
+          .select("id,dados_teste")
+          .eq("organization_id", organizationId)
+          .in("id", ids);
+        const demos = new Set(
+          ((faturas ?? []) as { id: string; dados_teste: boolean | null }[])
+            .filter((f) => f.dados_teste === true)
+            .map((f) => f.id),
+        );
+        saida = saida.filter((l) => !demos.has(String(l["invoice_id"])));
+      }
+    }
+    return saida;
   });
+
 
 /** Catálogos auxiliares (clientes, casos, contratos, faturas) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
