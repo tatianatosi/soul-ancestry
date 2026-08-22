@@ -11,7 +11,7 @@ import type { Despesa } from "@/lib/despesas-terceiros";
 import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
 import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
 import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
-import { GateBloqueadoError, bloqueiosDaAcao, type AcaoGateada } from "@/lib/gates-formalizacao";
+import { GateBloqueadoError, bloqueiosDaAcao, ehAcaoGateadaInterna, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
 import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
 
