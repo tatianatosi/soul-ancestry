@@ -160,13 +160,17 @@ export function PainelDia() {
 
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
-  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
+  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina]) usados.add(`${i.tipo}:${i.id}`);
+  const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
+  for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
-  // Somente leitura das filas já carregadas: resumo comercial não cria nem altera registro.
+  // Somente leitura das filas já carregadas: resumo comercial conta sem repetir item já presente na fila.
   const itensFila = (chave: string) =>
-    ((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]).filter(
-      (i) => incluirDemo || !/demo|teste|fixture/i.test(String(i.rotulo ?? "")),
-    );
+    itensNaoExibidos(((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]), usados, {
+      incluirDemo,
+      tipoPadrao: "lead",
+    });
+
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
     discoveries_sem_desdobramento: qtd("discoveries_sem_desdobramento"),
