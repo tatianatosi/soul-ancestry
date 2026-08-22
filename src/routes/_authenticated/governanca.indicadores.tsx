@@ -83,6 +83,37 @@ function IndicadoresPage() {
                     <span className="mt-1 block text-[10px] text-navy/45">{i.matriz_origem}</span>
                   </td>
                   <td className="px-3 py-2 text-navy/70">{i.consumido_em.join(" · ")}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {(m?.tipos ?? []).map((t) => (
+                        <span
+                          key={t}
+                          className={`inline-block rounded-full border px-2 py-0.5 text-[10px] ${
+                            t === "bloqueio"
+                              ? "border-terracotta/40 bg-terracotta/5 text-terracotta"
+                              : t === "sinal_diario"
+                                ? "border-gold/50 bg-gold/10 text-navy"
+                                : "border-navy/20 text-navy/70"
+                          }`}
+                        >
+                          {ROTULO_TIPO_USO[t]}
+                        </span>
+                      ))}
+                      {!m ? "—" : null}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{m?.telas.join(" · ") ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{m?.componente ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">{m?.gatilho ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    {m ? (
+                      <Link to={m.rota} className="text-navy underline underline-offset-2">
+                        {m.acao}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                 </tr>
               );
             })}
