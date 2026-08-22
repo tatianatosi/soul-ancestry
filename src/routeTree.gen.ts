@@ -54,6 +54,7 @@ import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedCatalogoRouteImport } from './routes/_authenticated/catalogo'
 import { Route as AuthenticatedBibliotecaMensagensRouteImport } from './routes/_authenticated/biblioteca-mensagens'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
@@ -325,6 +326,11 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCatalogoRoute = AuthenticatedCatalogoRouteImport.update({
+  id: '/catalogo',
+  path: '/catalogo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBibliotecaMensagensRoute =
   AuthenticatedBibliotecaMensagensRouteImport.update({
     id: '/biblioteca-mensagens',
@@ -568,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
+  '/catalogo': typeof AuthenticatedCatalogoRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
@@ -652,6 +659,7 @@ export interface FileRoutesByTo {
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
+  '/catalogo': typeof AuthenticatedCatalogoRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
@@ -739,6 +747,7 @@ export interface FileRoutesById {
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
+  '/_authenticated/catalogo': typeof AuthenticatedCatalogoRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
@@ -826,6 +835,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
+    | '/catalogo'
     | '/clientes'
     | '/configuracoes'
     | '/conversao'
@@ -910,6 +920,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
+    | '/catalogo'
     | '/clientes'
     | '/configuracoes'
     | '/conversao'
@@ -996,6 +1007,7 @@ export interface FileRouteTypes {
     | '/_authenticated/auditoria'
     | '/_authenticated/biblioteca'
     | '/_authenticated/biblioteca-mensagens'
+    | '/_authenticated/catalogo'
     | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
     | '/_authenticated/conversao'
@@ -1404,6 +1416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/catalogo': {
+      id: '/_authenticated/catalogo'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof AuthenticatedCatalogoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/biblioteca-mensagens': {
       id: '/_authenticated/biblioteca-mensagens'
       path: '/biblioteca-mensagens'
@@ -1686,6 +1705,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBibliotecaMensagensRoute: typeof AuthenticatedBibliotecaMensagensRoute
+  AuthenticatedCatalogoRoute: typeof AuthenticatedCatalogoRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
@@ -1749,6 +1769,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedBibliotecaMensagensRoute: AuthenticatedBibliotecaMensagensRoute,
+  AuthenticatedCatalogoRoute: AuthenticatedCatalogoRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
