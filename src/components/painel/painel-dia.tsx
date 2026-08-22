@@ -146,6 +146,11 @@ export function PainelDia() {
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
+  // Somente leitura das filas já carregadas: resumo comercial não cria nem altera registro.
+  const itensFila = (chave: string) =>
+    ((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]).filter(
+      (i) => incluirDemo || !/demo|teste|fixture/i.test(String(i.rotulo ?? "")),
+    );
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
     discoveries_sem_desdobramento: qtd("discoveries_sem_desdobramento"),
