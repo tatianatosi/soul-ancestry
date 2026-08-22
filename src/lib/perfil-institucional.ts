@@ -34,6 +34,20 @@ export const CAMPOS_INSTITUCIONAIS_OBRIGATORIOS = [
   "subtitulo",
 ] as const;
 
+/**
+ * Rótulo de estado do perfil institucional. Enquanto o status não for
+ * `vigente`, nenhuma tela pode chamá-lo de vigente: usa-se "de referência"
+ * (leitura) ou "em revisão" (governança), evitando contradição com o chip
+ * `under_legal_review`.
+ */
+export function rotuloEstadoPerfilInstitucional(
+  status: EstadoVigenciaContratoBase = PERFIL_INSTITUCIONAL_STATUS,
+): string {
+  if (status === "vigente") return "perfil institucional vigente";
+  if (status === "under_legal_review") return "perfil institucional em revisão";
+  return "perfil institucional de referência";
+}
+
 export type PerfilInstitucionalRenderizado = {
   versao: string;
   status: EstadoVigenciaContratoBase;

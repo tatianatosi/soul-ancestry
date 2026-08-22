@@ -59,7 +59,8 @@ export function ContratoBaseLeitor() {
 
         <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
-            Perfil institucional de referência · {doc.perfilVersao} · sem dados pessoais
+            {doc.perfilRotuloEstado.charAt(0).toUpperCase() + doc.perfilRotuloEstado.slice(1)} · {doc.perfilVersao} · sem
+            dados pessoais
           </p>
           <dl className="mt-2 grid gap-1 sm:grid-cols-2">
             {doc.perfil.map((c) => (
@@ -69,6 +70,25 @@ export function ContratoBaseLeitor() {
               </div>
             ))}
           </dl>
+          <div className="mt-3 rounded border border-navy/10 bg-white p-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+              {doc.qualificacao.titulo} · {doc.qualificacao.versao} · {doc.qualificacao.status}
+            </p>
+            <p className="mt-1 text-[11px] text-navy/50">
+              Texto institucional versionado, não é declaração individual: qualquer alteração passa por governança e revisão
+              jurídica.
+            </p>
+            {doc.qualificacao.paragrafos.map((t) => (
+              <p key={t} className="mt-1.5 text-xs leading-relaxed text-navy/75">
+                {t}
+              </p>
+            ))}
+            {doc.qualificacao.pendencias.map((t) => (
+              <p key={t} className="mt-1.5 text-[11px] text-terracotta">
+                {t}
+              </p>
+            ))}
+          </div>
           <p className="mt-2 text-[11px] text-navy/55">
             Revisão: versão {doc.versao} · data de referência {doc.data} · responsável de revisão jurídica não registrado nesta versão.
           </p>
@@ -152,6 +172,21 @@ export function ContratoBaseLeitor() {
                         Vigência: {s.estadoVigencia}
                       </span>
                     </div>
+
+                    {s.notasDistribuicao.length > 0 ? (
+                      <div className="mt-3 rounded border border-navy/15 bg-cream/40 p-2">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">
+                          Distribuição entre cláusulas internas e letras A–P
+                        </p>
+                        <ul className="mt-1 space-y-1">
+                          {s.notasDistribuicao.map((n) => (
+                            <li key={n} className="text-[11px] leading-relaxed text-navy/70">
+                              {n}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
                     <div className="mt-3 space-y-3">
                       {s.paragrafos.map((p) => (
