@@ -40,9 +40,14 @@ export function StatusEnvioRecuperacao() {
   const [emailFiltro, setEmailFiltro] = useState("");
   const [emailAplicado, setEmailAplicado] = useState<string>("");
 
+  const [autoAtualizar, setAutoAtualizar] = useState(true);
+
   const q = useQuery({
     queryKey: ["status-envio-recuperacao", emailAplicado],
     queryFn: () => consultar({ data: emailAplicado ? { email: emailAplicado } : {} }),
+    refetchInterval: autoAtualizar ? 20_000 : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   });
 
   const dados = q.data;
@@ -59,14 +64,29 @@ export function StatusEnvioRecuperacao() {
             ou link é exibido aqui.
           </p>
         </div>
-        <button
-          onClick={() => q.refetch()}
-          disabled={q.isFetching}
-          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
-        >
-          {q.isFetching ? "Atualizando…" : "Atualizar"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-navy/70">
+            <input
+              type="checkbox"
+              checked={autoAtualizar}
+              onChange={(e) => setAutoAtualizar(e.target.checked)}
+            />
+            Atualizar automaticamente (20s)
+          </label>
+          <button
+            onClick={() => q.refetch()}
+            disabled={q.isFetching}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
+          >
+            {q.isFetching ? "Atualizando…" : "Atualizar"}
+          </button>
+        </div>
       </div>
+
+      <p className="mt-2 text-xs text-navy/50">
+        {q.dataUpdatedAt ? `Última leitura: ${dataHora(new Date(q.dataUpdatedAt).toISOString())}` : "Sem leitura ainda."}
+        {dados?.historicoDesde ? ` · Histórico visível desde ${dataHora(dados.historicoDesde)}` : ""}
+      </p>
 
       <div className="mt-4 flex flex-wrap items-end gap-2">
         <label className="text-sm">
@@ -97,6 +117,7 @@ export function StatusEnvioRecuperacao() {
           </button>
         ) : null}
       </div>
+
 
       {q.isLoading ? (
         <p className="mt-4 text-sm text-navy/60">Carregando…</p>
