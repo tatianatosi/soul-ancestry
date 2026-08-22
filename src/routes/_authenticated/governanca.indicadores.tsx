@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { BACKLOG_POS_MIGRACAO, GATILHOS } from "@/lib/fila-comunicacao";
 import {
   DETALHE_INDICADOR,
   INDICADORES,
+  MANIFESTACAO_INDICADOR,
   REGRAS_INDICADORES,
   ROTULO_STATUS_INDICADOR,
+  ROTULO_TIPO_USO,
 } from "@/lib/indicadores-governanca";
 
 export const Route = createFileRoute("/_authenticated/governanca/indicadores")({
@@ -38,7 +40,7 @@ function IndicadoresPage() {
       </header>
 
       <section className="overflow-auto rounded-lg border border-navy/10 bg-white">
-        <table className="w-full min-w-[1180px] text-left text-xs">
+        <table className="w-full min-w-[2000px] text-left text-xs">
           <thead className="bg-cream/60 text-navy/70">
             <tr>
               <th className="px-3 py-2 font-medium">Código</th>
@@ -59,6 +61,7 @@ function IndicadoresPage() {
           <tbody>
             {INDICADORES.map((i) => {
               const d = DETALHE_INDICADOR[i.codigo];
+              const m = MANIFESTACAO_INDICADOR[i.codigo];
               const tom =
                 d?.status === "apurado"
                   ? "border-navy/20 text-navy"
