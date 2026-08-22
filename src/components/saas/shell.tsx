@@ -10,6 +10,7 @@ import {
   FileSignature,
   ClipboardList,
   Library,
+  Smartphone,
   LogOut,
   Menu,
   ChevronDown,
