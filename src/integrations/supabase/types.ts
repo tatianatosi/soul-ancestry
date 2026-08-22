@@ -3303,6 +3303,116 @@ export type Database = {
           },
         ]
       }
+      composition_template_events: {
+        Row: {
+          ator: string | null
+          criado_em: string
+          detalhe: string | null
+          evento: string
+          id: string
+          organization_id: string
+          template_id: string
+        }
+        Insert: {
+          ator?: string | null
+          criado_em?: string
+          detalhe?: string | null
+          evento: string
+          id?: string
+          organization_id: string
+          template_id: string
+        }
+        Update: {
+          ator?: string | null
+          criado_em?: string
+          detalhe?: string | null
+          evento?: string
+          id?: string
+          organization_id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "composition_template_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "composition_template_events_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "composition_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      composition_templates: {
+        Row: {
+          archived_at: string | null
+          archived_by: string | null
+          archived_reason: string | null
+          atualizado_em: string
+          autor: string | null
+          base_contratual: string | null
+          criado_em: string
+          criado_por: string | null
+          finalidade: string | null
+          fonte: string | null
+          id: string
+          nome: string
+          organization_id: string
+          status: string
+          template_key: string
+          versao: string
+        }
+        Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_reason?: string | null
+          atualizado_em?: string
+          autor?: string | null
+          base_contratual?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          finalidade?: string | null
+          fonte?: string | null
+          id?: string
+          nome: string
+          organization_id: string
+          status?: string
+          template_key: string
+          versao: string
+        }
+        Update: {
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_reason?: string | null
+          atualizado_em?: string
+          autor?: string | null
+          base_contratual?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          finalidade?: string | null
+          fonte?: string | null
+          id?: string
+          nome?: string
+          organization_id?: string
+          status?: string
+          template_key?: string
+          versao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "composition_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consent_exceptions: {
         Row: {
           aprovado_em: string
