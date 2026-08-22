@@ -61,12 +61,15 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li className="rounded-lg border border-navy/10 px-3 py-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <LinkItem item={item}>{item.rotulo}</LinkItem>
-        <span className="text-xs text-navy/60">{textoPrazo(item.data)}</span>
+    <li className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+        <span className="min-w-0 break-words">
+          <LinkItem item={item}>{item.rotulo}</LinkItem>
+        </span>
+        <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
-      <p className="mt-0.5 text-xs text-navy/65">{item.acao}</p>
+      <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
+
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
           <span className="text-navy/60">Responsável: {item.responsavel}</span>
@@ -396,15 +399,16 @@ export function PainelDia() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-navy/60">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+        <p className="min-w-0 text-sm text-navy/60">
           O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
           proprietárias.
         </p>
-        <label className="flex items-center gap-2 text-xs text-navy/60">
+        <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
           <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
           Incluir demonstrações
         </label>
+
       </div>
 
       {/* 0 — Cards do dia */}
@@ -420,9 +424,9 @@ export function PainelDia() {
 
       {/* 1 — Minha fila priorizada */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
-          <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
             {(
               [
                 ["responsavel", "Responsável", opcoes.responsaveis, ""],
@@ -430,10 +434,10 @@ export function PainelDia() {
                 ["etapa", "Etapa", opcoes.etapas, "eixo_comercial"],
               ] as const
             ).map(([campo, rotuloCampo, lista, catalogo]) => (
-              <label key={campo} className="flex items-center gap-1 text-navy/60">
-                {rotuloCampo}
+              <label key={campo} className="flex min-w-0 items-center gap-1 text-navy/60">
+                <span className="shrink-0">{rotuloCampo}</span>
                 <select
-                  className="rounded border border-navy/15 bg-white px-2 py-1 text-navy"
+                  className="min-w-0 max-w-full flex-1 rounded border border-navy/15 bg-white px-2 py-1 text-navy sm:flex-none"
                   value={filtros[campo] ?? ""}
                   onChange={(e) => setFiltros((f) => ({ ...f, [campo]: e.target.value }))}
                 >
@@ -449,9 +453,10 @@ export function PainelDia() {
           </div>
         </div>
         <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
-        <div className="mt-3 grid gap-4 lg:grid-cols-3">
+        <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {priorizadaVisivel.map((f) => (
-            <div key={f.chave}>
+            <div key={f.chave} className="min-w-0">
+
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
               </p>
@@ -479,9 +484,10 @@ export function PainelDia() {
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
         ) : (
-          <div className="mt-3 grid gap-4 lg:grid-cols-3">
+          <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {excecoes.map((e) => (
-              <div key={e.chave}>
+              <div key={e.chave} className="min-w-0">
+
                 <p className="text-xs uppercase tracking-wide text-navy/50">
                   {e.rotulo} · {e.itens.length}
                 </p>
@@ -518,10 +524,11 @@ export function PainelDia() {
             const linhas = agrupado[g.chave];
             const grave = maiorGravidade(linhas);
             return (
-              <div key={g.chave} className="rounded-lg border border-navy/10 px-3 py-2">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="flex items-center gap-1.5">
+              <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+                  <span className="min-w-0 break-words text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="flex shrink-0 items-center gap-1.5">
+
                     <span className="font-serif text-lg text-navy">{linhas.length}</span>
                     {grave ? (
                       <span
@@ -538,7 +545,7 @@ export function PainelDia() {
                     ) : null}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
+                <p className="mt-0.5 break-words text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
                 <div className="mt-1 flex flex-wrap gap-3">
                   <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
                     {g.acao}
@@ -557,13 +564,14 @@ export function PainelDia() {
 
       {/* 4 — Comercial hoje */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Comercial hoje</h2>
-          <Link to="/conversao" className="text-xs text-navy/60 underline">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
+          <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
             Conversão e funil
           </Link>
         </div>
-        <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
+        <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+
           {[
             { rotulo: "Calls de hoje", itens: comercial.calls },
             { rotulo: "Propostas sem follow-up", itens: comercial.propostas },
@@ -572,11 +580,12 @@ export function PainelDia() {
             { rotulo: "Contratos enviados", itens: itensFila("contratos_enviados_pendentes") },
             { rotulo: "Pagamentos aguardados", itens: itensFila("pagamentos_aguardados") },
           ].map((b) => (
-            <div key={b.rotulo}>
+            <div key={b.rotulo} className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {b.rotulo} · {b.itens.length}
               </p>
-              <ul className="mt-2 space-y-1 text-xs text-navy/65">
+              <ul className="mt-2 space-y-1 break-words text-xs text-navy/65">
+
                 {b.itens.slice(0, 5).map((i: any) => (
                   <li key={`${b.rotulo}-${i.id}`}>
                     <Link to="/leads" className="text-navy underline underline-offset-2">
@@ -595,12 +604,13 @@ export function PainelDia() {
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
-          <Link to="/casos" className="text-xs text-navy/60 underline">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
+          <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
+
         <p className="mt-1 text-xs text-navy/50">
           Somente situações com ação necessária. Ausência de prazo é exibida como “Sem prazo definido”, nunca como número. Os
           prazos do dia já estão na fila priorizada.

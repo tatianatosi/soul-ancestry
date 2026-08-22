@@ -103,45 +103,45 @@ export function AcoesRapidasProprietaria({
         Correção interna auditada. Nenhuma cobrança, assinatura, comunicação, publicação ou integração é executada aqui.
       </p>
       <div className="grid gap-1.5 sm:grid-cols-2">
-        <label className="flex flex-col gap-0.5 text-navy/60">
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
           Responsável (identificador interno)
           <input
             value={form.responsavel}
             onChange={(e) => setForm((f) => ({ ...f, responsavel: e.target.value }))}
-            className="rounded border border-navy/15 px-1.5 py-1 text-navy"
+            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
-        <label className="flex flex-col gap-0.5 text-navy/60">
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
           Prazo
           <input
             type="date"
             value={form.prazo}
             onChange={(e) => setForm((f) => ({ ...f, prazo: e.target.value }))}
-            className="rounded border border-navy/15 px-1.5 py-1 text-navy"
+            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
-        <label className="flex flex-col gap-0.5 text-navy/60 sm:col-span-2">
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60 sm:col-span-2">
           Próxima ação
           <input
             value={form.proxima}
             onChange={(e) => setForm((f) => ({ ...f, proxima: e.target.value }))}
-            className="rounded border border-navy/15 px-1.5 py-1 text-navy"
+            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
-        <label className="flex flex-col gap-0.5 text-navy/60">
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
           Motivo (mínimo 10 caracteres)
           <input
             value={form.motivo}
             onChange={(e) => setForm((f) => ({ ...f, motivo: e.target.value }))}
-            className="rounded border border-navy/15 px-1.5 py-1 text-navy"
+            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
-        <label className="flex flex-col gap-0.5 text-navy/60">
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
           Fonte ou justificativa
           <input
             value={form.fonte}
             onChange={(e) => setForm((f) => ({ ...f, fonte: e.target.value }))}
-            className="rounded border border-navy/15 px-1.5 py-1 text-navy"
+            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
       </div>
