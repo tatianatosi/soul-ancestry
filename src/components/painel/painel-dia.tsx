@@ -120,6 +120,13 @@ export function PainelDia() {
     retry: false,
   });
   const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
+  const carregarBloqueios = useServerFn(casosBloqueadosPorCatalogo);
+  const qCatalogo = useQuery({
+    queryKey: ["painel-bloqueios-catalogo", incluirDemo],
+    queryFn: () => carregarBloqueios({ data: { incluirTeste: incluirDemo } }),
+    retry: false,
+  });
+  const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
