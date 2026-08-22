@@ -147,6 +147,49 @@ export const COBERTURA_MODULOS: Modulo[] = [
     ],
   },
   {
+    id: "comercial_catalogo",
+    rotulo: "Comercial e catálogo",
+    rota: "/catalogo",
+    operacoes: [
+      { id: "editar_sku", rotulo: "Consultar e editar SKU/produto existente", entidade: "product_catalog" },
+      {
+        id: "corrigir_preco_vigencia",
+        rotulo: "Corrigir preço, vigência, condição, escopo e entregáveis",
+        entidade: "product_catalog",
+      },
+      {
+        id: "corrigir_aplicabilidade_status",
+        rotulo: "Corrigir inclusões, exclusões, aplicabilidade, responsável e status",
+        entidade: "product_catalog",
+      },
+      {
+        id: "homologar_sku",
+        rotulo: "Homologar, pausar, substituir ou desbloquear SKU por decisão auditada",
+        entidade: "product_catalog",
+      },
+      {
+        id: "resolver_divergencia_catalogo",
+        rotulo: "Resolver divergência de preço, link, escopo ou versão",
+        entidade: "catalog_source_divergences",
+      },
+      {
+        id: "selecionar_sku_em_revisao",
+        rotulo: "Selecionar SKU em revisão na proposta com override registrado",
+        entidade: "proposals",
+      },
+      {
+        id: "criar_condicao_previsao",
+        rotulo: "Criar e editar condição comercial e previsão interna",
+        entidade: "commercial_conditions",
+      },
+    ],
+    acoesExternas: ["criar_ou_alterar_link_asaas", "emitir_cobranca"],
+    regras: [
+      "Link Asaas, cobrança e pagamento nunca são executados a partir do catálogo — exigem confirmação final.",
+      "Homologação e desbloqueio de SKU exigem motivo, fonte e valores anterior e novo.",
+    ],
+  },
+  {
     id: "formalizacao",
     rotulo: "Formalização",
     rota: "/contratos",
