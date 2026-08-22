@@ -11836,6 +11836,101 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_override_events: {
+        Row: {
+          acao: string
+          acao_externa: boolean
+          actor_papel: string
+          actor_user_id: string
+          anexos: Json
+          campo: string | null
+          categoria: string
+          confirmacao_manual: boolean
+          conteudo_resumo: string | null
+          created_at: string
+          dados_enviados: Json | null
+          dados_teste: boolean
+          destinatario: string | null
+          entidade: string
+          entidade_id: string | null
+          executado: boolean
+          fonte: string | null
+          id: string
+          impacto: string | null
+          irreversivel: boolean
+          motivo: string
+          organization_id: string
+          pendencias_assumidas: Json
+          valor_anterior: Json | null
+          valor_financeiro: number | null
+          valor_novo: Json | null
+        }
+        Insert: {
+          acao: string
+          acao_externa?: boolean
+          actor_papel?: string
+          actor_user_id?: string
+          anexos?: Json
+          campo?: string | null
+          categoria: string
+          confirmacao_manual?: boolean
+          conteudo_resumo?: string | null
+          created_at?: string
+          dados_enviados?: Json | null
+          dados_teste?: boolean
+          destinatario?: string | null
+          entidade: string
+          entidade_id?: string | null
+          executado?: boolean
+          fonte?: string | null
+          id?: string
+          impacto?: string | null
+          irreversivel?: boolean
+          motivo: string
+          organization_id: string
+          pendencias_assumidas?: Json
+          valor_anterior?: Json | null
+          valor_financeiro?: number | null
+          valor_novo?: Json | null
+        }
+        Update: {
+          acao?: string
+          acao_externa?: boolean
+          actor_papel?: string
+          actor_user_id?: string
+          anexos?: Json
+          campo?: string | null
+          categoria?: string
+          confirmacao_manual?: boolean
+          conteudo_resumo?: string | null
+          created_at?: string
+          dados_enviados?: Json | null
+          dados_teste?: boolean
+          destinatario?: string | null
+          entidade?: string
+          entidade_id?: string | null
+          executado?: boolean
+          fonte?: string | null
+          id?: string
+          impacto?: string | null
+          irreversivel?: boolean
+          motivo?: string
+          organization_id?: string
+          pendencias_assumidas?: Json
+          valor_anterior?: Json | null
+          valor_financeiro?: number | null
+          valor_novo?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_override_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           archive_motivo: string | null
