@@ -309,7 +309,32 @@ export type AlteracaoEscopoAnexo = {
   fonteNovoValor: string | null;
   aceiteRegistrado: boolean;
   aceiteEvidencia: string | null;
+  /** Regra 3: responsável, fonte e revisão da alteração. */
+  responsavelAlteracao?: string | null;
+  fonteAlteracao?: string | null;
+  revisaoInternaRegistrada?: boolean;
+  /** Regra 6: vínculo ao Anexo II quando houver despesa externa a aprovar. */
+  despesaVinculadaId?: string | null;
+  /** Regra 9: alteração nunca reescreve anexo histórico/contrato assinado. */
+  contratoAssinadoReferencia?: string | null;
+  dataSolicitacao?: string | null;
 };
+
+/** Modelo parametrizável do Anexo V sob revisão jurídica. */
+export const ANEXO_V_MODELO_VERSAO = "ANEXO-V-ALTERACAO-DE-ESCOPO-v1.0";
+
+/** Regras do motor do Anexo V — texto normativo, não editável por caso. */
+export const REGRAS_MOTOR_ANEXO_V: string[] = [
+  "Criar somente quando houver mudança formal do escopo aprovado.",
+  "Escopo original é snapshot da OS/Proposta/Anexo I vigente.",
+  "Exigir descrição, motivo, impacto em prazo, impacto financeiro, responsável, fonte, revisão e aceite aplicável.",
+  "“Sem alteração” é valor controlado, não texto livre.",
+  "Novo valor vem de SKU/preço homologado ou exceção comercial autorizada; preço livre é proibido.",
+  "Despesa externa a aprovar vincula o Anexo II; não cria cobrança.",
+  "Depois do aceite, gerar nova versão do Anexo I e snapshot por evento de governança.",
+  "Sem aceite aplicável, a alteração não entra no escopo vigente.",
+  "Nunca alterar retroativamente contrato assinado ou anexo histórico.",
+];
 
 export type EntradaAnexosIaV = {
   caseId: string;
@@ -681,20 +706,32 @@ export function anexoVAlteracaoEscopo(e: EntradaAnexosIaV): AnexoGovernado {
     if (a.impactoFinanceiro === "novo_valor" && !fonteOficialDePreco(a.fonteNovoValor)) {
       pend.push("Novo valor exige SKU/preço homologado ou exceção comercial autorizada.");
     }
-    if (a.impactoFinanceiro === "despesa_externa_a_aprovar") {
-      pend.push("Despesa externa a aprovar deve ser controlada no Anexo II — não vira cobrança automática.");
+    if (a.impactoFinanceiro === "despesa_externa_a_aprovar" && !a.despesaVinculadaId) {
+      pend.push("Despesa externa a aprovar sem vínculo ao Anexo II — nenhuma cobrança é criada por este termo.");
     }
+    if (!a.responsavelAlteracao) pend.push("Responsável pela alteração não informado.");
+    if (!a.fonteAlteracao) pend.push("Fonte da alteração não informada.");
+    if (!a.revisaoInternaRegistrada) pend.push("Revisão interna da alteração não registrada.");
     if (!a.aceiteRegistrado || !a.aceiteEvidencia) pend.push("Aceite da Cliente não registrado: alteração não entra no escopo vigente.");
   }
 
   const campos: CampoRenderizado[] = [
     { rotulo: "Caso", valor: e.caseId, fonte: "crm_confirmado" },
     { rotulo: "Cliente", valor: e.clienteNome, fonte: "crm_confirmado", observacaoAusencia: AUSENTE },
+    { rotulo: "Data", valor: a?.dataSolicitacao ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Escopo original", valor: a?.escopoOriginalSnapshot ?? null, fonte: "anexo", observacaoAusencia: AUSENTE },
     { rotulo: "Alteração", valor: a?.alteracao ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Motivo", valor: a?.motivo ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Impacto em prazo", valor: a?.impactoPrazo ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Impacto financeiro", valor: a?.impactoFinanceiro ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
+    { rotulo: "Responsável", valor: a?.responsavelAlteracao ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
+    { rotulo: "Fonte da alteração", valor: a?.fonteAlteracao ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
+    {
+      rotulo: "Revisão interna",
+      valor: a?.revisaoInternaRegistrada ? "Registrada" : null,
+      fonte: "documento_conferido",
+      observacaoAusencia: "Revisão interna pendente.",
+    },
     {
       rotulo: "Aceite",
       valor: a?.aceiteRegistrado ? a.aceiteEvidencia : null,
@@ -719,6 +756,16 @@ export function anexoVAlteracaoEscopo(e: EntradaAnexosIaV): AnexoGovernado {
     destinos: ["revisao_humana", "previa_final"],
     gatesBloqueados: aplicavel && pend.length ? ["previa_final", "revisao_humana"] : [],
   };
+}
+
+/** Regra 7: aceite válido exige nova versão do Anexo I e snapshot de governança. */
+export function novaVersaoAnexoIRequerida(a: AlteracaoEscopoAnexo | null): boolean {
+  return Boolean(a?.solicitada && a.aceiteRegistrado && a.aceiteEvidencia && a.alteracao);
+}
+
+/** Regra 9: nada é reescrito retroativamente — a alteração sempre gera novo registro. */
+export function alteracaoRetroativaBloqueada(a: AlteracaoEscopoAnexo | null): boolean {
+  return Boolean(a?.contratoAssinadoReferencia);
 }
 
 /** Escopo vigente só muda com aceite registrado e evidência. */
