@@ -4,11 +4,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/** URL pública de produção do Desk (destino oficial dos convites/redefinições). */
+const ORIGEM_PRODUCAO = "https://soul-ancestry.lovable.app";
+
 function origem() {
   const o = getRequestHeader("origin");
-  if (o) return o;
   const host = getRequestHeader("host");
-  return host ? `https://${host}` : "";
+  const bruta = o || (host ? `https://${host}` : "");
+  // Convites e redefinições nunca podem apontar para a prévia do editor:
+  // o destino é sempre o ambiente publicado de produção.
+  if (!bruta || /lovableproject\.com|id-preview|localhost|127\.0\.0\.1/.test(bruta)) {
+    return ORIGEM_PRODUCAO;
+  }
+  return bruta;
 }
 
 /** Rate limit de login. Resposta neutra: não revela existência de conta. */
