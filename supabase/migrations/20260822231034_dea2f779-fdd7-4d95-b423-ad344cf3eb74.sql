@@ -1,0 +1,2 @@
+revoke all on function public.fn_perfil_institucional_evento_append_only() from public, anon, authenticated;
+revoke all on function public.fn_perfil_institucional_guard() from public, anon, authenticated;
