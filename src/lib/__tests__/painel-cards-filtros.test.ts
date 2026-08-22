@@ -20,12 +20,13 @@ const filas = [
 ] as never[];
 
 describe("cards e filtros do Painel Hoje", () => {
-  it("expõe os sete cards canônicos na ordem definida", () => {
+  it("expõe os oito cards canônicos na ordem definida", () => {
     const cards = cardsHoje(filas);
     expect(cards.map((c) => c.chave)).toEqual([
       "acoes_vencidas",
       "acoes_hoje",
       "leads_sem_responsavel",
+      "propostas_sem_followup",
       "contratos_enviados_pendentes",
       "pagamentos_aguardados",
       "onboardings_pendentes",
