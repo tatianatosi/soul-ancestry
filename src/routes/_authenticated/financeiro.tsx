@@ -317,6 +317,18 @@ function FinanceiroPage() {
 
         <FiltroStatus rotulos={rotulos} valor={status} aoMudar={setStatus} />
 
+        <label className="flex items-center gap-2 text-xs text-navy/60">
+          <input
+            type="checkbox"
+            checked={incluirDemos}
+            onChange={(e) => setIncluirDemos(e.target.checked)}
+            className="h-3.5 w-3.5 accent-navy"
+          />
+          Incluir demonstrações (visualização interna; registros com selo DEMO nunca entram em indicadores, previsões,
+          caixa ou App Cliente)
+        </label>
+
+
         {erro ? (
           <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
             Ação bloqueada: {erro}
