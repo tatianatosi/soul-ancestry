@@ -188,8 +188,13 @@ function PlanoAcao() {
         <Link to="/casos/$caseId" params={{ caseId }} className="underline">
           Casos 360
         </Link>{" "}
-        → Pesquisa e Evidências → Plano de Ação de Pesquisa
+        →{" "}
+        <Link to="/pesquisa-evidencias/$caseId" params={{ caseId }} className="underline">
+          Pesquisa Genealógica e Evidências
+        </Link>{" "}
+        → Plano de Ação de Pesquisa
       </p>
+
       <h1 className="mt-1 font-serif text-2xl text-navy">Plano de ação de pesquisa</h1>
       <p className="mb-4 text-sm text-navy/60">
         {(dados?.caso as any)?.codigo ?? caseId} — fila interna de trabalho. Nenhum contato, envio, pedido externo, despesa ou
