@@ -270,7 +270,13 @@ export async function montarConferencia(
 
 /**
  * Trava executável no servidor: nenhuma transição passa pelo front-end.
- * Registra toda tentativa bloqueada no histórico interno (audit_logs).
+ *
+ * A pendência nunca desaparece. Quando a Proprietária Administradora já
+ * registrou decisão auditada (`owner_override_events`, categoria
+ * `override_interno`, campo = ação) para uma ação INTERNA, o avanço interno é
+ * permitido e a superação fica registrada em `audit_logs`. Ações externas
+ * (assinatura, envio, pagamento) continuam bloqueadas aqui e só passam pela
+ * janela final de confirmação explícita.
  */
 export async function exigirGate(
   supabase: Sb,
@@ -280,8 +286,44 @@ export async function exigirGate(
   const erros = bloqueiosDaAcao(input.acao, contextoGatesDaConferencia(resultado));
   if (!erros.length) return resultado;
 
+  const organizationId = input.organizationId ?? dados.caso.organization_id;
+
+  if (ehAcaoGateadaInterna(input.acao)) {
+    const { data: decisao } = await supabase
+      .from("owner_override_events")
+      .select("id,motivo,fonte,created_at,actor_user_id")
+      .eq("organization_id", organizationId)
+      .eq("categoria", "override_interno")
+      .eq("entidade_id", input.caseId)
+      .eq("campo", input.acao)
+      .eq("acao_externa", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (decisao) {
+      await supabase.from("audit_logs").insert({
+        organization_id: organizationId,
+        user_id: input.userId,
+        acao: "gate_superado_por_decisao_proprietaria",
+        entidade: "crm_casos",
+        entidade_id: input.caseId,
+        metadados: {
+          acao_tentada: input.acao,
+          codigos: erros.map((e) => e.codigo),
+          descricoes: erros.map((e) => e.descricao),
+          decisao_event_id: decisao.id,
+          motivo: decisao.motivo,
+          fonte: decisao.fonte,
+          pendencia_preservada: true,
+        },
+      });
+      return resultado;
+    }
+  }
+
   await supabase.from("audit_logs").insert({
-    organization_id: input.organizationId ?? dados.caso.organization_id,
+    organization_id: organizationId,
     user_id: input.userId,
     acao: "gate_formalizacao_bloqueado",
     entidade: "crm_casos",
@@ -298,3 +340,4 @@ export async function exigirGate(
 
   throw new GateBloqueadoError(input.acao, erros);
 }
+
