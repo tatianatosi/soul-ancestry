@@ -31,10 +31,11 @@ export type RequisitoBloqueio = {
 
 /** chave do bloqueio → gate, responsável, evidência mínima e origem permitida. */
 export const REQUISITOS_BLOQUEIO: Record<string, RequisitoBloqueio> = {
-  id_canonico_pendente: {
+  id_canonico_resolvido: {
     gate: "a_governanca",
     responsavel: "Governança / Operações",
-    evidencia: "Decisão humana registrada do case_id canônico; o outro ID permanece como alias.",
+    evidencia:
+      "Decisão registrada: CA-CID-AT-FAM-2026-001 é o canônico; CA-AUT-ANALUIZA-FAM-2026-001 permanece como referência legada resolvida.",
     origem: "Decisão interna registrada",
   },
   alice_nome_completo: {

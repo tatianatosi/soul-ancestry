@@ -227,6 +227,7 @@ export const STATUS_PENDENCIA = [
   "SEM_IMPLEMENTACAO",
   "SEM_TESTE",
   "AGUARDA_CONFIRMACAO",
+  "RESOLVIDO_POR_DECISAO_DA_PROPRIETARIA",
 ] as const;
 export type StatusPendencia = (typeof STATUS_PENDENCIA)[number];
 
@@ -265,18 +266,19 @@ export const MATRIZ_PENDENCIAS: LinhaPendencia[] = [
     area: "identidade_dados_caso",
     entidade: "crm_casos / case_registry",
     caso: "Ana Luiza",
-    status: "CONFLITANTE",
-    criticidade: "critico",
-    evidencia: "Dois identificadores em uso: CA-CID-AT-FAM-2026-001 e CA-AUT-ANALUIZA-FAM-2026-001.",
-    risco: "Duplicidade de caso, métricas e documentos vinculados ao ID errado.",
-    efeitoInterno: "Prévias e dossiê podem apontar para registros distintos.",
-    efeitoExterno: "Contrato e cobrança poderiam citar identificador não canônico.",
+    status: "RESOLVIDO_POR_DECISAO_DA_PROPRIETARIA",
+    criticidade: "baixo",
+    evidencia:
+      "Decisão da Proprietária Administradora em 22/08/2026: CA-CID-AT-FAM-2026-001 é o único identificador canônico; CA-AUT-ANALUIZA-FAM-2026-001 permanece como referência legada resolvida para o mesmo caso.",
+    risco: "Nenhum. Não há segundo caso, e a referência legada resolve para o caso canônico.",
+    efeitoInterno: "Telas exibem apenas o código canônico, com 'Piloto real' como selo.",
+    efeitoExterno: "Nenhum ato externo executado ou pendente por este item.",
     responsavel: "Proprietária administradora",
-    proximaAcao: "Fixar CA-CID-AT-FAM-2026-001 como canônico e registrar o outro como alias histórico.",
+    proximaAcao: "Nenhuma. Item encerrado por decisão registrada; não entra em go-live, Painel Hoje nem aprovações.",
     superavelPorDecisaoAuditada: true,
     prazo: null,
-    dependencias: ["G01 Identificadores canônicos"],
-    criterioEncerramento: "Um único ID canônico gravado, com alias auditado e sem registros órfãos.",
+    dependencias: [],
+    criterioEncerramento: "Encerrado: identificador canônico já definido na operação.",
   },
   {
     id: "PEND-02",
@@ -561,8 +563,9 @@ export const CONSOLIDADO_ANA = {
   idCanonicoRecomendado: "CA-CID-AT-FAM-2026-001",
   idAlternativo: "CA-AUT-ANALUIZA-FAM-2026-001",
   justificativaId:
-    "O padrão CA-CID-AT-FAM segue a convenção G01 de identificadores canônicos por linha de serviço; o outro fica como alias histórico auditado.",
+    "Decisão aplicada: CA-CID-AT-FAM-2026-001 é o identificador canônico único; CA-AUT-ANALUIZA-FAM-2026-001 fica exclusivamente como referência legada, resolvida para o mesmo caso.",
   itens: [
+    { rotulo: "Identificador canônico", situacao: "Resolvido por decisão da proprietária: CA-CID-AT-FAM-2026-001 (Projeto familiar — Ana Luiza, Piloto real)." },
     { rotulo: "Pessoa, núcleo e participantes", situacao: "Núcleo familiar registrado; Alice com cadastro incompleto." },
     { rotulo: "Representação de Felipe", situacao: "Sem instrumento vinculado; estado de representação pendente." },
     { rotulo: "Preço, escopo, SKU e condição", situacao: "Divergência entre proposta Canva e Planilha Mestre." },

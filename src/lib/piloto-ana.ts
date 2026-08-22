@@ -14,15 +14,18 @@ export const PILOTO_ANA = {
   proposta_referencia_participantes: 3,
   proposta_observacao:
     "R$ 9.600 e composição familiar de 3 participantes constam apenas como evidência interna de proposta de referência. Não é cobrança, não é preço homologado e não autoriza Asaas.",
-  ids_historicos: ["CA-CID-AT-FAM-2026-001", "CA-AUT-ANALUIZA-FAM-2026-001"],
-  id_canonico_decidido: null as string | null,
+  ids_historicos: ["CA-AUT-ANALUIZA-FAM-2026-001", "CA-2026-ANA-001"],
+  id_canonico_decidido: "CA-CID-AT-FAM-2026-001" as string | null,
+  nome_operacional: "Projeto familiar — Ana Luiza",
+  classificacao: "Piloto real",
+  decisao_id_canonico:
+    "Decisão da Proprietária Administradora em 22/08/2026: identificador canônico já definido na operação. Referência legada resolvida para CA-CID-AT-FAM-2026-001.",
   responsavel: "Tatiana Melani Tosi",
 };
 
 export type BloqueioPiloto = { codigo: string; titulo: string; dominio: string; detalhe: string };
 
 export const BLOQUEIOS_PILOTO: BloqueioPiloto[] = [
-  { codigo: "id_canonico", titulo: "ID canônico pendente", dominio: "governança", detalhe: "Dois IDs históricos preservados como alias. A escolha é decisão humana; nenhum terceiro ID é criado automaticamente." },
   { codigo: "cadastro_contratante", titulo: "Cadastro da contratante pendente", dominio: "cadastro", detalhe: "Dados completos da contratante ainda não conferidos na ficha." },
   { codigo: "dados_contratada", titulo: "Dados oficiais da contratada pendentes", dominio: "contratual", detalhe: "Perfil institucional versionado precisa estar ativo e aprovado." },
   { codigo: "contrato_especifico", titulo: "Contrato específico pendente", dominio: "contratual", detalhe: "Sem contrato específico gerado a partir do modelo aprovado." },
