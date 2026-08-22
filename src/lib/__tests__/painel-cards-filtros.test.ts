@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { aplicarFiltrosDia, cardsHoje, consolidarDia, opcoesFiltroDia } from "@/lib/painel-dia";
+import { aplicarFiltrosDia, cadenciaRelevante, cardsHoje, consolidarDia, itensNaoExibidos, opcoesFiltroDia } from "@/lib/painel-dia";
 
 const item = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
