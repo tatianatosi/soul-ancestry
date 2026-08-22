@@ -8752,7 +8752,12 @@ export type Database = {
           despesas_terceiros_status: string | null
           discovery_resultado: string | null
           documentos_chave: string[]
+          dossie_ambiente: string | null
+          dossie_ativo: boolean
           dossie_link_interno: string | null
+          dossie_mae_ref: string | null
+          dossie_nivel_acesso: string | null
+          dossie_responsavel: string | null
           eixo_comercial: string
           eixo_formalizacao: string
           elegibilidade_preliminar: string | null
@@ -8842,7 +8847,12 @@ export type Database = {
           despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
           documentos_chave?: string[]
+          dossie_ambiente?: string | null
+          dossie_ativo?: boolean
           dossie_link_interno?: string | null
+          dossie_mae_ref?: string | null
+          dossie_nivel_acesso?: string | null
+          dossie_responsavel?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
           elegibilidade_preliminar?: string | null
@@ -8932,7 +8942,12 @@ export type Database = {
           despesas_terceiros_status?: string | null
           discovery_resultado?: string | null
           documentos_chave?: string[]
+          dossie_ambiente?: string | null
+          dossie_ativo?: boolean
           dossie_link_interno?: string | null
+          dossie_mae_ref?: string | null
+          dossie_nivel_acesso?: string | null
+          dossie_responsavel?: string | null
           eixo_comercial?: string
           eixo_formalizacao?: string
           elegibilidade_preliminar?: string | null
