@@ -271,7 +271,8 @@ export type EstadoProcuracaoAnexo = (typeof ESTADOS_PROCURACAO_ANEXO)[number];
 
 export type ProcuracaoAnexo = {
   exigidaPorOrgao: boolean;
-  tipo: "brasil" | "italia" | null;
+  /** Jurisdição: Brasil ou país europeu resolvido por fonte canônica (nunca default). */
+  tipo: "brasil" | "europa" | null;
   finalidade: string | null;
   orgaoDestinatario: string | null;
   pessoas: string[];
@@ -280,7 +281,14 @@ export type ProcuracaoAnexo = {
   revisaoJuridicaAprovada: boolean;
   /** Regra 5: evidência de assinatura registrada, quando aplicável. */
   evidenciaAssinatura?: string | null;
+  /** Contexto europeu resolvido (país, fonte, estado e conflito). */
+  contextoEuropeu?: ContextoProcuracaoEuropeia | null;
+  /** Campos que exigem fonte rastreável mesmo com país confirmado. */
+  idioma?: string | null;
+  modeloLocal?: string | null;
+  requisitoFormal?: string | null;
 };
+
 
 /** Modelo condicional do Anexo IV sob revisão jurídica. */
 export const ANEXO_IV_MODELO_VERSAO = "ANEXO-IV-PROCURACAO-ESPECIFICA-v1.0";
