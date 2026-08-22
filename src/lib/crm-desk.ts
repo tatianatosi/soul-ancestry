@@ -613,10 +613,53 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
   if (String(l.despesas_terceiros_status) === "aprovadas") {
     if (vazio(l.despesas_terceiros_faixa)) erros.push({ campo: "despesas_terceiros_faixa", motivo: "Despesas aprovadas exigem faixa estimada registrada." });
     if (vazio(l.despesas_terceiros_regra)) erros.push({ campo: "despesas_terceiros_regra", motivo: "Despesas aprovadas exigem a regra de pagamento pelo cliente." });
+    if (String(l.despesas_terceiros_regra) === "clube_nao_antecipa") {
+      erros.push({
+        campo: "despesas_terceiros_regra",
+        motivo: "Despesa aprovada exige regra de pagamento direto do cliente ao terceiro — o Clube nunca antecipa nem reembolsa.",
+      });
+    }
+    if (vazio(l.proposta_referencia_interna)) {
+      erros.push({ campo: "proposta_referencia_interna", motivo: "Despesa aprovada exige referência de proposta/escopo aplicável." });
+    }
   }
 
-  if (!l.consentimento_gravacao && !vazio(l.gravacao_link_interno)) {
-    erros.push({ campo: "gravacao_link_interno", motivo: "Sem consentimento de gravação não é possível registrar link de gravação/transcrição." });
+  const consentido = String(l.consentimento_status) === "concedido";
+  if (consentido) {
+    if (vazio(l.consentimento_em)) erros.push({ campo: "consentimento_em", motivo: "Consentimento concedido exige data/hora do registro." });
+    if (vazio(l.consentimento_canal)) erros.push({ campo: "consentimento_canal", motivo: "Consentimento concedido exige canal do registro." });
+    if (vazio(l.consentimento_versao_aviso)) {
+      erros.push({ campo: "consentimento_versao_aviso", motivo: "Consentimento concedido exige a versão do aviso apresentada." });
+    }
+  }
+  if (!consentido && !vazio(l.gravacao_link_interno)) {
+    erros.push({
+      campo: "gravacao_link_interno",
+      motivo: "Gravação/transcrição só é permitida com consentimento concedido, datado, com canal e versão do aviso.",
+    });
+  }
+
+  const spinConcluido = Boolean(l.spin_situacao && l.spin_problema && l.spin_implicacao && l.spin_necessidade);
+  if (spinConcluido && String(l.resumo_call ?? "").trim().length < 30) {
+    erros.push({ campo: "resumo_call", motivo: "SPIN concluído exige resumo correspondente: caixas marcadas não bastam." });
+  }
+
+  if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
+    if (vazio(l.confianca_triagem)) erros.push({ campo: "confianca_triagem", motivo: "Sinal forte/provável exige confiança da triagem." });
+    if (vazio(l.linha_transmissao)) erros.push({ campo: "linha_transmissao", motivo: "Sinal forte/provável exige linha de transmissão." });
+  }
+
+  if ((l.pesquisa_previa_escopo ?? []).length > 0 && String(l.pesquisa_previa_autorizacao) !== "registrada") {
+    erros.push({ campo: "pesquisa_previa_escopo", motivo: "Escopo de pesquisa prévia exige autorização registrada." });
+  }
+  if ((l.pesquisa_previa_escopo ?? []).some((e) => !PESQUISA_PREVIA_ESCOPO.some((o) => o.valor === e))) {
+    erros.push({ campo: "pesquisa_previa_escopo", motivo: "Escopo fora da lista controlada." });
+  }
+  if ((l.nacionalidades_interesse ?? []).some((n) => !NACIONALIDADES.some((o) => o.valor === n))) {
+    erros.push({ campo: "nacionalidades_interesse", motivo: "Nacionalidade fora da lista controlada." });
+  }
+  if ((l.documentos_chave ?? []).some((d) => !DOCUMENTOS_CHAVE.some((o) => o.valor === d))) {
+    erros.push({ campo: "documentos_chave", motivo: "Documento-chave fora da lista controlada." });
   }
 
   if (l.requerentes_potenciais !== null && l.requerentes_potenciais !== undefined && Number(l.requerentes_potenciais) < 1) {
