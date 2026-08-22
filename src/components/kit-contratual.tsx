@@ -36,6 +36,20 @@ import { FileSignature, ScrollText, Wallet, Search, Stamp, Landmark, Replace } f
 
 const NAO_INICIADO = "Ação ainda não iniciada";
 
+/**
+ * Contexto europeu do caso, somente leitura, por precedência canônica.
+ * Nesta visão o Planejador/proposta ainda não declaram país próprio, então o
+ * resolvedor lê o país confirmado no caso — sem qualquer país por default.
+ */
+function contextoEuropeuDoCaso(caso: CaseData): ContextoProcuracaoEuropeia {
+  return resolverContextoEuropeu({
+    propostaAprovadaVinculada: null,
+    produtoSkuHomologado: null,
+    planejadorHomologado: null,
+    casoConfirmado: { pais: caso.rota?.pais_principal ?? null, versao: null },
+  });
+}
+
 type ModeloId =
   | "ordem_servico"
   | "despesas"
@@ -203,10 +217,12 @@ export function KitContratual() {
   const caso = useActiveCase();
   const c = caso.contratacao;
   const [area, setArea] = useState<AreaId>("visao");
+  const ctxEuropeu = contextoEuropeuDoCaso(caso);
   const itens = cards(
     c,
     texto(caso.governanca.responsavel_caso, FALLBACK.aguardando),
     texto(caso.geral.data_abertura, FALLBACK.aguardando),
+    ctxEuropeu,
   );
 
   const navegacao: { id: AreaId; label: string }[] = [
