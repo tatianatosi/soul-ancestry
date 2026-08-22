@@ -29,6 +29,7 @@ import {
 import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
 import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
 import { MARCA_RASCUNHO } from "@/lib/anexos-i-v";
+import { ENTRADA_TESTE_ANEXOS } from "@/lib/contrato-base-previa";
 import {
   CONFLITOS_TESTE,
   anexosIaVTeste,
@@ -245,7 +246,7 @@ function Pagina() {
             </div>
             <p className="text-[11px] font-medium uppercase tracking-wide text-navy/60">Anexos I–V governados (TESTE)</p>
             <div className="mt-2">
-              <AnexosIaV anexos={anexosIV} />
+              <AnexosIaV anexos={anexosIV} entrada={ENTRADA_TESTE_ANEXOS} />
             </div>
             <div className="mt-3">
               <PainelPendenciasContratuais anexos={anexosIV} conflitos={CONFLITOS_TESTE} gates={gates} />
