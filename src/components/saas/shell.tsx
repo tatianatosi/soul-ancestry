@@ -154,6 +154,7 @@ const NAV: readonly SecaoNav[] = [
       { to: "/governanca/decisoes", label: "Log de decisões" },
       { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
       { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
+      { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
       { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { to: "/governanca/varredura-administracao", label: "Varredura de administração" },
