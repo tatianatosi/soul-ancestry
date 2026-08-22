@@ -9,6 +9,11 @@
 import { CLAUSULA_DESPESAS_TERCEIROS, ESTADOS_DESPESA, type EstadoDespesa } from "@/lib/despesas-terceiros";
 import { fonteOficialDePreco } from "@/lib/precos-sku";
 import type { EstadoAnexo } from "@/lib/anexos-dicionario";
+import {
+  AVISO_PREPARO_PROCURACAO,
+  bloqueiosProcuracaoEuropeia,
+  type ContextoProcuracaoEuropeia,
+} from "@/lib/procuracao-europeia";
 
 export const MODELOS_PERMITIDOS = ["MODELO-ESTUDO", "BASE-GEN-V2"] as const;
 export type ModeloPermitido = (typeof MODELOS_PERMITIDOS)[number];
@@ -637,6 +642,9 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
   const p = e.procuracao;
   const aplicavel = Boolean(p?.exigidaPorOrgao);
   const pend: string[] = [];
+  const ctx = p?.tipo === "europa" ? (p.contextoEuropeu ?? null) : null;
+  const bloqueioPais = ctx ? bloqueiosProcuracaoEuropeia(ctx) : null;
+  if (aplicavel && bloqueioPais?.bloqueado) pend.push(...bloqueioPais.motivos);
   if (aplicavel && p) {
     if (!p.finalidade) pend.push("Finalidade específica não definida.");
     if (!p.orgaoDestinatario) pend.push("Órgão destinatário não definido.");
@@ -652,6 +660,32 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
   const campos: CampoRenderizado[] = [
     { rotulo: "Caso", valor: e.caseId, fonte: "crm_confirmado" },
     { rotulo: "Tipo", valor: p?.tipo ? p.tipo.toUpperCase() : null, fonte: "configuracao_juridica", observacaoAusencia: AUSENTE },
+    {
+      rotulo: "Jurisdição da procuração",
+      valor: p?.tipo === "brasil" ? "Brasil" : ctx ? `${ctx.jurisdiction_scope} · ${ctx.country_label}` : null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: AUSENTE,
+    },
+    {
+      rotulo: "Título aplicável",
+      valor: p?.tipo === "brasil" ? "Procuração para atuação no Brasil" : (ctx?.title ?? null),
+      fonte: "configuracao_juridica",
+      observacaoAusencia: AUSENTE,
+    },
+    {
+      rotulo: "Origem do país",
+      valor: ctx ? ctx.source_label : null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: "País europeu sem fonte canônica — não presumir Itália nem qualquer outro país.",
+    },
+    { rotulo: "Idioma", valor: p?.idioma ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: "Idioma nunca é derivado do país." },
+    { rotulo: "Modelo local", valor: p?.modeloLocal ?? null, fonte: "configuracao_juridica", observacaoAusencia: "Modelo local nunca é derivado do país." },
+    {
+      rotulo: "Requisito de assinatura/apostila/reconhecimento",
+      valor: p?.requisitoFormal ?? null,
+      fonte: "configuracao_juridica",
+      observacaoAusencia: "Requisito formal nunca é derivado do país.",
+    },
     { rotulo: "Finalidade", valor: p?.finalidade ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Órgão destinatário", valor: p?.orgaoDestinatario ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Pessoas vinculadas", valor: p?.pessoas.join(", ") || null, fonte: "crm_confirmado", observacaoAusencia: AUSENTE },
@@ -666,7 +700,7 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     {
       rotulo: "Observação",
       valor:
-        "Esta procuração será preparada e assinada apenas quando a finalidade, o destinatário e os poderes necessários estiverem definidos e aprovados.",
+        AVISO_PREPARO_PROCURACAO,
       fonte: "contrato_base",
     },
   ];
