@@ -44,12 +44,54 @@ import {
   DESPESAS_TERCEIROS_REGRA,
   DESPESAS_TERCEIROS_FAIXA,
   VIAS_JURIDICAS,
+  CONSENTIMENTO_STATUS,
+  CANAIS_CONSENTIMENTO,
+  PAISES_LINHA_PRIORITARIA,
+  PESQUISA_PREVIA_AUTORIZACAO,
+  PESQUISA_PREVIA_ESCOPO,
+  DOCUMENTOS_CHAVE,
   resultadoComercialDerivado,
   rotulo,
   validarLead,
   type ErroValidacao,
   type LeadDesk,
+  type Opcao,
 } from "@/lib/crm-desk";
+import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
+
+function MultiSelecao({
+  label,
+  opcoes,
+  valores,
+  onChange,
+  desabilitado,
+}: {
+  label: string;
+  opcoes: Opcao[];
+  valores: string[];
+  onChange: (v: string[]) => void;
+  desabilitado?: boolean;
+}) {
+  return (
+    <div>
+      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-navy/60">{label}</p>
+      <div className="grid gap-1 md:grid-cols-2">
+        {opcoes.map((o) => (
+          <label key={o.valor} className="flex items-center gap-2 text-xs text-navy">
+            <input
+              type="checkbox"
+              disabled={desabilitado}
+              checked={valores.includes(o.valor)}
+              onChange={(e) => onChange(e.target.checked ? [...valores, o.valor] : valores.filter((v) => v !== o.valor))}
+            />
+            {o.rotulo}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
