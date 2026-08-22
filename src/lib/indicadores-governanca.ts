@@ -156,6 +156,129 @@ export const INDICADORES: Indicador[] = [
   },
 ];
 
+export type DetalheIndicador = {
+  /** Fórmula explícita de cálculo, em linguagem verificável. */
+  formula: string;
+  /** Janela de apuração declarada. */
+  periodo: string;
+  /** Estado atual da apuração no Desk. */
+  status: "apurado" | "sem_dados" | "parcial";
+  /** Condição objetiva que produz “Sem dados suficientes”. */
+  condicao_sem_dados: string;
+};
+
+export const ROTULO_STATUS_INDICADOR: Record<DetalheIndicador["status"], string> = {
+  apurado: "Apurado",
+  parcial: "Parcial",
+  sem_dados: "Sem dados suficientes",
+};
+
+/** Fórmula, período e status de apuração declarados por indicador. */
+export const DETALHE_INDICADOR: Record<string, DetalheIndicador> = {
+  "IND-COM-01": {
+    formula: "contagem(leads ativos) agrupada por leads.origem",
+    periodo: "Estado atual (sem janela)",
+    status: "parcial",
+    condicao_sem_dados: "Leads sem origem declarada ficam fora do agrupamento e aparecem como sinal de higiene.",
+  },
+  "IND-COM-02": {
+    formula: "entidades na etapa ÷ entidades na etapa anterior",
+    periodo: "Acumulado dos eventos registrados",
+    status: "sem_dados",
+    condicao_sem_dados: "Sem denominador na etapa anterior a taxa exibe “—”, nunca zero.",
+  },
+  "IND-JOR-01": {
+    formula: "casos com 9 gates concluídos ≤ 48h após pagamento inicial ÷ casos pagos",
+    periodo: "Mês corrente",
+    status: "sem_dados",
+    condicao_sem_dados: "Nenhum pagamento inicial confirmado no período.",
+  },
+  "IND-JOR-02": {
+    formula: "data da 1ª micro-entrega publicada − data de ativação (dias)",
+    periodo: "Por caso ativado",
+    status: "sem_dados",
+    condicao_sem_dados: "Caso sem ativação ou sem micro-entrega publicada.",
+  },
+  "IND-JOR-03": {
+    formula: "hoje − data da última interação registrada (dias corridos)",
+    periodo: "Estado atual por caso",
+    status: "apurado",
+    condicao_sem_dados: "Caso sem nenhuma interação registrada é listado como “sem contato registrado”.",
+  },
+  "IND-PES-01": {
+    formula: "classificação declarada por fonte na matriz de avaliação",
+    periodo: "Estado atual do catálogo",
+    status: "parcial",
+    condicao_sem_dados: "Fonte sem parecer interno permanece como candidata, não classificada.",
+  },
+  "IND-PES-02": {
+    formula: "contagem(fontes candidatas sem parecer)",
+    periodo: "Estado atual",
+    status: "apurado",
+    condicao_sem_dados: "Não se aplica: contagem direta de backlog.",
+  },
+  "IND-QUA-01": {
+    formula: "contagem(itens de checklist reprovados ou não verificados) por caso",
+    periodo: "Estado atual por caso",
+    status: "apurado",
+    condicao_sem_dados: "Caso sem checklist aplicado exibe “checklist não iniciado”.",
+  },
+  "IND-BIB-01": {
+    formula: "contagem(itens com vigencia_estado = vigente) por subárea e país",
+    periodo: "Estado atual",
+    status: "apurado",
+    condicao_sem_dados: "Subárea sem item homologado exibe ausência explícita.",
+  },
+  "IND-RAD-01": {
+    formula: "faixa qualitativa da matriz-radar-v1.0 sobre 12 fatores da ficha",
+    periodo: "Estado atual do lead",
+    status: "parcial",
+    condicao_sem_dados: "Sem objetivo, país/linha e estrutura ou estado documental a leitura é Inconclusiva.",
+  },
+  "IND-RAD-02": {
+    formula: "fatores preenchidos ÷ 12 fatores da matriz",
+    periodo: "Estado atual do lead",
+    status: "apurado",
+    condicao_sem_dados: "Não se aplica: mede preenchimento, não mérito.",
+  },
+  "IND-MKT-01": {
+    formula: "investimento de mídia classificado ÷ leads atribuíveis",
+    periodo: "Mês corrente",
+    status: "sem_dados",
+    condicao_sem_dados: "Sem investimento classificado ou sem atribuição de leads.",
+  },
+  "IND-MKT-02": {
+    formula: "investimento de mídia ÷ pagamentos iniciais confirmados atribuíveis",
+    periodo: "Mês corrente",
+    status: "sem_dados",
+    condicao_sem_dados: "Sem investimento classificado ou sem pagamento atribuível confirmado.",
+  },
+  "IND-MKT-03": {
+    formula: "(receita recebida atribuível − investimento) ÷ investimento",
+    periodo: "Mês corrente",
+    status: "sem_dados",
+    condicao_sem_dados: "Sem investimento classificado ou sem receita recebida atribuível.",
+  },
+  "IND-FIN-01": {
+    formula: "receita recebida − despesas operacionais do Clube − investimento de mídia",
+    periodo: "Mês corrente",
+    status: "parcial",
+    condicao_sem_dados: "Receita recebida não apurada no período.",
+  },
+  "IND-FIN-02": {
+    formula: "soma(contratos assinados) − soma(recebimentos confirmados)",
+    periodo: "Estado atual da carteira",
+    status: "apurado",
+    condicao_sem_dados: "Sem contrato assinado registrado.",
+  },
+  "IND-COM-03": {
+    formula: "contagem(sugestões em rascunho) por gatilho e prioridade",
+    periodo: "Estado atual da fila",
+    status: "apurado",
+    condicao_sem_dados: "Fila vazia é exibida como fila vazia, nunca como zero de desempenho.",
+  },
+};
+
 /** Nenhum indicador é exposto ao App Cliente. */
 export const REGRAS_INDICADORES = [
   "Indicador sem matriz de origem declarada não entra no registro.",
