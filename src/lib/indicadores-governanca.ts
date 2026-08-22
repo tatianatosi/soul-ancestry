@@ -86,6 +86,74 @@ export const INDICADORES: Indicador[] = [
     fonte_canonica: "master_library_items",
     consumido_em: ["Governança → Biblioteca Mestre"],
   },
+  {
+    codigo: "IND-RAD-01",
+    nome: "Sinal preliminar de elegibilidade",
+    matriz_origem: "Matriz do Radar de Elegibilidade (matriz-radar-v1.0)",
+    definicao:
+      "Faixa qualitativa (Forte, Provável, Possível com pesquisa, Baixa, Inconclusiva, Sem aderência) derivada de 12 fatores da ficha. Não é parecer jurídico nem probabilidade de êxito.",
+    fonte_canonica: "leads (ficha de Discovery) + citizenship_tracks",
+    consumido_em: ["Comercial → Leads"],
+  },
+  {
+    codigo: "IND-RAD-02",
+    nome: "Completude da leitura preliminar",
+    matriz_origem: "Matriz do Radar de Elegibilidade",
+    definicao: "Percentual de fatores da matriz efetivamente registrados no lead; mede preenchimento, não mérito.",
+    fonte_canonica: "leads (ficha de Discovery)",
+    consumido_em: ["Comercial → Leads"],
+  },
+  {
+    codigo: "IND-MKT-01",
+    nome: "CPL — custo por lead",
+    matriz_origem: "Matriz de marketing e atribuição",
+    definicao:
+      "Investimento de mídia classificado dividido por leads atribuíveis no período. Sem custo classificado ou sem atribuição, retorna “Sem dados suficientes”.",
+    fonte_canonica: "marketing_investments + attribution_records",
+    consumido_em: ["Financeiro", "Comercial → Conversão e marketing"],
+  },
+  {
+    codigo: "IND-MKT-02",
+    nome: "CAC — custo de aquisição",
+    matriz_origem: "Matriz de marketing e atribuição",
+    definicao: "Investimento de mídia dividido por pagamentos iniciais confirmados atribuíveis; nunca usa proposta ou aceite verbal.",
+    fonte_canonica: "marketing_investments + payments (confirmados)",
+    consumido_em: ["Financeiro"],
+  },
+  {
+    codigo: "IND-MKT-03",
+    nome: "ROI/ROAS de mídia",
+    matriz_origem: "Matriz de marketing e atribuição",
+    definicao: "Relação entre receita recebida atribuível e investimento de mídia. Receita contratada não entra no cálculo.",
+    fonte_canonica: "payments (recebidos) + marketing_investments",
+    consumido_em: ["Financeiro"],
+  },
+  {
+    codigo: "IND-FIN-01",
+    nome: "Resultado de caixa do período",
+    matriz_origem: "Matriz financeira real",
+    definicao:
+      "Receita recebida menos despesas operacionais do Clube e investimento de mídia. Despesa paga diretamente pelo cliente ao terceiro é contexto, nunca custo.",
+    fonte_canonica: "payments + invoices + third_party_expenses",
+    consumido_em: ["Financeiro"],
+  },
+  {
+    codigo: "IND-FIN-02",
+    nome: "Previsão contratada não recebida",
+    matriz_origem: "Matriz financeira real",
+    definicao: "Valor de contratos assinados ainda sem recebimento; exibido como previsão e jamais somado ao caixa.",
+    fonte_canonica: "invoices + contracts",
+    consumido_em: ["Financeiro"],
+  },
+  {
+    codigo: "IND-COM-03",
+    nome: "Fila humana de comunicação",
+    matriz_origem: "Matriz de comunicação assistida",
+    definicao:
+      "Sugestões de contato em rascunho, por gatilho e prioridade, com motivo declarado. Nenhum envio é automático; aprovação e envio são humanos.",
+    fonte_canonica: "communication_queue",
+    consumido_em: ["Atendimento", "Visão geral → Painel Hoje"],
+  },
 ];
 
 /** Nenhum indicador é exposto ao App Cliente. */
@@ -94,4 +162,8 @@ export const REGRAS_INDICADORES = [
   "Toda métrica aponta a fonte canônica no Desk; planilhas e relatórios externos são cópia, nunca origem.",
   "Nenhum indicador, hipótese, fonte técnica, risco ou preço é projetado no App Cliente.",
   "Alteração de definição de indicador exige registro no Log de decisões, com data e responsável.",
+  "Indicador sem base declarada exibe “Sem dados suficientes”; nunca zero, nunca estimativa.",
+  "Demonstrações (is_demo) ficam fora de qualquer indicador real, salvo alternância explícita na tela.",
+  "Nenhum indicador dispara ação, cobrança, comunicação ou pesquisa externa automática.",
 ];
+
