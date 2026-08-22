@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
   ROTULO_STATUS_CONTRATO,
@@ -87,6 +88,8 @@ function ContratosPage() {
           {qPainel.data.excecoesExpiradas.length} exceção(ões) expirada(s) — os gates voltaram a bloquear.
         </p>
       ) : null}
+
+      <FilaRevisaoJuridica />
 
       {novo ? (
         <FormNovo
