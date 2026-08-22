@@ -18,12 +18,25 @@ type Sb = any;
 
 export const TITULO_ANEXO_INTERNO_PADRAO = "Anexo interno derivado da regra de produto/escopo";
 
-function statusPersistido(a: { aplicavel: boolean; pendencias: string[]; estado: string }) {
+/** Domínio aceito pelo banco (contract_annexes.status). */
+export type StatusAnexoPersistido =
+  | "missing"
+  | "drafting"
+  | "ready_for_review"
+  | "approved"
+  | "attached"
+  | "signed_with_contract"
+  | "not_applicable"
+  | "archived";
+
+function statusPersistido(a: { aplicavel: boolean; pendencias: string[]; estado: string }): StatusAnexoPersistido {
   if (!a.aplicavel) return "not_applicable";
-  if (a.pendencias.length) return "pending";
-  if (["aprovado", "em_revisao"].includes(a.estado)) return a.estado === "aprovado" ? "approved" : "in_review";
-  return "prepared";
+  if (a.pendencias.length) return "missing";
+  if (a.estado === "aprovado") return "approved";
+  if (a.estado === "em_revisao") return "ready_for_review";
+  return "drafting";
 }
+
 
 /** Domínio aceito pelo banco (contract_annexes.annex_type). */
 export type TipoAnexoPersistido =
