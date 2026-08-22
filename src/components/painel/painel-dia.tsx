@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
+import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import {
   cadenciaRelevante,
   chavesExibidas,
@@ -90,6 +91,15 @@ export function PainelDia() {
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[]);
+  const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
+  const sinais = sinaisMarketing({
+    leads_sem_origem: qtd("leads_sem_origem"),
+    discoveries_sem_desdobramento: qtd("discoveries_sem_desdobramento"),
+    propostas_sem_followup: comercial.propostas.length,
+    aceites_verbais_parados: qtd("aceites_sem_confirmacao"),
+    contratos_sem_referencia_financeira: qtd("contratos_enviados_pendentes"),
+    pagamentos_sem_onboarding: qtd("onboardings_pendentes"),
+  });
 
 
   return (
@@ -181,6 +191,34 @@ export function PainelDia() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* 3b — Sinais de conversão e integridade */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-serif text-lg text-navy">Sinais de conversão e integridade</h2>
+          <Link to="/governanca/indicadores" className="text-xs text-navy/60 underline">
+            Definição dos indicadores
+          </Link>
+        </div>
+        {sinais.length === 0 ? (
+          <p className="mt-2 text-sm text-navy/55">Nenhum sinal aberto: nada é preenchido automaticamente quando falta base.</p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm">
+            {sinais.map((s) => (
+              <li
+                key={s.codigo}
+                className={
+                  s.severidade === "critico"
+                    ? "rounded-lg border border-terracotta/40 bg-terracotta/5 px-3 py-2 text-terracotta"
+                    : "rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-navy/75"
+                }
+              >
+                {s.texto}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* 4 — Casos com prazo em atenção */}
