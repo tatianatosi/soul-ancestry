@@ -26,6 +26,8 @@ import {
   pendenciasSuperaveis,
   type LinhaPendencia,
 } from "@/lib/varredura-completude";
+import { AnexosTresCamadasPainel } from "@/components/governanca/anexos-tres-camadas";
+
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
