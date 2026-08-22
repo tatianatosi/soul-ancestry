@@ -237,7 +237,7 @@ export function EntidadeCrud({
                         {c.render ? c.render(linha) : (linha[c.chave] as string) || "—"}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-right align-top">
+                    <td className="whitespace-nowrap px-4 py-3 text-right align-top">
                       <div className="flex flex-col items-end gap-2">
                         {extra ? extra(linha, recarregar) : null}
                         {arquivado ? (
