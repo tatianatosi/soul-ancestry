@@ -40,9 +40,14 @@ export function StatusEnvioRecuperacao() {
   const [emailFiltro, setEmailFiltro] = useState("");
   const [emailAplicado, setEmailAplicado] = useState<string>("");
 
+  const [autoAtualizar, setAutoAtualizar] = useState(true);
+
   const q = useQuery({
     queryKey: ["status-envio-recuperacao", emailAplicado],
     queryFn: () => consultar({ data: emailAplicado ? { email: emailAplicado } : {} }),
+    refetchInterval: autoAtualizar ? 20_000 : false,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   });
 
   const dados = q.data;
@@ -59,14 +64,29 @@ export function StatusEnvioRecuperacao() {
             ou link é exibido aqui.
           </p>
         </div>
-        <button
-          onClick={() => q.refetch()}
-          disabled={q.isFetching}
-          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
-        >
-          {q.isFetching ? "Atualizando…" : "Atualizar"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-navy/70">
+            <input
+              type="checkbox"
+              checked={autoAtualizar}
+              onChange={(e) => setAutoAtualizar(e.target.checked)}
+            />
+            Atualizar automaticamente (20s)
+          </label>
+          <button
+            onClick={() => q.refetch()}
+            disabled={q.isFetching}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs disabled:opacity-50"
+          >
+            {q.isFetching ? "Atualizando…" : "Atualizar"}
+          </button>
+        </div>
       </div>
+
+      <p className="mt-2 text-xs text-navy/50">
+        {q.dataUpdatedAt ? `Última leitura: ${dataHora(new Date(q.dataUpdatedAt).toISOString())}` : "Sem leitura ainda."}
+        {dados?.historicoDesde ? ` · Histórico visível desde ${dataHora(dados.historicoDesde)}` : ""}
+      </p>
 
       <div className="mt-4 flex flex-wrap items-end gap-2">
         <label className="text-sm">
@@ -97,6 +117,7 @@ export function StatusEnvioRecuperacao() {
           </button>
         ) : null}
       </div>
+
 
       {q.isLoading ? (
         <p className="mt-4 text-sm text-navy/60">Carregando…</p>
@@ -146,22 +167,46 @@ export function StatusEnvioRecuperacao() {
                 {dados.entregas.map((e, i) => (
                   <li
                     key={`${e.timestamp}-${i}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm"
+                    className="rounded-lg border border-navy/10 px-3 py-2 text-sm"
                   >
-                    <span className="min-w-0 truncate">{e.recipient}</span>
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          EVENTO_COR[e.event_type] ?? "bg-navy/10 text-navy/70"
-                        }`}
-                      >
-                        {EVENTO_LABEL[e.event_type] ?? e.event_type}
-                        {e.status ? ` · ${e.status}` : ""}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="min-w-0 truncate">{e.recipient}</span>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs ${
+                            EVENTO_COR[e.event_type] ?? "bg-navy/10 text-navy/70"
+                          }`}
+                        >
+                          {EVENTO_LABEL[e.event_type] ?? e.event_type}
+                        </span>
+                        <span className="text-xs text-navy/50">{dataHora(e.timestamp)}</span>
                       </span>
-                      <span className="text-xs text-navy/50">{dataHora(e.timestamp)}</span>
-                    </span>
+                    </div>
+                    <dl className="mt-1.5 grid gap-x-4 gap-y-0.5 text-xs text-navy/60 sm:grid-cols-2">
+                      <div className="flex gap-1">
+                        <dt className="text-navy/45">Status do provedor:</dt>
+                        <dd>{e.status ?? "não informado"}</dd>
+                      </div>
+                      <div className="flex gap-1">
+                        <dt className="text-navy/45">Registrado em:</dt>
+                        <dd>{new Date(e.timestamp).toISOString()}</dd>
+                      </div>
+                      {e.messageId ? (
+                        <div className="flex min-w-0 gap-1">
+                          <dt className="text-navy/45">ID da mensagem:</dt>
+                          <dd className="truncate font-mono">{e.messageId}</dd>
+                        </div>
+                      ) : null}
+                      {e.tags?.length ? (
+                        <div className="flex min-w-0 gap-1">
+                          <dt className="text-navy/45">Marcadores:</dt>
+                          <dd className="truncate">{e.tags.join(", ")}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
                   </li>
                 ))}
+
               </ul>
             </div>
           ) : null}
