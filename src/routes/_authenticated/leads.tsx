@@ -131,6 +131,30 @@ function LeadsPage() {
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
   const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
 
+  const carregarTrilhas = useServerFn(listarTrilhasJuridicas);
+  const qTrilhas = useQuery({ queryKey: ["trilhas-juridicas"], queryFn: () => carregarTrilhas(), retry: false });
+  const trilhas = qTrilhas.data?.trilhas ?? [];
+  const marcos = qTrilhas.data?.marcos ?? [];
+  const trilhaSelecionada = trilhas.find((t) => t.id === editado.trilha_referencia_id) ?? null;
+  const opcoesTrilhas: Opcao[] = trilhas.map((t) => ({
+    valor: t.id,
+    rotulo: `${t.pais ?? "—"} · ${t.track_name ?? t.code ?? "—"} (${rotulo("status_via", t.status_via)})`,
+  }));
+  const opcoesMarcos: Opcao[] = marcos
+    .filter((m) => !editado.trilha_referencia_id || m.track_id === editado.trilha_referencia_id)
+    .map((m) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
+  const sinais = useMemo(
+    () =>
+      atual || Object.keys(rascunho).length
+        ? sinaisQualidadeLead(editado, {
+            status_via: trilhaSelecionada?.status_via ?? editado.status_via ?? null,
+            status_marco: marcos.find((m) => m.id === editado.marco_referencia_id)?.status ?? null,
+          })
+        : [],
+    [editado, atual, rascunho, trilhaSelecionada, marcos],
+  );
+  const [roteiroAberto, setRoteiroAberto] = useState(false);
+
   const mutSalvar = useMutation({
     mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
     onSuccess: (r) => {
