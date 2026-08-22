@@ -179,6 +179,15 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
         if (a && (a.pendencias.length > 0 || a.estado === "pendente")) {
           return linha(c, "pendente", a.pendencias[0] ?? "Política de despesas de terceiros pendente.", "Regra institucional");
         }
+        const semAprovacao = (e.entradaAnexos.despesas ?? []).filter((d) => !d.aprovacaoRegistrada);
+        if (semAprovacao.length) {
+          return linha(
+            c,
+            "pendente",
+            `Despesa de terceiro sem aprovação registrada: ${semAprovacao.map((d) => d.item).join(", ")}. Não é receita, custo nem reembolso do Clube.`,
+            "Regra institucional",
+          );
+        }
         return linha(c, "presente", "Despesas de terceiros pagas diretamente pelo cliente, mediante aprovação registrada.", "Regra institucional");
       }
       case "K":
