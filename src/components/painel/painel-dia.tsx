@@ -521,10 +521,11 @@ export function PainelDia() {
             const linhas = agrupado[g.chave];
             const grave = maiorGravidade(linhas);
             return (
-              <div key={g.chave} className="rounded-lg border border-navy/10 px-3 py-2">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="flex items-center gap-1.5">
+              <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+                  <span className="min-w-0 break-words text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="flex shrink-0 items-center gap-1.5">
+
                     <span className="font-serif text-lg text-navy">{linhas.length}</span>
                     {grave ? (
                       <span
