@@ -2233,6 +2233,53 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_source_divergences: {
+        Row: {
+          created_at: string
+          detalhe: string
+          fonte_linha: number | null
+          fonte_referencia: string
+          id: string
+          organization_id: string
+          resolvido: boolean
+          sku: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detalhe: string
+          fonte_linha?: number | null
+          fonte_referencia: string
+          id?: string
+          organization_id: string
+          resolvido?: boolean
+          sku: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detalhe?: string
+          fonte_linha?: number | null
+          fonte_referencia?: string
+          id?: string
+          organization_id?: string
+          resolvido?: boolean
+          sku?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_source_divergences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       change_log: {
         Row: {
           autor_user_id: string | null
@@ -12262,11 +12309,15 @@ export type Database = {
           archived_by: string | null
           ativo: boolean
           auditoria_origem: Json
+          canal_fechamento_fonte: string | null
+          categoria_fonte: string | null
           code: string
           condicao_comercial_padrao: string | null
           created_at: string
           created_by: string | null
           data_ultima_validacao: string | null
+          descricao_curta_fonte: string | null
+          divergencia: string | null
           elegivel_para_proposta: boolean
           entregas_principais: string | null
           escopo_aprovado: string | null
@@ -12274,29 +12325,44 @@ export type Database = {
           exige_justificativa_escopo: boolean
           faixa_prioridade: string
           familia_comercial: string | null
+          familia_fonte: string | null
+          fonte_aba: string | null
+          fonte_arquivo: string | null
+          fonte_linha: number | null
+          fonte_versao: string | null
           gera_comunicacao_automatica: boolean
           homologado_em: string | null
           homologado_por: string | null
           id: string
+          importado_em: string | null
           jornada_fase: string | null
+          link_asaas_fonte: string | null
           link_asaas_validado: string | null
+          moeda: string
           nome_comercial: string
           observacao_de_governanca: string | null
           organization_id: string
           origem_legada_referencia: string | null
           papel_comercial: string | null
           parcelas_padrao: number | null
+          pareto_classificacao: string | null
           permite_recorrencia: boolean
+          preco_atual_fonte: number | null
           preco_comercial_vigente: number | null
           preco_historico_legado: number | null
+          preco_sugerido_fonte: number | null
           prioridade_catalogo: string
           produto_pai_id: string | null
           regra_uso: string | null
           requer_fechamento_humano: boolean
           responsavel_homologacao: string | null
+          status_fonte: string | null
           status_homologacao: string
           status_link_asaas: string
+          status_link_asaas_fonte: string | null
           status_produto: string
+          subcategoria_fonte: string | null
+          tipo_fonte: string | null
           tipo_oferta: string
           updated_at: string
           updated_by: string | null
@@ -12310,11 +12376,15 @@ export type Database = {
           archived_by?: string | null
           ativo?: boolean
           auditoria_origem?: Json
+          canal_fechamento_fonte?: string | null
+          categoria_fonte?: string | null
           code: string
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
           data_ultima_validacao?: string | null
+          descricao_curta_fonte?: string | null
+          divergencia?: string | null
           elegivel_para_proposta?: boolean
           entregas_principais?: string | null
           escopo_aprovado?: string | null
@@ -12322,29 +12392,44 @@ export type Database = {
           exige_justificativa_escopo?: boolean
           faixa_prioridade?: string
           familia_comercial?: string | null
+          familia_fonte?: string | null
+          fonte_aba?: string | null
+          fonte_arquivo?: string | null
+          fonte_linha?: number | null
+          fonte_versao?: string | null
           gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
           id?: string
+          importado_em?: string | null
           jornada_fase?: string | null
+          link_asaas_fonte?: string | null
           link_asaas_validado?: string | null
+          moeda?: string
           nome_comercial: string
           observacao_de_governanca?: string | null
           organization_id: string
           origem_legada_referencia?: string | null
           papel_comercial?: string | null
           parcelas_padrao?: number | null
+          pareto_classificacao?: string | null
           permite_recorrencia?: boolean
+          preco_atual_fonte?: number | null
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
+          preco_sugerido_fonte?: number | null
           prioridade_catalogo?: string
           produto_pai_id?: string | null
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
           responsavel_homologacao?: string | null
+          status_fonte?: string | null
           status_homologacao?: string
           status_link_asaas?: string
+          status_link_asaas_fonte?: string | null
           status_produto?: string
+          subcategoria_fonte?: string | null
+          tipo_fonte?: string | null
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
@@ -12358,11 +12443,15 @@ export type Database = {
           archived_by?: string | null
           ativo?: boolean
           auditoria_origem?: Json
+          canal_fechamento_fonte?: string | null
+          categoria_fonte?: string | null
           code?: string
           condicao_comercial_padrao?: string | null
           created_at?: string
           created_by?: string | null
           data_ultima_validacao?: string | null
+          descricao_curta_fonte?: string | null
+          divergencia?: string | null
           elegivel_para_proposta?: boolean
           entregas_principais?: string | null
           escopo_aprovado?: string | null
@@ -12370,29 +12459,44 @@ export type Database = {
           exige_justificativa_escopo?: boolean
           faixa_prioridade?: string
           familia_comercial?: string | null
+          familia_fonte?: string | null
+          fonte_aba?: string | null
+          fonte_arquivo?: string | null
+          fonte_linha?: number | null
+          fonte_versao?: string | null
           gera_comunicacao_automatica?: boolean
           homologado_em?: string | null
           homologado_por?: string | null
           id?: string
+          importado_em?: string | null
           jornada_fase?: string | null
+          link_asaas_fonte?: string | null
           link_asaas_validado?: string | null
+          moeda?: string
           nome_comercial?: string
           observacao_de_governanca?: string | null
           organization_id?: string
           origem_legada_referencia?: string | null
           papel_comercial?: string | null
           parcelas_padrao?: number | null
+          pareto_classificacao?: string | null
           permite_recorrencia?: boolean
+          preco_atual_fonte?: number | null
           preco_comercial_vigente?: number | null
           preco_historico_legado?: number | null
+          preco_sugerido_fonte?: number | null
           prioridade_catalogo?: string
           produto_pai_id?: string | null
           regra_uso?: string | null
           requer_fechamento_humano?: boolean
           responsavel_homologacao?: string | null
+          status_fonte?: string | null
           status_homologacao?: string
           status_link_asaas?: string
+          status_link_asaas_fonte?: string | null
           status_produto?: string
+          subcategoria_fonte?: string | null
+          tipo_fonte?: string | null
           tipo_oferta?: string
           updated_at?: string
           updated_by?: string | null
