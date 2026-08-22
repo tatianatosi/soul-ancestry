@@ -20,6 +20,13 @@ import {
   SECOES_DOCUMENTO_PUBLICADO,
 } from "@/lib/contrato-base-consolidado";
 import { CLAUSULAS_MATRIZ } from "@/lib/matriz-clausulas";
+import { rotuloEstadoPerfilInstitucional } from "@/lib/perfil-institucional";
+import {
+  QUALIFICACAO_INSTITUCIONAL_STATUS,
+  QUALIFICACAO_INSTITUCIONAL_TITULO,
+  QUALIFICACAO_INSTITUCIONAL_VERSAO,
+  qualificacaoInstitucionalRenderizada,
+} from "@/lib/qualificacao-institucional";
 
 export const SELO_TEXTO_FIXO = "Texto fixo · não editável por caso";
 
@@ -64,6 +71,16 @@ const CLAUSULAS_DA_SECAO: Record<number, number[]> = {
   14: [13, 14],
 };
 
+/**
+ * Distribuição explícita da seção 14 entre cláusulas internas e letras A–P.
+ * Documentada em tela para facilitar a revisão jurídica.
+ */
+export const NOTA_DISTRIBUICAO_SECAO_14 = [
+  "Cláusula 13 (Assinatura, evidência e registros) corresponde à letra N — assinatura, evidência, versão e registros, com origem na configuração jurídica institucional.",
+  "Cláusula 14 (Disposições finais e foro) corresponde à letra O — foro e disposições finais, também com origem na configuração jurídica institucional.",
+  "A letra P — anexos aplicáveis — não tem cláusula redacional própria: deriva das regras de aplicabilidade dos anexos citados na cláusula 13.3 e é validada pelos gates de prévia final e assinatura.",
+];
+
 export type ParagrafoSecao = { clausula: number | null; titulo: string; itens: string[] };
 
 export type SecaoContratoBase = {
@@ -77,6 +94,8 @@ export type SecaoContratoBase = {
   equivalenciaMatriz: { id: string; titulo: string; tipo: string; fonte: string }[];
   fonte: string;
   estadoVigencia: string;
+  /** Notas de distribuição entre cláusulas internas e letras A–P (hoje só a seção 14). */
+  notasDistribuicao: string[];
 };
 
 export type ErroSecaoContratoBase = {
@@ -97,7 +116,9 @@ export type LeituraContratoBase = {
   data: string;
   aviso: string;
   perfilVersao: string;
+  perfilRotuloEstado: string;
   perfil: typeof PERFIL_INSTITUCIONAL;
+  qualificacao: ReturnType<typeof qualificacaoInstitucionalRenderizada>;
   preambulo: string;
   secoes: SecaoContratoBase[];
   erros: ErroSecaoContratoBase[];
@@ -125,6 +146,13 @@ export function lerContratoBase(): LeituraContratoBase {
       const itens = PERFIL_INSTITUCIONAL.map((c) => `${c.rotulo}: ${c.valor}`);
       if (itens.length === 0) faltantes.push("perfil institucional sem campos versionados");
       paragrafos.push({ clausula: null, titulo: "Perfil institucional da contratada", itens });
+      const qualificacao = qualificacaoInstitucionalRenderizada();
+      if (qualificacao.paragrafos.length === 0) faltantes.push("qualificação institucional sem texto versionado");
+      paragrafos.push({
+        clausula: null,
+        titulo: `${QUALIFICACAO_INSTITUCIONAL_TITULO} (${QUALIFICACAO_INSTITUCIONAL_VERSAO} · ${QUALIFICACAO_INSTITUCIONAL_STATUS})`,
+        itens: qualificacao.paragrafos,
+      });
       paragrafos.push({ clausula: null, titulo: "Preâmbulo", itens: [PREAMBULO_CONTRATO_BASE] });
     }
 
@@ -164,6 +192,7 @@ export function lerContratoBase(): LeituraContratoBase {
       }),
       fonte: sec.fonte,
       estadoVigencia: CONTRATO_BASE_STATUS,
+      notasDistribuicao: sec.secao === 14 ? [...NOTA_DISTRIBUICAO_SECAO_14] : [],
     });
   }
 
@@ -176,7 +205,9 @@ export function lerContratoBase(): LeituraContratoBase {
     data: CONTRATO_BASE_DATA,
     aviso: AVISO_UNDER_LEGAL_REVIEW,
     perfilVersao: PERFIL_INSTITUCIONAL_VERSAO,
+    perfilRotuloEstado: rotuloEstadoPerfilInstitucional(),
     perfil: PERFIL_INSTITUCIONAL,
+    qualificacao: qualificacaoInstitucionalRenderizada(),
     preambulo: PREAMBULO_CONTRATO_BASE,
     secoes,
     erros,
