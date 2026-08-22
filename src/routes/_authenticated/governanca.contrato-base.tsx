@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import { ContratoBaseTexto } from "@/components/contrato/contrato-base-texto";
 import { CorpoContratualVersionado } from "@/components/contrato/corpo-contratual";
+import { SECOES_DOCUMENTO_PUBLICADO, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
 import {
   BLOQUEIOS_CANONICOS,
   CONTRATO_BASE_DATA,
@@ -97,6 +98,37 @@ function Pagina() {
         <ContratoBaseTexto />
 
         <CorpoContratualVersionado />
+
+        <Bloco
+          titulo="Equivalência com o documento consolidado publicado"
+          nota="O documento publicado numera 14 seções a partir do Perfil institucional. Internamente o perfil é fonte própria. Nada é renumerado à mão."
+        >
+          <table className="w-full text-left text-[11px]">
+            <thead className="text-navy/55">
+              <tr>
+                <th className="py-1 pr-2 font-medium">Seção publicada</th>
+                <th className="py-1 pr-2 font-medium">Título</th>
+                <th className="py-1 pr-2 font-medium">Cláusula interna</th>
+                <th className="py-1 font-medium">Fonte versionada</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SECOES_DOCUMENTO_PUBLICADO.map((sec) => (
+                <tr key={sec.secao} className="border-t border-navy/10 text-navy/75">
+                  <td className="py-1 pr-2">{sec.secao}</td>
+                  <td className="py-1 pr-2">{sec.titulo}</td>
+                  <td className="py-1 pr-2">{sec.clausulaInterna ? `Cláusula ${sec.clausulaInterna}` : "Perfil Institucional"}</td>
+                  <td className="py-1">{sec.fonte}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {clausulasSemSecaoPublicada().length > 0 && (
+            <p className="mt-2 text-[11px] text-terracotta">
+              Cláusulas internas sem seção publicada: {clausulasSemSecaoPublicada().join(", ")} — revisão humana necessária.
+            </p>
+          )}
+        </Bloco>
 
         <Bloco titulo="Proibições de identificação da contratada" nota="Nunca podem aparecer em contrato, prévia, log, App ou prompt.">
           <Lista itens={PROIBICOES_IDENTIFICACAO} />

@@ -181,7 +181,7 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     itens: [
       "9.1. Despesas de terceiros não estão incluídas nos honorários do Clube Ancestral. Serão comunicadas previamente e pagas diretamente pelo cliente, mediante aprovação registrada.",
       "9.2. Quando aplicável, a despesa deverá ter finalidade, fornecedor ou categoria, estimativa ou faixa quando disponível, responsável pagador e aprovação registrada antes de execução.",
-      "9.3. Despesas de terceiros não constituem, por padrão, receita, custo próprio, desembolso, cobrança Asaas ou reembolso do Clube Ancestral.",
+      "9.3. Despesas de terceiros não constituem, por padrão, receita, custo próprio, desembolso, cobrança ou reembolso do Clube Ancestral.",
       "9.4. Exceções de antecipação, reembolso ou forma diversa exigem autorização formal, justificativa, aprovador, teto, validade e auditoria.",
     ],
   },
@@ -230,6 +230,49 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
     ],
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/* 3b — Equivalência com o documento consolidado publicado              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * O documento consolidado v1.0 numera 14 seções começando pelo Perfil
+ * institucional. Internamente o perfil é fonte versionada própria e as
+ * cláusulas seguem numeração 1–14 a partir de "Partes e documentos".
+ * Este mapa mantém as duas leituras equivalentes — nada é renumerado à mão.
+ */
+export type SecaoDocumentoPublicado = {
+  secao: number;
+  titulo: string;
+  /** Cláusula interna correspondente; null quando a fonte é o Perfil Institucional. */
+  clausulaInterna: number | null;
+  fonte: string;
+};
+
+export const SECOES_DOCUMENTO_PUBLICADO: SecaoDocumentoPublicado[] = [
+  { secao: 1, titulo: "Perfil institucional", clausulaInterna: null, fonte: PERFIL_INSTITUCIONAL_VERSAO },
+  { secao: 2, titulo: "Partes e documentos", clausulaInterna: 1, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 3, titulo: "Objeto", clausulaInterna: 2, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 4, titulo: "Escopo, entregas e exclusões", clausulaInterna: 3, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 5, titulo: "Obrigações do contratante", clausulaInterna: 4, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 6, titulo: "Obrigações da contratada", clausulaInterna: 5, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 7, titulo: "Limitações e ausência de garantia", clausulaInterna: 6, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 8, titulo: "Privacidade, dados, guarda e sigilo", clausulaInterna: 7, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 9, titulo: "Valores, pagamento e início", clausulaInterna: 8, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 10, titulo: "Despesas de terceiros", clausulaInterna: 9, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 11, titulo: "Prazo, dependências e ajustes", clausulaInterna: 10, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 12, titulo: "Cumprimento e encerramento", clausulaInterna: 11, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 13, titulo: "Propriedade intelectual", clausulaInterna: 12, fonte: CONTRATO_BASE_VERSAO },
+  { secao: 14, titulo: "Assinatura, evidência e foro", clausulaInterna: 13, fonte: `${CONTRATO_BASE_VERSAO} (cláusulas 13 e 14)` },
+];
+
+/** Nenhuma cláusula interna pode ficar fora do documento publicado. */
+export function clausulasSemSecaoPublicada(): number[] {
+  const cobertas = new Set<number>();
+  for (const s of SECOES_DOCUMENTO_PUBLICADO) if (s.clausulaInterna) cobertas.add(s.clausulaInterna);
+  cobertas.add(14); // consolidada na seção 14 junto com assinatura
+  return CLAUSULAS_FIXAS.filter((c) => !cobertas.has(c.numero)).map((c) => c.numero);
+}
 
 /* ------------------------------------------------------------------ */
 /* 4 — Variáveis permitidas e ordem de precedência                      */

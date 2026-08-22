@@ -8,6 +8,7 @@ import {
   PROIBICOES_IDENTIFICACAO,
   VARIAVEIS_PERMITIDAS,
 } from "@/lib/contrato-base-consolidado";
+import { SECOES_DOCUMENTO_PUBLICADO, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
 import {
   VARIAVEIS_TESTE,
   anexosDaPreviaTeste,
@@ -76,5 +77,16 @@ describe("prévia TESTE do motor", () => {
   it("matriz de renderização marca blocos pendentes na prévia", () => {
     const m = matrizRenderizacaoPreviaTeste(anexos);
     expect(m.some((l) => l.situacao === "renderizado_com_pendencia")).toBe(true);
+  });
+});
+
+describe("equivalência com o documento consolidado publicado", () => {
+  it("mapeia as 14 seções publicadas sem deixar cláusula interna órfã", () => {
+    expect(SECOES_DOCUMENTO_PUBLICADO).toHaveLength(14);
+    expect(clausulasSemSecaoPublicada()).toEqual([]);
+  });
+
+  it("mantém o perfil institucional como fonte própria da seção 1", () => {
+    expect(SECOES_DOCUMENTO_PUBLICADO[0]!.clausulaInterna).toBeNull();
   });
 });
