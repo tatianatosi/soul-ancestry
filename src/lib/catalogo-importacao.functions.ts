@@ -1,6 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { ItemCatalogoImportado } from "@/lib/catalogo-importacao";
+
+export type DivergenciaCatalogo = {
+  sku: string;
+  tipo: string;
+  detalhe: string;
+  fonte_referencia: string;
+  fonte_linha: number | null;
+};
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -24,7 +33,7 @@ export const lerCatalogoImportado = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const vistos = new Set<string>();
-    const itens = (data ?? [])
+    const itens: ItemCatalogoImportado[] = (data ?? [])
       .filter((r: any) => (vistos.has(r.code) ? false : (vistos.add(r.code), true)))
       .map((r: any) => ({
         sku: r.code as string,
@@ -54,7 +63,7 @@ export const lerCatalogoImportado = createServerFn({ method: "GET" })
       .order("sku");
 
     const chaves = new Set<string>();
-    const divergencias = (divs ?? [])
+    const divergencias: DivergenciaCatalogo[] = (divs ?? [])
       .filter((d: any) => {
         const k = `${d.sku}|${d.tipo}`;
         return chaves.has(k) ? false : (chaves.add(k), true);
