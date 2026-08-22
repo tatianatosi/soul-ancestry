@@ -22,7 +22,7 @@ describe("P1 — manifestação dos indicadores", () => {
   it("deduplica o mesmo registro na maior severidade", () => {
     const base: Omit<LinhaIndicadorDia, "severidade"> = {
       chave: "contratos_enviados_pendentes",
-      grupo: "conversao",
+      grupo: "formalizacao",
       codigo: "IND-FIN-02",
       motivo: "contrato sem referência financeira",
       responsavel: null,
@@ -37,13 +37,13 @@ describe("P1 — manifestação dos indicadores", () => {
     expect(r[0]!.severidade).toBe("P0");
   });
 
-  it("agrupa nos quatro grupos do Painel Hoje", () => {
+  it("agrupa nos cinco grupos compactos do Painel Hoje", () => {
     const g = agruparLinhasIndicadores([
-      { chave: "a", grupo: "radar", codigo: "IND-RAD-01", motivo: "m", responsavel: null, prazo: "p", severidade: "P1" },
-      { chave: "b", grupo: "comunicacao", codigo: "IND-COM-03", motivo: "m", responsavel: "Tati", prazo: "p", severidade: "P2" },
+      { chave: "a", grupo: "integridade", codigo: "IND-RAD-01", motivo: "m", responsavel: null, prazo: "p", severidade: "P1" },
+      { chave: "b", grupo: "cliente", codigo: "IND-COM-03", motivo: "m", responsavel: "Tati", prazo: "p", severidade: "P2" },
     ]);
-    expect(Object.keys(g)).toEqual(["conversao", "radar", "casos", "comunicacao"]);
-    expect(g.radar).toHaveLength(1);
-    expect(g.comunicacao[0]!.responsavel).toBe("Tati");
+    expect(Object.keys(g)).toEqual(["integridade", "formalizacao", "operacao", "financeiro", "cliente"]);
+    expect(g.integridade).toHaveLength(1);
+    expect(g.cliente[0]!.responsavel).toBe("Tati");
   });
 });
