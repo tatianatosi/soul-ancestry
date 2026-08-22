@@ -16,6 +16,8 @@ import {
   consolidarCadeia,
   derivarCondicaoComercial,
   hashConteudo,
+  itensEscopoDaOS,
+  referenciaOrigemEscopo,
   montarEscopoEstruturado,
   pendenciasParaPainel,
   planejadorLiberaProposta,
@@ -460,7 +462,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
 
   const { data: condicao } = await supabase
     .from("commercial_conditions")
-    .select("id,status,primeiro_vencimento,parcelas,forma_pagamento")
+    .select("id,codigo,status,primeiro_vencimento,parcelas,forma_pagamento")
     .eq("proposal_id", row.id)
     .is("archived_at", null)
     .maybeSingle();
@@ -477,7 +479,12 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
   if (!contrato)
     throw new Error("OS/Anexo I exige contrato preparado para o caso (ficha contratual e minuta em rascunho).");
 
-  const conteudo = conteudoOSDaProposta(propostaCanonica(row), condicao?.id ?? null);
+  if (!condicao?.id)
+    throw new Error(
+      "OS/Anexo I exige condição comercial persistida a partir da proposta aprovada (Proposta → Condição comercial → OS).",
+    );
+
+  const conteudo = conteudoOSDaProposta(propostaCanonica(row), condicao.id);
   const bloqueios = bloqueiosOS(conteudo);
   if (bloqueios.length) throw new Error(`OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`);
 
@@ -503,6 +510,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
       case_id: caso.id,
       contract_id: contrato.id,
       proposal_id: row.id,
+      commercial_condition_id: condicao.id,
       versao,
       conteudo_hash: hash,
       status: "draft",
@@ -530,16 +538,45 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     .single();
   if (error) throw new Error(error.message);
 
+  const itensEscopo = await sincronizarEscopoContratual(supabase, {
+    org: input.org,
+    userId: input.userId,
+    contratoId: contrato.id,
+    proposalId: row.id,
+    condicaoId: condicao.id,
+    osId: os.id,
+    itens: itensEscopoDaOS(conteudo, {
+      propostaVersao: row.versao,
+      skuCodigo: conteudo.sku_codigo,
+      condicaoCodigo: condicao.codigo ?? null,
+      osVersao: versao,
+    }),
+  });
+
   await auditar(supabase, {
     org: input.org,
     userId: input.userId,
     acao: "os_anexo_i_emitida_da_proposta",
     entidade: "service_orders",
     entidadeId: os.id,
-    metadados: { case_id: caso.id, proposal_id: row.id, versao, hash, condicao_id: condicao?.id ?? null },
+    metadados: {
+      case_id: caso.id,
+      proposal_id: row.id,
+      versao,
+      hash,
+      condicao_id: condicao.id,
+      escopo_inseridos: itensEscopo.inseridos,
+      escopo_atualizados: itensEscopo.atualizados,
+      origem: referenciaOrigemEscopo({
+        propostaVersao: row.versao,
+        skuCodigo: conteudo.sku_codigo,
+        condicaoCodigo: condicao.codigo ?? null,
+        osVersao: versao,
+      }),
+    },
   });
 
-  return { osId: os.id, versao, idempotente: false, conteudo };
+  return { osId: os.id, versao, idempotente: false, conteudo, escopo: itensEscopo };
 }
 
 /* ------------------------------------------------------------------ */
