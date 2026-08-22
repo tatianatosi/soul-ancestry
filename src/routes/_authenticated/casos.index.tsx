@@ -51,6 +51,63 @@ function Badge({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "gol
   );
 }
 
+function BuscaPorCodigo() {
+  const resolver = useServerFn(resolverCasoPorCodigo);
+  const [termo, setTermo] = useState("");
+  const [resultado, setResultado] = useState<ResultadoBuscaCaso | null>(null);
+  const [semResultado, setSemResultado] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+
+  async function buscar(e: React.FormEvent) {
+    e.preventDefault();
+    setCarregando(true);
+    setSemResultado(false);
+    setResultado(null);
+    try {
+      const r = await resolver({ data: { termo } });
+      if (r) setResultado(r);
+      else setSemResultado(true);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <form onSubmit={buscar} className="flex flex-wrap items-center gap-2">
+        <input
+          value={termo}
+          onChange={(e) => setTermo(e.target.value)}
+          placeholder="Buscar por código canônico ou identificador histórico"
+          aria-label="Buscar caso por código canônico ou identificador histórico"
+          className="min-w-[22rem] rounded-md border border-navy/20 bg-white px-3 py-1.5 text-sm text-navy"
+        />
+        <button
+          type="submit"
+          disabled={carregando || !termo.trim()}
+          className="rounded-md border border-navy/20 bg-navy px-3 py-1.5 text-sm text-cream disabled:opacity-50"
+        >
+          {carregando ? "Buscando…" : "Localizar caso"}
+        </button>
+      </form>
+      {resultado ? (
+        <p className="text-sm text-navy/80">
+          {mensagemResolucao(resultado)}{" "}
+          <Link to="/casos/$caseId" params={{ caseId: resultado.caseId }} className="font-medium text-navy underline">
+            Abrir {resultado.codigoCanonico}
+            {resultado.titulo ? ` — ${resultado.titulo}` : ""}
+          </Link>
+        </p>
+      ) : null}
+      {semResultado ? (
+        <p className="text-sm text-terracotta">
+          Nenhum caso encontrado para esse código. Nenhum registro foi criado.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function CasosPage() {
   const { podeEscrever } = useSaas();
   const carregarAtivacao = useServerFn(listarEstadoAtivacao);
@@ -76,11 +133,15 @@ function CasosPage() {
         filtrarLinhas={(l) => mostrarDemo || papelDoRegistro(l).valor !== "demo"}
         classeLinha={(l) => (papelDoRegistro(l).valor === "demo" ? "bg-terracotta/5" : undefined)}
         topo={
-          <label className="flex items-center gap-2 text-sm text-navy/70">
-            <input type="checkbox" checked={mostrarDemo} onChange={(e) => setMostrarDemo(e.target.checked)} />
-            Mostrar casos demonstrativos (fora de relatórios e métricas reais)
-          </label>
+          <div className="space-y-3">
+            <BuscaPorCodigo />
+            <label className="flex items-center gap-2 text-sm text-navy/70">
+              <input type="checkbox" checked={mostrarDemo} onChange={(e) => setMostrarDemo(e.target.checked)} />
+              Mostrar casos demonstrativos (fora de relatórios e métricas reais)
+            </label>
+          </div>
         }
+
         colunas={[
           {
             chave: "codigo",
