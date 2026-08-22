@@ -153,6 +153,17 @@ export function AcoesRapidasProprietaria({
         >
           {m.isPending ? "Salvando…" : "Salvar correção auditada"}
         </button>
+        <button
+          onClick={() => {
+            setOk(false);
+            setErros([]);
+            mAssumir.mutate();
+          }}
+          disabled={mAssumir.isPending || form.motivo.trim().length < 10 || !form.fonte.trim()}
+          className="rounded-md border border-gold/60 bg-gold/15 px-2.5 py-1 text-navy disabled:opacity-50"
+        >
+          {mAssumir.isPending ? "Registrando…" : "Assumir pendência e avançar"}
+        </button>
         <button onClick={() => setAberto(false)} className="rounded-md border border-navy/20 px-2.5 py-1 text-navy/70">
           Fechar
         </button>
