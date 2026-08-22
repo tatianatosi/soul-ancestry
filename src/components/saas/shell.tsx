@@ -156,6 +156,7 @@ const NAV: readonly SecaoNav[] = [
       { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { to: "/governanca/varredura-administracao", label: "Varredura de administração" },
+      { to: "/governanca/varredura-completude", label: "Varredura de completude" },
       { to: "/etiquetas", label: "Etiquetas canônicas" },
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
