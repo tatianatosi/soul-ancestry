@@ -148,6 +148,7 @@ const NAV: readonly SecaoNav[] = [
       { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal dois adultos" },
+      { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
       { to: "/governanca/matriz-conformidade", label: "Matrizes conceituais" },
       { to: "/governanca/indicadores", label: "Indicadores e métricas" },
       { to: "/governanca/decisoes", label: "Log de decisões" },
