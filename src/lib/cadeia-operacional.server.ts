@@ -17,6 +17,7 @@ import {
   derivarCondicaoComercial,
   hashConteudo,
   montarEscopoEstruturado,
+  pendenciasParaPainel,
   planejadorLiberaProposta,
   type ChaveEloOperacional,
   type EntradaPlanejador,
@@ -638,4 +639,80 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
     condicaoId: condicao?.id ?? null,
     osId: os?.id ?? null,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Pendências da cadeia consumidas pelo Painel Hoje                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Deriva, para os casos com planejador persistido, a pendência operacional
+ * mais prioritária da cadeia. Não cria fila nova nem painel novo: devolve
+ * itens no formato já consumido pelo Painel Hoje.
+ * Dados TESTE ficam ocultos por padrão.
+ */
+export async function pendenciasCadeiaPainel(
+  supabase: Sb,
+  org: string,
+  opcoes?: { incluirTeste?: boolean; limite?: number },
+) {
+  const { data: planos } = await supabase
+    .from("case_plans")
+    .select("case_id")
+    .eq("organization_id", org)
+    .is("archived_at", null)
+    .limit(opcoes?.limite ?? 100);
+
+  const ids = [...new Set(((planos ?? []) as any[]).map((p) => p.case_id).filter(Boolean))];
+  if (!ids.length) return [];
+
+  const { data: casos } = await supabase
+    .from("crm_casos")
+    .select("id,codigo,titulo,dados_teste,demo,archived_at,responsavel_principal,prazo_proxima_acao")
+    .in("id", ids)
+    .is("archived_at", null);
+
+  const elegiveis = ((casos ?? []) as any[]).filter(
+    (c) => !c.demo && (opcoes?.incluirTeste === true || c.dados_teste !== true),
+  );
+
+  const itens: {
+    id: string;
+    rotulo: string;
+    detalhe: string;
+    data: string | null;
+    tipo: "caso";
+    area: string | null;
+    responsavel: string | null;
+    etapa: string | null;
+  }[] = [];
+
+  for (const caso of elegiveis) {
+    let estado: Awaited<ReturnType<typeof estadoCadeiaOperacional>>;
+    try {
+      estado = await estadoCadeiaOperacional(supabase, org, caso.id);
+    } catch {
+      continue;
+    }
+    const pendencia = pendenciasParaPainel({
+      caseId: caso.id,
+      rotulo: `${caso.codigo ?? "caso"} · ${caso.titulo ?? "sem título"}`,
+      responsavel: caso.responsavel_principal ?? null,
+      prazo: caso.prazo_proxima_acao ?? null,
+      // O elo de assinatura permanece desabilitado e não vira pendência de painel.
+      elos: estado.elos.filter((e) => e.chave !== "assinatura"),
+    });
+    if (!pendencia) continue;
+    itens.push({
+      id: pendencia.id,
+      rotulo: pendencia.rotulo,
+      detalhe: pendencia.acao,
+      data: pendencia.data,
+      tipo: "caso",
+      area: "operacoes",
+      responsavel: pendencia.responsavel,
+      etapa: "cadeia_operacional",
+    });
+  }
+  return itens;
 }
