@@ -840,12 +840,38 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
 
     const { data: versao } = await supabase
       .from("contract_versions")
-      .select("id,contract_id,generated_content,rendered_file_path,render_error,version_number,status")
+      .select(
+        "id,contract_id,generated_content,rendered_file_path,render_error,version_number,status,institutional_profile_id,institutional_profile_snapshot",
+      )
       .eq("organization_id", organizationId)
       .eq("contract_id", data.contract_id)
       .eq("id", data.version_id)
       .maybeSingle();
     if (!versao) throw new Error("Versão não encontrada neste instrumento.");
+
+    // A prévia usa o perfil institucional efetivamente snapshotado nesta versão.
+    // Se ainda não houver snapshot, ele é registrado agora pelo evento de prévia
+    // — perfil persistido, nunca texto avulso.
+    const perfilServer = await import("@/lib/perfil-institucional-persistido.server");
+    if (!versao.institutional_profile_snapshot) {
+      await perfilServer.gravarSnapshotInstitucional(supabase, {
+        org: organizationId,
+        contractVersionId: versao.id,
+        evento: "versao_contratual_criada",
+        userId: context.userId as string,
+      });
+      const { data: recarregada } = await supabase
+        .from("contract_versions")
+        .select("institutional_profile_id,institutional_profile_snapshot")
+        .eq("organization_id", organizationId)
+        .eq("id", versao.id)
+        .maybeSingle();
+      if (recarregada) {
+        versao.institutional_profile_id = recarregada.institutional_profile_id;
+        versao.institutional_profile_snapshot = recarregada.institutional_profile_snapshot;
+      }
+    }
+
 
     const persistido = versao.generated_content as { html?: unknown } | null;
     let html = typeof persistido?.html === "string" ? persistido.html : null;
