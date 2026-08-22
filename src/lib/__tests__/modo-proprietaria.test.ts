@@ -82,20 +82,37 @@ describe("modo proprietária administradora", () => {
     expect(exigeConfirmacaoFinal("editar_rascunho")).toBe(false);
   });
 
-  it("confirmação lista ação, destinatário, conteúdo, valor, caso, anexos, impacto e dados", () => {
+  it("confirmação exige ação, organização, caso, destinatário, conteúdo, valor/moeda, anexos, dados, impacto, motivo e checkbox", () => {
     const incompleta = montarConfirmacao({ acao: "enviar_contrato" });
     expect(incompleta.pronta).toBe(false);
     expect(incompleta.faltantes).toContain("destinatario");
+    expect(incompleta.faltantes).toContain("organizacao");
+    expect(incompleta.faltantes).toContain("motivo_confirmacao");
+    expect(incompleta.faltantes).toContain("confirmacao_manual");
 
-    const c = montarConfirmacao({
+    const base = {
       acao: "emitir_cobranca",
+      organizacao: "Clube Ancestral",
       destinatario: "cliente@exemplo.com",
       conteudo: "Fatura da parcela 1",
       valor: 1500,
+      moeda: "BRL",
       caso: "CA-2026-ANA-001",
       anexos: ["Anexo I"],
       impacto: "Gera cobrança externa",
       dados_enviados: { parcela: 1 },
+    } as const;
+
+    // Sem motivo suficiente ou sem checkbox manual, a janela recusa a ação.
+    expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "curto" }).pronta).toBe(false);
+    expect(montarConfirmacao({ ...base, motivo: "Cobrança acordada em call" }).faltantes).toContain(
+      "confirmacao_manual",
+    );
+
+    const c = montarConfirmacao({
+      ...base,
+      motivo: "Cobrança acordada em call com a cliente",
+      confirmacao_manual: true,
     });
     expect(c.pronta).toBe(true);
     expect(c.faltantes).toEqual([]);
@@ -104,14 +121,18 @@ describe("modo proprietária administradora", () => {
     expect(c.aviso.toLowerCase()).toContain("irreversível");
     expect(c.campos.map((x) => x.campo)).toEqual([
       "acao",
+      "organizacao",
+      "caso",
       "destinatario",
       "conteudo",
       "valor",
-      "caso",
       "anexos",
-      "impacto",
       "dados_enviados",
+      "impacto",
       "aviso_irreversibilidade",
+      "motivo_confirmacao",
+      "confirmacao_manual",
     ]);
   });
 });
+
