@@ -10,14 +10,14 @@ import {
 } from "@/lib/modo-proprietaria-cobertura";
 
 describe("cobertura obrigatória do modo proprietária", () => {
-  it("cobre os sete módulos exigidos, todos com operações e entidade canônica", () => {
+  it("cobre as dez áreas exigidas, todos com operações e entidade canônica", () => {
     expect(COBERTURA_MODULOS.map((m) => m.id)).toEqual([...MODULOS_COBERTOS]);
     for (const m of COBERTURA_MODULOS) {
       expect(m.operacoes.length).toBeGreaterThan(0);
       expect(m.regras.length).toBeGreaterThan(0);
       for (const o of m.operacoes) expect(o.entidade).toMatch(/\w/);
     }
-    expect(resumoCobertura()).toHaveLength(7);
+    expect(resumoCobertura()).toHaveLength(10);
   });
 
   it("libera operação interna só para a proprietária", () => {
@@ -44,7 +44,7 @@ describe("cobertura obrigatória do modo proprietária", () => {
 
   it("nunca aprova projeção do App Cliente com dado TESTE/DEMO", () => {
     const v = validarOperacaoModulo("admin", {
-      modulo: "financeiro_app_cliente",
+      modulo: "app_cliente",
       operacao: "aprovar_projecao_app",
       dados_teste: true,
     });
