@@ -136,7 +136,11 @@ export function ConfirmacaoAcaoExterna({ pedido }: { pedido: PedidoConfirmacao &
   const confirmar = useServerFn(confirmarAcaoExterna);
   const [motivo, setMotivo] = useState("");
   const [ciente, setCiente] = useState(false);
-  const confirmacao = useMemo(() => montarConfirmacao(pedido), [pedido]);
+  const confirmacao = useMemo(
+    () => montarConfirmacao({ ...pedido, motivo, confirmacao_manual: ciente }),
+    [pedido, motivo, ciente],
+  );
+
 
   const m = useMutation({
     mutationFn: () =>
