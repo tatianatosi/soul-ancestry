@@ -193,6 +193,86 @@ export function PainelDia() {
         </div>
       </section>
 
+      {/* 3a — Indicadores conectados: quatro linhas compactas e clicáveis */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-lg text-navy">Indicadores com manifestação no dia</h2>
+          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            registro canônico dos 16 indicadores
+          </Link>
+        </div>
+        <div className="mt-3 grid gap-2">
+          {[
+            {
+              chave: "conv",
+              titulo: "Conversão e integridade",
+              codigos: "IND-COM-01 · IND-COM-02 · IND-FIN-01",
+              linhas: [
+                `${comercial.propostas.length} proposta(s) sem follow-up`,
+                `${qtd("aceites_sem_confirmacao")} aceite(s) verbal parado(s)`,
+                `${qtd("contratos_enviados_pendentes")} contrato(s) sem referência financeira`,
+                `${qtd("onboardings_pendentes")} pagamento(s) sem onboarding`,
+              ],
+              rota: "/conversao" as const,
+              acao: "Abrir conversão e funil",
+            },
+            {
+              chave: "radar",
+              titulo: "Radar e Discovery",
+              codigos: "IND-RAD-01 · IND-RAD-02",
+              linhas: [
+                `${qtd("discoveries_sem_desdobramento")} leitura(s) sem próximo passo definido`,
+                `${qtd("leads_sem_origem")} lead(s) sem origem declarada (completude da leitura)`,
+                "Revisão humana obrigatória e marco jurídico a revisar: verificar na ficha do lead",
+              ],
+              rota: "/leads" as const,
+              acao: "Abrir leads e triagem",
+            },
+            {
+              chave: "casos",
+              titulo: "Casos e cadência",
+              codigos: "IND-JOR-01 · IND-JOR-02 · IND-JOR-03 · IND-QUA-01",
+              linhas: [
+                `${qtd("onboardings_pendentes")} caso(s) com gates de ativação pendentes após pagamento confirmado`,
+                `${qtd("casos_pendencia_documental")} caso(s) com pendência documental`,
+                `${cadencia.length} caso(s) acima da regra de dias sem touchpoint`,
+              ],
+              rota: "/casos" as const,
+              acao: "Abrir casos 360",
+            },
+            {
+              chave: "comunicacao",
+              titulo: "Comunicação humana",
+              codigos: "IND-COM-03",
+              linhas: [
+                `${sugestoesHumanas.total} contato(s) humano(s) sugerido(s): ${sugestoesHumanas.criticos} crítico(s), ${sugestoesHumanas.hoje} para hoje`,
+                "Cada sugestão nasce em rascunho, depende de consentimento e de aprovação humana.",
+                "Nenhum botão desta tela envia mensagem.",
+              ],
+              rota: "/atendimento" as const,
+              acao: "Abrir a fila humana em Atendimento",
+            },
+          ].map((b) => (
+            <Link
+              key={b.chave}
+              to={b.rota}
+              className="block rounded-lg border border-navy/10 px-3 py-2 hover:bg-cream/50"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-navy">{b.titulo}</span>
+                <span className="font-mono text-[10px] text-navy/40">{b.codigos}</span>
+              </div>
+              <ul className="mt-1 space-y-0.5 text-xs text-navy/65">
+                {b.linhas.map((l) => (
+                  <li key={l}>• {l}</li>
+                ))}
+              </ul>
+              <span className="mt-1 inline-block text-xs text-navy underline underline-offset-2">{b.acao}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* 3b — Sinais de conversão e integridade */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between gap-3">
