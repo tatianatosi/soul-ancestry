@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
 import {
   alterarPapelMembro,
   alterarStatusMembro,
