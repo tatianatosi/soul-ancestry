@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
+import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EscopoProposta } from "@/components/contrato/escopo-proposta";
 import { CompletudeCanva } from "@/components/contrato/completude-canva";
@@ -23,6 +24,8 @@ import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-gov
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
+import { anexosIaV, entradaDeValores, gatesBloqueados } from "@/lib/anexos-i-v";
+import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
