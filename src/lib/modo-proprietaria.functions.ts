@@ -19,11 +19,14 @@ import {
   montarConfirmacao,
   validarDecisao,
 } from "@/lib/modo-proprietaria";
+import { resumoCobertura, validarOperacaoModulo } from "@/lib/modo-proprietaria-cobertura";
 
 export type EventoOverride = {
   id: string;
   categoria: string;
   acao: string;
+  modulo: string | null;
+  operacao: string | null;
   entidade: string;
   entidade_id: string | null;
   campo: string | null;
@@ -42,7 +45,8 @@ export type EventoOverride = {
 };
 
 const COLUNAS =
-  "id,categoria,acao,entidade,entidade_id,campo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,dados_teste,actor_papel,created_at";
+  "id,categoria,acao,modulo,operacao,entidade,entidade_id,campo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,dados_teste,actor_papel,created_at";
+
 
 /** Estado do modo, capacidades e últimas decisões registradas. */
 export const estadoModoProprietaria = createServerFn({ method: "GET" })
