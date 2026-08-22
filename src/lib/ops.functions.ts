@@ -8,6 +8,7 @@ import {
   limparOps,
   type Sb,
 } from "@/lib/ops.server";
+import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autorizacoes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -379,7 +380,9 @@ export const registrarExcecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (data: { tipo: string; casoId?: string; motivo: string; validoAte?: string; referenciaId?: string }) => {
-      if (!data?.tipo) throw new Error("Informe o tipo de exceção.");
+      if (!data?.tipo || !TIPOS_EXCECAO_ROTULOS[data.tipo]) {
+        throw new Error("Tipo de exceção fora do catálogo canônico.");
+      }
       if (!data?.motivo || data.motivo.trim().length < 10) {
         throw new Error("Descreva o motivo da exceção (mínimo 10 caracteres).");
       }
@@ -397,7 +400,7 @@ export const registrarExcecao = createServerFn({ method: "POST" })
       tipo: data.tipo,
       motivo: data.motivo.trim(),
       referencia_id: data.referenciaId || null,
-      valido_ate: data.validoAte ? new Date(data.validoAte).toISOString() : null,
+      valido_ate: data.validoAte ? new Date(data.validoAte).toISOString() : validadeSugerida(data.tipo),
       autorizado_por: context.userId,
     });
     if (error) throw new Error(error.message);

@@ -1,0 +1,384 @@
+/**
+ * Varredura de autorizações da Proprietária Administradora.
+ *
+ * Regras puras, sem efeito colateral: descrevem, área por área canônica,
+ * o que é operação interna (liberada por decisão humana auditada) e o que é
+ * ação externa (só ocorre após confirmação final explícita).
+ *
+ * Nada aqui executa, envia, publica, cobra, assina ou integra.
+ */
+
+import { ACOES_EXTERNAS, type AcaoExterna } from "@/lib/modo-proprietaria";
+
+export type Natureza = "interna" | "externa";
+
+export type AcaoArea = {
+  chave: string;
+  rotulo: string;
+  natureza: Natureza;
+  /** Quem autoriza a execução. */
+  autorizacao: string;
+  /** Onde o ato fica registrado. */
+  registro: string;
+  /** Pendências continuam visíveis, mas não travam o avanço interno. */
+  bloqueiaInterno: false;
+};
+
+export type AreaCanonica = {
+  chave: string;
+  rotulo: string;
+  rota: string;
+  acoes: AcaoArea[];
+};
+
+const interna = (
+  chave: string,
+  rotulo: string,
+  registro = "audit_logs + owner_override_events",
+  autorizacao = "Proprietária administradora (decisão humana auditada)",
+): AcaoArea => ({ chave, rotulo, natureza: "interna", autorizacao, registro, bloqueiaInterno: false });
+
+const externa = (chave: AcaoExterna, rotulo: string, registro = "Confirmação final + audit_logs"): AcaoArea => ({
+  chave,
+  rotulo,
+  natureza: "externa",
+  autorizacao: "Confirmação final explícita da proprietária (nunca automática)",
+  registro,
+  bloqueiaInterno: false,
+});
+
+/** Áreas canônicas varridas. Toda área tem operação interna liberada. */
+export const AREAS_CANONICAS: AreaCanonica[] = [
+  {
+    chave: "leads_discovery",
+    rotulo: "Leads e Discovery",
+    rota: "/leads",
+    acoes: [
+      interna("criar_editar_lead", "Criar, editar e reclassificar lead"),
+      interna("avancar_discovery", "Avançar Discovery mesmo com triagem incompleta"),
+      externa("enviar_whatsapp", "Contato por WhatsApp com o lead"),
+    ],
+  },
+  {
+    chave: "proposta_comercial",
+    rotulo: "Proposta e condição comercial",
+    rota: "/propostas",
+    acoes: [
+      interna("corrigir_proposta_escopo_preco", "Corrigir escopo, preço e SKU da proposta"),
+      interna("aprovar_proposta_incompleta", "Aprovar proposta com campos pendentes assumidos"),
+      interna("homologar_condicao_comercial", "Homologar condição comercial"),
+      externa("enviar_email", "Enviar proposta ao cliente"),
+    ],
+  },
+  {
+    chave: "catalogo_sku",
+    rotulo: "Catálogo e SKUs",
+    rota: "/catalogo",
+    acoes: [
+      interna("homologar_sku", "Homologar SKU por decisão humana"),
+      interna("resolver_divergencia", "Resolver divergência de fonte de preço"),
+    ],
+  },
+  {
+    chave: "contrato",
+    rotulo: "Contrato, versões e Anexos I–V",
+    rota: "/contratos",
+    acoes: [
+      interna("gerar_versao_final", "Gerar versão final mesmo com parâmetros pendentes"),
+      interna("previa_interna", "Abrir prévia interna com campos ausentes sinalizados"),
+      externa("enviar_contrato", "Enviar contrato ao cliente"),
+      externa("solicitar_assinatura", "Solicitar assinatura"),
+    ],
+  },
+  {
+    chave: "ordens_servico",
+    rotulo: "Ordens de serviço",
+    rota: "/ordens-servico",
+    acoes: [
+      interna("corrigir_os_anexos_previa", "Criar e corrigir OS, anexos e prévia"),
+      interna("aprovar_os", "Aprovar OS assumindo pendências visíveis"),
+    ],
+  },
+  {
+    chave: "onboarding",
+    rotulo: "Onboarding e gates de ativação",
+    rota: "/casos",
+    acoes: [
+      interna("liberar_onboarding", "Liberar onboarding com gates pendentes assumidos"),
+      interna("registrar_excecao", "Registrar exceção operacional com prazo"),
+    ],
+  },
+  {
+    chave: "casos_tarefas",
+    rotulo: "Casos, planejador e tarefas",
+    rota: "/tarefas",
+    acoes: [
+      interna("avancar_caso_planejador_tarefa", "Avançar caso, planejador e tarefas"),
+      interna("editar_fila_responsavel_prazo", "Editar fila, responsáveis e prazos"),
+    ],
+  },
+  {
+    chave: "pesquisa",
+    rotulo: "Pesquisa genealógica e evidências",
+    rota: "/pesquisa",
+    acoes: [
+      interna("avancar_pesquisa_evidencia_microentrega", "Avançar pesquisa, evidências e microentregas"),
+      externa("pesquisar_externamente", "Pesquisa externa"),
+      externa("enviar_pedido_instituicao", "Pedido a instituição"),
+    ],
+  },
+  {
+    chave: "documentos",
+    rotulo: "Documentos e acervo",
+    rota: "/evidencias",
+    acoes: [
+      interna("criar_documento_sem_arquivo", "Criar registro de documento antes do arquivo"),
+      interna("anexar_documento_posterior", "Anexar ou substituir documento em etapa posterior"),
+      interna("reclassificar_documento", "Reclassificar categoria, sensibilidade e visibilidade"),
+      externa("publicar_no_app_cliente", "Liberar documento ao cliente"),
+    ],
+  },
+  {
+    chave: "financeiro",
+    rotulo: "Financeiro",
+    rota: "/financeiro",
+    acoes: [
+      interna("corrigir_condicao_comercial", "Corrigir parcelas, valores e vencimentos internos"),
+      externa("emitir_cobranca", "Emitir cobrança"),
+      externa("registrar_pagamento", "Registrar pagamento"),
+      externa("criar_ou_alterar_link_asaas", "Criar ou alterar link de pagamento"),
+    ],
+  },
+  {
+    chave: "app_cliente",
+    rotulo: "App Cliente e projeções",
+    rota: "/acessos-portal",
+    acoes: [
+      interna("aprovar_projecao_app_cliente", "Aprovar projeção interna"),
+      externa("publicar_no_app_cliente", "Publicar no App Cliente"),
+    ],
+  },
+  {
+    chave: "governanca",
+    rotulo: "Governança, auditoria e arquivamento",
+    rota: "/auditoria",
+    acoes: [
+      interna("ver_todos_estados_da_organizacao", "Ver todos os estados e pendências"),
+      interna("consultar_arquivados", "Consultar arquivados e histórico"),
+      externa("excluir_registro_ou_versao", "Excluir registro ou versão"),
+    ],
+  },
+];
+
+/** Toda ação externa mapeada pertence ao catálogo canônico de ações externas. */
+export function acoesExternasMapeadas(): string[] {
+  const chaves = new Set<string>();
+  for (const a of AREAS_CANONICAS) {
+    for (const ac of a.acoes) if (ac.natureza === "externa") chaves.add(ac.chave);
+  }
+  return [...chaves].filter((c) => (ACOES_EXTERNAS as readonly string[]).includes(c));
+}
+
+export function acoesInternas(): AcaoArea[] {
+  return AREAS_CANONICAS.flatMap((a) => a.acoes).filter((a) => a.natureza === "interna");
+}
+
+/* ------------------------------------------------------------------ */
+/* Exceções operacionais                                               */
+/* ------------------------------------------------------------------ */
+
+export type TipoExcecao = {
+  chave: string;
+  rotulo: string;
+  quando: string;
+  /** Quem pode autorizar. */
+  autoriza: string;
+  /** Validade sugerida em dias; null = sem prazo, exige revisão manual. */
+  validadeDias: number | null;
+  /** O que precisa acontecer para regularizar. */
+  regularizacao: string;
+  /** Consequência enquanto pendente — nunca bloqueio interno. */
+  impacto: string;
+};
+
+export const CATALOGO_EXCECOES: TipoExcecao[] = [
+  {
+    chave: "microentrega_caso_pausado",
+    rotulo: "Micro-entrega em caso pausado",
+    quando: "Entrega precisa avançar com o caso pausado.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Reativar o caso ou concluir a entrega pendente.",
+    impacto: "Item permanece na fila com selo de exceção até regularizar.",
+  },
+  {
+    chave: "reabertura_caso",
+    rotulo: "Reabertura de caso encerrado",
+    quando: "Caso encerrado precisa voltar a operar.",
+    autoriza: "Proprietária administradora",
+    validadeDias: null,
+    regularizacao: "Encerrar novamente com registro de motivo.",
+    impacto: "Histórico anterior preservado; novo ciclo auditado.",
+  },
+  {
+    chave: "desbloqueio_tarefa",
+    rotulo: "Desbloqueio excepcional de tarefa",
+    quando: "Tarefa bloqueada por dependência que não se resolverá a tempo.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Resolver a dependência original.",
+    impacto: "Bloqueio segue visível como pendência assumida.",
+  },
+  {
+    chave: "prazo_excedido",
+    rotulo: "Prazo excedido com autorização",
+    quando: "SLA estourado por decisão consciente.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Repactuar prazo e concluir a etapa.",
+    impacto: "Indicador de atraso continua contabilizado.",
+  },
+  {
+    chave: "documento_pendente",
+    rotulo: "Documento pendente em etapa posterior",
+    quando: "Etapa avança antes do documento existir ou ser legível.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Anexar ou substituir o documento e revisar.",
+    impacto: "Documento fica como pendente; nenhuma etapa interna trava.",
+  },
+  {
+    chave: "dado_cadastral_incompleto",
+    rotulo: "Dado cadastral incompleto",
+    quando: "Pessoa, dependente ou representação sem campo obrigatório.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Completar o cadastro na entidade canônica.",
+    impacto: "Campo ausente sinalizado em prévias e fichas.",
+  },
+  {
+    chave: "proposta_incompleta",
+    rotulo: "Proposta incompleta aprovada",
+    quando: "Aprovação necessária antes da completude das páginas 1–7.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Completar a proposta e revalidar a conferência de escopo.",
+    impacto: "Conferência de escopo permanece em aberto.",
+  },
+  {
+    chave: "sku_nao_homologado",
+    rotulo: "SKU ou preço ainda não homologado",
+    quando: "Escopo usa item fora da base homologada.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Homologar o SKU na fonte mestre do catálogo.",
+    impacto: "Item entra na fila de saneamento do catálogo.",
+  },
+  {
+    chave: "condicao_comercial_fora_padrao",
+    rotulo: "Condição comercial fora do padrão",
+    quando: "Desconto, parcelamento ou vencimento fora da matriz.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Homologar a condição ou ajustar ao padrão.",
+    impacto: "Sinal comercial permanece no Painel Hoje.",
+  },
+  {
+    chave: "consentimento_pendente",
+    rotulo: "Consentimento pendente",
+    quando: "Operação interna precisa avançar antes do aceite formal.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Coletar o consentimento ou registrar dispensa fundamentada.",
+    impacto: "Nenhuma liberação ao cliente ocorre enquanto pendente.",
+  },
+  {
+    chave: "contrato_sem_anexo",
+    rotulo: "Contrato sem anexo aplicável",
+    quando: "Versão gerada antes de todos os anexos estarem prontos.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Vincular o anexo e gerar nova versão.",
+    impacto: "Prévia interna exibe o anexo faltante em destaque.",
+  },
+  {
+    chave: "escopo_divergente",
+    rotulo: "Divergência de escopo entre proposta e OS",
+    quando: "Proposta e ordem de serviço não coincidem.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Reconciliar escopo na fonte canônica e reconferir.",
+    impacto: "Divergência listada na conferência de escopo.",
+  },
+];
+
+export const TIPOS_EXCECAO_ROTULOS: Record<string, string> = Object.fromEntries(
+  CATALOGO_EXCECOES.map((e) => [e.chave, e.rotulo]),
+);
+
+export function excecaoPorChave(chave: string): TipoExcecao | undefined {
+  return CATALOGO_EXCECOES.find((e) => e.chave === chave);
+}
+
+/** Vencida = passou da validade e ainda não foi regularizada. */
+export function excecaoVencida(
+  excecao: { valido_ate?: string | null; regularizado_em?: string | null },
+  agora: Date = new Date(),
+): boolean {
+  if (excecao.regularizado_em) return false;
+  if (!excecao.valido_ate) return false;
+  const limite = new Date(excecao.valido_ate);
+  return !Number.isNaN(limite.getTime()) && limite.getTime() < agora.getTime();
+}
+
+export function validadeSugerida(chave: string, base: Date = new Date()): string | null {
+  const tipo = excecaoPorChave(chave);
+  if (!tipo?.validadeDias) return null;
+  const d = new Date(base);
+  d.setDate(d.getDate() + tipo.validadeDias);
+  return d.toISOString();
+}
+
+/* ------------------------------------------------------------------ */
+/* Documentos ao longo do ciclo                                        */
+/* ------------------------------------------------------------------ */
+
+export const ETAPAS_ACEITAM_DOCUMENTO = [
+  "lead",
+  "discovery",
+  "proposta",
+  "contrato",
+  "ordem_servico",
+  "onboarding",
+  "pesquisa",
+  "entrega",
+  "pos_entrega",
+] as const;
+
+export type EtapaDocumento = (typeof ETAPAS_ACEITAM_DOCUMENTO)[number];
+
+export const REGRAS_DOCUMENTO = {
+  criarSemArquivo: true,
+  anexarDepois: true,
+  substituirComVersao: true,
+  reclassificar: true,
+  exclusaoFisica: false,
+  liberacaoAoCliente: "externa",
+} as const;
+
+export function documentoPodeSerAdicionadoEm(etapa: string): etapa is EtapaDocumento {
+  return (ETAPAS_ACEITAM_DOCUMENTO as readonly string[]).includes(etapa);
+}
+
+/** Resumo textual da varredura, usado na tela e nos relatórios. */
+export function resumoVarredura() {
+  const acoes = AREAS_CANONICAS.flatMap((a) => a.acoes);
+  return {
+    areas: AREAS_CANONICAS.length,
+    acoesInternas: acoes.filter((a) => a.natureza === "interna").length,
+    acoesExternas: acoes.filter((a) => a.natureza === "externa").length,
+    excecoes: CATALOGO_EXCECOES.length,
+    etapasComDocumento: ETAPAS_ACEITAM_DOCUMENTO.length,
+    bloqueiosInternos: acoes.filter((a) => a.bloqueiaInterno).length,
+  };
+}
