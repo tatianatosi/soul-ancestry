@@ -364,7 +364,7 @@ export const caseDataGiovanna: CaseData = {
         documento_disponivel: false,
         secure_url: "",
       },
-      procuracao_italiana: {
+      procuracao_europeia: {
         status: "nao_iniciada",
         finalidade: "",
         orgao_destinatario: "",
