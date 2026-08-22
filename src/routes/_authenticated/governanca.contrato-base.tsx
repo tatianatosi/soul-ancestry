@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { ContratoBaseTexto } from "@/components/contrato/contrato-base-texto";
+import { CorpoContratualVersionado } from "@/components/contrato/corpo-contratual";
 import {
   BLOQUEIOS_CANONICOS,
   CONTRATO_BASE_DATA,
@@ -93,6 +94,8 @@ function Pagina() {
     <SaasShell titulo="Contrato-base consolidado" descricao={`Resgate v1.0 · ${CONTRATO_BASE_DATA} · não vigente`}>
       <div className="space-y-4">
         <ContratoBaseTexto />
+
+        <CorpoContratualVersionado />
 
         <Bloco titulo="Proibições de identificação da contratada" nota="Nunca podem aparecer em contrato, prévia, log, App ou prompt.">
           <Lista itens={PROIBICOES_IDENTIFICACAO} />
