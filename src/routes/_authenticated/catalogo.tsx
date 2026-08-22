@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { ReferenciaCatalogo } from "@/components/catalogo/referencia-catalogo";
+import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
