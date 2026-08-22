@@ -7,6 +7,8 @@ import { ROTULO_ESTADO_ANEXO } from "@/lib/anexos-dicionario";
 import { documentoDoAnexo } from "@/lib/anexos-documento";
 import { AnexoDocumento } from "@/components/contrato/anexo-documento";
 import {
+  ANEXO_I_MODELO_VERSAO,
+  REGRAS_MOTOR_ANEXO_I,
   ROTULO_FONTE,
   ROTULO_GATE,
   ROTULO_GRUPO_PENDENCIA,
@@ -31,6 +33,18 @@ export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entra
           </div>
           <p className="mt-1 text-xs text-navy/65">{a.finalidade}</p>
           <p className="mt-0.5 text-[11px] text-navy/50">Regra: {a.regra}</p>
+          {a.codigo === "ANEXO_I_ORDEM_SERVICO" && (
+            <details className="mt-1 rounded border border-navy/10 bg-cream/40 p-2">
+              <summary className="cursor-pointer text-[11px] font-medium text-navy/70">
+                Regras do motor ({ANEXO_I_MODELO_VERSAO})
+              </summary>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-navy/65">
+                {REGRAS_MOTOR_ANEXO_I.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ol>
+            </details>
+          )}
           <p className="text-[11px] text-navy/50">Motivo da seleção: {a.motivo}</p>
 
           <dl className="mt-2 divide-y divide-navy/5 rounded border border-navy/10">
