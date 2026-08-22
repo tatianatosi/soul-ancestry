@@ -721,3 +721,73 @@ export function gateLiberado(gate: GateContratual, bloqueios: { gate: GateContra
   if (gate === "rascunho") return true;
   return !bloqueios.some((b) => b.gate === gate);
 }
+
+/* ---------------- derivação a partir da ficha parametrizável ---------------- */
+
+export type ValorFicha = { campo: string; valor?: string | null; origem?: string | null; status?: string | null };
+
+const lista = (v?: string | null) =>
+  String(v ?? "")
+    .split(/\|\||;|\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+/**
+ * Leitura somente-derivada da ficha do caso. Nenhum dado é escrito ou inferido:
+ * proposta só vale como fonte quando o parâmetro comercial veio de proposta confirmada.
+ */
+export function entradaDeValores(input: {
+  caseId: string;
+  clienteNome: string | null;
+  responsavel: string | null;
+  contratoBaseVersao: string;
+  modelo: string;
+  valores: ValorFicha[];
+}): EntradaAnexosIaV {
+  const get = (campo: string) => input.valores.find((v) => v.campo === campo) ?? null;
+  const val = (campo: string) => {
+    const v = get(campo)?.valor;
+    return v && String(v).trim() ? String(v) : null;
+  };
+  const sku = get("produto_sku");
+  const propostaConfirmada = sku?.origem === "proposta" && sku?.status === "confirmado";
+
+  const proposta: PropostaVinculada | null = sku?.origem === "proposta"
+    ? {
+        id: `PROPOSTA::${input.caseId}`,
+        caseId: input.caseId,
+        estado: propostaConfirmada ? "aprovada" : "importado_a_confirmar",
+        versao: null,
+        produtoSku: val("produto_sku"),
+        produtoNome: val("objeto_contrato"),
+        fontePreco: get("valor_total")?.status === "confirmado" ? "planilha_mestre" : (get("valor_total")?.origem ?? null),
+        valorContratado: val("valor_total"),
+        modalidade: val("forma_pagamento"),
+        formaPagamento: val("forma_pagamento"),
+        parcelas: val("parcelas"),
+        primeiroVencimento: lista(val("vencimentos"))[0] ?? null,
+        proximoVencimento: lista(val("vencimentos"))[1] ?? null,
+        servicosIncluidos: lista(val("servicos_incluidos")),
+        servicosExcluidos: val("servicos_excluidos") ? lista(val("servicos_excluidos")) : null,
+        entregaveis: lista(val("fases_entregas")),
+        objetivoEtapa: val("escopo_resumo"),
+        limitesDependencias: lista(val("prazos_referencia")),
+      }
+    : null;
+
+  return {
+    caseId: input.caseId,
+    clienteNome: input.clienteNome ?? val("contratante_nome"),
+    responsavel: input.responsavel ?? val("revisor_responsavel"),
+    dataContratacao: val("data_assinatura"),
+    contratoBaseVersao: input.contratoBaseVersao,
+    modelo: input.modelo,
+    proposta,
+    politicaDespesas: val("despesas_externas") ? "dependentes_de_aprovacao_individual" : null,
+    despesas: [],
+    // Condicionais: só nascem por decisão humana registrada, nunca por existir caso.
+    autorizacaoPesquisa: null,
+    procuracao: null,
+    alteracaoEscopo: null,
+  };
+}
