@@ -423,9 +423,9 @@ export function PainelDia() {
 
       {/* 1 — Minha fila priorizada */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Minha fila priorizada</h2>
-          <div className="flex flex-wrap gap-2 text-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
             {(
               [
                 ["responsavel", "Responsável", opcoes.responsaveis, ""],
@@ -433,10 +433,10 @@ export function PainelDia() {
                 ["etapa", "Etapa", opcoes.etapas, "eixo_comercial"],
               ] as const
             ).map(([campo, rotuloCampo, lista, catalogo]) => (
-              <label key={campo} className="flex items-center gap-1 text-navy/60">
-                {rotuloCampo}
+              <label key={campo} className="flex min-w-0 items-center gap-1 text-navy/60">
+                <span className="shrink-0">{rotuloCampo}</span>
                 <select
-                  className="rounded border border-navy/15 bg-white px-2 py-1 text-navy"
+                  className="min-w-0 max-w-full flex-1 rounded border border-navy/15 bg-white px-2 py-1 text-navy sm:flex-none"
                   value={filtros[campo] ?? ""}
                   onChange={(e) => setFiltros((f) => ({ ...f, [campo]: e.target.value }))}
                 >
@@ -452,9 +452,10 @@ export function PainelDia() {
           </div>
         </div>
         <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
-        <div className="mt-3 grid gap-4 lg:grid-cols-3">
+        <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {priorizadaVisivel.map((f) => (
-            <div key={f.chave}>
+            <div key={f.chave} className="min-w-0">
+
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
               </p>
