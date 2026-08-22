@@ -19,11 +19,14 @@ import {
   montarConfirmacao,
   validarDecisao,
 } from "@/lib/modo-proprietaria";
+import { resumoCobertura, validarOperacaoModulo } from "@/lib/modo-proprietaria-cobertura";
 
 export type EventoOverride = {
   id: string;
   categoria: string;
   acao: string;
+  modulo: string | null;
+  operacao: string | null;
   entidade: string;
   entidade_id: string | null;
   campo: string | null;
@@ -42,7 +45,8 @@ export type EventoOverride = {
 };
 
 const COLUNAS =
-  "id,categoria,acao,entidade,entidade_id,campo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,dados_teste,actor_papel,created_at";
+  "id,categoria,acao,modulo,operacao,entidade,entidade_id,campo,motivo,fonte,impacto,destinatario,valor_financeiro,acao_externa,irreversivel,confirmacao_manual,executado,dados_teste,actor_papel,created_at";
+
 
 /** Estado do modo, capacidades e últimas decisões registradas. */
 export const estadoModoProprietaria = createServerFn({ method: "GET" })
@@ -64,6 +68,7 @@ export const estadoModoProprietaria = createServerFn({ method: "GET" })
       papel,
       organizationId,
       capacidades: capacidadesDe(papel),
+      cobertura: resumoCobertura(),
       eventos: (eventos ?? []) as EventoOverride[],
     };
   });
@@ -77,6 +82,8 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
       acao: string;
+      modulo?: string | null;
+      operacao?: string | null;
       entidade: string;
       entidade_id?: string | null;
       campo?: string | null;
@@ -100,6 +107,14 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
         "Ação externa ou irreversível exige a janela final de confirmação explícita da proprietária.",
       );
     }
+    if (data.modulo) {
+      const v = validarOperacaoModulo(papel, {
+        modulo: data.modulo,
+        operacao: data.operacao ?? data.acao,
+        dados_teste: data.dados_teste === true,
+      });
+      if (!v.valida) throw new Error(v.erros.join(" "));
+    }
 
     const { data: row, error } = await supabase
       .from("owner_override_events")
@@ -109,6 +124,8 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
         actor_papel: papel,
         categoria: "override_interno",
         acao: data.acao,
+        modulo: data.modulo ?? null,
+        operacao: data.operacao ?? null,
         entidade: data.entidade,
         entidade_id: data.entidade_id ?? null,
         campo: data.campo ?? null,
@@ -124,6 +141,7 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
         confirmacao_manual: true,
         executado: false,
       })
+
       .select(COLUNAS)
       .single();
     if (error) throw new Error(error.message);
@@ -139,6 +157,7 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
       acao: string;
+      modulo?: string | null;
       entidade: string;
       entidade_id?: string | null;
       destinatario?: string | null;
@@ -169,6 +188,10 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
     if (data.confirmacao_manual !== true) {
       throw new Error("Confirmação manual explícita da proprietária é obrigatória.");
     }
+    if (data.dados_teste === true && data.acao === "publicar_no_app_cliente") {
+      throw new Error("Dados TESTE/DEMO não podem ser publicados no App Cliente.");
+    }
+
 
     const confirmacao = montarConfirmacao({ ...data, irreversivel: true });
     if (!confirmacao.pronta) {
@@ -185,6 +208,8 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
         actor_papel: papel,
         categoria: "confirmacao_externa",
         acao: data.acao,
+        modulo: data.modulo ?? null,
+        operacao: data.acao,
         entidade: data.entidade,
         entidade_id: data.entidade_id ?? null,
         motivo: data.motivo.trim(),

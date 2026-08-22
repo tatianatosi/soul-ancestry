@@ -11858,7 +11858,9 @@ export type Database = {
           id: string
           impacto: string | null
           irreversivel: boolean
+          modulo: string | null
           motivo: string
+          operacao: string | null
           organization_id: string
           pendencias_assumidas: Json
           valor_anterior: Json | null
@@ -11886,7 +11888,9 @@ export type Database = {
           id?: string
           impacto?: string | null
           irreversivel?: boolean
+          modulo?: string | null
           motivo: string
+          operacao?: string | null
           organization_id: string
           pendencias_assumidas?: Json
           valor_anterior?: Json | null
@@ -11914,7 +11918,9 @@ export type Database = {
           id?: string
           impacto?: string | null
           irreversivel?: boolean
+          modulo?: string | null
           motivo?: string
+          operacao?: string | null
           organization_id?: string
           pendencias_assumidas?: Json
           valor_anterior?: Json | null
