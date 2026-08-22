@@ -306,6 +306,16 @@ export const COBERTURA_MODULOS: Modulo[] = [
       { id: "editar_validacoes", rotulo: "Registrar validações", entidade: "evidence_validations" },
       { id: "editar_tarefas", rotulo: "Editar tarefas, entregas e microentregas", entidade: "ops_microentregas" },
       {
+        id: "aprovar_evidencia_interna",
+        rotulo: "Aprovar evidência ou achado interno por decisão auditada",
+        entidade: "genealogical_findings",
+      },
+      {
+        id: "ajustar_hipotese_trilha",
+        rotulo: "Ajustar hipótese, trilha e dependência",
+        entidade: "research_case_hypotheses",
+      },
+      {
         id: "decidir_prioridade_prazo_responsavel",
         rotulo: "Decidir prioridade, prazo e responsável",
         entidade: "tarefas",
