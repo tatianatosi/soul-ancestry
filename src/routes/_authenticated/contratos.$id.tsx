@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
   ROTULO_CATEGORIA_ESCOPO,
