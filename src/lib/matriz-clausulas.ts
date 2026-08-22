@@ -116,7 +116,7 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
   const perfil = perfilInstitucionalRenderizado(e.perfilStatus);
   const prop = propostaSatisfazGate(e.entradaAnexos.proposta ?? null, e.entradaAnexos.caseId);
   const p = e.entradaAnexos.proposta;
-  const anexo = (chave: string) => e.anexos.find((a) => a.chave === chave) ?? null;
+  const anexo = (codigo: string) => e.anexos.find((a) => a.codigo === codigo) ?? null;
   const conflitoDe = (campo: string) => e.conflitos.find((c) => c.campo === campo) ?? null;
 
   const linha = (
@@ -160,7 +160,13 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
         return linha(c, "presente", "Cláusula conforme política jurídica versionada vigente.", "Configuração jurídica");
       case "I": {
         const conf = conflitoDe("valor_total") ?? conflitoDe("preco");
-        if (conf) return linha(c, "conflito", conf.motivo, "Planejador x proposta");
+        if (conf)
+          return linha(
+            c,
+            "conflito",
+            `Divergência em ${conf.campo}: "${conf.valorAtual ?? "—"}" (${conf.origemAtual}) x "${conf.valorConcorrente ?? "—"}" (${conf.origemConcorrente}). Resolução humana obrigatória — nenhum valor é sobrescrito.`,
+            "Planejador x proposta",
+          );
         if (!prop.ok) return linha(c, "bloqueante", prop.motivo ?? "Proposta/OS inválida.", "ANX-COMERCIAL");
         if (!precoDeFonteHomologada(p?.fontePreco)) {
           return linha(c, "bloqueante", "Preço sem fonte homologada (template, WhatsApp ou transcrição não definem preço).", "ANX-COMERCIAL");
@@ -170,7 +176,7 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
       }
       case "J": {
         const a = anexo("ANEXO_II_DESPESAS");
-        if (a && a.estado !== "aplicavel_completo") {
+        if (a && (a.pendencias.length > 0 || a.estado === "pendente")) {
           return linha(c, "pendente", a.pendencias[0] ?? "Política de despesas de terceiros pendente.", "Regra institucional");
         }
         return linha(c, "presente", "Despesas de terceiros pagas diretamente pelo cliente, mediante aprovação registrada.", "Regra institucional");
@@ -186,7 +192,7 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
         if (!e.foroConfigurado) return linha(c, "bloqueante", "Foro/disposições finais sem configuração jurídica autorizada.", "Configuração jurídica");
         return linha(c, "presente", "Foro conforme configuração jurídica autorizada.", "Configuração jurídica");
       case "P": {
-        const pendentes = e.anexos.filter((a) => a.obrigatorio && a.estado !== "aplicavel_completo");
+        const pendentes = e.anexos.filter((a) => a.obrigatorio && (a.pendencias.length > 0 || a.estado === "pendente"));
         if (pendentes.length) {
           return linha(c, "bloqueante", `Anexo obrigatório pendente: ${pendentes.map((a) => a.titulo).join(", ")}.`, "Regras de aplicabilidade");
         }
