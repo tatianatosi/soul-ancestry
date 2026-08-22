@@ -47,6 +47,7 @@ export function EntidadeCrud({
   filtrarLinhas,
   classeLinha,
   topo,
+  larguraMinima = 720,
 }: {
   entidade: Entidade;
   titulo: string;
