@@ -379,14 +379,140 @@ function LeadsPage() {
                   {label}
                 </label>
               ))}
-              <label className="flex items-center gap-2 text-sm text-navy">
-                <input type="checkbox" checked={bool("consentimento_gravacao")} disabled={!podeEscrever} onChange={(e) => set("consentimento_gravacao")(e.target.checked)} />
-                Consentimento de gravação registrado
-              </label>
-              <Texto label="Gravação (referência interna)" valor={campo("gravacao_link_interno")} onChange={set("gravacao_link_interno")} desabilitado={!podeEscrever || !bool("consentimento_gravacao")} />
               <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} desabilitado={!podeEscrever} />
             </div>
           </Secao>
+
+          <Secao
+            titulo="Consentimento de gravação e transcrição"
+            descricao="Gravação, transcrição e uso interno só com consentimento concedido, datado, com canal e versão do aviso. Sem isso, nenhuma referência de gravação pode ser registrada."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao
+                label="Status do consentimento"
+                valor={campo("consentimento_status")}
+                opcoes={CONSENTIMENTO_STATUS}
+                onChange={set("consentimento_status")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Data/hora do consentimento"
+                tipo="datetime-local"
+                valor={String(editado.consentimento_em ?? "").slice(0, 16)}
+                onChange={set("consentimento_em")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Canal do consentimento"
+                valor={campo("consentimento_canal")}
+                opcoes={CANAIS_CONSENTIMENTO}
+                onChange={set("consentimento_canal")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Versão do aviso apresentada"
+                valor={campo("consentimento_versao_aviso")}
+                onChange={set("consentimento_versao_aviso")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Gravação (referência interna)"
+                valor={campo("gravacao_link_interno")}
+                onChange={set("gravacao_link_interno")}
+                desabilitado={!podeEscrever || campo("consentimento_status") !== "concedido"}
+              />
+              <label className="flex items-end gap-2 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={bool("consentimento_gravacao")}
+                  disabled={!podeEscrever}
+                  onChange={(e) => set("consentimento_gravacao")(e.target.checked)}
+                />
+                Consentimento confirmado na conversa
+              </label>
+            </div>
+          </Secao>
+
+          <Secao
+            titulo="Linha familiar, trilha jurídica e pesquisa prévia"
+            descricao="Trilhas e marcos são referência interna de triagem, nunca parecer jurídico nem garantia de direito. Pesquisa nominal externa exige autorização registrada."
+          >
+            <div className="grid gap-3 md:grid-cols-2">
+              <Selecao
+                label="País/linha prioritária"
+                valor={campo("pais_linha_prioritaria")}
+                opcoes={PAISES_LINHA_PRIORITARIA}
+                onChange={set("pais_linha_prioritaria")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Localidades conhecidas (comuna, paróquia, província)"
+                valor={campo("localidades_conhecidas")}
+                onChange={set("localidades_conhecidas")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Nacionalidades de interesse"
+                opcoes={NACIONALIDADES}
+                valores={(editado.nacionalidades_interesse ?? []) as string[]}
+                onChange={set("nacionalidades_interesse")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Documentos-chave já indicados"
+                opcoes={DOCUMENTOS_CHAVE}
+                valores={(editado.documentos_chave ?? []) as string[]}
+                onChange={set("documentos_chave")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Trilha jurídica de referência"
+                valor={campo("trilha_referencia_id")}
+                opcoes={opcoesTrilhas}
+                onChange={set("trilha_referencia_id")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Marco jurídico de referência"
+                valor={campo("marco_referencia_id")}
+                opcoes={opcoesMarcos}
+                onChange={set("marco_referencia_id")}
+                desabilitado={!podeEscrever}
+              />
+              <Selecao
+                label="Autorização de pesquisa prévia"
+                valor={campo("pesquisa_previa_autorizacao")}
+                opcoes={PESQUISA_PREVIA_AUTORIZACAO}
+                onChange={set("pesquisa_previa_autorizacao")}
+                desabilitado={!podeEscrever}
+              />
+              <Texto
+                label="Limite declarado da pesquisa prévia"
+                valor={campo("pesquisa_previa_limite")}
+                onChange={set("pesquisa_previa_limite")}
+                desabilitado={!podeEscrever}
+              />
+              <MultiSelecao
+                label="Escopo autorizado da pesquisa prévia"
+                opcoes={PESQUISA_PREVIA_ESCOPO}
+                valores={(editado.pesquisa_previa_escopo ?? []) as string[]}
+                onChange={set("pesquisa_previa_escopo")}
+                desabilitado={!podeEscrever}
+              />
+              {trilhaSelecionada ? (
+                <div className="md:col-span-2 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
+                  <p className="font-medium text-navy">
+                    {trilhaSelecionada.pais} · {trilhaSelecionada.track_name} — {rotulo("status_via", trilhaSelecionada.status_via)}
+                  </p>
+                  {trilhaSelecionada.legal_reference_summary ? <p className="mt-1">{trilhaSelecionada.legal_reference_summary}</p> : null}
+                  <p className="mt-1">
+                    Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </Secao>
+
 
           <Secao
             titulo="Recomendação comercial e despesas de terceiros"
