@@ -730,6 +730,10 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
  */
 export function atividadeExternaComProcuracaoLiberada(p: ProcuracaoAnexo | null): boolean {
   if (!p || !p.exigidaPorOrgao) return false;
+  if (p.tipo === "europa") {
+    if (!p.contextoEuropeu) return false;
+    if (bloqueiosProcuracaoEuropeia(p.contextoEuropeu).bloqueado) return false;
+  }
   if (!p.finalidade || !p.orgaoDestinatario || !p.pessoas.length || !p.poderes.length) return false;
   if (!p.revisaoJuridicaAprovada) return false;
   if (!["assinada", "enviada", "respondida"].includes(p.status)) return false;
