@@ -10,19 +10,24 @@ import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
+  aplicarFiltrosDia,
   cadenciaRelevante,
+  cardsHoje,
   chavesExibidas,
   comercialHoje,
   consolidarDia,
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
+  opcoesFiltroDia,
   textoDiasSemTouchpoint,
   textoPrazo,
   agruparLinhasIndicadores,
+  type FiltrosDia,
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+
 
 function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
   if (item.tipo === "caso") {
