@@ -7,6 +7,8 @@ import {
   AREAS_CANONICAS,
   CATALOGO_EXCECOES,
   ETAPAS_ACEITAM_DOCUMENTO,
+  ESTADOS_DOCUMENTO,
+  FLUXO_DOCUMENTOS,
   REGRAS_DOCUMENTO,
   resumoVarredura,
 } from "@/lib/varredura-autorizacoes";
@@ -67,6 +69,9 @@ export function VarreduraAutorizacoes() {
                 <h3 className="text-sm font-semibold text-foreground">{area.rotulo}</h3>
                 <code className="text-xs text-muted-foreground">{area.rota}</code>
               </header>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Estado interno máximo: <strong className="text-foreground">{area.estadoMaximoInterno}</strong>
+              </p>
               <ul className="mt-3 space-y-2">
                 {area.acoes.map((acao) => (
                   <li key={acao.chave} className="rounded-lg border border-border/60 p-2">
@@ -143,6 +148,17 @@ export function VarreduraAutorizacoes() {
               </div>
             ))}
           </dl>
+          <ul className="mt-4 space-y-2">
+            {FLUXO_DOCUMENTOS.map((f) => (
+              <li key={f.etapa} className="rounded-lg border border-border/60 p-2">
+                <p className="text-xs font-semibold text-foreground">{f.rotulo}</p>
+                <p className="text-xs text-muted-foreground">{f.regra}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Estados possíveis: {ESTADOS_DOCUMENTO.join(", ")}.
+          </p>
         </div>
       </div>
     </section>

@@ -81,6 +81,8 @@ export const ACOES_EXTERNAS = [
   "criar_procuracao",
   "publicar_no_app_cliente",
   "excluir_registro_ou_versao",
+  "aplicar_migration_producao",
+  "restaurar_backup",
 ] as const;
 
 export type AcaoExterna = (typeof ACOES_EXTERNAS)[number];
@@ -101,7 +103,10 @@ export const ROTULO_ACAO_EXTERNA: Record<AcaoExterna, string> = {
   criar_procuracao: "Criar procuração",
   publicar_no_app_cliente: "Publicar conteúdo no App Cliente",
   excluir_registro_ou_versao: "Excluir registro ou versão",
+  aplicar_migration_producao: "Aplicar migration em produção",
+  restaurar_backup: "Restaurar backup sobrescrevendo dados",
 };
+
 
 export function exigeConfirmacaoFinal(acao: string): acao is AcaoExterna {
   return (ACOES_EXTERNAS as readonly string[]).includes(acao);

@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { ACOES_EXTERNAS } from "@/lib/modo-proprietaria";
+import { ACOES_EXTERNAS, exigeConfirmacaoFinal } from "@/lib/modo-proprietaria";
 import {
   AREAS_CANONICAS,
+  CAMPOS_EXCECAO,
   CATALOGO_EXCECOES,
+  CLASSES_DOCUMENTO,
+  ESTADO_MAXIMO_INTERNO,
+  ESTADOS_DOCUMENTO,
+  EXCECAO_NUNCA_FALSIFICA,
+  FLUXO_DOCUMENTOS,
+  REGRAS_DOCUMENTO,
+  STATUS_EXCECAO,
+  excecaoDeveReaparecerNaFila,
+  fluxoDocumentoPorEtapa,
   acoesInternas,
   documentoPodeSerAdicionadoEm,
   excecaoPorChave,
@@ -65,5 +75,87 @@ describe("varredura de autorizações", () => {
     expect(documentoPodeSerAdicionadoEm("pos_entrega")).toBe(true);
     expect(documentoPodeSerAdicionadoEm("lead")).toBe(true);
     expect(documentoPodeSerAdicionadoEm("etapa_inexistente")).toBe(false);
+  });
+});
+
+describe("varredura final — áreas, exceções e documentos", () => {
+  it("todas as áreas obrigatórias estão cobertas", () => {
+    const chaves = AREAS_CANONICAS.map((a) => a.chave);
+    for (const obrigatoria of [
+      "planejador",
+      "leads_discovery",
+      "proposta_comercial",
+      "catalogo_sku",
+      "pessoas_familias",
+      "casos_tarefas",
+      "pesquisa",
+      "contrato",
+      "ordens_servico",
+      "documentos",
+      "financeiro",
+      "app_cliente",
+      "painel_hoje",
+      "administracao",
+      "governanca",
+    ]) {
+      expect(chaves).toContain(obrigatoria);
+    }
+  });
+
+  it("toda área chega ao estado interno máximo sem ato externo", () => {
+    for (const area of AREAS_CANONICAS) {
+      expect(area.estadoMaximoInterno).toBe(ESTADO_MAXIMO_INTERNO);
+    }
+  });
+
+  it("classificações obrigatórias de exceção existem no catálogo", () => {
+    const chaves = CATALOGO_EXCECOES.map((e) => e.chave);
+    for (const c of [
+      "documento_pendente",
+      "condicao_comercial_fora_padrao",
+      "contrato_assinatura_pendente",
+      "proposta_incompleta",
+      "sku_nao_homologado",
+      "dado_cadastral_incompleto",
+      "pesquisa_recheque_pendente",
+      "responsavel_prazo_ausente",
+      "onboarding_acesso_pendente",
+      "integracao_indisponivel",
+      "dado_teste_demo",
+      "conflito_ou_falta_de_fonte",
+    ]) {
+      expect(chaves).toContain(c);
+    }
+  });
+
+  it("exceção reaparece na fila antes de expirar e nunca falsifica atos", () => {
+    const agora = new Date("2026-01-10T00:00:00.000Z");
+    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-01-12T00:00:00.000Z" }, agora)).toBe(true);
+    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-02-12T00:00:00.000Z" }, agora)).toBe(false);
+    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-01-12T00:00:00.000Z", regularizado_em: "2026-01-11" }, agora)).toBe(false);
+    expect(EXCECAO_NUNCA_FALSIFICA).toContain("pagamento");
+    expect(STATUS_EXCECAO).toEqual(["aberta", "regularizada", "expirada", "revogada"]);
+    expect(CAMPOS_EXCECAO).toContain("responsavel_regularizacao");
+  });
+
+  it("documento pode ser estruturado e anexado depois em todas as etapas A–F", () => {
+    expect(FLUXO_DOCUMENTOS).toHaveLength(6);
+    for (const f of FLUXO_DOCUMENTOS) {
+      expect(f.permiteEstrutura).toBe(true);
+      expect(f.permiteAnexoPosterior).toBe(true);
+      expect(f.bloqueiaInterno).toBe(false);
+    }
+    expect(fluxoDocumentoPorEtapa("app_cliente")?.regra).toMatch(/quarentena/i);
+    expect(fluxoDocumentoPorEtapa("publicacao")?.regra).toMatch(/confirmação final/i);
+    expect(ESTADOS_DOCUMENTO).toContain("ilegivel");
+    expect(ESTADOS_DOCUMENTO).toContain("aguardando_instituicao");
+    expect(CLASSES_DOCUMENTO).toContain("evidencia_pesquisa");
+    expect(REGRAS_DOCUMENTO.exclusaoFisica).toBe(false);
+  });
+
+  it("migration e restauração de backup exigem confirmação final", () => {
+    expect(exigeConfirmacaoFinal("aplicar_migration_producao")).toBe(true);
+    expect(exigeConfirmacaoFinal("restaurar_backup")).toBe(true);
+    expect(exigeConfirmacaoFinal("editar_rascunho")).toBe(false);
   });
 });
