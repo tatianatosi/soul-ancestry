@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelModoProprietaria } from "@/components/governanca/modo-proprietaria";
+import { VarreduraAutorizacoes } from "@/components/governanca/varredura-autorizacoes";
 
 export const Route = createFileRoute("/_authenticated/modo-proprietaria")({
   head: () => ({
