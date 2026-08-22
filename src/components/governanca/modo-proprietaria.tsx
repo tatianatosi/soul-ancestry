@@ -152,6 +152,7 @@ export function ConfirmacaoAcaoExterna({ pedido }: { pedido: PedidoConfirmacao &
           conteudo: pedido.conteudo ?? null,
           valor: pedido.valor ?? null,
           caso: pedido.caso ?? null,
+          moeda: pedido.moeda ?? null,
           anexos: pedido.anexos ?? [],
           impacto: pedido.impacto ?? null,
           dados_enviados: pedido.dados_enviados ?? null,
@@ -289,6 +290,7 @@ export function PainelModoProprietaria() {
           pedido={{
             acao,
             entidade: "acao_externa",
+            organizacao: estado.organizationId,
             destinatario: "",
             conteudo: "",
             valor: null,
