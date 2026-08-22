@@ -15,7 +15,8 @@ import {
   previaFinalLiberada,
   type MembroFamiliar,
 } from "@/lib/matriz-clausulas";
-import { MATRIZ_RENDERIZACAO, CONTRATO_BASE_VERSAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
+import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { avaliarCriteriosAceite, blocosRenderizados, type BlocoRenderizado } from "@/lib/matriz-aceite";
 import {
   anexosIaV,
   conflitoDeFonte,
@@ -137,21 +138,41 @@ export function previaTesteAssinavel() {
 export const OBSERVACAO_TERCEIROS_PREVIA = CLAUSULA_DESPESAS_TERCEIROS;
 
 /** Situação de cada linha da matriz de renderização nesta prévia TESTE. */
-export type SituacaoRenderizacao = LinhaRenderizacao & { situacao: "renderizado" | "renderizado_com_pendencia" };
+export type SituacaoRenderizacao = BlocoRenderizado;
 
 export function matrizRenderizacaoPreviaTeste(anexos = anexosDaPreviaTeste()): SituacaoRenderizacao[] {
   const pendComercial = anexos.find((a) => a.codigo === "ANX-COMERCIAL");
-  const pendentes = new Set<string>();
-  if (!VARIAVEIS_TESTE.find((v) => v.campo === "valor_total")?.valor) pendentes.add("Comercial");
-  if (!VARIAVEIS_TESTE.find((v) => v.campo === "prazo_referencia")?.valor) pendentes.add("Prazo");
-  if (!VARIAVEIS_TESTE.find((v) => v.campo === "metodo_assinatura")?.valor) pendentes.add("Assinatura");
-  if (!VARIAVEIS_TESTE.find((v) => v.campo === "servicos_excluidos")?.valor) pendentes.add("Inclusões e exclusões");
-  if (pendComercial && !pendComercial.aplicavel) pendentes.add("Terceiros");
+  const pendentes: Record<string, string> = {};
+  if (!VARIAVEIS_TESTE.find((v) => v.campo === "valor_total")?.valor)
+    pendentes["Comercial"] = "Condição comercial sem valor confirmado por fonte homologada.";
+  if (!VARIAVEIS_TESTE.find((v) => v.campo === "prazo_referencia")?.valor)
+    pendentes["Prazo"] = "Prazo não formalizado — não pode ser inferido.";
+  if (!VARIAVEIS_TESTE.find((v) => v.campo === "metodo_assinatura")?.valor)
+    pendentes["Assinatura"] = "Método de assinatura institucional ausente.";
+  if (!VARIAVEIS_TESTE.find((v) => v.campo === "servicos_excluidos")?.valor)
+    pendentes["Inclusões e exclusões"] = "Exclusões não derivadas da proposta/OS aprovada.";
+  if (pendComercial && !pendComercial.aplicavel)
+    pendentes["Terceiros"] = "Exceção de despesa de terceiro exige aprovação registrada.";
 
-  return MATRIZ_RENDERIZACAO.map((l) => ({
-    ...l,
-    situacao: pendentes.has(l.bloco) ? "renderizado_com_pendencia" : "renderizado",
-  }));
+  return blocosRenderizados(anexosIaVTeste(), pendentes);
+}
+
+/** Critérios de aceite demonstrados pela prévia interna de TESTE. */
+export function criteriosAceiteTeste() {
+  const blocos = matrizRenderizacaoPreviaTeste();
+  const anexosGov = anexosIaVTeste();
+  const familia = estruturaFamiliarTeste();
+  const bloqueios = bloqueiosDaPreviaTeste();
+  return avaliarCriteriosAceite({
+    clausulasFixasRenderizadas: blocos.filter((b) => b.tipo === "fixo").every((b) => b.situacao !== "nao_aplicavel"),
+    variaveisComFonteEstadoVersao: VARIAVEIS_TESTE.every((v) => Boolean(v.origem && v.estado)),
+    anexosIaVAvaliados: anexosGov.length === 5,
+    anexosFamiliaresConformes: familia.contratosParalelos === 0 && familia.signatarios.length > 0,
+    rascunhosDoCaso: 1,
+    snapshotsSomentePorEvento: true,
+    bloqueiosComMotivoResponsavelRota: bloqueios.every((b) => Boolean(b.motivo && b.rotaResolucao)),
+    nenhumaAcaoExternaExecutada: true,
+  });
 }
 
 /* ---------------- Anexos I–V na prévia TESTE ---------------- */
