@@ -75,11 +75,12 @@ function FinanceiroPage() {
   const [ajuste, setAjuste] = useState({ valor: "", motivo: "" });
   const [conc, setConc] = useState({ data: "", valor: "", referencia: "" });
   const [realidadeAberta, setRealidadeAberta] = useState(true);
+  const [incluirDemos, setIncluirDemos] = useState(false);
 
   const recurso = aba === "faturas" ? "invoices" : "payments";
   const q = useQuery({
-    queryKey: ["financeiro", recurso, status],
-    queryFn: () => listar({ data: { recurso, status: status || undefined } }),
+    queryKey: ["financeiro", recurso, status, incluirDemos],
+    queryFn: () => listar({ data: { recurso, status: status || undefined, incluirDemos } }),
     enabled: podeFinanceiro,
   });
   const qFaturas = useQuery({
@@ -150,6 +151,9 @@ function FinanceiroPage() {
   const faturas = (qFaturas.data ?? []) as Linha[];
   const linhas = (q.data ?? []) as Linha[];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
+  const ehDemo = (l: Linha) =>
+    l["dados_teste"] === true ||
+    (clientes.find((c) => c.id === l["client_id"]) as { is_demo?: boolean } | undefined)?.is_demo === true;
   const rotuloFatura = (id: unknown) => {
     const f = faturas.find((x) => x["id"] === id);
     return f ? `${String(f["descricao"] ?? f["numero"] ?? "Fatura")} — ${moeda(f["valor"], f["moeda"])}` : "—";
@@ -316,6 +320,18 @@ function FinanceiroPage() {
 
         <FiltroStatus rotulos={rotulos} valor={status} aoMudar={setStatus} />
 
+        <label className="flex items-center gap-2 text-xs text-navy/60">
+          <input
+            type="checkbox"
+            checked={incluirDemos}
+            onChange={(e) => setIncluirDemos(e.target.checked)}
+            className="h-3.5 w-3.5 accent-navy"
+          />
+          Incluir demonstrações (visualização interna; registros com selo DEMO nunca entram em indicadores, previsões,
+          caixa ou App Cliente)
+        </label>
+
+
         {erro ? (
           <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
             Ação bloqueada: {erro}
@@ -373,6 +389,8 @@ function FinanceiroPage() {
                           }
                         />
                       ) : null}
+                      {ehDemo(l) ? <Selo texto="DEMO" tom="alerta" /> : null}
+
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button

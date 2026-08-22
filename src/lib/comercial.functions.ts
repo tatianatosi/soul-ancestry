@@ -5,6 +5,8 @@ import {
   exigirPapel,
   limpar,
   PAPEIS_COMERCIAL,
+  PAPEIS_DEMO_VISIVEL,
+  TEM_MARCA_TESTE,
   PAPEIS_FINANCEIRO,
   RECURSOS,
   validarFluxo,
@@ -14,10 +16,19 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Lista um recurso comercial/financeiro com filtro por status. */
+/** Lista um recurso comercial/financeiro com filtro por status.
+ *  Registros DEMO/TESTE (dados_teste = true) ficam fora por padrão — inclusive quando
+ *  a marca está na entidade relacionada (fatura de um pagamento). Só perfis internos
+ *  autorizados podem pedir a inclusão explícita com incluirDemos. */
 export const listarComercial = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { recurso: Recurso; status?: string; incluirArquivados?: boolean; apenasArquivados?: boolean }) => {
+  .inputValidator((data: {
+    recurso: Recurso;
+    status?: string;
+    incluirArquivados?: boolean;
+    apenasArquivados?: boolean;
+    incluirDemos?: boolean;
+  }) => {
     if (!RECURSOS.includes(data.recurso)) throw new Error("Recurso inválido.");
     return data;
   })
@@ -27,6 +38,7 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (data.recurso === "invoices" || data.recurso === "payments") {
       exigirPapel(papel, [...PAPEIS_FINANCEIRO, "operacoes", "leitura"], "Sem acesso financeiro.");
     }
+    const incluirDemos = data.incluirDemos === true && PAPEIS_DEMO_VISIVEL.includes(papel);
     let q = supabase
       .from(data.recurso)
       .select("*")
@@ -35,11 +47,47 @@ export const listarComercial = createServerFn({ method: "GET" })
     if (data.status) q = q.eq("status", data.status);
     if (data.apenasArquivados) q = q.not("archived_at", "is", null);
     else if (!data.incluirArquivados) q = q.is("archived_at", null);
+    if (!incluirDemos && TEM_MARCA_TESTE.includes(data.recurso)) q = q.or("dados_teste.is.null,dados_teste.eq.false");
 
     const { data: linhas, error } = await q;
     if (error) throw new Error(error.message);
-    return (linhas ?? []) as Record<string, any>[];
+    let saida = (linhas ?? []) as Record<string, any>[];
+
+    // Defesa em profundidade: a marca de origem também vale quando está na entidade relacionada
+    // (cliente demonstrativo ou fatura demonstrativa). Nada é alterado no banco, apenas ocultado.
+    if (!incluirDemos && saida.length > 0) {
+      const clientesDemo = new Set<string>();
+      const { data: cli } = await supabase
+        .from("clientes")
+        .select("id,is_demo")
+        .eq("organization_id", organizationId)
+        .eq("is_demo", true);
+      for (const c of (cli ?? []) as { id: string }[]) clientesDemo.add(c.id);
+
+      if (data.recurso === "invoices" || data.recurso === "proposals") {
+        saida = saida.filter((l) => !clientesDemo.has(String(l["client_id"])));
+      }
+      if (data.recurso === "payments") {
+        const ids = [...new Set(saida.map((l) => l["invoice_id"]).filter(Boolean))];
+        if (ids.length > 0) {
+          const { data: faturas } = await supabase
+            .from("invoices")
+            .select("id,dados_teste,client_id")
+            .eq("organization_id", organizationId)
+            .in("id", ids);
+          const demos = new Set(
+            ((faturas ?? []) as { id: string; dados_teste: boolean | null; client_id: string | null }[])
+              .filter((f) => f.dados_teste === true || (f.client_id ? clientesDemo.has(f.client_id) : false))
+              .map((f) => f.id),
+          );
+          saida = saida.filter((l) => !demos.has(String(l["invoice_id"])));
+        }
+      }
+    }
+    return saida;
   });
+
+
 
 /** Catálogos auxiliares (clientes, casos, contratos, faturas) para vínculos e rótulos. */
 export const listarVinculos = createServerFn({ method: "GET" })
@@ -48,7 +96,7 @@ export const listarVinculos = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
     const [clientes, casos, contratos, faturas, propostas] = await Promise.all([
-      supabase.from("clientes").select("id,nome").eq("organization_id", organizationId).is("archived_at", null),
+      supabase.from("clientes").select("id,nome,is_demo").eq("organization_id", organizationId).is("archived_at", null),
       supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).is("archived_at", null),
       supabase
         .from("contracts")
