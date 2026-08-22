@@ -203,6 +203,8 @@ export const confirmarAcaoExterna = createServerFn({ method: "POST" })
         actor_papel: papel,
         categoria: "confirmacao_externa",
         acao: data.acao,
+        modulo: data.modulo ?? null,
+        operacao: data.acao,
         entidade: data.entidade,
         entidade_id: data.entidade_id ?? null,
         motivo: data.motivo.trim(),
