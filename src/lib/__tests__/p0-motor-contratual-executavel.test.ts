@@ -218,7 +218,7 @@ describe("P0 — motor contratual executável", () => {
   });
 
   it("19. dados DEMO não viram fallback", () => {
-    const base = { archived_at: null, classificacao: "cliente" } as unknown as PessoaLista;
+    const base = { archived_at: null, classificacao: "cliente", status: "ativo" } as unknown as PessoaLista;
     const pessoas = [
       { ...base, id: "1", nome: "TESTE Real", is_demo: false },
       { ...base, id: "2", nome: "TESTE Demo", is_demo: true },
