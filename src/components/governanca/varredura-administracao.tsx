@@ -377,6 +377,40 @@ function TabelaAprovacoesPendentes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!linhaPrevia} onOpenChange={(open) => !open && setLinhaPrevia(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-navy">Prévia — {linhaPrevia?.id}</DialogTitle>
+            <DialogDescription>{linhaPrevia?.alvo}</DialogDescription>
+          </DialogHeader>
+          {linhaPrevia ? (
+            <div className="space-y-3 text-sm text-navy/70">
+              <p>
+                <span className="text-navy/45">Grupo:</span> {ROTULO_GRUPO_APROVACAO[linhaPrevia.grupo]}
+              </p>
+              <p>
+                <span className="text-navy/45">Prévia:</span> {linhaPrevia.previa}
+              </p>
+              <p>
+                <span className="text-navy/45">Dados envolvidos:</span> {linhaPrevia.dadosEnvolvidos}
+              </p>
+              <p>
+                <span className="text-navy/45">Reversibilidade:</span>{" "}
+                {ROTULO_REVERSIBILIDADE[linhaPrevia.reversibilidade]}
+              </p>
+              <p>
+                <span className="text-navy/45">Confirmação necessária:</span> {linhaPrevia.confirmacao}
+              </p>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinhaPrevia(null)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
