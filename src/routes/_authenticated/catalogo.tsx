@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { SaasShell } from "@/components/saas/shell";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
@@ -46,15 +47,10 @@ function CatalogoPage() {
   const previa = previaImportacao(itens.map((i) => ({ sku: i.sku, fonte_versao: i.fonte_versao })));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <header>
-        <p className="text-xs uppercase tracking-wide text-navy/50">Área proprietária · Catálogo e comercial</p>
-        <h1 className="mt-1 font-serif text-3xl text-navy">Catálogo importado da fonte canônica</h1>
-        <p className="mt-2 max-w-3xl text-sm text-navy/65">
-          Leitura do catálogo já saneado. Preço, status, categoria e Pareto vêm da planilha mestre. Nada é recriado,
-          reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado.
-        </p>
-      </header>
+    <SaasShell
+      titulo="Catálogo comercial"
+      descricao="Leitura do catálogo já saneado. Preço, status, categoria e Pareto vêm da planilha mestre. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
+    >
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -161,6 +157,6 @@ function CatalogoPage() {
           ) : null}
         </ul>
       </section>
-    </div>
+    </SaasShell>
   );
 }
