@@ -389,7 +389,7 @@ function FinanceiroPage() {
                           }
                         />
                       ) : null}
-                      {l["dados_teste"] === true ? <Selo texto="DEMO" tom="alerta" /> : null}
+                      {ehDemo(l) ? <Selo texto="DEMO" tom="alerta" /> : null}
 
                     </td>
                     <td className="px-4 py-3 text-right">
