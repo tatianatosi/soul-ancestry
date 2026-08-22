@@ -19,6 +19,10 @@ const linha = (over: Record<string, unknown> = {}) =>
     status_link_asaas: "validado",
     link_asaas_validado: "https://x",
     link_asaas_fonte: "https://x",
+    versao_vigencia: "v1.0",
+    data_ultima_validacao: "2026-01-10",
+    responsavel_homologacao: "Governança",
+    escopo_aprovado: "Escopo homologado",
     ...over,
   });
 
