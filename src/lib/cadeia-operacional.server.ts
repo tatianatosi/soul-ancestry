@@ -454,6 +454,95 @@ export async function aprovarPropostaEstruturada(
   return { proposalId: row.id, condicaoId, pendencias: condicao.pendencias };
 }
 
+/**
+ * Persiste os itens de escopo do contrato herdando a origem da proposta
+ * aprovada (proposta → condição comercial → OS). Nunca apaga: itens que saíram
+ * da proposta são arquivados com motivo declarado.
+ */
+async function sincronizarEscopoContratual(
+  supabase: Sb,
+  input: {
+    org: string;
+    userId: string;
+    contratoId: string;
+    proposalId: string;
+    condicaoId: string;
+    osId: string;
+    itens: ReturnType<typeof itensEscopoDaOS>;
+  },
+) {
+  const { data: atuais } = await supabase
+    .from("contract_scope_items")
+    .select("id,title,category,archived_at")
+    .eq("organization_id", input.org)
+    .eq("contract_id", input.contratoId)
+    .eq("source_type", "proposal");
+
+  const chave = (c: string, t: string) => `${c}::${t}`;
+  const existentes = new Map<string, any>();
+  for (const r of (atuais ?? []) as any[]) existentes.set(chave(r.category, r.title), r);
+
+  let inseridos = 0;
+  let atualizados = 0;
+  const desejados = new Set<string>();
+
+  for (const item of input.itens) {
+    const k = chave(item.category, item.title);
+    desejados.add(k);
+    const comum = {
+      organization_id: input.org,
+      contract_id: input.contratoId,
+      proposal_id: input.proposalId,
+      commercial_condition_id: input.condicaoId,
+      service_order_id: input.osId,
+      category: item.category,
+      title: item.title,
+      description: item.description,
+      status: item.status,
+      source_type: item.source_type,
+      source_reference: item.source_reference,
+      display_order: item.display_order,
+      requires_human_validation: item.requires_human_validation,
+      updated_by: input.userId,
+    };
+    const atual = existentes.get(k);
+    if (atual) {
+      const { error } = await supabase
+        .from("contract_scope_items")
+        .update({ ...comum, archived_at: null, archived_by: null, archive_reason: null })
+        .eq("id", atual.id);
+      if (error) throw new Error(error.message);
+      atualizados += 1;
+    } else {
+      const { error } = await supabase
+        .from("contract_scope_items")
+        .insert({ ...comum, created_by: input.userId });
+      if (error) throw new Error(error.message);
+      inseridos += 1;
+    }
+  }
+
+  let arquivados = 0;
+  for (const [k, r] of existentes) {
+    if (desejados.has(k) || r.archived_at) continue;
+    const { error } = await supabase
+      .from("contract_scope_items")
+      .update({
+        archived_at: new Date().toISOString(),
+        archived_by: input.userId,
+        archive_reason: "Item deixou de constar na proposta aprovada vigente.",
+        updated_by: input.userId,
+      })
+      .eq("id", r.id);
+    if (error) throw new Error(error.message);
+    arquivados += 1;
+  }
+
+  return { inseridos, atualizados, arquivados };
+}
+
+
+
 export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId: string; proposalId: string }) {
   const { data: row } = await supabase.from("proposals").select("*").eq("id", input.proposalId).maybeSingle();
   if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
