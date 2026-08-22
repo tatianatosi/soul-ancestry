@@ -5,8 +5,12 @@ import {
   CONFIRMACOES_EXTERNAS,
   MAPA_ADMINISTRADORAS,
   PACOTE_APROVACOES,
+  ROTULO_REVERSIBILIDADE,
   aprovacoesPorGrupo,
   bloqueiosPorNatureza,
+  confirmacaoExternaObrigatoria,
+  derivarAcaoPacote,
+  resumoConfirmacaoPacote,
   validarAlteracaoAcesso,
 } from "@/lib/varredura-administracao";
 
