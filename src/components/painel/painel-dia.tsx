@@ -348,11 +348,11 @@ export function PainelDia() {
           <div className="flex flex-wrap gap-2 text-xs">
             {(
               [
-                ["responsavel", "Responsável", opcoes.responsaveis],
-                ["area", "Área", opcoes.areas],
-                ["etapa", "Etapa", opcoes.etapas],
+                ["responsavel", "Responsável", opcoes.responsaveis, ""],
+                ["area", "Área", opcoes.areas, "area_responsavel"],
+                ["etapa", "Etapa", opcoes.etapas, "eixo_comercial"],
               ] as const
-            ).map(([campo, rotuloCampo, lista]) => (
+            ).map(([campo, rotuloCampo, lista, catalogo]) => (
               <label key={campo} className="flex items-center gap-1 text-navy/60">
                 {rotuloCampo}
                 <select
@@ -363,7 +363,7 @@ export function PainelDia() {
                   <option value="">Todos</option>
                   {lista.map((v) => (
                     <option key={v} value={v}>
-                      {rotuloCatalogo("area", v) || v}
+                      {catalogo ? rotuloCatalogo(catalogo, v) : v}
                     </option>
                   ))}
                 </select>
