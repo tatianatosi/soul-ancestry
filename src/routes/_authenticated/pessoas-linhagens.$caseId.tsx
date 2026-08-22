@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { AbaModulos } from "@/components/genealogia/aba-modulos";
+import { AbaProjecaoCliente } from "@/components/genealogia/aba-projecao-cliente";
+import type { RegistroModulo } from "@/lib/genealogia-modulos";
 import {
   ESTADO_VALIDACAO_VARIANTE,
   MOTIVO_SEM_PROJECAO,
@@ -121,7 +124,9 @@ const ABAS = [
   { id: "variantes", rotulo: "Variantes de nome" },
   { id: "linhagens", rotulo: "Linhagens" },
   { id: "eventos", rotulo: "Eventos" },
+  { id: "modulos", rotulo: "Módulos históricos" },
   { id: "lacunas", rotulo: "Lacunas e próximas pesquisas" },
+  { id: "projecao", rotulo: "Projeção ao cliente" },
 ] as const;
 
 type AbaId = (typeof ABAS)[number]["id"];
@@ -334,6 +339,22 @@ function Pagina() {
           podeEditar={podeEditar}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "lineage_paths", id, valores })}
         />
+      ) : null}
+
+      {aba === "modulos" ? (
+        <AbaModulos
+          modulos={(data?.modulos ?? {}) as unknown as Record<string, RegistroModulo[]>}
+          pessoas={pessoasOpcoes}
+          evidencias={evidenciaOpcoes}
+          fontes={fonteOpcoes}
+          podeEditar={podeEditar}
+          onSalvar={(tabela, valores) => salvar.mutate({ tabela, valores })}
+          onArquivar={(tabela, id, motivo) => arquivar.mutate({ tabela, id, motivo })}
+        />
+      ) : null}
+
+      {aba === "projecao" ? (
+        <AbaProjecaoCliente perfis={perfis} relacoes={relacoes} eventos={eventos} arvore={arvore} />
       ) : null}
 
       {aba === "lacunas" ? (

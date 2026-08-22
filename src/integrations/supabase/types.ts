@@ -305,6 +305,150 @@ export type Database = {
           },
         ]
       }
+      audiovisual_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiovisual_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiovisual_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           acao: string
@@ -671,6 +815,150 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cadastral_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cadastral_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadastral_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -5671,6 +5959,150 @@ export type Database = {
           },
         ]
       }
+      correspondence_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_casos: {
         Row: {
           aceite_comercial_em: string | null
@@ -6199,6 +6631,150 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cultural_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cultural_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -6970,6 +7546,150 @@ export type Database = {
           },
         ]
       }
+      education_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "education_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_labels: {
         Row: {
           applied_at: string
@@ -7620,13 +8340,17 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           case_id: string | null
+          client_visibility: string
           created_at: string
           created_by: string | null
+          data_precisao: string
           description_internal: string | null
           end_date: string | null
           event_type: string
           evidence_id: string | null
+          family_id: string | null
           id: string
+          impact_type: string | null
           locality: string | null
           organization_id: string
           person_id: string
@@ -7642,13 +8366,17 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
+          data_precisao?: string
           description_internal?: string | null
           end_date?: string | null
           event_type: string
           evidence_id?: string | null
+          family_id?: string | null
           id?: string
+          impact_type?: string | null
           locality?: string | null
           organization_id: string
           person_id: string
@@ -7664,13 +8392,17 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
+          data_precisao?: string
           description_internal?: string | null
           end_date?: string | null
           event_type?: string
           evidence_id?: string | null
+          family_id?: string | null
           id?: string
+          impact_type?: string | null
           locality?: string | null
           organization_id?: string
           person_id?: string
@@ -7700,6 +8432,13 @@ export type Database = {
             columns: ["evidence_id"]
             isOneToOne: false
             referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "genealogical_events_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
             referencedColumns: ["id"]
           },
           {
@@ -7911,6 +8650,7 @@ export type Database = {
           archived_by: string | null
           case_id: string | null
           causa_morte: string | null
+          client_visibility: string
           created_at: string
           created_by: string | null
           evidence_id: string | null
@@ -7919,15 +8659,19 @@ export type Database = {
           morte_data: string | null
           morte_data_aproximada: string | null
           morte_localidade: string | null
+          morte_precisao: string
           nascimento_data: string | null
           nascimento_data_aproximada: string | null
           nascimento_localidade: string | null
+          nascimento_precisao: string
           nome_completo: string
           nome_nascimento: string | null
           organization_id: string
           research_person_id: string
+          responsible_user_id: string | null
           sepultamento_localidade: string | null
           sexo: string | null
+          source_id: string | null
           status_verificacao: string
           updated_at: string
           updated_by: string | null
@@ -7940,6 +8684,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           causa_morte?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
           evidence_id?: string | null
@@ -7948,15 +8693,19 @@ export type Database = {
           morte_data?: string | null
           morte_data_aproximada?: string | null
           morte_localidade?: string | null
+          morte_precisao?: string
           nascimento_data?: string | null
           nascimento_data_aproximada?: string | null
           nascimento_localidade?: string | null
+          nascimento_precisao?: string
           nome_completo: string
           nome_nascimento?: string | null
           organization_id: string
           research_person_id: string
+          responsible_user_id?: string | null
           sepultamento_localidade?: string | null
           sexo?: string | null
+          source_id?: string | null
           status_verificacao?: string
           updated_at?: string
           updated_by?: string | null
@@ -7969,6 +8718,7 @@ export type Database = {
           archived_by?: string | null
           case_id?: string | null
           causa_morte?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
           evidence_id?: string | null
@@ -7977,15 +8727,19 @@ export type Database = {
           morte_data?: string | null
           morte_data_aproximada?: string | null
           morte_localidade?: string | null
+          morte_precisao?: string
           nascimento_data?: string | null
           nascimento_data_aproximada?: string | null
           nascimento_localidade?: string | null
+          nascimento_precisao?: string
           nome_completo?: string
           nome_nascimento?: string | null
           organization_id?: string
           research_person_id?: string
+          responsible_user_id?: string | null
           sepultamento_localidade?: string | null
           sexo?: string | null
+          source_id?: string | null
           status_verificacao?: string
           updated_at?: string
           updated_by?: string | null
@@ -8028,6 +8782,13 @@ export type Database = {
             referencedRelation: "research_people"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "genealogical_person_profiles_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
         ]
       }
       genealogical_relationships: {
@@ -8036,6 +8797,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           case_id: string | null
+          client_visibility: string
           created_at: string
           created_by: string | null
           evidence_id: string | null
@@ -8058,6 +8820,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
           evidence_id?: string | null
@@ -8080,6 +8843,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           case_id?: string | null
+          client_visibility?: string
           created_at?: string
           created_by?: string | null
           evidence_id?: string | null
@@ -8267,6 +9031,150 @@ export type Database = {
             columns: ["citizenship_track_id"]
             isOneToOne: false
             referencedRelation: "citizenship_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historical_context_events: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historical_context_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historical_context_events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -10804,6 +11712,150 @@ export type Database = {
           },
         ]
       }
+      military_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "military_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "military_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       name_variants: {
         Row: {
           archive_reason: string | null
@@ -10892,6 +11944,150 @@ export type Database = {
           },
           {
             foreignKeyName: "name_variants_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notarial_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notarial_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_records_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "research_sources"
@@ -11104,6 +12300,150 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      occupations_assets: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "occupations_assets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occupations_assets_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -12533,6 +13873,150 @@ export type Database = {
           },
         ]
       }
+      preserved_objects: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preserved_objects_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preserved_objects_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       privacy_alerts: {
         Row: {
           case_id: string | null
@@ -13454,6 +14938,150 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      religious_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "religious_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "religious_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -15355,6 +16983,150 @@ export type Database = {
           },
         ]
       }
+      residences_migrations: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "residences_migrations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residences_migrations_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_orders: {
         Row: {
           archive_reason: string | null
@@ -15751,6 +17523,150 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      social_political_records: {
+        Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
+          case_id: string
+          client_visibility: string
+          created_at: string
+          created_by: string | null
+          dados: Json
+          data_precisao: string
+          descricao_interna: string | null
+          evidence_id: string | null
+          family_id: string | null
+          id: string
+          institution_id: string | null
+          localidade: string | null
+          organization_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          person_id: string | null
+          responsible_user_id: string | null
+          source_id: string | null
+          status_verificacao: string
+          subtipo: string | null
+          titulo: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
+          case_id?: string
+          client_visibility?: string
+          created_at?: string
+          created_by?: string | null
+          dados?: Json
+          data_precisao?: string
+          descricao_interna?: string | null
+          evidence_id?: string | null
+          family_id?: string | null
+          id?: string
+          institution_id?: string | null
+          localidade?: string | null
+          organization_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          person_id?: string | null
+          responsible_user_id?: string | null
+          source_id?: string | null
+          status_verificacao?: string
+          subtipo?: string | null
+          titulo?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_political_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "portal_casos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "research_evidence_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "nucleos_familiares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "research_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_political_records_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "research_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       source_access_logs: {
         Row: {
