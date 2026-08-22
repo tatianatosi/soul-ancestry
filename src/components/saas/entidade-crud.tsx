@@ -63,6 +63,8 @@ export function EntidadeCrud({
   classeLinha?: (linha: Record<string, unknown>) => string | undefined;
   /** Controles extras exibidos acima da tabela. */
   topo?: React.ReactNode;
+  /** Largura mínima da tabela em px — evita colunas espremidas quando há muitos eixos. */
+  larguraMinima?: number;
 }) {
   const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
