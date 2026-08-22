@@ -72,7 +72,7 @@ function Pagina() {
   const matriz = matrizRenderizacaoPreviaTeste(anexos);
 
   return (
-    <SaasShell titulo="Contrato-base consolidado" subtitulo={`Resgate v1.0 · ${CONTRATO_BASE_DATA} · não vigente`}>
+    <SaasShell titulo="Contrato-base consolidado" descricao={`Resgate v1.0 · ${CONTRATO_BASE_DATA} · não vigente`}>
       <div className="space-y-4">
         <ContratoBaseTexto />
 
