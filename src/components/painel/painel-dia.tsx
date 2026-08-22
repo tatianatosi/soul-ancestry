@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
+import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
@@ -534,6 +535,8 @@ export function PainelDia() {
         )}
       </section>
 
+      {/* 4a — Catálogo e homologação de SKUs (somente leitura) */}
+      <CatalogoSaneamento />
 
       {/* 5 — Atalhos */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
