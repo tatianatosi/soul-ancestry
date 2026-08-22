@@ -311,18 +311,21 @@ function LeadsPage() {
           </div>
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-medium text-navy">Radar de elegibilidade preliminar</p>
-              <span className="rounded-full border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy">
-                {radar.rotulo} · confiança {radar.confianca} · completude {radar.completude}%
-              </span>
+            <p className="text-[11px] uppercase tracking-wide text-navy/45">Radar de elegibilidade preliminar</p>
+            <div className="mt-1 flex flex-wrap items-end gap-x-4 gap-y-1">
+              <p className="font-serif text-2xl leading-tight text-navy">{radar.rotulo}</p>
+              <p className="text-xs text-navy/55">
+                confiança <strong className="text-navy/75">{radar.confianca}</strong> · completude{" "}
+                <strong className="text-navy/75">{radar.completude}%</strong> dos fatores registrados
+              </p>
             </div>
-            <p className="mt-1 text-xs text-navy/55">
-              Leitura interna e explicável ({radar.versao}). Não é parecer jurídico, não garante direito e não define prazo, produto ou preço.
+            <p className="mt-2 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-navy/75">
+              Triagem preliminar interna ({radar.versao}). Não é parecer jurídico, não garante direito e não define prazo,
+              produto ou preço. Mesmo um sinal forte depende de documentos, fontes e revisão humana.
             </p>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-navy/45">Fatores favoráveis registrados</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              <div className="rounded-lg border border-navy/10 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-navy/45">O que favorece</p>
                 <ul className="mt-1 space-y-1 text-xs text-navy/70">
                   {radar.favoraveis.length ? (
                     radar.favoraveis.map((f) => <li key={f}>• {f}</li>)
@@ -331,8 +334,8 @@ function LeadsPage() {
                   )}
                 </ul>
               </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-navy/45">O que confirmar e como</p>
+              <div className="rounded-lg border border-navy/10 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-navy/45">O que precisa confirmar</p>
                 <ul className="mt-1 space-y-1 text-xs text-navy/70">
                   {radar.pendentes.length ? (
                     radar.pendentes.slice(0, 6).map((p) => (
@@ -344,6 +347,16 @@ function LeadsPage() {
                     <li>Sem pendências de fator nesta leitura.</li>
                   )}
                 </ul>
+              </div>
+              <div className="rounded-lg border border-navy/10 bg-cream/40 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-navy/45">Próximo passo</p>
+                <p className="mt-1 text-xs text-navy/75">
+                  {radar.exige_revisao_humana
+                    ? "Levar a leitura para revisão humana antes de qualquer recomendação, proposta ou comunicação externa."
+                    : radar.pendentes.length
+                      ? `Confirmar com o cliente: ${radar.pendentes[0]?.fator}.`
+                      : "Registrar decisão de Discovery e encaminhar o handoff comercial."}
+                </p>
               </div>
             </div>
             {radar.bloqueios_externos.length ? (
