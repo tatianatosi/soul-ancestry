@@ -6,7 +6,9 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
+  Link,
   Preview,
   Text,
 } from '@react-email/components'
@@ -16,26 +18,30 @@ interface RecoveryEmailProps {
   confirmationUrl: string
 }
 
-export const RecoveryEmail = ({
-  siteName,
-  confirmationUrl,
-}: RecoveryEmailProps) => (
-  <Html lang="en" dir="ltr">
+export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps) => (
+  <Html lang="pt-BR" dir="ltr">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>Defina uma nova senha de acesso — {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Reset your password</Heading>
+        <Text style={marca}>CLUBE ANCESTRAL</Text>
+        <Heading style={h1}>Definir minha senha</Heading>
         <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
+          Recebemos um pedido de redefinição de senha para o seu acesso interno em {siteName}.
+          Toque no botão abaixo para escolher uma nova senha.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Reset Password
+          Definir minha senha
         </Button>
+        <Text style={contingenciaRotulo}>
+          Se o botão não funcionar, copie e cole este endereço no navegador:
+        </Text>
+        <Link style={contingenciaLink} href={confirmationUrl}>
+          {confirmationUrl}
+        </Link>
+        <Hr style={hr} />
         <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
+          Se você não solicitou a redefinição, ignore este e-mail: sua senha permanece inalterada.
         </Text>
       </Container>
     </Body>
@@ -44,26 +50,49 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+const main = { backgroundColor: '#F5F0E8', fontFamily: 'Georgia, "Times New Roman", serif' }
+const container = {
+  padding: '32px 28px',
+  backgroundColor: '#ffffff',
+  borderTop: '4px solid #C9A84C',
+  maxWidth: '560px',
 }
+const marca = {
+  fontSize: '12px',
+  letterSpacing: '2px',
+  color: '#C9A84C',
+  margin: '0 0 18px',
+  fontFamily: 'Arial, sans-serif',
+}
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#1B2B4B', margin: '0 0 18px' }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#1B2B4B',
+  lineHeight: '1.6',
+  margin: '0 0 24px',
+  fontFamily: 'Arial, sans-serif',
 }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: '#1B2B4B',
+  color: '#F5F0E8',
+  fontSize: '15px',
+  borderRadius: '4px',
+  padding: '14px 24px',
   textDecoration: 'none',
+  fontFamily: 'Arial, sans-serif',
+  display: 'inline-block',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const contingenciaRotulo = {
+  fontSize: '13px',
+  color: '#8B4513',
+  margin: '28px 0 6px',
+  fontFamily: 'Arial, sans-serif',
+}
+const contingenciaLink = {
+  fontSize: '13px',
+  color: '#1B2B4B',
+  wordBreak: 'break-all' as const,
+  fontFamily: 'Arial, sans-serif',
+}
+const hr = { borderColor: '#F5F0E8', margin: '28px 0 16px' }
+const footer = { fontSize: '12px', color: '#6b6b6b', margin: 0, fontFamily: 'Arial, sans-serif' }
