@@ -5,6 +5,8 @@ import {
   exigirPapel,
   limpar,
   PAPEIS_COMERCIAL,
+  PAPEIS_DEMO_VISIVEL,
+  TEM_MARCA_TESTE,
   PAPEIS_FINANCEIRO,
   RECURSOS,
   validarFluxo,
