@@ -233,3 +233,39 @@ export function cadenciaRelevante(casos: readonly Record<string, any>[], limite 
 
 export const FILAS_COMERCIAIS_CHAVES = FILAS_COMERCIAIS;
 
+
+/** Grupos de manifestação de indicadores no Painel Hoje. */
+export type GrupoIndicadorDia = "conversao" | "radar" | "casos" | "comunicacao";
+
+export type LinhaIndicadorDia = {
+  /** Chave de deduplicação: o mesmo fato só aparece uma vez, na maior severidade. */
+  chave: string;
+  grupo: GrupoIndicadorDia;
+  codigo: string;
+  /** Motivo declarado do sinal. */
+  motivo: string;
+  /** Responsável pela ação; null vira “sem responsável definido”. */
+  responsavel: string | null;
+  /** Prazo ou idade do sinal, já em texto. */
+  prazo: string;
+  severidade: "P0" | "P1" | "P2";
+};
+
+const PESO_SEVERIDADE = { P0: 3, P1: 2, P2: 1 } as const;
+
+/** Mantém um registro por chave, sempre no maior nível de severidade. */
+export function deduplicarLinhasIndicadores(linhas: LinhaIndicadorDia[]): LinhaIndicadorDia[] {
+  const mapa = new Map<string, LinhaIndicadorDia>();
+  for (const l of linhas) {
+    const atual = mapa.get(l.chave);
+    if (!atual || PESO_SEVERIDADE[l.severidade] > PESO_SEVERIDADE[atual.severidade]) mapa.set(l.chave, l);
+  }
+  return [...mapa.values()].sort((a, b) => PESO_SEVERIDADE[b.severidade] - PESO_SEVERIDADE[a.severidade]);
+}
+
+/** Agrupa as linhas deduplicadas por grupo do Painel Hoje. */
+export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<GrupoIndicadorDia, LinhaIndicadorDia[]> {
+  const base: Record<GrupoIndicadorDia, LinhaIndicadorDia[]> = { conversao: [], radar: [], casos: [], comunicacao: [] };
+  for (const l of deduplicarLinhasIndicadores(linhas)) base[l.grupo].push(l);
+  return base;
+}

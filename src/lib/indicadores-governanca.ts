@@ -310,12 +310,39 @@ export const ROTULO_TIPO_USO: Record<TipoUsoIndicador, string> = {
   contexto: "Contexto",
 };
 
+/** Tipo concreto do componente onde o indicador se manifesta na interface. */
+export type ComponenteTipoIndicador = "card" | "fila" | "badge" | "filtro" | "drawer" | "detalhe";
+
+/** Severidade operacional do sinal: P0 bloqueia, P1 exige ação no dia, P2 é higiene. */
+export type SeveridadeIndicador = "P0" | "P1" | "P2";
+
+export const ROTULO_COMPONENTE_TIPO: Record<ComponenteTipoIndicador, string> = {
+  card: "Card",
+  fila: "Fila",
+  badge: "Badge",
+  filtro: "Filtro",
+  drawer: "Drawer",
+  detalhe: "Detalhe",
+};
+
+export const ROTULO_SEVERIDADE: Record<SeveridadeIndicador, string> = {
+  P0: "P0 — bloqueia",
+  P1: "P1 — ação no dia",
+  P2: "P2 — higiene",
+};
+
 export type ManifestacaoIndicador = {
   tipos: TipoUsoIndicador[];
   /** Telas de consumo, na ordem de prioridade operacional. */
   telas: string[];
   /** Componente concreto onde o número aparece. */
   componente: string;
+  /** Tipo canônico do componente. */
+  componente_tipo: ComponenteTipoIndicador;
+  /** Severidade operacional do sinal derivado do indicador. */
+  severidade: SeveridadeIndicador;
+  /** Regra textual de “Sem dados suficientes”: o que se exibe quando falta base. */
+  sem_dados: string;
   /** Condição objetiva que transforma o indicador em sinal acionável. */
   gatilho: string;
   /** Rótulo da ação e rota aberta ao clicar. */
@@ -328,6 +355,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "qualidade"],
     telas: ["/conversao", "/governanca/indicadores"],
     componente: "Card de origem no funil + fila de higiene em Painel Hoje",
+    componente_tipo: "card",
+    severidade: "P2",
+    sem_dados: "Sem origem classificada em nenhum lead ativo: exibe “Sem dados suficientes”, nunca 0%.",
     gatilho: "Lead ativo com origem “Não classificada”.",
     acao: "Abrir leads sem origem declarada",
     rota: "/leads",
@@ -336,6 +366,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "sinal_diario"],
     telas: ["/conversao", "/painel"],
     componente: "Tabela do funil + callout “Gargalo principal”",
+    componente_tipo: "card",
+    severidade: "P1",
+    sem_dados: "Etapa sem denominador válido no período: exibe “Sem dados suficientes” em vez de taxa.",
     gatilho: "Etapa com queda relevante em relação à etapa anterior.",
     acao: "Abrir a lista de entidades daquele marco",
     rota: "/conversao",
@@ -344,6 +377,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "bloqueio"],
     telas: ["/casos", "/painel"],
     componente: "Card de risco de onboarding + fila de casos",
+    componente_tipo: "fila",
+    severidade: "P0",
+    sem_dados: "Sem pagamento confirmado não há base: o caso fica fora da contagem, sem estimativa.",
     gatilho:
       "Pagamento inicial confirmado e pré-requisitos de formalização satisfeitos, sem ativação concluída em 48h. Sem pagamento confirmado o caso não entra na contagem.",
     acao: "Abrir casos pagos aguardando ativação",
@@ -353,6 +389,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "contexto"],
     telas: ["/casos", "/operacao"],
     componente: "Detalhe de ficha do caso + fila de cadência",
+    componente_tipo: "detalhe",
+    severidade: "P1",
+    sem_dados: "Sem prazo de primeira entrega configurado: exibe “Sem dados suficientes”, nunca prazo presumido.",
     gatilho:
       "Caso ativado sem primeira micro-entrega publicada e aprovada no prazo configurado. Rascunho não conta como entrega.",
     acao: "Abrir casos ativados sem primeira entrega",
@@ -362,6 +401,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["sinal_diario"],
     telas: ["/painel", "/casos"],
     componente: "Fila “Casos e cadência” no Painel Hoje",
+    componente_tipo: "fila",
+    severidade: "P1",
+    sem_dados: "Sem regra de cadência ativa ou sem touchpoint registrado: exibe “Sem dados suficientes”, nunca dia zero.",
     gatilho: "Caso sem touchpoint registrado após D7/D10/D14 configurado.",
     acao: "Abrir casos sem contato no prazo",
     rota: "/casos",
@@ -370,6 +412,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["contexto"],
     telas: ["/pesquisa", "/biblioteca"],
     componente: "Badge de maturidade na fonte + filtro do catálogo",
+    componente_tipo: "badge",
+    severidade: "P2",
+    sem_dados: "Fonte sem avaliação registrada: badge “Sem dados suficientes”, nunca maturidade presumida.",
     gatilho: "Fonte suspensa, a revisar ou sem a maturidade exigida pelo uso pretendido.",
     acao: "Abrir o catálogo de fontes",
     rota: "/biblioteca",
@@ -378,6 +423,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["contexto"],
     telas: ["/biblioteca"],
     componente: "Lista de backlog de ativação de fontes",
+    componente_tipo: "filtro",
+    severidade: "P2",
+    sem_dados: "Backlog vazio é declarado como “Sem dados suficientes para priorizar”, não como cobertura completa.",
     gatilho: "Não sobe ao Painel Hoje: serve ao planejamento de bases, não à fila do dia.",
     acao: "Abrir backlog de fontes candidatas",
     rota: "/biblioteca",
@@ -386,6 +434,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["bloqueio", "qualidade"],
     telas: ["/casos", "/qualidade", "/painel"],
     componente: "Badge de bloqueio na ficha + fila de qualidade",
+    componente_tipo: "badge",
+    severidade: "P0",
+    sem_dados: "Checklist não aplicado ao caso: exibe “Sem dados suficientes”, jamais “aprovado”.",
     gatilho: "Item de checklist reprovado ou pendência sem responsável definido.",
     acao: "Abrir pendências de qualidade",
     rota: "/qualidade",
@@ -394,6 +445,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["bloqueio", "contexto"],
     telas: ["/biblioteca", "/propostas", "/contratos"],
     componente: "Badge de vigência no item + bloqueio na criação de proposta e contrato",
+    componente_tipo: "badge",
+    severidade: "P0",
+    sem_dados: "Item sem estado de vigência registrado é tratado como não homologado, nunca como vigente.",
     gatilho: "Item obrigatório sem vigência ativa bloqueia novo uso em proposta ou contrato.",
     acao: "Abrir Biblioteca Mestre por vigência",
     rota: "/biblioteca",
@@ -402,6 +456,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["sinal_diario", "contexto"],
     telas: ["/leads", "/casos", "/painel"],
     componente: "Bloco do Radar na ficha do lead + fila de triagem",
+    componente_tipo: "drawer",
+    severidade: "P1",
+    sem_dados: "Leitura inconclusiva permanece “Sem dados suficientes”; nenhuma elegibilidade é inferida.",
     gatilho: "Leitura inconclusiva sem próximo passo, revisão humana obrigatória ou via restrita.",
     acao: "Abrir leads com leitura pendente de revisão",
     rota: "/leads",
@@ -410,6 +467,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["qualidade"],
     telas: ["/leads", "/painel"],
     componente: "Faixa de completude na ficha do lead",
+    componente_tipo: "detalhe",
+    severidade: "P2",
+    sem_dados: "Sem Discovery registrada não há completude: exibe “Sem dados suficientes”, nunca 0%.",
     gatilho: "Completude abaixo do mínimo em call realizada ou Discovery concluída.",
     acao: "Abrir Discovery com leitura incompleta",
     rota: "/leads",
@@ -418,6 +478,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "qualidade"],
     telas: ["/financeiro", "/conversao", "/governanca/indicadores"],
     componente: "Card de eficiência de mídia no mesmo recorte de período do caixa",
+    componente_tipo: "card",
+    severidade: "P2",
+    sem_dados: "Sem custo classificado ou sem leads atribuíveis: “Sem dados suficientes” com o motivo declarado.",
     gatilho: "“Sem dados suficientes” indica origens ou custos sem classificação.",
     acao: "Abrir custos e origens sem classificação",
     rota: "/financeiro",
@@ -426,6 +489,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi"],
     telas: ["/financeiro", "/governanca/indicadores"],
     componente: "Card de aquisição no bloco de eficiência de mídia",
+    componente_tipo: "card",
+    severidade: "P2",
+    sem_dados: "Sem pagamento confirmado com atribuição válida: “Sem dados suficientes”, nunca CAC estimado.",
     gatilho: "Só calcula com pagamento confirmado e atribuição válida; caso contrário sinaliza lacuna.",
     acao: "Abrir pagamentos confirmados e atribuição",
     rota: "/financeiro",
@@ -434,6 +500,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi"],
     telas: ["/financeiro", "/governanca/indicadores"],
     componente: "Card de retorno no bloco de eficiência de mídia",
+    componente_tipo: "card",
+    severidade: "P2",
+    sem_dados: "Sem atribuição de receita recebida: “Sem dados suficientes” — lacuna de dado, não falha comercial.",
     gatilho: "Sem atribuição não há ROI/ROAS: é lacuna de dado, nunca falha comercial.",
     acao: "Abrir receita recebida atribuível",
     rota: "/financeiro",
@@ -442,6 +511,9 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["kpi", "sinal_diario"],
     telas: ["/financeiro", "/painel"],
     componente: "Card “Resultado de caixa do período”",
+    componente_tipo: "card",
+    severidade: "P1",
+    sem_dados: "Período sem eventos financeiros apurados: “Sem dados suficientes”, nunca resultado zero.",
     gatilho: "Resultado de caixa negativo ou dados financeiros pendentes de apuração.",
     acao: "Abrir o caixa realizado do período",
     rota: "/financeiro",
@@ -450,16 +522,23 @@ export const MANIFESTACAO_INDICADOR: Record<string, ManifestacaoIndicador> = {
     tipos: ["contexto"],
     telas: ["/financeiro", "/casos"],
     componente: "Linha de previsão no bloco “Em aberto e previsão”",
+    componente_tipo: "detalhe",
+    severidade: "P2",
+    sem_dados: "Sem contrato assinado com valor homologado: “Sem dados suficientes”; previsão nunca vira caixa.",
     gatilho: "Contrato assinado sem recebimento entra como acompanhamento; nunca entra em caixa.",
     acao: "Abrir previsão contratada não recebida",
     rota: "/financeiro",
   },
   "IND-COM-03": {
     tipos: ["sinal_diario"],
-    telas: ["/painel", "/atendimento"],
+    telas: ["/painel", "/atendimento", "/biblioteca-mensagens"],
     componente: "Fila “Comunicação humana” no Painel Hoje, sem botão de disparo",
+    componente_tipo: "fila",
+    severidade: "P1",
+    sem_dados: "Sem gatilho com consentimento válido: “Sem dados suficientes”; nenhuma sugestão é criada.",
     gatilho: "Sugestões de contato em rascunho, ordenadas por prioridade e motivo declarado.",
     acao: "Abrir a fila humana em Atendimento",
     rota: "/atendimento",
   },
 };
+

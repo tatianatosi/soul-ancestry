@@ -6,6 +6,8 @@ import {
   INDICADORES,
   MANIFESTACAO_INDICADOR,
   REGRAS_INDICADORES,
+  ROTULO_COMPONENTE_TIPO,
+  ROTULO_SEVERIDADE,
   ROTULO_STATUS_INDICADOR,
   ROTULO_TIPO_USO,
 } from "@/lib/indicadores-governanca";
@@ -40,7 +42,7 @@ function IndicadoresPage() {
       </header>
 
       <section className="overflow-auto rounded-lg border border-navy/10 bg-white">
-        <table className="w-full min-w-[2000px] text-left text-xs">
+        <table className="w-full min-w-[2400px] text-left text-xs">
           <thead className="bg-cream/60 text-navy/70">
             <tr>
               <th className="px-3 py-2 font-medium">Código</th>
@@ -54,6 +56,8 @@ function IndicadoresPage() {
               <th className="px-3 py-2 font-medium">Tipo de uso</th>
               <th className="px-3 py-2 font-medium">Tela de consumo</th>
               <th className="px-3 py-2 font-medium">Componente</th>
+              <th className="px-3 py-2 font-medium">Severidade</th>
+              <th className="px-3 py-2 font-medium">Regra de sem dados</th>
               <th className="px-3 py-2 font-medium">Gatilho de sinal</th>
               <th className="px-3 py-2 font-medium">Ação/rota</th>
             </tr>
@@ -106,7 +110,36 @@ function IndicadoresPage() {
                     </div>
                   </td>
                   <td className="px-3 py-2 font-mono text-[11px] text-navy/70">{m?.telas.join(" · ") ?? "—"}</td>
-                  <td className="px-3 py-2 text-navy/70">{m?.componente ?? "—"}</td>
+                  <td className="px-3 py-2 text-navy/70">
+                    {m ? (
+                      <>
+                        <span className="inline-block rounded-full border border-navy/20 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/70">
+                          {ROTULO_COMPONENTE_TIPO[m.componente_tipo]}
+                        </span>
+                        <span className="mt-1 block">{m.componente}</span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {m ? (
+                      <span
+                        className={`inline-block rounded-full border px-2 py-0.5 text-[10px] ${
+                          m.severidade === "P0"
+                            ? "border-terracotta/40 bg-terracotta/5 text-terracotta"
+                            : m.severidade === "P1"
+                              ? "border-gold/50 bg-gold/10 text-navy"
+                              : "border-navy/20 text-navy/70"
+                        }`}
+                      >
+                        {ROTULO_SEVERIDADE[m.severidade]}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-navy/70">{m?.sem_dados ?? "—"}</td>
                   <td className="px-3 py-2 text-navy/70">{m?.gatilho ?? "—"}</td>
                   <td className="px-3 py-2">
                     {m ? (

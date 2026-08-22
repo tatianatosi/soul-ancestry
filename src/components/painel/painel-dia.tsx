@@ -19,7 +19,9 @@ import {
   hojeISO,
   textoDiasSemTouchpoint,
   textoPrazo,
+  agruparLinhasIndicadores,
   type ItemDia,
+  type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
 
 function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
@@ -64,6 +66,37 @@ function Linha({ item }: { item: ItemDia }) {
   );
 }
 
+
+const GRUPOS_INDICADOR = [
+  {
+    chave: "conversao" as const,
+    titulo: "Conversão e integridade",
+    codigos: "IND-COM-01 · IND-COM-02 · IND-FIN-01 · IND-FIN-02",
+    rota: "/conversao" as const,
+    acao: "Abrir conversão e funil",
+  },
+  {
+    chave: "radar" as const,
+    titulo: "Radar e Discovery",
+    codigos: "IND-RAD-01 · IND-RAD-02",
+    rota: "/leads" as const,
+    acao: "Abrir leads e triagem",
+  },
+  {
+    chave: "casos" as const,
+    titulo: "Casos e cadência",
+    codigos: "IND-JOR-01 · IND-JOR-02 · IND-JOR-03 · IND-QUA-01",
+    rota: "/casos" as const,
+    acao: "Abrir casos 360",
+  },
+  {
+    chave: "comunicacao" as const,
+    titulo: "Comunicação humana",
+    codigos: "IND-COM-03",
+    rota: "/atendimento" as const,
+    acao: "Abrir a fila humana em Atendimento",
+  },
+];
 
 /** Painel Hoje enxuto: fila priorizada, exceções com dono, comercial e casos do dia. */
 export function PainelDia() {
@@ -124,6 +157,154 @@ export function PainelDia() {
     { total: 0, criticos: 0, hoje: 0 },
   );
 
+
+  // Linhas por indicador: motivo, responsável, prazo/idade e severidade, deduplicadas por registro.
+  const linhasIndicadores: LinhaIndicadorDia[] = [];
+  const addLinha = (
+    chave: string,
+    grupo: LinhaIndicadorDia["grupo"],
+    codigo: string,
+    total: number,
+    motivo: string,
+    severidade: LinhaIndicadorDia["severidade"],
+    responsavel: string | null,
+    prazo: string,
+  ) => {
+    if (total > 0) linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
+  };
+
+  addLinha(
+    "propostas_sem_followup",
+    "conversao",
+    "IND-COM-02",
+    comercial.propostas.length,
+    `${comercial.propostas.length} proposta(s) com follow-up vencido`,
+    "P1",
+    null,
+    "follow-up vencido",
+  );
+  addLinha(
+    "aceites_sem_confirmacao",
+    "conversao",
+    "IND-COM-02",
+    qtd("aceites_sem_confirmacao"),
+    `${qtd("aceites_sem_confirmacao")} aceite(s) verbal sem confirmação formal`,
+    "P1",
+    null,
+    "aguardando confirmação formal",
+  );
+  addLinha(
+    "contratos_enviados_pendentes",
+    "conversao",
+    "IND-FIN-02",
+    qtd("contratos_enviados_pendentes"),
+    `${qtd("contratos_enviados_pendentes")} contrato(s) sem referência financeira válida`,
+    "P0",
+    null,
+    "bloqueio de formalização",
+  );
+  addLinha(
+    "leads_sem_origem",
+    "radar",
+    "IND-COM-01",
+    qtd("leads_sem_origem"),
+    `${qtd("leads_sem_origem")} lead(s) sem origem declarada`,
+    "P2",
+    null,
+    "higiene de cadastro",
+  );
+  addLinha(
+    "discoveries_sem_desdobramento",
+    "radar",
+    "IND-RAD-01",
+    qtd("discoveries_sem_desdobramento"),
+    `${qtd("discoveries_sem_desdobramento")} leitura(s) sem próximo passo definido`,
+    "P1",
+    null,
+    "revisão humana pendente",
+  );
+  addLinha(
+    "onboardings_pendentes",
+    "casos",
+    "IND-JOR-01",
+    qtd("onboardings_pendentes"),
+    `${qtd("onboardings_pendentes")} caso(s) pago(s) com gates de ativação pendentes`,
+    "P0",
+    null,
+    "prazo de ativação em 48h",
+  );
+  addLinha(
+    "casos_pendencia_documental",
+    "casos",
+    "IND-QUA-01",
+    qtd("casos_pendencia_documental"),
+    `${qtd("casos_pendencia_documental")} caso(s) com pendência documental`,
+    "P0",
+    null,
+    "bloqueio de qualidade",
+  );
+  addLinha(
+    "cadencia_sem_touchpoint",
+    "casos",
+    "IND-JOR-03",
+    cadencia.length,
+    `${cadencia.length} caso(s) acima da regra de dias sem touchpoint`,
+    "P1",
+    null,
+    "cadência vencida",
+  );
+  addLinha(
+    "comunicacao_critica",
+    "comunicacao",
+    "IND-COM-03",
+    sugestoesHumanas.criticos,
+    `${sugestoesHumanas.criticos} contato(s) humano(s) crítico(s) sugerido(s) em rascunho`,
+    "P1",
+    null,
+    "prioridade 1 do gatilho",
+  );
+  addLinha(
+    "comunicacao_hoje",
+    "comunicacao",
+    "IND-COM-03",
+    sugestoesHumanas.hoje,
+    `${sugestoesHumanas.hoje} contato(s) humano(s) sugerido(s) para hoje`,
+    "P2",
+    null,
+    "prioridade 2 do gatilho",
+  );
+
+  // Absorve os antigos “Sinais de conversão e integridade” nos mesmos grupos.
+  const GRUPO_DO_SINAL: Record<string, LinhaIndicadorDia["grupo"]> = {
+    midia_sem_leads: "conversao",
+    midia_sem_classificacao: "conversao",
+    proposta_sem_followup: "conversao",
+    aceite_parado: "conversao",
+    contrato_sem_financeiro: "conversao",
+    origem_ausente: "radar",
+    discovery_parada: "radar",
+    pagamento_sem_onboarding: "casos",
+  };
+  const CHAVE_DO_SINAL: Record<string, string> = {
+    proposta_sem_followup: "propostas_sem_followup",
+    aceite_parado: "aceites_sem_confirmacao",
+    contrato_sem_financeiro: "contratos_enviados_pendentes",
+    origem_ausente: "leads_sem_origem",
+    discovery_parada: "discoveries_sem_desdobramento",
+    pagamento_sem_onboarding: "onboardings_pendentes",
+  };
+  for (const s of sinais) {
+    linhasIndicadores.push({
+      chave: CHAVE_DO_SINAL[s.codigo] ?? s.codigo,
+      grupo: GRUPO_DO_SINAL[s.codigo] ?? "conversao",
+      codigo: s.codigo,
+      motivo: s.texto,
+      responsavel: null,
+      prazo: s.acao ?? "definir responsável e próxima ação",
+      severidade: s.severidade === "critico" ? "P0" : "P1",
+    });
+  }
+  const agrupado = agruparLinhasIndicadores(linhasIndicadores);
 
   return (
     <div className="space-y-6">
@@ -216,7 +397,7 @@ export function PainelDia() {
         </div>
       </section>
 
-      {/* 3a — Indicadores conectados: quatro linhas compactas e clicáveis */}
+      {/* 3a — Indicadores com manifestação no dia: quatro grupos, uma linha por registro */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">Indicadores com manifestação no dia</h2>
@@ -224,123 +405,53 @@ export function PainelDia() {
             registro canônico dos 16 indicadores
           </Link>
         </div>
-        <div className="mt-3 grid gap-2">
-          {[
-            {
-              chave: "conv",
-              titulo: "Conversão e integridade",
-              codigos: "IND-COM-01 · IND-COM-02 · IND-FIN-01",
-              linhas: [
-                `${comercial.propostas.length} proposta(s) sem follow-up`,
-                `${qtd("aceites_sem_confirmacao")} aceite(s) verbal parado(s)`,
-                `${qtd("contratos_enviados_pendentes")} contrato(s) sem referência financeira`,
-                `${qtd("onboardings_pendentes")} pagamento(s) sem onboarding`,
-              ],
-              rota: "/conversao" as const,
-              acao: "Abrir conversão e funil",
-            },
-            {
-              chave: "radar",
-              titulo: "Radar e Discovery",
-              codigos: "IND-RAD-01 · IND-RAD-02",
-              linhas: [
-                `${qtd("discoveries_sem_desdobramento")} leitura(s) sem próximo passo definido`,
-                `${qtd("leads_sem_origem")} lead(s) sem origem declarada (completude da leitura)`,
-                "Revisão humana obrigatória e marco jurídico a revisar: verificar na ficha do lead",
-              ],
-              rota: "/leads" as const,
-              acao: "Abrir leads e triagem",
-            },
-            {
-              chave: "casos",
-              titulo: "Casos e cadência",
-              codigos: "IND-JOR-01 · IND-JOR-02 · IND-JOR-03 · IND-QUA-01",
-              linhas: [
-                `${qtd("onboardings_pendentes")} caso(s) com gates de ativação pendentes após pagamento confirmado`,
-                `${qtd("casos_pendencia_documental")} caso(s) com pendência documental`,
-                `${cadencia.length} caso(s) acima da regra de dias sem touchpoint`,
-              ],
-              rota: "/casos" as const,
-              acao: "Abrir casos 360",
-            },
-            {
-              chave: "comunicacao",
-              titulo: "Comunicação humana",
-              codigos: "IND-COM-03",
-              linhas: [
-                `${sugestoesHumanas.total} contato(s) humano(s) sugerido(s): ${sugestoesHumanas.criticos} crítico(s), ${sugestoesHumanas.hoje} para hoje`,
-                "Cada sugestão nasce em rascunho, depende de consentimento e de aprovação humana.",
-                "Nenhum botão desta tela envia mensagem.",
-              ],
-              rota: "/atendimento" as const,
-              acao: "Abrir a fila humana em Atendimento",
-            },
-          ].map((b) => (
-            <Link
-              key={b.chave}
-              to={b.rota}
-              className="block rounded-lg border border-navy/10 px-3 py-2 hover:bg-cream/50"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium text-navy">{b.titulo}</span>
-                <span className="font-mono text-[10px] text-navy/40">{b.codigos}</span>
+        <p className="mt-1 text-xs text-navy/50">
+          Cada registro aparece uma única vez, no maior nível de severidade aplicável. Sinais de conversão e integridade estão
+          absorvidos nestes grupos. Nada é disparado a partir daqui.
+        </p>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          {GRUPOS_INDICADOR.map((g) => {
+            const linhas = agrupado[g.chave];
+            return (
+              <div key={g.chave} className="rounded-lg border border-navy/10 p-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm font-medium text-navy">{g.titulo}</span>
+                  <span className="font-mono text-[10px] text-navy/40">{g.codigos}</span>
+                </div>
+                <ul className="mt-2 space-y-1.5 text-xs">
+                  {linhas.map((l) => (
+                    <li key={l.chave} className="rounded border border-navy/10 px-2 py-1.5">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span
+                          className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                            l.severidade === "P0"
+                              ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                              : l.severidade === "P1"
+                                ? "border-gold/50 bg-gold/10 text-navy"
+                                : "border-navy/20 text-navy/60"
+                          }`}
+                        >
+                          {l.severidade}
+                        </span>
+                        <span className="text-navy">{l.motivo}</span>
+                        <span className="font-mono text-[10px] text-navy/40">{l.codigo}</span>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-navy/60">
+                        Responsável: {l.responsavel ?? "sem responsável definido"} · {l.prazo}
+                      </p>
+                    </li>
+                  ))}
+                  {linhas.length === 0 ? (
+                    <li className="text-[11px] text-navy/50">Sem dados suficientes para sinalizar neste grupo hoje.</li>
+                  ) : null}
+                </ul>
+                <Link to={g.rota} className="mt-2 inline-block text-xs text-navy underline underline-offset-2">
+                  {g.acao}
+                </Link>
               </div>
-              <ul className="mt-1 space-y-0.5 text-xs text-navy/65">
-                {b.linhas.map((l) => (
-                  <li key={l}>• {l}</li>
-                ))}
-              </ul>
-              <span className="mt-1 inline-block text-xs text-navy underline underline-offset-2">{b.acao}</span>
-            </Link>
-          ))}
+            );
+          })}
         </div>
-      </section>
-
-      {/* 3b — Sinais de conversão e integridade */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Sinais de conversão e integridade</h2>
-          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-            como o indicador é calculado
-          </Link>
-        </div>
-        {sinais.length === 0 ? (
-          <p className="mt-2 text-sm text-navy/55">Nenhum sinal aberto: nada é preenchido automaticamente quando falta base.</p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {[...sinais]
-              .sort((a, b) => (a.severidade === b.severidade ? 0 : a.severidade === "critico" ? -1 : 1))
-              .map((s) => (
-                <li
-                  key={s.codigo}
-                  className={`rounded-lg border px-3 py-2 ${
-                    s.severidade === "critico" ? "border-terracotta/40 bg-terracotta/5" : "border-gold/40 bg-gold/10"
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                        s.severidade === "critico"
-                          ? "border-terracotta/50 text-terracotta"
-                          : "border-navy/20 text-navy/60"
-                      }`}
-                    >
-                      {s.severidade === "critico" ? "Crítico" : "Atenção"}
-                    </span>
-                    <span className={s.severidade === "critico" ? "font-medium text-terracotta" : "font-medium text-navy"}>
-                      {s.texto}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy/65">
-                    <span>Ação: {s.acao ?? "definir responsável e próxima ação"}</span>
-                    <Link to={s.rota} className="font-medium text-navy underline underline-offset-2">
-                      Abrir {s.destino ?? "lista filtrada"}
-                    </Link>
-                  </div>
-                </li>
-              ))}
-          </ul>
-        )}
       </section>
 
       {/* 4 — Casos com prazo em atenção */}
