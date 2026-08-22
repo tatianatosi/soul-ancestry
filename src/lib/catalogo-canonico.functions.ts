@@ -82,7 +82,6 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
       porProduto.set(l.product_id, atual);
     }
 
-    const usosPorSku = new Map<string, number>();
     const usosPorProduto = new Map<string, number>();
     for (const c of (usos.data ?? []) as any[]) {
       const pid = c.product_catalog_id as string | null;
@@ -133,7 +132,7 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
       dados_teste: r.dados_teste === true,
       atualizado_em: r.updated_at ?? null,
       links: porProduto.get(r.id) ?? [],
-      usos_pendentes: usosPorSku.get(r.code) ?? 0,
+      usos_pendentes: usosPorProduto.get(r.id) ?? 0,
     }));
 
     const { filas, indicadores } = saneamentoDeCatalogo(skus, { incluirTeste: data.incluirTeste });
