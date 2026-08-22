@@ -398,8 +398,12 @@ export type LinhaRenderizacao = {
   fonteExigida: string;
   tipo: TipoBlocoRenderizacao;
   apareceNaPrevia: true;
+  /** "sempre" ou "quando_aplicavel" (blocos condicionais de anexo). */
+  renderiza: "sempre" | "quando_aplicavel";
   gate: string;
   clausulas: number[];
+  /** Código do anexo governado que alimenta o bloco, quando houver. */
+  anexo?: string;
 };
 
 export const ROTULO_TIPO_RENDER: Record<TipoBlocoRenderizacao, string> = {
@@ -411,20 +415,22 @@ export const ROTULO_TIPO_RENDER: Record<TipoBlocoRenderizacao, string> = {
 };
 
 export const MATRIZ_RENDERIZACAO: LinhaRenderizacao[] = [
-  { bloco: "Perfil da contratada", fonteExigida: "Perfil institucional", tipo: "fixo", apareceNaPrevia: true, gate: "Bloqueia se ausente ou inativo", clausulas: [1] },
-  { bloco: "Partes e signatários", fonteExigida: "Parâmetros validados", tipo: "parametrizado", apareceNaPrevia: true, gate: "Bloqueia se incompleto", clausulas: [1] },
-  { bloco: "Objeto", fonteExigida: "Contrato-base + escopo", tipo: "fixo_parametro", apareceNaPrevia: true, gate: "Bloqueia se escopo não definido", clausulas: [2] },
-  { bloco: "Inclusões e exclusões", fonteExigida: "ANX-ESCOPO", tipo: "parametrizado", apareceNaPrevia: true, gate: "Bloqueia se não derivado", clausulas: [3] },
-  { bloco: "Obrigações", fonteExigida: "Contrato-base", tipo: "fixo", apareceNaPrevia: true, gate: "Não editável por caso", clausulas: [4, 5] },
-  { bloco: "Limitações", fonteExigida: "Contrato-base", tipo: "fixo", apareceNaPrevia: true, gate: "Não editável por caso", clausulas: [6] },
-  { bloco: "Privacidade e LGPD", fonteExigida: "Contrato-base + ANX-PRIVACIDADE", tipo: "condicional", apareceNaPrevia: true, gate: "Conforme política e consentimento", clausulas: [7] },
-  { bloco: "Comercial", fonteExigida: "ANX-COMERCIAL", tipo: "parametrizado", apareceNaPrevia: true, gate: "Bloqueia sem condição formal", clausulas: [8] },
-  { bloco: "Terceiros", fonteExigida: "Regra institucional + ANX-COMERCIAL", tipo: "condicional", apareceNaPrevia: true, gate: "Bloqueia exceção sem aprovação", clausulas: [9] },
-  { bloco: "Prazo", fonteExigida: "Escopo / OS formal", tipo: "parametrizado", apareceNaPrevia: true, gate: "Não inferir", clausulas: [10] },
-  { bloco: "Entregas e encerramento", fonteExigida: "Contrato-base + ANX-ESCOPO", tipo: "fixo_parametro", apareceNaPrevia: true, gate: "Bloqueia sem critério aplicável", clausulas: [11, 12] },
-  { bloco: "Anexos", fonteExigida: "Regras de aplicabilidade", tipo: "derivado", apareceNaPrevia: true, gate: "Bloqueia se obrigatório pendente", clausulas: [1] },
-  { bloco: "Assinatura", fonteExigida: "Método institucional + revisão", tipo: "condicional", apareceNaPrevia: true, gate: "Bloqueia se ausente", clausulas: [13] },
-  { bloco: "Foro e disposições", fonteExigida: "Configuração jurídica", tipo: "fixo", apareceNaPrevia: true, gate: "Bloqueia se ausente", clausulas: [14] },
+  { bloco: "Perfil da contratada", fonteExigida: "Perfil institucional", tipo: "fixo", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia se ausente ou inativo", clausulas: [1] },
+  { bloco: "Partes e signatários", fonteExigida: "Parâmetros validados", tipo: "parametrizado", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia se incompleto", clausulas: [1] },
+  { bloco: "Objeto", fonteExigida: "Contrato-base + Anexo I", tipo: "fixo_parametro", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia sem escopo", clausulas: [2], anexo: "ANEXO_I_ORDEM_SERVICO" },
+  { bloco: "Inclusões e exclusões", fonteExigida: "Anexo I", tipo: "parametrizado", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia se não derivado", clausulas: [3], anexo: "ANEXO_I_ORDEM_SERVICO" },
+  { bloco: "Obrigações", fonteExigida: "Contrato-base", tipo: "fixo", apareceNaPrevia: true, renderiza: "sempre", gate: "Não editável por caso", clausulas: [4, 5] },
+  { bloco: "Limitações e não garantias", fonteExigida: "Contrato-base", tipo: "fixo", apareceNaPrevia: true, renderiza: "sempre", gate: "Não editável por caso", clausulas: [6] },
+  { bloco: "Privacidade e LGPD", fonteExigida: "Contrato-base + ANX-PRIVACIDADE", tipo: "condicional", apareceNaPrevia: true, renderiza: "sempre", gate: "Conforme política e consentimento", clausulas: [7] },
+  { bloco: "Comercial", fonteExigida: "Anexo I + Anexo II", tipo: "parametrizado", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia sem condição formal", clausulas: [8], anexo: "ANEXO_II_DESPESAS_EXTERNAS" },
+  { bloco: "Terceiros", fonteExigida: "Regra institucional + Anexo II", tipo: "condicional", apareceNaPrevia: true, renderiza: "sempre", gate: "Exceção exige aprovação registrada", clausulas: [9], anexo: "ANEXO_II_DESPESAS_EXTERNAS" },
+  { bloco: "Prazo", fonteExigida: "OS / escopo formal", tipo: "parametrizado", apareceNaPrevia: true, renderiza: "sempre", gate: "Não pode ser inferido", clausulas: [10] },
+  { bloco: "Entregas e encerramento", fonteExigida: "Contrato-base + Anexo I", tipo: "fixo_parametro", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia sem escopo", clausulas: [11, 12], anexo: "ANEXO_I_ORDEM_SERVICO" },
+  { bloco: "Pesquisa externa", fonteExigida: "Anexo III", tipo: "condicional", apareceNaPrevia: true, renderiza: "quando_aplicavel", gate: "Bloqueia ação externa sem autorização", clausulas: [2], anexo: "ANEXO_III_AUTORIZACAO_PESQUISA" },
+  { bloco: "Procuração", fonteExigida: "Anexo IV", tipo: "condicional", apareceNaPrevia: true, renderiza: "quando_aplicavel", gate: "Bloqueia se instrumento exigido e não aprovado", clausulas: [2], anexo: "ANEXO_IV_PROCURACAO" },
+  { bloco: "Alteração de escopo", fonteExigida: "Anexo V", tipo: "condicional", apareceNaPrevia: true, renderiza: "quando_aplicavel", gate: "Bloqueia mudança sem aceite", clausulas: [3], anexo: "ANEXO_V_ALTERACAO_ESCOPO" },
+  { bloco: "Assinatura", fonteExigida: "Configuração institucional + revisão", tipo: "condicional", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia se método ou revisão ausentes", clausulas: [13] },
+  { bloco: "Foro e disposições", fonteExigida: "Configuração jurídica", tipo: "fixo", apareceNaPrevia: true, renderiza: "sempre", gate: "Bloqueia se ausente", clausulas: [14] },
 ];
 
 /* ------------------------------------------------------------------ */
