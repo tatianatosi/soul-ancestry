@@ -301,7 +301,7 @@ function Pagina() {
           <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
         </div>
 
-        <div id="anexos">
+        <div id="anexos" className="space-y-4">
           <AnexosAplicaveis
             valores={d.valores ?? []}
             anexosGerados={d.anexos ?? []}
@@ -312,6 +312,17 @@ function Pagina() {
               document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}
           />
+
+          <Painel titulo="Anexos I–V governados">
+            <p className="mb-2 text-xs text-navy/60">
+              Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
+              nenhum campo é preenchido por inferência.
+            </p>
+            <AnexosIaV anexos={anexosGovernados} />
+            <div className="mt-3">
+              <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
+            </div>
+          </Painel>
         </div>
 
         <div id="ficha" className="space-y-4">
