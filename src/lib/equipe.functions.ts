@@ -476,9 +476,17 @@ export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
     }
     const { data: solicitacoes } = await q;
 
-    let entregas: Array<{ timestamp: string; recipient: string; event_type: string; status?: string }> = [];
+    let entregas: Array<{
+      timestamp: string;
+      recipient: string;
+      event_type: string;
+      status?: string;
+      messageId?: string | null;
+      tags?: string[];
+    }> = [];
     let canal: "disponivel" | "sem_chave" | "indisponivel" = "disponivel";
     let detalheCanal: string | null = null;
+    let historicoDesde: string | null = null;
 
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) {
@@ -488,11 +496,15 @@ export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
       try {
         const { listEmailLogs } = await import("@lovable.dev/email-js");
         const resposta = await listEmailLogs({ recipient: email ?? undefined, limit: 20 }, { apiKey });
+        historicoDesde = resposta.history_starts_at ?? null;
         entregas = (resposta.data ?? []).map((e) => ({
           timestamp: e.timestamp,
           recipient: e.recipient,
           event_type: e.event_type,
           status: e.status,
+          // message_id é apenas o identificador do provedor — não é token nem credencial.
+          messageId: e.message_id ?? null,
+          tags: e.tags ?? [],
         }));
       } catch (erro) {
         canal = "indisponivel";
@@ -504,6 +516,9 @@ export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
       email,
       canal,
       detalheCanal,
+      historicoDesde,
+      consultadoEm: new Date().toISOString(),
+
       solicitacoes: (solicitacoes ?? []).map((s: any) => ({
         id: s.id as string,
         acao: s.acao as string,
