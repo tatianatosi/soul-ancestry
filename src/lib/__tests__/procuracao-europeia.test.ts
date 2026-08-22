@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { anexoIVProcuracao, atividadeExternaComProcuracaoLiberada, entradaDeValores } from "@/lib/anexos-i-v";
+import { anexoIVProcuracao, atividadeExternaComProcuracaoLiberada } from "@/lib/anexos-i-v";
 import {
   AVISO_PREPARO_PROCURACAO,
   bloqueiosProcuracaoEuropeia,
@@ -9,6 +9,21 @@ import {
   resolverContextoEuropeu,
   TITULO_PROCURACAO_BRASIL,
 } from "@/lib/procuracao-europeia";
+
+const baseEntrada = {
+  caseId: "CA-TESTE-0001",
+  clienteNome: null,
+  responsavel: null,
+  dataContratacao: null,
+  contratoBaseVersao: "v1.0",
+  modelo: "MODELO-ESTUDO",
+  proposta: null,
+  politicaDespesas: null,
+  despesas: [],
+  autorizacaoPesquisa: null,
+  procuracao: null,
+  alteracaoEscopo: null,
+} as const;
 
 const ctxDe = (pais: string | null, fonte: "proposta" | "planejador" | "caso" = "proposta") =>
   resolverContextoEuropeu({
@@ -70,7 +85,7 @@ describe("procuração europeia parametrizada", () => {
     expect(b.gates).toContain("assinatura");
 
     const anexo = anexoIVProcuracao({
-      ...entradaDeValores(),
+      ...baseEntrada,
       procuracao: {
         exigidaPorOrgao: true,
         tipo: "europa",
@@ -111,7 +126,7 @@ describe("procuração europeia parametrizada", () => {
     expect(c.state).toBe("confirmado");
     expect(camposPendentesAposPais({})).toEqual([...CAMPOS_NUNCA_AUTOMATICOS]);
     const anexo = anexoIVProcuracao({
-      ...entradaDeValores(),
+      ...baseEntrada,
       procuracao: {
         exigidaPorOrgao: true,
         tipo: "europa",
@@ -136,7 +151,7 @@ describe("procuração europeia parametrizada", () => {
 
   it("Anexo III não substitui Anexo IV e vice-versa", () => {
     const anexo = anexoIVProcuracao({
-      ...entradaDeValores(),
+      ...baseEntrada,
       procuracao: {
         exigidaPorOrgao: true,
         tipo: "europa",
