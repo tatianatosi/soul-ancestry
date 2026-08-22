@@ -125,7 +125,7 @@ export function instanciasDeAnexos(input: {
     source: "regra de produto/escopo",
     model_version: "ANX-INTERNO-v1.0",
     required_for_contract: true,
-    status: "prepared",
+    status: "drafting",
     structured_data: { motivo: i.motivo, natureza: "interno" },
 
     rendered_html: `<h3>${i.codigo} — ${i.titulo}</h3><p>${i.motivo}</p>`,
