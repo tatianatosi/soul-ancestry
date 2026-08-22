@@ -282,6 +282,8 @@ function LeadsPage() {
 
           {atual ? <HandoffLead lead={editado} /> : null}
 
+          {atual ? <DerivacaoJornada lead={editado} /> : null}
+
           <div className="rounded-xl border border-navy/10 bg-white p-4">
             <button
               type="button"
