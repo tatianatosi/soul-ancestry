@@ -231,7 +231,31 @@ export type AutorizacaoPesquisaAnexo = {
   aceiteEvidencia: string | null;
   orgaoExigeProcuracao: boolean;
   despesaVinculadaId: string | null;
+  /** Regra 2: responsável interno pela autorização. */
+  responsavelInterno?: string | null;
 };
+
+/** Modelo parametrizável do Anexo III sob revisão jurídica. */
+export const ANEXO_III_MODELO_VERSAO = "ANEXO-III-AUTORIZACAO-PESQUISA-v1.0";
+
+/** Regras do motor do Anexo III — texto normativo, não editável por caso. */
+export const REGRAS_MOTOR_ANEXO_III: string[] = [
+  "Não criar automaticamente somente porque existe um caso.",
+  "Exigir finalidade, órgão, pessoa relacionada, documento/informação, prazo de uso, responsável e vínculo ao caso.",
+  "Havendo custo, vincular referência ao Anexo II e à aprovação aplicável.",
+  "Se o órgão exigir procuração, o Anexo III não substitui o Anexo IV.",
+  "Sem aceite específico rastreável, o status permanece pendente.",
+  "Sem autorização aplicável, ficam bloqueados pesquisa nominal externa, pedido institucional, contato em nome do cliente e entrega derivada.",
+  "O anexo não envia e-mail, WhatsApp, solicitação ou pesquisa externa automaticamente.",
+];
+
+/** Ações client-facing bloqueadas enquanto não houver autorização válida. */
+export const ACOES_BLOQUEADAS_SEM_ANEXO_III: string[] = [
+  "Pesquisa nominal externa",
+  "Pedido institucional a órgão, cartório, paróquia, comune ou consulado",
+  "Contato em nome do cliente",
+  "Entrega derivada dessa pesquisa",
+];
 
 export const ESTADOS_PROCURACAO_ANEXO = [
   "nao_aplicavel",
@@ -484,6 +508,7 @@ export function anexoIIIAutorizacao(e: EntradaAnexosIaV): AnexoGovernado {
     if (!a.pessoas.length) pend.push("Pessoas relacionadas não informadas.");
     if (!a.documentos.length) pend.push("Documento/informação solicitada não descrita.");
     if (!a.prazoUso) pend.push("Prazo de uso da autorização não definido.");
+    if (!a.responsavelInterno) pend.push("Responsável interno pela autorização não informado.");
     if (a.temCustoExterno && !a.despesaVinculadaId) pend.push("Custo externo declarado sem vínculo ao Anexo II.");
     if (a.temCustoExterno && !a.tetoValor) pend.push("Custo externo declarado sem teto autorizado.");
     if (!a.aceiteRegistrado || !a.aceiteEvidencia) pend.push("Aceite específico da Cliente não registrado com evidência.");
@@ -506,6 +531,12 @@ export function anexoIIIAutorizacao(e: EntradaAnexosIaV): AnexoGovernado {
     { rotulo: "Valor/teto autorizado", valor: a?.tetoValor ?? null, fonte: "anexo", observacaoAusencia: AUSENTE },
     { rotulo: "Prazo de uso", valor: a?.prazoUso ?? null, fonte: "preenchimento_humano_confirmado", observacaoAusencia: AUSENTE },
     {
+      rotulo: "Responsável Clube Ancestral",
+      valor: a?.responsavelInterno ?? null,
+      fonte: "preenchimento_humano_confirmado",
+      observacaoAusencia: AUSENTE,
+    },
+    {
       rotulo: "Aceite/assinatura",
       valor: a?.aceiteRegistrado ? a.aceiteEvidencia : null,
       fonte: "documento_conferido",
@@ -525,7 +556,8 @@ export function anexoIIIAutorizacao(e: EntradaAnexosIaV): AnexoGovernado {
     estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_III_AUTORIZACAO_PESQUISA"] }),
     campos,
     pendencias: pend,
-    impactoAusencia: "Sem autorização válida, pesquisa nominal externa, pedido institucional e contato com órgão ficam bloqueados.",
+    impactoAusencia:
+      "Sem autorização válida ficam bloqueados: pesquisa nominal externa, pedido institucional, contato em nome do cliente e entrega derivada. Nenhum envio é automático.",
     destinos: ["pesquisa_externa", "revisao_humana"],
     gatesBloqueados: !aplicavel || pend.length ? ["pesquisa_externa"] : [],
   };
@@ -535,7 +567,17 @@ export function anexoIIIAutorizacao(e: EntradaAnexosIaV): AnexoGovernado {
 export function pesquisaExternaLiberada(a: AutorizacaoPesquisaAnexo | null): boolean {
   if (!a) return false;
   if (a.orgaoExigeProcuracao) return false;
-  return Boolean(a.finalidade && a.orgao && a.pessoas.length && a.documentos.length && a.prazoUso && a.aceiteRegistrado && a.aceiteEvidencia);
+  if (a.temCustoExterno && (!a.despesaVinculadaId || !a.tetoValor)) return false;
+  return Boolean(
+    a.finalidade &&
+      a.orgao &&
+      a.pessoas.length &&
+      a.documentos.length &&
+      a.prazoUso &&
+      a.responsavelInterno &&
+      a.aceiteRegistrado &&
+      a.aceiteEvidencia,
+  );
 }
 
 /* ---------------- Anexo IV ---------------- */
