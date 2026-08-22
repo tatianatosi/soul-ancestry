@@ -103,4 +103,10 @@ export function exigirPapel(papel: string, permitidos: string[], mensagem: strin
 export const PAPEIS_COMERCIAL = ["admin", "comercial", "operacoes"];
 export const PAPEIS_FINANCEIRO = ["admin", "financeiro"];
 
+/** Perfis internos autorizados a visualizar registros DEMO/TESTE com selo. */
+export const PAPEIS_DEMO_VISIVEL = ["admin", "operacoes", "financeiro"];
+
+/** Recursos que carregam a marca técnica de origem no próprio registro. */
+export const TEM_MARCA_TESTE: string[] = ["proposals", "invoices", "payments", "service_orders"];
+
 export { FLUXO, validarFluxo } from "@/lib/comercial-fluxo";
