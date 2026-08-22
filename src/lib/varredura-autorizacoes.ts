@@ -58,6 +58,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "leads_discovery",
     rotulo: "Leads e Discovery",
     rota: "/leads",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("criar_editar_lead", "Criar, editar e reclassificar lead"),
       interna("avancar_discovery", "Avançar Discovery mesmo com triagem incompleta"),
@@ -68,6 +69,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "proposta_comercial",
     rotulo: "Proposta e condição comercial",
     rota: "/propostas",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("corrigir_proposta_escopo_preco", "Corrigir escopo, preço e SKU da proposta"),
       interna("aprovar_proposta_incompleta", "Aprovar proposta com campos pendentes assumidos"),
@@ -79,6 +81,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "catalogo_sku",
     rotulo: "Catálogo e SKUs",
     rota: "/catalogo",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("homologar_sku", "Homologar SKU por decisão humana"),
       interna("resolver_divergencia", "Resolver divergência de fonte de preço"),
@@ -88,6 +91,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "contrato",
     rotulo: "Contrato, versões e Anexos I–V",
     rota: "/contratos",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("gerar_versao_final", "Gerar versão final mesmo com parâmetros pendentes"),
       interna("previa_interna", "Abrir prévia interna com campos ausentes sinalizados"),
@@ -99,6 +103,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "ordens_servico",
     rotulo: "Ordens de serviço",
     rota: "/ordens-servico",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("corrigir_os_anexos_previa", "Criar e corrigir OS, anexos e prévia"),
       interna("aprovar_os", "Aprovar OS assumindo pendências visíveis"),
@@ -108,6 +113,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "onboarding",
     rotulo: "Onboarding e gates de ativação",
     rota: "/casos",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("liberar_onboarding", "Liberar onboarding com gates pendentes assumidos"),
       interna("registrar_excecao", "Registrar exceção operacional com prazo"),
@@ -117,6 +123,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "casos_tarefas",
     rotulo: "Casos, planejador e tarefas",
     rota: "/tarefas",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("avancar_caso_planejador_tarefa", "Avançar caso, planejador e tarefas"),
       interna("editar_fila_responsavel_prazo", "Editar fila, responsáveis e prazos"),
@@ -126,6 +133,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "pesquisa",
     rotulo: "Pesquisa genealógica e evidências",
     rota: "/pesquisa",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("avancar_pesquisa_evidencia_microentrega", "Avançar pesquisa, evidências e microentregas"),
       externa("pesquisar_externamente", "Pesquisa externa"),
@@ -136,6 +144,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "documentos",
     rotulo: "Documentos e acervo",
     rota: "/evidencias",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("criar_documento_sem_arquivo", "Criar registro de documento antes do arquivo"),
       interna("anexar_documento_posterior", "Anexar ou substituir documento em etapa posterior"),
@@ -147,6 +156,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "financeiro",
     rotulo: "Financeiro",
     rota: "/financeiro",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("corrigir_condicao_comercial", "Corrigir parcelas, valores e vencimentos internos"),
       externa("emitir_cobranca", "Emitir cobrança"),
@@ -158,6 +168,7 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "app_cliente",
     rotulo: "App Cliente e projeções",
     rota: "/acessos-portal",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("aprovar_projecao_app_cliente", "Aprovar projeção interna"),
       externa("publicar_no_app_cliente", "Publicar no App Cliente"),
@@ -167,10 +178,58 @@ export const AREAS_CANONICAS: AreaCanonica[] = [
     chave: "governanca",
     rotulo: "Governança, auditoria e arquivamento",
     rota: "/auditoria",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
     acoes: [
       interna("ver_todos_estados_da_organizacao", "Ver todos os estados e pendências"),
       interna("consultar_arquivados", "Consultar arquivados e histórico"),
       externa("excluir_registro_ou_versao", "Excluir registro ou versão"),
+    ],
+  },
+  {
+    chave: "planejador",
+    rotulo: "Planejador diário",
+    rota: "/planner",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
+    acoes: [
+      interna("criar_editar_item_planejador", "Criar, editar, reordenar e concluir item do planejador"),
+      interna("editar_fila_responsavel_prazo", "Definir responsável, prazo e próxima ação"),
+    ],
+  },
+  {
+    chave: "pessoas_familias",
+    rotulo: "Pessoas, núcleos, dependentes e representação",
+    rota: "/pessoas",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
+    acoes: [
+      interna("corrigir_pessoas_dependentes_representacao", "Criar e corrigir pessoas, núcleos, dependentes e participação"),
+      interna("registrar_representacao_pendente", "Registrar representação pendente como exceção com prazo"),
+      externa("criar_procuracao", "Emitir procuração"),
+      externa("agir_em_nome_do_cliente", "Agir em nome do cliente"),
+    ],
+  },
+  {
+    chave: "painel_hoje",
+    rotulo: "Painel Hoje, fila, sinais e exceções",
+    rota: "/painel",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
+    acoes: [
+      interna("assumir_decisao_e_avancar", "Assumir decisão e avançar item da fila"),
+      interna("registrar_excecao", "Abrir, renovar, regularizar ou revogar exceção operacional"),
+      interna("editar_fila_responsavel_prazo", "Reordenar fila, atribuir responsável e prazo"),
+    ],
+  },
+  {
+    chave: "administracao",
+    rotulo: "Administração, usuários, papéis, RLS, storage e integrações",
+    rota: "/administracao",
+    estadoMaximoInterno: ESTADO_MAXIMO_INTERNO,
+    acoes: [
+      interna("gerir_usuarios_e_papeis", "Convidar internamente, alterar papel e suspender acesso"),
+      interna("consultar_auditoria_e_rls", "Consultar auditoria, políticas e histórico"),
+      interna("preparar_migracao_ou_backup", "Preparar pacote de migração ou restauração"),
+      externa("aplicar_migration_producao", "Aplicar migration em produção"),
+      externa("restaurar_backup", "Restaurar backup sobrescrevendo dados"),
+      externa("excluir_registro_ou_versao", "Exclusão definitiva"),
     ],
   },
 ];
