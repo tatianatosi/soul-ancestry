@@ -891,3 +891,83 @@ export const baixarVersaoInterna = createServerFn({ method: "POST" })
     await evento(supabase, organizationId, data.contract_id, "document_downloaded", { versao: versao.version_number }, versao.id);
     return { url: assinada.signedUrl as string };
   });
+
+/* ==================== PANORAMA DE REVISÃO JURÍDICA ==================== */
+
+/**
+ * Consolida o checklist jurídico automático de todos os instrumentos em
+ * preparação (rascunho/em revisão) da organização. Somente leitura: não grava,
+ * não aprova e não executa nenhuma ação externa.
+ */
+export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { incluirDemo?: boolean } = {}) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    const { montarChecklistJuridico } = await import("@/lib/checklist-juridico");
+
+    let q = supabase
+      .from("contracts")
+      .select("id,contract_number,title,contract_type,status,case_id,client_id,demo,updated_at")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null)
+      .in("status", ["draft", "internal_review", "legal_review"])
+      .order("updated_at", { ascending: true });
+    if (!data.incluirDemo) q = q.or("demo.is.null,demo.eq.false");
+
+    const { data: contratos, error } = await q;
+    if (error) throw new Error(error.message);
+    const lista = (contratos ?? []) as any[];
+    if (lista.length === 0) return { papel, instrumentos: [] as any[] };
+
+    const ids = lista.map((c) => c.id);
+    const relacionada = async (tabela: string, campos: string) => {
+      const { data: linhas, error: e } = await supabase
+        .from(tabela)
+        .select(campos)
+        .eq("organization_id", organizationId)
+        .in("contract_id", ids);
+      if (e) throw new Error(e.message);
+      return (linhas ?? []) as any[];
+    };
+
+    const [partes, escopo, clausulas, anexos, versoes] = await Promise.all([
+      relacionada("contract_parties", "*"),
+      relacionada("contract_scope_items", "*"),
+      relacionada("contract_clause_overrides", "*"),
+      relacionada("contract_annexes", "*"),
+      relacionada("contract_versions", "*"),
+    ]);
+
+    const por = (linhas: any[], id: string) => linhas.filter((l) => l.contract_id === id);
+
+    const instrumentos = lista.map((c) => {
+      const resumo = montarChecklistJuridico({
+        contrato: c,
+        partes: por(partes, c.id),
+        escopo: por(escopo, c.id),
+        clausulas: por(clausulas, c.id),
+        anexos: por(anexos, c.id),
+        versoes: por(versoes, c.id),
+      });
+      return {
+        id: c.id as string,
+        numero: (c.contract_number ?? null) as string | null,
+        titulo: (c.title ?? "Instrumento sem título") as string,
+        tipo: c.contract_type as string,
+        status: c.status as string,
+        demo: Boolean(c.demo),
+        total: resumo.total,
+        conformes: resumo.conformes,
+        pendentes: resumo.pendentes,
+        bloqueios: resumo.bloqueios,
+        apto: resumo.aptoParaRevisaoHumana,
+        faltantes: resumo.itens
+          .filter((i) => i.estado !== "ok")
+          .map((i) => ({ chave: i.chave, label: i.label, grupo: i.grupo, estado: i.estado })),
+      };
+    });
+
+    return { papel, instrumentos };
+  });
