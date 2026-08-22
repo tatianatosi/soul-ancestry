@@ -8,7 +8,6 @@ import {
   FolderOpen,
   FileSearch,
   FileSignature,
-  ClipboardList,
   Library,
   Smartphone,
   LogOut,
