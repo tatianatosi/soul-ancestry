@@ -73,7 +73,7 @@ export const caseDataSophia: CaseData = {
     pessoas_colaterais: ["Isadora Picoli Santiago — irmã (interesse futuro, fora do escopo atual)"],
   },
   rota: {
-    pais_principal: "Itália",
+    pais_principal: "Áustria",
     aderencia_principal: null,
     pais_secundario: "",
     aderencia_secundaria: null,
