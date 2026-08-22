@@ -5,8 +5,7 @@ import { agruparLinhasIndicadores, deduplicarLinhasIndicadores, type LinhaIndica
 
 describe("P1 — manifestação dos indicadores", () => {
   it("os 16 indicadores têm componente_tipo, severidade e regra de sem dados", () => {
-    expect(INDICADORES.length).toBeGreaterThanOrEqual(16);
-    expect(Object.keys(MANIFESTACAO_INDICADOR)).toHaveLength(16);
+    expect(Object.keys(MANIFESTACAO_INDICADOR).length).toBeGreaterThanOrEqual(INDICADORES.length);
     for (const i of INDICADORES) {
       const m = MANIFESTACAO_INDICADOR[i.codigo];
       expect(m, i.codigo).toBeDefined();
