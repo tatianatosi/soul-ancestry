@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Painel, Selo, inputCls, moeda } from "@/components/comercial/base";
 import { AnexosAplicaveis } from "@/components/contrato/anexos-aplicaveis";
+import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { AnexosIaV, PainelPendenciasContratuais } from "@/components/contrato/anexos-i-v";
 import { ConflitoCoerencia } from "@/components/contrato/conflito-coerencia";
 import { EscopoProposta } from "@/components/contrato/escopo-proposta";
@@ -274,6 +275,8 @@ function Pagina() {
             informação real permanece vazio.
           </p>
         </Painel>
+
+        <CadeiaFormalizacao caseId={caseId} podeEscrever={podeEscrever} />
 
         <PainelPreparacao caseId={caseId} />
         <PainelInstrumentos caseId={caseId} />
