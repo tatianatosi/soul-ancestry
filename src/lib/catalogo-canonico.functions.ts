@@ -52,8 +52,8 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
         .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase
-        .from("proposals")
-        .select("id,sku_principal,status")
+        .from("commercial_conditions")
+        .select("id,product_catalog_id,status")
         .eq("organization_id", organizationId)
         .is("archived_at", null),
     ]);
