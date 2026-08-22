@@ -598,12 +598,13 @@ export function PainelDia() {
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-lg text-navy">Casos com prazo em atenção</h2>
-          <Link to="/casos" className="text-xs text-navy/60 underline">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
+          <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
+
         <p className="mt-1 text-xs text-navy/50">
           Somente situações com ação necessária. Ausência de prazo é exibida como “Sem prazo definido”, nunca como número. Os
           prazos do dia já estão na fila priorizada.
