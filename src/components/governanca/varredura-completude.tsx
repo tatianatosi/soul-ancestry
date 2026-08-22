@@ -91,8 +91,16 @@ export function VarreduraCompletude() {
         </ul>
       </Secao>
 
-      <Secao titulo="1. Anexos I–V">
+      <Secao titulo="1. Anexos I–V — reconciliação em três camadas">
+        <AnexosTresCamadasPainel />
+      </Secao>
+
+      <Secao titulo="1.1 Anexos I–V — leitura original da varredura (histórico)">
         <p className="mb-2 text-[11px] text-navy/55">{REGRA_ANEXOS_NAO_LOCALIZADOS}</p>
+        <p className="mb-2 text-[11px] text-navy/45">
+          Mantido como histórico. A leitura vigente é a reconciliação em três camadas acima.
+        </p>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] text-left text-[11px] text-navy/70">
             <thead className="text-navy/45">
