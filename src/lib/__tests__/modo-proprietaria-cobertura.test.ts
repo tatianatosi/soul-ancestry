@@ -50,7 +50,7 @@ describe("cobertura obrigatória do modo proprietária", () => {
       dados_teste: true,
     });
     expect(v.valida).toBe(false);
-    expect(v.erros.join(" ")).toContain("TESTE/DEMO");
+    expect(v.erros.join(" ")).toContain("TESTE");
   });
 
   it("mantém SKU em revisão como override permitido na formalização", () => {
@@ -88,5 +88,35 @@ describe("ampliação para todas as áreas do Desk", () => {
 
   it("grava correção de caso na entidade canônica crm_casos", () => {
     expect(operacaoDoModulo("caso_dossie", "editar_caso")?.entidade).toBe("crm_casos");
+  });
+});
+
+describe("regra geral aplicada área a área", () => {
+  it("permite vincular plano, revisar Canva, derivar versão congelada e aprovar achado interno", () => {
+    expect(operacaoDoModulo("planejador", "vincular_plano")?.entidade).toBe("case_plans");
+    expect(operacaoDoModulo("proposta_escopo", "revisar_paginas_canva")?.entidade).toBe("proposal_canva_pages");
+    expect(operacaoDoModulo("formalizacao", "derivar_versao_congelada")?.entidade).toBe("contract_versions");
+    expect(operacaoDoModulo("pesquisa_operacao", "aprovar_evidencia_interna")?.entidade).toBe(
+      "genealogical_findings",
+    );
+  });
+
+  it("bloqueia qualquer operação do App Cliente sobre dado TESTE/DEMO", () => {
+    for (const op of ["editar_projecao_app", "aprovar_projecao_app", "definir_destinatario_visibilidade"]) {
+      const r = validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: op, dados_teste: true });
+      expect(r.valida).toBe(false);
+    }
+    expect(
+      validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: "aprovar_projecao_app" }).valida,
+    ).toBe(true);
+  });
+
+  it("nega o modo a qualquer papel que não seja a proprietária, em toda área", () => {
+    for (const m of COBERTURA_MODULOS) {
+      const op = m.operacoes[0]!.id;
+      expect(podeOperarModulo("operacoes", m.id, op)).toBe(false);
+      expect(podeOperarModulo("leitura", m.id, op)).toBe(false);
+      expect(podeOperarModulo("admin", m.id, op)).toBe(true);
+    }
   });
 });

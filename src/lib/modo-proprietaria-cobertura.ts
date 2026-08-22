@@ -95,6 +95,11 @@ export const COBERTURA_MODULOS: Modulo[] = [
         entidade: "case_plans",
       },
       {
+        id: "vincular_plano",
+        rotulo: "Vincular plano a lead, proposta, caso, SKU e pessoas",
+        entidade: "case_plans",
+      },
+      {
         id: "avancar_plano_incompleto",
         rotulo: "Salvar e avançar plano incompleto assumindo pendências",
         entidade: "case_plans",
@@ -134,6 +139,16 @@ export const COBERTURA_MODULOS: Modulo[] = [
       },
       { id: "editar_despesas", rotulo: "Editar despesas estimadas", entidade: "expense_estimates" },
       { id: "editar_anexos_proposta", rotulo: "Editar anexos da proposta", entidade: "contract_annexes" },
+      {
+        id: "revisar_paginas_canva",
+        rotulo: "Importar e revisar páginas da proposta Canva (sem URL externa)",
+        entidade: "proposal_canva_pages",
+      },
+      {
+        id: "registrar_nao_localizado_conflito",
+        rotulo: "Registrar 'não localizado na proposta', conflito ou dado a confirmar",
+        entidade: "proposal_canva_pages",
+      },
       {
         id: "avancar_proposta_com_pendencia",
         rotulo: "Avançar proposta com pendências assumidas",
@@ -194,6 +209,21 @@ export const COBERTURA_MODULOS: Modulo[] = [
     rotulo: "Formalização",
     rota: "/contratos",
     operacoes: [
+      {
+        id: "editar_perfil_institucional",
+        rotulo: "Editar perfil institucional permitido",
+        entidade: "institutional_profiles",
+      },
+      {
+        id: "editar_parametros_partes",
+        rotulo: "Preencher parâmetros, fontes, partes, signatários, preço e vencimentos",
+        entidade: "contract_parameter_values",
+      },
+      {
+        id: "derivar_versao_congelada",
+        rotulo: "Derivar versão editável de registro congelado",
+        entidade: "contract_versions",
+      },
       {
         id: "editar_condicao_comercial",
         rotulo: "Criar, editar e aprovar condição comercial",
@@ -275,6 +305,16 @@ export const COBERTURA_MODULOS: Modulo[] = [
       { id: "editar_evidencias", rotulo: "Editar evidências e achados", entidade: "research_evidence_items" },
       { id: "editar_validacoes", rotulo: "Registrar validações", entidade: "evidence_validations" },
       { id: "editar_tarefas", rotulo: "Editar tarefas, entregas e microentregas", entidade: "ops_microentregas" },
+      {
+        id: "aprovar_evidencia_interna",
+        rotulo: "Aprovar evidência ou achado interno por decisão auditada",
+        entidade: "genealogical_findings",
+      },
+      {
+        id: "ajustar_hipotese_trilha",
+        rotulo: "Ajustar hipótese, trilha e dependência",
+        entidade: "research_case_hypotheses",
+      },
       {
         id: "decidir_prioridade_prazo_responsavel",
         rotulo: "Decidir prioridade, prazo e responsável",
@@ -407,8 +447,10 @@ export function validarOperacaoModulo(
   if (exigeConfirmacaoFinal(entrada.operacao)) {
     erros.push("Ação externa ou irreversível exige a janela final de confirmação explícita.");
   }
-  if (entrada.dados_teste === true && entrada.operacao === "aprovar_projecao_app") {
-    erros.push("Dados TESTE/DEMO não podem ser aprovados para projeção no App Cliente.");
+  if (entrada.dados_teste === true && entrada.modulo === "app_cliente") {
+    erros.push(
+      "Dado TESTE, DEMO ou fixture não pode ser aprovado, projetado nem publicado no App Cliente.",
+    );
   }
   return { valida: erros.length === 0, erros, entidade: op?.entidade ?? null };
 }
