@@ -96,7 +96,7 @@ export const listarVinculos = createServerFn({ method: "GET" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
     const [clientes, casos, contratos, faturas, propostas] = await Promise.all([
-      supabase.from("clientes").select("id,nome").eq("organization_id", organizationId).is("archived_at", null),
+      supabase.from("clientes").select("id,nome,is_demo").eq("organization_id", organizationId).is("archived_at", null),
       supabase.from("crm_casos").select("id,codigo,titulo").eq("organization_id", organizationId).is("archived_at", null),
       supabase
         .from("contracts")
