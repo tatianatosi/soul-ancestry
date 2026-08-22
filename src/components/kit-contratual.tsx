@@ -583,24 +583,62 @@ function ModeloCorpo({ id }: { id: ModeloId }) {
   );
 }
 
-function ProcuracaoPreview({ italiana }: { italiana: boolean }) {
-  const c = useActiveCase().contratacao;
-  const p = italiana ? c?.autorizacoes.procuracao_europeia : c?.autorizacoes.procuracao_brasileira;
-  const orgao = preenchido(p?.orgao_destinatario)
-    ? p!.orgao_destinatario
-    : italiana
-      ? "Órgão italiano ainda não confirmado"
-      : "A confirmar";
+function ProcuracaoPreview({ europeia }: { europeia: boolean }) {
+  const caso = useActiveCase();
+  const c = caso.contratacao;
+  const ctx = contextoEuropeuDoCaso(caso);
+  const bloqueio = bloqueiosProcuracaoEuropeia(ctx);
+  const p = europeia ? c?.autorizacoes.procuracao_europeia : c?.autorizacoes.procuracao_brasileira;
+  const orgao = preenchido(p?.orgao_destinatario) ? p!.orgao_destinatario : "A confirmar";
 
   return (
     <>
+      <Linha l="Título aplicável" v={europeia ? ctx.title : TITULO_PROCURACAO_BRASIL} />
+      {europeia && (
+        <>
+          <Linha l="Jurisdição" v={`${ctx.jurisdiction_scope} · ${ctx.country_label}`} />
+          <Linha l="Origem do país" v={ctx.source_label} />
+          <Linha
+            l="Estado do contexto"
+            v={
+              ctx.state === "confirmado"
+                ? "País confirmado por fonte canônica"
+                : ctx.state === "conflito"
+                  ? "Conflito entre fontes canônicas"
+                  : "País a confirmar"
+            }
+          />
+        </>
+      )}
       <Linha l="Finalidade específica" v={texto(p?.finalidade, NAO_INICIADO)} />
       <Linha l="Órgão destinatário" v={orgao} />
-      {italiana && <Linha l="Comune / Consulado" v="Somente após confirmação oficial" />}
       <ListaCampo l="Pessoas vinculadas" itens={lista(p?.pessoas_vinculadas)} />
-      <Linha l="Status" v={p ? PROCURACAO_LABEL[p.status] : "Não iniciada"} />
+      <Linha l="Poderes necessários" v={NAO_INICIADO} />
+      <Linha l="Idioma" v={NAO_INICIADO} />
+      <Linha l="Requisito formal (assinatura/apostila/reconhecimento)" v={NAO_INICIADO} />
+      <Linha
+        l="Status"
+        v={europeia && bloqueio.bloqueado ? "Não iniciada" : p ? PROCURACAO_LABEL[p.status] : "Não iniciada"}
+      />
       <Linha l="Validade" v={texto(p?.validade, NAO_INICIADO)} />
       <Linha l="Observações" v={texto(p?.observacoes, "Sem observações registradas")} />
+      {europeia && bloqueio.bloqueado && (
+        <div className="mt-3 rounded-lg border border-terracotta/40 bg-terracotta/5 p-3 text-[11px] text-terracotta">
+          <div className="font-semibold">Preparação bloqueada</div>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4">
+            {bloqueio.motivos.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+          {bloqueio.origemAResolver && (
+            <div className="mt-1">Resolver em: {bloqueio.origemAResolver}</div>
+          )}
+        </div>
+      )}
+      <p className="mt-3 rounded-lg border border-gold/40 bg-gold/10 p-2.5 text-[11px] text-navy">
+        {AVISO_PREPARO_PROCURACAO}
+      </p>
     </>
   );
 }
+
