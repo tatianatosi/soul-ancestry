@@ -340,6 +340,88 @@ export function bloqueiosOS(c: ConteudoOS): string[] {
 }
 
 /* ------------------------------------------------------------------ */
+/* Itens de escopo contratual derivados da proposta aprovada           */
+/* ------------------------------------------------------------------ */
+
+export type ItemEscopoContratual = {
+  category:
+    | "contracted_scope"
+    | "deliverable"
+    | "operational_condition"
+    | "customer_obligation"
+    | "exclusion"
+    | "dependency";
+  title: string;
+  description: string | null;
+  status: "included" | "excluded" | "pending" | "conditional";
+  source_type: "proposal";
+  source_reference: string;
+  display_order: number;
+  requires_human_validation: boolean;
+};
+
+export type ReferenciaOrigemEscopo = {
+  propostaVersao: number | string;
+  skuCodigo: string | null;
+  condicaoCodigo?: string | null;
+  osVersao?: number | null;
+};
+
+/** Texto de origem herdado por cada item: proposta → SKU → condição comercial → OS. */
+export function referenciaOrigemEscopo(ref: ReferenciaOrigemEscopo): string {
+  const partes = [
+    `proposta v${ref.propostaVersao}`,
+    `SKU ${ref.skuCodigo ?? "—"}`,
+    `condição ${ref.condicaoCodigo ?? "—"}`,
+  ];
+  if (ref.osVersao) partes.push(`OS v${ref.osVersao}`);
+  return partes.join(" · ");
+}
+
+/**
+ * Deriva os itens de escopo do contrato a partir do conteúdo canônico da OS.
+ * Toda linha nasce com origem `proposal` e a referência completa da cadeia:
+ * nada aqui é inventado nem aprovado automaticamente.
+ */
+export function itensEscopoDaOS(c: ConteudoOS, ref: ReferenciaOrigemEscopo): ItemEscopoContratual[] {
+  const origem = referenciaOrigemEscopo(ref);
+  const itens: ItemEscopoContratual[] = [];
+  const add = (
+    category: ItemEscopoContratual["category"],
+    status: ItemEscopoContratual["status"],
+    titulo: string,
+    descricao: string | null,
+    validar = false,
+  ) => {
+    const title = titulo.trim();
+    if (!title) return;
+    itens.push({
+      category,
+      title,
+      description: descricao,
+      status,
+      source_type: "proposal",
+      source_reference: origem,
+      display_order: itens.length + 1,
+      requires_human_validation: validar,
+    });
+  };
+
+  if (c.objetivo) add("contracted_scope", "included", c.objetivo, "Objetivo declarado na proposta aprovada.");
+  for (const s of c.escopo) add("contracted_scope", "included", s, "Serviço incluído na proposta aprovada.");
+  for (const s of c.inclusoes) add("contracted_scope", "included", s, "Inclusão homologada no catálogo.");
+  for (const s of c.exclusoes) add("exclusion", "excluded", s, "Exclusão homologada no catálogo.");
+  for (const s of c.entregas) add("deliverable", "included", s, "Entrega prevista no planejador.");
+  for (const s of c.microentregas) add("deliverable", "included", s, "Microentrega prevista no planejador.");
+  for (const s of c.dependencias) add("dependency", "conditional", s, "Dependência declarada na proposta.", true);
+  for (const p of c.pessoas)
+    add("operational_condition", "included", `Pessoa abrangida: ${p.nome}`, `Papel: ${p.papel}.`);
+
+  return itens;
+}
+
+
+/* ------------------------------------------------------------------ */
 /* Estado consolidado da cadeia                                        */
 /* ------------------------------------------------------------------ */
 
