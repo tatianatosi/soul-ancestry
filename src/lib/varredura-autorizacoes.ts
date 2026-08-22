@@ -374,6 +374,69 @@ export const CATALOGO_EXCECOES: TipoExcecao[] = [
     regularizacao: "Reconciliar escopo na fonte canônica e reconferir.",
     impacto: "Divergência listada na conferência de escopo.",
   },
+  {
+    chave: "contrato_assinatura_pendente",
+    rotulo: "Contrato ou assinatura pendente",
+    quando: "Etapa interna avança antes do contrato assinado.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Concluir assinatura ou registrar desistência.",
+    impacto: "Nenhuma execução externa ocorre; assinatura nunca é presumida.",
+  },
+  {
+    chave: "pesquisa_recheque_pendente",
+    rotulo: "Pesquisa, evidência ou rechecagem pendente",
+    quando: "Achado precisa avançar antes da validação da evidência.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Rechecar a fonte e validar ou descartar a evidência.",
+    impacto: "Achado permanece como hipótese; nunca vira evidência validada.",
+  },
+  {
+    chave: "responsavel_prazo_ausente",
+    rotulo: "Responsável, prazo ou próxima ação ausente",
+    quando: "Item entra na fila sem dono ou sem data definida.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 7,
+    regularizacao: "Atribuir responsável, prazo e próxima ação.",
+    impacto: "Item aparece na fila com sinal de indefinição.",
+  },
+  {
+    chave: "onboarding_acesso_pendente",
+    rotulo: "Onboarding ou acesso externo pendente",
+    quando: "Caso opera antes do acesso do cliente estar ativo.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Concluir onboarding e ativar o acesso com confirmação.",
+    impacto: "Cliente não recebe nada; trabalho interno segue.",
+  },
+  {
+    chave: "integracao_indisponivel",
+    rotulo: "Integração indisponível",
+    quando: "Serviço externo (pagamento, storage, e-mail) fora do ar ou não conectado.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 7,
+    regularizacao: "Restabelecer a integração e reprocessar manualmente.",
+    impacto: "Ato externo permanece em pronto_para_confirmacao_externa.",
+  },
+  {
+    chave: "dado_teste_demo",
+    rotulo: "Dado TESTE/DEMO/fixture em uso",
+    quando: "Registro de fixture é usado em fluxo operacional.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 30,
+    regularizacao: "Substituir por dado real ou arquivar o registro de teste.",
+    impacto: "Selo de fixture permanece visível e fora das métricas reais.",
+  },
+  {
+    chave: "conflito_ou_falta_de_fonte",
+    rotulo: "Conflito ou falta de fonte canônica",
+    quando: "Duas fontes divergem ou a fonte homologada não existe.",
+    autoriza: "Proprietária administradora",
+    validadeDias: 15,
+    regularizacao: "Eleger a fonte canônica e registrar a decisão.",
+    impacto: "Valor exibido fica marcado como não homologado.",
+  },
 ];
 
 export const TIPOS_EXCECAO_ROTULOS: Record<string, string> = Object.fromEntries(
@@ -407,6 +470,162 @@ export function validadeSugerida(chave: string, base: Date = new Date()): string
 /* Documentos ao longo do ciclo                                        */
 /* ------------------------------------------------------------------ */
 
+
+/** Campos obrigatórios de todo registro de exceção operacional. */
+export const CAMPOS_EXCECAO = [
+  "entidade",
+  "entidade_id",
+  "tipo",
+  "regra_afetada",
+  "estado_original",
+  "decisao",
+  "motivo",
+  "fonte_evidencia",
+  "valor_anterior",
+  "valor_novo",
+  "autora",
+  "criado_em",
+  "responsavel_regularizacao",
+  "valido_ate",
+  "impacto",
+  "status",
+] as const;
+
+export const STATUS_EXCECAO = ["aberta", "regularizada", "expirada", "revogada"] as const;
+export type StatusExcecao = (typeof STATUS_EXCECAO)[number];
+
+/** O que uma exceção jamais pode simular. */
+export const EXCECAO_NUNCA_FALSIFICA = [
+  "pagamento",
+  "assinatura",
+  "elegibilidade",
+  "evidencia_validada",
+  "contrato_executado",
+  "acesso_externo",
+] as const;
+
+/** Exceção reaparece na fila antes de expirar (janela de reaviso em dias). */
+export const DIAS_REAVISO_EXCECAO = 3;
+
+export function excecaoDeveReaparecerNaFila(
+  excecao: { valido_ate?: string | null; regularizado_em?: string | null },
+  agora: Date = new Date(),
+): boolean {
+  if (excecao.regularizado_em) return false;
+  if (!excecao.valido_ate) return true;
+  const limite = new Date(excecao.valido_ate).getTime();
+  if (Number.isNaN(limite)) return true;
+  return limite - agora.getTime() <= DIAS_REAVISO_EXCECAO * 86_400_000;
+}
+
+/* ------------------------------------------------------------------ */
+/* Documentos: classes, estados e fluxo por etapa                      */
+/* ------------------------------------------------------------------ */
+
+export const CLASSES_DOCUMENTO = [
+  "interno",
+  "recebido_do_cliente",
+  "evidencia_pesquisa",
+  "minuta",
+  "contrato",
+  "anexo",
+  "financeiro",
+  "entrega",
+  "publicacao",
+] as const;
+export type ClasseDocumento = (typeof CLASSES_DOCUMENTO)[number];
+
+export const ESTADOS_DOCUMENTO = [
+  "estruturado_sem_arquivo",
+  "recebido",
+  "em_revisao",
+  "quarentena",
+  "ausente",
+  "dispensado",
+  "ilegivel",
+  "em_rechecagem",
+  "aguardando_cliente",
+  "aguardando_instituicao",
+  "aprovado_interno",
+  "pronto_para_confirmacao_externa",
+] as const;
+export type EstadoDocumento = (typeof ESTADOS_DOCUMENTO)[number];
+
+export const METADADOS_DOCUMENTO = [
+  "origem",
+  "titular",
+  "vinculo_canonico",
+  "data",
+  "responsavel",
+  "confidencialidade",
+  "status",
+  "pendencia",
+] as const;
+
+export type FluxoDocumento = {
+  etapa: string;
+  rotulo: string;
+  permiteEstrutura: boolean;
+  permiteAnexoPosterior: boolean;
+  bloqueiaInterno: false;
+  regra: string;
+};
+
+export const FLUXO_DOCUMENTOS: FluxoDocumento[] = [
+  {
+    etapa: "pre_caso_discovery",
+    rotulo: "A. Pré-caso e Discovery",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Estrutura e anexos internos livres; nenhum acesso externo automático.",
+  },
+  {
+    etapa: "proposta_contrato",
+    rotulo: "B. Proposta e contrato",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Minutas e anexos podem chegar depois; pendência é visível e não trava versão nem avanço auditado.",
+  },
+  {
+    etapa: "pre_onboarding",
+    rotulo: "C. Pré-onboarding",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Canal controlado de recebimento com registro de pendência; nada é solicitado sem confirmação.",
+  },
+  {
+    etapa: "caso_ativo",
+    rotulo: "D. Caso ativo",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Documento interno pode ser criado ou substituído a qualquer momento, com versão preservada.",
+  },
+  {
+    etapa: "app_cliente",
+    rotulo: "E. App Cliente",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Upload só para pessoas/casos elegíveis; recebido entra em quarentena para revisão rastreada.",
+  },
+  {
+    etapa: "publicacao",
+    rotulo: "F. Publicação ao cliente",
+    permiteEstrutura: true,
+    permiteAnexoPosterior: true,
+    bloqueiaInterno: false,
+    regra: "Exige sanitização e confirmação final explícita; conteúdo interno nunca é exposto.",
+  },
+];
+
+export function fluxoDocumentoPorEtapa(etapa: string): FluxoDocumento | undefined {
+  return FLUXO_DOCUMENTOS.find((f) => f.etapa === etapa);
+}
+
 export const ETAPAS_ACEITAM_DOCUMENTO = [
   "lead",
   "discovery",
@@ -427,6 +646,8 @@ export const REGRAS_DOCUMENTO = {
   substituirComVersao: true,
   reclassificar: true,
   exclusaoFisica: false,
+  quarentenaParaRecebidoDoCliente: true,
+  projecaoSanitizadaSemConteudoInterno: true,
   liberacaoAoCliente: "externa",
 } as const;
 
@@ -442,6 +663,7 @@ export function resumoVarredura() {
     acoesInternas: acoes.filter((a) => a.natureza === "interna").length,
     acoesExternas: acoes.filter((a) => a.natureza === "externa").length,
     excecoes: CATALOGO_EXCECOES.length,
+    etapasFluxoDocumento: FLUXO_DOCUMENTOS.length,
     etapasComDocumento: ETAPAS_ACEITAM_DOCUMENTO.length,
     bloqueiosInternos: acoes.filter((a) => a.bloqueiaInterno).length,
   };
