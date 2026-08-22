@@ -536,8 +536,31 @@ export function PainelDia() {
         )}
       </section>
 
-      {/* 4a — Catálogo e homologação de SKUs (somente leitura) */}
-      <CatalogoSaneamento />
+      {/* 4a — Exceção operacional: caso bloqueado por condição comercial não homologada.
+          O Painel Hoje não é catálogo: aqui não há SKU, preço, link ou edição de portfólio. */}
+      <section className="rounded-xl border border-navy/10 bg-white p-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-serif text-lg text-navy">Casos bloqueados por condição comercial</h2>
+          <Link to="/catalogo" className="text-xs text-navy/60 underline">
+            Governança de Catálogo
+          </Link>
+        </div>
+        <p className="mt-1 text-xs text-navy/50">
+          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
+          proprietárias.
+        </p>
+        <ul className="mt-3 space-y-1 text-xs text-navy/65">
+          {bloqueadosCatalogo.map((c) => (
+            <li key={c.case_id}>
+              <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
+                {c.rotulo}
+              </Link>{" "}
+              — {EXCECAO_CONDICAO_COMERCIAL}
+            </li>
+          ))}
+          {!bloqueadosCatalogo.length ? <li>Nenhum caso bloqueado por condição comercial.</li> : null}
+        </ul>
+      </section>
 
       {/* 5 — Atalhos */}
       <section className="rounded-xl border border-navy/10 bg-white p-5">
