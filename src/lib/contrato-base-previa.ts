@@ -9,7 +9,16 @@
 
 import { dicionarioAnexos, type RegraAnexo } from "@/lib/anexos-dicionario";
 import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
-import { MATRIZ_RENDERIZACAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
+import { MATRIZ_RENDERIZACAO, CONTRATO_BASE_VERSAO, type LinhaRenderizacao } from "@/lib/contrato-base-consolidado";
+import {
+  anexosIaV,
+  conflitoDeFonte,
+  gatesBloqueados,
+  pendenciasDosAnexos,
+  type ConflitoFonte,
+  type EntradaAnexosIaV,
+} from "@/lib/anexos-i-v";
+
 
 export const MARCA_PREVIA_TESTE = "RASCUNHO INCOMPLETO — PRÉVIA TESTE, SEM DADOS REAIS";
 
@@ -141,15 +150,6 @@ export function matrizRenderizacaoPreviaTeste(anexos = anexosDaPreviaTeste()): S
 
 /* ---------------- Anexos I–V na prévia TESTE ---------------- */
 
-import {
-  anexosIaV,
-  conflitoDeFonte,
-  gatesBloqueados,
-  pendenciasDosAnexos,
-  type ConflitoFonte,
-  type EntradaAnexosIaV,
-} from "@/lib/anexos-i-v";
-import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
 
 /**
  * Entrada fictícia: proposta aprovada sem exclusões declaradas, despesa externa
