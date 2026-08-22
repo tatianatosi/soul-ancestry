@@ -287,6 +287,11 @@ export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = 
   { chave: "acoes_vencidas", rotulo: "Ações vencidas", leitura: "Próxima ação com data anterior a hoje" },
   { chave: "acoes_hoje", rotulo: "Ações de hoje", leitura: "Próxima ação datada para hoje" },
   { chave: "leads_sem_responsavel", rotulo: "Leads sem responsável", leitura: "Lead ativo sem dono nominal" },
+  {
+    chave: "propostas_sem_followup",
+    rotulo: "Propostas sem próxima ação",
+    leitura: "Proposta ou contrato sem próxima ação definida",
+  },
   { chave: "contratos_enviados_pendentes", rotulo: "Contratos enviados", leitura: "Aguardando assinatura" },
   { chave: "pagamentos_aguardados", rotulo: "Pagamentos aguardados", leitura: "Contrato assinado sem pagamento confirmado" },
   { chave: "onboardings_pendentes", rotulo: "Onboardings pendentes", leitura: "Pagamento confirmado sem onboarding iniciado" },
