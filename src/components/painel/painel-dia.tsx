@@ -10,6 +10,8 @@ import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
 import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
+import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
+import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
@@ -161,6 +163,16 @@ export function PainelDia() {
     queryFn: () => carregarBloqueios({ data: { incluirTeste: incluirDemo } }),
     retry: false,
   });
+  const carregarChecklistJuridico = useServerFn(panoramaChecklistJuridico);
+  const qJuridico = useQuery({
+    queryKey: ["painel-checklist-juridico", incluirDemo],
+    queryFn: () => carregarChecklistJuridico({ data: { incluirDemo } }),
+    retry: false,
+  });
+  const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
+  const instrumentosComBloqueio = instrumentosJuridico.filter((i) => i.bloqueios > 0);
+  const instrumentosComPendencia = instrumentosJuridico.filter((i) => i.bloqueios === 0 && i.pendentes > 0);
+
   const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
   const idsBloqueadosCatalogo = new Set(
     (bloqueadosCatalogo as any[]).map((b) => String(b?.case_id ?? b?.caso_id ?? b?.id ?? "")),
@@ -240,6 +252,26 @@ export function PainelDia() {
     if (total > 0) linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
   };
 
+  addLinha(
+    "contratos_checklist_bloqueio",
+    "formalizacao",
+    "IND-JUR-01",
+    instrumentosComBloqueio.length,
+    `${instrumentosComBloqueio.length} instrumento(s) com bloqueio de conformidade no checklist jurídico`,
+    "P0",
+    null,
+    "antes da revisão humana",
+  );
+  addLinha(
+    "contratos_checklist_pendencia",
+    "formalizacao",
+    "IND-JUR-01",
+    instrumentosComPendencia.length,
+    `${instrumentosComPendencia.length} instrumento(s) com pendência formal no checklist jurídico`,
+    "P2",
+    null,
+    "antes da revisão humana",
+  );
   addLinha(
     "propostas_sem_followup",
     "formalizacao",
