@@ -576,11 +576,12 @@ export function PainelDia() {
             { rotulo: "Contratos enviados", itens: itensFila("contratos_enviados_pendentes") },
             { rotulo: "Pagamentos aguardados", itens: itensFila("pagamentos_aguardados") },
           ].map((b) => (
-            <div key={b.rotulo}>
+            <div key={b.rotulo} className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {b.rotulo} · {b.itens.length}
               </p>
-              <ul className="mt-2 space-y-1 text-xs text-navy/65">
+              <ul className="mt-2 space-y-1 break-words text-xs text-navy/65">
+
                 {b.itens.slice(0, 5).map((i: any) => (
                   <li key={`${b.rotulo}-${i.id}`}>
                     <Link to="/leads" className="text-navy underline underline-offset-2">
