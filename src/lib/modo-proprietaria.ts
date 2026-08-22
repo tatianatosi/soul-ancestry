@@ -81,6 +81,8 @@ export const ACOES_EXTERNAS = [
   "criar_procuracao",
   "publicar_no_app_cliente",
   "excluir_registro_ou_versao",
+  "aplicar_migration_producao",
+  "restaurar_backup",
 ] as const;
 
 export type AcaoExterna = (typeof ACOES_EXTERNAS)[number];
