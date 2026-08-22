@@ -560,7 +560,7 @@ export function PainelDia() {
           {bloqueadosCatalogo.map((c) => (
             <li key={c.case_id}>
               <Link to="/casos/$caseId" params={{ caseId: c.case_id }} className="text-navy underline underline-offset-2">
-                {c.rotulo}
+                {String(c.rotulo)}
               </Link>{" "}
               — {EXCECAO_CONDICAO_COMERCIAL}
             </li>
