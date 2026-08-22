@@ -126,7 +126,24 @@ export type PropostaVinculada = {
   entregaveis: string[];
   objetivoEtapa: string | null;
   limitesDependencias: string[];
+  /** Regra 5: SKU precisa estar ativo e homologado. null = não verificado. */
+  skuAtivoHomologado?: boolean | null;
 };
+
+/** Modelo parametrizável do Anexo I sob revisão jurídica. */
+export const ANEXO_I_MODELO_VERSAO = "ANEXO-I-ORDEM-DE-SERVICO-v1.0";
+
+/** Regras do motor do Anexo I — texto normativo, não editável por caso. */
+export const REGRAS_MOTOR_ANEXO_I: string[] = [
+  "Fonte obrigatória: proposta/OS aprovada, ativa e vinculada ao mesmo caso.",
+  "Serviços, exclusões, fases, entregáveis, limites, dependências, produto, condição comercial e referência/versão são derivados da proposta.",
+  "Não inventar exclusões. Sem exclusões expressas, registrar: “Não especificado na proposta/OS — revisão humana necessária”.",
+  "Esse estado bloqueia revisão final e assinatura e nunca gera texto fictício.",
+  "Produto/SKU precisa estar ativo e homologado.",
+  "Preço e condição vêm da fonte comercial homologada ou da proposta aprovada autorizada.",
+  "Não inferir vencimentos com base no número de parcelas.",
+  "Proposta arquivada, substituída, recusada, expirada ou de outro caso não satisfaz o gate.",
+];
 
 export function propostaSatisfazGate(p: PropostaVinculada | null, caseId: string): { ok: boolean; motivo?: string } {
   if (!p) return { ok: false, motivo: "Nenhuma proposta/OS aprovada vinculada ao caso." };
@@ -282,6 +299,13 @@ export function anexoIOrdemServico(e: EntradaAnexosIaV): AnexoGovernado {
   if (!conf.ok) pend.push(conf.motivo!);
   if (p) {
     if (!p.produtoSku) pend.push("Produto/SKU ausente na proposta aprovada.");
+    else if (p.skuAtivoHomologado !== true) {
+      pend.push(
+        p.skuAtivoHomologado === false
+          ? "Produto/SKU não está ativo e homologado no catálogo: Anexo I não pode ser finalizado."
+          : "Situação do SKU não verificada no catálogo homologado — verificação humana necessária.",
+      );
+    }
     if (!fonteOficialDePreco(p.fontePreco)) {
       pend.push("Preço/condição sem fonte comercial homologada: valor não pode ser renderizado.");
     }
