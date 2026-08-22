@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
 import {
   alterarPapelMembro,
   alterarStatusMembro,
@@ -89,6 +90,8 @@ function EquipePage() {
         <EstadoVazio mensagem="Apenas administradores podem gerenciar usuários e papéis." />
       ) : (
         <div className="space-y-8">
+          <StatusEnvioRecuperacao />
+
           <section className="rounded-xl border border-navy/10 bg-white p-5">
             <h2 className="font-serif text-xl">Convidar membro</h2>
             <p className="mt-1 text-sm text-navy/60">
