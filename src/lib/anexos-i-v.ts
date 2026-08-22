@@ -278,7 +278,22 @@ export type ProcuracaoAnexo = {
   poderes: string[];
   status: EstadoProcuracaoAnexo;
   revisaoJuridicaAprovada: boolean;
+  /** Regra 5: evidência de assinatura registrada, quando aplicável. */
+  evidenciaAssinatura?: string | null;
 };
+
+/** Modelo condicional do Anexo IV sob revisão jurídica. */
+export const ANEXO_IV_MODELO_VERSAO = "ANEXO-IV-PROCURACAO-ESPECIFICA-v1.0";
+
+/** Regras do motor do Anexo IV — texto normativo, não editável por caso. */
+export const REGRAS_MOTOR_ANEXO_IV: string[] = [
+  "É sempre condicional; não derivar automaticamente somente por país ou rota.",
+  "Exigir finalidade específica, órgão destinatário, pessoas vinculadas, poderes necessários e revisão humana/jurídica.",
+  "Estados permitidos: não iniciada, rascunho, aguardando assinatura, assinada, enviada, respondida, arquivada, não aplicável.",
+  "Não criar procuração real, não enviar, não assinar e não inferir poderes.",
+  "Quando exigida para atividade externa, bloquear a ação até instrumento aprovado e evidência de assinatura quando aplicável.",
+  "Procuração é separada de autorização de pesquisa; uma não substitui a outra.",
+];
 
 export const IMPACTOS_CONTROLADOS = ["sem_alteracao", "novo_prazo_estimado", "novo_valor", "despesa_externa_a_aprovar"] as const;
 export type ImpactoControlado = (typeof IMPACTOS_CONTROLADOS)[number];
@@ -592,6 +607,10 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     if (!p.pessoas.length) pend.push("Pessoas vinculadas não definidas.");
     if (!p.poderes.length) pend.push("Poderes necessários não definidos — não podem ser inferidos.");
     if (!p.revisaoJuridicaAprovada) pend.push("Revisão humana/jurídica pendente.");
+    if (["assinada", "enviada", "respondida"].includes(p.status) && !p.evidenciaAssinatura)
+      pend.push("Status declara assinatura, mas não há evidência de assinatura registrada.");
+    if (p.revisaoJuridicaAprovada && p.status === "nao_iniciada")
+      pend.push("Instrumento aprovado ainda não iniciado — atividade externa segue bloqueada.");
   }
 
   const campos: CampoRenderizado[] = [
@@ -602,6 +621,12 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     { rotulo: "Pessoas vinculadas", valor: p?.pessoas.join(", ") || null, fonte: "crm_confirmado", observacaoAusencia: AUSENTE },
     { rotulo: "Poderes necessários", valor: p?.poderes.join(", ") || null, fonte: "configuracao_juridica", observacaoAusencia: "Poderes nunca são inferidos." },
     { rotulo: "Status", valor: (p?.status ?? "nao_aplicavel").toUpperCase(), fonte: "configuracao_juridica" },
+    {
+      rotulo: "Evidência de assinatura",
+      valor: p?.evidenciaAssinatura ?? null,
+      fonte: "documento_conferido",
+      observacaoAusencia: "Sem evidência registrada — não presumir assinatura.",
+    },
     {
       rotulo: "Observação",
       valor:
@@ -622,10 +647,23 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
     estado: estadoDe({ aplicavel, obrigatorio: aplicavel, pendencias: pend, registrado: e.estados?.["ANEXO_IV_PROCURACAO"] }),
     campos,
     pendencias: pend,
-    impactoAusencia: "Enquanto exigida e não aprovada, pesquisa/protocolo em nome do cliente permanece bloqueado.",
+    impactoAusencia:
+      "Enquanto exigida e não aprovada, pesquisa/protocolo em nome do cliente permanece bloqueado. A procuração não substitui a autorização de pesquisa (Anexo III), nem o contrário.",
     destinos: ["pesquisa_externa", "revisao_humana", "assinatura"],
     gatesBloqueados: aplicavel && pend.length ? ["pesquisa_externa", "assinatura"] : [],
   };
+}
+
+/**
+ * Regra 5: atividade externa que exige procuração só é liberada com instrumento
+ * aprovado e, quando o estado indicar assinatura, evidência registrada.
+ */
+export function atividadeExternaComProcuracaoLiberada(p: ProcuracaoAnexo | null): boolean {
+  if (!p || !p.exigidaPorOrgao) return false;
+  if (!p.finalidade || !p.orgaoDestinatario || !p.pessoas.length || !p.poderes.length) return false;
+  if (!p.revisaoJuridicaAprovada) return false;
+  if (!["assinada", "enviada", "respondida"].includes(p.status)) return false;
+  return Boolean(p.evidenciaAssinatura);
 }
 
 /* ---------------- Anexo V ---------------- */

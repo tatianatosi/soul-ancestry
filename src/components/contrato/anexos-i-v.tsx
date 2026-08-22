@@ -9,8 +9,10 @@ import { AnexoDocumento } from "@/components/contrato/anexo-documento";
 import {
   ACOES_BLOQUEADAS_SEM_ANEXO_III,
   ANEXO_III_MODELO_VERSAO,
+  ANEXO_IV_MODELO_VERSAO,
   ANEXO_I_MODELO_VERSAO,
   REGRAS_MOTOR_ANEXO_III,
+  REGRAS_MOTOR_ANEXO_IV,
   REGRAS_MOTOR_ANEXO_I,
   ROTULO_FONTE,
   ROTULO_GATE,
@@ -52,6 +54,18 @@ export function AnexosIaV({ anexos, entrada }: { anexos: AnexoGovernado[]; entra
                   <li key={r}>• {r}</li>
                 ))}
               </ul>
+            </details>
+          )}
+          {a.codigo === "ANEXO_IV_PROCURACAO" && (
+            <details className="mt-1 rounded border border-navy/10 bg-cream/40 p-2">
+              <summary className="cursor-pointer text-[11px] font-medium text-navy/70">
+                Regras do motor ({ANEXO_IV_MODELO_VERSAO})
+              </summary>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-navy/65">
+                {REGRAS_MOTOR_ANEXO_IV.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ol>
             </details>
           )}
           {a.codigo === "ANEXO_I_ORDEM_SERVICO" && (
