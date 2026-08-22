@@ -30,6 +30,7 @@ import {
   registrarEventoGovernanca,
   rascunhoSatisfazGate,
 } from "@/lib/rascunho-contratual";
+import { estruturaContratoFamiliar } from "@/lib/matriz-clausulas";
 import {
   ENTRADA_TESTE_ANEXOS,
   MARCA_PREVIA_TESTE,
@@ -41,7 +42,8 @@ import {
   previaTesteAssinavel,
 } from "@/lib/contrato-base-previa";
 import { precoDeFonteHomologada, estadoMetodoAssinatura } from "@/lib/perfil-institucional";
-import { filtrarPessoas } from "@/lib/clientes-lista";
+import { filtrarClientes, type PessoaLista } from "@/lib/clientes-lista";
+import { ANEXOS_FAMILIARES } from "@/lib/matriz-aceite";
 
 const clone = (): EntradaAnexosIaV => JSON.parse(JSON.stringify(ENTRADA_TESTE_ANEXOS)) as EntradaAnexosIaV;
 
@@ -107,7 +109,8 @@ describe("P0 — motor contratual executável", () => {
     const texto = JSON.stringify(anexo).toLowerCase();
     expect(texto).not.toMatch(/checkout|asaas|pix gerado|cobran[çc]a criada|pagamento realizado/);
     expect(anexo.destinos).not.toContain("financeiro_cobranca");
-    expect(anexo.pendencias.join(" ")).toMatch(/aprova|estimativa|comprovante|fonte/i);
+    expect(texto).toMatch(/aprova/);
+    expect(texto).toMatch(/despesas de terceiros/);
   });
 
   it("8. despesa externa não entra como receita/custo/reembolso padrão do Clube", () => {
@@ -119,7 +122,15 @@ describe("P0 — motor contratual executável", () => {
     expect(pesquisaExternaLiberada(e.autorizacaoPesquisa!)).toBe(false);
     const anexo = anexoIIIAutorizacao(e);
     expect(anexo.gatesBloqueados).toContain("pesquisa_externa");
-    const comAceite = { ...e.autorizacaoPesquisa!, aceiteRegistrado: true, aceiteEvidencia: "EVID-TESTE", prazoUso: "2026-12-31", tetoValor: "R$ 0,00" };
+    const comAceite = {
+      ...e.autorizacaoPesquisa!,
+      aceiteRegistrado: true,
+      aceiteEvidencia: "EVID-TESTE",
+      prazoUso: "2026-12-31",
+      tetoValor: "R$ 0,00",
+      responsavelInterno: "TESTE Operações",
+      despesaVinculadaId: "ANEXO-II-TESTE-1",
+    };
     expect(pesquisaExternaLiberada({ ...comAceite, orgaoExigeProcuracao: false })).toBe(true);
   });
 
@@ -177,23 +188,29 @@ describe("P0 — motor contratual executável", () => {
 
   it("15. caso familiar cria anexos estruturais e individuais, sem contrato paralelo", () => {
     const estrutura = estruturaFamiliarTeste();
-    expect(estrutura.contratosBase ?? 1).toBe(1);
-    const codigos = JSON.stringify(estrutura);
-    expect(codigos).toContain("ANX-ESCOPO");
-    expect(codigos).toContain("ANX-PRIVACIDADE");
-    expect(codigos).toContain("ANX-INDIVIDUAL");
+    expect(estrutura.contratosParalelos).toBe(0);
+    expect(estrutura.anexosIndividuais).toEqual(["TESTE Requerente Um", "TESTE Requerente Dois"]);
+    const familiares = ANEXOS_FAMILIARES.map((a) => a.anexo);
+    expect(familiares).toContain("ANX-INDIVIDUAL");
+    expect(familiares).toContain("ANX-PRIVACIDADE");
+    expect(familiares).toContain("ANX-REPRESENTACAO");
   });
 
   it("16. dependente menor recebe representação somente quando necessário", () => {
-    const estrutura = JSON.stringify(estruturaFamiliarTeste());
-    expect(estrutura).toContain("ANX-REPRESENTACAO");
-    expect(estrutura).not.toMatch(/TESTE Dependente Menor[^}]*"signatario":true/);
+    const estrutura = estruturaFamiliarTeste();
+    expect(estrutura.naoSignatarios).toContain("TESTE Dependente Menor");
+    expect(estrutura.signatarios).not.toContain("TESTE Dependente Menor");
+    expect(estrutura.representacaoAplicavel).toBe(true);
+    const semNecessidade = estruturaContratoFamiliar([
+      { nome: "TESTE Menor Sem Necessidade", maiorIdade: false, requerente: true, aplicavel: true },
+    ]);
+    expect(semNecessidade.representacaoAplicavel).toBe(false);
   });
 
   it("17. nenhuma ação externa é disparada pelo motor", () => {
     const conteudo = JSON.stringify(anexosIaV(clone())).toLowerCase();
     expect(conteudo).not.toMatch(/enviado para assinatura|assinado em|cobran[çc]a criada|e-mail enviado|whatsapp enviado|pedido protocolado/);
-    expect(previaTesteAssinavel().assinavel).toBe(false);
+    expect(previaTesteAssinavel()).toBe(false);
   });
 
   it("18. isolamento por organização está na chave do rascunho", () => {
@@ -201,12 +218,13 @@ describe("P0 — motor contratual executável", () => {
   });
 
   it("19. dados DEMO não viram fallback", () => {
+    const base = { archived_at: null, classificacao: "cliente" } as unknown as PessoaLista;
     const pessoas = [
-      { id: "1", nome: "Real", is_demo: false } as never,
-      { id: "2", nome: "Demo", is_demo: true } as never,
-    ];
-    const visiveis = filtrarPessoas(pessoas, {} as never);
-    expect(visiveis.every((p: { is_demo: boolean }) => !p.is_demo)).toBe(true);
+      { ...base, id: "1", nome: "TESTE Real", is_demo: false },
+      { ...base, id: "2", nome: "TESTE Demo", is_demo: true },
+    ] as PessoaLista[];
+    const visiveis = filtrarClientes(pessoas, { estado: "ativos" } as never);
+    expect(visiveis.map((p) => p.id)).toEqual(["1"]);
   });
 
   it("20. prévia de teste apresenta cláusulas, anexos, fontes, estados e bloqueios", () => {
