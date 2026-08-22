@@ -283,6 +283,35 @@ export function proximaAcaoRecomendada(c: ContextoGates): string {
   return `Resolver “${primeiro.label}” — ${primeiro.motivo}`;
 }
 
+/**
+ * Ações gateadas que representam avanço INTERNO. A Proprietária Administradora
+ * pode assumir a decisão e prosseguir mesmo com pendência: o bloqueio continua
+ * visível e registrado, mas não impede o fluxo interno.
+ */
+export const ACOES_GATEADAS_INTERNAS = [
+  "gerar_versao_final",
+  "preparar_anexo_escopo",
+  "preparar_anexo_comercial",
+  "liberar_formalizacao_financeiro",
+  "liberar_cobranca_futura",
+  "liberar_onboarding",
+] as const;
+
+/**
+ * Ações que produzem efeito externo/irreversível: nunca são liberadas por
+ * override; permanecem na janela final de confirmação explícita.
+ */
+export const ACOES_GATEADAS_EXTERNAS = [
+  "solicitar_assinatura",
+  "formalizacao_contrato_enviado",
+  "formalizacao_contrato_assinado",
+  "formalizacao_pagamento_confirmado",
+] as const;
+
+export function ehAcaoGateadaInterna(acao: string): boolean {
+  return (ACOES_GATEADAS_INTERNAS as readonly string[]).includes(acao);
+}
+
 export class GateBloqueadoError extends Error {
   readonly erros: ErroGate[];
   constructor(acao: AcaoGateada, erros: ErroGate[]) {
@@ -291,3 +320,4 @@ export class GateBloqueadoError extends Error {
     this.erros = erros;
   }
 }
+
