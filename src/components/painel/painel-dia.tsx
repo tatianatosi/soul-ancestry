@@ -216,7 +216,7 @@ export function PainelDia() {
 
   addLinha(
     "propostas_sem_followup",
-    "conversao",
+    "formalizacao",
     "IND-COM-02",
     comercial.propostas.length,
     `${comercial.propostas.length} proposta(s) com follow-up vencido`,
@@ -226,7 +226,7 @@ export function PainelDia() {
   );
   addLinha(
     "aceites_sem_confirmacao",
-    "conversao",
+    "formalizacao",
     "IND-COM-02",
     qtd("aceites_sem_confirmacao"),
     `${qtd("aceites_sem_confirmacao")} aceite(s) verbal sem confirmação formal`,
@@ -236,17 +236,27 @@ export function PainelDia() {
   );
   addLinha(
     "contratos_enviados_pendentes",
-    "conversao",
+    "formalizacao",
     "IND-FIN-02",
     qtd("contratos_enviados_pendentes"),
-    `${qtd("contratos_enviados_pendentes")} contrato(s) sem referência financeira válida`,
+    `${qtd("contratos_enviados_pendentes")} contrato(s) enviado(s) sem avanço registrado`,
     "P0",
     null,
     "bloqueio de formalização",
   );
   addLinha(
+    "condicao_comercial_bloqueada",
+    "formalizacao",
+    "IND-CAT-01",
+    bloqueadosCatalogo.length,
+    `${bloqueadosCatalogo.length} caso(s) com condição comercial bloqueada`,
+    "P0",
+    null,
+    "resolver em Governança de Catálogo",
+  );
+  addLinha(
     "leads_sem_origem",
-    "radar",
+    "integridade",
     "IND-COM-01",
     qtd("leads_sem_origem"),
     `${qtd("leads_sem_origem")} lead(s) sem origem declarada`,
@@ -256,7 +266,7 @@ export function PainelDia() {
   );
   addLinha(
     "discoveries_sem_desdobramento",
-    "radar",
+    "integridade",
     "IND-RAD-01",
     qtd("discoveries_sem_desdobramento"),
     `${qtd("discoveries_sem_desdobramento")} leitura(s) sem próximo passo definido`,
@@ -266,27 +276,37 @@ export function PainelDia() {
   );
   addLinha(
     "onboardings_pendentes",
-    "casos",
+    "financeiro",
     "IND-JOR-01",
     qtd("onboardings_pendentes"),
     `${qtd("onboardings_pendentes")} caso(s) pago(s) com gates de ativação pendentes`,
     "P0",
     null,
-    "prazo de ativação em 48h",
+    "pagamento sem onboarding",
+  );
+  addLinha(
+    "pagamentos_aguardados",
+    "financeiro",
+    "IND-FIN-01",
+    qtd("pagamentos_aguardados"),
+    `${qtd("pagamentos_aguardados")} pagamento(s) inicial(is) aguardado(s)`,
+    "P1",
+    null,
+    "aguardando confirmação transacional",
   );
   addLinha(
     "casos_pendencia_documental",
-    "casos",
+    "operacao",
     "IND-QUA-01",
     qtd("casos_pendencia_documental"),
-    `${qtd("casos_pendencia_documental")} caso(s) com pendência documental`,
+    `${qtd("casos_pendencia_documental")} caso(s) com documento aguardado`,
     "P0",
     null,
     "bloqueio de qualidade",
   );
   addLinha(
     "cadencia_sem_touchpoint",
-    "casos",
+    "operacao",
     "IND-JOR-03",
     cadencia.length,
     `${cadencia.length} caso(s) acima da regra de dias sem touchpoint`,
@@ -296,7 +316,7 @@ export function PainelDia() {
   );
   addLinha(
     "comunicacao_critica",
-    "comunicacao",
+    "cliente",
     "IND-COM-03",
     sugestoesHumanas.criticos,
     `${sugestoesHumanas.criticos} contato(s) humano(s) crítico(s) sugerido(s) em rascunho`,
@@ -306,7 +326,7 @@ export function PainelDia() {
   );
   addLinha(
     "comunicacao_hoje",
-    "comunicacao",
+    "cliente",
     "IND-COM-03",
     sugestoesHumanas.hoje,
     `${sugestoesHumanas.hoje} contato(s) humano(s) sugerido(s) para hoje`,
@@ -317,14 +337,14 @@ export function PainelDia() {
 
   // Absorve os antigos “Sinais de conversão e integridade” nos mesmos grupos.
   const GRUPO_DO_SINAL: Record<string, LinhaIndicadorDia["grupo"]> = {
-    midia_sem_leads: "conversao",
-    midia_sem_classificacao: "conversao",
-    proposta_sem_followup: "conversao",
-    aceite_parado: "conversao",
-    contrato_sem_financeiro: "conversao",
-    origem_ausente: "radar",
-    discovery_parada: "radar",
-    pagamento_sem_onboarding: "casos",
+    midia_sem_leads: "integridade",
+    midia_sem_classificacao: "integridade",
+    proposta_sem_followup: "formalizacao",
+    aceite_parado: "formalizacao",
+    contrato_sem_financeiro: "formalizacao",
+    origem_ausente: "integridade",
+    discovery_parada: "integridade",
+    pagamento_sem_onboarding: "financeiro",
   };
   const CHAVE_DO_SINAL: Record<string, string> = {
     proposta_sem_followup: "propostas_sem_followup",
@@ -337,7 +357,7 @@ export function PainelDia() {
   for (const s of sinais) {
     linhasIndicadores.push({
       chave: CHAVE_DO_SINAL[s.codigo] ?? s.codigo,
-      grupo: GRUPO_DO_SINAL[s.codigo] ?? "conversao",
+      grupo: GRUPO_DO_SINAL[s.codigo] ?? "integridade",
       codigo: s.codigo,
       motivo: s.texto,
       responsavel: null,
@@ -346,6 +366,10 @@ export function PainelDia() {
     });
   }
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
+  const PESO = { P0: 3, P1: 2, P2: 1 } as const;
+  const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
+    ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
+
 
   return (
     <div className="space-y-6">
