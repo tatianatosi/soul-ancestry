@@ -1,0 +1,185 @@
+/**
+ * Renderização server-only do CORPO CONTRATUAL persistido.
+ *
+ * A prévia deixa de ser uma lista de parâmetros: passa a conter perfil
+ * institucional versionado, preâmbulo, as 14 cláusulas fixas do contrato-base,
+ * os anexos aplicáveis (I–V e ANX internos) e a matriz de 16 blocos com fonte,
+ * estado e gate. Nada aqui envia, assina, cobra ou pesquisa: é só texto.
+ */
+
+import {
+  CLAUSULAS_FIXAS,
+  CONTRATO_BASE_AVISO,
+  CONTRATO_BASE_ID,
+  CONTRATO_BASE_MODELO,
+  CONTRATO_BASE_STATUS,
+  CONTRATO_BASE_VERSAO,
+  PERFIL_INSTITUCIONAL,
+  PERFIL_INSTITUCIONAL_VERSAO,
+  PREAMBULO_CONTRATO_BASE,
+} from "@/lib/contrato-base-consolidado";
+import { blocosRenderizados, type BlocoRenderizado } from "@/lib/matriz-aceite";
+import {
+  ANEXO_I_MODELO_VERSAO,
+  ANEXO_III_MODELO_VERSAO,
+  ANEXO_IV_MODELO_VERSAO,
+  ANEXO_V_MODELO_VERSAO,
+  entradaDeValores,
+  anexosIaV,
+  type AnexoGovernado,
+  type ValorFicha,
+} from "@/lib/anexos-i-v";
+
+export const CORPO_CONTRATUAL_VERSAO = "CORPO-CONTRATUAL-v1.0";
+
+export const MODELO_VERSAO_ANEXO: Record<string, string> = {
+  ANEXO_I_ORDEM_SERVICO: ANEXO_I_MODELO_VERSAO,
+  ANEXO_II_DESPESAS_EXTERNAS: "ANEXO-II-DESPESAS-EXTERNAS-v1.0",
+  ANEXO_III_AUTORIZACAO_PESQUISA: ANEXO_III_MODELO_VERSAO,
+  ANEXO_IV_PROCURACAO: ANEXO_IV_MODELO_VERSAO,
+  ANEXO_V_ALTERACAO_ESCOPO: ANEXO_V_MODELO_VERSAO,
+};
+
+export function esc(v: unknown) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+export type AnexoInterno = { codigo: string; titulo: string; motivo: string };
+
+export type EntradaCorpo = {
+  caseId: string;
+  casoCodigo: string | null;
+  clienteNome: string | null;
+  responsavel: string | null;
+  valores: ValorFicha[];
+  anexosInternos: AnexoInterno[];
+};
+
+export type CorpoContratual = {
+  html: string;
+  anexos: AnexoGovernado[];
+  blocos: BlocoRenderizado[];
+  estrutura: {
+    contratoBaseId: string;
+    contratoBaseVersao: string;
+    contratoBaseStatus: string;
+    modelo: string;
+    perfilVersao: string;
+    corpoVersao: string;
+    clausulas: number;
+    anexosCondicionais: { codigo: string; versaoModelo: string; aplicavel: boolean; estado: string; pendencias: string[] }[];
+    anexosInternos: AnexoInterno[];
+  };
+};
+
+/** Constrói os anexos governados I–V a partir da ficha do caso (somente leitura). */
+export function anexosDoCaso(e: EntradaCorpo): AnexoGovernado[] {
+  return anexosIaV(
+    entradaDeValores({
+      caseId: e.caseId,
+      clienteNome: e.clienteNome,
+      responsavel: e.responsavel,
+      contratoBaseVersao: CONTRATO_BASE_VERSAO,
+      modelo: CONTRATO_BASE_MODELO,
+      valores: e.valores,
+    }),
+  );
+}
+
+function secaoPerfil() {
+  return `<section><h2>Perfil institucional da contratada (${esc(PERFIL_INSTITUCIONAL_VERSAO)})</h2><ul>${PERFIL_INSTITUCIONAL.map(
+    (c) => `<li><strong>${esc(c.rotulo)}:</strong> ${esc(c.valor)}</li>`,
+  ).join("")}</ul></section>`;
+}
+
+function secaoClausulas() {
+  return CLAUSULAS_FIXAS.map(
+    (c) =>
+      `<section class="clausula"><h2>Cláusula ${c.numero} — ${esc(c.titulo)}</h2><ol>${c.itens
+        .map((i) => `<li>${esc(i)}</li>`)
+        .join("")}</ol></section>`,
+  ).join("");
+}
+
+function secaoAnexos(anexos: AnexoGovernado[], internos: AnexoInterno[]) {
+  const linhas = anexos
+    .map((a) => {
+      const campos = a.campos
+        .map(
+          (c) =>
+            `<li><strong>${esc(c.rotulo)}:</strong> ${
+              c.valor ? esc(c.valor) : `<span class="pend">${esc(c.observacaoAusencia ?? "sem fonte rastreável")}</span>`
+            } <span class="orig">[${esc(c.fonte)}]</span></li>`,
+        )
+        .join("");
+      const pend = a.pendencias.length
+        ? `<p class="pend">Pendências: ${a.pendencias.map(esc).join(" · ")}</p>`
+        : "";
+      return `<section class="anexo"><h3>${esc(a.codigo)} — ${esc(a.titulo)} <span class="orig">(${esc(
+        MODELO_VERSAO_ANEXO[a.codigo] ?? "modelo versionado",
+      )} · ${esc(a.estado)}${a.aplicavel ? "" : " · não aplicável"})</span></h3>
+<p>${esc(a.finalidade)}</p><p class="orig">${esc(a.regra)}</p>${a.aplicavel ? `<ul>${campos}</ul>` : `<p class="orig">${esc(a.motivo)}</p>`}${pend}</section>`;
+    })
+    .join("");
+
+  const anx = internos
+    .map((a) => `<li><strong>${esc(a.codigo)}</strong> — ${esc(a.titulo)} <span class="orig">(${esc(a.motivo)})</span></li>`)
+    .join("");
+
+  return `<section><h2>Anexos aplicáveis</h2>${linhas}<h3>Anexos internos por regra de produto/escopo</h3><ul>${anx}</ul></section>`;
+}
+
+function secaoBlocos(blocos: BlocoRenderizado[]) {
+  return `<section><h2>Matriz de renderização (16 blocos)</h2><table><thead><tr><th>Bloco</th><th>Fonte exigida</th><th>Tipo</th><th>Situação</th><th>Gate</th></tr></thead><tbody>${blocos
+    .map(
+      (b) =>
+        `<tr><td>${esc(b.bloco)}</td><td>${esc(b.fonteExigida)}</td><td>${esc(b.tipo)}</td><td>${esc(b.situacao)} — ${esc(
+          b.motivo,
+        )}</td><td>${esc(b.gate)}</td></tr>`,
+    )
+    .join("")}</tbody></table></section>`;
+}
+
+/** Corpo contratual completo, pronto para ser persistido no snapshot. */
+export function renderCorpoContratual(e: EntradaCorpo): CorpoContratual {
+  const anexos = anexosDoCaso(e);
+  const blocos = blocosRenderizados(anexos);
+
+  const html = `<section class="base"><h2>Contrato-base versionado</h2>
+<p><strong>Identificador:</strong> ${esc(CONTRATO_BASE_ID)}</p>
+<p><strong>Versão:</strong> ${esc(CONTRATO_BASE_VERSAO)} · <strong>Modelo:</strong> ${esc(CONTRATO_BASE_MODELO)} · <strong>Estado:</strong> ${esc(
+    CONTRATO_BASE_STATUS,
+  )}</p>
+<p class="pend">${esc(CONTRATO_BASE_AVISO)}</p></section>
+${secaoPerfil()}
+<section><h2>Preâmbulo</h2><p>${esc(PREAMBULO_CONTRATO_BASE)}</p></section>
+${secaoClausulas()}
+${secaoAnexos(anexos, e.anexosInternos)}
+${secaoBlocos(blocos)}`;
+
+  return {
+    html,
+    anexos,
+    blocos,
+    estrutura: {
+      contratoBaseId: CONTRATO_BASE_ID,
+      contratoBaseVersao: CONTRATO_BASE_VERSAO,
+      contratoBaseStatus: CONTRATO_BASE_STATUS,
+      modelo: CONTRATO_BASE_MODELO,
+      perfilVersao: PERFIL_INSTITUCIONAL_VERSAO,
+      corpoVersao: CORPO_CONTRATUAL_VERSAO,
+      clausulas: CLAUSULAS_FIXAS.length,
+      anexosCondicionais: anexos.map((a) => ({
+        codigo: a.codigo,
+        versaoModelo: MODELO_VERSAO_ANEXO[a.codigo] ?? "modelo versionado",
+        aplicavel: a.aplicavel,
+        estado: a.estado,
+        pendencias: a.pendencias,
+      })),
+      anexosInternos: e.anexosInternos,
+    },
+  };
+}
