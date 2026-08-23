@@ -173,6 +173,7 @@ const NAV: readonly SecaoNav[] = [
       { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
       { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
       { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
+      { to: "/governanca/matriz-equivalencia", label: "Matriz mockup → rota → dado → estado" },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { to: "/governanca/varredura-administracao", label: "Varredura de administração" },
       { to: "/governanca/varredura-completude", label: "Varredura de completude" },
