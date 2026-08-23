@@ -486,8 +486,6 @@ export function PainelDia() {
     ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
 
 
-  const raizRef = useRef<HTMLDivElement>(null);
-  const problemasLeitura = useVerificacaoLeituraPainel(raizRef, [priorizadaVisivel, excecoes, agrupado, cadencia]);
 
   return (
     <div ref={raizRef} className="space-y-6">
