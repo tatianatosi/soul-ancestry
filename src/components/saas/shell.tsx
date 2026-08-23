@@ -21,6 +21,7 @@ import { getContexto, type Papel } from "@/lib/saas.functions";
 import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
+import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
