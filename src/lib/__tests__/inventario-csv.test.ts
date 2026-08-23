@@ -71,7 +71,7 @@ describe("pré-visualização do CSV filtrado", () => {
   });
 
   it("devolve zero linhas e amostra vazia quando o filtro não casa com nada", () => {
-    const p = previaCsvInventario({ dominio: "contratual", status: "inexistente" as never });
+    const p = previaCsvInventario({ dominio: "contrato_base", status: "inexistente" as never });
     expect(p.totalLinhas).toBe(0);
     expect(p.amostra).toEqual([]);
   });
