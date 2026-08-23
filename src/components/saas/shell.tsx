@@ -139,6 +139,7 @@ const NAV: readonly SecaoNav[] = [
       { to: "/ordens-servico", label: "Ordens de serviço e anexos" },
       { to: "/escopo-origem", label: "Origem do escopo contratual" },
       { to: "/conciliacao-catalogo", label: "Conciliação de catálogo e bloqueios" },
+      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
       { to: "/contrato-parametros", label: "Dados parametrizáveis" },
       { grupo: "Financeiro" },
       { to: "/financeiro", label: "Faturas, pagamentos e condições" },
