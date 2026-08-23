@@ -75,8 +75,8 @@ export function BrandLogo({
 }
 
 
-// AppSwitcher (alternância App Cliente/Desk do protótipo) arquivado em
-// archive/mockups/componentes/ — CA-UX-04, fora do runtime.
+// CA-UX-04: o controle de alternância App Cliente/Desk pertencia ao protótipo e
+// foi retirado do runtime; consulte o índice histórico em docs/historico/mockups.
 
 export function useToggle<T extends string>(initial: T) {
   const [v, set] = useState<T>(initial);
