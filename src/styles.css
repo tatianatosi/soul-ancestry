@@ -48,10 +48,46 @@
   --radius: 0.75rem;
 
   /* ---------------------------------------------------------------
-     PALETA APROVADA (CONGELADA) — não alterar sem aceite tela a tela.
-     Qualquer aplicação do Guia de Marca deve ser feita em escopo
-     isolado (ver [data-marca="guia"]), nunca aqui.
+     GUIA DE MARCA APLICADO GLOBALMENTE — autorizado pela Proprietária
+     em 23/08/2026, após o comparativo tela a tela (antes/depois).
+     Paleta anterior (congelada) permanece disponível em
+     [data-paleta="anterior"] para comparação e reversão pontual.
      --------------------------------------------------------------- */
+  --navy: #2F4B6E;
+  --navy-soft: #40628B;
+  --gold: #FCB73A;
+  --gold-soft: #FFD98A;
+  --cream: #ECDFCD;
+  --areia: #ECDFCD;
+  --terracotta: #9A3A2F;
+  --sage: #6B7B5E;
+  --plum: #7B4F9E;
+  --preto: #101010;
+
+  --background: #F7F1E7;
+  --foreground: var(--preto);
+  --card: #ffffff;
+  --card-foreground: var(--preto);
+  --popover: #ffffff;
+  --popover-foreground: var(--preto);
+  --primary: var(--navy);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--gold);
+  --secondary-foreground: var(--preto);
+  --muted: var(--areia);
+  --muted-foreground: #5B5348;
+  --accent: var(--gold-soft);
+  --accent-foreground: var(--preto);
+  --destructive: #9A3A2F;
+  --destructive-foreground: #ffffff;
+  --border: #DCCDB6;
+  --input: #DCCDB6;
+  --ring: var(--gold);
+}
+
+/* Paleta anterior (aprovada e congelada) — escopo isolado para
+   comparação ou reversão de uma tela específica. */
+[data-paleta="anterior"] {
   --navy: #1B2B4B;
   --navy-soft: #2A3D63;
   --gold: #C9A84C;
@@ -59,9 +95,6 @@
   --cream: #F5F0E8;
   --areia: #ECDFCD;
   --terracotta: #8B4513;
-  --sage: #6B7B5E;
-  --plum: #7B4F9E;
-  --preto: #101010;
 
   --background: var(--cream);
   --foreground: var(--navy);
@@ -82,6 +115,9 @@
   --border: #E4DBC8;
   --input: #E4DBC8;
   --ring: var(--gold);
+
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* ---------------------------------------------------------------
