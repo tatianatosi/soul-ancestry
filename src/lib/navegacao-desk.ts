@@ -191,22 +191,32 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/importacoes", label: "Importações e migração" },
     ],
   },
-  {
-    id: "administracao",
-    to: "/modo-proprietaria",
-    label: "Administração",
-    descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
-    icone: "administracao",
-    agrupador: true,
-    sub: [
-      { to: "/modo-proprietaria", label: "Modo Proprietária" },
-      { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
-      { to: "/configuracoes", label: "Configurações" },
-      { to: "/reconfirmar-propriedade", label: "Segurança e reconfirmação de propriedade" },
-      { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
-    ],
-  },
 ] as const;
+
+/**
+ * Menu da conta (não é grupo principal, não é nona aba).
+ * Configurações, Equipe, Perfis/Preferências e verificação administrativa saem
+ * da navegação principal e passam a viver no menu da conta / Modo Proprietária,
+ * com exatamente as mesmas rotas e as mesmas permissões de antes.
+ */
+export const MENU_CONTA: {
+  id: "conta";
+  label: string;
+  descricao: string;
+  itens: readonly ItemNav[];
+} = {
+  id: "conta",
+  label: "Conta e administração",
+  descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
+  itens: [
+    { to: "/modo-proprietaria", label: "Modo Proprietária" },
+    { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
+    { to: "/configuracoes", label: "Configurações e preferências" },
+    { to: "/reconfirmar-propriedade", label: "Segurança e reconfirmação de propriedade" },
+    { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
+  ],
+} as const;
+
 
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
