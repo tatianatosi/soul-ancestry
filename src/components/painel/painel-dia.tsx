@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -35,6 +35,52 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
+
+/**
+ * Verificação de leitura da tela: confere, no que foi de fato renderizado, a
+ * ordem canônica dos blocos (Sinais de atenção logo após Exceções que exigem
+ * dono) e a ausência de registro repetido na fila. Só observa o DOM.
+ */
+function useVerificacaoLeituraPainel(raiz: React.RefObject<HTMLDivElement | null>, dependencias: unknown[]) {
+  const [problemas, setProblemas] = useState<ProblemaPainel[]>([]);
+  useEffect(() => {
+    const no = raiz.current;
+    if (!no) return;
+    const blocos = [...no.querySelectorAll<HTMLElement>("[data-painel-bloco]")];
+    const chaves = blocos.map((b) => b.dataset["painelBloco"] ?? "");
+    const registros: RegistroRenderizado[] = blocos.flatMap((b) =>
+      [...b.querySelectorAll<HTMLElement>("[data-registro]")].map((el) => {
+        const [tipo = "", id = ""] = (el.dataset["registro"] ?? "").split(":");
+        return { bloco: b.dataset["painelBloco"] ?? "", tipo, id };
+      }),
+    );
+    setProblemas(validarPainelHoje(chaves, registros));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dependencias);
+  return problemas;
+}
+
+function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
+  if (problemas.length === 0) return null;
+  return (
+    <section
+      data-aviso-leitura-painel
+      className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-navy"
+    >
+      <p className="font-medium text-terracotta">A leitura desta tela saiu do padrão acordado</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-navy/75">
+        {problemas.map((p) => (
+          <li key={`${p.chave}-${p.mensagem}`}>{p.mensagem}</li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] text-navy/55">
+        Aviso apenas de exibição: nenhum dado foi alterado e nenhuma ação externa foi disparada.
+      </p>
+    </section>
+  );
+}
+
 
 
 function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
@@ -64,7 +110,7 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+    <li data-registro={`${item.tipo}:${item.id}`} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
         <span className="min-w-0 break-words">
           <LinkItem item={item}>{item.rotulo}</LinkItem>
@@ -178,6 +224,16 @@ export function PainelDia() {
   const idsBloqueadosCatalogo = new Set(
     (bloqueadosCatalogo as any[]).map((b) => String(b?.case_id ?? b?.caso_id ?? b?.id ?? "")),
   );
+
+  const raizRef = useRef<HTMLDivElement>(null);
+  const problemasLeitura = useVerificacaoLeituraPainel(raizRef, [
+    qDesk.dataUpdatedAt,
+    qCatalogo.dataUpdatedAt,
+    qCad.dataUpdatedAt,
+    qJuridico.dataUpdatedAt,
+    incluirDemo,
+    filtros,
+  ]);
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
@@ -430,8 +486,9 @@ export function PainelDia() {
     ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
 
 
+
   return (
-    <div className="space-y-6">
+    <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <p className="min-w-0 text-sm text-navy/60">
           O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
@@ -446,8 +503,10 @@ export function PainelDia() {
 
       {proprietaria ? <VerificadorAdminProprietaria /> : null}
 
+      <AvisoLeituraPainel problemas={problemasLeitura} />
+
       {/* 0 — Cards do dia */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
             <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
@@ -458,7 +517,7 @@ export function PainelDia() {
       </section>
 
       {/* 1 — Minha fila priorizada */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="fila_priorizada" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
           <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
@@ -514,7 +573,7 @@ export function PainelDia() {
 
 
       {/* 2 — Exceções que exigem dono */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="excecoes" className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
@@ -545,7 +604,7 @@ export function PainelDia() {
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
           <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
@@ -602,7 +661,7 @@ export function PainelDia() {
 
       {/* 4 — Comercial hoje */}
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
@@ -642,7 +701,7 @@ export function PainelDia() {
       </section>
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
@@ -672,7 +731,7 @@ export function PainelDia() {
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="atalhos" className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Atalhos</h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {[
