@@ -7,7 +7,7 @@
  * pode produzir, respeitando papel, organização e RLS já existentes.
  */
 
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 export const SELO_DEMO_ASSISTENTE = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 export const EVENTO_BLOQUEIO_ASSISTENTE = "analysis_blocked_insufficient_case_data";
@@ -22,13 +22,13 @@ export type PapelAssistente =
 
 export type GrupoAssistenteId =
   | "hoje"
+  | "marketing"
   | "comercial"
   | "casos"
   | "pesquisa"
   | "contratos"
   | "cliente"
-  | "governanca"
-  | "administracao";
+  | "governanca";
 
 export type RegraAssistente = {
   grupo: GrupoAssistenteId;
@@ -113,12 +113,12 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
     analisaCaso: false,
   },
   {
-    grupo: "administracao",
-    label: "Administração",
-    contexto: "Perfil, equipe, permissões e verificação de acesso",
+    grupo: "marketing",
+    label: "Marketing",
+    contexto: "Canais, campanhas, conteúdo, atribuição de origem e métricas de aquisição",
     resultado:
-      "Orientar sobre estados de acesso, sem conceder ou alterar permissão por conta própria",
-    papeis: ["admin"],
+      "Explicar origem, canal e lacuna de atribuição, sem criar campanha, link ou disparo",
+    papeis: TODOS,
     analisaCaso: false,
   },
 ];
@@ -132,6 +132,12 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
  * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
+  // Rotas do menu da conta (Configurações, Equipe, Modo Proprietária) não são
+  // grupo principal: o Assistente as trata sob as regras de Governança.
+  for (const item of MENU_CONTA.itens) {
+    if (!("to" in item)) continue;
+    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
+  }
   let melhor: { id: string; tamanho: number } = { id: "hoje", tamanho: -1 };
   for (const grupo of GRUPOS_DESK) {
     const rotas = [grupo.to, ...grupo.sub.flatMap((s) => ("to" in s ? [s.to] : []))];
@@ -152,6 +158,14 @@ export function assistenteVisivel(entrada: {
   if (!entrada.superficieInterna) return false;
   if (entrada.rota.startsWith("/portal") || entrada.rota.startsWith("/acesso")) return false;
   if (entrada.papeis.length === 0) return false;
+  // Rota do menu da conta restrita a admin mantém a mesma restrição no Assistente.
+  const restritaConta = MENU_CONTA.itens.some(
+    (i) =>
+      "to" in i &&
+      i.adminOnly === true &&
+      (entrada.rota === i.to || entrada.rota.startsWith(`${i.to}/`)),
+  );
+  if (restritaConta && !entrada.papeis.includes("admin")) return false;
   const regra = regraDoGrupo(grupoDaRota(entrada.rota));
   return entrada.papeis.some((p) => regra.papeis.includes(p as PapelAssistente));
 }

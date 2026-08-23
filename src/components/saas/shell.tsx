@@ -15,6 +15,7 @@ import {
   Menu,
   ChevronDown,
   ShieldCheck,
+  Megaphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -24,7 +25,7 @@ import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
-import { GRUPOS_DESK, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 
 
@@ -86,13 +87,13 @@ type SecaoNav = {
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
+  marketing: Megaphone,
   comercial: Users,
   casos: FolderOpen,
   pesquisa: FileSearch,
   contratos: FileSignature,
   cliente: Smartphone,
   governanca: Library,
-  administracao: ShieldCheck,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
@@ -286,12 +287,34 @@ export function SaasShell({
           })}
 
         </nav>
+        <div className="mt-4 border-t border-cream/15 pt-3">
+          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
+            {MENU_CONTA.label}
+          </p>
+          {MENU_CONTA.itens
+            .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s)
+            .filter((s) => !s.adminOnly || ehAdmin)
+            .map((s) => (
+              <Link
+                key={s.to}
+                to={s.to}
+                onClick={() => setAberto(false)}
+                className={cn(
+                  "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                  rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
+                )}
+              >
+                {s.label}
+              </Link>
+            ))}
+        </div>
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
           <p className="truncate">{contexto?.organizacao?.nome ?? "—"}</p>
           <p className="mt-1 truncate text-cream/60">
             {papeis.length ? papeis.map((p) => PAPEL_LABEL[p]).join(" · ") : "Sem papel atribuído"}
           </p>
+
           <button
             onClick={sair}
             className="mt-3 flex w-full items-center gap-2 rounded-lg border border-cream/20 px-3 py-2 text-sm text-cream hover:bg-cream/10"

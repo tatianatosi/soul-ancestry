@@ -7,6 +7,8 @@ import {
   destinosDuplicados,
   rotasDoMenu,
   rotasSemLink,
+  rotasDoMenuConta,
+  MENU_CONTA,
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
@@ -18,13 +20,13 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
   it("usa os rótulos canônicos e ids estáveis", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
+      "marketing",
       "comercial",
       "casos",
       "pesquisa",
       "contratos",
       "cliente",
       "governanca",
-      "administracao",
     ]);
   });
 
@@ -47,11 +49,22 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     for (const r of rotasDoMenu()) expect(r.startsWith("/")).toBe(true);
   });
 
-  it("mantém marketing dentro de Comercial e não como nono grupo", () => {
+  it("expõe Marketing como aba 2 e mantém link contextual em Comercial", () => {
+    expect(GRUPOS_DESK[1]!.id).toBe("marketing");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    const labels = comercial.sub.filter((s) => "to" in s).map((s) => (s as { label: string }).label);
-    expect(labels).toContain("Marketing e aquisição");
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Marketing");
+    const rotas = comercial.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(rotas).toContain("/marketing");
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("administracao");
+  });
+
+  it("move Configurações, Equipe e Perfis para o menu da conta, sem nona aba", () => {
+    expect(GRUPOS_DESK).toHaveLength(8);
+    const conta = rotasDoMenuConta();
+    for (const r of ["/configuracoes", "/equipe", "/modo-proprietaria"]) expect(conta).toContain(r);
+    for (const g of GRUPOS_DESK) {
+      const rotas = g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+      expect(rotas).not.toContain("/configuracoes");
+    }
   });
 
   it("mantém Validação Jurídica em Governança com link contextual em Comercial e Casos", () => {
@@ -78,7 +91,10 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     const restritos = GRUPOS_DESK.flatMap((g) => g.sub)
       .filter((s) => "to" in s && s.adminOnly)
       .map((s) => (s as { to: string }).to);
-    expect(restritos.sort()).toEqual(["/auditoria", "/equipe"]);
+    const restritosConta = MENU_CONTA.itens
+      .filter((s) => "to" in s && (s as { adminOnly?: boolean }).adminOnly)
+      .map((s) => (s as { to: string }).to);
+    expect([...restritos, ...restritosConta].sort()).toEqual(["/auditoria", "/equipe"]);
   });
 
   it("não referencia rotas do App Cliente nem do mockup como superfície operacional", () => {
@@ -101,7 +117,7 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     const labels = new Set(GRUPOS_DESK.map((g) => g.label));
     for (const g of MATRIZ_EQUIVALENCIA) {
       expect(g.grupoNovo).toBeDefined();
-      expect(labels.has(g.grupoNovo!)).toBe(true);
+      expect(labels.has(g.grupoNovo!) || g.grupoNovo === MENU_CONTA.label).toBe(true);
     }
   });
 });

@@ -2,15 +2,19 @@
  * NAVEGAÇÃO CANÔNICA DO DESK — CA-UX-03 (8 grupos principais)
  *
  * Registro puro de navegação: mapeia grupos → rótulos humanos → rotas já
- * existentes. Não cria rota, não altera dado, não executa ação externa.
+ * existentes. Não cria dado, não altera dado, não executa ação externa.
  *
  * Regras aplicadas:
  * - Exatamente 8 grupos principais para usuário interno autorizado.
  * - Nenhuma rota operacional é removida: toda rota de menu anterior continua
- *   presente em algum grupo (ver `ROTAS_PRESERVADAS`).
- * - Marketing é módulo de Comercial, nunca nona aba.
+ *   presente no menu principal ou no menu da conta (ver `ROTAS_PRESERVADAS`).
+ * - Marketing é a aba 2 (aquisição, canal, conteúdo, atribuição e análise);
+ *   Comercial mantém apenas link contextual, sem duplicar a lista de leads.
+ * - Configurações, Equipe, Perfis e Preferências saem da navegação principal e
+ *   passam ao menu da conta (`MENU_CONTA`) — sem criar nona aba.
  * - Rótulos de interface mudam; URLs permanecem idênticas.
  */
+
 
 export type ItemNav =
   | { grupo: string }
@@ -25,13 +29,14 @@ export type GrupoDesk = {
   descricao: string;
   icone:
     | "hoje"
+    | "marketing"
     | "comercial"
     | "casos"
     | "pesquisa"
     | "contratos"
     | "cliente"
-    | "governanca"
-    | "administracao";
+    | "governanca";
+
   agrupador?: boolean;
   sub: readonly ItemNav[];
 };
@@ -51,15 +56,37 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     ],
   },
   {
+    id: "marketing",
+    to: "/marketing",
+    label: "Marketing",
+    descricao: "Aquisição, canais, campanhas, conteúdo, atribuição e análise por canal.",
+    icone: "marketing",
+    agrupador: true,
+    sub: [
+      { grupo: "Aquisição" },
+      { to: "/marketing", label: "Visão geral de aquisição" },
+      { to: "/marketing", hash: "canais-campanhas", label: "Canais e campanhas" },
+      { to: "/marketing", hash: "conteudo-ctas", label: "Conteúdo e CTAs" },
+      { grupo: "Origem e análise" },
+      { to: "/marketing", hash: "atribuicao", label: "Atribuição e origem" },
+      { to: "/marketing", hash: "funil-aquisicao", label: "Funil de aquisição" },
+      { to: "/marketing", hash: "metricas-canal", label: "Métricas por canal" },
+      { to: "/marketing", hash: "aprendizados", label: "Aprendizados" },
+      { grupo: "Handoff" },
+      { to: "/marketing", hash: "links-comercial", label: "Links contextuais para Comercial" },
+    ],
+  },
+  {
     id: "comercial",
     to: "/leads",
     label: "Comercial",
-    descricao: "Aquisição, leads, Discovery, propostas e conversão até o handoff.",
+    descricao: "Lead identificado, triagem, Discovery, proposta e formalização.",
     icone: "comercial",
     agrupador: true,
     sub: [
       { grupo: "Aquisição" },
-      { to: "/conversao", hash: "marketing", label: "Marketing e aquisição" },
+      { to: "/marketing", label: "Marketing e aquisição (aba 2)" },
+
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Calls Discovery" },
       { grupo: "CRM" },
@@ -191,22 +218,32 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/importacoes", label: "Importações e migração" },
     ],
   },
-  {
-    id: "administracao",
-    to: "/modo-proprietaria",
-    label: "Administração",
-    descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
-    icone: "administracao",
-    agrupador: true,
-    sub: [
-      { to: "/modo-proprietaria", label: "Modo Proprietária" },
-      { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
-      { to: "/configuracoes", label: "Configurações" },
-      { to: "/reconfirmar-propriedade", label: "Segurança e reconfirmação de propriedade" },
-      { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
-    ],
-  },
 ] as const;
+
+/**
+ * Menu da conta (não é grupo principal, não é nona aba).
+ * Configurações, Equipe, Perfis/Preferências e verificação administrativa saem
+ * da navegação principal e passam a viver no menu da conta / Modo Proprietária,
+ * com exatamente as mesmas rotas e as mesmas permissões de antes.
+ */
+export const MENU_CONTA: {
+  id: "conta";
+  label: string;
+  descricao: string;
+  itens: readonly ItemNav[];
+} = {
+  id: "conta",
+  label: "Conta e administração",
+  descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
+  itens: [
+    { to: "/modo-proprietaria", label: "Modo Proprietária" },
+    { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
+    { to: "/configuracoes", label: "Configurações e preferências" },
+    { to: "/reconfirmar-propriedade", label: "Segurança e reconfirmação de propriedade" },
+    { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
+  ],
+} as const;
+
 
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
@@ -274,15 +311,22 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/auditoria",
 ] as const;
 
-/** Todas as rotas com link direto no menu (sem duplicar). */
+/** Todas as rotas com link direto no menu principal ou no menu da conta. */
 export function rotasDoMenu(): string[] {
   const set = new Set<string>();
   for (const g of GRUPOS_DESK) {
     set.add(g.to);
     for (const s of g.sub) if ("to" in s) set.add(s.to);
   }
+  for (const s of MENU_CONTA.itens) if ("to" in s) set.add(s.to);
   return [...set];
 }
+
+/** Rotas presentes apenas no menu da conta (fora dos 8 grupos principais). */
+export function rotasDoMenuConta(): string[] {
+  return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
+}
+
 
 /** Rotas preservadas que perderam link de menu (devem ser zero). */
 export function rotasSemLink(): string[] {
@@ -315,7 +359,9 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/qualidade", origem: "Governança", tambemEm: ["Casos", "Pesquisa"] },
   { rota: "/relatorios", origem: "Hoje", tambemEm: ["Pesquisa"] },
   { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
+  { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
+
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [

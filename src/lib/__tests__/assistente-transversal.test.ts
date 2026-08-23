@@ -25,7 +25,7 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
       "contratos",
       "cliente",
       "governanca",
-      "administracao",
+      "marketing",
     ]);
   });
 
@@ -97,7 +97,8 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
     expect(grupoDaRota("/pesquisa")).toBe("pesquisa");
     expect(grupoDaRota("/financeiro")).toBe("contratos");
-    expect(grupoDaRota("/equipe")).toBe("administracao");
+    expect(grupoDaRota("/equipe")).toBe("governanca");
+    expect(grupoDaRota("/marketing")).toBe("marketing");
   });
 
   it("atalhos apontam apenas para rotas já existentes do grupo", () => {
