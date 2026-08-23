@@ -1,14 +1,14 @@
-evento_canonico,etapa_jornada,acoes_permitidas,template_sugerido,canal_previsto,objeto_canonico,envio
-lead_novo,aceite_formalizacao,sugerir_template|tarefa|responsavel_prazo|abrir_objeto,primeiro_contato,whatsapp,/leads,nao
-call_agendada,aceite_formalizacao,sugerir_template|tarefa|responsavel_prazo|abrir_objeto,confirmacao_call,whatsapp,/calls,nao
-call_concluida,aceite_formalizacao,rascunho|tarefa|recalcular_cadencia|abrir_objeto,resumo_call,interno,/calls,nao
-proposta_enviada,aceite_formalizacao,sugerir_template|tarefa|responsavel_prazo|abrir_objeto,proposta_enviada,whatsapp,/propostas,nao
-followup_vencido,aceite_formalizacao,sugerir_template|alerta_derivado|tarefa|abrir_objeto,followup_vencido,whatsapp,/conversao,nao
-aceite_verbal,aceite_formalizacao,sugerir_template|tarefa|abrir_objeto,aceite_verbal,whatsapp,/conversao,nao
-confirmacao_formal,aceite_formalizacao,sugerir_template|tarefa|responsavel_prazo|abrir_objeto,confirmacao_formal,email,/contratos,nao
-onboarding_elegivel,onboarding,sugerir_template|tarefa|responsavel_prazo|rascunho|abrir_objeto,boas_vindas,whatsapp,/casos,nao
-microentrega_aprovada,pesquisa_inicial,rascunho|tarefa|abrir_objeto,microentrega_aprovada,interno,/ops,nao
-microentrega_publicada,pesquisa_validacao,recalcular_cadencia|sugerir_template|abrir_objeto,microentrega_publicada,portal,/ops,nao
-microentrega_atrasada,pesquisa_validacao,alerta_derivado|tarefa|abrir_objeto,microentrega_atrasada,interno,/ops-excecoes,nao
-cadencia_atencao,protocolo_acompanhamento,alerta_derivado|sugerir_template|rascunho|abrir_objeto,cadencia_atencao,whatsapp,/casos,nao
-cadencia_critica,protocolo_acompanhamento,alerta_derivado|sugerir_template|rascunho|tarefa|abrir_objeto,cadencia_critica,whatsapp,/casos,nao
+evento_canonico;origem;etapa_jornada;condicao_entrada;tarefa_canonica;responsavel;prazo_regra;template_sugerido;canal_previsto;microentrega;estado_microentrega;gatilho_cadencia;alerta_derivado;rota_acao;acao_externa_permitida;observacao
+lead_novo;CRM;prospeccao;lead registrado no CRM;Triagem do lead e definição de próxima ação;comercial;1 dia util;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;nao;/leads;nao;Lead novo
+call_agendada;Calls;discovery;call com data confirmada;Preparar roteiro da call de discovery;comercial;ate a data da call;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;nao;/calls;nao;Call agendada
+call_concluida;Calls;discovery;call realizada e registrada;Registrar devolutiva e próximo marco verificável;comercial;1 dia util apos a call;undefined vundefined;undefined;nao aplicavel;nao aplicavel;touchpoint valido recalcula cadencia;nao;/calls;nao;Call concluída
+proposta_enviada;Comercial;proposta;proposta emitida de fonte homologada;Agendar follow-up da proposta;comercial;follow-up em 3 dias uteis;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;nao;/propostas;nao;Proposta enviada
+followup_vencido;Comercial;proposta;prazo de follow-up ultrapassado;Retomar follow-up pendente;comercial;imediato;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;sim (derivado);/conversao;nao;Follow-up vencido
+aceite_verbal;Comercial;aceite_formalizacao;aceite verbal registrado por humano;Registrar aceite verbal e preparar formalização;comercial;2 dias uteis;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;nao;/conversao;nao;Aceite verbal
+confirmacao_formal;Contratos;aceite_formalizacao;formalizacao registrada;Conferir cadeia de formalização do caso;comercial;2 dias uteis;undefined vundefined;undefined;nao aplicavel;nao aplicavel;nao aplicavel;nao;/contratos;nao;Confirmação formal
+onboarding_elegivel;Onboarding;onboarding;gates de contrato assinado e pagamento cumpridos;Acolhimento de onboarding;operacoes;3 dias uteis;undefined vundefined;undefined;microentrega de acolhimento;rascunho;nao aplicavel;nao;/casos;nao;Onboarding elegível
+microentrega_aprovada;Microentregas;execucao;microentrega em estado aprovado;Revisar microentrega aprovada antes da publicação;operacoes;2 dias uteis;undefined vundefined;undefined;microentrega em revisao final;aprovado;nao aplicavel;nao;/ops;nao;Microentrega aprovada
+microentrega_publicada;Microentregas;execucao;publicacao autorizada por humano;nao aplicavel;operacoes;nao aplicavel;undefined vundefined;undefined;microentrega publicada;publicado;entrega publicada recalcula cadencia;nao;/ops;nao;Microentrega publicada
+microentrega_atrasada;Microentregas;execucao;prazo vencido ou bloqueio ativo;Replanejar microentrega atrasada ou bloqueada;operacoes;imediato;undefined vundefined;undefined;microentrega em atraso;rascunho ou em revisao;nao aplicavel;sim (derivado);/ops-excecoes;nao;Microentrega atrasada ou bloqueada
+cadencia_atencao;Cadencia;acompanhamento;dias sem touchpoint valido em faixa de atencao;nao aplicavel;operacoes;replanejar em 2 dias uteis;undefined vundefined;undefined;nao aplicavel;nao aplicavel;recalculo por dias sem touchpoint;sim (derivado);/casos;nao;Cadência em atenção
+cadencia_critica;Cadencia;acompanhamento;dias sem touchpoint valido em faixa critica;Retomar cadência crítica do caso;operacoes;imediato;undefined vundefined;undefined;nao aplicavel;nao aplicavel;recalculo por dias sem touchpoint;sim (derivado);/casos;nao;Cadência crítica
