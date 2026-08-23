@@ -105,9 +105,10 @@ function RedefinirSenha() {
         return;
       }
       await concluir({});
-      await supabase.auth.signOut();
+      // A sessão criada pelo link de recuperação é mantida: encerrar aqui
+      // devolvia a pessoa à tela de login e parecia bloqueio de acesso.
       setOk(true);
-      setTimeout(() => navigate({ to: "/equipe/entrar", replace: true }), 1800);
+      setTimeout(() => navigate({ to: "/painel", replace: true }), 1200);
     } finally {
       setCarregando(false);
     }
@@ -117,7 +118,7 @@ function RedefinirSenha() {
     <EquipeMoldura titulo="Definir nova senha" subtitulo="Aceite de convite e definição de senha da equipe Clube Ancestral.">
       {ok ? (
         <div className="rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
-          Senha atualizada. Faça login novamente com a nova senha.
+          Senha atualizada. Entrando no Clube Ancestral…
         </div>
       ) : semLink ? (
         <div className="space-y-4">
