@@ -18,11 +18,14 @@ import {
   MATRIZ_FONTES,
   MATRIZ_LACUNAS,
   ROTULO_DOMINIO,
+  STATUS_INVENTARIO,
   camadasFaltantes,
   contarPorStatus,
   itensPorDominio,
+  type Dominio,
   type ItemInventario,
   type Severidade,
+  type StatusInventario,
 } from "@/lib/inventario-patrimonial";
 
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
