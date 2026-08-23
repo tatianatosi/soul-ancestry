@@ -301,7 +301,7 @@ export const ANEXO_IV_MODELO_VERSAO = "ANEXO-IV-PROCURACAO-ESPECIFICA-v1.0";
 /** Regras do motor do Anexo IV — texto normativo, não editável por caso. */
 export const REGRAS_MOTOR_ANEXO_IV: string[] = [
   "É sempre condicional; não derivar automaticamente somente por país ou rota.",
-  "Exigir finalidade específica, órgão destinatário, pessoas vinculadas, poderes necessários e revisão humana/jurídica.",
+  "Exigir finalidade específica, órgão destinatário, pessoas vinculadas, poderes necessários e revisão humana.",
   "Estados permitidos: não iniciada, rascunho, aguardando assinatura, assinada, enviada, respondida, arquivada, não aplicável.",
   "Não criar procuração real, não enviar, não assinar e não inferir poderes.",
   "Quando exigida para atividade externa, bloquear a ação até instrumento aprovado e evidência de assinatura quando aplicável.",
