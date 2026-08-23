@@ -132,6 +132,11 @@ function Cartao({ item }: { item: ItemInventario }) {
 
 export function InventarioPatrimonial() {
   const contagem = contarPorStatus();
+  const [dominioCsv, setDominioCsv] = useState<Dominio | "todos">("todos");
+  const [statusCsv, setStatusCsv] = useState<StatusInventario | "todos">("todos");
+
+  const filtro = { dominio: dominioCsv, status: statusCsv };
+  const totalFiltrado = filtrarInventario(filtro).length;
 
   return (
     <div className="space-y-4">
@@ -146,6 +151,53 @@ export function InventarioPatrimonial() {
               </span>
             ))}
         </div>
+      </Bloco>
+
+      <Bloco titulo="Exportar inventário em CSV (leitura e auditoria)">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="text-[11px] text-navy/70">
+            <span className="block font-medium text-navy/80">Domínio</span>
+            <select
+              value={dominioCsv}
+              onChange={(e) => setDominioCsv(e.target.value as Dominio | "todos")}
+              className="mt-1 rounded-md border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+            >
+              <option value="todos">Todos os domínios</option>
+              {DOMINIOS.map((d) => (
+                <option key={d} value={d}>
+                  {ROTULO_DOMINIO[d]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-[11px] text-navy/70">
+            <span className="block font-medium text-navy/80">Status</span>
+            <select
+              value={statusCsv}
+              onChange={(e) => setStatusCsv(e.target.value as StatusInventario | "todos")}
+              className="mt-1 rounded-md border border-navy/15 bg-white px-2 py-1 text-xs text-navy"
+            >
+              <option value="todos">Todos os status</option>
+              {STATUS_INVENTARIO.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => baixarCsvInventario(filtro)}
+            disabled={totalFiltrado === 0}
+            className="rounded-md bg-navy px-3 py-1.5 text-xs font-medium text-cream disabled:opacity-40"
+          >
+            Baixar CSV ({totalFiltrado} {totalFiltrado === 1 ? "item" : "itens"})
+          </button>
+        </div>
+        <p className="mt-2 text-[11px] text-navy/60">
+          O arquivo é gerado no próprio navegador, com as cinco camadas, severidade, risco e ação necessária de cada item.
+          Nenhum dado é alterado e nenhuma ação externa é executada.
+        </p>
       </Bloco>
 
       {DOMINIOS.map((dominio) => {
