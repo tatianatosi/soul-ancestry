@@ -207,7 +207,7 @@ export const reconfirmarPropriedade = createServerFn({ method: "POST" })
     // 4. cadastro de equipe ativo
     const { data: staff } = await admin
       .from("staff_access")
-      .select("id,status,role,archived_at")
+      .select("id,status,role,archived_at,activated_at")
       .eq("organization_id", ORGANIZACAO_CANONICA_ID)
       .ilike("email", email)
       .maybeSingle();
