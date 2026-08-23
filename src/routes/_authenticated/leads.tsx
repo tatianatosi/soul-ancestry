@@ -1,5 +1,4 @@
-import { PainelDeskHoje } from "@/components/painel/painel-desk-hoje";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -900,7 +899,12 @@ function LeadsPage() {
       <div id="crm-templates" className="mt-6 scroll-mt-24">
         <TemplatesWhatsapp />
       </div>
-      <PainelDeskHoje />
+      <p className="mt-6 rounded-lg border border-navy/15 bg-cream px-3 py-2 text-xs text-navy/70">
+        Execução diária fica no Painel Hoje — fila única, sem contagem concorrente.{" "}
+        <Link to="/painel" className="underline">
+          Abrir Painel Hoje
+        </Link>
+      </p>
 
     </SaasShell>
   );
