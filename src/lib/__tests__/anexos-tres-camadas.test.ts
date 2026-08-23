@@ -13,7 +13,7 @@ import {
   anexosComModeloJuridicoAusente,
   anexosSemInstanciaDoCaso,
   evidenciasDoCaso,
-  exigeFonteJuridicaAntesDeUsoExterno,
+  exigeMaterializacaoAntesDeUsoExterno,
   linha,
   linhasLegadasVazias,
   permitePreviaInterna,
@@ -97,7 +97,7 @@ describe("reconciliação Anexos I–V — três camadas", () => {
   });
 
   it("exige fonte jurídica antes de uso externo para II, IV e V", () => {
-    expect(ANEXOS_TRES_CAMADAS.filter(exigeFonteJuridicaAntesDeUsoExterno).map((a) => a.codigo)).toEqual([
+    expect(ANEXOS_TRES_CAMADAS.filter(exigeMaterializacaoAntesDeUsoExterno).map((a) => a.codigo)).toEqual([
       "ANEXO_II",
       "ANEXO_IV",
       "ANEXO_V",

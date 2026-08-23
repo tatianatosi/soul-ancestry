@@ -499,7 +499,7 @@ export const QUADRO_ANA: QuadroAna = {
   anexosComParametrosAusentes: ANEXOS_TRES_CAMADAS.filter((a) => a.caso.parametrosAusentes.length > 0).map((a) => a.codigo),
   anexosComConteudoPlaceholder: ANEXOS_TRES_CAMADAS.filter((a) => a.estados.includes("CONTEUDO_PLACEHOLDER")).map((a) => a.codigo),
   anexosComPreviaInterna: ANEXOS_TRES_CAMADAS.filter(permitePreviaInterna).map((a) => a.codigo),
-  anexosQueExigemFonteJuridica: ANEXOS_TRES_CAMADAS.filter(exigeFonteJuridicaAntesDeUsoExterno).map((a) => a.codigo),
+  anexosQueExigemFonteJuridica: ANEXOS_TRES_CAMADAS.filter(exigeMaterializacaoAntesDeUsoExterno).map((a) => a.codigo),
   observacao:
     "O caso canônico de Ana Luiza não possui nenhum registro em contract_annexes. As cinco instâncias I–V pertencem ao caso técnico CA-TESTE-VAL-2026-001, usado para validar o motor contratual. O contrato do caso está em pending_data e ainda não gerou anexos.",
 };
