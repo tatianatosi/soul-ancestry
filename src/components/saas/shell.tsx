@@ -35,7 +35,15 @@ export const PAPEL_LABEL: Record<Papel, string> = {
 
 export function useSaas() {
   const carregar = useServerFn(getContexto);
-  const q = useQuery({ queryKey: ["saas-contexto"], queryFn: () => carregar({}), retry: false });
+  const q = useQuery({
+    queryKey: ["saas-contexto"],
+    queryFn: () => carregar({}),
+    // Falha de rede ou token ainda não anexado não pode derrubar a sessão:
+    // tenta novamente antes de qualquer decisão de acesso.
+    retry: 3,
+    retryDelay: (tentativa) => Math.min(1000 * 2 ** tentativa, 4000),
+    staleTime: 30_000,
+  });
   const papeis = q.data?.papeis ?? [];
   const statusStaff = q.data?.staff?.status ?? null;
   return {
