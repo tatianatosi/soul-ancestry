@@ -12,6 +12,8 @@ import {
 import { ORDEM_BLOCOS_PAINEL, validarOrdemPainel } from "@/lib/painel-ordem";
 
 const shell = readFileSync("src/components/saas/shell.tsx", "utf8");
+// A navegação passou a viver no registro canônico CA-UX-03.
+const navegacao = readFileSync("src/lib/navegacao-desk.ts", "utf8");
 const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
 
 describe("acesso à referência histórica", () => {
@@ -45,8 +47,8 @@ describe("nomenclatura humana", () => {
   });
 
   it("exibe os rótulos na navegação do Desk real", () => {
-    expect(shell).toContain('{ to: "/qualidade", label: "Radar Interno" }');
-    expect(shell).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
+    expect(navegacao).toContain('{ to: "/qualidade", label: "Radar Interno e Qualidade" }');
+    expect(navegacao).toContain('{ to: "/matriz-juridica", label: "Validação Jurídica" }');
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
@@ -97,17 +99,19 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém os 7 grupos de navegação do Desk operacional", () => {
+  it("mantém os 8 grupos de navegação do Desk operacional (CA-UX-03)", () => {
     const grupos = [
-      "Visão geral",
+      "Hoje",
       "Comercial",
-      "Casos e núcleos",
-      "Pesquisa genealógica",
+      "Casos",
+      "Pesquisa",
       "Contratos e financeiro",
-      "Governança e biblioteca",
-      "App Cliente",
+      "Cliente",
+      "Governança",
+      "Administração",
     ];
-    for (const g of grupos) expect(shell).toContain(`label: "${g}"`);
+    for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
+    expect(shell).toContain("GRUPOS_DESK");
   });
 
   it("o mockup histórico não recebe dados reais nem chamadas de servidor", () => {

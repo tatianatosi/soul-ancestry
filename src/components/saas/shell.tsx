@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,6 +24,7 @@ import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
+import { GRUPOS_DESK, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
@@ -64,136 +66,42 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 7 seções principais.
- * Nenhum módulo foi removido — os secundários aparecem como subitens
- * da seção correspondente quando ela está aberta.
+ * Navegação do Desk: 8 grupos principais (CA-UX-03).
+ * O registro canônico vive em `src/lib/navegacao-desk.ts`; aqui só há
+ * apresentação. Nenhum módulo foi removido — os secundários aparecem como
+ * subitens do grupo correspondente.
  */
-type SubItem = { to: string; label: string; hash?: string } | { grupo: string };
+type SubItem = ItemNav;
 
 type SecaoNav = {
   to: string;
   label: string;
+  descricao: string;
   icon: typeof LayoutDashboard;
   agrupador?: boolean;
   sub: readonly SubItem[];
 };
 
-const NAV: readonly SecaoNav[] = [
-  {
-    to: "/painel",
-    label: "Visão geral",
-    icon: LayoutDashboard,
-    sub: [
-      { to: "/painel", label: "Painel Hoje" },
-      { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { to: "/relatorios", label: "Relatórios" },
-    ],
-  },
-  {
-    to: "/leads",
-    label: "Comercial",
-    icon: Users,
-    sub: [
-      { grupo: "CRM Vivo" },
-      { to: "/leads", label: "Leads e Discovery" },
-      { to: "/calls", label: "Painel de Calls" },
-      { to: "/proximas-acoes", label: "Próximas ações dos leads" },
-      { to: "/leads", hash: "crm-contatos", label: "Calls, conversas e interações" },
-      { to: "/casos", hash: "planejador", label: "Planejador" },
-      { to: "/propostas", label: "Propostas" },
-      { to: "/conversao", label: "Conversão e follow-up" },
-      { grupo: "Relacionamento" },
-      { to: "/clientes", label: "Clientes e núcleos vinculados" },
-    ],
-  },
-  {
-    to: "/casos",
-    label: "Casos e núcleos",
-    icon: FolderOpen,
-    sub: [
-      { to: "/casos", label: "Casos 360" },
-      { to: "/nucleos", label: "Pessoas, família e dossiê-mãe" },
-      { to: "/tarefas", label: "Jornada e tarefas" },
-      { to: "/ops-excecoes", label: "Exceções operacionais" },
-      { to: "/qualidade", label: "Radar Interno" },
-      { to: "/piloto", label: "Piloto real" },
-      { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
-    ],
-  },
-  {
-    to: "/pesquisa",
-    label: "Pesquisa genealógica",
-    icon: FileSearch,
-    sub: [
-      { to: "/pesquisa-modulo", label: "Visão de pesquisa e plano de ação" },
-      { to: "/evidencias", label: "Evidências e documentos" },
-      { to: "/fontes-genealogicas", label: "Fontes e consultas" },
-      { to: "/privacidade", label: "Privacidade e liberação documental" },
-    ],
-  },
-  {
-    to: "/contratos",
-    label: "Contratos e financeiro",
-    icon: FileSignature,
-    sub: [
-      { grupo: "Formalização" },
-      { to: "/contratos", label: "Contratos, prévia e revisão" },
-      { to: "/ordens-servico", label: "Ordens de serviço e anexos" },
-      { to: "/escopo-origem", label: "Origem do escopo contratual" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo e bloqueios" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
-      { to: "/homologacao-skus", label: "Revisão de SKUs para homologação" },
-      { to: "/contrato-parametros", label: "Dados parametrizáveis" },
-      { grupo: "Financeiro" },
-      { to: "/financeiro", label: "Faturas, pagamentos e condições" },
-    ],
-  },
-  {
-    to: "/biblioteca",
-    label: "Governança e biblioteca",
-    icon: Library,
-    agrupador: true,
-    sub: [
-      { to: "/modo-proprietaria", label: "Modo Proprietária Administradora" },
-      { to: "/reconfirmar-propriedade", label: "Reconfirmar propriedade e acesso" },
-      { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
-      { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
-      { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal dois adultos" },
-      { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { to: "/catalogo", label: "Catálogo comercial" },
-      { to: "/biblioteca", label: "Biblioteca Mestre" },
-      { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
-      { to: "/fontes-genealogicas", label: "Bases Genealógicas" },
-      { to: "/matriz-juridica", label: "Validação Jurídica" },
-      { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
-      { to: "/governanca/matriz-conformidade", label: "Matrizes conceituais" },
-      { to: "/governanca/indicadores", label: "Indicadores e métricas" },
-      { to: "/governanca/decisoes", label: "Log de decisões" },
-      { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
-      { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
-      { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
-      { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      { to: "/governanca/matriz-equivalencia", label: "Matriz mockup → rota → dado → estado" },
-      { to: "/referencia-mockup-desk", label: "Mockup original — 14 abas (referência)" },
-      { to: "/governanca/identificadores", label: "Identificadores" },
-      { to: "/governanca/varredura-administracao", label: "Varredura de administração" },
-      { to: "/governanca/varredura-completude", label: "Varredura de completude" },
-      { to: "/etiquetas", label: "Etiquetas canônicas" },
-      { to: "/integracoes", label: "Integrações" },
-      { to: "/importacoes", label: "Importações e migração" },
-      { to: "/configuracoes", label: "Configurações" },
-    ],
-  },
-  {
-    to: "/acessos-portal",
-    label: "App Cliente",
-    icon: Smartphone,
-    sub: [
-      { to: "/acessos-portal", label: "Acessos e visibilidade" },
-      { to: "/atendimento", label: "Atendimento e publicação" },
-    ],
-  },
-];
+const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
+  hoje: LayoutDashboard,
+  comercial: Users,
+  casos: FolderOpen,
+  pesquisa: FileSearch,
+  contratos: FileSignature,
+  cliente: Smartphone,
+  governanca: Library,
+  administracao: ShieldCheck,
+};
+
+const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
+  to: g.to,
+  label: g.label,
+  descricao: g.descricao,
+  icon: ICONES[g.icone],
+  ...(g.agrupador ? { agrupador: true } : {}),
+  sub: g.sub,
+}));
+
 
 
 export function SaasShell({
@@ -277,18 +185,12 @@ export function SaasShell({
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
-  const itens: SecaoNav[] = NAV.map((item) =>
-    ehAdmin && item.to === "/biblioteca"
-      ? {
-          ...item,
-          sub: [
-            ...item.sub,
-            { to: "/equipe", label: "Usuários e papéis" },
-            { to: "/auditoria", label: "Auditoria" },
-          ],
-        }
-      : item,
-  );
+  // Itens restritos a admin (equipe, auditoria) só aparecem para admin.
+  // O Desk mantém exatamente 8 grupos para qualquer papel interno.
+  const itens: SecaoNav[] = NAV.map((item) => ({
+    ...item,
+    sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
+  }));
 
 
   return (
@@ -305,7 +207,7 @@ export function SaasShell({
         </div>
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
-            const { to, label, icon: Icon, sub, agrupador } = item;
+            const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
             const links = sub.filter((s): s is { to: string; label: string; hash?: string } => "to" in s);
             const rotaAtiva = rota === to || links.some((s) => rota.startsWith(s.to));
             const expandida = rotaAtiva || secaoAberta === to;
@@ -314,6 +216,7 @@ export function SaasShell({
                 {agrupador ? (
                   <button
                     type="button"
+                    title={descricaoGrupo}
                     onClick={() => setSecaoAberta((v) => (v === to ? null : to))}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
@@ -335,6 +238,7 @@ export function SaasShell({
                 ) : (
                   <Link
                     to={to}
+                    title={descricaoGrupo}
                     onClick={() => {
                       setAberto(false);
                       setSecaoAberta(to);
