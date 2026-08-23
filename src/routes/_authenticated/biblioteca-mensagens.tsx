@@ -157,6 +157,8 @@ function BibliotecaMensagensPage() {
           </ul>
         </section>
 
+        <OrquestracaoContextual />
+
         <section className="grid gap-2 sm:grid-cols-3">
           <input
             value={busca}
