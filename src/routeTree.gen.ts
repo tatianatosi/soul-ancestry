@@ -86,6 +86,7 @@ import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_authenticated/pesquisa-modulo.$id'
 import { Route as AuthenticatedPesquisaEvidenciasCaseIdRouteImport } from './routes/_authenticated/pesquisa-evidencias.$caseId'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
+import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
 import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
 import { Route as AuthenticatedGovernancaVarreduraAdministracaoRouteImport } from './routes/_authenticated/governanca.varredura-administracao'
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
@@ -525,6 +526,12 @@ const AuthenticatedOnboardingIdRoute =
     path: '/onboarding/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHistoricoPainelDeskHojeRoute =
+  AuthenticatedHistoricoPainelDeskHojeRouteImport.update({
+    id: '/historico/painel-desk-hoje',
+    path: '/historico/painel-desk-hoje',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaVarreduraCompletudeRoute =
   AuthenticatedGovernancaVarreduraCompletudeRouteImport.update({
     id: '/governanca/varredura-completude',
@@ -749,6 +756,7 @@ export interface FileRoutesByFullPath {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -850,6 +858,7 @@ export interface FileRoutesByTo {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -954,6 +963,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/_authenticated/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -1058,6 +1068,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/painel-desk-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1159,6 +1170,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/painel-desk-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1262,6 +1274,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/modulos-contextuais'
     | '/_authenticated/governanca/varredura-administracao'
     | '/_authenticated/governanca/varredura-completude'
+    | '/_authenticated/historico/painel-desk-hoje'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-evidencias/$caseId'
     | '/_authenticated/pesquisa-modulo/$id'
@@ -1846,6 +1859,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/historico/painel-desk-hoje': {
+      id: '/_authenticated/historico/painel-desk-hoje'
+      path: '/historico/painel-desk-hoje'
+      fullPath: '/historico/painel-desk-hoje'
+      preLoaderRoute: typeof AuthenticatedHistoricoPainelDeskHojeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/varredura-completude': {
       id: '/_authenticated/governanca/varredura-completude'
       path: '/governanca/varredura-completude'
@@ -2077,6 +2097,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
   AuthenticatedGovernancaVarreduraAdministracaoRoute: typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaEvidenciasCaseIdRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
@@ -2175,6 +2196,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaVarreduraAdministracaoRoute,
   AuthenticatedGovernancaVarreduraCompletudeRoute:
     AuthenticatedGovernancaVarreduraCompletudeRoute,
+  AuthenticatedHistoricoPainelDeskHojeRoute:
+    AuthenticatedHistoricoPainelDeskHojeRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaEvidenciasCaseIdRoute:
     AuthenticatedPesquisaEvidenciasCaseIdRoute,
