@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo } from "@/components/comercial/base";
+import { BloqueioEmissaoOS } from "@/components/contrato/bloqueio-emissao-os";
 import { carregarCadeiaFormalizacao, derivarAnexoIDaProposta } from "@/lib/cadeia-formalizacao.functions";
 
 const TOM: Record<string, "ok" | "alerta" | "erro"> = {
