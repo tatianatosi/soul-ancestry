@@ -108,7 +108,7 @@ describe("superfícies preservadas", () => {
       "Contratos e financeiro",
       "Cliente",
       "Governança",
-      "Administração",
+      "Marketing",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");

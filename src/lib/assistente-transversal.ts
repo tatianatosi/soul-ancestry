@@ -158,6 +158,14 @@ export function assistenteVisivel(entrada: {
   if (!entrada.superficieInterna) return false;
   if (entrada.rota.startsWith("/portal") || entrada.rota.startsWith("/acesso")) return false;
   if (entrada.papeis.length === 0) return false;
+  // Rota do menu da conta restrita a admin mantém a mesma restrição no Assistente.
+  const restritaConta = MENU_CONTA.itens.some(
+    (i) =>
+      "to" in i &&
+      i.adminOnly === true &&
+      (entrada.rota === i.to || entrada.rota.startsWith(`${i.to}/`)),
+  );
+  if (restritaConta && !entrada.papeis.includes("admin")) return false;
   const regra = regraDoGrupo(grupoDaRota(entrada.rota));
   return entrada.papeis.some((p) => regra.papeis.includes(p as PapelAssistente));
 }
