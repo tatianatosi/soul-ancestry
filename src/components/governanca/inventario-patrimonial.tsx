@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { baixarCsvInventario, filtrarInventario } from "@/lib/inventario-csv";
+import { baixarCsvInventario, filtrarInventario, previaCsvInventario, tamanhoLegivel } from "@/lib/inventario-csv";
 import {
   ACOES_DEPENDENTES_DE_TERCEIROS,
   ACOES_SO_DA_PROPRIETARIA,
@@ -139,9 +139,11 @@ export function InventarioPatrimonial() {
   const contagem = contarPorStatus();
   const [dominioCsv, setDominioCsv] = useState<Dominio | "todos">("todos");
   const [statusCsv, setStatusCsv] = useState<StatusInventario | "todos">("todos");
+  const [verAmostra, setVerAmostra] = useState(false);
 
   const filtro = { dominio: dominioCsv, status: statusCsv };
   const totalFiltrado = filtrarInventario(filtro).length;
+  const previa = previaCsvInventario(filtro, 5);
 
   return (
     <div className="space-y-4">
@@ -199,6 +201,63 @@ export function InventarioPatrimonial() {
             Baixar CSV ({totalFiltrado} {totalFiltrado === 1 ? "item" : "itens"})
           </button>
         </div>
+
+        <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-medium text-navy/80">
+              Antes de baixar: {previa.totalLinhas} {previa.totalLinhas === 1 ? "linha" : "linhas"} de dado ·{" "}
+              {previa.colunas.length} colunas · cerca de {tamanhoLegivel(previa.tamanhoAproximadoBytes)}
+            </p>
+            {previa.totalLinhas > 0 ? (
+              <button
+                type="button"
+                onClick={() => setVerAmostra((v) => !v)}
+                className="rounded-md border border-navy/20 px-2 py-1 text-[11px] text-navy/70"
+              >
+                {verAmostra ? "Ocultar amostra" : "Ver amostra das primeiras linhas"}
+              </button>
+            ) : null}
+          </div>
+          <p className="mt-1 text-[11px] text-navy/60">
+            Arquivo: {previa.nomeArquivo}
+          </p>
+
+          {previa.totalLinhas === 0 ? (
+            <p className="mt-2 text-[11px] text-terracotta">
+              Nenhum item atende aos filtros escolhidos. Ajuste domínio ou status para gerar o arquivo.
+            </p>
+          ) : verAmostra ? (
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-max text-left text-[10px] text-navy/75">
+                <thead className="text-navy/55">
+                  <tr>
+                    {previa.colunas.map((coluna) => (
+                      <th key={coluna} className="whitespace-nowrap border-b border-navy/10 px-2 py-1 font-medium">
+                        {coluna}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {previa.amostra.map((linha, i) => (
+                    <tr key={`${linha[0]}-${i}`} className="border-b border-navy/5 align-top">
+                      {linha.map((celulaTexto, j) => (
+                        <td key={`${previa.colunas[j]}-${j}`} className="max-w-[220px] truncate px-2 py-1" title={celulaTexto}>
+                          {celulaTexto}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-1 text-[11px] text-navy/55">
+                Amostra de {previa.linhasNaAmostra} de {previa.totalLinhas} linhas. O arquivo baixado traz todas as linhas
+                e todas as colunas, sem corte de texto.
+              </p>
+            </div>
+          ) : null}
+        </div>
+
         <p className="mt-2 text-[11px] text-navy/60">
           O arquivo é gerado no próprio navegador, com as cinco camadas, severidade, risco e ação necessária de cada item.
           Nenhum dado é alterado e nenhuma ação externa é executada.

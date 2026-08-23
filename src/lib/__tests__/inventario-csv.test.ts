@@ -5,6 +5,8 @@ import {
   filtrarInventario,
   gerarCsvInventario,
   nomeArquivoCsv,
+  previaCsvInventario,
+  tamanhoLegivel,
 } from "@/lib/inventario-csv";
 
 describe("exportação CSV do inventário patrimonial", () => {
@@ -47,5 +49,39 @@ describe("exportação CSV do inventário patrimonial", () => {
     expect(nomeArquivoCsv({ dominio: "financeiro", status: "PARCIAL" })).toContain(
       "dominio-financeiro_status-PARCIAL",
     );
+  });
+});
+
+describe("pré-visualização do CSV filtrado", () => {
+  it("informa o total de linhas igual ao filtro aplicado", () => {
+    const filtro = { dominio: "todos" as const, status: "todos" as const };
+    expect(previaCsvInventario(filtro).totalLinhas).toBe(filtrarInventario(filtro).length);
+  });
+
+  it("limita a amostra ao número pedido sem esconder o total", () => {
+    const p = previaCsvInventario({}, 3);
+    expect(p.amostra.length).toBeLessThanOrEqual(3);
+    expect(p.linhasNaAmostra).toBe(p.amostra.length);
+    expect(p.totalLinhas).toBeGreaterThanOrEqual(p.linhasNaAmostra);
+  });
+
+  it("cada linha da amostra tem uma célula por coluna do cabeçalho", () => {
+    const p = previaCsvInventario({}, 5);
+    for (const linha of p.amostra) expect(linha.length).toBe(p.colunas.length);
+  });
+
+  it("devolve zero linhas e amostra vazia quando o filtro não casa com nada", () => {
+    const p = previaCsvInventario({ dominio: "contrato_base", status: "inexistente" as never });
+    expect(p.totalLinhas).toBe(0);
+    expect(p.amostra).toEqual([]);
+  });
+
+  it("expõe nome de arquivo e tamanho aproximado coerentes com o CSV gerado", () => {
+    const filtro = { dominio: "todos" as const, status: "todos" as const };
+    const p = previaCsvInventario(filtro);
+    expect(p.nomeArquivo).toBe(nomeArquivoCsv(filtro));
+    expect(p.tamanhoAproximadoBytes).toBe(new TextEncoder().encode(gerarCsvInventario(filtro)).length);
+    expect(tamanhoLegivel(2048)).toBe("2.0 KB");
+    expect(tamanhoLegivel(512)).toBe("512 B");
   });
 });

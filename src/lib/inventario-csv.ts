@@ -103,6 +103,40 @@ export function gerarCsvInventario(filtro: FiltroInventario = {}): string {
   return `\uFEFF${linhas.join("\r\n")}\r\n`;
 }
 
+export type PreviaCsv = {
+  /** Linhas de dado (não conta o cabeçalho). */
+  totalLinhas: number;
+  /** Linhas exibidas na amostra. */
+  linhasNaAmostra: number;
+  colunas: readonly string[];
+  /** Amostra já formatada como matriz de células legíveis. */
+  amostra: string[][];
+  /** Peso aproximado do arquivo completo, em bytes. */
+  tamanhoAproximadoBytes: number;
+  nomeArquivo: string;
+};
+
+/** Pré-visualização somente-leitura: quantas linhas e as primeiras delas. */
+export function previaCsvInventario(filtro: FiltroInventario = {}, limite = 5): PreviaCsv {
+  const itens = filtrarInventario(filtro);
+  const amostra = itens.slice(0, Math.max(0, limite)).map((item) => linhaCsv(item));
+  const conteudo = gerarCsvInventario(filtro);
+  return {
+    totalLinhas: itens.length,
+    linhasNaAmostra: amostra.length,
+    colunas: CABECALHO_CSV,
+    amostra,
+    tamanhoAproximadoBytes: new TextEncoder().encode(conteudo).length,
+    nomeArquivo: nomeArquivoCsv(filtro),
+  };
+}
+
+/** Tamanho legível para exibição (KB com uma casa, B abaixo de 1024). */
+export function tamanhoLegivel(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
 export function nomeArquivoCsv(filtro: FiltroInventario = {}): string {
   const { dominio = "todos", status = "todos" } = filtro;
   return `inventario-patrimonial_${INVENTARIO_VERSAO}_${INVENTARIO_DATA}_dominio-${dominio}_status-${status}.csv`;
