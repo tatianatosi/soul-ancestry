@@ -212,14 +212,19 @@ export function SaasShell({
 
   // Só sai da área protegida quando o servidor responde e a autorização não
   // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
-  // nunca derruba a proprietária para a tela de "sem permissão".
+  // nunca derruba a proprietária para a tela de "sem permissão". A ausência de
+  // sessão precisa ser confirmada em releituras: uma leitura vazia durante a
+  // renovação do token não é logout.
   useEffect(() => {
     if (isLoading) return;
     let cancelado = false;
     void (async () => {
-      const { data } = await supabase.auth.getSession();
+      const semSessao = await sessaoAusenteConfirmada(async () => {
+        const { data } = await supabase.auth.getSession();
+        return Boolean(data.session);
+      });
       if (cancelado) return;
-      if (!data.session) {
+      if (semSessao) {
         navigate({ to: "/equipe/entrar", replace: true });
         return;
       }
