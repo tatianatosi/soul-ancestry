@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   ACOES_NAO_AUTORIZADAS,
@@ -16,6 +17,7 @@ import {
   transicaoMicroentregaPermitida,
   vinculoCompleto,
   avaliarTentativaSemCondicao,
+  executarCadeiaJornada,
   selecionarVersaoVigente,
   versaoTemplate,
   templatesVigentesPorEtapaCanal,
@@ -244,5 +246,72 @@ describe("versionamento e vigência de templates", () => {
     const lista = templatesVigentesPorEtapaCanal("2026-08-23");
     const chaves = lista.map((t) => `${t.etapa_jornada}|${t.canal_previsto}|${t.evento_canonico}`);
     expect(new Set(chaves).size).toBe(chaves.length);
+  });
+});
+
+describe("H. Cadeia completa e artefatos", () => {
+  const hoje = "2026-08-23";
+
+  it("cadeia CRM sugere template e tarefa sem publicar nem enviar", () => {
+    const r = executarCadeiaJornada({
+      hoje,
+      evento: "lead_novo",
+      caso_id: "caso-1",
+      responsavel_id: "user-1",
+      prazo: "2026-08-25",
+    });
+    expect(r.template.resultado).toBe("rascunho_interno");
+    expect(r.saida).toBe("rascunho_interno");
+    expect(r.publicacao.envioExecutado).toBe(false);
+    expect(r.publicacao.autorizada).toBe(false);
+    expect(r.contemAcaoExterna).toBe(false);
+    expect(r.tarefa.completa).toBe(true);
+  });
+
+  it("cadeia repetida não duplica o objeto na fila do Painel Hoje", () => {
+    const itens = ["cadencia_critica", "cadencia_critica"].flatMap((evento) => {
+      const r = executarCadeiaJornada({
+        hoje,
+        evento: evento as never,
+        caso_id: "caso-1",
+        bloqueios: ["gate pendente"],
+      });
+      return r.painelHoje ? [r.painelHoje] : [];
+    });
+    expect(filaPainelHoje(itens)).toHaveLength(itens.length ? 1 : 0);
+  });
+
+  it("matriz CSV existe, tem as 16 colunas exigidas e uma linha por evento canônico", () => {
+    const csv = readFileSync(
+      "docs/operacao/CA-OPS-01_Matriz_Eventos_Acoes_Templates.csv",
+      "utf8",
+    ).trim().split("\n");
+    const colunas = csv[0]!.split(";");
+    expect(colunas).toEqual([
+      "evento_canonico", "origem", "etapa_jornada", "condicao_entrada", "tarefa_canonica",
+      "responsavel", "prazo_regra", "template_sugerido", "canal_previsto", "microentrega",
+      "estado_microentrega", "gatilho_cadencia", "alerta_derivado", "rota_acao",
+      "acao_externa_permitida", "observacao",
+    ]);
+    const linhas = csv.slice(1).map((l) => l.split(";"));
+    expect(linhas.map((l) => l[0])).toEqual([...EVENTOS_INTERNOS]);
+    for (const l of linhas) {
+      expect(l).toHaveLength(16);
+      expect(l[14]).toBe("nao");
+      // rota_acao corresponde ao objeto canônico do código
+      expect(l[13]).toBe(orquestrarEvento(l[0] as never, { hoje }).objetoCanonico);
+    }
+  });
+
+  it("documentos obrigatórios existem", () => {
+    for (const p of [
+      "docs/operacao/CA-OPS-01_Orquestracao_Jornada_CRM_Onboarding_Microentregas.md",
+      "docs/changelog/2026-08-23_CA-OPS-01.md",
+      "docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md",
+    ]) {
+      expect(existsSync(p)).toBe(true);
+    }
+    const indicadores = readFileSync("docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md", "utf8");
+    expect(indicadores).toContain("Cadência e microentregas (CA-OPS-01)");
   });
 });
