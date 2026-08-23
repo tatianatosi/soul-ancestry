@@ -62,3 +62,21 @@ frase "Comercial hoje: X leads aguardando ação".
 | ROI / ROAS | Marketing | decisão | `marketing_investments` + `payments` confirmados | receita atribuída ÷ investimento classificado | período | financeiro | `/marketing#metricas-canal` | `/marketing` | — | sem dados | "Sem dados suficientes", nunca estimativa |
 | Tráfego até WhatsApp | Marketing | histórico | — | cliques rastreados | — | comercial | `/marketing` → Histórico e análise | — | — | sem dados | sem link rastreável próprio |
 | Funil até diagnóstico e proposta | Comercial | histórico em Marketing | `leads`, `crm_casos`, `proposals` | contagem por etapa | recorte atual | comercial | `/conversao` | `/conversao` | `/marketing` | média | Marketing não replica o funil |
+
+## Cadência e microentregas (CA-OPS-01)
+
+Indicadores derivados da orquestração de jornada. Nenhum cria cartão concorrente: existem como
+contagem apenas na fonte canônica da coluna "contagem em" e como link/etiqueta nas demais.
+
+| indicador | fonte canônica | fórmula/regra | recorte | responsável | rota de ação | contagem em | só link/etiqueta em |
+|---|---|---|---|---|---|---|---|
+| Dias sem touchpoint válido | `touchpoints` + `caso_saude_cadencia` | data de hoje − data do último touchpoint com os 4 campos obrigatórios | por caso | operações | `/casos/$caseId` | Casos | Painel Hoje, `/portal` (nunca) |
+| Casos em atenção / crítico | `caso_saude_cadencia` | faixas da regra única de cadência (atenção a partir de 14 dias) | recorte atual | operações | `/painel` | Painel Hoje | `/casos`, `/metricas` |
+| Espera externa neutralizada | `case_espera_externa` | atraso só é neutralizado com motivo registrado | por caso | operações | `/casos/$caseId` | Casos | Painel Hoje |
+| Microentregas aguardando revisão/publicação | `ops_microentregas` | estado em `em revisão` ou `aprovado` | recorte atual | operações | `/ops` | Ops | Painel Hoje |
+| Microentregas atrasadas ou bloqueadas | `ops_microentregas` + `ops_excecoes` | prazo vencido ou bloqueio ativo | recorte atual | operações | `/ops-excecoes` | Ops | Painel Hoje (alerta derivado) |
+| Microentregas publicadas no período | `client_deliverables` publicados | contagem de publicações autorizadas | período | operações | `/atendimento` | Atendimento | `/metricas`, App Cliente (só a própria entrega) |
+| Tentativas bloqueadas de publicar/comunicar | derivado de `avaliarTentativaSemCondicao` | tentativa com condição faltante; não cria registro | recorte atual | operações | `/painel` | Painel Hoje (alerta) | — |
+
+Todos são visões derivadas: o alerta abre o objeto canônico e nunca permite editar prazo, tarefa ou
+estado diretamente. Nenhum indicador desta tabela chega ao App Cliente.
