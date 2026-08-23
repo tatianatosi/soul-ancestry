@@ -51,7 +51,12 @@ export type TemplateGovernado = {
   /** Condição que impede a sugestão do template. */
   regra_de_bloqueio: string;
   vigencia: { inicio: string; fim: string | null };
+  /** Versão do texto governado. Ausente = versão 1. */
+  versao?: number;
+  /** Versão anterior que esta substitui (rastro de sucessão). */
+  substitui_versao?: number | null;
 };
+
 
 /**
  * Registro governado dos templates da Biblioteca de Mensagens.
