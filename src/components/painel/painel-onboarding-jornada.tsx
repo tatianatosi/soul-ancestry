@@ -6,7 +6,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { obterPainelJornada } from "@/lib/onboarding-jornada.functions";
+import { Link } from "@tanstack/react-router";
 import { ESTADO_DERIVADO, rotulo } from "@/lib/onboarding-jornada";
+import { tipoAlertaDeTexto } from "@/lib/fiacao-cadencia-catalogo";
 
 const CONTADORES: { chave: string; rotulo: string; alerta?: boolean }[] = [
   { chave: "casos_em_onboarding", rotulo: "Casos em onboarding" },
@@ -76,7 +78,34 @@ export function PainelOnboardingJornada() {
                   <td className="py-2 pr-3 text-navy/70">{c.diagnostico.replace(/_/g, " ")}</td>
                   <td className="py-2 pr-3 text-navy/70">{c.proxima_acao ?? "—"}</td>
                   <td className="py-2 pr-3 text-navy/70">{c.prazo ?? "—"}</td>
-                  <td className="py-2 text-navy/70">{c.alertas.length ? c.alertas.join("; ") : "—"}</td>
+                  <td className="py-2 text-navy/70">
+                    {c.alertas.length ? (
+                      <ul className="space-y-1">
+                        {c.alertas.map((a) => {
+                          const tipo = tipoAlertaDeTexto(a);
+                          return (
+                            <li key={a}>
+                              <span>{a}</span>
+                              {tipo ? (
+                                <>
+                                  {" · "}
+                                  <Link
+                                    to="/biblioteca-mensagens"
+                                    search={{ alerta: tipo, caso: c.case_id, codigo: c.codigo ?? undefined }}
+                                    className="underline underline-offset-2"
+                                  >
+                                    Abrir modelo sugerido
+                                  </Link>
+                                </>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
