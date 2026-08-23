@@ -53,6 +53,7 @@ import { Route as AuthenticatedFontesGenealogicasRouteImport } from './routes/_a
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
 import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authenticated/etiquetas'
+import { Route as AuthenticatedEscopoOrigemRouteImport } from './routes/_authenticated/escopo-origem'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
@@ -331,6 +332,12 @@ const AuthenticatedEtiquetasRoute = AuthenticatedEtiquetasRouteImport.update({
   path: '/etiquetas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEscopoOrigemRoute =
+  AuthenticatedEscopoOrigemRouteImport.update({
+    id: '/escopo-origem',
+    path: '/escopo-origem',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
@@ -639,6 +646,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
+  '/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
@@ -733,6 +741,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
+  '/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
   '/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
@@ -830,6 +839,7 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
+  '/_authenticated/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
   '/_authenticated/etiquetas': typeof AuthenticatedEtiquetasRoute
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
@@ -927,6 +937,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversao'
     | '/equipe'
+    | '/escopo-origem'
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
@@ -1021,6 +1032,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversao'
     | '/equipe'
+    | '/escopo-origem'
     | '/etiquetas'
     | '/evidencias'
     | '/financeiro'
@@ -1117,6 +1129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/conversao'
     | '/_authenticated/equipe'
+    | '/_authenticated/escopo-origem'
     | '/_authenticated/etiquetas'
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
@@ -1524,6 +1537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEtiquetasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/escopo-origem': {
+      id: '/_authenticated/escopo-origem'
+      path: '/escopo-origem'
+      fullPath: '/escopo-origem'
+      preLoaderRoute: typeof AuthenticatedEscopoOrigemRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/equipe': {
       id: '/_authenticated/equipe'
       path: '/equipe'
@@ -1889,6 +1909,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
+  AuthenticatedEscopoOrigemRoute: typeof AuthenticatedEscopoOrigemRoute
   AuthenticatedEtiquetasRoute: typeof AuthenticatedEtiquetasRoute
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
@@ -1960,6 +1981,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
+  AuthenticatedEscopoOrigemRoute: AuthenticatedEscopoOrigemRoute,
   AuthenticatedEtiquetasRoute: AuthenticatedEtiquetasRoute,
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
