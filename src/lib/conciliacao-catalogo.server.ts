@@ -143,6 +143,30 @@ export async function registrarConciliacao(
     .eq("organization_id", input.org)
     .eq("fonte_referencia", `conciliacao:${input.proposalId}`);
 
+  // Vínculos de rastreabilidade (contrato e OS do caso), somente leitura.
+  let contractId: string | null = null;
+  let serviceOrderId: string | null = null;
+  if (r.caseId) {
+    const { data: ct } = await supabase
+      .from("contracts")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", r.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    contractId = ((ct ?? []) as any[])[0]?.id ?? null;
+    const { data: os } = await supabase
+      .from("service_orders")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", r.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    serviceOrderId = ((os ?? []) as any[])[0]?.id ?? null;
+  }
+
   const atuais = new Map<string, any>();
   for (const row of (abertas ?? []) as any[]) atuais.set(`${row.sku}::${row.tipo}`, row);
 
@@ -153,12 +177,20 @@ export async function registrarConciliacao(
     const k = `${d.sku}::${d.codigo}`;
     desejadas.add(k);
     const detalhe = `${d.severidade === "bloqueante" ? "[BLOQUEANTE] " : ""}${d.descricao}`;
+    const severidade = d.severidade === "bloqueante" ? "bloqueio" : "atencao";
     const existente = atuais.get(k);
     if (existente) {
       if (existente.detalhe !== detalhe || existente.resolvido) {
         await supabase
           .from("catalog_source_divergences")
-          .update({ detalhe, resolvido: false })
+          .update({
+            detalhe,
+            resolvido: false,
+            severidade,
+            case_id: r.caseId ?? null,
+            contract_id: contractId,
+            service_order_id: serviceOrderId,
+          })
           .eq("id", existente.id);
       }
     } else {
@@ -167,12 +199,17 @@ export async function registrarConciliacao(
         sku: d.sku,
         tipo: d.codigo,
         detalhe,
+        severidade,
+        case_id: r.caseId ?? null,
+        contract_id: contractId,
+        service_order_id: serviceOrderId,
         fonte_referencia: `conciliacao:${input.proposalId}`,
         resolvido: false,
       });
       registradas += 1;
     }
   }
+
 
   let resolvidas = 0;
   for (const [k, row] of atuais) {

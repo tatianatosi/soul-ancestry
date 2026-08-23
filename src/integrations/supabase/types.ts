@@ -2734,37 +2734,58 @@ export type Database = {
       }
       catalog_source_divergences: {
         Row: {
+          case_id: string | null
+          contract_id: string | null
           created_at: string
           detalhe: string
           fonte_linha: number | null
           fonte_referencia: string
           id: string
+          observacao_resolucao: string | null
           organization_id: string
+          resolucao_registrada_em: string | null
+          resolucao_registrada_por: string | null
           resolvido: boolean
+          service_order_id: string | null
+          severidade: string
           sku: string
           tipo: string
           updated_at: string
         }
         Insert: {
+          case_id?: string | null
+          contract_id?: string | null
           created_at?: string
           detalhe: string
           fonte_linha?: number | null
           fonte_referencia: string
           id?: string
+          observacao_resolucao?: string | null
           organization_id: string
+          resolucao_registrada_em?: string | null
+          resolucao_registrada_por?: string | null
           resolvido?: boolean
+          service_order_id?: string | null
+          severidade?: string
           sku: string
           tipo: string
           updated_at?: string
         }
         Update: {
+          case_id?: string | null
+          contract_id?: string | null
           created_at?: string
           detalhe?: string
           fonte_linha?: number | null
           fonte_referencia?: string
           id?: string
+          observacao_resolucao?: string | null
           organization_id?: string
+          resolucao_registrada_em?: string | null
+          resolucao_registrada_por?: string | null
           resolvido?: boolean
+          service_order_id?: string | null
+          severidade?: string
           sku?: string
           tipo?: string
           updated_at?: string
