@@ -35,6 +35,52 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
+
+/**
+ * Verificação de leitura da tela: confere, no que foi de fato renderizado, a
+ * ordem canônica dos blocos (Sinais de atenção logo após Exceções que exigem
+ * dono) e a ausência de registro repetido na fila. Só observa o DOM.
+ */
+function useVerificacaoLeituraPainel(raiz: React.RefObject<HTMLDivElement | null>, dependencias: unknown[]) {
+  const [problemas, setProblemas] = useState<ProblemaPainel[]>([]);
+  useEffect(() => {
+    const no = raiz.current;
+    if (!no) return;
+    const blocos = [...no.querySelectorAll<HTMLElement>("[data-painel-bloco]")];
+    const chaves = blocos.map((b) => b.dataset["painelBloco"] ?? "");
+    const registros: RegistroRenderizado[] = blocos.flatMap((b) =>
+      [...b.querySelectorAll<HTMLElement>("[data-registro]")].map((el) => {
+        const [tipo = "", id = ""] = (el.dataset["registro"] ?? "").split(":");
+        return { bloco: b.dataset["painelBloco"] ?? "", tipo, id };
+      }),
+    );
+    setProblemas(validarPainelHoje(chaves, registros));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dependencias);
+  return problemas;
+}
+
+function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
+  if (problemas.length === 0) return null;
+  return (
+    <section
+      data-aviso-leitura-painel
+      className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-navy"
+    >
+      <p className="font-medium text-terracotta">A leitura desta tela saiu do padrão acordado</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-navy/75">
+        {problemas.map((p) => (
+          <li key={`${p.chave}-${p.mensagem}`}>{p.mensagem}</li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] text-navy/55">
+        Aviso apenas de exibição: nenhum dado foi alterado e nenhuma ação externa foi disparada.
+      </p>
+    </section>
+  );
+}
+
 
 
 function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
