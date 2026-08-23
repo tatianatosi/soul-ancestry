@@ -43,7 +43,6 @@ export const ATALHOS_DESCOBERTA: readonly AtalhoDescoberta[] = [
 ] as const;
 
 /**
- * CA-UX-04: a referência histórica do protótipo saiu do runtime. O banner, os
- * papéis e a decisão de acesso foram removidos junto com a rota arquivada em
- * `archive/mockups/rotas/referencia-mockup-desk.tsx`.
+ * CA-UX-04: a referência histórica saiu do runtime. Banner, papéis e decisão de
+ * acesso foram removidos junto com a rota; índice em docs/historico/mockups.
  */
