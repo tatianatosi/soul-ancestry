@@ -88,6 +88,8 @@ export const confirmarSessaoEquipe = createServerFn({ method: "POST" })
     }
 
     await h.sincronizarVinculo(staff, userId);
+    if (email) await h.limparTentativas("staff_login", email);
+
     await h.adminClient
       .from("staff_access")
       .update({ last_login_at: new Date().toISOString() })
