@@ -41,8 +41,10 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
         </Link>
         <Hr style={hr} />
         <Text style={footer}>
-          Se você não solicitou a redefinição, ignore este e-mail: sua senha permanece inalterada.
+          Este link é de uso único e vale por 20 minutos. Se você não solicitou a
+          redefinição, ignore este e-mail: sua senha permanece inalterada.
         </Text>
+
       </Container>
     </Body>
   </Html>
