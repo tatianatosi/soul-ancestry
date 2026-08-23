@@ -22,13 +22,13 @@ export type PapelAssistente =
 
 export type GrupoAssistenteId =
   | "hoje"
+  | "marketing"
   | "comercial"
   | "casos"
   | "pesquisa"
   | "contratos"
   | "cliente"
-  | "governanca"
-  | "administracao";
+  | "governanca";
 
 export type RegraAssistente = {
   grupo: GrupoAssistenteId;
@@ -113,12 +113,12 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
     analisaCaso: false,
   },
   {
-    grupo: "administracao",
-    label: "Administração",
-    contexto: "Perfil, equipe, permissões e verificação de acesso",
+    grupo: "marketing",
+    label: "Marketing",
+    contexto: "Canais, campanhas, conteúdo, atribuição de origem e métricas de aquisição",
     resultado:
-      "Orientar sobre estados de acesso, sem conceder ou alterar permissão por conta própria",
-    papeis: ["admin"],
+      "Explicar origem, canal e lacuna de atribuição, sem criar campanha, link ou disparo",
+    papeis: TODOS,
     analisaCaso: false,
   },
 ];

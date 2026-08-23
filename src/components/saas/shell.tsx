@@ -15,6 +15,7 @@ import {
   Menu,
   ChevronDown,
   ShieldCheck,
+  Megaphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -24,7 +25,7 @@ import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
-import { GRUPOS_DESK, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 
 
@@ -86,13 +87,13 @@ type SecaoNav = {
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
+  marketing: Megaphone,
   comercial: Users,
   casos: FolderOpen,
   pesquisa: FileSearch,
   contratos: FileSignature,
   cliente: Smartphone,
   governanca: Library,
-  administracao: ShieldCheck,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
