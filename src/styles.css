@@ -48,11 +48,46 @@
   --radius: 0.75rem;
 
   /* ---------------------------------------------------------------
-     GUIA DE MARCA APLICADO GLOBALMENTE — autorizado pela Proprietária
-     em 23/08/2026, após o comparativo tela a tela (antes/depois).
-     Paleta anterior (congelada) permanece disponível em
-     [data-paleta="anterior"] para comparação e reversão pontual.
+     PALETA INSTITUCIONAL APROVADA E CONGELADA (restaurada em
+     23/08/2026 a pedido da Proprietária). Nenhuma alteração global
+     sem aceite expresso. A paleta alternativa fica isolada em
+     [data-paleta="contextual"] apenas para comparação pontual.
      --------------------------------------------------------------- */
+  --navy: #1B2B4B;
+  --navy-soft: #2A3D63;
+  --gold: #C9A84C;
+  --gold-soft: #E4CE8A;
+  --cream: #F5F0E8;
+  --areia: #ECDFCD;
+  --terracotta: #8B4513;
+  --sage: #6B7B5E;
+  --plum: #7B4F9E;
+  --preto: #1B2B4B;
+
+  --background: #F5F0E8;
+  --foreground: var(--navy);
+  --card: #FFFFFF;
+  --card-foreground: var(--navy);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--navy);
+  --primary: var(--navy);
+  --primary-foreground: var(--cream);
+  --secondary: var(--gold);
+  --secondary-foreground: var(--navy);
+  --muted: #EDE6D9;
+  --muted-foreground: #6B6558;
+  --accent: var(--gold-soft);
+  --accent-foreground: var(--navy);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: #ffffff;
+  --border: #E4DBC8;
+  --input: #E4DBC8;
+  --ring: var(--gold);
+}
+
+/* Paleta contextual (não institucional) — escopo isolado para
+   comparação pontual de uma tela específica. */
+[data-paleta="contextual"] {
   --navy: #2F4B6E;
   --navy-soft: #40628B;
   --gold: #FCB73A;
@@ -60,8 +95,6 @@
   --cream: #ECDFCD;
   --areia: #ECDFCD;
   --terracotta: #9A3A2F;
-  --sage: #6B7B5E;
-  --plum: #7B4F9E;
   --preto: #101010;
 
   --background: #F7F1E7;
@@ -83,42 +116,11 @@
   --border: #DCCDB6;
   --input: #DCCDB6;
   --ring: var(--gold);
-}
-
-/* Paleta anterior (aprovada e congelada) — escopo isolado para
-   comparação ou reversão de uma tela específica. */
-[data-paleta="anterior"] {
-  --navy: #1B2B4B;
-  --navy-soft: #2A3D63;
-  --gold: #C9A84C;
-  --gold-soft: #E4CE8A;
-  --cream: #F5F0E8;
-  --areia: #ECDFCD;
-  --terracotta: #8B4513;
-
-  --background: var(--cream);
-  --foreground: var(--navy);
-  --card: #ffffff;
-  --card-foreground: var(--navy);
-  --popover: #ffffff;
-  --popover-foreground: var(--navy);
-  --primary: var(--navy);
-  --primary-foreground: var(--cream);
-  --secondary: var(--gold);
-  --secondary-foreground: var(--navy);
-  --muted: #EDE6D9;
-  --muted-foreground: #6B6558;
-  --accent: var(--gold-soft);
-  --accent-foreground: var(--navy);
-  --destructive: oklch(0.55 0.2 27);
-  --destructive-foreground: #ffffff;
-  --border: #E4DBC8;
-  --input: #E4DBC8;
-  --ring: var(--gold);
 
   background-color: var(--background);
   color: var(--foreground);
 }
+
 
 /* ---------------------------------------------------------------
    Identidade de marca em escopo isolado e revisável.
