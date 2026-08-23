@@ -91,7 +91,10 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     const restritos = GRUPOS_DESK.flatMap((g) => g.sub)
       .filter((s) => "to" in s && s.adminOnly)
       .map((s) => (s as { to: string }).to);
-    expect(restritos.sort()).toEqual(["/auditoria", "/equipe"]);
+    const restritosConta = MENU_CONTA.itens
+      .filter((s) => "to" in s && (s as { adminOnly?: boolean }).adminOnly)
+      .map((s) => (s as { to: string }).to);
+    expect([...restritos, ...restritosConta].sort()).toEqual(["/auditoria", "/equipe"]);
   });
 
   it("não referencia rotas do App Cliente nem do mockup como superfície operacional", () => {
