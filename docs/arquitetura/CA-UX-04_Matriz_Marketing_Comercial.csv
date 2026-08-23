@@ -1,0 +1,18 @@
+entidade_ou_indicador;fonte_canonica;grupo;tipo;quando_entra_em_comercial;permissao;pode_criar_registro;pode_enviar_externamente;estado_sem_dado;observacao
+Campanhas;marketing_campaigns;Marketing;entidade;nunca;admin,comercial;nao;nao;Ainda nao ha campanhas cadastradas.;Leitura agregada; cadastro nao e feito nesta tela
+Investimento de midia;marketing_investments;Marketing;entidade;nunca;admin,financeiro;nao;nao;Ainda nao ha investimento classificado por canal.;Base de CAC/ROI
+Catalogo de origem;lead_sources;Marketing;catalogo;nunca;admin,comercial;nao;nao;origem_a_confirmar;Valores historicos em texto livre preservados
+Atribuicao UTM;attribution_records;Marketing;evento;nunca;admin,comercial;nao;nao;Registre campanha e UTM antes de analisar atribuicao.;Sem captura publica ativa
+Eventos de conversao;conversion_events;Marketing (agregado) / Comercial (detalhe);evento;ao existir lead identificado;admin,comercial;nao;nao;Sem dados suficientes;Detalhe fica em /conversao
+Conteudo e CTAs;editorial_content_items;Marketing;entidade;nunca;admin,comercial;nao;nao;Nao ha formulario publico ou captura de UTM conectada.;Sem link rastreavel
+Leads;leads;Comercial;entidade;imediatamente ao ser identificado;admin,comercial;nao (em Marketing);nao;Os leads identificados seguem para o Comercial.;Marketing so agrega e linka para /leads
+Receita atribuida;payments;Marketing (leitura agregada);indicador;nao aplicavel;admin,financeiro;nao;nao;Sem dados suficientes;Somente leitura agregada quando ja permitido
+CAC;marketing_investments + attribution_records;Marketing;indicador;nao aplicavel;admin,financeiro;nao;nao;CAC, ROI e ROAS exigem investimento classificado e atribuicao confiavel.;Nunca estimativa
+ROI/ROAS;marketing_investments + payments;Marketing;indicador;nao aplicavel;admin,financeiro;nao;nao;CAC, ROI e ROAS exigem investimento classificado e atribuicao confiavel.;Nunca estimativa
+Funil comercial detalhado;conversion_events + leads;Comercial;indicador;sempre;admin,comercial;nao;nao;Sem dados suficientes;Exclusivo de /conversao; Marketing nao replica
+Saude e higiene comercial;leads + crm_interactions;Comercial;indicador;sempre;admin,comercial;nao;nao;Sem dados suficientes;Exclusivo de /conversao
+WhatsApp origem de lead;leads.origem;Marketing;atributo;ao existir lead;admin,comercial;nao;nao;WhatsApp ainda nao esta atribuido como origem de lead.;Camada 1 de 5
+WhatsApp historico;touchpoints, crm_interactions;Comercial;evento;sempre;admin,comercial;nao;nao;Sem dados suficientes;Camada 2 de 5
+WhatsApp template;biblioteca de mensagens;Governanca;conteudo;nao aplicavel;admin,operacoes;nao;nao;Sem template registrado;Camada 3 de 5
+WhatsApp fila interna;communication_queue;Comercial;fila;sempre;admin,operacoes;nao;nao;Sem item na fila;Camada 4 de 5 - rascunho interno
+WhatsApp envio externo;integrations (desligada);—;acao externa;nao aplicavel;admin (confirmacao final);nao;nao;Inexistente/desligado;Camada 5 de 5 - nao autorizada
