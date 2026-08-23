@@ -62,6 +62,11 @@ export type ModuloDesk = {
   fonteUnica?: string;
   /** Descrição operacional curta, sem juízo de mérito sobre o caso. */
   descricao: string;
+  /**
+   * CA-OPS-02: estado real verificado no código. O catálogo nunca pode afirmar
+   * que existe rota navegável quando ela não existe.
+   */
+  estadoReal?: "conectado" | "catalogado, sem superfície implementada" | "gap real — não implementado";
 };
 
 export type TipoModuloDesk = "operacional" | "metrica" | "duplicado" | "a_confirmar";
@@ -120,18 +125,18 @@ export const MODULOS_DESK: ModuloDesk[] = [
   { id: "bib-linguagem", nome: "Guia de linguagem", tela: "biblio", destino: "/biblioteca (linguagem)", forma: "painel", tipo: "a_confirmar", descricao: "Linguagem permitida ao cliente, sem juízo de mérito." },
   { id: "bib-tipos-doc", nome: "Tipos documentais e evidências", tela: "biblio", destino: "/biblioteca (tipos documentais)", forma: "painel", tipo: "a_confirmar", descricao: "Dicionário de tipos de documento e evidência." },
   { id: "bib-modelos", nome: "Modelos F1 / F2", tela: "biblio", destino: "/biblioteca (modelos)", forma: "painel", tipo: "a_confirmar", descricao: "Modelos de relatório Fase 01 e Fase 02." },
-  { id: "bib-templates-com", nome: "Templates de comunicação", tela: "biblio", destino: "/biblioteca (templates)", forma: "painel", tipo: "a_confirmar", descricao: "Rascunhos de comunicação. Nenhum envio automático." },
+  { id: "bib-templates-com", nome: "Modelos institucionais", tela: "biblio", destino: "Sem fonte própria — catálogo oficial de comunicação: /biblioteca-mensagens", forma: "painel", tipo: "a_confirmar", estadoReal: "gap real — não implementado", descricao: "Vitrine institucional sem dados próprios. Comunicação operacional vive na Biblioteca de Mensagens." },
   { id: "bib-curadoria", nome: "Curadoria por caso", tela: "biblio", destino: "/biblioteca (curadoria)", forma: "painel", tipo: "a_confirmar", descricao: "Itens de conhecimento vinculados a cada caso." },
   { id: "bib-versionamento", nome: "Histórico e versionamento", tela: "biblio", destino: "/governanca/decisoes · /governanca/inventario-recuperacao", forma: "subrota", tipo: "operacional", descricao: "Versões, decisões e recuperação de ativos." },
 
   // ---------------- ALERTAS ----------------
-  { id: "ale-achados", nome: "Achados novos", tela: "alertas", destino: "Alertas (achados)", forma: "painel", tipo: "duplicado", fonteUnica: "caso-achados", descricao: "Achados registrados aguardando leitura." },
-  { id: "ale-microentregas", nome: "Micro-entregas em revisão", tela: "alertas", destino: "Alertas (micro-entregas)", forma: "painel", tipo: "duplicado", fonteUnica: "chk-pendencias-resp", descricao: "Micro-entregas aguardando aprovação interna." },
-  { id: "ale-documentos", nome: "Pendências documentais", tela: "alertas", destino: "Alertas (documentos)", forma: "painel", tipo: "duplicado", fonteUnica: "caso-documentos", descricao: "Documentos pendentes por caso." },
-  { id: "ale-acoes-vencidas", nome: "Próximas ações vencidas", tela: "alertas", destino: "Alertas (SLA)", forma: "painel", tipo: "duplicado", fonteUnica: "chk-pendencias-resp", descricao: "Ações com prazo interno vencido." },
-  { id: "ale-rascunhos", nome: "Rascunhos de comunicação", tela: "alertas", destino: "Alertas (comunicação)", forma: "painel", tipo: "a_confirmar", descricao: "Fila de comunicação em rascunho, sem envio." },
-  { id: "ale-d10-d14", nome: "Alertas D10 / D14", tela: "alertas", destino: "Alertas (D10/D14)", forma: "painel", tipo: "duplicado", fonteUnica: "chk-d10-d14", descricao: "Marcos D10 e D14 próximos ou vencidos." },
-  { id: "ale-fila-revisao", nome: "Fila de revisão", tela: "alertas", destino: "Alertas (fila de revisão)", forma: "painel", tipo: "duplicado", fonteUnica: "jur-revisao", descricao: "Itens aguardando revisão humana." },
+  { id: "ale-achados", nome: "Achados novos", tela: "alertas", destino: "/achados/$caseId", forma: "subrota", tipo: "duplicado", fonteUnica: "caso-achados", estadoReal: "conectado", descricao: "Achados registrados por caso. Sem contador global." },
+  { id: "ale-microentregas", nome: "Micro-entregas em revisão", tela: "alertas", destino: "/ops (entregas aguardando aprovação)", forma: "painel", tipo: "duplicado", fonteUnica: "chk-pendencias-resp", estadoReal: "conectado", descricao: "Contador do Onboarding-Jornada sobre client_deliverables." },
+  { id: "ale-documentos", nome: "Pendências documentais", tela: "alertas", destino: "/evidencias · /biblioteca-evidencias/$caseId", forma: "subrota", tipo: "duplicado", fonteUnica: "caso-documentos", estadoReal: "conectado", descricao: "Evidências e documentos por caso, com estado de validação." },
+  { id: "ale-acoes-vencidas", nome: "Próximas ações vencidas", tela: "alertas", destino: "/tarefas", forma: "subrota", tipo: "duplicado", fonteUnica: "chk-pendencias-resp", estadoReal: "conectado", descricao: "Tarefas com prazo interno vencido." },
+  { id: "ale-rascunhos", nome: "Rascunhos de comunicação", tela: "alertas", destino: "Sem rota navegável — lógica em src/lib/fila-comunicacao.ts", forma: "painel", tipo: "a_confirmar", estadoReal: "catalogado, sem superfície implementada", descricao: "Fila humana calculada em memória. Envio externo desligado." },
+  { id: "ale-d10-d14", nome: "Alertas D10 / D14", tela: "alertas", destino: "/ops (Onboarding e jornada)", forma: "painel", tipo: "duplicado", fonteUnica: "chk-d10-d14", estadoReal: "conectado", descricao: "avaliarCadencia: 10+ dias sem touchpoint e 14+ dias sem atualização." },
+  { id: "ale-fila-revisao", nome: "Fila de revisão", tela: "alertas", destino: "/matriz-juridica · Painel Hoje (fila de revisão jurídica)", forma: "painel", tipo: "duplicado", fonteUnica: "jur-revisao", estadoReal: "conectado", descricao: "Itens jurídicos aguardando revisão humana." },
 
   // ---------------- VISÃO GERAL ----------------
   { id: "ov-receita", nome: "Receita", tela: "overview", destino: "Card → /financeiro", forma: "painel", tipo: "metrica", descricao: "Indicador de receita. O card abre a subrota, não uma nova aba." },
