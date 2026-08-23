@@ -99,9 +99,22 @@ function EntrarEquipe() {
         } catch {
           /* contabilização é best-effort */
         }
-        setErro(ERRO_NEUTRO);
+        // Categoria explícita do erro, sem expor dado sensível.
+        const codigo = (error as { code?: string }).code ?? "";
+        const status = (error as { status?: number }).status ?? 0;
+        if (status === 429 || codigo === "over_request_rate_limit") {
+          setEspera(60);
+          setErro("Limite temporário de tentativas. Aguarde o tempo indicado.");
+        } else if (codigo === "invalid_credentials" || status === 400) {
+          setErro("Senha ou e-mail incorretos para esta conta interna.");
+        } else if (codigo === "email_not_confirmed") {
+          setErro("Esta conta ainda não teve o acesso interno confirmado.");
+        } else {
+          setErro("Falha temporária do serviço de autenticação. Tente novamente em instantes.");
+        }
         return;
       }
+
       // A sessão mudou: descarta qualquer contexto de papel/organização em
       // cache (inclusive o retrato vazio lido antes do token existir), senão o
       // Desk abre como "Sem papel atribuído" mesmo para a admin.
@@ -109,6 +122,7 @@ function EntrarEquipe() {
       queryClient.clear();
       const r = await confirmar({});
       if (!r.autorizado) {
+        setErro("Autenticação válida, mas esta conta não tem acesso interno ativo.");
         navigate({ to: "/equipe/sem-permissao", replace: true });
         return;
       }
@@ -116,6 +130,7 @@ function EntrarEquipe() {
       navigate({ to: "/painel", replace: true });
     } catch {
       setErro(ERRO_NEUTRO);
+
     } finally {
       setCarregando(false);
     }
