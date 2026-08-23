@@ -48,46 +48,13 @@
   --radius: 0.75rem;
 
   /* ---------------------------------------------------------------
-     PALETA INSTITUCIONAL APROVADA E CONGELADA (restaurada em
-     23/08/2026 a pedido da Proprietária). Nenhuma alteração global
-     sem aceite expresso. A paleta alternativa fica isolada em
-     [data-paleta="contextual"] apenas para comparação pontual.
+     GUIA DE MARCA OFICIAL (Apresentação Clube Ancestral, aplicada
+     globalmente em 23/08/2026 com aceite expresso da Proprietária).
+     Azul #2F4B6E · Dourado #FCB73A · Creme #ECDFCD ·
+     Terracota #9A3A2F · Preto #101010.
+     A paleta institucional anterior fica preservada e isolada em
+     [data-paleta="anterior"] apenas para comparação pontual.
      --------------------------------------------------------------- */
-  --navy: #1B2B4B;
-  --navy-soft: #2A3D63;
-  --gold: #C9A84C;
-  --gold-soft: #E4CE8A;
-  --cream: #F5F0E8;
-  --areia: #ECDFCD;
-  --terracotta: #8B4513;
-  --sage: #6B7B5E;
-  --plum: #7B4F9E;
-  --preto: #1B2B4B;
-
-  --background: #F5F0E8;
-  --foreground: var(--navy);
-  --card: #FFFFFF;
-  --card-foreground: var(--navy);
-  --popover: #FFFFFF;
-  --popover-foreground: var(--navy);
-  --primary: var(--navy);
-  --primary-foreground: var(--cream);
-  --secondary: var(--gold);
-  --secondary-foreground: var(--navy);
-  --muted: #EDE6D9;
-  --muted-foreground: #6B6558;
-  --accent: var(--gold-soft);
-  --accent-foreground: var(--navy);
-  --destructive: oklch(0.55 0.2 27);
-  --destructive-foreground: #ffffff;
-  --border: #E4DBC8;
-  --input: #E4DBC8;
-  --ring: var(--gold);
-}
-
-/* Paleta contextual (não institucional) — escopo isolado para
-   comparação pontual de uma tela específica. */
-[data-paleta="contextual"] {
   --navy: #2F4B6E;
   --navy-soft: #40628B;
   --gold: #FCB73A;
@@ -95,13 +62,15 @@
   --cream: #ECDFCD;
   --areia: #ECDFCD;
   --terracotta: #9A3A2F;
+  --sage: #6B7B5E;
+  --plum: #7B4F9E;
   --preto: #101010;
 
   --background: #F7F1E7;
   --foreground: var(--preto);
-  --card: #ffffff;
+  --card: #FFFFFF;
   --card-foreground: var(--preto);
-  --popover: #ffffff;
+  --popover: #FFFFFF;
   --popover-foreground: var(--preto);
   --primary: var(--navy);
   --primary-foreground: #FFFFFF;
@@ -116,10 +85,44 @@
   --border: #DCCDB6;
   --input: #DCCDB6;
   --ring: var(--gold);
+}
+
+/* Paleta institucional anterior (congelada até 23/08/2026) — escopo
+   isolado para comparação pontual de uma tela específica. */
+[data-paleta="anterior"] {
+  --navy: #1B2B4B;
+  --navy-soft: #2A3D63;
+  --gold: #C9A84C;
+  --gold-soft: #E4CE8A;
+  --cream: #F5F0E8;
+  --areia: #ECDFCD;
+  --terracotta: #8B4513;
+  --preto: #1B2B4B;
+
+  --background: #F5F0E8;
+  --foreground: var(--navy);
+  --card: #ffffff;
+  --card-foreground: var(--navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--navy);
+  --primary: var(--navy);
+  --primary-foreground: var(--cream);
+  --secondary: var(--gold);
+  --secondary-foreground: var(--navy);
+  --muted: #EDE6D9;
+  --muted-foreground: #6B6558;
+  --accent: var(--gold-soft);
+  --accent-foreground: var(--navy);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: #ffffff;
+  --border: #E4DBC8;
+  --input: #E4DBC8;
+  --ring: var(--gold);
 
   background-color: var(--background);
   color: var(--foreground);
 }
+
 
 
 /* ---------------------------------------------------------------
