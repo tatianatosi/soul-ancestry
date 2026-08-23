@@ -118,7 +118,7 @@ function RedefinirSenha() {
     <EquipeMoldura titulo="Definir nova senha" subtitulo="Aceite de convite e definição de senha da equipe Clube Ancestral.">
       {ok ? (
         <div className="rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
-          Senha atualizada. Faça login novamente com a nova senha.
+          Senha atualizada. Entrando no Clube Ancestral…
         </div>
       ) : semLink ? (
         <div className="space-y-4">
