@@ -952,3 +952,130 @@ export function executarCadeiaJornada(entrada: EntradaCadeia): ResultadoCadeia {
     contemAcaoExterna: false,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* H. Fiação de cadência real por caso (CA-OPS-02)                     */
+/*    Resolve o template vigente a partir da cadência real do caso,    */
+/*    incluindo os eventos derivados. Puro: sem envio e sem escrita.   */
+/* ------------------------------------------------------------------ */
+
+export type EstadoCadenciaCaso = {
+  hoje: string;
+  caso_id: string;
+  /** Evento de origem já ocorrido no caso, quando houver. */
+  evento?: EventoInterno | null;
+  fase?: FaseJornada;
+  canal?: CanalPrevisto;
+  bloqueios?: readonly string[];
+  ultimoTouchpointValidoEm?: string | null;
+  aguardandoInstituicaoExterna?: boolean;
+  motivoEsperaExterna?: string | null;
+  responsavel_id?: string | null;
+  prazo?: string | null;
+};
+
+export type ResolucaoTemplateCaso = {
+  evento: EventoInterno;
+  /** `base` = evento informado; `derivado` = evento nascido da cadência. */
+  origem: "base" | "derivado";
+  template: SugestaoTemplate;
+  tarefaSugerida: string | null;
+  destino: string;
+};
+
+export type FiacaoCadenciaCaso = {
+  caso_id: string;
+  cadencia: SaudeCadencia;
+  eventoDerivado: EventoInterno | null;
+  resolucoes: readonly ResolucaoTemplateCaso[];
+  /** Fila derivada e deduplicada por objeto canônico. */
+  painelHoje: readonly ItemOrquestrado[];
+  alertas: readonly NonNullable<AlertaTentativa["alerta"]>[];
+  /** Invariantes verificáveis: nada é enviado nem gravado. */
+  envioExecutado: false;
+  persistido: false;
+};
+
+/**
+ * Liga a resolução de template vigente à cadência REAL do caso.
+ * A cadência é calculada do último touchpoint válido; dela nasce o evento
+ * derivado (`cadencia_atencao` / `cadencia_critica`), que também resolve o seu
+ * próprio template vigente. Nenhum envio, agendamento ou persistência ocorre.
+ */
+export function fiarCadenciaDoCaso(estado: EstadoCadenciaCaso): FiacaoCadenciaCaso {
+  const cadencia = calcularCadencia({
+    hoje: estado.hoje,
+    ultimoTouchpointEm: estado.ultimoTouchpointValidoEm ?? null,
+    aguardandoInstituicaoExterna: estado.aguardandoInstituicaoExterna,
+    motivoEsperaExterna: estado.motivoEsperaExterna,
+  });
+  const eventoDerivado = eventoDeCadencia(cadencia.status);
+
+  const eventos: { evento: EventoInterno; origem: "base" | "derivado" }[] = [];
+  if (estado.evento) eventos.push({ evento: estado.evento, origem: "base" });
+  if (eventoDerivado && eventoDerivado !== estado.evento) {
+    eventos.push({ evento: eventoDerivado, origem: "derivado" });
+  }
+
+  const resolucoes: ResolucaoTemplateCaso[] = [];
+  const alertas: NonNullable<AlertaTentativa["alerta"]>[] = [];
+  const fila = new Map<string, ItemOrquestrado>();
+
+  for (const { evento, origem } of eventos) {
+    const cadeia = executarCadeiaJornada({
+      hoje: estado.hoje,
+      evento,
+      caso_id: estado.caso_id,
+      fase: estado.fase,
+      canal: estado.canal,
+      bloqueios: estado.bloqueios,
+      responsavel_id: estado.responsavel_id ?? null,
+      prazo: estado.prazo ?? null,
+    });
+    resolucoes.push({
+      evento,
+      origem,
+      template: cadeia.template,
+      tarefaSugerida: cadeia.plano.tarefaSugerida,
+      destino: cadeia.plano.objetoCanonico,
+    });
+    if (cadeia.alerta) alertas.push(cadeia.alerta);
+    const item = cadeia.painelHoje;
+    if (item && !fila.has(item.chave)) fila.set(item.chave, item);
+  }
+
+  if (eventoDerivado) {
+    const chave = `cadencia:caso:${estado.caso_id}`;
+    if (!alertas.some((a) => a.chave === chave)) {
+      alertas.push({
+        chave,
+        motivo: "pendencia_bloqueia_estado",
+        titulo: eventoDerivado === "cadencia_critica" ? "Cadência crítica do caso" : "Cadência em atenção",
+        detalhe: cadencia.motivo,
+        destino: `/casos/${estado.caso_id}`,
+        criaRegistro: false,
+      });
+    }
+    const chaveFila = `caso:${estado.caso_id}`;
+    if (!fila.has(chaveFila)) {
+      fila.set(chaveFila, {
+        chave: chaveFila,
+        categoria: "cadencia",
+        rotulo: eventoDerivado === "cadencia_critica" ? "Cadência crítica do caso" : "Cadência em atenção",
+        destino: `/casos/${estado.caso_id}`,
+        prazo: estado.prazo ?? null,
+      });
+    }
+  }
+
+  return {
+    caso_id: estado.caso_id,
+    cadencia,
+    eventoDerivado,
+    resolucoes,
+    painelHoje: filaPainelHoje([...fila.values()]),
+    alertas,
+    envioExecutado: false,
+    persistido: false,
+  };
+}
