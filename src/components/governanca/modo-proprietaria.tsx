@@ -8,17 +8,17 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 
 import { CoberturaModulos } from "@/components/governanca/cobertura-modulos";
+import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
+import { rotuloHumano } from "@/lib/rotulos-humanos";
 import {
-  ACOES_EXTERNAS,
   AVISO_IRREVERSIVEL,
   MOTIVO_MINIMO,
-  ROTULO_ACAO_EXTERNA,
   ROTULO_CAPACIDADE,
   montarConfirmacao,
-  type AcaoExterna,
   type Capacidade,
   type PedidoConfirmacao,
 } from "@/lib/modo-proprietaria";
@@ -27,6 +27,18 @@ import {
   estadoModoProprietaria,
   registrarDecisaoProprietaria,
 } from "@/lib/modo-proprietaria.functions";
+
+const ATALHOS = [
+  { para: "/painel", rotulo: "Painel de hoje" },
+  { para: "/casos", rotulo: "Casos" },
+  { para: "/leads", rotulo: "Leads e comercial" },
+  { para: "/contratos", rotulo: "Contratos" },
+  { para: "/financeiro", rotulo: "Financeiro" },
+  { para: "/pesquisa", rotulo: "Pesquisa" },
+  { para: "/equipe", rotulo: "Equipe e acessos" },
+  { para: "/integracoes", rotulo: "Integrações" },
+  { para: "/auditoria", rotulo: "Registro de auditoria" },
+] as const;
 
 export function SeloModoProprietaria({ ativo }: { ativo: boolean }) {
   if (!ativo) return null;
