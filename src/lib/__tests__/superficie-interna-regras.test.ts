@@ -47,10 +47,11 @@ describe("P0.1 — superfície interna", () => {
   });
 
   it("5. rótulos internos e caso-modelo estão condicionados à superfície interna", () => {
+    // CA-UX-04: a home pública não tem mais rótulos internos nem alternância de protótipo.
     const index = ler("routes/index.tsx");
-    expect(index).toMatch(/\{interna && <AppSwitcher/);
-    expect(index).toMatch(/\{interna && \(\s*\n\s*<Link to="\/painel"/);
-    expect(index).toMatch(/interna && app === "desk"/);
+    expect(index).not.toContain("AppSwitcher");
+    expect(index).not.toContain("Módulos internos");
+    expect(index).not.toContain("DeskApp");
 
     const entrega = ler("components/entrega-consultiva.tsx");
     expect(entrega).toMatch(/const MODO_DEMO = useSuperficieInterna\(\)/);
