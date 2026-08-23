@@ -35,7 +35,15 @@ export const PAPEL_LABEL: Record<Papel, string> = {
 
 export function useSaas() {
   const carregar = useServerFn(getContexto);
-  const q = useQuery({ queryKey: ["saas-contexto"], queryFn: () => carregar({}), retry: false });
+  const q = useQuery({
+    queryKey: ["saas-contexto"],
+    queryFn: () => carregar({}),
+    // Falha de rede ou token ainda não anexado não pode derrubar a sessão:
+    // tenta novamente antes de qualquer decisão de acesso.
+    retry: 3,
+    retryDelay: (tentativa) => Math.min(1000 * 2 ** tentativa, 4000),
+    staleTime: 30_000,
+  });
   const papeis = q.data?.papeis ?? [];
   const statusStaff = q.data?.staff?.status ?? null;
   return {
@@ -191,7 +199,7 @@ export function SaasShell({
   acoes?: ReactNode;
   children: ReactNode;
 }) {
-  const { contexto, papeis, ehAdmin, isLoading, isError, autorizado } = useSaas();
+  const { contexto, papeis, ehAdmin, isLoading, isError, autorizado, refetch } = useSaas();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
@@ -199,12 +207,32 @@ export function SaasShell({
   const [secaoAberta, setSecaoAberta] = useState<string | null>(null);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
 
-  // Sessão autenticada sem autorização interna ativa não permanece na área protegida.
+  // Só sai da área protegida quando o servidor responde e a autorização não
+  // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
+  // nunca derruba a proprietária para a tela de "sem permissão".
   useEffect(() => {
-    if (!isLoading && (isError || !autorizado)) {
-      navigate({ to: "/equipe/sem-permissao", replace: true });
-    }
-  }, [isLoading, isError, autorizado, navigate]);
+    if (isLoading) return;
+    let cancelado = false;
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelado) return;
+      if (!data.session) {
+        navigate({ to: "/equipe/entrar", replace: true });
+        return;
+      }
+      if (isError) {
+        void refetch();
+        return;
+      }
+      if (!autorizado) {
+        navigate({ to: "/equipe/sem-permissao", replace: true });
+      }
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [isLoading, isError, autorizado, navigate, refetch]);
+
 
   async function sair() {
     try {
