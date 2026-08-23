@@ -122,6 +122,7 @@ function EntrarEquipe() {
       queryClient.clear();
       const r = await confirmar({});
       if (!r.autorizado) {
+        setErro("Autenticação válida, mas esta conta não tem acesso interno ativo.");
         navigate({ to: "/equipe/sem-permissao", replace: true });
         return;
       }
@@ -129,6 +130,7 @@ function EntrarEquipe() {
       navigate({ to: "/painel", replace: true });
     } catch {
       setErro(ERRO_NEUTRO);
+
     } finally {
       setCarregando(false);
     }
