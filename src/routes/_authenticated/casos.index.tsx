@@ -22,6 +22,7 @@ import {
   rotulo,
 } from "@/lib/caso-ficha";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
+import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
@@ -219,6 +220,46 @@ function CasosPage() {
             chave: "prioridade",
             rotulo: "Prioridade",
             render: (l) => <Badge texto={rotulo(PRIORIDADES, l["prioridade"])} />,
+          },
+          {
+            chave: "sinal_prioridade",
+            rotulo: "Sinal elegibilidade × urgência",
+            render: (l) => {
+              const e = estados.get(String(l["id"]));
+              const r = calcularPrioridade({
+                tipo: "caso",
+                id: String(l["id"]),
+                elegibilidade: (l["hipotese_elegibilidade"] as string) ?? null,
+                prazo: (l["prazo_proxima_acao"] as string) ?? null,
+                bloqueios: e && e.pendentes > 0 ? [`${e.pendentes} requisito(s) de ativação pendente(s)`] : [],
+                responsavel: (l["proxima_acao_responsavel"] as string) ?? null,
+                origem: papelDoRegistro(l).valor === "demo" ? "demo" : "real",
+              });
+              return (
+                <span className="block space-y-1">
+                  <Badge
+                    texto={r.rotulo}
+                    tom={r.sinal === "critica" ? "alerta" : r.sinal === "atencao" ? "gold" : "neutro"}
+                  />
+                  <span className="block text-[11px] text-navy/60">
+                    {r.regra} — {r.explicacao}
+                  </span>
+                  {r.excecoes.map((x) => (
+                    <span key={x} className="block text-[11px] text-terracotta">
+                      {x}
+                    </span>
+                  ))}
+                  {r.faltantes.length ? (
+                    <span className="block text-[11px] text-navy/55">
+                      Dados insuficientes em: {r.faltantes.join(" · ")}
+                    </span>
+                  ) : null}
+                  <span className="block text-[11px] text-navy/45">
+                    Sinal de leitura interna. Não altera status, ativação, contrato, cobrança ou App Cliente.
+                  </span>
+                </span>
+              );
+            },
           },
           {
             chave: "hipotese_elegibilidade",

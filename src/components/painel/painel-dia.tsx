@@ -36,6 +36,7 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
 import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
 
 /**
@@ -99,6 +100,35 @@ function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso
   );
 }
 
+/** Etiqueta derivada da matriz elegibilidade × urgência (sinal, nunca veredito). */
+function EtiquetaPrioridade({ item }: { item: ItemDia }) {
+  const r = calcularPrioridade({
+    tipo: item.tipo,
+    id: item.id,
+    prazo: item.data,
+    bloqueios: item.bloqueios,
+    responsavel: item.responsavel,
+    origem: item.demo ? "demo" : null,
+  });
+  const etiqueta = etiquetaParaFila(r, new Set([`${item.tipo}:${item.id}`]));
+  if (!etiqueta) return null;
+  const tom =
+    r.sinal === "critica"
+      ? "border-terracotta/40 bg-terracotta/10 text-terracotta"
+      : r.sinal === "atencao"
+        ? "border-gold/50 bg-gold/10 text-navy"
+        : "border-navy/15 bg-navy/5 text-navy/70";
+  return (
+    <span
+      data-prioridade={r.sinal}
+      title={`${etiqueta.explicacao} · fatores: ${r.fatores.map((f) => `${f.rotulo}=${f.valor ?? "sem dado"}`).join(" | ")}`}
+      className={`inline-block rounded-full border px-2 py-0.5 text-[10px] leading-tight ${tom}`}
+    >
+      {etiqueta.texto}
+    </span>
+  );
+}
+
 function Linha({
   item,
   proprietaria,
@@ -118,7 +148,9 @@ function Linha({
         </span>
         <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
+      <p className="mt-0.5"><EtiquetaPrioridade item={item} /></p>
       <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
+
 
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
