@@ -104,7 +104,7 @@ export function ChecklistLancamentoControlado() {
                     <p className="mt-1 text-xs text-muted-foreground">{item.evidencia}</p>
                     {item.link ? (
                       <Link
-                        to={item.link}
+                        to={item.link as "/painel"}
                         className="mt-1 inline-block text-xs underline underline-offset-2"
                       >
                         Abrir objeto canônico
