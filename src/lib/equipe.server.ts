@@ -62,6 +62,43 @@ export async function limiteExcedido(scope: string, assunto: string, maximo: num
   return false;
 }
 
+/**
+ * Leitura do limite SEM consumir tentativa. Usado no login: só a FALHA conta,
+ * porque contar todo acesso trancava a própria proprietária depois de poucos
+ * logins legítimos. Devolve também quantos segundos faltam para liberar.
+ */
+export async function estadoLimite(scope: string, assunto: string, maximo: number, minutos: number) {
+  const desde = new Date(Date.now() - minutos * 60_000).toISOString();
+  const subject_hash = hashAssunto(assunto);
+  const { data } = await adminClient
+    .from("auth_throttle")
+    .select("occurred_at")
+    .eq("scope", scope)
+    .eq("subject_hash", subject_hash)
+    .gte("occurred_at", desde)
+    .order("occurred_at", { ascending: true });
+  const linhas: { occurred_at: string }[] = data ?? [];
+  if (linhas.length < maximo) return { bloqueado: false, liberaEmSegundos: 0 };
+  const maisAntiga = new Date(linhas[0]!.occurred_at).getTime();
+  const restante = Math.max(0, Math.ceil((maisAntiga + minutos * 60_000 - Date.now()) / 1000));
+  return { bloqueado: true, liberaEmSegundos: restante };
+}
+
+/** Registra uma tentativa malsucedida. */
+export async function registrarTentativa(scope: string, assunto: string) {
+  await adminClient.from("auth_throttle").insert({ scope, subject_hash: hashAssunto(assunto) });
+}
+
+/** Login concluído: zera o contador para não punir o uso normal. */
+export async function limparTentativas(scope: string, assunto: string) {
+  await adminClient
+    .from("auth_throttle")
+    .delete()
+    .eq("scope", scope)
+    .eq("subject_hash", hashAssunto(assunto));
+}
+
+
 export async function registrarAuditoria(params: {
   organizationId: string;
   userId?: string | null;
