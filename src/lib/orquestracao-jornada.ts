@@ -573,6 +573,48 @@ export function eventoDeCadencia(status: SaudeCadencia["status"]): EventoInterno
   return null;
 }
 
+/**
+ * Tentativa de publicação/comunicação sem condição: recusa a ação e devolve
+ * um ALERTA DERIVADO que apenas abre o objeto canônico de origem. Nunca cria
+ * tarefa, prazo, status ou registro paralelo.
+ */
+export type AlertaTentativa = {
+  permitido: boolean;
+  alerta: {
+    chave: string;
+    motivo: "pendencia_bloqueia_estado";
+    titulo: string;
+    detalhe: string;
+    destino: string;
+    /** Alerta é visão derivada: não escreve em nenhuma entidade. */
+    criaRegistro: false;
+  } | null;
+};
+
+export function avaliarTentativaSemCondicao(entrada: {
+  acao: "publicar" | "comunicar";
+  objeto: { entidade: string; id: string; destino: string };
+  condicoesFaltantes: readonly string[];
+}): AlertaTentativa {
+  if (entrada.condicoesFaltantes.length === 0) return { permitido: true, alerta: null };
+  return {
+    permitido: false,
+    alerta: {
+      chave: `tentativa-${entrada.acao}:${entrada.objeto.entidade}:${entrada.objeto.id}`,
+      motivo: "pendencia_bloqueia_estado",
+      titulo:
+        entrada.acao === "publicar"
+          ? "Tentativa de publicação sem condição cumprida"
+          : "Tentativa de comunicação sem condição cumprida",
+      detalhe: `Pendências: ${entrada.condicoesFaltantes.join("; ")}.`,
+      destino: entrada.objeto.destino,
+      criaRegistro: false,
+    },
+  };
+}
+
+
+
 /* ------------------------------------------------------------------ */
 /* F. Painel Hoje — fila derivada, sem duplicação                      */
 /* ------------------------------------------------------------------ */
