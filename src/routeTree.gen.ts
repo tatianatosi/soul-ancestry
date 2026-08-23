@@ -58,6 +58,7 @@ import { Route as AuthenticatedEscopoOrigemRouteImport } from './routes/_authent
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedConciliacaoCatalogoRouteImport } from './routes/_authenticated/conciliacao-catalogo'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCatalogoRouteImport } from './routes/_authenticated/catalogo'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
@@ -361,6 +362,12 @@ const AuthenticatedConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedConciliacaoCatalogoRoute =
+  AuthenticatedConciliacaoCatalogoRouteImport.update({
+    id: '/conciliacao-catalogo',
+    path: '/conciliacao-catalogo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -650,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/calls': typeof AuthenticatedCallsRoute
   '/catalogo': typeof AuthenticatedCatalogoRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -746,6 +754,7 @@ export interface FileRoutesByTo {
   '/calls': typeof AuthenticatedCallsRoute
   '/catalogo': typeof AuthenticatedCatalogoRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -845,6 +854,7 @@ export interface FileRoutesById {
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/catalogo': typeof AuthenticatedCatalogoRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
@@ -944,6 +954,7 @@ export interface FileRouteTypes {
     | '/calls'
     | '/catalogo'
     | '/clientes'
+    | '/conciliacao-catalogo'
     | '/configuracoes'
     | '/conversao'
     | '/equipe'
@@ -1040,6 +1051,7 @@ export interface FileRouteTypes {
     | '/calls'
     | '/catalogo'
     | '/clientes'
+    | '/conciliacao-catalogo'
     | '/configuracoes'
     | '/conversao'
     | '/equipe'
@@ -1138,6 +1150,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calls'
     | '/_authenticated/catalogo'
     | '/_authenticated/clientes'
+    | '/_authenticated/conciliacao-catalogo'
     | '/_authenticated/configuracoes'
     | '/_authenticated/conversao'
     | '/_authenticated/equipe'
@@ -1585,6 +1598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/conciliacao-catalogo': {
+      id: '/_authenticated/conciliacao-catalogo'
+      path: '/conciliacao-catalogo'
+      fullPath: '/conciliacao-catalogo'
+      preLoaderRoute: typeof AuthenticatedConciliacaoCatalogoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clientes': {
       id: '/_authenticated/clientes'
       path: '/clientes'
@@ -1926,6 +1946,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCatalogoRoute: typeof AuthenticatedCatalogoRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedConciliacaoCatalogoRoute: typeof AuthenticatedConciliacaoCatalogoRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
@@ -1999,6 +2020,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCatalogoRoute: AuthenticatedCatalogoRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedConciliacaoCatalogoRoute: AuthenticatedConciliacaoCatalogoRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
