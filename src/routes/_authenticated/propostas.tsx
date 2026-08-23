@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import {
   Campo,
@@ -251,6 +252,25 @@ function PropostasPage() {
                           texto={ROTULO_PROPOSTA[String(l["status"])] ?? String(l["status"])}
                           tom={l["status"] === "aprovada" ? "ok" : l["status"] === "recusada" ? "alerta" : "neutro"}
                         />
+                        {(() => {
+                          // Idade da proposta sem retorno: só para status ainda em aberto,
+                          // calculada sobre a data de registro já persistida (created_at).
+                          const emAberto = l["status"] !== "aprovada" && l["status"] !== "recusada" && l["status"] !== "substituida";
+                          if (!emAberto) return null;
+                          const dias = diasDesde(l["created_at"]);
+                          const rotulo = rotuloIdade(dias);
+                          if (!rotulo) return null;
+                          return (
+                            <span
+                              className={cn(
+                                "mt-1 block text-[11px]",
+                                tomIdade(dias) === "alerta" ? "font-semibold text-terracotta" : "text-navy/55",
+                              )}
+                            >
+                              {rotulo}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
