@@ -95,7 +95,8 @@ export const ANEXOS_VARREDURA: LinhaAnexoVarredura[] = [
     codigo: "ANEXO_II",
     nome: "Anexo II — Autorização de despesas externas",
     existe: false,
-    localizacao: "Estrutura de dados existe (DespesaExternaAnexo, POLITICAS_DESPESA); modelo jurídico não localizado.",
+    localizacao:
+      "Estrutura de dados existe (DespesaExternaAnexo, POLITICAS_DESPESA); texto jurídico já revisado, ainda não materializado no repositório canônico.",
     id: "ANEXO_II_DESPESAS_EXTERNAS",
     versao: null,
     estado: "nao_localizado",
