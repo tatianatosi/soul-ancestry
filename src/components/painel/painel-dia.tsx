@@ -710,7 +710,7 @@ export function PainelDia() {
         <div className="mt-4 border-t border-navy/10 pt-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
-            <span className="text-[11px] text-navy/45">Somente leitura · abre o registro canônico</span>
+            <span className="text-[11px] text-navy/45">Cadência e onboarding · somente leitura</span>
           </div>
           <p className="mt-1 text-[11px] text-navy/50">
             Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa, prazo nem comunicação.
@@ -718,6 +718,13 @@ export function PainelDia() {
           <div className="mt-2">
             <ItensDerivados itens={derivados} />
           </div>
+          <Link
+            to="/ops"
+            className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
+          >
+            Ver cadência completa
+          </Link>
+
         </div>
       </section>
 
