@@ -621,8 +621,102 @@ async function sincronizarMotor(
     caseId: input.registro.case_id,
     userId: input.userId,
   });
-  return { anexosPersistidos, comercial };
-}
+
+
+/**
+ * Materializa os Anexos II, IV e V JÁ REVISADOS JURIDICAMENTE como instância
+ * documental canônica do caso. Cria apenas vínculo e versão: nunca reescreve
+ * conteúdo aprovado, nunca toca instância assinada/anexada/arquivada e nunca
+ * dispara ação externa.
+ */
+export const materializarAnexosRevisados = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; confirmar?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const { registro, corpo } = await montarDoRegistro(supabase, data.id, "rascunho");
+
+    const todas = instanciasDeAnexos({ anexos: corpo.anexos, internos: [] });
+    const doLote = todas.filter((i) => ehAnexoRevisado(i.annex_code));
+
+    const { data: existentes } = await supabase
+      .from("contract_annexes")
+      .select("annex_code,title,status,annex_version,model_version,file_hash,rendered_html,updated_at,is_test")
+      .eq("organization_id", registro.organization_id)
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null);
+
+    const persistidas = ((existentes ?? []) as any[]).map((l) => ({
+      annex_code: l.annex_code as string,
+      title: (l.title ?? "") as string,
+      status: (l.status ?? "") as string,
+      annex_version: Number(l.annex_version ?? 0),
+      model_version: (l.model_version ?? null) as string | null,
+      file_hash: (l.file_hash ?? null) as string | null,
+      tem_conteudo: Boolean(String(l.rendered_html ?? "").trim()),
+      atualizado_em: (l.updated_at ?? null) as string | null,
+      is_test: Boolean(l.is_test),
+    }));
+
+    const plano = planejarMaterializacao({
+      candidatos: doLote.map((i) => ({
+        codigo: i.annex_code,
+        titulo: i.title,
+        hash: hashConteudo({ d: i.structured_data, s: i.status, m: i.model_version }),
+      })),
+      persistidas,
+    });
+
+    if (!data.confirmar) return { simulado: true, plano, materializados: 0 };
+
+    const codigosAMaterializar = new Set(plano.filter((p) => p.acao === "materializar").map((p) => p.codigo));
+    const aGravar = doLote.filter((i) => codigosAMaterializar.has(i.annex_code));
+    if (!aGravar.length) return { simulado: false, plano, materializados: 0 };
+
+    const { data: previa } = await supabase
+      .from("contract_parameter_previews")
+      .select("id")
+      .eq("parameters_id", registro.id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const resultado = await sincronizarAnexosPersistidos(
+      supabase,
+      {
+        organizationId: registro.organization_id,
+        caseId: registro.case_id,
+        parametersId: registro.id,
+        previaId: (previa?.id as string) ?? null,
+        contractId: registro.contract_id ?? null,
+        userId,
+      },
+      aGravar,
+    );
+
+    await supabase.from("audit_logs").insert({
+      organization_id: registro.organization_id,
+      entidade: "contract_annexes",
+      entidade_id: registro.case_id,
+      acao: "anexos_revisados_materializados",
+      user_id: userId,
+      metadados: {
+        parameters_id: registro.id,
+        case_id: registro.case_id,
+        lote: "ANEXOS-II-IV-V-REVISADOS",
+        plano,
+        versoes_novas: resultado.novas,
+        mantidas: resultado.mantidas,
+        observacao: "Somente vínculo e versão. Conteúdo jurídico aprovado não foi reescrito.",
+      },
+    });
+
+    return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
+  });
+
+
 
 
 /**
