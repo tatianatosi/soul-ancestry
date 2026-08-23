@@ -310,9 +310,13 @@ export function podeIniciarRascunhoComercial(r: ResolucaoPrecoSugerido): boolean
   return r.selecionavel_internamente;
 }
 
-/** Preço sugerido nunca autoriza cobrança, link, fatura ou Asaas. */
-export function autorizaCobranca(v: ValorOperacional): boolean {
-  return false && v.valor_final;
+/**
+ * Preço sugerido nunca autoriza cobrança, link, fatura ou Asaas.
+ * Esta camada jamais autoriza ato externo: cobrança exige confirmação humana
+ * explícita fora daqui, mesmo com valor aprovado.
+ */
+export function autorizaCobranca(_v: ValorOperacional): boolean {
+  return false;
 }
 
 /** Financeiro: preço sugerido entra apenas como previsão interna. */
