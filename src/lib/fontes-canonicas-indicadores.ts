@@ -113,12 +113,42 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     recorteTemporal: "semana e mês corrente",
     responsavel: "comercial",
     rotaAcao: "/conversao",
-    contagemEm: ["/metricas"],
-    etiquetaEm: ["/conversao", "/painel"],
+    contagemEm: ["/conversao"],
+    etiquetaEm: ["/metricas", "/painel"],
     confianca: "confirmado",
-    observacao: "Conversão exibe recorte por campanha, sempre derivado do mesmo evento.",
+    observacao: "Fase B: /conversao é a única superfície com número; /metricas exibe apenas link.",
+  },
+  {
+    indicador: "Higiene comercial",
+    grupo: "Comercial",
+    tipo: "decisao",
+    fonteCanonica: "src/lib/indicadores-marketing.ts + leads (follow-up e próxima ação)",
+    formula: "leads ativos sem próxima ação + follow-ups com prazo vencido",
+    recorteTemporal: "estado atual",
+    responsavel: "comercial",
+    rotaAcao: "/conversao",
+    contagemEm: ["/conversao"],
+    etiquetaEm: ["/metricas", "/painel"],
+    confianca: "confirmado",
+    observacao: "Fase B: card removido visualmente de /metricas; permanece como link.",
+  },
+  {
+    indicador: "Leads aguardando ação",
+    grupo: "Hoje",
+    tipo: "decisao",
+    fonteCanonica: "src/lib/comercial-hoje-canonico.ts (sobre painel-dia.ts → comercialHoje)",
+    formula:
+      "união deduplicada de calls_hoje + propostas_sem_followup + leads_sem_proxima_acao, com data ≤ hoje+7, excluídos itens já exibidos em filas anteriores e registros demo quando incluirDemo=false",
+    recorteTemporal: "dia corrente até hoje+7",
+    responsavel: "comercial",
+    rotaAcao: "/conversao",
+    contagemEm: ["/painel"],
+    etiquetaEm: ["/conversao", "/metricas", "/leads"],
+    confianca: "confirmado",
+    observacao: "Resumo comercial único do Painel Hoje: uma frase, um número, sem listas concorrentes.",
   },
 ];
+
 
 /** Painéis aposentados visualmente: arquivo, rota e teste preservados. */
 export const PAINEIS_HISTORICOS = [
