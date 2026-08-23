@@ -2514,6 +2514,9 @@ export type Database = {
       }
       casos: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
+          archived_reason: string | null
           canvas_publicado: boolean
           canvas_token: string
           case_id: string
@@ -2522,9 +2525,12 @@ export type Database = {
           created_at: string
           dados_sensiveis_ocultos: boolean
           id: string
+          origem: string | null
           pais: string | null
           produto_nome: string | null
           produto_sku: string | null
+          redirect_case_id: string | null
+          redirect_codigo: string | null
           responsavel: string | null
           status: string
           ultima_atualizacao: string | null
@@ -2532,6 +2538,9 @@ export type Database = {
           via: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_reason?: string | null
           canvas_publicado?: boolean
           canvas_token?: string
           case_id: string
@@ -2540,9 +2549,12 @@ export type Database = {
           created_at?: string
           dados_sensiveis_ocultos?: boolean
           id?: string
+          origem?: string | null
           pais?: string | null
           produto_nome?: string | null
           produto_sku?: string | null
+          redirect_case_id?: string | null
+          redirect_codigo?: string | null
           responsavel?: string | null
           status?: string
           ultima_atualizacao?: string | null
@@ -2550,6 +2562,9 @@ export type Database = {
           via?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_reason?: string | null
           canvas_publicado?: boolean
           canvas_token?: string
           case_id?: string
@@ -2558,9 +2573,12 @@ export type Database = {
           created_at?: string
           dados_sensiveis_ocultos?: boolean
           id?: string
+          origem?: string | null
           pais?: string | null
           produto_nome?: string | null
           produto_sku?: string | null
+          redirect_case_id?: string | null
+          redirect_codigo?: string | null
           responsavel?: string | null
           status?: string
           ultima_atualizacao?: string | null
