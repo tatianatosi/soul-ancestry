@@ -714,6 +714,15 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
     if (!versao.rendered_file_path || !versao.rendered_file_hash)
       impedimentos.push("Arquivo privado renderizado e hash registrado");
 
+    {
+      const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
+      const conc = await conciliacaoDoContrato(supabase as any, {
+        org: organizationId,
+        contractId: data.contract_id,
+      });
+      if (conc) for (const b of conc.bloqueios) impedimentos.push(`Conciliação de catálogo: ${b}`);
+    }
+
     if (impedimentos.length) {
       await evento(supabase, organizationId, data.contract_id, "send_blocked", { itens: impedimentos.length }, data.version_id);
       return { ok: false, impedimentos };
