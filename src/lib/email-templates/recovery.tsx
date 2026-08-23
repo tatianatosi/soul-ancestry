@@ -33,9 +33,9 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
           Recebemos um pedido de redefinição de senha para o seu acesso interno em {siteName}.
           Toque no botão abaixo para escolher uma nova senha.
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <a href={confirmationUrl} style={button}>
           Definir minha senha
-        </Button>
+        </a>
         <Text style={contingenciaRotulo}>
           Se o botão não funcionar, copie e cole este endereço no navegador:
         </Text>
