@@ -386,12 +386,22 @@ export const getContexto = createServerFn({ method: "GET" })
       };
     }
 
-    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
+    // staff_access é a fonte canônica do vínculo interno. Não refaça a
+    // resolução pela membership quando o acesso ativo já identifica a org:
+    // políticas de leitura transitórias não podem transformar admin em
+    // "sem permissão" durante a montagem do contexto.
+    const organizationId = staff.data?.organization_id
+      ? (staff.data.organization_id as string)
+      : await resolverOrganizacao(supabase, context.userId as string);
 
     const [org, perfil, papeis] = await Promise.all([
       supabase.from("organizations").select("id,nome,slug,demo").eq("id", organizationId).maybeSingle(),
       supabase.from("profiles").select("id,nome,email").eq("id", context.userId).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("organization_id", organizationId),
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("organization_id", organizationId)
+        .eq("user_id", context.userId),
     ]);
 
     return {
