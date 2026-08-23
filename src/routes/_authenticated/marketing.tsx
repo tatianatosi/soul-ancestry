@@ -97,7 +97,7 @@ function Marketing() {
   return (
     <SaasShell
       titulo="Marketing e aquisição"
-      subtitulo="Canais, campanhas, conteúdo e atribuição antes do lead existir. Somente leitura — nenhuma campanha, link ou envio é executado aqui."
+      descricao="Canais, campanhas, conteúdo e atribuição antes do lead existir. Somente leitura — nenhuma campanha, link ou envio é executado aqui."
     >
       <div className="space-y-5">
         <div className="rounded-xl border border-gold/40 bg-cream/50 p-4 text-sm text-navy/75">
@@ -130,7 +130,7 @@ function Marketing() {
           {q.isLoading ? (
             <p className="text-[13px] text-navy/50">Carregando leitura de aquisição…</p>
           ) : origens.length === 0 ? (
-            <EstadoVazio titulo="Sem entradas de aquisição no recorte" descricao="Nenhum lead ou evento de conversão disponível para leitura." />
+            <EstadoVazio mensagem="Sem entradas de aquisição no recorte: nenhum lead ou evento de conversão disponível para leitura." />
           ) : (
             <ul className="divide-y divide-navy/10">
               {origens.map((o) => (
