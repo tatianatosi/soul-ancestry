@@ -71,7 +71,7 @@ export const meuCaso = createServerFn({ method: "GET" })
       return null;
     }
 
-    const [solicitacoes, documentos, faturas, tickets] = await Promise.all([
+    const [solicitacoes, documentos, faturas, tickets, projecoes] = await Promise.all([
       supabase
         .from("portal_document_requests")
         .select("id, titulo, descricao, obrigatorio, prazo, status, motivo_recusa, updated_at")
@@ -92,6 +92,10 @@ export const meuCaso = createServerFn({ method: "GET" })
         .select("id, assunto, categoria, status, ultima_mensagem_em, created_at")
         .eq("case_id", data.casoId)
         .order("ultima_mensagem_em", { ascending: false }),
+      supabase
+        .from("portal_projecoes")
+        .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
+        .eq("case_id", data.casoId),
     ]);
 
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
