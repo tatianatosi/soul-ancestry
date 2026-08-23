@@ -766,3 +766,189 @@ export const ASSISTENTE_NAO_PODE = [
 export function assistentePodeExecutar(acao: string): boolean {
   return (ASSISTENTE_PODE as readonly string[]).includes(acao);
 }
+
+/* ------------------------------------------------------------------ */
+/* H. Cadeia completa da jornada (11 elos)                             */
+/*                                                                      */
+/* Evento/fase → regra de jornada → tarefa+responsável+prazo →          */
+/* template vigente → rascunho ou microentrega → revisão humana →       */
+/* publicação autorizada ou fila interna → touchpoint/entrega →         */
+/* cadência recalculada → alerta derivado (só com desvio) →             */
+/* Painel Hoje mostra a próxima ação.                                   */
+/*                                                                      */
+/* Módulo puro: não escreve dado, não publica e não envia nada.         */
+/* ------------------------------------------------------------------ */
+
+export const ELOS_CADEIA = [
+  "evento_ou_fase",
+  "regra_de_jornada",
+  "tarefa_responsavel_prazo",
+  "template_sugerido",
+  "rascunho_ou_microentrega",
+  "revisao_humana",
+  "publicacao_ou_fila",
+  "touchpoint_ou_entrega",
+  "cadencia_recalculada",
+  "alerta_derivado",
+  "painel_hoje",
+] as const;
+export type EloCadeia = (typeof ELOS_CADEIA)[number];
+
+export type EntradaCadeia = {
+  hoje: string;
+  evento: EventoInterno;
+  caso_id: string;
+  fase?: FaseJornada;
+  canal?: CanalPrevisto;
+  bloqueios?: readonly string[];
+  responsavel_id?: string | null;
+  prazo?: string | null;
+  /** Vínculo da microentrega, quando o elo 5 for entrega e não rascunho. */
+  vinculo?: VinculoMicroentrega;
+  /** Revisão humana explícita: sem ela nada avança para publicação/fila. */
+  aprovadoPorHumano?: boolean;
+  /** Conteúdo do touchpoint, se houver registro no ciclo. */
+  touchpoint?: TouchpointConteudo;
+  ultimoTouchpointValidoEm?: string | null;
+  aguardandoInstituicaoExterna?: boolean;
+  motivoEsperaExterna?: string | null;
+};
+
+export type ResultadoCadeia = {
+  elos: readonly EloCadeia[];
+  plano: PlanoEvento;
+  tarefa: { titulo: string | null; responsavel_id: string | null; prazo: string | null; completa: boolean };
+  template: SugestaoTemplate;
+  saida: "rascunho_interno" | "microentrega" | "nenhuma";
+  revisao: { exigida: true; aprovada: boolean; pendencias: readonly string[] };
+  publicacao: { autorizada: boolean; destino: "app_cliente" | "fila_interna" | "nenhum"; envioExecutado: false };
+  touchpoint: ResultadoTouchpoint | null;
+  cadencia: SaudeCadencia | null;
+  alerta: AlertaTentativa["alerta"] | null;
+  painelHoje: ItemOrquestrado | null;
+  /** Invariante da cadeia: nenhuma etapa executa ação externa. */
+  contemAcaoExterna: false;
+};
+
+/**
+ * Percorre a cadeia canônica de ponta a ponta e devolve o estado derivado de
+ * cada elo. Nada é persistido, publicado ou enviado: o resultado é insumo de
+ * decisão humana no Desk.
+ */
+export function executarCadeiaJornada(entrada: EntradaCadeia): ResultadoCadeia {
+  const plano = orquestrarEvento(entrada.evento, { hoje: entrada.hoje, bloqueios: entrada.bloqueios });
+  const template = sugerirTemplate(entrada.evento, {
+    hoje: entrada.hoje,
+    bloqueios: entrada.bloqueios,
+    etapa: entrada.fase,
+    canal: entrada.canal,
+  });
+
+  const tarefa = {
+    titulo: plano.tarefaSugerida,
+    responsavel_id: entrada.responsavel_id ?? null,
+    prazo: entrada.prazo ?? null,
+    completa: Boolean(plano.tarefaSugerida && entrada.responsavel_id && entrada.prazo),
+  };
+
+  const saida: ResultadoCadeia["saida"] = entrada.vinculo
+    ? "microentrega"
+    : template.template
+      ? "rascunho_interno"
+      : "nenhuma";
+
+  const pendencias: string[] = [];
+  if (!tarefa.completa && plano.tarefaSugerida) pendencias.push("tarefa sem responsável ou prazo");
+  if (entrada.vinculo) {
+    pendencias.push(...vinculoCompleto(entrada.vinculo, { paraPublicacao: true }).faltando);
+  }
+  pendencias.push(...(entrada.bloqueios ?? []));
+
+  const aprovada = Boolean(entrada.aprovadoPorHumano) && pendencias.length === 0;
+
+  const tentativa =
+    entrada.aprovadoPorHumano && pendencias.length > 0
+      ? avaliarTentativaSemCondicao({
+          acao: saida === "microentrega" ? "publicar" : "comunicar",
+          objeto: { entidade: "caso", id: entrada.caso_id, destino: plano.objetoCanonico },
+          condicoesFaltantes: pendencias,
+        })
+      : { permitido: true, alerta: null };
+
+  const publicacao: ResultadoCadeia["publicacao"] = {
+    autorizada: aprovada,
+    destino: !aprovada ? "nenhum" : saida === "microentrega" ? "app_cliente" : "fila_interna",
+    envioExecutado: false,
+  };
+
+  const touchpoint = entrada.touchpoint
+    ? registrarTouchpoint({
+        hoje: entrada.hoje,
+        conteudo: entrada.touchpoint,
+        ultimoTouchpointValidoEm: entrada.ultimoTouchpointValidoEm,
+        aguardandoInstituicaoExterna: entrada.aguardandoInstituicaoExterna,
+        motivoEsperaExterna: entrada.motivoEsperaExterna,
+      })
+    : null;
+
+  const cadencia =
+    touchpoint?.cadencia ??
+    (publicacao.autorizada && saida === "microentrega"
+      ? publicarMicroentrega({
+          hoje: entrada.hoje,
+          aguardandoInstituicaoExterna: entrada.aguardandoInstituicaoExterna,
+          motivoEsperaExterna: entrada.motivoEsperaExterna,
+        }).cadencia
+      : null);
+
+  const eventoCadencia = cadencia ? eventoDeCadencia(cadencia.status) : null;
+
+  const alerta =
+    tentativa.alerta ??
+    (eventoCadencia
+      ? {
+          chave: `cadencia:caso:${entrada.caso_id}`,
+          motivo: "pendencia_bloqueia_estado" as const,
+          titulo:
+            eventoCadencia === "cadencia_critica"
+              ? "Cadência crítica do caso"
+              : "Cadência em atenção",
+          detalhe: cadencia?.detalhe ?? "Cadência derivada do último touchpoint válido.",
+          destino: plano.objetoCanonico,
+          criaRegistro: false as const,
+        }
+      : null);
+
+  const painelHoje: ItemOrquestrado | null = alerta
+    ? {
+        chave: alerta.chave.startsWith("cadencia:") ? `caso:${entrada.caso_id}` : alerta.chave,
+        categoria: alerta.chave.startsWith("cadencia:") ? "cadencia" : "bloqueio_gate",
+        rotulo: alerta.titulo,
+        destino: alerta.destino,
+        prazo: tarefa.prazo,
+      }
+    : tarefa.titulo
+      ? {
+          chave: `caso:${entrada.caso_id}`,
+          categoria: "proximo_marco",
+          rotulo: tarefa.titulo,
+          destino: plano.objetoCanonico,
+          prazo: tarefa.prazo,
+        }
+      : null;
+
+  return {
+    elos: ELOS_CADEIA,
+    plano,
+    tarefa,
+    template,
+    saida,
+    revisao: { exigida: true, aprovada, pendencias },
+    publicacao,
+    touchpoint,
+    cadencia,
+    alerta,
+    painelHoje,
+    contemAcaoExterna: false,
+  };
+}
