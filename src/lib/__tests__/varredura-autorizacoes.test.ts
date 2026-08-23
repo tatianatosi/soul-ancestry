@@ -95,7 +95,7 @@ describe("varredura final — áreas, exceções e documentos", () => {
       "financeiro",
       "app_cliente",
       "painel_hoje",
-      "administracao",
+      "marketing",
       "governanca",
     ]) {
       expect(chaves).toContain(obrigatoria);

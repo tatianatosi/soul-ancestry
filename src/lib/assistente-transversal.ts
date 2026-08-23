@@ -7,7 +7,7 @@
  * pode produzir, respeitando papel, organização e RLS já existentes.
  */
 
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 export const SELO_DEMO_ASSISTENTE = "DEMO — DADOS FICTÍCIOS — NÃO USAR EM OPERAÇÃO";
 export const EVENTO_BLOQUEIO_ASSISTENTE = "analysis_blocked_insufficient_case_data";
@@ -132,6 +132,12 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
  * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
+  // Rotas do menu da conta (Configurações, Equipe, Modo Proprietária) não são
+  // grupo principal: o Assistente as trata sob as regras de Governança.
+  for (const item of MENU_CONTA.itens) {
+    if (!("to" in item)) continue;
+    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
+  }
   let melhor: { id: string; tamanho: number } = { id: "hoje", tamanho: -1 };
   for (const grupo of GRUPOS_DESK) {
     const rotas = [grupo.to, ...grupo.sub.flatMap((s) => ("to" in s ? [s.to] : []))];
