@@ -91,6 +91,7 @@ function Pagina() {
   const ver = useServerFn(lerPrevia);
   const revisar = useServerFn(solicitarRevisaoHumana);
   const auditoria = useServerFn(auditoriaPreparacao);
+  const lerInstancias = useServerFn(instanciasDocumentaisDoCaso);
 
   const q = useQuery({ queryKey: chave, queryFn: () => abrir({ data: { caseId } }), retry: false });
   const registroId = (q.data as any)?.registro?.id as string | undefined;
@@ -98,6 +99,13 @@ function Pagina() {
     queryKey: [...chave, "auditoria", registroId],
     queryFn: () => auditoria({ data: { id: registroId as string } }),
     enabled: Boolean(registroId),
+  });
+
+  const casoUuid = (q.data as any)?.caso?.id as string | undefined;
+  const qi = useQuery({
+    queryKey: [...chave, "instancias-anexos", casoUuid],
+    queryFn: () => lerInstancias({ data: { caseId: casoUuid as string } }),
+    enabled: Boolean(casoUuid),
   });
 
   const [html, setHtml] = useState<string | null>(null);
