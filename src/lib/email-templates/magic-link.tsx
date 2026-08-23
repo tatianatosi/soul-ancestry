@@ -20,7 +20,11 @@ interface MagicLinkEmailProps {
 
 export const MagicLinkEmail = ({ siteName, confirmationUrl }: MagicLinkEmailProps) => (
   <Html lang="pt-BR" dir="ltr">
-    <Head />
+    <Head>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
+    </Head>
     <Preview>Seu link de acesso — {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
