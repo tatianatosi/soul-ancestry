@@ -27,6 +27,8 @@ import {
   sincronizarAnexosPersistidos,
   sincronizarComercialDaProposta,
 } from "@/lib/anexos-persistidos.server";
+import { ehAnexoRevisado, planejarMaterializacao } from "@/lib/anexos-materializacao";
+
 
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
