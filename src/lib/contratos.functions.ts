@@ -466,6 +466,32 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
     if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
 
+    // Conciliação obrigatória: só SKU, preço e condição homologados no
+    // product_catalog sustentam minuta. Escopo insuficiente barra a geração.
+    {
+      const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
+      const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
+      const conc = await conciliacaoDoContrato(supabase as any, {
+        org: organizationId,
+        contractId: data.contract_id,
+      });
+      if (conc) {
+        const barra = mensagemBloqueio(conc);
+        if (barra) {
+          await evento(supabase, organizationId, data.contract_id, "render_blocked", {
+            motivo: "conciliacao_catalogo",
+            bloqueios: conc.bloqueios.length,
+          });
+          throw new Error(barra);
+        }
+      } else if (!(escopo.data ?? []).length) {
+        throw new Error(
+          "Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados.",
+        );
+      }
+    }
+
+
     let contratoBase: any = null;
     if (contrato.data.parent_contract_id) {
       const r = await supabase
