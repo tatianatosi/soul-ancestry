@@ -112,9 +112,30 @@ function Pagina() {
     enabled: Boolean(casoUuid),
   });
 
+  const materializar = useServerFn(materializarAnexosRevisados);
+  const [planoRevisados, setPlanoRevisados] = useState<ItemPlanoMaterializacao[] | null>(null);
+  const mMaterializar = useMutation({
+    mutationFn: (confirmar: boolean) => materializar({ data: { id: registroId as string, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoRevisados((r.plano ?? []) as ItemPlanoMaterializacao[]);
+      if (r.simulado) {
+        toast.info("Prévia do lote: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.materializados
+          ? `${r.materializados} anexo(s) revisado(s) materializado(s) como documento oficial do caso. Conteúdo aprovado preservado.`
+          : "Nada a materializar: os anexos revisados já estão salvos ou preservados.",
+      );
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const [html, setHtml] = useState<string | null>(null);
   const [nota, setNota] = useState("");
   const [assinatura, setAssinatura] = useState({ dataAssinatura: "", origemExterna: "", referencia: "" });
+
 
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id: registroId as string } }),
