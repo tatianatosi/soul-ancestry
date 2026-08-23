@@ -15,7 +15,7 @@ interface LogoProps {
 
 const VARIANT_TEXT: Record<BrandLogoVariant, string> = {
   "client-light": "#1B2B4B",
-  "client-dark": "#ECDFCD",
+  "client-dark": "#F5F0E8",
   "internal-minimal": "#C9A84C",
 };
 
@@ -86,7 +86,7 @@ export function AppSwitcher({
     <div className="sticky top-0 z-50 border-b bg-navy text-cream">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <BrandLogo size={36} showText={true} textColor="#ECDFCD" />
+          <BrandLogo size={36} showText={true} textColor="#F5F0E8" />
           <span className="hidden sm:inline text-xs text-cream/60 uppercase tracking-widest">Protótipo</span>
         </div>
         <div className="flex items-center gap-1 rounded-full border border-cream/20 bg-navy-soft/60 p-1">
