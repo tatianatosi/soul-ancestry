@@ -15,6 +15,7 @@ import {
   sugerirTemplate,
   transicaoMicroentregaPermitida,
   vinculoCompleto,
+  avaliarTentativaSemCondicao,
 } from "@/lib/orquestracao-jornada";
 import type { EstadoCaso } from "@/lib/jornada-cliente";
 
@@ -120,7 +121,38 @@ describe("D. Microentregas", () => {
   it("exige vínculo com caso, fase, responsável, prazo e origem", () => {
     const r = vinculoCompleto({ caso_id: "c1", fase: "onboarding", responsavel_id: null, prazo: null, objeto_origem: null });
     expect(r.valido).toBe(false);
-    expect(r.faltando).toEqual(["responsável", "prazo", "objeto de origem"]);
+    expect(r.faltando).toEqual(["responsável", "prazo", "objeto de origem", "resumo interno"]);
+  });
+
+  it("exige resumo sanitizado apenas para publicar", () => {
+    const vinculo = {
+      caso_id: "c1",
+      fase: "onboarding" as const,
+      responsavel_id: "u1",
+      prazo: "2026-09-01",
+      objeto_origem: "tarefa:1",
+      resumo_interno: "Contexto interno",
+    };
+    expect(vinculoCompleto(vinculo).valido).toBe(true);
+    expect(vinculoCompleto(vinculo, { paraPublicacao: true }).faltando).toEqual([
+      "resumo sanitizado ao cliente",
+    ]);
+  });
+
+  it("tentativa de publicação sem condição vira alerta derivado que abre o objeto", () => {
+    const r = avaliarTentativaSemCondicao({
+      acao: "publicar",
+      objeto: { entidade: "ops_microentregas", id: "9", destino: "/ops?microentrega=9" },
+      condicoesFaltantes: ["resumo sanitizado ao cliente"],
+    });
+    expect(r.permitido).toBe(false);
+    expect(r.alerta?.destino).toBe("/ops?microentrega=9");
+    expect(r.alerta?.criaRegistro).toBe(false);
+    expect(avaliarTentativaSemCondicao({
+      acao: "comunicar",
+      objeto: { entidade: "crm_casos", id: "1", destino: "/casos/1" },
+      condicoesFaltantes: [],
+    })).toEqual({ permitido: true, alerta: null });
   });
 
   it("publicação atualiza cadência internamente sem enviar mensagem", () => {
