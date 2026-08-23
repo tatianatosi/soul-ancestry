@@ -198,12 +198,14 @@ export function ClienteApp() {
               Ver devolutiva inicial
             </button>
           )}
-          <a
-            href="/devolutiva?cliente=CA-ITA-GUILH-CERONATTO"
-            className="flex-1 rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-center text-[11px] font-medium text-navy transition hover:bg-gold/20"
-          >
-            Devolutivas (interno)
-          </a>
+          {interna && (
+            <a
+              href="/devolutiva?cliente=CA-ITA-GUILH-CERONATTO"
+              className="flex-1 rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-center text-[11px] font-medium text-navy transition hover:bg-gold/20"
+            >
+              Devolutivas (interno)
+            </a>
+          )}
         </div>
 
       </div>
