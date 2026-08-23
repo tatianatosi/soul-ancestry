@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 
 import { EquipeMoldura } from "@/components/equipe/moldura";
 import { recuperarSenhaEquipe } from "@/lib/equipe.functions";
@@ -20,28 +21,75 @@ export const Route = createFileRoute("/equipe/esqueci-minha-senha")({
   component: EsqueciSenha,
 });
 
+/** Limites de segurança do reenvio (o servidor mantém o limite definitivo). */
+const ESPERA_SEGUNDOS = 60;
+const MAX_REENVIOS = 3;
+
 function EsqueciSenha() {
   const enviar = useServerFn(recuperarSenhaEquipe);
   const [email, setEmail] = useState("");
   const [enviado, setEnviado] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [reenvios, setReenvios] = useState(0);
+  const [espera, setEspera] = useState(0);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    if (espera <= 0) return;
+    const t = setTimeout(() => setEspera((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [espera]);
+
+  async function disparar() {
     setCarregando(true);
     try {
       await enviar({ data: { email } });
     } finally {
       setCarregando(false);
       setEnviado(true);
+      setEspera(ESPERA_SEGUNDOS);
     }
   }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await disparar();
+  }
+
+  async function onReenviar() {
+    if (espera > 0 || carregando || reenvios >= MAX_REENVIOS) return;
+    setReenvios((n) => n + 1);
+    await disparar();
+  }
+
+  const limiteAtingido = reenvios >= MAX_REENVIOS;
 
   return (
     <EquipeMoldura titulo="Recuperar senha" subtitulo="Área exclusiva da equipe Clube Ancestral.">
       {enviado ? (
-        <div className="rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
-          Se houver uma conta autorizada para este e-mail, enviaremos instruções.
+        <div className="space-y-3">
+          <div className="rounded-xl border border-gold/50 bg-gold/10 p-4 text-sm text-navy">
+            Se houver uma conta autorizada para este e-mail, enviaremos instruções. O link é de uso
+            único e vale por 20 minutos.
+          </div>
+          <button
+            type="button"
+            onClick={onReenviar}
+            disabled={carregando || espera > 0 || limiteAtingido}
+            className="w-full rounded-lg border border-navy/25 bg-white px-4 py-2.5 font-medium text-navy disabled:opacity-60"
+          >
+            {carregando
+              ? "Reenviando…"
+              : limiteAtingido
+                ? "Limite de reenvios atingido"
+                : espera > 0
+                  ? `Reenviar e-mail em ${espera}s`
+                  : "Reenviar e-mail de recuperação"}
+          </button>
+          <p className="text-xs text-navy/60">
+            {limiteAtingido
+              ? "Por segurança, aguarde alguns minutos antes de tentar novamente ou fale com a administração."
+              : `Reenvios usados: ${reenvios} de ${MAX_REENVIOS}. Cada pedido invalida o link anterior.`}
+          </p>
         </div>
       ) : (
         <form onSubmit={onSubmit} method="post" action="?" className="space-y-4">
@@ -68,6 +116,7 @@ function EsqueciSenha() {
           </button>
         </form>
       )}
+
       <div className="mt-5 space-y-2 text-sm">
         <Link to="/equipe/entrar" className="block text-navy/70 underline underline-offset-4">
           Voltar ao login da equipe
