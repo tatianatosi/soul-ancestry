@@ -913,7 +913,7 @@ export function executarCadeiaJornada(entrada: EntradaCadeia): ResultadoCadeia {
             eventoCadencia === "cadencia_critica"
               ? "Cadência crítica do caso"
               : "Cadência em atenção",
-          detalhe: cadencia?.detalhe ?? "Cadência derivada do último touchpoint válido.",
+          detalhe: cadencia?.motivo ?? "Cadência derivada do último touchpoint válido.",
           destino: plano.objetoCanonico,
           criaRegistro: false as const,
         }
