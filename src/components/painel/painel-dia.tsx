@@ -36,6 +36,7 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
 import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
 
 /**
