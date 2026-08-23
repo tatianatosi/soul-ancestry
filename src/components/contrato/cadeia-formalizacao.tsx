@@ -126,6 +126,8 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
           executada aqui.
         </span>
       </div>
+
+      <BloqueioEmissaoOS proposalId={d.proposta?.id ?? null} ativo={d.proposta?.status === "aprovada"} />
     </Painel>
   );
 }
