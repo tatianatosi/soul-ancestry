@@ -128,8 +128,11 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
 
   it("10. superfícies de alerta e preview são internas (rota autenticada)", () => {
     expect(biblioteca).toContain('createFileRoute("/_authenticated/biblioteca-mensagens")');
-    const portal = readFileSync("src/routes/portal.tsx", "utf8");
-    expect(portal).not.toContain("fiacao-cadencia-catalogo");
-    expect(portal).not.toContain("biblioteca-mensagens");
+    for (const arquivo of ["src/routes/portal/route.tsx", "src/routes/portal/index.tsx", "src/routes/portal/mensagens.$id.tsx"]) {
+      const portal = readFileSync(arquivo, "utf8");
+      expect(portal).not.toContain("fiacao-cadencia-catalogo");
+      expect(portal).not.toContain("biblioteca-mensagens");
+      expect(portal).not.toContain("Abrir modelo sugerido");
+    }
   });
 });
