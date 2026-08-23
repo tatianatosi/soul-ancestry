@@ -20,7 +20,11 @@ interface RecoveryEmailProps {
 
 export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps) => (
   <Html lang="pt-BR" dir="ltr">
-    <Head />
+    <Head>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
+    </Head>
     <Preview>Defina uma nova senha de acesso — {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
