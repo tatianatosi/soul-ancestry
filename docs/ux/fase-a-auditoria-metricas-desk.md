@@ -79,7 +79,7 @@ dado ou teste removido.
 | Teto de 5 métricas | `/metricas` exibe 5 cartões de decisão; demais em `<details>` "Histórico e análise", fechado por padrão |
 | Conversão e saúde comercial | Cards "Funil de conversão" e "Higiene comercial" removidos visualmente de `/metricas` e substituídos pelo link "Conversão e saúde comercial — ver no Comercial"; `/conversao` é a única superfície com número |
 | Resumo comercial no Painel Hoje | Frase única "Comercial hoje: X leads aguardando ação", com X definido em `src/lib/comercial-hoje-canonico.ts` e clique para `/conversao` |
-| Prioridade | Cálculo único em `prioridade-matriz.ts`, consumido por Painel Hoje (lista) e Casos 360 (badge). Sem divergência |
+| Prioridade | **DIVERGÊNCIA DE PRIORIDADE — DECISÃO HUMANA NECESSÁRIA**: função única (`prioridade-matriz.ts`), mas entradas divergem (Painel Hoje não informa `elegibilidade`), Casos 360 mantém coluna manual em escala urgente/alta/média/baixa e Radar Interno/Qualidade não consome a matriz. Nenhum cálculo alterado; diferenças documentadas em `docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md` |
 | Financeiro | Resumo preservado no Painel Hoje (`data-painel-resumo="financeiro"`) com detalhe em `/financeiro`; nenhum gate alterado |
 
 Definição canônica de X: união deduplicada de `calls_hoje`, `propostas_sem_followup` e
@@ -87,3 +87,8 @@ Definição canônica de X: união deduplicada de `calls_hoje`, `propostas_sem_f
 registros demo quando `incluirDemo=false`.
 
 Lacunas preservadas: radar multi-país, CAC/ROI sem fonte canônica, envio externo de WhatsApp desligado.
+
+### Fase B — reverificação de prioridade e rótulo canônico (23/08/2026)
+
+- Prioridade reauditada superfície a superfície: registrada **DIVERGÊNCIA DE PRIORIDADE — DECISÃO HUMANA NECESSÁRIA**, sem alterar card, cor, badge ou cálculo.
+- `/conversao` passou a exibir o rótulo discreto "Fonte canônica de conversão e saúde comercial" (`data-conversao="rotulo-canonico"`), sem tocar máquina de estados, eventos, gates ou regras comerciais.
