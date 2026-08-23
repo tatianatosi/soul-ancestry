@@ -143,8 +143,12 @@ export function VarreduraAdministracao() {
           Cada linha exibe a prévia, a reversibilidade e a confirmação necessária. Aprovar aqui apenas registra a decisão
           auditada; nenhuma ação externa, envio, cobrança, migration ou publicação é executada por esta tela.
         </p>
+        <div className="mb-4">
+          <LoteAprovacoesS01aS05 />
+        </div>
         <TabelaAprovacoesPendentes />
       </section>
+
     </div>
   );
 }
