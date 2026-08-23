@@ -6,6 +6,7 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { EstadoTelaCliente } from "@/components/cliente/estado-visibilidade";
 import { escopoDoRegistro } from "@/lib/app-visibilidade-registro";
 import { cn } from "@/lib/utils";
+import { useSuperficieInterna } from "@/lib/superficie-interna";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
 import { EntregaConsultivaTab } from "./entrega-consultiva";
@@ -96,6 +97,7 @@ type Tab =
 const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as const;
 
 export function ClienteApp() {
+  const interna = useSuperficieInterna();
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
   const [showOnePage, setShowOnePage] = useState(false);
