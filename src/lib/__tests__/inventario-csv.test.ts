@@ -5,6 +5,8 @@ import {
   filtrarInventario,
   gerarCsvInventario,
   nomeArquivoCsv,
+  previaCsvInventario,
+  tamanhoLegivel,
 } from "@/lib/inventario-csv";
 
 describe("exportação CSV do inventário patrimonial", () => {
