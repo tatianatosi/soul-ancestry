@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { CentroIntegracoes } from "@/components/integracoes/centro";
+import { MatrizProntidaoIntegracoes } from "@/components/integracoes/prontidao";
 
 export const Route = createFileRoute("/_authenticated/integracoes")({
   head: () => ({
