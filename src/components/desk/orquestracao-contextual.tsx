@@ -4,6 +4,7 @@ import {
   EVENTOS_INTERNOS,
   ROTULO_EVENTO,
   executarCadeiaJornada,
+  fiarCadenciaDoCaso,
   templatesVigentesPorEtapaCanal,
   type EventoInterno,
 } from "@/lib/orquestracao-jornada";
@@ -19,6 +20,8 @@ import {
 export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
   const dia = hoje ?? new Date().toISOString().slice(0, 10);
   const [evento, setEvento] = useState<EventoInterno | "">("");
+  const [casoId, setCasoId] = useState("");
+  const [ultimoTouchpoint, setUltimoTouchpoint] = useState("");
 
   const cadeia = useMemo(
     () =>
@@ -27,7 +30,20 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
         : null,
     [dia, evento],
   );
+  const fiacao = useMemo(
+    () =>
+      casoId.trim()
+        ? fiarCadenciaDoCaso({
+            hoje: dia,
+            caso_id: casoId.trim(),
+            evento: evento || null,
+            ultimoTouchpointValidoEm: ultimoTouchpoint || null,
+          })
+        : null,
+    [casoId, dia, evento, ultimoTouchpoint],
+  );
   const vigentes = useMemo(() => templatesVigentesPorEtapaCanal(dia), [dia]);
+
   const template = cadeia?.template.template ?? null;
 
   const preview = template
