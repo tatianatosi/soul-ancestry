@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
+import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
