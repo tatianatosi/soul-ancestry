@@ -99,9 +99,22 @@ function EntrarEquipe() {
         } catch {
           /* contabilização é best-effort */
         }
-        setErro(ERRO_NEUTRO);
+        // Categoria explícita do erro, sem expor dado sensível.
+        const codigo = (error as { code?: string }).code ?? "";
+        const status = (error as { status?: number }).status ?? 0;
+        if (status === 429 || codigo === "over_request_rate_limit") {
+          setEspera(60);
+          setErro("Limite temporário de tentativas. Aguarde o tempo indicado.");
+        } else if (codigo === "invalid_credentials" || status === 400) {
+          setErro("Senha ou e-mail incorretos para esta conta interna.");
+        } else if (codigo === "email_not_confirmed") {
+          setErro("Esta conta ainda não teve o acesso interno confirmado.");
+        } else {
+          setErro("Falha temporária do serviço de autenticação. Tente novamente em instantes.");
+        }
         return;
       }
+
       // A sessão mudou: descarta qualquer contexto de papel/organização em
       // cache (inclusive o retrato vazio lido antes do token existir), senão o
       // Desk abre como "Sem papel atribuído" mesmo para a admin.
