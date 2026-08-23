@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { cn } from "@/lib/utils";
+import { derivarAlertas, ROTULO_MOTIVO } from "@/lib/alertas-derivados";
 import { RadarChart } from "./cliente-app";
 import { BrandLogo } from "./brand";
 import {
@@ -1078,104 +1079,70 @@ function RadarIndividual() {
 
 /* --- Alertas --- */
 function Alertas() {
-  const rows = [
-    {
-      c: "Marina Alves",
-      t: "Achado documental",
-      d: "Registro batismo Coimbra 1887",
-      w: 2,
-      s: "novo",
-    },
-    {
-      c: "Ricardo Vieira",
-      t: "Nova conexão familiar",
-      d: "Ramo materno identificado — Napoli",
-      w: 4,
-      s: "novo",
-    },
-    {
-      c: "Camila Santos",
-      t: "Registro paroquial",
-      d: "Livro S. Maria pág. 142",
-      w: 5,
-      s: "revisado",
-    },
-    {
-      c: "João Ferreira",
-      t: "Contexto histórico",
-      d: "Emigração 1920 — Minho",
-      w: 7,
-      s: "revisado",
-    },
-    {
-      c: "Beatriz Lima",
-      t: "Certidão validada",
-      d: "Consulado alemão confirmou",
-      w: 9,
-      s: "urgente",
-    },
-    { c: "Paulo Neto", t: "Fotografia restaurada", d: "Foto do 1º avô — 1932", w: 3, s: "novo" },
-    {
-      c: "Helena Duarte",
-      t: "Narrativa produzida",
-      d: "Capítulo 2 do dossiê pronto",
-      w: 1,
-      s: "novo",
-    },
-  ];
+  // Visão derivada: nenhum dado é criado aqui. A ação abre o registro canônico.
+  const alertas = derivarAlertas({
+    casos: [
+      { id: "caso-marina", codigo: "Marina Alves", responsavel_id: "tati", classificacao_origem: "demo", dias_sem_touchpoint: 12 },
+      { id: "caso-ricardo", codigo: "Ricardo Vieira", classificacao_origem: "demo" },
+      { id: "caso-camila", codigo: "Camila Santos", responsavel_id: "tati", classificacao_origem: "demo", gates_pendentes: ["consentimento"] },
+    ],
+    tarefas: [
+      { id: "t-joao", titulo: "Revisar registro paroquial", caso_codigo: "João Ferreira", sla_status: "atrasada", responsavel_id: "tati", prazo: "2026-08-20" },
+    ],
+    comunicacoes: [
+      { id: "q-beatriz", caso_codigo: "Beatriz Lima", assunto: "Atualização do consulado", status: "awaiting_approval" },
+    ],
+  });
+
   return (
     <div className="space-y-6">
       <header>
-        <div className="text-[11px] uppercase tracking-widest text-gold">Gestão de descobertas</div>
+        <div className="text-[11px] uppercase tracking-widest text-gold">Exceções acionáveis</div>
         <h1 className="font-serif text-3xl italic text-navy">Alertas</h1>
+        <p className="mt-1 text-sm text-navy/70">
+          Visão derivada dos registros canônicos. Nada é criado ou resolvido aqui: a ação abre o
+          caso, a tarefa ou a fila de origem.
+        </p>
       </header>
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-navy text-cream text-left text-[11px] uppercase tracking-wide">
               <tr>
-                <th className="px-4 py-3">Cliente</th>
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Descoberta</th>
-                <th className="px-4 py-3">Espera</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Caso</th>
+                <th className="px-4 py-3">Motivo</th>
+                <th className="px-4 py-3">Exceção</th>
+                <th className="px-4 py-3">Origem canônica</th>
+                <th className="px-4 py-3">Criticidade</th>
                 <th className="px-4 py-3 text-right">Ação</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((r, i) => (
-                <tr key={i} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{r.c}</td>
-                  <td className="px-4 py-3 text-navy/75 whitespace-nowrap">{r.t}</td>
-                  <td className="px-4 py-3 text-navy/75 italic">{r.d}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
-                        r.w > 5
-                          ? "bg-terracotta/15 text-terracotta"
-                          : "bg-orange-100 text-orange-700",
-                      )}
-                    >
-                      {r.w}d
-                    </span>
+              {alertas.map((a) => (
+                <tr key={a.chave} className="hover:bg-muted/30">
+                  <td className="px-4 py-3 font-medium text-navy whitespace-nowrap">{a.caso ?? "—"}</td>
+                  <td className="px-4 py-3 text-navy/75 whitespace-nowrap">{ROTULO_MOTIVO[a.motivo]}</td>
+                  <td className="px-4 py-3 text-navy/75">
+                    {a.titulo}
+                    <span className="block text-xs text-navy/50">{a.encerraQuando}</span>
                   </td>
+                  <td className="px-4 py-3 text-xs text-navy/60 whitespace-nowrap">{a.origem.entidade}</td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide font-semibold whitespace-nowrap",
-                        r.s === "novo" && "bg-blue-100 text-blue-700",
-                        r.s === "revisado" && "bg-emerald-100 text-emerald-700",
-                        r.s === "urgente" && "bg-red-100 text-red-700",
+                        a.criticidade === "atencao" && "bg-blue-100 text-blue-700",
+                        a.criticidade === "alta" && "bg-orange-100 text-orange-700",
+                        a.criticidade === "critica" && "bg-terracotta/15 text-terracotta",
                       )}
                     >
-                      {r.s}
+                      {a.criticidade}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button className="inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-navy whitespace-nowrap">
-                      <Send className="h-3 w-3" /> Enviar
-                    </button>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-navy whitespace-nowrap">
+                      Abrir registro
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -1186,6 +1153,7 @@ function Alertas() {
     </div>
   );
 }
+
 
 /* --- Biblioteca Mestre --- */
 function BiblioMestre() {
