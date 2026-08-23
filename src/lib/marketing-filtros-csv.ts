@@ -37,7 +37,7 @@ export const CANAL_SEM_ATRIBUICAO = "sem_atribuicao";
 
 export type FiltroMarketing = { periodo: PeriodoMarketing; canal: string };
 
-export const FILTRO_MARKETING_PADRAO: FiltroMarketing = { periodo: "90d", canal: CANAL_TODOS };
+export const FILTRO_MARKETING_PADRAO: FiltroMarketing = { periodo: "tudo", canal: CANAL_TODOS };
 
 type LinhaData = { criado_em?: string | null; created_at?: string | null; occurred_at?: string | null };
 
