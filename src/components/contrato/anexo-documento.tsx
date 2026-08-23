@@ -95,7 +95,7 @@ function Secao({ s }: { s: SecaoDocumento }) {
 export function AnexoDocumento({ documento }: { documento: DocumentoAnexo }) {
   return (
     <details className="mt-2 rounded-lg border border-navy/12 bg-cream/20">
-      <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-navy">Visualizar instância do anexo</summary>
+      <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-navy">Visualizar documento derivado da ficha (antes de salvar)</summary>
       <div className="space-y-3 border-t border-navy/10 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-navy">{documento.titulo}</p>
