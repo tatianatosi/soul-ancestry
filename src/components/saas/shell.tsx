@@ -150,6 +150,7 @@ const NAV: readonly SecaoNav[] = [
     agrupador: true,
     sub: [
       { to: "/modo-proprietaria", label: "Modo Proprietária Administradora" },
+      { to: "/reconfirmar-propriedade", label: "Reconfirmar propriedade e acesso" },
       { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal dois adultos" },
