@@ -8,17 +8,17 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 
 import { CoberturaModulos } from "@/components/governanca/cobertura-modulos";
+import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
+import { rotuloHumano } from "@/lib/rotulos-humanos";
 import {
-  ACOES_EXTERNAS,
   AVISO_IRREVERSIVEL,
   MOTIVO_MINIMO,
-  ROTULO_ACAO_EXTERNA,
   ROTULO_CAPACIDADE,
   montarConfirmacao,
-  type AcaoExterna,
   type Capacidade,
   type PedidoConfirmacao,
 } from "@/lib/modo-proprietaria";
@@ -27,6 +27,18 @@ import {
   estadoModoProprietaria,
   registrarDecisaoProprietaria,
 } from "@/lib/modo-proprietaria.functions";
+
+const ATALHOS = [
+  { para: "/painel", rotulo: "Painel de hoje" },
+  { para: "/casos", rotulo: "Casos" },
+  { para: "/leads", rotulo: "Leads e comercial" },
+  { para: "/contratos", rotulo: "Contratos" },
+  { para: "/financeiro", rotulo: "Financeiro" },
+  { para: "/pesquisa", rotulo: "Pesquisa" },
+  { para: "/equipe", rotulo: "Equipe e acessos" },
+  { para: "/integracoes", rotulo: "Integrações" },
+  { para: "/auditoria", rotulo: "Registro de auditoria" },
+] as const;
 
 export function SeloModoProprietaria({ ativo }: { ativo: boolean }) {
   if (!ativo) return null;
@@ -211,130 +223,168 @@ export function ConfirmacaoAcaoExterna({ pedido }: { pedido: PedidoConfirmacao &
   );
 }
 
-/** Painel do modo: capacidades, simulador de confirmação e log de decisões. */
+/** Página operacional de primeira leitura: cinco blocos, sem jargão técnico. */
 export function PainelModoProprietaria() {
   const carregar = useServerFn(estadoModoProprietaria);
   const q = useQuery({ queryKey: ["modo-proprietaria"], queryFn: () => carregar(), retry: false });
-  const [acao, setAcao] = useState<AcaoExterna>("enviar_contrato");
 
-  if (q.isLoading) return <p className="text-sm text-muted-foreground">Carregando modo…</p>;
+  if (q.isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   if (q.isError) return <p className="text-sm text-destructive">{(q.error as Error).message}</p>;
 
   const estado = q.data;
   if (!estado?.ativo) {
     return (
       <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-        Modo Proprietária Administradora indisponível para o papel <strong>{estado?.papel ?? "—"}</strong>.
-        Os poderes de override, homologação e confirmação externa são exclusivos da administradora da
-        própria organização.
+        Este modo é exclusivo da proprietária administradora da própria organização. Seu acesso atual não
+        habilita as decisões de override.
       </div>
     );
   }
 
   const eventos = estado.eventos;
+  const aguardando = eventos.filter((e) => e.acao_externa && !e.executado);
+  const pendenciasAssumidas = eventos.filter((e) => e.categoria !== "confirmacao_externa").slice(0, 5);
+  const recentes = eventos.slice(0, 8);
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-primary/40 bg-primary/5 p-4">
+      {/* 1. Resumo do seu acesso e da operação */}
+      <section className="rounded-lg border border-primary/40 bg-primary/5 p-4">
         <SeloModoProprietaria ativo />
-        <p className="mt-2 text-sm text-foreground">
-          Operação interna total com versionamento e auditoria. Pendências continuam visíveis; nenhuma é
-          apagada. Ações externas exigem janela final de confirmação manual.
+        <h2 className="mt-2 font-serif text-lg text-foreground">Resumo do seu acesso e da operação</h2>
+        <p className="mt-1 text-sm text-foreground">
+          Você opera internamente toda a cadeia com decisão registrada. Pendências continuam visíveis e
+          nada é apagado. Ações externas nunca acontecem sozinhas.
         </p>
-        <ul className="mt-3 grid gap-1 sm:grid-cols-2">
+        <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-md border border-border bg-card p-3">
+            <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Seu papel</dt>
+            <dd className="text-sm font-semibold text-foreground">Proprietária administradora</dd>
+          </div>
+          <div className="rounded-md border border-border bg-card p-3">
+            <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Decisões registradas</dt>
+            <dd className="text-sm font-semibold text-foreground">{eventos.length}</dd>
+          </div>
+          <div className="rounded-md border border-border bg-card p-3">
+            <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Aguardando sua confirmação
+            </dt>
+            <dd className="text-sm font-semibold text-foreground">{aguardando.length}</dd>
+          </div>
+        </dl>
+      </section>
+
+      {/* 2. Atalhos por área */}
+      <section>
+        <h2 className="font-serif text-lg text-foreground">Atalhos por área</h2>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-3">
+          {ATALHOS.map((a) => (
+            <li key={a.para}>
+              <Link
+                to={a.para}
+                className="block rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                {a.rotulo}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* 3. Pendências e exceções assumidas */}
+      <section>
+        <h2 className="font-serif text-lg text-foreground">Pendências e exceções assumidas</h2>
+        {pendenciasAssumidas.length === 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Nenhuma exceção assumida até agora. Quando você avançar algo com pendência, ela aparece aqui
+            com motivo e responsável.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {pendenciasAssumidas.map((e) => (
+              <li key={e.id} className="rounded-md border border-border bg-card p-3 text-sm">
+                <p className="font-medium text-foreground">{rotuloHumano(e.entidade)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {rotuloHumano(e.acao)} — {e.motivo}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {new Date(e.created_at).toLocaleString("pt-BR")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <details className="mt-3 rounded-lg border border-border bg-card/60">
+          <summary className="cursor-pointer px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Assumir uma pendência e avançar
+          </summary>
+          <div className="border-t border-border p-4">
+            <AssumirDecisao
+              acao="assumir_pendencia_interna"
+              entidade="cadeia_operacional"
+              pendencias={[{ chave: "sku_em_revisao", rotulo: "SKU em revisão de homologação" }]}
+            />
+          </div>
+        </details>
+      </section>
+
+      {/* 4. Ações externas que aguardam confirmação */}
+      <section>
+        <h2 className="font-serif text-lg text-foreground">Ações externas que aguardam sua confirmação</h2>
+        <p className="mt-1 rounded-md border border-gold/60 bg-gold/10 p-3 text-sm text-foreground">
+          Envio de e-mail, mensagem, contrato, cobrança, pesquisa externa e publicação só acontecem quando
+          você inicia a ação dentro do caso ou do documento e confirma manualmente. Esta página não abre
+          formulário de envio.
+        </p>
+        {aguardando.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">Nada aguardando confirmação neste momento.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {aguardando.map((e) => (
+              <li key={e.id} className="rounded-md border border-terracotta/50 bg-terracotta/5 p-3 text-sm">
+                <p className="font-medium text-foreground">{rotuloHumano(e.acao)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {rotuloHumano(e.entidade)} · {e.destinatario ?? "destinatário a definir"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* 5. Decisões recentes */}
+      <section>
+        <h2 className="font-serif text-lg text-foreground">Decisões recentes</h2>
+        {recentes.length === 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">Ainda não há decisões registradas.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {recentes.map((e) => (
+              <li key={e.id} className="rounded-md border border-border bg-card p-3 text-sm">
+                <p className="text-foreground">
+                  {rotuloHumano(e.acao)} — {rotuloHumano(e.entidade)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(e.created_at).toLocaleString("pt-BR")} · {e.motivo}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <DetalhesTecnicos titulo="Detalhes técnicos (poderes, módulos e nomes de sistema)">
+        <ul className="grid gap-1 sm:grid-cols-2">
           {(estado.capacidades as Capacidade[]).map((c) => (
             <li key={c} className="text-xs text-muted-foreground">
               • {ROTULO_CAPACIDADE[c]}
             </li>
           ))}
         </ul>
-      </div>
-
-      <CoberturaModulos />
-
-
-
-      <section>
-        <h2 className="text-sm font-semibold text-foreground">Decisão administrativa auditada</h2>
-        <p className="mb-2 text-xs text-muted-foreground">
-          Registra autora, data/hora, valor anterior, valor novo, fonte, entidade e evento de auditoria.
-        </p>
-        <AssumirDecisao
-          acao="assumir_pendencia_interna"
-          entidade="cadeia_operacional"
-          pendencias={[{ chave: "sku_em_revisao", rotulo: "SKU em revisão de homologação" }]}
-        />
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold text-foreground">Ações externas e irreversíveis</h2>
-        <p className="mb-2 text-xs text-muted-foreground">
-          Nunca disparadas automaticamente: exigem confirmação manual com todos os dados à vista.
-        </p>
-        <label className="text-xs text-muted-foreground" htmlFor="acao-externa">
-          Ação
-        </label>
-        <select
-          id="acao-externa"
-          className="mb-3 ml-2 rounded-md border border-input bg-background p-1 text-sm"
-          value={acao}
-          onChange={(e) => setAcao(e.target.value as AcaoExterna)}
-        >
-          {ACOES_EXTERNAS.map((a) => (
-            <option key={a} value={a}>
-              {ROTULO_ACAO_EXTERNA[a]}
-            </option>
-          ))}
-        </select>
-        <ConfirmacaoAcaoExterna
-          pedido={{
-            acao,
-            entidade: "acao_externa",
-            organizacao: estado.organizationId,
-            destinatario: "",
-            conteudo: "",
-            valor: null,
-            caso: "",
-            anexos: [],
-            impacto: "",
-            dados_enviados: null,
-          }}
-        />
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold text-foreground">Log de decisões e confirmações</h2>
-        {eventos.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Sem dados suficientes.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="mt-2 w-full text-left text-xs">
-              <thead className="text-muted-foreground">
-                <tr>
-                  <th className="py-1">Data</th>
-                  <th>Categoria</th>
-                  <th>Ação</th>
-                  <th>Entidade</th>
-                  <th>Motivo</th>
-                  <th>Executada</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventos.map((e) => (
-                  <tr key={e.id} className="border-t border-border">
-                    <td className="py-1">{new Date(e.created_at).toLocaleString("pt-BR")}</td>
-                    <td>{e.categoria}</td>
-                    <td>{e.acao}</td>
-                    <td>{e.entidade}</td>
-                    <td className="max-w-[24ch] truncate">{e.motivo}</td>
-                    <td>{e.executado ? "sim" : "não"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        <div className="mt-4">
+          <CoberturaModulos />
+        </div>
+      </DetalhesTecnicos>
     </div>
   );
 }

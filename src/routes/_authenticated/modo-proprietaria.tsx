@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SaasShell } from "@/components/saas/shell";
 import { PainelModoProprietaria } from "@/components/governanca/modo-proprietaria";
 import { VarreduraAutorizacoes } from "@/components/governanca/varredura-autorizacoes";
+import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
 
 export const Route = createFileRoute("/_authenticated/modo-proprietaria")({
   head: () => ({
@@ -30,11 +31,13 @@ function ModoProprietariaPage() {
   return (
     <SaasShell
       titulo="Modo Proprietária Administradora"
-      descricao="Operação interna total: editar, versionar, homologar, aprovar e avançar qualquer elo da cadeia mediante decisão humana auditada. RLS, auditoria, histórico e triggers de integridade permanecem ativos. Ações externas e irreversíveis exigem confirmação final explícita e nunca são disparadas automaticamente."
+      descricao="Sua página de primeira leitura: acesso, atalhos, pendências assumidas, ações externas que aguardam confirmação e decisões recentes."
     >
       <div className="space-y-8">
         <PainelModoProprietaria />
-        <VarreduraAutorizacoes />
+        <DetalhesTecnicos titulo="Detalhes técnicos — matriz de autorizações">
+          <VarreduraAutorizacoes />
+        </DetalhesTecnicos>
       </div>
     </SaasShell>
   );

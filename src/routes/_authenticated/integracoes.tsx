@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { CentroIntegracoes } from "@/components/integracoes/centro";
+import { MatrizProntidaoIntegracoes } from "@/components/integracoes/prontidao";
 
 export const Route = createFileRoute("/_authenticated/integracoes")({
   head: () => ({
@@ -25,9 +26,12 @@ function IntegracoesPage() {
   return (
     <SaasShell
       titulo="Centro de Integrações"
-      descricao="Cada conector tem responsável, mapeamento de campos, política de tentativas e logs mascarados."
+      descricao="Estado real de cada conector, pré-requisitos e o que ainda não pode ser executado. Nenhuma ação externa parte desta tela."
     >
-      <CentroIntegracoes />
+      <div className="space-y-8">
+        <MatrizProntidaoIntegracoes />
+        <CentroIntegracoes />
+      </div>
     </SaasShell>
   );
 }
