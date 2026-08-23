@@ -64,7 +64,7 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+    <li data-registro={`${item.tipo}:${item.id}`} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
         <span className="min-w-0 break-words">
           <LinkItem item={item}>{item.rotulo}</LinkItem>
