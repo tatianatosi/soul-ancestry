@@ -101,27 +101,34 @@ export async function staffPorUsuario(userId: string) {
 
 /** Sincroniza vínculo e papel a partir de staff_access (nunca do front-end). */
 export async function sincronizarVinculo(staff: any, userId: string) {
-  await adminClient
+  const membership = await adminClient
     .from("organization_members")
     .upsert(
       { organization_id: staff.organization_id, user_id: userId, archived_at: null },
       { onConflict: "organization_id,user_id" },
     );
-  await adminClient
+  if (membership.error) throw new Error(membership.error.message);
+
+  const papeisRemovidos = await adminClient
     .from("user_roles")
     .delete()
     .eq("organization_id", staff.organization_id)
     .eq("user_id", userId)
     .neq("role", staff.role);
-  await adminClient
+  if (papeisRemovidos.error) throw new Error(papeisRemovidos.error.message);
+
+  const papel = await adminClient
     .from("user_roles")
     .upsert(
       { organization_id: staff.organization_id, user_id: userId, role: staff.role },
       { onConflict: "organization_id,user_id,role" },
     );
-  await adminClient
+  if (papel.error) throw new Error(papel.error.message);
+
+  const perfil = await adminClient
     .from("profiles")
     .upsert({ id: userId, email: staff.email, nome: staff.full_name }, { onConflict: "id" });
+  if (perfil.error) throw new Error(perfil.error.message);
 }
 
 /** Remove vínculos operacionais quando o acesso deixa de estar ativo. */
