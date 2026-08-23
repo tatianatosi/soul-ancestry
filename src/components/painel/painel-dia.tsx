@@ -460,7 +460,7 @@ export function PainelDia() {
       </section>
 
       {/* 1 — Minha fila priorizada */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="fila_priorizada" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
           <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
@@ -516,7 +516,7 @@ export function PainelDia() {
 
 
       {/* 2 — Exceções que exigem dono */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="excecoes" className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
@@ -547,7 +547,7 @@ export function PainelDia() {
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
           <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
@@ -604,7 +604,7 @@ export function PainelDia() {
 
       {/* 4 — Comercial hoje */}
 
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
@@ -644,7 +644,7 @@ export function PainelDia() {
       </section>
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
@@ -674,7 +674,7 @@ export function PainelDia() {
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
-      <section className="rounded-xl border border-navy/10 bg-white p-5">
+      <section data-painel-bloco="atalhos" className="rounded-xl border border-navy/10 bg-white p-5">
         <h2 className="font-serif text-lg text-navy">Atalhos</h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {[
