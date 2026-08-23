@@ -346,7 +346,7 @@ export const MATRIZ_PENDENCIAS: LinhaPendencia[] = [
     risco: "Despesa externa, representação e aditivo sem instrumento válido.",
     efeitoInterno: "Instâncias ficam em estado 'modelo ausente' com prévia marcada.",
     efeitoExterno: "Bloqueia despesa externa, ato em nome do cliente e alteração de escopo.",
-    responsavel: "Proprietária administradora + jurídico",
+    responsavel: "Proprietária administradora / Operações",
     proximaAcao: "Localizar os arquivos aprovados, registrá-los no repositório canônico com versão e vinculá-los ao caso.",
     superavelPorDecisaoAuditada: false,
     prazo: null,
