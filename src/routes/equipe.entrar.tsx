@@ -133,13 +133,26 @@ function EntrarEquipe() {
           />
         </div>
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
+        {bloqueado ? (
+          <p className="text-sm text-navy/70">
+            Acesso temporariamente pausado por excesso de tentativas. Liberação em{" "}
+            <span className="font-medium text-navy">{rotuloEspera}</span>.
+          </p>
+        ) : null}
         <button
           type="submit"
-          disabled={carregando || !pronto}
+          disabled={carregando || !pronto || bloqueado}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {!pronto ? "Carregando…" : carregando ? "Entrando…" : "Entrar"}
+          {!pronto
+            ? "Carregando…"
+            : bloqueado
+              ? `Aguarde ${rotuloEspera}`
+              : carregando
+                ? "Entrando…"
+                : "Entrar"}
         </button>
+
       </form>
 
       <div className="mt-5 space-y-2 text-sm">
