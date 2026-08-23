@@ -19,7 +19,7 @@ export const obterOnboarding = createServerFn({ method: "GET" })
   .inputValidator((data: { casoId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
 
     const caso = await supabase
@@ -94,7 +94,7 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
 
     const atual = await supabase
@@ -154,7 +154,7 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
   .inputValidator((data: { casoId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
     if (!podeAtivar(papeis)) {
       await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
@@ -201,7 +201,7 @@ export const suspenderCaso = createServerFn({ method: "POST" })
   .inputValidator((data: { casoId: string; motivo: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
     if (!podeAtivar(papeis)) return { ok: false, erro: "Somente admin ou operações podem suspender." };
     if (!data.motivo || data.motivo.trim().length < 10) {
