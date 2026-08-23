@@ -430,8 +430,11 @@ export function PainelDia() {
     ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
 
 
+  const raizRef = useRef<HTMLDivElement>(null);
+  const problemasLeitura = useVerificacaoLeituraPainel(raizRef, [priorizadaVisivel, excecoes, agrupado, cadencia]);
+
   return (
-    <div className="space-y-6">
+    <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <p className="min-w-0 text-sm text-navy/60">
           O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
