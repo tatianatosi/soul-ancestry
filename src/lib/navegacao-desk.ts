@@ -311,15 +311,22 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/auditoria",
 ] as const;
 
-/** Todas as rotas com link direto no menu (sem duplicar). */
+/** Todas as rotas com link direto no menu principal ou no menu da conta. */
 export function rotasDoMenu(): string[] {
   const set = new Set<string>();
   for (const g of GRUPOS_DESK) {
     set.add(g.to);
     for (const s of g.sub) if ("to" in s) set.add(s.to);
   }
+  for (const s of MENU_CONTA.itens) if ("to" in s) set.add(s.to);
   return [...set];
 }
+
+/** Rotas presentes apenas no menu da conta (fora dos 8 grupos principais). */
+export function rotasDoMenuConta(): string[] {
+  return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
+}
+
 
 /** Rotas preservadas que perderam link de menu (devem ser zero). */
 export function rotasSemLink(): string[] {
