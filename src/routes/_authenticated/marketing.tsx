@@ -17,8 +17,26 @@ import {
   leituraMetricas,
   resumoPorOrigem,
   separarMetricas,
+  SEM_DADOS,
   type Confianca,
 } from "@/lib/marketing-aquisicao";
+import {
+  CANAL_TODOS,
+  FILTRO_MARKETING_PADRAO,
+  METRICAS_EXPLICADAS,
+  PERIODOS_MARKETING,
+  ROTULO_GRUPO_PRONTIDAO,
+  baixarCsvMarketing,
+  canaisDisponiveis,
+  explicarMetrica,
+  filtrarEntrada,
+  linhasCsvMarketing,
+  prontidaoAtribuicao,
+  rotuloCanal,
+  rotuloPeriodo,
+  type FiltroMarketing,
+  type PeriodoMarketing,
+} from "@/lib/marketing-filtros-csv";
 
 export const Route = createFileRoute("/_authenticated/marketing")({
   head: () => ({
@@ -75,6 +93,7 @@ function Marketing() {
   const carregar = useServerFn(carregarConversao);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [tecnicoAberto, setTecnicoAberto] = useState(false);
+  const [filtro, setFiltro] = useState<FiltroMarketing>(FILTRO_MARKETING_PADRAO);
 
   const q = useQuery({
     queryKey: ["marketing-aquisicao", incluirDemo],
@@ -82,7 +101,7 @@ function Marketing() {
     retry: false,
   });
 
-  const entrada = useMemo(
+  const entradaBruta = useMemo(
     () => ({
       leads: (q.data?.leadsTodos ?? []) as { origem?: string | null; canal?: string | null }[],
       eventos: (q.data?.eventos ?? []) as { origem?: string | null; canal?: string | null }[],
@@ -93,6 +112,15 @@ function Marketing() {
     }),
     [q.data],
   );
+
+  const canais = useMemo(() => canaisDisponiveis(entradaBruta), [entradaBruta]);
+  const entrada = useMemo(() => filtrarEntrada(entradaBruta, filtro), [entradaBruta, filtro]);
+  const prontidao = useMemo(() => prontidaoAtribuicao(entrada), [entrada]);
+  const explicacoes = useMemo(
+    () => Object.fromEntries(METRICAS_EXPLICADAS.map((c) => [c, explicarMetrica(c, entrada)])),
+    [entrada],
+  );
+  const totalLinhasCsv = useMemo(() => linhasCsvMarketing(entrada, filtro).length, [entrada, filtro]);
 
   const origens = useMemo(() => resumoPorOrigem(entrada), [entrada]);
   const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
@@ -116,6 +144,12 @@ function Marketing() {
         </div>
 
         <nav className="flex flex-wrap gap-2">
+          <a
+            href="#prontidao-atribuicao"
+            className="rounded-full border border-navy/15 px-3 py-1 text-[12px] text-navy/70 hover:border-gold hover:text-navy"
+          >
+            Prontidão de atribuição
+          </a>
           {SECOES_MARKETING.map((s) => (
             <a
               key={s.hash}
@@ -126,6 +160,80 @@ function Marketing() {
             </a>
           ))}
         </nav>
+
+        <section
+          data-marketing="filtros"
+          className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-4"
+        >
+          <label className="flex flex-col text-[11px] uppercase tracking-wide text-navy/50">
+            Período
+            <select
+              value={filtro.periodo}
+              onChange={(e) => setFiltro((f) => ({ ...f, periodo: e.target.value as PeriodoMarketing }))}
+              className="mt-1 rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
+            >
+              {PERIODOS_MARKETING.map((p) => (
+                <option key={p.valor} value={p.valor}>
+                  {p.rotulo}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-[11px] uppercase tracking-wide text-navy/50">
+            Canal
+            <select
+              value={filtro.canal}
+              onChange={(e) => setFiltro((f) => ({ ...f, canal: e.target.value }))}
+              className="mt-1 rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-[13px] normal-case tracking-normal text-navy"
+            >
+              <option value={CANAL_TODOS}>Todos os canais</option>
+              {canais.map((c) => (
+                <option key={c.valor} value={c.valor}>
+                  {c.rotulo}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            data-marketing="exportar-csv"
+            onClick={() => baixarCsvMarketing(entrada, filtro)}
+            className="rounded-lg border border-gold bg-cream/60 px-3 py-1.5 text-[13px] text-navy hover:border-navy"
+          >
+            Exportar indicadores em CSV ({totalLinhasCsv} linha(s))
+          </button>
+          <p className="basis-full text-[12px] text-navy/55">
+            Recorte atual: {rotuloPeriodo(filtro.periodo)} · {rotuloCanal(filtro.canal)}. O CSV inclui os estados “
+            {SEM_DADOS}”, sem estimativa. Arquivo gerado localmente; nada é enviado para fora.
+          </p>
+        </section>
+
+        <Bloco
+          id="prontidao-atribuicao"
+          titulo="Prontidão de atribuição"
+          descricao="O que precisa existir — investimento, atribuição e captura — antes de qualquer cálculo de CAC, ROI ou ROAS."
+        >
+          <p data-marketing="prontidao-resumo" className="mb-3 text-[13px] text-navy/70">
+            {prontidao.resumo}
+          </p>
+          <ul data-marketing="prontidao-checklist" className="space-y-2">
+            {prontidao.itens.map((i) => (
+              <li key={i.chave} className="rounded-lg border border-navy/10 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span aria-hidden className={i.atendido ? "text-navy" : "text-terracotta"}>
+                    {i.atendido ? "✓" : "•"}
+                  </span>
+                  <span className="text-navy">{i.titulo}</span>
+                  <Selo texto={ROTULO_GRUPO_PRONTIDAO[i.grupo]} />
+                  <Selo texto={i.atendido ? "atendido" : "pendente"} />
+                </div>
+                <p className="mt-1 text-[12px] text-navy/60">{i.exigencia}</p>
+                <p className="mt-1 text-[12px] text-navy/55">{i.detalhe}</p>
+                {!i.atendido && <p className="mt-1 text-[12px] text-navy/70">Como resolver: {i.comoResolver}</p>}
+              </li>
+            ))}
+          </ul>
+        </Bloco>
 
         <Bloco id="visao-geral" titulo="Visão geral de aquisição" descricao={SECOES_MARKETING[0].descricao}>
           <label className="mb-3 flex items-center gap-2 text-[12px] text-navy/60">
@@ -265,6 +373,30 @@ function Marketing() {
                   </span>
                 </div>
                 <p className="mt-1 text-[12px] text-navy/55">{m.nota}</p>
+                {m.valor === SEM_DADOS && (m.chave === "cac" || m.chave === "roi") && (
+                  <div data-marketing-explicacao={m.chave} className="mt-2 rounded-lg border border-navy/10 bg-cream/40 p-2">
+                    {(m.chave === "cac" ? ["cac"] : ["roi", "roas"]).map((k) => {
+                      const e = explicacoes[k as "cac" | "roi" | "roas"];
+                      return (
+                        <div key={k} className="mt-1 first:mt-0">
+                          <p className="text-[12px] text-navy" title={e.tooltip}>
+                            <abbr title={e.tooltip} className="no-underline">
+                              {e.nome}
+                            </abbr>{" "}
+                            = {e.formula}
+                          </p>
+                          <ul className="mt-1 list-disc pl-5 text-[11px] text-navy/60">
+                            {e.faltantes.map((f) => (
+                              <li key={f.campo}>
+                                Falta <strong className="text-navy">{f.campo}</strong> em {f.onde} — {f.porque}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
