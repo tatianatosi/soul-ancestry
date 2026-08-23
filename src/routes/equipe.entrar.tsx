@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,7 +9,9 @@ import {
   criarPrimeiroAdmin,
   precisaProvisionamento,
   prepararLoginEquipe,
+  registrarFalhaLoginEquipe,
 } from "@/lib/equipe.functions";
+
 import { EquipeMoldura } from "@/components/equipe/moldura";
 import { useHydrated } from "@/hooks/use-hydrated";
 
@@ -35,26 +37,44 @@ function EntrarEquipe() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const preparar = useServerFn(prepararLoginEquipe);
+  const registrarFalha = useServerFn(registrarFalhaLoginEquipe);
   const confirmar = useServerFn(confirmarSessaoEquipe);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [espera, setEspera] = useState(0);
   const pronto = useHydrated();
+
+  // Contagem regressiva do bloqueio por tentativas.
+  useEffect(() => {
+    if (espera <= 0) return;
+    const t = setTimeout(() => setEspera((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [espera]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pronto) return;
+    // Trava contra envios duplicados (clique repetido, Enter múltiplo).
+    if (carregando || espera > 0) return;
     setErro(null);
     setCarregando(true);
     try {
       const limite = await preparar({ data: { email } });
       if (limite.bloqueado) {
-        setErro("Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.");
+        setEspera(limite.liberaEmSegundos || 60);
+        setErro("Muitas tentativas. Aguarde o tempo indicado antes de tentar novamente.");
         return;
       }
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha });
       if (error) {
+        // Só a falha consome o limite de tentativas.
+        try {
+          await registrarFalha({ data: { email } });
+        } catch {
+          /* contabilização é best-effort */
+        }
         setErro(ERRO_NEUTRO);
         return;
       }
@@ -76,6 +96,10 @@ function EntrarEquipe() {
       setCarregando(false);
     }
   }
+
+  const bloqueado = espera > 0;
+  const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
+
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
@@ -111,13 +135,26 @@ function EntrarEquipe() {
           />
         </div>
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
+        {bloqueado ? (
+          <p className="text-sm text-navy/70">
+            Acesso temporariamente pausado por excesso de tentativas. Liberação em{" "}
+            <span className="font-medium text-navy">{rotuloEspera}</span>.
+          </p>
+        ) : null}
         <button
           type="submit"
-          disabled={carregando || !pronto}
+          disabled={carregando || !pronto || bloqueado}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {!pronto ? "Carregando…" : carregando ? "Entrando…" : "Entrar"}
+          {!pronto
+            ? "Carregando…"
+            : bloqueado
+              ? `Aguarde ${rotuloEspera}`
+              : carregando
+                ? "Entrando…"
+                : "Entrar"}
         </button>
+
       </form>
 
       <div className="mt-5 space-y-2 text-sm">
