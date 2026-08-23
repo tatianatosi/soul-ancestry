@@ -27,6 +27,9 @@ import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
 import { BLOCOS_FICHA, estadoDoBloco } from "@/lib/ficha-familiar";
 import { anexosIaV, entradaDeValores, gatesBloqueados } from "@/lib/anexos-i-v";
+import { conferirInstancias, statusTelaDeAnexo } from "@/lib/anexos-instancia";
+import { instanciasDocumentaisDoCaso } from "@/lib/anexos-instancia.functions";
+import { InstanciaDocumental } from "@/components/contrato/instancia-documental";
 import { avaliarMatrizClausulas, previaFinalLiberada } from "@/lib/matriz-clausulas";
 import {
   GATES_BLOQUEANTES,
@@ -239,6 +242,15 @@ function Pagina() {
     revisaoJuridicaAprovada: Boolean(finalAprovada),
   });
   const blocosCaso = blocosRenderizados(anexosGovernados);
+  const linhasInstancia = conferirInstancias(
+    anexosGovernados.map((a: any) => ({
+      codigo: a.codigo,
+      titulo: a.titulo,
+      status: statusTelaDeAnexo(a),
+      modelo: null,
+    })),
+    (qi.data ?? []) as any,
+  );
   const previaFinalCaso = previaFinalLiberada({
     modelo: "MODELO-ESTUDO",
     linhas: clausulasAvaliadas,
@@ -463,6 +475,9 @@ function Pagina() {
               Derivados da ficha parametrizável e da proposta/OS vinculada. Somente leitura: o template-base não é editável pelo caso e
               nenhum campo é preenchido por inferência.
             </p>
+            <div className="mb-3">
+              <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
+            </div>
             <AnexosIaV anexos={anexosGovernados} entrada={entradaAnexos} />
             <div className="mt-3">
               <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
