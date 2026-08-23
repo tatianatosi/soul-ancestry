@@ -17,6 +17,7 @@ import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
+import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
   aplicarFiltrosDia,
@@ -694,46 +695,37 @@ export function PainelDia() {
 
       <FilaRevisaoJuridica compacto />
 
-      {/* 4 — Comercial hoje */}
+      {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
       <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
-            Conversão e funil
+            Conversão e saúde comercial
           </Link>
         </div>
-        <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
-
-          {[
-            { rotulo: "Calls de hoje", itens: comercial.calls },
-            { rotulo: "Propostas sem follow-up", itens: comercial.propostas },
-            { rotulo: "Leads sem próxima ação", itens: comercial.semDisciplina },
-            { rotulo: "Aceites pendentes", itens: itensFila("aceites_sem_confirmacao") },
-            { rotulo: "Contratos enviados", itens: itensFila("contratos_enviados_pendentes") },
-            { rotulo: "Pagamentos aguardados", itens: itensFila("pagamentos_aguardados") },
-          ].map((b) => (
-            <div key={b.rotulo} className="min-w-0">
-              <p className="text-xs uppercase tracking-wide text-navy/50">
-                {b.rotulo} · {b.itens.length}
-              </p>
-              <ul className="mt-2 space-y-1 break-words text-xs text-navy/65">
-
-                {b.itens.slice(0, 5).map((i: any) => (
-                  <li key={`${b.rotulo}-${i.id}`}>
-                    <Link to="/leads" className="text-navy underline underline-offset-2">
-                      {i.rotulo}
-                    </Link>
-                    {i.responsavel ? ` · ${i.responsavel}` : " · sem responsável"}
-                    {i.etapa ? ` · ${rotuloCatalogo("eixo_comercial", i.etapa)}` : ""}
-                  </li>
-                ))}
-                {b.itens.length === 0 ? <li>Nada pendente.</li> : null}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <p data-painel-resumo="comercial" className="mt-3 text-sm text-navy">
+          <Link to="/conversao" className="text-navy underline underline-offset-2">
+            {fraseComercialHoje(
+              contarLeadsAguardandoAcao({
+                calls: comercial.calls,
+                propostas: comercial.propostas,
+                semDisciplina: comercial.semDisciplina,
+              }),
+            )}
+          </Link>
+        </p>
+        <p className="mt-1 text-xs text-navy/50">
+          Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já presente nas filas acima.
+        </p>
+        <p data-painel-resumo="financeiro" className="mt-3 text-sm text-navy">
+          <Link to="/financeiro" className="text-navy underline underline-offset-2">
+            Financeiro hoje: {itensFila("contratos_enviados_pendentes").length} contrato(s) enviado(s) ·{" "}
+            {itensFila("pagamentos_aguardados").length} pagamento(s) aguardado(s)
+          </Link>
+        </p>
       </section>
+
 
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">

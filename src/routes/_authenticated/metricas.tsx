@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
@@ -75,59 +75,56 @@ function Metricas() {
       {isLoading || !m ? (
         <p className="text-sm text-navy/60">Calculando métricas…</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <Cartao titulo="Leads por origem">
-            <Linhas itens={m.porOrigem.map((o) => ({ chave: o.origem, total: o.total }))} vazio="Sem origens registradas." />
-          </Cartao>
+        <div className="space-y-6">
+          {/* Máximo de cinco métricas principais (CA-UX-03 Fase B). */}
+          <div data-metricas="principais" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <Cartao titulo="Leads por origem">
+              <Linhas itens={m.porOrigem.map((o) => ({ chave: o.origem, total: o.total }))} vazio="Sem origens registradas." />
+            </Cartao>
 
-          <Cartao titulo="Entrada semanal">
-            <Linhas itens={m.entradaSemanal.slice(-8).map((s) => ({ chave: s.periodo, total: s.total }))} vazio="Sem entrada registrada." />
-          </Cartao>
+            <Cartao titulo="Entrada semanal">
+              <Linhas itens={m.entradaSemanal.slice(-8).map((s) => ({ chave: s.periodo, total: s.total }))} vazio="Sem entrada registrada." />
+            </Cartao>
 
-          <Cartao titulo="Entrada mensal">
-            <Linhas itens={m.entradaMensal.slice(-8).map((s) => ({ chave: s.periodo, total: s.total }))} vazio="Sem entrada registrada." />
-          </Cartao>
-
-          <Cartao titulo="Calls e Discovery">
-            <ul className="space-y-1">
-              <li>Agendadas: <strong className="text-navy">{m.calls.agendadas}</strong></li>
-              <li>Realizadas: <strong className="text-navy">{m.calls.realizadas}</strong></li>
-              <li>No-show: <strong className="text-navy">{m.calls.noShow}</strong></li>
-              <li>
-                Conversão agendada → realizada:{" "}
-                <strong className="text-navy">{m.calls.conversao === null ? "—" : `${m.calls.conversao}%`}</strong>
-              </li>
-            </ul>
-          </Cartao>
-
-          <Cartao titulo="Funil de conversão">
-            <ul className="space-y-1">
-              {m.funil.map((e) => (
-                <li key={e.etapa} className="flex justify-between gap-3">
-                  <span>{e.etapa}</span>
-                  <span className="font-semibold text-navy">
-                    {e.para}/{e.de}
-                    {e.taxa === null ? "" : ` (${e.taxa}%)`}
-                  </span>
+            <Cartao titulo="Calls e Discovery">
+              <ul className="space-y-1">
+                <li>Agendadas: <strong className="text-navy">{m.calls.agendadas}</strong></li>
+                <li>Realizadas: <strong className="text-navy">{m.calls.realizadas}</strong></li>
+                <li>No-show: <strong className="text-navy">{m.calls.noShow}</strong></li>
+                <li>
+                  Conversão agendada → realizada:{" "}
+                  <strong className="text-navy">{m.calls.conversao === null ? "—" : `${m.calls.conversao}%`}</strong>
                 </li>
-              ))}
-            </ul>
-          </Cartao>
+              </ul>
+            </Cartao>
 
-          <Cartao titulo="Higiene comercial">
-            <ul className="space-y-1">
-              <li>Leads ativos sem próxima ação: <strong className="text-navy">{m.semProximaAcao}</strong></li>
-              <li>Follow-ups vencidos: <strong className="text-navy">{m.followupsVencidos}</strong></li>
-            </ul>
-          </Cartao>
+            <Cartao titulo="Casos ativos por nacionalidade e via">
+              <Linhas itens={m.casosPorNacionalidadeVia} vazio="Sem casos ativos classificados." />
+            </Cartao>
 
-          <Cartao titulo="Casos ativos por nacionalidade e via">
-            <Linhas itens={m.casosPorNacionalidadeVia} vazio="Sem casos ativos classificados." />
-          </Cartao>
+            <Cartao titulo="Pendências documentais por responsável">
+              <Linhas itens={m.pendenciasDocumentais} vazio="Nenhuma pendência documental aberta." />
+            </Cartao>
+          </div>
 
-          <Cartao titulo="Pendências documentais por responsável">
-            <Linhas itens={m.pendenciasDocumentais} vazio="Nenhuma pendência documental aberta." />
-          </Cartao>
+          {/* Funil de conversão, funil de eventos, saúde e higiene comercial vivem apenas em /conversao. */}
+          <p data-metricas="link-conversao" className="text-sm text-navy/70">
+            <Link to="/conversao" className="text-navy underline underline-offset-2">
+              Conversão e saúde comercial — ver no Comercial
+            </Link>
+          </p>
+
+          <details data-metricas="historico" className="rounded-xl border border-navy/10 bg-white p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
+            <p className="mt-1 text-xs text-navy/50">
+              Leitura retrospectiva. Nenhum card desta seção cria fila, alerta, tarefa ou status.
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <Cartao titulo="Entrada mensal">
+                <Linhas itens={m.entradaMensal.slice(-8).map((s) => ({ chave: s.periodo, total: s.total }))} vazio="Sem entrada registrada." />
+              </Cartao>
+            </div>
+          </details>
         </div>
       )}
     </SaasShell>
