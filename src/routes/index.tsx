@@ -39,11 +39,21 @@ function Home() {
   useEffect(() => {
     let ativo = true;
 
-    void supabase.auth.getUser().then(({ data }) => {
-      if (ativo && data.user) {
-        void navigate({ to: "/painel", replace: true });
-      }
-    });
+    void (async () => {
+      const { data } = await supabase.auth.getUser();
+      const usuario = data.user;
+      if (!ativo || !usuario) return;
+      const { data: papeis, error } = await supabase.from("user_roles").select("role").eq("user_id", usuario.id);
+      if (!ativo) return;
+      const decisao = decidirAcessoDesk({
+        autenticado: true,
+        papeis: (papeis ?? []).map((p) => p.role as string),
+        erroLeitura: Boolean(error),
+      });
+      // Cliente autenticado por link mágico vai para o App Cliente, nunca para o Desk.
+      void navigate({ to: decisao === "permitir" ? "/painel" : "/portal", replace: true });
+    })();
+
 
     return () => {
       ativo = false;
