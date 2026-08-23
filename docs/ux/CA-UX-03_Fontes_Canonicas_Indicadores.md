@@ -28,6 +28,25 @@ Rotas internas (`_authenticated`): cliente não acessa.
 
 ## Prioridade
 
-`src/lib/prioridade-matriz.ts` (`calcularPrioridade`) é a única origem de cálculo, consumida por
-`painel-dia.tsx` (lista em Hoje, via `etiquetaParaFila`) e `casos.index.tsx` (badge em Casos 360).
-Não há segundo cálculo concorrente — **sem divergência registrada**.
+Status: **DIVERGÊNCIA DE PRIORIDADE — DECISÃO HUMANA NECESSÁRIA** (nenhum cálculo foi alterado).
+
+Função de cálculo: `src/lib/prioridade-matriz.ts` (`calcularPrioridade`, `matriz-elegibilidade-urgencia-v1.0`).
+Não há segunda função de cálculo, mas as **entradas e escalas divergem** entre superfícies:
+
+| Superfície | Função | Entradas informadas | Escala exibida | Divergência |
+|---|---|---|---|---|
+| Painel Hoje (`painel-dia.tsx`, lista) | `calcularPrioridade` + `etiquetaParaFila` | `tipo`, `id`, `prazo`, `bloqueios`, `responsavel`, `origem` | crítica / atenção / acompanhada / sem dados | **não** informa `elegibilidade`, `diasSemTouchpoint`, `slaStatus` |
+| Casos 360 (`casos.index.tsx`, badge/coluna) | `calcularPrioridade` | as acima **+** `hipotese_elegibilidade` e bloqueios de requisitos de ativação pendentes | mesma escala | inclui eixo de elegibilidade ausente no Painel Hoje |
+| Casos 360 — coluna `prioridade` (campo manual, legado) | nenhuma (campo do registro) | valor definido pelo operador | urgente / alta / média / baixa | escala distinta, convive com o sinal derivado |
+| Radar Interno / Qualidade (`components/qualidade/painel.tsx`) | não usa a matriz | indicadores próprios de qualidade | — | não consome `prioridade-matriz.ts` |
+
+Consequência: o mesmo caso pode aparecer como "acompanhada" no Painel Hoje e "atenção" em Casos 360
+quando a hipótese de elegibilidade é o fator decisivo. Decisão humana pendente: (a) igualar as entradas
+do Painel Hoje às de Casos 360, (b) manter leituras propositalmente distintas e rotulá-las, ou
+(c) aposentar a coluna manual `prioridade`. Até a decisão, nada é alterado.
+
+## Conversão
+
+`/conversao` é a fonte canônica de funil, saúde e higiene comercial, rotulada na própria página com
+"Fonte canônica de conversão e saúde comercial". `/metricas` só exibe link; Painel Hoje só exibe a
+frase "Comercial hoje: X leads aguardando ação".
