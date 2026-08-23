@@ -25,9 +25,12 @@ function IntegracoesPage() {
   return (
     <SaasShell
       titulo="Centro de Integrações"
-      descricao="Cada conector tem responsável, mapeamento de campos, política de tentativas e logs mascarados."
+      descricao="Estado real de cada conector, pré-requisitos e o que ainda não pode ser executado. Nenhuma ação externa parte desta tela."
     >
-      <CentroIntegracoes />
+      <div className="space-y-8">
+        <MatrizProntidaoIntegracoes />
+        <CentroIntegracoes />
+      </div>
     </SaasShell>
   );
 }
