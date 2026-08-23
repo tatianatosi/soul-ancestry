@@ -387,7 +387,15 @@ export function SaasShell({
             DEMO — não usar dados reais
           </div>
         ) : null}
-        <main className="min-w-0 flex-1 p-4 lg:p-8">{children}</main>
+        {/* Identidade de marca aplicada em escopo isolado: somente a área de
+            Pesquisa / Gestão de Pesquisa. Demais telas permanecem congeladas. */}
+        <main
+          className="min-w-0 flex-1 p-4 lg:p-8"
+          data-marca={rota.startsWith("/pesquisa") ? "guia" : undefined}
+        >
+          {children}
+        </main>
+
       </div>
     </div>
   );
