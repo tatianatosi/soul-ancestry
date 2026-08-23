@@ -14,7 +14,7 @@ export const PILOTO_ANA = {
   proposta_referencia_participantes: 3,
   proposta_observacao:
     "R$ 9.600 e composição familiar de 3 participantes constam apenas como evidência interna de proposta de referência. Não é cobrança, não é preço homologado e não autoriza Asaas.",
-  ids_historicos: ["CA-AUT-ANALUIZA-FAM-2026-001", "CA-2026-ANA-001"],
+  ids_historicos: ["CA-AUT-ANALUIZA-FAM-2026-001", "CA-2026-ANA-001", "CA-CID-AT-2026-002"],
   id_canonico_decidido: "CA-CID-AT-FAM-2026-001" as string | null,
   nome_operacional: "Projeto familiar — Ana Luiza",
   classificacao: "Piloto real",

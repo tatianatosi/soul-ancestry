@@ -11,11 +11,11 @@ export const DECISAO_ANA_CANONICA = {
   classificacao: "Piloto real",
   referenciaLegada: "CA-AUT-ANALUIZA-FAM-2026-001",
   /** Outros identificadores históricos preservados no mecanismo canônico de aliases. */
-  outrasReferenciasLegadas: ["CA-2026-ANA-001"],
+  outrasReferenciasLegadas: ["CA-2026-ANA-001", "CA-CID-AT-2026-002"],
   status: "RESOLVIDO_POR_DECISAO_DA_PROPRIETARIA" as const,
   decididoEm: "2026-08-22",
   decididoPor: "Tatiana Melani Tosi — Proprietária Administradora",
-  motivo: "Identificador canônico já definido na operação.",
+  motivo: "Consolidação de cadeia real após auditoria de identidade.",
   notaAuditoria: "Referência legada resolvida para CA-CID-AT-FAM-2026-001.",
 } as const;
 
