@@ -1,0 +1,79 @@
+grupo_anterior;rota;rotulo_anterior;grupo_novo;rotulo_novo;tipo;fonte_canonica;estado;preservado_por;observacao
+Visão geral;/painel;Painel Hoje;Hoje;Painel Hoje;tela;derivado de casos, tarefas, ops_microentregas;implementado;link direto no menu;fila diária única
+Visão geral;/painel#encontrar-no-desk;Encontrar no Desk;Hoje;Encontrar no Desk;modulo;registro de atalhos (descoberta-desk.ts);implementado;âncora no Painel Hoje;somente navegação
+Visão geral;/metricas;Métricas comerciais e operacionais;Hoje;Métricas comerciais e operacionais;tela;crm_casos, leads, eventos_financeiros;implementado;link direto no menu;
+Visão geral;/relatorios;Relatórios;Hoje;Relatórios;tela;case_reports, research_reports;parcial;link direto no menu;também citado em Pesquisa como link contextual
+Comercial;/conversao#marketing;-;Comercial;Marketing e aquisição;modulo;conversion_events, lead_sources;parcial;âncora em Conversão;marketing é módulo de Comercial, não grupo
+Comercial;/leads;Leads e Discovery;Comercial;Leads e triagem;tela;leads, lead_sources, discovery_assessments;implementado;link direto no menu;
+Comercial;/calls;Painel de Calls;Comercial;Calls Discovery;tela;crm_interactions, discovery_assessments;implementado;link direto no menu;
+Comercial;/leads#crm-contatos;Calls, conversas e interações;Comercial;CRM, contatos e interações;modulo;crm_interactions, touchpoints;implementado;âncora em Leads;interações imutáveis
+Comercial;/proximas-acoes;Próximas ações dos leads;Comercial;Próximas ações dos leads;tela;derivado de tarefas + leads;implementado;link direto no menu;
+Comercial;/propostas;Propostas;Comercial;Propostas;tela;proposals, proposal_canva_pages;implementado;link direto no menu;
+Comercial;/conversao;Conversão e follow-up;Comercial;Conversão, follow-up e handoff;tela;conversion_events;implementado;link direto no menu;sem promoção automática
+Comercial;/clientes;Clientes e núcleos vinculados;Comercial;Clientes e núcleos comerciais;tela;clientes, nucleos_familiares;implementado;link direto no menu;
+Comercial;/casos#planejador;Planejador;Casos;Casos 360 (planejador);modulo;planner_tarefas;parcial;âncora em Casos;movido para o grupo do objeto canônico
+Casos e núcleos;/casos;Casos 360;Casos;Casos 360;tela;crm_casos, case_members, case_services;implementado;link direto no menu;
+Casos e núcleos;/casos/$caseId;Detalhe do caso;Casos;Detalhe do caso;tela;crm_casos;implementado;link contextual na listagem;rota com parâmetro
+Casos e núcleos;/nucleos;Pessoas, família e dossiê-mãe;Casos;Núcleos familiares e dossiê-mãe;tela;nucleos_familiares, case_dependents;implementado;link direto no menu;
+Casos e núcleos;/tarefas;Jornada e tarefas;Casos;Tarefas e entregas internas;tela;tarefas, ops_microentregas, ops_sla_regras;implementado;link direto no menu;
+Casos e núcleos;/ops;-;Casos;Operação;tela;ops_registros, ops_sla_regras;implementado;link direto no menu (novo link, rota já existia);rota estava sem link
+Casos e núcleos;/ops-excecoes;Exceções operacionais;Casos;Exceções operacionais;tela;ops_excecoes;implementado;link direto no menu;
+Casos e núcleos;/qualidade;Radar Interno;Casos;Radar Interno e Qualidade;tela;quality_issues, case_activation_checks;implementado;link direto no menu;rótulo humano, URL inalterada
+Casos e núcleos;/onboarding/$id;Onboarding;Casos;Onboarding do caso;tela;onboarding_checklist, case_activation_checks;implementado;link contextual no caso;rota com parâmetro
+Casos e núcleos;/piloto;Piloto real;Casos;Piloto e go-live;tela;piloto_conferencia, piloto_bloqueios;implementado;link direto no menu;
+Casos e núcleos;/piloto-ana;Caso-piloto Ana Luiza;Casos;Caso-piloto Ana Luiza;tela;piloto_conferencia;implementado;link direto no menu;
+Pesquisa genealógica;/pesquisa-modulo;Visão de pesquisa e plano de ação;Pesquisa;Pesquisa Genealógica e Evidências;tela;research_cases, research_action_plan_items;implementado;link direto no menu;rótulo humano, URL inalterada
+Pesquisa genealógica;/pesquisa;Pesquisa;Pesquisa;Plano de ação e ficha genealógica;tela;research_cases, cadastral_records;parcial;link direto no menu;ficha piloto em preenchimento
+Pesquisa genealógica;/pessoas-linhagens/$caseId;Pessoas e linhagens;Pesquisa;Pessoas, famílias e ramos;tela;research_people;implementado;link contextual por caso;rota com parâmetro
+Pesquisa genealógica;/fontes-genealogicas;Fontes e consultas;Pesquisa;Fontes, consultas e bases genealógicas;tela;genealogical_sources_catalog;implementado;link direto no menu;antes duplicado em Governança
+Pesquisa genealógica;/evidencias;Evidências e documentos;Pesquisa;Evidências e documentos;tela;evidencias, documents, evidence_validations;implementado;link direto no menu;URLs assinadas
+Pesquisa genealógica;/privacidade;Privacidade e liberação documental;Pesquisa;Privacidade e consentimento;tela;consent_records, consent_exceptions;implementado;link direto no menu;
+Pesquisa genealógica;/qualidade#pesquisa;-;Pesquisa;Validação e pendências;modulo;quality_issues;implementado;âncora em Qualidade;sem segunda fila
+Pesquisa genealógica;/achados/$caseId;Achados;Pesquisa;Achados e microentregas;tela;research_findings, ops_microentregas;implementado;link contextual por caso;rota com parâmetro
+Pesquisa genealógica;/relatorios-fase/$caseId;Relatórios F1/F2;Pesquisa;Relatórios F1/F2;tela;research_reports;implementado;link contextual por caso;rota com parâmetro
+Pesquisa genealógica;/pesquisa-modulo#assistente-ia;Assistente AI;Pesquisa;Assistente IA de pesquisa;modulo;knowledge_items + gateway AI;parcial;âncora em Pesquisa;exige case_id explícito; não pesquisa externamente
+Pesquisa genealógica;/pesquisa#historico;-;Pesquisa;Alertas e histórico de pesquisa;modulo;research_events, audit_logs;parcial;âncora em Pesquisa;
+Contratos e financeiro;/escopo-origem;Origem do escopo contratual;Contratos e financeiro;Propostas aprovadas e origem de escopo;tela;proposals → commercial_conditions → service_orders;implementado;link direto no menu;
+Contratos e financeiro;/contratos;Contratos, prévia e revisão;Contratos e financeiro;Contratos, versões e anexos;tela;contracts, contract_versions, contract_annexes;implementado;link direto no menu;
+Contratos e financeiro;/contratos/$id;Detalhe do contrato;Contratos e financeiro;Detalhe do contrato;tela;contracts;implementado;link contextual na listagem;rota com parâmetro
+Contratos e financeiro;/contrato-parametros;Dados parametrizáveis;Contratos e financeiro;Parâmetros contratuais;tela;contract_parameter_values;implementado;link direto no menu;
+Contratos e financeiro;/ordens-servico;Ordens de serviço e anexos;Contratos e financeiro;Ordens de serviço;tela;service_orders;implementado;link direto no menu;
+Contratos e financeiro;/catalogo;Catálogo comercial;Contratos e financeiro;Catálogo e SKUs;tela;product_catalog, sku_catalog;implementado;link direto no menu;antes em Governança
+Contratos e financeiro;/homologacao-skus;Revisão de SKUs para homologação;Contratos e financeiro;Homologação de SKUs;tela;sku_catalog;implementado;link direto no menu;
+Contratos e financeiro;/conciliacao-catalogo;Conciliação de catálogo e bloqueios;Contratos e financeiro;Conciliação de catálogo;tela;catalog_reconciliation_runs;implementado;link direto no menu;
+Contratos e financeiro;/divergencias-catalogo;Divergências de catálogo;Contratos e financeiro;Divergências de catálogo;tela;catalog_source_divergences;implementado;link direto no menu;
+Contratos e financeiro;/financeiro;Faturas, pagamentos e condições;Contratos e financeiro;Condições, faturas e pagamentos internos;tela;invoices, payments, eventos_financeiros;parcial;link direto no menu;cobrança externa bloqueada
+Contratos e financeiro;/conciliacao-catalogo#bloqueios;-;Contratos e financeiro;Bloqueios de cobrança;modulo;catalog_reconciliation_runs;implementado;âncora em Conciliação;
+App Cliente;/acessos-portal;Acessos e visibilidade;Cliente;Acessos ao portal e App Cliente;tela;client_portal_access, authorized_portal_emails;implementado;link direto no menu;link mágico de uso único
+App Cliente;/atendimento;Atendimento e publicação;Cliente;Atendimento e solicitações de documentos;tela;portal_tickets, portal_document_requests;implementado;link direto no menu;
+App Cliente;/atendimento#publicacao;-;Cliente;Publicação de entregas autorizadas;modulo;client_deliverables;implementado;âncora em Atendimento;publicação nunca automática
+App Cliente;/acessos-portal#espelho;-;Cliente;Espelho read-only da projeção;modulo;app_projections (projeção sanitizada);a_confirmar;âncora em Acessos;reutiliza projeção existente; sem cópia
+Governança e biblioteca;/matriz-juridica;Validação Jurídica;Governança;Validação Jurídica;tela;legal_clause_matrix, versioned_legal_rules;parcial;link direto no menu + contextual em Comercial e Casos;
+Governança e biblioteca;/biblioteca;Biblioteca Mestre;Governança;Biblioteca Mestre;tela;master_library_items;implementado;link direto no menu;
+Governança e biblioteca;/biblioteca-mensagens;Biblioteca de Mensagens;Governança;Biblioteca de Mensagens;tela;message_templates;implementado;link direto no menu;
+Governança e biblioteca;/governanca/contrato-base;Contrato-base consolidado;Governança;Contrato-base consolidado;tela;docs/contratos/CA-CONTRATO-BASE-...-v2.md;implementado;link direto no menu;
+Governança e biblioteca;/governanca/modelo-individual;Modelo individual + acompanhante;Governança;Modelo individual + acompanhante;tela;contract_templates;implementado;link direto no menu;
+Governança e biblioteca;/governanca/modelo-familiar-casal;Modelo familiar — casal;Governança;Modelo familiar — casal;tela;contract_templates;implementado;link direto no menu;
+Governança e biblioteca;/governanca/modelos-contratuais;Matriz de modelos contratuais;Governança;Matriz de modelos contratuais;tela;contract_templates;implementado;link direto no menu;
+Governança e biblioteca;/governanca/criterios-aceite;Critérios de aceite;Governança;Critérios de aceite;tela;acceptance_criteria;implementado;link direto no menu;
+Governança e biblioteca;/governanca/matriz-conformidade;Matrizes conceituais;Governança;Matriz de conformidade;tela;compliance_matrix;implementado;link direto no menu;
+Governança e biblioteca;/governanca/indicadores;Indicadores e métricas;Governança;Indicadores;tela;governance_indicators;implementado;link direto no menu;
+Governança e biblioteca;/governanca/decisoes;Log de decisões;Governança;Decisões;tela;decisions, change_log;implementado;link direto no menu;
+Governança e biblioteca;/governanca/corte-vertical;Corte vertical e fontes;Governança;Corte vertical e fontes;tela;registro de corte vertical;implementado;link direto no menu;
+Governança e biblioteca;/governanca/inventario-recuperacao;Inventário e recuperação;Governança;Inventário e recuperação;tela;artifact_register;implementado;link direto no menu;
+Governança e biblioteca;/governanca/inventario-patrimonial;Inventário patrimonial;Governança;Inventário patrimonial;tela;artifact_register;implementado;link direto no menu;
+Governança e biblioteca;/governanca/varredura-completude;Varredura de completude;Governança;Completude;tela;derivações de varredura;implementado;link direto no menu;
+Governança e biblioteca;/governanca/modulos-contextuais;Módulos contextuais;Governança;Módulos contextuais;tela;registro de módulos;implementado;link direto no menu;
+Governança e biblioteca;/governanca/matriz-equivalencia;Matriz mockup → rota → dado → estado;Governança;Matriz mockup → rota → dado → estado;tela;matriz-equivalencia.ts;implementado;link direto no menu;atualizada com grupo_novo
+Governança e biblioteca;/governanca/identificadores;Identificadores;Governança;Identificadores;tela;identifier_registry;implementado;link direto no menu;
+Governança e biblioteca;/etiquetas;Etiquetas canônicas;Governança;Etiquetas canônicas;tela;tag_registry;implementado;link direto no menu;
+Governança e biblioteca;/referencia-mockup-desk;Mockup original — 14 abas;Governança;Mockup original — 14 abas (referência);referencia;dados estáticos do mockup;implementado;link direto no menu;nunca recebe dado real
+Governança e biblioteca;/integracoes;Integrações;Governança;Integrações;tela;integrations, integration_runs;a_confirmar;link direto no menu;e-mail bloqueado por DNS
+Governança e biblioteca;/importacoes;Importações e migração;Governança;Importações e migração;tela;import_batches;implementado;link direto no menu;
+Governança e biblioteca;/auditoria;Auditoria;Governança;Auditoria;tela;audit_logs;implementado;link direto no menu (admin);restrito a admin
+Governança e biblioteca;/modo-proprietaria;Modo Proprietária Administradora;Administração;Modo Proprietária;tela;owner_override_events, staff_access;implementado;link direto no menu;
+Governança e biblioteca;/equipe;Usuários e papéis;Administração;Equipe e papéis;tela;profiles, staff_access, user_roles;implementado;link direto no menu (admin);restrito a admin
+Governança e biblioteca;/configuracoes;Configurações;Administração;Configurações;tela;organizations, org_settings;a_confirmar;link direto no menu;
+Governança e biblioteca;/reconfirmar-propriedade;Reconfirmar propriedade e acesso;Administração;Segurança e reconfirmação de propriedade;tela;owner_override_events, audit_logs;implementado;link direto no menu;
+Governança e biblioteca;/governanca/varredura-administracao;Varredura de administração;Administração;Verificação administrativa;tela;audit_logs, staff_access;parcial;link direto no menu;prova ponta a ponta exige login manual
+-;-;Radar multi-país;-;Radar multi-país;lacuna;-;ausente;-;sem fonte canônica; nenhum cálculo simulado
