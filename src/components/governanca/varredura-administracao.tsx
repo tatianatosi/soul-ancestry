@@ -32,6 +32,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AVISO_IRREVERSIVEL } from "@/lib/modo-proprietaria";
+import { LoteAprovacoesS01aS05 } from "@/components/governanca/lote-aprovacoes-s01-s05";
+
 
 export function VarreduraAdministracao() {
   return (
@@ -143,8 +145,12 @@ export function VarreduraAdministracao() {
           Cada linha exibe a prévia, a reversibilidade e a confirmação necessária. Aprovar aqui apenas registra a decisão
           auditada; nenhuma ação externa, envio, cobrança, migration ou publicação é executada por esta tela.
         </p>
+        <div className="mb-4">
+          <LoteAprovacoesS01aS05 />
+        </div>
         <TabelaAprovacoesPendentes />
       </section>
+
     </div>
   );
 }
