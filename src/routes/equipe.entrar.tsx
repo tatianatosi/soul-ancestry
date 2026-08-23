@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,7 @@ const ERRO_NEUTRO = "Não foi possível entrar. Verifique os dados e tente novam
 
 function EntrarEquipe() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const preparar = useServerFn(prepararLoginEquipe);
   const confirmar = useServerFn(confirmarSessaoEquipe);
   const [email, setEmail] = useState("");
@@ -57,11 +58,17 @@ function EntrarEquipe() {
         setErro(ERRO_NEUTRO);
         return;
       }
+      // A sessão mudou: descarta qualquer contexto de papel/organização em
+      // cache (inclusive o retrato vazio lido antes do token existir), senão o
+      // Desk abre como "Sem papel atribuído" mesmo para a admin.
+      await queryClient.cancelQueries();
+      queryClient.clear();
       const r = await confirmar({});
       if (!r.autorizado) {
         navigate({ to: "/equipe/sem-permissao", replace: true });
         return;
       }
+      await queryClient.invalidateQueries();
       navigate({ to: "/painel", replace: true });
     } catch {
       setErro(ERRO_NEUTRO);
