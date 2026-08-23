@@ -138,10 +138,8 @@ function DivergenciasCatalogoPage() {
           ) : q.isError ? (
             <p className="text-sm text-terracotta">Não foi possível carregar as divergências.</p>
           ) : linhas.length === 0 ? (
-            <EstadoVazio
-              titulo="Nenhuma divergência com esses filtros"
-              descricao="Ajuste SKU, vínculo ou status para ver outros registros da conciliação."
-            />
+            <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
+
           ) : (
             <ul className="space-y-3">
               {linhas.map((l) => (
