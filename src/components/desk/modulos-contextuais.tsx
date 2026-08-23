@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bot, ChevronRight, X } from "lucide-react";
 
-import { modulosDaTela, TELA_DESK_LABEL, type TelaDesk } from "@/lib/desk-modulos";
+import { fonteUnicaDe, modulosDaTela, TELA_DESK_LABEL, TIPO_MODULO_LABEL, type TelaDesk } from "@/lib/desk-modulos";
 import { cn } from "@/lib/utils";
 
 /**
