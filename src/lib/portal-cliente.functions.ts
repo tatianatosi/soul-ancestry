@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
+import { bloqueadoParaCliente, filtrarParaCliente } from "@/lib/classificacao-dados";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -34,7 +35,8 @@ export const meusCasos = createServerFn({ method: "GET" })
       porCaso.set(p.case_id, (porCaso.get(p.case_id) ?? 0) + 1);
     }
 
-    return ((casos.data ?? []) as any[]).map((c) => {
+    // P0.2: só registro classificado como real chega ao cliente autenticado.
+    return filtrarParaCliente((casos.data ?? []) as any[]).map((c) => {
       const s = h.statusSimples(c, porCaso.get(c.id) ?? 0);
       return {
         id: c.id as string,
@@ -60,6 +62,7 @@ export const meuCaso = createServerFn({ method: "GET" })
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
 
     const caso = await h.casoAutorizado(supabase, data.casoId);
+    if (caso && bloqueadoParaCliente(caso as any)) return null; // P0.2: não-real nunca é projetado
     if (!caso) {
       const portal = await import("./portal.server");
       await portal.registrarEvento({
@@ -102,7 +105,7 @@ export const meuCaso = createServerFn({ method: "GET" })
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
     const s = h.statusSimples(caso, pendentes);
-    const docs = (documentos.data ?? []) as any[];
+    const docs = filtrarParaCliente((documentos.data ?? []) as any[]);
 
     return {
       caso: {
@@ -143,7 +146,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: ((faturas.data ?? []) as any[]).map((f) => ({
+      faturas: filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,
@@ -406,7 +409,7 @@ export const minhasEntregas = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    const lista = (docs.data ?? []) as any[];
+    const lista = filtrarParaCliente((docs.data ?? []) as any[]);
     return {
       entregas: lista
         .filter((d) => d.liberado_cliente === true)
@@ -447,7 +450,7 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    return ((faturas.data ?? []) as any[]).map((f) => ({
+    return filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
       id: f.id as string,
       numero: f.numero as string | null,
       descricao: f.descricao as string | null,
