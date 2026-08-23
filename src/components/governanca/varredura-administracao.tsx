@@ -32,6 +32,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AVISO_IRREVERSIVEL } from "@/lib/modo-proprietaria";
+import { LoteAprovacoesS01aS05 } from "@/components/governanca/lote-aprovacoes-s01-s05";
+
 
 export function VarreduraAdministracao() {
   return (
