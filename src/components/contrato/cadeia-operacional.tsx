@@ -155,6 +155,8 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
           <span className="self-center text-xs text-navy/50">Assinatura permanece desabilitada nesta entrega.</span>
         </div>
       )}
+
+      {podeEscrever && <BloqueioEmissaoOS proposalId={proposalId} ativo={statusProposta === "aprovada"} />}
     </Painel>
   );
 }
