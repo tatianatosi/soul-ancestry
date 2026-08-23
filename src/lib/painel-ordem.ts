@@ -26,6 +26,7 @@ export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
   { chave: "prazos", titulo: "Casos com prazo em atenção", fila: false },
   { chave: "atalhos", titulo: "Atalhos", fila: false },
+  { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },
 ] as const;
 
 /** Par cuja adjacência é obrigatória: sinais logo depois das exceções. */

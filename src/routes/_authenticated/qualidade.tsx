@@ -28,8 +28,8 @@ export const Route = createFileRoute("/_authenticated/qualidade")({
 function QualidadePage() {
   return (
     <SaasShell
-      titulo="Qualidade"
-      descricao="Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
+      titulo="Radar Interno"
+      descricao="Antes chamado Qualidade e fechamento. Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
     >
       <PainelQualidade />
     </SaasShell>
