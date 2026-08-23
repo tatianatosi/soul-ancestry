@@ -84,7 +84,11 @@ export function casosCanonicosDaCadencia(
  */
 export function itensDerivadosDoPainel(entrada: EntradaDerivadosPainel): ItemDerivadoPainel[] {
   const casos = casosCanonicosDaCadencia(entrada.casosCadencia ?? [], entrada.bloqueadosCatalogo ?? []);
-  const alertas = derivarAlertas({ casos });
+  // A cadência não carrega classificação de origem; sinal sem evidência na
+  // fonte não é exibido (evita alerta falso de classificação/projeção).
+  const alertas = derivarAlertas({ casos }).filter(
+    (a) => a.motivo !== "classificacao_origem_inconsistente" && a.motivo !== "risco_exposicao_interna",
+  );
   const jaExibidos = entrada.jaExibidos ?? new Set<string>();
 
   // Precedência canônica: se o registro já está na fila do Painel Hoje, o item
