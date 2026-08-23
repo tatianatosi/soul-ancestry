@@ -1,0 +1,24 @@
+/**
+ * Bloco recolhível de "Detalhes técnicos".
+ *
+ * Mantém nomes de tabela, identificadores e matrizes fora do fluxo principal.
+ * Recolhido por padrão; nada dentro dele altera dados.
+ */
+import type { ReactNode } from "react";
+
+export function DetalhesTecnicos({
+  titulo = "Detalhes técnicos",
+  children,
+}: {
+  titulo?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="rounded-lg border border-border bg-card/60">
+      <summary className="cursor-pointer select-none px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        {titulo}
+      </summary>
+      <div className="border-t border-border p-4">{children}</div>
+    </details>
+  );
+}
