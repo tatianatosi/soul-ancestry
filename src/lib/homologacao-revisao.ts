@@ -72,7 +72,7 @@ export function itensRevisao(
 ): ItemRevisaoSku[] {
   return skus
     .filter((s) => (opcoes?.incluirTeste ? true : !s.dados_teste))
-    .filter((s) => s.estado_catalogo !== "descontinuado" && s.estado_catalogo !== "substituido")
+    .filter((s) => s.estado_catalogo !== "arquivado" && s.estado_catalogo !== "substituido")
     .map((s) => {
       const pendencias = pendenciasBloqueantes(s);
       return {

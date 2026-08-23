@@ -27,7 +27,7 @@ const base = (over: Partial<SkuCanonico>): SkuCanonico =>
     moeda: "BRL",
     preco_fonte: "Planilha mestre v3",
     preco_estado_homologacao: "nao_homologado",
-    tipo_cobranca: "unico",
+    tipo_cobranca: "avulsa",
     entregaveis: ["Relatório"],
     inclusoes: ["Pesquisa"],
     exclusoes: ["Tradução"],

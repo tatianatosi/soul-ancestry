@@ -224,13 +224,13 @@ function HomologacaoSkusPage() {
                 ) : null}
               </div>
 
-              <DetalhesTecnicos className="mt-3">
+              <div className="mt-3"><DetalhesTecnicos>
                 <p>Identificador de sistema: {i.id}</p>
                 <p>Origem da planilha mestre: {i.origem}</p>
                 <p>
                   Tipo de cobrança: {i.tipo_cobranca} · Entregáveis declarados: {i.entregaveis}
                 </p>
-              </DetalhesTecnicos>
+              </DetalhesTecnicos></div>
             </article>
           );
         })}
