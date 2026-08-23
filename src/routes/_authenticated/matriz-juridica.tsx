@@ -47,7 +47,7 @@ function MatrizPage() {
 
   return (
     <SaasShell
-      titulo="Matriz jurídica interna"
+      titulo="Validação Jurídica"
       descricao="Registro de decisão por tema. Esta tela não guarda redação de cláusula e nenhum conteúdo público é versão vigente."
     >
       <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">

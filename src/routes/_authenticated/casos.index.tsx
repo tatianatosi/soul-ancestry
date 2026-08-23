@@ -23,6 +23,7 @@ import {
 } from "@/lib/caso-ficha";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { calcularPrioridade } from "@/lib/prioridade-matriz";
+import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
@@ -223,7 +224,7 @@ function CasosPage() {
           },
           {
             chave: "sinal_prioridade",
-            rotulo: "Sinal elegibilidade × urgência",
+            rotulo: ROTULO_PRIORIDADE,
             render: (l) => {
               const e = estados.get(String(l["id"]));
               const r = calcularPrioridade({

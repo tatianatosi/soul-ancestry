@@ -33,6 +33,7 @@ import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-perm
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedReferenciaMockupDeskRouteImport } from './routes/_authenticated/referencia-mockup-desk'
 import { Route as AuthenticatedReconfirmarPropriedadeRouteImport } from './routes/_authenticated/reconfirmar-propriedade'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
@@ -229,6 +230,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReferenciaMockupDeskRoute =
+  AuthenticatedReferenciaMockupDeskRouteImport.update({
+    id: '/referencia-mockup-desk',
+    path: '/referencia-mockup-desk',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReconfirmarPropriedadeRoute =
   AuthenticatedReconfirmarPropriedadeRouteImport.update({
     id: '/reconfirmar-propriedade',
@@ -706,6 +713,7 @@ export interface FileRoutesByFullPath {
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
+  '/referencia-mockup-desk': typeof AuthenticatedReferenciaMockupDeskRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -806,6 +814,7 @@ export interface FileRoutesByTo {
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
+  '/referencia-mockup-desk': typeof AuthenticatedReferenciaMockupDeskRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -909,6 +918,7 @@ export interface FileRoutesById {
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
+  '/_authenticated/referencia-mockup-desk': typeof AuthenticatedReferenciaMockupDeskRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -1012,6 +1022,7 @@ export interface FileRouteTypes {
     | '/proximas-acoes'
     | '/qualidade'
     | '/reconfirmar-propriedade'
+    | '/referencia-mockup-desk'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1112,6 +1123,7 @@ export interface FileRouteTypes {
     | '/proximas-acoes'
     | '/qualidade'
     | '/reconfirmar-propriedade'
+    | '/referencia-mockup-desk'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1214,6 +1226,7 @@ export interface FileRouteTypes {
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
     | '/_authenticated/reconfirmar-propriedade'
+    | '/_authenticated/referencia-mockup-desk'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
@@ -1460,6 +1473,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/referencia-mockup-desk': {
+      id: '/_authenticated/referencia-mockup-desk'
+      path: '/referencia-mockup-desk'
+      fullPath: '/referencia-mockup-desk'
+      preLoaderRoute: typeof AuthenticatedReferenciaMockupDeskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reconfirmar-propriedade': {
@@ -2034,6 +2054,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedReconfirmarPropriedadeRoute: typeof AuthenticatedReconfirmarPropriedadeRoute
+  AuthenticatedReferenciaMockupDeskRoute: typeof AuthenticatedReferenciaMockupDeskRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
@@ -2113,6 +2134,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedReconfirmarPropriedadeRoute:
     AuthenticatedReconfirmarPropriedadeRoute,
+  AuthenticatedReferenciaMockupDeskRoute:
+    AuthenticatedReferenciaMockupDeskRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,

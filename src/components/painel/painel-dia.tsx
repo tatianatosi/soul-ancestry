@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
+import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -121,7 +122,8 @@ function EtiquetaPrioridade({ item }: { item: ItemDia }) {
   return (
     <span
       data-prioridade={r.sinal}
-      title={`${etiqueta.explicacao} · fatores: ${r.fatores.map((f) => `${f.rotulo}=${f.valor ?? "sem dado"}`).join(" | ")}`}
+      aria-label={ROTULO_PRIORIDADE}
+      title={`${ROTULO_PRIORIDADE}: ${etiqueta.explicacao} · fatores: ${r.fatores.map((f) => `${f.rotulo}=${f.valor ?? "sem dado"}`).join(" | ")}`}
       className={`inline-block rounded-full border px-2 py-0.5 text-[10px] leading-tight ${tom}`}
     >
       {etiqueta.texto}
@@ -777,6 +779,28 @@ export function PainelDia() {
             { to: "/acessos-portal" as const, rotulo: "Publicar entrega no App Cliente" },
           ].map((a) => (
             <Link key={a.to} to={a.to} className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5">
+              {a.rotulo}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 7 — Encontrar no Desk: apenas descoberta de módulos existentes. Nenhum dado é criado ou alterado. */}
+      <section data-painel-bloco="descoberta" className="rounded-xl border border-navy/10 bg-white p-5">
+        <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
+        <p className="mt-1 text-xs text-navy/55">
+          Onde vivem os módulos que mudaram de nome. Abrir um link não executa nada.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+          {ATALHOS_DESCOBERTA.map((a) => (
+            <Link
+              key={a.rota}
+              to={a.rota}
+              className={`rounded-md border px-3 py-1.5 hover:bg-navy/5 ${
+                a.referencia ? "border-terracotta/40 text-terracotta" : "border-navy/15 text-navy/75"
+              }`}
+              title={a.onde}
+            >
               {a.rotulo}
             </Link>
           ))}
