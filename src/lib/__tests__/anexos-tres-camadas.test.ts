@@ -13,7 +13,7 @@ import {
   anexosComModeloJuridicoAusente,
   anexosSemInstanciaDoCaso,
   evidenciasDoCaso,
-  exigeFonteJuridicaAntesDeUsoExterno,
+  exigeMaterializacaoAntesDeUsoExterno,
   linha,
   linhasLegadasVazias,
   permitePreviaInterna,
@@ -50,7 +50,7 @@ describe("reconciliação Anexos I–V — três camadas", () => {
       expect(a.tecnica.temHash).toBe(true);
       expect(a.tecnica.tamanhoRenderedHtml).toBeGreaterThan(0);
       expect(a.estados).toContain("TECNICAMENTE_EXISTE");
-      expect(a.estados).toContain("AGUARDA_REVISAO_JURIDICA");
+      expect(a.estados).toContain("AGUARDA_MATERIALIZACAO");
     }
   });
 
@@ -97,7 +97,7 @@ describe("reconciliação Anexos I–V — três camadas", () => {
   });
 
   it("exige fonte jurídica antes de uso externo para II, IV e V", () => {
-    expect(ANEXOS_TRES_CAMADAS.filter(exigeFonteJuridicaAntesDeUsoExterno).map((a) => a.codigo)).toEqual([
+    expect(ANEXOS_TRES_CAMADAS.filter(exigeMaterializacaoAntesDeUsoExterno).map((a) => a.codigo)).toEqual([
       "ANEXO_II",
       "ANEXO_IV",
       "ANEXO_V",

@@ -25,7 +25,7 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 function Etiqueta({ estado }: { estado: keyof typeof ROTULO_ESTADO_RECONCILIACAO }) {
-  const critico = estado === "MODELO_JURIDICO_NAO_LOCALIZADO" || estado === "AGUARDA_REVISAO_JURIDICA";
+  const critico = estado === "MODELO_JURIDICO_NAO_LOCALIZADO" || estado === "AGUARDA_MATERIALIZACAO";
   const ausente = estado === "INSTANCIA_DO_CASO_AUSENTE" || estado === "INSTANCIA_DO_CASO_PARCIAL";
   const cor = critico
     ? "bg-terracotta/15 text-terracotta"

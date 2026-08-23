@@ -43,7 +43,7 @@ export const ROTULO_ESTADO_ANEXO_VARREDURA: Record<EstadoAnexoVarredura, string>
   nao_localizado: "Não localizado",
   invalido: "Inválido",
   substituido: "Substituído",
-  requer_revisao_juridica: "Requer revisão jurídica",
+  requer_revisao_juridica: "Requer materialização no sistema",
 };
 
 export type VerificacaoAnexo = "verificado_diretamente" | "apenas_citado_em_relatorio";
@@ -95,16 +95,17 @@ export const ANEXOS_VARREDURA: LinhaAnexoVarredura[] = [
     codigo: "ANEXO_II",
     nome: "Anexo II — Autorização de despesas externas",
     existe: false,
-    localizacao: "Estrutura de dados existe (DespesaExternaAnexo, POLITICAS_DESPESA); modelo jurídico não localizado.",
+    localizacao:
+      "Estrutura de dados existe (DespesaExternaAnexo, POLITICAS_DESPESA); texto jurídico já revisado, ainda não materializado no repositório canônico.",
     id: "ANEXO_II_DESPESAS_EXTERNAS",
     versao: null,
     estado: "nao_localizado",
     verificacao: "apenas_citado_em_relatorio",
     integridade:
-      "Só há referência textual e schema técnico. Nenhum texto jurídico aprovado foi localizado em docs/contratos.",
+      "Texto jurídico já revisado e aprovado; falta localizar o arquivo aprovado e materializá-lo em docs/contratos com versão canônica.",
     relacaoContratoBase: "Cláusula de despesas do contrato-base exige anexo específico por teto e destino.",
     gatilhoUso: "Qualquer despesa externa reembolsável (cartórios, tradutores, taxas).",
-    dependencias: ["Teto por destino", "Política de reembolso homologada", "Revisão jurídica"],
+    dependencias: ["Teto por destino", "Política de reembolso homologada", "Materialização do texto aprovado no repositório"],
     impactoAusencia: "Despesa externa não pode ser autorizada nem reembolsada com respaldo contratual.",
     permitePreviaInterna: true,
     acaoInternaProprietaria:
@@ -143,10 +144,10 @@ export const ANEXOS_VARREDURA: LinhaAnexoVarredura[] = [
     estado: "nao_localizado",
     verificacao: "apenas_citado_em_relatorio",
     integridade:
-      "Parâmetros de poderes existem; não há minuta jurídica aprovada nem procuração assinada para nenhum caso.",
+      "Parâmetros de poderes existem; o texto jurídico já revisado ainda não foi materializado/versionado no repositório e não há procuração assinada para nenhum caso.",
     relacaoContratoBase: "Complementa a cláusula de representação; não substitui o contrato-base.",
     gatilhoUso: "Ato externo praticado em nome do cliente.",
-    dependencias: ["Qualificação completa das partes", "Revisão jurídica", "Reconhecimento/apostila quando exigido"],
+    dependencias: ["Qualificação completa das partes", "Materialização do texto aprovado no repositório", "Reconhecimento/apostila quando exigido"],
     impactoAusencia: "Nenhum ato externo em nome do cliente pode ser praticado (bloqueio server-side).",
     permitePreviaInterna: true,
     acaoInternaProprietaria: "Registrar 'modelo ausente', preparar minuta interna e gerar prévia marcada como rascunho.",
@@ -163,10 +164,10 @@ export const ANEXOS_VARREDURA: LinhaAnexoVarredura[] = [
     versao: null,
     estado: "nao_localizado",
     verificacao: "apenas_citado_em_relatorio",
-    integridade: "Regras de impacto (prazo, valor, despesa) verificadas; texto de aditivo aprovado inexistente.",
+    integridade: "Regras de impacto (prazo, valor, despesa) verificadas; texto de aditivo já revisado juridicamente, pendente de materialização e versionamento canônico.",
     relacaoContratoBase: "Único instrumento que pode alterar escopo/valor sem reescrever o corpo fixo.",
     gatilhoUso: "Mudança de escopo, prazo ou valor após assinatura.",
-    dependencias: ["Contrato assinado vigente", "Justificativa de impacto", "Revisão jurídica"],
+    dependencias: ["Contrato assinado vigente", "Justificativa de impacto", "Materialização do texto aprovado no repositório"],
     impactoAusencia: "Alterações de escopo ficam sem instrumento válido e travam a formalização.",
     permitePreviaInterna: true,
     acaoInternaProprietaria: "Registrar 'modelo ausente', versionar rascunho derivado e assumir decisão auditada.",
@@ -177,7 +178,7 @@ export const ANEXOS_VARREDURA: LinhaAnexoVarredura[] = [
 ];
 
 export const REGRA_ANEXOS_NAO_LOCALIZADOS =
-  "Anexos II, IV e V não são considerados existentes por referência textual. Nenhum modelo jurídico novo é criado sem fonte aprovada e revisão jurídica.";
+  "Anexos II, IV e V já passaram por revisão jurídica; a pendência é de materialização, versionamento e vínculo ao caso. Nenhum texto jurídico substituto é criado: apenas o conteúdo aprovado é registrado, sem sobrescrever.";
 
 export function anexosNaoLocalizados(): LinhaAnexoVarredura[] {
   return ANEXOS_VARREDURA.filter((a) => a.estado === "nao_localizado");
@@ -341,15 +342,15 @@ export const MATRIZ_PENDENCIAS: LinhaPendencia[] = [
     caso: null,
     status: "NAO_LOCALIZADO",
     criticidade: "critico",
-    evidencia: "Anexos II, IV e V sem modelo jurídico aprovado localizado.",
+    evidencia: "Anexos II, IV e V já revisados juridicamente, porém sem registro canônico localizado (arquivo, versão e vínculo).",
     risco: "Despesa externa, representação e aditivo sem instrumento válido.",
     efeitoInterno: "Instâncias ficam em estado 'modelo ausente' com prévia marcada.",
     efeitoExterno: "Bloqueia despesa externa, ato em nome do cliente e alteração de escopo.",
     responsavel: "Proprietária administradora + jurídico",
-    proximaAcao: "Solicitar minutas ao jurídico e anexar versão aprovada com versionamento.",
+    proximaAcao: "Localizar os arquivos aprovados, registrá-los no repositório canônico com versão e vinculá-los ao caso.",
     superavelPorDecisaoAuditada: false,
     prazo: null,
-    dependencias: ["Revisão jurídica externa"],
+    dependencias: ["Localização do arquivo aprovado", "Registro canônico com versão e vínculo"],
     criterioEncerramento: "Modelo aprovado anexado, versionado e com prévia íntegra.",
   },
   {
@@ -648,13 +649,13 @@ export const COBERTURA_TESTES: LinhaTeste[] = [
     tema: "Procuração / Anexo IV",
     arquivo: "src/lib/__tests__/anexos-i-v.test.ts",
     classe: "existe_passa",
-    observacao: "Cobre regras do motor e bloqueio de ato externo; não cobre minuta jurídica (inexistente).",
+    observacao: "Cobre regras do motor e bloqueio de ato externo; não cobre o texto aprovado ainda não materializado.",
   },
   {
     tema: "Despesas / Anexo II",
     arquivo: null,
     classe: "ausente",
-    observacao: "Sem modelo aprovado; falta teste de estado 'modelo ausente' e bloqueio de despesa.",
+    observacao: "Texto aprovado ainda não materializado; falta teste de estado 'modelo não materializado' e bloqueio de despesa.",
   },
   {
     tema: "Alteração contratual / Anexo V",
@@ -695,7 +696,7 @@ export const COBERTURA_TESTES: LinhaTeste[] = [
 ];
 
 export const LACUNAS_DEPENDENTES_DE_TERCEIROS: string[] = [
-  "Minutas jurídicas aprovadas dos Anexos II, IV e V (advogado).",
+  "Arquivos aprovados dos Anexos II, IV e V a localizar e materializar (proprietária/repositório) — sem nova revisão jurídica.",
   "Preço e escopo definitivos do caso Ana Luiza (fonte mestre homologada).",
   "Credenciais e política de cobrança Asaas (proprietária).",
   "E-mail de contingência para a segunda administradora (proprietária).",
