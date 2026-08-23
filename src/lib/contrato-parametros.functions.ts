@@ -623,6 +623,10 @@ async function sincronizarMotor(
     caseId: input.registro.case_id,
     userId: input.userId,
   });
+  return { anexosPersistidos, comercial };
+}
+
+
 
 
 /**
