@@ -202,7 +202,7 @@ export function PainelDia() {
   });
   const carregarModo = useServerFn(estadoModoProprietaria);
   const qModo = useQuery({ queryKey: ["painel-modo-proprietaria"], queryFn: () => carregarModo(), retry: false });
-  const proprietaria = qModo.data?.ativo === true;
+  const proprietaria = podeExibirAcoesRapidas(qModo.data);
   const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
   const carregarBloqueios = useServerFn(casosBloqueadosPorCatalogo);
   const qCatalogo = useQuery({
