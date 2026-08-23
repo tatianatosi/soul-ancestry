@@ -43,7 +43,7 @@ export const ROTULO_ESTADO_ANEXO_VARREDURA: Record<EstadoAnexoVarredura, string>
   nao_localizado: "Não localizado",
   invalido: "Inválido",
   substituido: "Substituído",
-  requer_revisao_juridica: "Requer revisão jurídica",
+  requer_revisao_juridica: "Requer materialização no sistema",
 };
 
 export type VerificacaoAnexo = "verificado_diretamente" | "apenas_citado_em_relatorio";
