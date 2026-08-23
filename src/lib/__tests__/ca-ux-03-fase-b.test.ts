@@ -24,12 +24,16 @@ const ler = (p: string) => readFileSync(p, "utf8");
 describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
   const painel = ler("src/components/painel/painel-dia.tsx");
 
-  it("mantém exatamente os cinco blocos aprovados", () => {
-    const blocos = [...painel.matchAll(/data-painel-bloco="([a-z]+)"/g)].map((m) => m[1]);
-    expect(new Set(blocos).size).toBeLessThanOrEqual(5);
-    expect(blocos).toContain("comercial");
-    expect(blocos).toContain("prazos");
+  it("mantém os cinco blocos operacionais aprovados", () => {
+    const blocos = new Set([...painel.matchAll(/data-painel-bloco="([a-z]+)"/g)].map((m) => m[1]));
+    // fila priorizada (sinais), exceções da proprietária, comercial hoje, casos por prazo e Encontrar no Desk
+    for (const b of ["sinais", "excecoes", "comercial", "prazos", "descoberta"]) {
+      expect(blocos.has(b)).toBe(true);
+    }
+    // nenhuma nova fila operacional além dos blocos aprovados e dos auxiliares de leitura
+    for (const b of blocos) expect(["cards", "atalhos", "sinais", "excecoes", "comercial", "prazos", "descoberta"]).toContain(b);
   });
+
 
   it("é a única superfície que conta a fila do dia", () => {
     expect(contagensPermitidas(ROTA_PAINEL_CANONICO)).toContain("Vencidos e vence hoje");
