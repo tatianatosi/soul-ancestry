@@ -29,13 +29,14 @@ export type GrupoDesk = {
   descricao: string;
   icone:
     | "hoje"
+    | "marketing"
     | "comercial"
     | "casos"
     | "pesquisa"
     | "contratos"
     | "cliente"
-    | "governanca"
-    | "administracao";
+    | "governanca";
+
   agrupador?: boolean;
   sub: readonly ItemNav[];
 };
