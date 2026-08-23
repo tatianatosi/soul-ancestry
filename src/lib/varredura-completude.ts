@@ -33,7 +33,7 @@ export const ESTADOS_ANEXO_VARREDURA = [
   "nao_localizado",
   "invalido",
   "substituido",
-  "requer_revisao_juridica",
+  "requer_materializacao",
 ] as const;
 export type EstadoAnexoVarredura = (typeof ESTADOS_ANEXO_VARREDURA)[number];
 
@@ -43,7 +43,7 @@ export const ROTULO_ESTADO_ANEXO_VARREDURA: Record<EstadoAnexoVarredura, string>
   nao_localizado: "Não localizado",
   invalido: "Inválido",
   substituido: "Substituído",
-  requer_revisao_juridica: "Requer materialização no sistema",
+  requer_materializacao: "Requer materialização no sistema",
 };
 
 export type VerificacaoAnexo = "verificado_diretamente" | "apenas_citado_em_relatorio";
