@@ -22,6 +22,7 @@ import {
   rotulo,
 } from "@/lib/caso-ficha";
 import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
+import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
