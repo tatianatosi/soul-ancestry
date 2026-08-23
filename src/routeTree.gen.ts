@@ -33,6 +33,7 @@ import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-perm
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedReconfirmarPropriedadeRouteImport } from './routes/_authenticated/reconfirmar-propriedade'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
@@ -224,6 +225,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReconfirmarPropriedadeRoute =
+  AuthenticatedReconfirmarPropriedadeRouteImport.update({
+    id: '/reconfirmar-propriedade',
+    path: '/reconfirmar-propriedade',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
   id: '/qualidade',
   path: '/qualidade',
@@ -667,6 +674,7 @@ export interface FileRoutesByFullPath {
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -762,6 +770,7 @@ export interface FileRoutesByTo {
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -860,6 +869,7 @@ export interface FileRoutesById {
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
+  '/_authenticated/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -958,6 +968,7 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
+    | '/reconfirmar-propriedade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1053,6 +1064,7 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
+    | '/reconfirmar-propriedade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1150,6 +1162,7 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas'
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
+    | '/_authenticated/reconfirmar-propriedade'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
@@ -1395,6 +1408,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reconfirmar-propriedade': {
+      id: '/_authenticated/reconfirmar-propriedade'
+      path: '/reconfirmar-propriedade'
+      fullPath: '/reconfirmar-propriedade'
+      preLoaderRoute: typeof AuthenticatedReconfirmarPropriedadeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/qualidade': {
@@ -1930,6 +1950,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
+  AuthenticatedReconfirmarPropriedadeRoute: typeof AuthenticatedReconfirmarPropriedadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
@@ -2002,6 +2023,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
+  AuthenticatedReconfirmarPropriedadeRoute:
+    AuthenticatedReconfirmarPropriedadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,
