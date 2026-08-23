@@ -105,9 +105,10 @@ function RedefinirSenha() {
         return;
       }
       await concluir({});
-      await supabase.auth.signOut();
+      // A sessão criada pelo link de recuperação é mantida: encerrar aqui
+      // devolvia a pessoa à tela de login e parecia bloqueio de acesso.
       setOk(true);
-      setTimeout(() => navigate({ to: "/equipe/entrar", replace: true }), 1800);
+      setTimeout(() => navigate({ to: "/painel", replace: true }), 1200);
     } finally {
       setCarregando(false);
     }
