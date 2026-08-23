@@ -5,8 +5,12 @@ export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/equipe/entrar" });
-    return { user: data.user };
+    if (!error && data.user) return { user: data.user };
+    // Falha de rede não é ausência de sessão: só redireciona quando não há
+    // sessão persistida no navegador.
+    const { data: sessao } = await supabase.auth.getSession();
+    if (sessao.session?.user) return { user: sessao.session.user };
+    throw redirect({ to: "/equipe/entrar" });
   },
   component: () => <Outlet />,
 });
