@@ -510,7 +510,16 @@ function Pagina() {
             </p>
             <div className="mb-3">
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
+              <div className="mt-2">
+                <MaterializarRevisados
+                  plano={planoRevisados}
+                  ocupado={mMaterializar.isPending || !registroId}
+                  onVerificar={() => mMaterializar.mutate(false)}
+                  onMaterializar={() => mMaterializar.mutate(true)}
+                />
+              </div>
             </div>
+
             <AnexosIaV anexos={anexosGovernados} entrada={entradaAnexos} />
             <div className="mt-3">
               <PainelPendenciasContratuais anexos={anexosGovernados} gates={gatesContratuais} />
