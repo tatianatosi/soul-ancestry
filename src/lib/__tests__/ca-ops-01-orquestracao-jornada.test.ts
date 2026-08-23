@@ -16,6 +16,9 @@ import {
   transicaoMicroentregaPermitida,
   vinculoCompleto,
   avaliarTentativaSemCondicao,
+  selecionarVersaoVigente,
+  versaoTemplate,
+  templatesVigentesPorEtapaCanal,
 } from "@/lib/orquestracao-jornada";
 import type { EstadoCaso } from "@/lib/jornada-cliente";
 
