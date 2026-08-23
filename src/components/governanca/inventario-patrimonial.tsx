@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { baixarCsvInventario, filtrarInventario } from "@/lib/inventario-csv";
+import { baixarCsvInventario, filtrarInventario, previaCsvInventario, tamanhoLegivel } from "@/lib/inventario-csv";
 import {
   ACOES_DEPENDENTES_DE_TERCEIROS,
   ACOES_SO_DA_PROPRIETARIA,
