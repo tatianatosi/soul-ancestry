@@ -290,20 +290,32 @@ export function rotasSemLink(): string[] {
   return ROTAS_PRESERVADAS.filter((r) => !menu.has(r));
 }
 
-/** Um mesmo destino (rota + hash) não pode aparecer duas vezes no menu. */
+/**
+ * Um mesmo destino (rota + hash) não pode se repetir DENTRO de um grupo.
+ * Entre grupos, a repetição é link contextual declarado (ex.: Validação
+ * Jurídica em Governança com atalho em Comercial e Casos) — não é fila nova.
+ */
 export function destinosDuplicados(): string[] {
-  const vistos = new Set<string>();
   const dup: string[] = [];
   for (const g of GRUPOS_DESK) {
+    const vistos = new Set<string>();
     for (const s of g.sub) {
       if (!("to" in s)) continue;
-      const chave = `${s.to}#${s.hash ?? ""}`;
+      const chave = `${g.id}:${s.to}#${s.hash ?? ""}`;
       if (vistos.has(chave)) dup.push(chave);
       vistos.add(chave);
     }
   }
   return dup;
 }
+
+/** Links contextuais: mesma rota citada em mais de um grupo, de forma explícita. */
+export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [
+  { rota: "/matriz-juridica", origem: "Governança", tambemEm: ["Comercial", "Casos"] },
+  { rota: "/qualidade", origem: "Governança", tambemEm: ["Casos", "Pesquisa"] },
+  { rota: "/relatorios", origem: "Hoje", tambemEm: ["Pesquisa"] },
+  { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
+] as const;
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
