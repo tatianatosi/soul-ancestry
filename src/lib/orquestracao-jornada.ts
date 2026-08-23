@@ -472,18 +472,29 @@ export type VinculoMicroentrega = {
   fase: FaseJornada;
   responsavel_id: string | null;
   prazo: string | null;
+  /** Tarefa ou evento interno que originou a microentrega. */
   objeto_origem: string | null;
+  /** Resumo interno (nunca projetado). */
+  resumo_interno?: string | null;
+  /** Resumo sanitizado ao cliente — exigido apenas para publicar. */
+  resumo_cliente?: string | null;
 };
 
-export function vinculoCompleto(v: VinculoMicroentrega): { valido: boolean; faltando: string[] } {
+export function vinculoCompleto(
+  v: VinculoMicroentrega,
+  opcoes?: { paraPublicacao?: boolean },
+): { valido: boolean; faltando: string[] } {
   const faltando: string[] = [];
   if (!v.caso_id) faltando.push("caso");
   if (!v.fase) faltando.push("fase");
   if (!v.responsavel_id) faltando.push("responsável");
   if (!v.prazo) faltando.push("prazo");
   if (!v.objeto_origem) faltando.push("objeto de origem");
+  if (!(v.resumo_interno ?? "").trim()) faltando.push("resumo interno");
+  if (opcoes?.paraPublicacao && !(v.resumo_cliente ?? "").trim()) faltando.push("resumo sanitizado ao cliente");
   return { valido: faltando.length === 0, faltando };
 }
+
 
 export const transicaoMicroentregaPermitida = (de: StatusAprovacao, para: StatusAprovacao) =>
   podeTransicionarEntrega(de, para);
