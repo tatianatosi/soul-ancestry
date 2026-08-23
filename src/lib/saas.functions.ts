@@ -342,12 +342,15 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
 
 type SupabaseCliente = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
 
-async function resolverOrganizacao(supabase: SupabaseCliente) {
-  const membro = await supabase
+async function resolverOrganizacao(supabase: SupabaseCliente, userId?: string) {
+  // Uma organização com mais de uma pessoa devolve várias linhas visíveis: por
+  // isso a consulta é sempre restringida à própria pessoa e limitada a 1.
+  let consulta = supabase
     .from("organization_members")
     .select("organization_id")
-    .is("archived_at", null)
-    .maybeSingle();
+    .is("archived_at", null);
+  if (userId) consulta = consulta.eq("user_id", userId);
+  const membro = await consulta.limit(1).maybeSingle();
   if (membro.data?.organization_id) return membro.data.organization_id as string;
   // Quem já possui acesso de equipe (pendente/suspenso/revogado) nunca cria nova organização.
   const staff = await supabase.from("staff_access").select("id,status").limit(1).maybeSingle();
@@ -357,6 +360,7 @@ async function resolverOrganizacao(supabase: SupabaseCliente) {
   return criada.data as string;
 
 }
+
 
 export const getContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
