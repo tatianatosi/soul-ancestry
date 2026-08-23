@@ -51,7 +51,12 @@ export type TemplateGovernado = {
   /** Condição que impede a sugestão do template. */
   regra_de_bloqueio: string;
   vigencia: { inicio: string; fim: string | null };
+  /** Versão do texto governado. Ausente = versão 1. */
+  versao?: number;
+  /** Versão anterior que esta substitui (rastro de sucessão). */
+  substitui_versao?: number | null;
 };
+
 
 /**
  * Registro governado dos templates da Biblioteca de Mensagens.
@@ -209,27 +214,100 @@ export function templateVigente(t: TemplateGovernado, hoje: string): boolean {
   return true;
 }
 
+/** Versão declarada do template (ausente = 1). */
+export function versaoTemplate(t: TemplateGovernado): number {
+  return t.versao ?? 1;
+}
+
+/** Template com vigência encerrada na data de referência. */
+export function templateExpirado(t: TemplateGovernado, hoje: string): boolean {
+  return !!t.vigencia.fim && Date.parse(hoje) > Date.parse(t.vigencia.fim);
+}
+
+export type FiltroTemplate = {
+  evento: EventoInterno;
+  etapa?: FaseJornada;
+  canal?: CanalPrevisto;
+};
+
+function candidatos(filtro: FiltroTemplate): readonly TemplateGovernado[] {
+  return TEMPLATES_GOVERNADOS.filter(
+    (t) =>
+      t.evento_canonico === filtro.evento &&
+      (!filtro.etapa || t.etapa_jornada === filtro.etapa) &&
+      (!filtro.canal || t.canal_previsto === filtro.canal),
+  );
+}
+
+/**
+ * Seleciona automaticamente a versão vigente para a combinação
+ * etapa × canal × evento. Empate de vigência resolve pela maior versão.
+ */
+export function selecionarVersaoVigente(
+  filtro: FiltroTemplate,
+  hoje: string,
+): TemplateGovernado | null {
+  const vigentes = candidatos(filtro).filter((t) => templateVigente(t, hoje));
+  if (vigentes.length === 0) return null;
+  return [...vigentes].sort((a, b) => {
+    const v = versaoTemplate(b) - versaoTemplate(a);
+    if (v !== 0) return v;
+    return Date.parse(b.vigencia.inicio) - Date.parse(a.vigencia.inicio);
+  })[0]!;
+}
+
+/** Catálogo de versões vigentes por etapa × canal na data de referência. */
+export function templatesVigentesPorEtapaCanal(hoje: string): readonly TemplateGovernado[] {
+  const mapa = new Map<string, TemplateGovernado>();
+  for (const t of TEMPLATES_GOVERNADOS) {
+    if (!templateVigente(t, hoje)) continue;
+    const k = `${t.etapa_jornada}|${t.canal_previsto}|${t.evento_canonico}`;
+    const atual = mapa.get(k);
+    if (!atual || versaoTemplate(t) > versaoTemplate(atual)) mapa.set(k, t);
+  }
+  return [...mapa.values()];
+}
+
 export type SugestaoTemplate = {
   template: TemplateGovernado | null;
   /** Sempre "rascunho_interno": nenhum envio é executado ou agendado. */
   resultado: "rascunho_interno" | "sem_template";
   bloqueado: boolean;
   motivo: string;
+  /** Versão vigente aplicada, quando houver template. */
+  versao?: number;
+  /** Verdadeiro quando existiam templates do evento, mas todos fora de vigência. */
+  expirado?: boolean;
 };
 
 /**
- * Sugere o template vigente do evento. NUNCA envia, agenda ou integra:
- * o único resultado possível é um rascunho interno para decisão humana.
+ * Sugere o template vigente do evento (versão automática por etapa e canal).
+ * NUNCA envia, agenda ou integra: o único resultado possível é um rascunho
+ * interno para decisão humana.
  */
 export function sugerirTemplate(
   evento: EventoInterno,
-  contexto: { hoje: string; bloqueios?: readonly string[] },
+  contexto: {
+    hoje: string;
+    bloqueios?: readonly string[];
+    etapa?: FaseJornada;
+    canal?: CanalPrevisto;
+  },
 ): SugestaoTemplate {
-  const template = TEMPLATES_GOVERNADOS.find(
-    (t) => t.evento_canonico === evento && templateVigente(t, contexto.hoje),
-  );
+  const filtro: FiltroTemplate = { evento, etapa: contexto.etapa, canal: contexto.canal };
+  const template = selecionarVersaoVigente(filtro, contexto.hoje);
   if (!template) {
-    return { template: null, resultado: "sem_template", bloqueado: false, motivo: "Nenhum template vigente para o evento." };
+    const existentes = candidatos(filtro);
+    const expirado = existentes.length > 0 && existentes.every((t) => templateExpirado(t, contexto.hoje));
+    return {
+      template: null,
+      resultado: "sem_template",
+      bloqueado: false,
+      expirado,
+      motivo: expirado
+        ? "Todas as versões do template expiraram por vigência; é necessária nova versão homologada."
+        : "Nenhum template vigente para o evento.",
+    };
   }
   const bloqueio = (contexto.bloqueios ?? []).find((b) => b === template.regra_de_bloqueio);
   if (bloqueio) {
@@ -239,9 +317,11 @@ export function sugerirTemplate(
     template,
     resultado: "rascunho_interno",
     bloqueado: false,
-    motivo: "Template vigente sugerido como rascunho interno; envio depende de ação humana fora do sistema.",
+    versao: versaoTemplate(template),
+    motivo: `Versão vigente v${versaoTemplate(template)} sugerida como rascunho interno; envio depende de ação humana fora do sistema.`,
   };
 }
+
 
 /* ------------------------------------------------------------------ */
 /* B. Eventos internos e ações permitidas                              */

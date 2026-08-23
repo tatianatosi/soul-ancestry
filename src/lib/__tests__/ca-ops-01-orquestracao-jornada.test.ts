@@ -16,6 +16,9 @@ import {
   transicaoMicroentregaPermitida,
   vinculoCompleto,
   avaliarTentativaSemCondicao,
+  selecionarVersaoVigente,
+  versaoTemplate,
+  templatesVigentesPorEtapaCanal,
 } from "@/lib/orquestracao-jornada";
 import type { EstadoCaso } from "@/lib/jornada-cliente";
 
@@ -222,5 +225,24 @@ describe("G. Assistente", () => {
     for (const proibida of ["enviar", "publicar", "cobrar", "assinar", "alterar_gate", "pesquisar_externamente"]) {
       expect(assistentePodeExecutar(proibida)).toBe(false);
     }
+  });
+});
+
+describe("versionamento e vigência de templates", () => {
+  it("seleciona a maior versão vigente para etapa e canal", () => {
+    const t = selecionarVersaoVigente({ evento: "lead_novo" }, "2026-08-23");
+    expect(t?.evento_canonico).toBe("lead_novo");
+    expect(versaoTemplate(t!)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("não sugere template com vigência encerrada", () => {
+    const s = sugerirTemplate("lead_novo", { hoje: "2025-01-01" });
+    expect(s.resultado).toBe("sem_template");
+  });
+
+  it("catálogo vigente traz uma versão por etapa × canal × evento", () => {
+    const lista = templatesVigentesPorEtapaCanal("2026-08-23");
+    const chaves = lista.map((t) => `${t.etapa_jornada}|${t.canal_previsto}|${t.evento_canonico}`);
+    expect(new Set(chaves).size).toBe(chaves.length);
   });
 });
