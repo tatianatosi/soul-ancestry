@@ -595,7 +595,10 @@ export function PainelDia() {
         </div>
       </section>
 
+      <FilaRevisaoJuridica compacto />
+
       {/* 4 — Comercial hoje */}
+
       <section className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
