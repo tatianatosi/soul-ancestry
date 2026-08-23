@@ -359,7 +359,9 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/qualidade", origem: "Governança", tambemEm: ["Casos", "Pesquisa"] },
   { rota: "/relatorios", origem: "Hoje", tambemEm: ["Pesquisa"] },
   { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
+  { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
+
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
