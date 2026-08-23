@@ -38,7 +38,9 @@ assina ou envia mensagem.
 ## D. Microentregas
 
 Estados preservados: rascunho → em revisão → aprovado → publicado → arquivado.
-Vínculo obrigatório: caso, fase, responsável, prazo e objeto de origem.
+Vínculo obrigatório: caso, fase, responsável, prazo, tarefa/evento de origem e
+resumo interno. O resumo sanitizado ao cliente é exigido apenas na publicação
+(`vinculoCompleto(v, { paraPublicacao: true })`).
 Somente `publicado` projeta conteúdo sanitizado (`entregasParaAppCliente`).
 `publicarMicroentrega()` emite evento interno e recalcula cadência, sem envio.
 
@@ -48,7 +50,10 @@ Touchpoint válido responde às quatro perguntas obrigatórias. Touchpoint
 inválido não atualiza a cadência: a saúde continua medida pelo último
 touchpoint válido. Regra de faixa reutilizada: regular < 10 dias, atenção ≥ 10,
 crítico ≥ 14, com espera institucional externa comunicada mantendo regular.
-Alertas são derivados e apenas abrem o objeto de origem.
+Alertas são derivados e apenas abrem o objeto de origem. Tentativa de
+publicação ou comunicação sem condição cumprida é recusada por
+`avaliarTentativaSemCondicao()`, que devolve alerta com `criaRegistro: false`
+— não cria prazo, tarefa, status ou fonte paralela.
 
 ## F. Painel Hoje
 

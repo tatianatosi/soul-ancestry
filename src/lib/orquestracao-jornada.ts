@@ -472,18 +472,29 @@ export type VinculoMicroentrega = {
   fase: FaseJornada;
   responsavel_id: string | null;
   prazo: string | null;
+  /** Tarefa ou evento interno que originou a microentrega. */
   objeto_origem: string | null;
+  /** Resumo interno (nunca projetado). */
+  resumo_interno?: string | null;
+  /** Resumo sanitizado ao cliente — exigido apenas para publicar. */
+  resumo_cliente?: string | null;
 };
 
-export function vinculoCompleto(v: VinculoMicroentrega): { valido: boolean; faltando: string[] } {
+export function vinculoCompleto(
+  v: VinculoMicroentrega,
+  opcoes?: { paraPublicacao?: boolean },
+): { valido: boolean; faltando: string[] } {
   const faltando: string[] = [];
   if (!v.caso_id) faltando.push("caso");
   if (!v.fase) faltando.push("fase");
   if (!v.responsavel_id) faltando.push("responsável");
   if (!v.prazo) faltando.push("prazo");
   if (!v.objeto_origem) faltando.push("objeto de origem");
+  if (!(v.resumo_interno ?? "").trim()) faltando.push("resumo interno");
+  if (opcoes?.paraPublicacao && !(v.resumo_cliente ?? "").trim()) faltando.push("resumo sanitizado ao cliente");
   return { valido: faltando.length === 0, faltando };
 }
+
 
 export const transicaoMicroentregaPermitida = (de: StatusAprovacao, para: StatusAprovacao) =>
   podeTransicionarEntrega(de, para);
@@ -561,6 +572,48 @@ export function eventoDeCadencia(status: SaudeCadencia["status"]): EventoInterno
   if (status === "atencao") return "cadencia_atencao";
   return null;
 }
+
+/**
+ * Tentativa de publicação/comunicação sem condição: recusa a ação e devolve
+ * um ALERTA DERIVADO que apenas abre o objeto canônico de origem. Nunca cria
+ * tarefa, prazo, status ou registro paralelo.
+ */
+export type AlertaTentativa = {
+  permitido: boolean;
+  alerta: {
+    chave: string;
+    motivo: "pendencia_bloqueia_estado";
+    titulo: string;
+    detalhe: string;
+    destino: string;
+    /** Alerta é visão derivada: não escreve em nenhuma entidade. */
+    criaRegistro: false;
+  } | null;
+};
+
+export function avaliarTentativaSemCondicao(entrada: {
+  acao: "publicar" | "comunicar";
+  objeto: { entidade: string; id: string; destino: string };
+  condicoesFaltantes: readonly string[];
+}): AlertaTentativa {
+  if (entrada.condicoesFaltantes.length === 0) return { permitido: true, alerta: null };
+  return {
+    permitido: false,
+    alerta: {
+      chave: `tentativa-${entrada.acao}:${entrada.objeto.entidade}:${entrada.objeto.id}`,
+      motivo: "pendencia_bloqueia_estado",
+      titulo:
+        entrada.acao === "publicar"
+          ? "Tentativa de publicação sem condição cumprida"
+          : "Tentativa de comunicação sem condição cumprida",
+      detalhe: `Pendências: ${entrada.condicoesFaltantes.join("; ")}.`,
+      destino: entrada.objeto.destino,
+      criaRegistro: false,
+    },
+  };
+}
+
+
 
 /* ------------------------------------------------------------------ */
 /* F. Painel Hoje — fila derivada, sem duplicação                      */
