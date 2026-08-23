@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,6 +24,7 @@ import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
+import { GRUPOS_DESK, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
@@ -183,18 +185,12 @@ export function SaasShell({
     (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
-  const itens: SecaoNav[] = NAV.map((item) =>
-    ehAdmin && item.to === "/biblioteca"
-      ? {
-          ...item,
-          sub: [
-            ...item.sub,
-            { to: "/equipe", label: "Usuários e papéis" },
-            { to: "/auditoria", label: "Auditoria" },
-          ],
-        }
-      : item,
-  );
+  // Itens restritos a admin (equipe, auditoria) só aparecem para admin.
+  // O Desk mantém exatamente 8 grupos para qualquer papel interno.
+  const itens: SecaoNav[] = NAV.map((item) => ({
+    ...item,
+    sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
+  }));
 
 
   return (
