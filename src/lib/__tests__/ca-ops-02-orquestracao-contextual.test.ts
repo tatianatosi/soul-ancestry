@@ -5,6 +5,7 @@ import {
   EVENTOS_INTERNOS,
   ROTULO_EVENTO,
   executarCadeiaJornada,
+  fiarCadenciaDoCaso,
   templatesVigentesPorEtapaCanal,
   type EventoInterno,
 } from "@/lib/orquestracao-jornada";
@@ -67,9 +68,45 @@ describe("CA-OPS-02 — painel contextual da Biblioteca de Mensagens", () => {
     expect(COMPONENTE).not.toContain("const EVENTOS_INTERNOS");
   });
 
-  it("9. nenhum dado de outro caso aparece no preview", () => {
+  it("9. nenhum dado de outro caso é carregado; o caso é digitado pelo operador", () => {
     expect(COMPONENTE).toContain('caso_id: "contexto-biblioteca"');
-    expect(COMPONENTE).not.toContain("casoId");
+    expect(COMPONENTE).toContain("fiarCadenciaDoCaso");
     expect(COMPONENTE).not.toContain("listarCasos");
+    expect(COMPONENTE).not.toContain("supabase");
+  });
+
+  it("10. cadência real por caso deriva evento e resolve template sem envio", () => {
+    const critico = fiarCadenciaDoCaso({
+      hoje: "2026-08-23",
+      caso_id: "CA-2026-ANA-001",
+      ultimoTouchpointValidoEm: "2026-08-01",
+    });
+    expect(critico.cadencia.status).toBe("critico");
+    expect(critico.eventoDerivado).toBe("cadencia_critica");
+    expect(critico.resolucoes.some((r) => r.origem === "derivado")).toBe(true);
+    expect(critico.envioExecutado).toBe(false);
+    expect(critico.persistido).toBe(false);
+  });
+
+  it("11. cadência regular não gera evento derivado nem alerta", () => {
+    const regular = fiarCadenciaDoCaso({
+      hoje: "2026-08-23",
+      caso_id: "CA-2026-ANA-001",
+      ultimoTouchpointValidoEm: "2026-08-21",
+    });
+    expect(regular.eventoDerivado).toBeNull();
+    expect(regular.alertas).toHaveLength(0);
+  });
+
+  it("12. fila do Painel Hoje não duplica o mesmo caso", () => {
+    const f = fiarCadenciaDoCaso({
+      hoje: "2026-08-23",
+      caso_id: "CA-2026-ANA-001",
+      evento: "followup_vencido",
+      ultimoTouchpointValidoEm: "2026-08-01",
+    });
+    const chaves = f.painelHoje.map((i) => i.chave);
+    expect(new Set(chaves).size).toBe(chaves.length);
   });
 });
+

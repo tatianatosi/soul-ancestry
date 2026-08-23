@@ -46,3 +46,10 @@ altera template, status, gate ou dado; não exibe dado de nenhum caso real
   painel (permanece somente na camada de cálculo).
 - Templates governados ainda não possuem corpo textual completo; o preview mostra
   metadados e finalidade.
+
+## Fiação de cadência real por caso (23/08/2026)
+
+- `fiarCadenciaDoCaso` (em `src/lib/orquestracao-jornada.ts`) calcula a cadência real a partir do último touchpoint válido, deriva o evento (`cadencia_atencao` / `cadencia_critica`) e resolve o template vigente do evento base e do derivado.
+- Fila do Painel Hoje deduplicada por objeto canônico; alertas permanecem derivados (`criaRegistro: false`).
+- Invariantes explícitos no retorno: `envioExecutado: false` e `persistido: false`. Nenhum envio, agendamento, escrita ou migration.
+- Painel da Biblioteca de Mensagens passa a aceitar caso e data do último touchpoint apenas como entrada local de leitura.

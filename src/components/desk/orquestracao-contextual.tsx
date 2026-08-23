@@ -4,6 +4,7 @@ import {
   EVENTOS_INTERNOS,
   ROTULO_EVENTO,
   executarCadeiaJornada,
+  fiarCadenciaDoCaso,
   templatesVigentesPorEtapaCanal,
   type EventoInterno,
 } from "@/lib/orquestracao-jornada";
@@ -19,6 +20,8 @@ import {
 export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
   const dia = hoje ?? new Date().toISOString().slice(0, 10);
   const [evento, setEvento] = useState<EventoInterno | "">("");
+  const [casoId, setCasoId] = useState("");
+  const [ultimoTouchpoint, setUltimoTouchpoint] = useState("");
 
   const cadeia = useMemo(
     () =>
@@ -27,7 +30,20 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
         : null,
     [dia, evento],
   );
+  const fiacao = useMemo(
+    () =>
+      casoId.trim()
+        ? fiarCadenciaDoCaso({
+            hoje: dia,
+            caso_id: casoId.trim(),
+            evento: evento || null,
+            ultimoTouchpointValidoEm: ultimoTouchpoint || null,
+          })
+        : null,
+    [casoId, dia, evento, ultimoTouchpoint],
+  );
   const vigentes = useMemo(() => templatesVigentesPorEtapaCanal(dia), [dia]);
+
   const template = cadeia?.template.template ?? null;
 
   const preview = template
@@ -145,6 +161,80 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
           </div>
         </>
       )}
+
+      <div className="mt-6 border-t border-border pt-4">
+        <h3 className="text-sm font-medium text-foreground">Cadência real do caso</h3>
+        <p className="text-xs text-muted-foreground">
+          Informe o caso e o último touchpoint válido para ver o modelo vigente do evento derivado.
+          Nada é enviado, agendado ou gravado.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3 text-xs">
+          <label className="flex flex-col gap-1">
+            <span className="text-muted-foreground">Identificador do caso</span>
+            <input
+              value={casoId}
+              onChange={(e) => setCasoId(e.target.value)}
+              placeholder="CA-2026-..."
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-muted-foreground">Último touchpoint válido</span>
+            <input
+              type="date"
+              value={ultimoTouchpoint}
+              onChange={(e) => setUltimoTouchpoint(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            />
+          </label>
+        </div>
+
+        {!fiacao ? (
+          <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+            Sem caso informado. Nenhum dado de caso é carregado ou consultado neste painel.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3 text-xs">
+            <p className="text-foreground">
+              {fiacao.cadencia.diasSemTouchpoint} dia(s) sem touchpoint · situação{" "}
+              {fiacao.cadencia.status} — {fiacao.cadencia.motivo}
+            </p>
+            <p className="text-muted-foreground">
+              Evento derivado:{" "}
+              {fiacao.eventoDerivado
+                ? ROTULO_EVENTO[fiacao.eventoDerivado]
+                : "nenhum (cadência regular)"}
+            </p>
+            <ul className="space-y-2">
+              {fiacao.resolucoes.map((r) => (
+                <li key={`${r.origem}-${r.evento}`} className="rounded-lg border border-border p-3">
+                  <p className="text-foreground">
+                    {ROTULO_EVENTO[r.evento]} · {r.origem === "derivado" ? "derivado da cadência" : "evento base"}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {r.template.template
+                      ? `Modelo vigente: ${r.template.template.titulo} (v${r.template.versao ?? 1} · ${r.template.template.canal_previsto})`
+                      : r.template.motivo}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Tarefa canônica: {r.tarefaSugerida ?? "nenhuma tarefa nova"} · Objeto: {r.destino}
+                  </p>
+                </li>
+              ))}
+              {fiacao.resolucoes.length === 0 ? (
+                <li className="rounded-lg border border-dashed border-border p-3 text-muted-foreground">
+                  Cadência regular e sem evento base: nada é sugerido.
+                </li>
+              ) : null}
+            </ul>
+            <p className="text-muted-foreground">
+              Fila derivada: {fiacao.painelHoje.length} item(ns) no Painel Hoje · envio executado:
+              não · persistido: não.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
+
