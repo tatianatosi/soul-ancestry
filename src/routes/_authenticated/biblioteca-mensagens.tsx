@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { OrquestracaoContextual } from "@/components/desk/orquestracao-contextual";
 import { SaasShell } from "@/components/saas/shell";
 import {
   definirStatusTemplate,
@@ -156,6 +157,8 @@ function BibliotecaMensagensPage() {
             ))}
           </ul>
         </section>
+
+        <OrquestracaoContextual />
 
         <section className="grid gap-2 sm:grid-cols-3">
           <input
