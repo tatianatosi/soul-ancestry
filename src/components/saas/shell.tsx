@@ -327,6 +327,10 @@ export function SaasShell({
         >
           {children}
         </main>
+        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
+            conforme papel e contexto. Não é aba nem fonte de verdade. */}
+        <AssistenteTransversal papeis={papeis} />
+
 
       </div>
     </div>
