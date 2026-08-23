@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SaasShell } from "@/components/saas/shell";
 import { ReferenciaCatalogo } from "@/components/catalogo/referencia-catalogo";
 import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
+import { PrecoSugeridoOperacional } from "@/components/catalogo/preco-sugerido-operacional";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
@@ -53,6 +54,10 @@ function CatalogoPage() {
       titulo="Catálogo comercial"
       descricao="Leitura do catálogo já saneado. Preço, status, categoria e Pareto vêm da planilha mestre. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
     >
+
+      <div className="mb-6">
+        <PrecoSugeridoOperacional />
+      </div>
 
       <ReferenciaCatalogo />
       <div className="mt-6">
