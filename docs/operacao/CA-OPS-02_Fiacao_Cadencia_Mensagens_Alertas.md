@@ -1,55 +1,73 @@
-# CA-OPS-02 — Fiação Cadência × Mensagens × Alertas
+# CA-OPS-02 — Fiação: cadência, Biblioteca de Mensagens e catálogo de módulos
 
-## Painel contextual (Biblioteca de Mensagens)
+Data: 2026-08-23. Escopo: conectar sistemas já existentes, sem criar aba,
+motor, fila, CRM, biblioteca ou view agregadora.
 
-Componente: `src/components/desk/orquestracao-contextual.tsx`
-Renderizado em: `src/routes/_authenticated/biblioteca-mensagens.tsx`, logo após o bloco
-"Regras de uso". Acesso restrito ao papel interno já autorizado na rota; o painel
-não existe no App Cliente nem no portal.
+## Pré-condições comprovadas
 
-## Eventos aceitos
+1. **`case_id` compartilhado** — `obterPainelJornada` (`src/lib/onboarding-jornada.functions.ts`)
+   devolve `casos[].case_id` e `codigo`; o atalho leva exatamente esse `case_id`
+   para `/biblioteca-mensagens` como parâmetro de busca. Não há heurística de
+   correspondência por nome.
+2. **Sem gravação** — `src/lib/fiacao-cadencia-catalogo.ts` é puro (sem I/O),
+   e o banner da Biblioteca só lê `templates` já carregados. Nenhuma chamada a
+   `registrarUsoTemplate`, touchpoint, fila ou rascunho é feita ao abrir o
+   modelo. As invariantes `envioExecutado: false`, `persistido: false` e
+   `usoRegistrado: false` são retornadas pela resolução.
+3. **Gates preservados** — a resolução não valida nem afrouxa gate algum;
+   `validarUsoTemplate`/`registrarUsoTemplate` continuam sendo o único caminho
+   de uso, com validação no banco (contrato, pagamento, onboarding, entrega,
+   publicação). O contexto apenas exibe qual gate se aplica.
 
-Exatamente os eventos canônicos de `EVENTOS_INTERNOS`
-(`src/lib/orquestracao-jornada.ts`): `lead_novo`, `call_agendada`, `call_concluida`,
-`proposta_enviada`, `followup_vencido`, `aceite_verbal`, `confirmacao_formal`,
-`onboarding_elegivel`, `microentrega_aprovada`, `microentrega_publicada`,
-`microentrega_atrasada`, `cadencia_atencao`, `cadencia_critica`. Rótulos vêm de
-`ROTULO_EVENTO`.
+## 1. Biblioteca de Mensagens como catálogo oficial — CONECTADO
 
-## Como o template vigente é resolvido
+- Mapa alerta → modelo em `MAPA_ALERTA_TEMPLATE`.
+- `resolverModeloVigente` só considera modelos `status = "vigente"`, não
+  arquivados e não demo. Sem correspondência, devolve
+  “Não há modelo vigente para este alerta.” e nada é criado.
+- Atalho “Abrir modelo sugerido” ao lado de cada alerta elegível em `/ops`.
+- A Biblioteca exibe contexto seguro não persistido: caso, tipo de alerta,
+  severidade, gate e variáveis permitidas. Ação permitida sempre
+  `abrir_preview_e_copiar_manual`.
 
-O painel chama `executarCadeiaJornada({ hoje, evento, caso_id: "contexto-biblioteca" })`,
-que internamente usa `sugerirTemplate` → `selecionarVersaoVigente` (maior versão dentro
-da vigência para etapa × canal × evento). O catálogo de referência exibido vem de
-`templatesVigentesPorEtapaCanal(hoje)`. Nenhuma regra de resolução é reimplementada no
-componente: não há segundo motor de orquestração.
+| Alerta | Modelo esperado | Severidade | Gate |
+|---|---|---|---|
+| `sem_touchpoint_10d` | reengajamento/acompanhamento | alta | onboarding |
+| `sem_atualizacao_14d` | atualização de andamento | crítica | entrega |
+| `sem_proxima_acao` | interno de próximo passo | média | interno |
+| `sem_microentrega_planejada` | interno de alinhamento de entrega | média | entrega |
+| `caso_bloqueado` | condicionado ao gate aplicável | crítica | contrato/pagamento |
 
-## Preview e cópia manual
+## 2. Onboarding-Jornada → Painel Hoje — BLOQUEADO (atalho implementado)
 
-- Sem evento selecionado: estado vazio seguro, sem carregar dado de caso.
-- Com evento e template vigente: preview interno (título, versão, etapa, canal previsto,
-  público elegível, finalidade) e botão de cópia para a área de transferência.
-- Com evento e sem template vigente: mensagem "Nenhum modelo vigente aplicável a este
-  evento. Nada é sugerido, criado ou enviado."
-- Aviso permanente: "Sugestão interna — nenhum envio é realizado pelo sistema."
+Motivo técnico: os contadores `alerta: true` são agregados e as ocorrências por
+caso trazem apenas `case_id`, `codigo` e títulos de alerta — não trazem
+severidade normalizada nem rota canônica por linha no mesmo payload. Integrar
+linha a linha exigiria recalcular cadência dentro do Painel Hoje, o que é
+proibido. Implementado apenas o atalho destacado
+“Ver cadência e onboarding em risco” → `/ops`, no bloco existente
+“Sinais de atenção”. Nenhuma tarefa, status, prazo, alerta persistido ou
+contagem paralela foi criada. Registro em `INTEGRACAO_CADENCIA_PAINEL`.
 
-## Proibições em vigor
+## 3. Duplicidade de catálogos — INVESTIGADO
 
-O painel não envia WhatsApp, e-mail ou SMS; não cria fila, touchpoint, rascunho
-persistido, mensagem, log de uso, log de envio, tarefa, caso, alerta ou evento; não
-altera template, status, gate ou dado; não exibe dado de nenhum caso real
-(`caso_id` fixo de contexto).
+Fontes diferentes: `/biblioteca-mensagens` usa `message_templates`,
+`message_template_versions` e `message_template_usage`; `bib-templates-com` é
+entrada de catálogo da Biblioteca Mestre **sem fonte de dados própria e sem
+rota navegável**. Nenhum dado foi migrado, fundido ou apagado. O módulo passa a
+se chamar “Modelos institucionais”, com destino explícito apontando o catálogo
+oficial `/biblioteca-mensagens`. Precedência: a Biblioteca de mensagens
+operacionais prevalece para qualquer comunicação. Decisão humana de consolidação
+fica registrada como pendente em `DUPLICIDADE_CATALOGOS_TEMPLATE`.
 
-## Lacunas remanescentes do CA-OPS-02
+## 4. Catálogo de alertas — INVESTIGADO
 
-- Fiação da cadência real por caso e alertas derivados persistidos permanece fora deste
-  painel (permanece somente na camada de cálculo).
-- Templates governados ainda não possuem corpo textual completo; o preview mostra
-  metadados e finalidade.
+Ver `AUDITORIA_MODULOS_ALERTA` e a matriz CSV. `desk-modulos.ts` recebeu o campo
+`estadoReal` e destinos verdadeiros; onde não existe rota, o destino declara a
+ausência. Nenhuma aba Alertas ou view agregadora foi criada.
 
-## Fiação de cadência real por caso (23/08/2026)
+## Proibições respeitadas
 
-- `fiarCadenciaDoCaso` (em `src/lib/orquestracao-jornada.ts`) calcula a cadência real a partir do último touchpoint válido, deriva o evento (`cadencia_atencao` / `cadencia_critica`) e resolve o template vigente do evento base e do derivado.
-- Fila do Painel Hoje deduplicada por objeto canônico; alertas permanecem derivados (`criaRegistro: false`).
-- Invariantes explícitos no retorno: `envioExecutado: false` e `persistido: false`. Nenhum envio, agendamento, escrita ou migration.
-- Painel da Biblioteca de Mensagens passa a aceitar caso e data do último touchpoint apenas como entrada local de leitura.
+Nenhuma mensagem enviada; nenhuma integração externa configurada; nenhum dado,
+migration, RLS, sessão, permissão, paleta, navegação ou deploy alterado; nenhum
+dado demo criado.
