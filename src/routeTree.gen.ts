@@ -50,6 +50,7 @@ import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authe
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedImportacoesRouteImport } from './routes/_authenticated/importacoes'
+import { Route as AuthenticatedHomologacaoSkusRouteImport } from './routes/_authenticated/homologacao-skus'
 import { Route as AuthenticatedFontesGenealogicasRouteImport } from './routes/_authenticated/fontes-genealogicas'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedEvidenciasRouteImport } from './routes/_authenticated/evidencias'
@@ -318,6 +319,12 @@ const AuthenticatedImportacoesRoute =
   AuthenticatedImportacoesRouteImport.update({
     id: '/importacoes',
     path: '/importacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHomologacaoSkusRoute =
+  AuthenticatedHomologacaoSkusRouteImport.update({
+    id: '/homologacao-skus',
+    path: '/homologacao-skus',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedFontesGenealogicasRoute =
@@ -674,6 +681,7 @@ export interface FileRoutesByFullPath {
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
+  '/homologacao-skus': typeof AuthenticatedHomologacaoSkusRoute
   '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -772,6 +780,7 @@ export interface FileRoutesByTo {
   '/evidencias': typeof AuthenticatedEvidenciasRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
+  '/homologacao-skus': typeof AuthenticatedHomologacaoSkusRoute
   '/importacoes': typeof AuthenticatedImportacoesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/leads': typeof AuthenticatedLeadsRoute
@@ -873,6 +882,7 @@ export interface FileRoutesById {
   '/_authenticated/evidencias': typeof AuthenticatedEvidenciasRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/fontes-genealogicas': typeof AuthenticatedFontesGenealogicasRoute
+  '/_authenticated/homologacao-skus': typeof AuthenticatedHomologacaoSkusRoute
   '/_authenticated/importacoes': typeof AuthenticatedImportacoesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
@@ -974,6 +984,7 @@ export interface FileRouteTypes {
     | '/evidencias'
     | '/financeiro'
     | '/fontes-genealogicas'
+    | '/homologacao-skus'
     | '/importacoes'
     | '/integracoes'
     | '/leads'
@@ -1072,6 +1083,7 @@ export interface FileRouteTypes {
     | '/evidencias'
     | '/financeiro'
     | '/fontes-genealogicas'
+    | '/homologacao-skus'
     | '/importacoes'
     | '/integracoes'
     | '/leads'
@@ -1172,6 +1184,7 @@ export interface FileRouteTypes {
     | '/_authenticated/evidencias'
     | '/_authenticated/financeiro'
     | '/_authenticated/fontes-genealogicas'
+    | '/_authenticated/homologacao-skus'
     | '/_authenticated/importacoes'
     | '/_authenticated/integracoes'
     | '/_authenticated/leads'
@@ -1553,6 +1566,13 @@ declare module '@tanstack/react-router' {
       path: '/importacoes'
       fullPath: '/importacoes'
       preLoaderRoute: typeof AuthenticatedImportacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/homologacao-skus': {
+      id: '/_authenticated/homologacao-skus'
+      path: '/homologacao-skus'
+      fullPath: '/homologacao-skus'
+      preLoaderRoute: typeof AuthenticatedHomologacaoSkusRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/fontes-genealogicas': {
@@ -1976,6 +1996,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEvidenciasRoute: typeof AuthenticatedEvidenciasRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedFontesGenealogicasRoute: typeof AuthenticatedFontesGenealogicasRoute
+  AuthenticatedHomologacaoSkusRoute: typeof AuthenticatedHomologacaoSkusRoute
   AuthenticatedImportacoesRoute: typeof AuthenticatedImportacoesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
@@ -2052,6 +2073,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEvidenciasRoute: AuthenticatedEvidenciasRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedFontesGenealogicasRoute: AuthenticatedFontesGenealogicasRoute,
+  AuthenticatedHomologacaoSkusRoute: AuthenticatedHomologacaoSkusRoute,
   AuthenticatedImportacoesRoute: AuthenticatedImportacoesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
