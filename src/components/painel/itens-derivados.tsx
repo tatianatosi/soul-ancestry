@@ -34,7 +34,6 @@ export function ItensDerivados({
         <li
           key={i.chave}
           data-item-derivado={i.chave}
-          data-registro={`caso:${i.casoId}`}
           className="rounded-lg border border-navy/10 bg-white p-3"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
