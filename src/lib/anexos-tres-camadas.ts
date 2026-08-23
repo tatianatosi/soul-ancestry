@@ -34,18 +34,18 @@ export const ESTADOS_RECONCILIACAO = [
   "INSTANCIA_DO_CASO_PARCIAL",
   "CONTEUDO_PLACEHOLDER",
   "PRONTO_PARA_PREVIA_INTERNA",
-  "AGUARDA_REVISAO_JURIDICA",
+  "AGUARDA_MATERIALIZACAO",
 ] as const;
 export type EstadoReconciliacao = (typeof ESTADOS_RECONCILIACAO)[number];
 
 export const ROTULO_ESTADO_RECONCILIACAO: Record<EstadoReconciliacao, string> = {
   TECNICAMENTE_EXISTE: "Instância técnica existe no app",
-  MODELO_JURIDICO_NAO_LOCALIZADO: "Modelo jurídico homologado não localizado",
+  MODELO_JURIDICO_NAO_LOCALIZADO: "Texto aprovado não materializado no repositório canônico",
   INSTANCIA_DO_CASO_AUSENTE: "Instância do caso ausente",
   INSTANCIA_DO_CASO_PARCIAL: "Instância do caso parcial",
-  CONTEUDO_PLACEHOLDER: "Conteúdo placeholder (descritivo, não minuta)",
+  CONTEUDO_PLACEHOLDER: "Conteúdo placeholder (descritivo, texto aprovado ainda não carregado)",
   PRONTO_PARA_PREVIA_INTERNA: "Pronto para prévia interna",
-  AGUARDA_REVISAO_JURIDICA: "Aguarda revisão jurídica",
+  AGUARDA_MATERIALIZACAO: "Aguarda materialização/vínculo do texto já aprovado",
 };
 
 /** Rótulo proibido fora deste vocabulário quando não se nomeia a camada. */
@@ -236,7 +236,7 @@ export type CamadaJuridica = {
   versao: string | null;
   vigencia: string | null;
   responsavel: string | null;
-  exigeRevisaoJuridica: boolean;
+  exigeMaterializacao: boolean;
   observacao: string;
 };
 
@@ -308,7 +308,7 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       versao: "ANEXO-I-ORDEM-DE-SERVICO-v1.0",
       vigencia: "vigente para uso interno",
       responsavel: "Proprietária Administradora",
-      exigeRevisaoJuridica: false,
+      exigeMaterializacao: false,
       observacao:
         "Estrutura e campos derivam do contrato-base; o corpo renderizado hoje é descritivo e depende da proposta/OS aprovada do caso.",
     },
@@ -337,9 +337,9 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       versao: null,
       vigencia: null,
       responsavel: null,
-      exigeRevisaoJuridica: true,
+      exigeMaterializacao: true,
       observacao:
-        "Nenhuma minuta jurídica homologada localizada em docs/contratos. O texto persistido é descritivo (placeholder), não instrumento.",
+        "Texto jurídico já revisado; o arquivo aprovado ainda não foi localizado/materializado em docs/contratos. O texto persistido é descritivo (placeholder), não instrumento.",
     },
     caso: { ...CASO_AUSENTE_ANA, parametrosAusentes: ["Despesa externa concreta", "Teto por destino", "Política de reembolso homologada"] },
     estados: [
@@ -348,10 +348,10 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       "CONTEUDO_PLACEHOLDER",
       "INSTANCIA_DO_CASO_AUSENTE",
       "PRONTO_PARA_PREVIA_INTERNA",
-      "AGUARDA_REVISAO_JURIDICA",
+      "AGUARDA_MATERIALIZACAO",
     ],
     frasePadrao:
-      "Anexo II: instância técnica existe no app; modelo jurídico homologado não foi localizado; sem despesa concreta no caso; prévia interna disponível; nenhuma ação externa permitida.",
+      "Anexo II: instância técnica existe no app; texto jurídico já revisado ainda não materializado no repositório canônico; sem despesa concreta no caso; prévia interna disponível; nenhuma ação externa permitida.",
     acaoExternaPermitida: false,
   },
   {
@@ -365,7 +365,7 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       versao: "ANEXO-III-AUTORIZACAO-PESQUISA-v1.0",
       vigencia: "vigente para uso interno",
       responsavel: "Proprietária Administradora",
-      exigeRevisaoJuridica: false,
+      exigeMaterializacao: false,
       observacao:
         "Regras de autorização (órgão, pessoas, documentos, teto, prazo) existem; o corpo renderizado ainda é descritivo até a pesquisa nominal do caso.",
     },
@@ -391,9 +391,9 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       versao: null,
       vigencia: null,
       responsavel: null,
-      exigeRevisaoJuridica: true,
+      exigeMaterializacao: true,
       observacao:
-        "Minuta de procuração homologada não localizada; o tipo de poderes ainda depende de exigência do órgão e de revisão jurídica.",
+        "Procuração já revisada juridicamente; o arquivo aprovado ainda não foi materializado no repositório e o tipo de poderes depende da exigência do órgão.",
     },
     caso: { ...CASO_AUSENTE_ANA, parametrosAusentes: ["Órgão exigente", "Poderes específicos", "Outorgante/outorgado qualificados"] },
     estados: [
@@ -402,10 +402,10 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       "CONTEUDO_PLACEHOLDER",
       "INSTANCIA_DO_CASO_AUSENTE",
       "PRONTO_PARA_PREVIA_INTERNA",
-      "AGUARDA_REVISAO_JURIDICA",
+      "AGUARDA_MATERIALIZACAO",
     ],
     frasePadrao:
-      "Anexo IV: instância técnica existe no app; modelo jurídico homologado não foi localizado; sem exigência de órgão registrada no caso; prévia interna disponível; nenhuma ação externa permitida.",
+      "Anexo IV: instância técnica existe no app; texto jurídico já revisado ainda não materializado no repositório canônico; sem exigência de órgão registrada no caso; prévia interna disponível; nenhuma ação externa permitida.",
     acaoExternaPermitida: false,
   },
   {
@@ -419,9 +419,9 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       versao: null,
       vigencia: null,
       responsavel: null,
-      exigeRevisaoJuridica: true,
+      exigeMaterializacao: true,
       observacao:
-        "Regras de impacto (prazo, valor, despesa) existem no motor; texto de aditivo aprovado não localizado.",
+        "Regras de impacto (prazo, valor, despesa) existem no motor; o texto de aditivo já revisado ainda não foi materializado no repositório canônico.",
     },
     caso: { ...CASO_AUSENTE_ANA, parametrosAusentes: ["Alteração de escopo aprovada", "Impacto de prazo/valor", "Aceite do cliente"] },
     estados: [
@@ -430,10 +430,10 @@ export const ANEXOS_TRES_CAMADAS: LinhaTresCamadas[] = [
       "CONTEUDO_PLACEHOLDER",
       "INSTANCIA_DO_CASO_AUSENTE",
       "PRONTO_PARA_PREVIA_INTERNA",
-      "AGUARDA_REVISAO_JURIDICA",
+      "AGUARDA_MATERIALIZACAO",
     ],
     frasePadrao:
-      "Anexo V: instância técnica existe no app; modelo jurídico homologado não foi localizado; sem alteração de escopo registrada no caso; prévia interna disponível; nenhuma ação externa permitida.",
+      "Anexo V: instância técnica existe no app; texto jurídico já revisado ainda não materializado no repositório canônico; sem alteração de escopo registrada no caso; prévia interna disponível; nenhuma ação externa permitida.",
     acaoExternaPermitida: false,
   },
 ];
@@ -460,8 +460,8 @@ export function permitePreviaInterna(a: LinhaTresCamadas): boolean {
   return a.estados.includes("PRONTO_PARA_PREVIA_INTERNA") && a.acaoExternaPermitida === false;
 }
 
-export function exigeFonteJuridicaAntesDeUsoExterno(a: LinhaTresCamadas): boolean {
-  return !a.juridica.presente || a.juridica.exigeRevisaoJuridica;
+export function exigeMaterializacaoAntesDeUsoExterno(a: LinhaTresCamadas): boolean {
+  return !a.juridica.presente || a.juridica.exigeMaterializacao;
 }
 
 /* ------------------------------------------------------------------ */

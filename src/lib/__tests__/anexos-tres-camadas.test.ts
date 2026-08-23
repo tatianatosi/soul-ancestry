@@ -50,7 +50,7 @@ describe("reconciliação Anexos I–V — três camadas", () => {
       expect(a.tecnica.temHash).toBe(true);
       expect(a.tecnica.tamanhoRenderedHtml).toBeGreaterThan(0);
       expect(a.estados).toContain("TECNICAMENTE_EXISTE");
-      expect(a.estados).toContain("AGUARDA_REVISAO_JURIDICA");
+      expect(a.estados).toContain("AGUARDA_MATERIALIZACAO");
     }
   });
 
