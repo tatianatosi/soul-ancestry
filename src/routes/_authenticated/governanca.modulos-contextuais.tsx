@@ -6,7 +6,10 @@ import {
   MODULOS_DESK,
   TELAS_PRINCIPAIS_DESK,
   TELA_DESK_LABEL,
+  TIPO_MODULO_LABEL,
   contarPorTela,
+  contarPorTipo,
+  fonteUnicaDe,
   type TelaDesk,
 } from "@/lib/desk-modulos";
 import {
@@ -49,6 +52,7 @@ const EXEMPLOS = [
 
 function Pagina() {
   const contagem = contarPorTela();
+  const porTipo = contarPorTipo();
 
   return (
     <SaasShell
@@ -63,6 +67,13 @@ function Pagina() {
               <div className="text-xs uppercase tracking-wide text-navy/60">{TELA_DESK_LABEL[t]}</div>
             </div>
           ))}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
+          Classificação CA-UX-01.3: {porTipo.operacional} operacionais · {porTipo.metrica} métricas ·{" "}
+          {porTipo.duplicado} duplicados · {porTipo.a_confirmar} a confirmar com a Proprietária.
+          Métricas e duplicados não têm painel próprio: aparecem como indicador no cabeçalho da aba,
+          apontando para a fonte única onde a ação acontece.
         </section>
 
         <section className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
@@ -113,6 +124,7 @@ function Pagina() {
                 <tr>
                   <th className="px-3 py-2">Módulo profundo</th>
                   <th className="px-3 py-2">Tela principal</th>
+                  <th className="px-3 py-2">Tipo</th>
                   <th className="px-3 py-2">Forma</th>
                   <th className="px-3 py-2">Subrota / painel</th>
                   <th className="px-3 py-2">Descrição</th>
@@ -123,6 +135,14 @@ function Pagina() {
                   <tr key={m.id} className="border-t border-navy/5 align-top">
                     <td className="px-3 py-2 font-medium text-navy">{m.nome}</td>
                     <td className="px-3 py-2 text-navy/70">{TELA_DESK_LABEL[m.tela]}</td>
+                    <td className="px-3 py-2 text-xs text-navy/70">
+                      {TIPO_MODULO_LABEL[m.tipo]}
+                      {fonteUnicaDe(m.id) ? (
+                        <span className="block text-[11px] text-navy/50">
+                          fonte única: {fonteUnicaDe(m.id)?.nome}
+                        </span>
+                      ) : null}
+                    </td>
                     <td className="px-3 py-2 text-xs uppercase tracking-wide text-navy/50">
                       {m.forma.replace("_", " ")}
                     </td>

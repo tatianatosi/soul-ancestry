@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { cn } from "@/lib/utils";
+import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import {
   Campo,
@@ -365,7 +367,27 @@ function FinanceiroPage() {
                       {aba === "faturas" ? nomeCliente(l["client_id"]) : String(l["referencia_externa"] ?? "—")}
                     </td>
                     <td className="px-4 py-3">{moeda(l["valor"], l["moeda"])}</td>
-                    <td className="px-4 py-3">{dataBr(l[aba === "faturas" ? "vencimento" : "pago_em"])}</td>
+                    <td className="px-4 py-3">
+                      {dataBr(l[aba === "faturas" ? "vencimento" : "pago_em"])}
+                      {(() => {
+                        // Idade do saldo em aberto: dias desde o vencimento já registrado.
+                        if (aba !== "faturas") return null;
+                        if (l["status"] === "paga" || l["status"] === "cancelada") return null;
+                        const dias = diasDesde(l["vencimento"]);
+                        const rotulo = rotuloIdade(dias, "em aberto");
+                        if (!rotulo) return null;
+                        return (
+                          <span
+                            className={cn(
+                              "mt-1 block text-[11px]",
+                              tomIdade(dias) === "alerta" ? "font-semibold text-terracotta" : "text-navy/55",
+                            )}
+                          >
+                            {rotulo}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-4 py-3 space-x-1">
                       <Selo
                         texto={rotulos[String(l["status"])] ?? String(l["status"])}

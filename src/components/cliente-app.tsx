@@ -6,6 +6,7 @@ import { runCanvasAudit } from "@/lib/canvas-audit";
 import { EstadoTelaCliente } from "@/components/cliente/estado-visibilidade";
 import { escopoDoRegistro } from "@/lib/app-visibilidade-registro";
 import { cn } from "@/lib/utils";
+import { useSuperficieInterna } from "@/lib/superficie-interna";
 import { BrandLogo } from "./brand";
 import { RelatorioVisualTab } from "./relatorio-visual";
 import { EntregaConsultivaTab } from "./entrega-consultiva";
@@ -96,6 +97,7 @@ type Tab =
 const ETAPAS_CASO = ["novo", "em_leitura", "em_documentos", "em_upgrade"] as const;
 
 export function ClienteApp() {
+  const interna = useSuperficieInterna();
   const [tab, setTab] = useState<Tab>("home");
   const [showConta, setShowConta] = useState(false);
   const [showOnePage, setShowOnePage] = useState(false);
@@ -169,7 +171,7 @@ export function ClienteApp() {
 
       <div data-print-hide className="border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
-          <label className="flex min-w-0 items-center gap-2 text-[11px] text-navy/70">
+          <label className={cn("min-w-0 items-center gap-2 text-[11px] text-navy/70", interna ? "flex" : "hidden")}>
             <span className="shrink-0">Caso</span>
             <select
               value={caso.geral.case_id}
@@ -198,12 +200,14 @@ export function ClienteApp() {
               Ver devolutiva inicial
             </button>
           )}
-          <a
-            href="/devolutiva?cliente=CA-ITA-GUILH-CERONATTO"
-            className="flex-1 rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-center text-[11px] font-medium text-navy transition hover:bg-gold/20"
-          >
-            Devolutivas (interno)
-          </a>
+          {interna && (
+            <a
+              href="/devolutiva?cliente=CA-ITA-GUILH-CERONATTO"
+              className="flex-1 rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-center text-[11px] font-medium text-navy transition hover:bg-gold/20"
+            >
+              Devolutivas (interno)
+            </a>
+          )}
         </div>
 
       </div>

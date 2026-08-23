@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { alertasOps } from "@/lib/ops.functions";
 import type { ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -261,6 +262,19 @@ export function SaasShell({
 
   // Admin não ganha abas novas: os módulos administrativos entram como
   // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
+  // Contadores reais no menu: apenas números já existentes no banco (SLA de tarefas
+  // e microentregas). Sem dado, nenhum badge é exibido — nunca estimamos.
+  const carregarAlertas = useServerFn(alertasOps);
+  const alertas = useQuery({
+    queryKey: ["shell", "alertas-menu"],
+    queryFn: () => carregarAlertas({} as never),
+    staleTime: 60_000,
+    retry: false,
+  });
+  const atrasadasCasos =
+    (alertas.data?.atrasadas?.length ?? 0) + (alertas.data?.microAtrasadas?.length ?? 0);
+  const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
+
   const itens: SecaoNav[] = NAV.map((item) =>
     ehAdmin && item.to === "/biblioteca"
       ? {
@@ -306,6 +320,14 @@ export function SaasShell({
                   >
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{label}</span>
+                    {badgeDe(to) > 0 ? (
+                      <span
+                        title={`${badgeDe(to)} item(ns) com prazo vencido`}
+                        className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                      >
+                        {badgeDe(to)}
+                      </span>
+                    ) : null}
                     <ChevronDown className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")} />
                   </button>
                 ) : (

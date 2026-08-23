@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useSuperficieInterna } from "@/lib/superficie-interna";
 import type { Caso } from "@/data/casos";
 import {
   CASO_MODELO,
@@ -40,8 +41,6 @@ import {
   X,
 } from "lucide-react";
 
-/** Seletores de caso-modelo só existem no ambiente interno/demonstração. */
-const MODO_DEMO = import.meta.env.DEV;
 
 const payloadOf = (e: EntregaConsultiva, estado: EstadoEntrega): TrackingPayload => ({
   caseId: e.caseId,
@@ -62,6 +61,8 @@ function estadoParaPagamento(estado: EstadoEntrega): PaymentStatus {
 }
 
 export function EntregaConsultivaTab({ caso }: { caso: Caso }) {
+  /** Seletores de caso-modelo só existem para sessão de equipe interna. */
+  const MODO_DEMO = useSuperficieInterna();
   const [modelo, setModelo] = useState(false);
   const base = modelo && MODO_DEMO ? CASO_MODELO : entregaByCaso(caso);
   const [estadoOverride, setEstadoOverride] = useState<EstadoEntrega | null>(null);

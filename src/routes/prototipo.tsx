@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AppSwitcher } from "@/components/brand";
 import { ClienteApp } from "@/components/cliente-app";
 import { DeskApp } from "@/components/desk-app";
+import { SuperficieInternaProvider, useSessaoInterna } from "@/lib/superficie-interna";
 
 export const Route = createFileRoute("/prototipo")({
   validateSearch: (search: Record<string, unknown>): { caso?: string } => ({
@@ -25,13 +26,17 @@ export const Route = createFileRoute("/prototipo")({
 
 function Prototipo() {
   const [app, setApp] = useState<"cliente" | "desk">("cliente");
+  const interna = useSessaoInterna();
+
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-terracotta px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-cream">
-        Protótipo / dados não operacionais
+    <SuperficieInternaProvider valor={interna}>
+      <div className="min-h-screen bg-cream">
+        <div className="bg-terracotta px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-cream">
+          Protótipo / dados não operacionais
+        </div>
+        {interna && <AppSwitcher current={app} onChange={setApp} />}
+        {interna && app === "desk" ? <DeskApp /> : <ClienteApp />}
       </div>
-      <AppSwitcher current={app} onChange={setApp} />
-      {app === "cliente" ? <ClienteApp /> : <DeskApp />}
-    </div>
+    </SuperficieInternaProvider>
   );
 }

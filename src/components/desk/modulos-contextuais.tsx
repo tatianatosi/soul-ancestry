@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bot, ChevronRight, X } from "lucide-react";
 
-import { modulosDaTela, TELA_DESK_LABEL, type TelaDesk } from "@/lib/desk-modulos";
+import { fonteUnicaDe, modulosDaTela, TELA_DESK_LABEL, TIPO_MODULO_LABEL, type TelaDesk } from "@/lib/desk-modulos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,6 +12,11 @@ export function PainelModulosContextuais({ tela }: { tela: TelaDesk }) {
   const modulos = modulosDaTela(tela);
   const [aberto, setAberto] = useState(false);
   if (!modulos.length) return null;
+
+  // CA-UX-01.3: métricas e duplicados não ganham painel próprio — viram badge
+  // no cabeçalho da aba, apontando para a subrota/fonte única onde a ação acontece.
+  const painelProprio = modulos.filter((m) => m.tipo === "operacional" || m.tipo === "a_confirmar");
+  const badges = modulos.filter((m) => m.tipo === "metrica" || m.tipo === "duplicado");
 
   return (
     <section className="mb-6 rounded-2xl border border-navy/15 bg-white/80 p-4">
@@ -25,17 +30,51 @@ export function PainelModulosContextuais({ tela }: { tela: TelaDesk }) {
             Módulos desta tela
           </span>
           <span className="font-serif text-lg text-navy">
-            {TELA_DESK_LABEL[tela]} · {modulos.length} módulos contextuais
+            {TELA_DESK_LABEL[tela]} · {painelProprio.length} módulos contextuais
+            {badges.length > 0 ? ` · ${badges.length} indicadores` : ""}
           </span>
         </span>
         <ChevronRight className={cn("h-4 w-4 shrink-0 text-navy/50 transition", aberto && "rotate-90")} />
       </button>
 
+      {badges.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-2">
+          {badges.map((m) => {
+            const fonte = fonteUnicaDe(m.id);
+            return (
+              <li
+                key={m.id}
+                title={fonte ? `Fonte única: ${fonte.nome} (${fonte.destino})` : m.destino}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-[11px] font-medium",
+                  m.tipo === "metrica"
+                    ? "border-gold/60 bg-gold/10 text-navy"
+                    : "border-terracotta/40 bg-terracotta/10 text-navy",
+                )}
+              >
+                {m.nome}
+                <span className="ml-1 text-navy/55">
+                  · {TIPO_MODULO_LABEL[m.tipo]}
+                  {fonte ? ` → ${fonte.nome}` : ""}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
       {aberto ? (
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {modulos.map((m) => (
+          {painelProprio.map((m) => (
             <li key={m.id} className="rounded-xl border border-navy/10 bg-cream/50 p-3">
-              <div className="text-sm font-medium text-navy">{m.nome}</div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="text-sm font-medium text-navy">{m.nome}</div>
+                {m.tipo === "a_confirmar" && (
+                  <span className="shrink-0 rounded-full border border-navy/25 px-2 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
+                    A confirmar
+                  </span>
+                )}
+              </div>
               <div className="mt-0.5 text-[11px] uppercase tracking-wide text-navy/50">
                 {m.forma.replace("_", " ")} · {m.destino}
               </div>
