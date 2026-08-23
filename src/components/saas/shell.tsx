@@ -207,7 +207,7 @@ export function SaasShell({
         </div>
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
-            const { to, label, icon: Icon, sub, agrupador } = item;
+            const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
             const links = sub.filter((s): s is { to: string; label: string; hash?: string } => "to" in s);
             const rotaAtiva = rota === to || links.some((s) => rota.startsWith(s.to));
             const expandida = rotaAtiva || secaoAberta === to;
@@ -216,6 +216,7 @@ export function SaasShell({
                 {agrupador ? (
                   <button
                     type="button"
+                    title={descricaoGrupo}
                     onClick={() => setSecaoAberta((v) => (v === to ? null : to))}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
@@ -237,6 +238,7 @@ export function SaasShell({
                 ) : (
                   <Link
                     to={to}
+                    title={descricaoGrupo}
                     onClick={() => {
                       setAberto(false);
                       setSecaoAberta(to);
