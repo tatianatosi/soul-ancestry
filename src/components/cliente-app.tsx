@@ -171,7 +171,7 @@ export function ClienteApp() {
 
       <div data-print-hide className="border-b border-border bg-areia px-5 py-2.5">
         <div className="flex items-center justify-between gap-3">
-          <label className="flex min-w-0 items-center gap-2 text-[11px] text-navy/70">
+          <label className={cn("min-w-0 items-center gap-2 text-[11px] text-navy/70", interna ? "flex" : "hidden")}>
             <span className="shrink-0">Caso</span>
             <select
               value={caso.geral.case_id}
