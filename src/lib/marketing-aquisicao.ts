@@ -182,7 +182,7 @@ export const MAPA_MARKETING: readonly LinhaMapaMarketing[] = [
   },
   {
     item: "Site, landing page e formulário público",
-    rota: "/ (switcher), /prototipo, /mockup",
+    rota: "/ (vitrine institucional)",
     fonte: "estático",
     estado: "ausente",
     integracao: "mock",

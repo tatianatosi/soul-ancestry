@@ -26,7 +26,6 @@ type Linha = { rota: string; origem: string; escopo: string; guard: string; semS
 
 const ROTAS: Linha[] = [
   { rota: "/", origem: "src/routes/index.tsx", escopo: "Público", guard: "nenhum", semSessao: "renderiza (sem redirect)" },
-  { rota: "/prototipo", origem: "src/routes/prototipo.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza App Cliente + Desk" },
   { rota: "/devolutiva", origem: "src/routes/devolutiva.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza" },
   { rota: "/studio-devolutivas", origem: "src/routes/studio-devolutivas.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza" },
   { rota: "/canvas/$token", origem: "src/routes/canvas.$token.tsx", escopo: "Público por token", guard: "token + canvas_publicado no servidor", semSessao: "renderiza se publicado" },
@@ -44,7 +43,7 @@ const ROTAS: Linha[] = [
 ];
 
 const DESTINOS = [
-  ["Sem sessão em rota pública ou /prototipo", "nenhum redirecionamento"],
+  ["Sem sessão em rota pública", "nenhum redirecionamento"],
   ["Sem sessão em /portal/*", "/acesso"],
   ["Cliente autenticado sem autorização ativa", "/acesso/sem-permissao"],
   ["Sem sessão em rota de backoffice", "/equipe/entrar"],

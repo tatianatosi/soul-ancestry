@@ -6,8 +6,6 @@
  * lê registro; é apenas linguagem de navegação sobre rotas já existentes.
  */
 
-import { PAPEIS_INTERNOS, ehPapelInterno } from "@/lib/superficie-interna-regras";
-
 /** Rótulo humano exibido na navegação e no cabeçalho, sem mudar a URL. */
 export const ROTULOS_HUMANOS: Record<string, string> = {
   "/qualidade": "Radar Interno",
@@ -16,7 +14,6 @@ export const ROTULOS_HUMANOS: Record<string, string> = {
   "/integracoes": "Integrações",
   "/acessos-portal": "App Cliente",
   "/painel": "Painel Hoje",
-  "/referencia-mockup-desk": "Mockup original — 14 abas",
 };
 
 export function rotuloHumano(rota: string, padrao?: string): string {
@@ -30,8 +27,6 @@ export type AtalhoDescoberta = {
   rota: string;
   rotulo: string;
   onde: string;
-  /** Verdadeiro apenas para a referência histórica (não é superfície operacional). */
-  referencia?: boolean;
 };
 
 /**
@@ -45,30 +40,9 @@ export const ATALHOS_DESCOBERTA: readonly AtalhoDescoberta[] = [
   { rota: "/pesquisa-modulo", rotulo: "Pesquisa Genealógica", onde: "Pesquisa genealógica" },
   { rota: "/integracoes", rotulo: "Integrações", onde: "Governança e biblioteca" },
   { rota: "/acessos-portal", rotulo: "App Cliente", onde: "App Cliente" },
-  {
-    rota: "/referencia-mockup-desk",
-    rotulo: "Referência: mockup original de 14 abas",
-    onde: "Somente leitura, uso interno",
-    referencia: true,
-  },
 ] as const;
 
-export const BANNER_REFERENCIA_MOCKUP =
-  "REFERÊNCIA HISTÓRICA — MOCKUP ORIGINAL DE 14 ABAS. NÃO É A SUPERFÍCIE OPERACIONAL.";
-
-/** Papéis autorizados a abrir a referência histórica. */
-export const PAPEIS_REFERENCIA = PAPEIS_INTERNOS;
-
-export type AcessoReferencia = "permitir" | "entrar" | "portal";
-
 /**
- * Acesso à referência histórica `/referencia-mockup-desk`.
- * Cliente autenticado por link mágico (sem papel interno) vai para o App Cliente.
+ * CA-UX-04: a referência histórica saiu do runtime. Banner, papéis e decisão de
+ * acesso foram removidos junto com a rota; índice em docs/historico/mockups.
  */
-export function decidirAcessoReferencia(estado: {
-  autenticado: boolean;
-  papeis: readonly (string | null | undefined)[];
-}): AcessoReferencia {
-  if (!estado.autenticado) return "entrar";
-  return estado.papeis.some(ehPapelInterno) ? "permitir" : "portal";
-}

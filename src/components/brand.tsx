@@ -75,38 +75,8 @@ export function BrandLogo({
 }
 
 
-export function AppSwitcher({
-  current,
-  onChange,
-}: {
-  current: "cliente" | "desk";
-  onChange: (v: "cliente" | "desk") => void;
-}) {
-  return (
-    <div className="sticky top-0 z-50 border-b bg-navy text-cream">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <BrandLogo size={36} showText={true} textColor="#ECDFCD" />
-          <span className="hidden sm:inline text-xs text-cream/60 uppercase tracking-widest">Protótipo</span>
-        </div>
-        <div className="flex items-center gap-1 rounded-full border border-cream/20 bg-navy-soft/60 p-1">
-          {(["cliente", "desk"] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => onChange(v)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm",
-                current === v ? "bg-gold text-navy" : "text-cream/70 hover:text-cream",
-              )}
-            >
-              {v === "cliente" ? "App Cliente" : "Desk Intelligence"}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+// CA-UX-04: o controle de alternância App Cliente/Desk pertencia ao protótipo e
+// foi retirado do runtime; consulte o índice histórico em docs/historico/mockups.
 
 export function useToggle<T extends string>(initial: T) {
   const [v, set] = useState<T>(initial);

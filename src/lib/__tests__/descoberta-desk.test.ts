@@ -1,42 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
-import {
-  ATALHOS_DESCOBERTA,
-  BANNER_REFERENCIA_MOCKUP,
-  ROTULOS_HUMANOS,
-  ROTULO_PRIORIDADE,
-  decidirAcessoReferencia,
-  rotuloHumano,
-} from "@/lib/descoberta-desk";
+import { ATALHOS_DESCOBERTA, ROTULOS_HUMANOS, ROTULO_PRIORIDADE, rotuloHumano } from "@/lib/descoberta-desk";
 import { ORDEM_BLOCOS_PAINEL, validarOrdemPainel } from "@/lib/painel-ordem";
 
 const shell = readFileSync("src/components/saas/shell.tsx", "utf8");
 // A navegação passou a viver no registro canônico CA-UX-03.
 const navegacao = readFileSync("src/lib/navegacao-desk.ts", "utf8");
 const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
-
-describe("acesso à referência histórica", () => {
-  it("permite papéis internos", () => {
-    for (const papel of ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"]) {
-      expect(decidirAcessoReferencia({ autenticado: true, papeis: [papel] })).toBe("permitir");
-    }
-  });
-
-  it("manda cliente autenticado sem papel para o App Cliente", () => {
-    expect(decidirAcessoReferencia({ autenticado: true, papeis: [] })).toBe("portal");
-    expect(decidirAcessoReferencia({ autenticado: true, papeis: ["cliente"] })).toBe("portal");
-  });
-
-  it("manda visitante para a entrada da equipe", () => {
-    expect(decidirAcessoReferencia({ autenticado: false, papeis: [] })).toBe("entrar");
-  });
-
-  it("declara o banner de referência histórica", () => {
-    expect(BANNER_REFERENCIA_MOCKUP).toContain("REFERÊNCIA HISTÓRICA");
-    expect(BANNER_REFERENCIA_MOCKUP).toContain("NÃO É A SUPERFÍCIE OPERACIONAL");
-  });
-});
 
 describe("nomenclatura humana", () => {
   it("mapeia rotas técnicas para rótulos humanos sem mudar a URL", () => {
@@ -67,7 +38,6 @@ describe("atalhos de descoberta", () => {
     "/pesquisa-modulo",
     "/integracoes",
     "/acessos-portal",
-    "/referencia-mockup-desk",
   ]);
 
   it("aponta apenas para rotas existentes, sem duplicar", () => {
@@ -76,16 +46,14 @@ describe("atalhos de descoberta", () => {
     for (const r of rotas) expect(rotasExistentes.has(r)).toBe(true);
   });
 
-  it("cobre os seis módulos pedidos mais a referência", () => {
-    expect(ATALHOS_DESCOBERTA).toHaveLength(7);
-    expect(ATALHOS_DESCOBERTA.filter((a) => a.referencia)).toHaveLength(1);
+  it("cobre exatamente os seis módulos operacionais, sem referência histórica", () => {
+    expect(ATALHOS_DESCOBERTA).toHaveLength(6);
+    expect(ATALHOS_DESCOBERTA.some((a) => a.rotulo.toLowerCase().includes("mockup"))).toBe(false);
   });
 
   it("é descoberta pura: nenhum atalho carrega ação, mutação ou status", () => {
     for (const a of ATALHOS_DESCOBERTA) {
-      expect(Object.keys(a).sort()).toEqual(
-        a.referencia ? ["onde", "referencia", "rota", "rotulo"] : ["onde", "rota", "rotulo"],
-      );
+      expect(Object.keys(a).sort()).toEqual(["onde", "rota", "rotulo"]);
     }
     expect(painel).toContain('data-painel-bloco="descoberta"');
     expect(painel).not.toContain("ATALHOS_DESCOBERTA.map((a) => a.acao");
@@ -114,14 +82,27 @@ describe("superfícies preservadas", () => {
     expect(shell).toContain("GRUPOS_DESK");
   });
 
-  it("o mockup histórico não recebe dados reais nem chamadas de servidor", () => {
-    const mockup = readFileSync("src/components/desk-app.tsx", "utf8");
-    expect(mockup).not.toContain("@/integrations/supabase/client");
-    expect(mockup).not.toContain("useServerFn");
+  it("o protótipo saiu do runtime e vive apenas no arquivo histórico (CA-UX-04)", () => {
+    expect(existsSync("src/components/desk-app.tsx")).toBe(false);
+    expect(existsSync("src/components/cliente-app.tsx")).toBe(false);
+    expect(existsSync("src/components/mockup")).toBe(false);
+    expect(existsSync("src/routes/prototipo.tsx")).toBe(false);
+    expect(existsSync("src/routes/mockup.tsx")).toBe(false);
+    expect(existsSync("src/routes/_authenticated/referencia-mockup-desk.tsx")).toBe(false);
+    expect(existsSync("archive/mockups/componentes/desk-app.tsx")).toBe(true);
+    expect(existsSync("archive/mockups/rotas/prototipo.tsx")).toBe(true);
   });
 
-  it("a rota / continua com o redirecionamento atual, sem apontar para o mockup", () => {
+  it("a rota / é vitrine institucional limpa, sem mockup nem rótulos internos", () => {
     const raiz = readFileSync("src/routes/index.tsx", "utf8");
-    expect(raiz).not.toContain("referencia-mockup-desk");
+    for (const proibido of ["referencia-mockup-desk", "DeskApp", "ClienteApp", "AppSwitcher", "Módulos internos"]) {
+      expect(raiz).not.toContain(proibido);
+    }
+  });
+
+  it("nenhum registro de navegação cita mockup ou protótipo", () => {
+    for (const proibido of ["mockup", "Mockup", "protótipo", "Protótipo"]) {
+      expect(navegacao).not.toContain(proibido);
+    }
   });
 });
