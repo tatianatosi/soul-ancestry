@@ -253,3 +253,128 @@ export function mensagemBloqueio(r: ResultadoConciliacao): string | null {
   if (!r.bloqueios.length) return null;
   return `Conciliação de catálogo bloqueou a geração: ${r.bloqueios.join(" · ")}`;
 }
+
+/* ------------------------------------------------------------------ *
+ * Resumo legível do bloqueio para o fluxo de emissão de OS / Anexo I. *
+ * Camada de apresentação: agrupa as divergências por motivo, diz quais *
+ * campos precisam ser corrigidos e onde. Não altera nenhuma regra.     *
+ * ------------------------------------------------------------------ */
+
+export type MotivoBloqueio =
+  | "sku_nao_homologado"
+  | "preco_condicao_divergente"
+  | "vigencia_invalida"
+  | "escopo_insuficiente";
+
+export type GrupoBloqueio = {
+  motivo: MotivoBloqueio;
+  titulo: string;
+  explicacao: string;
+  onde_corrigir: string;
+  campos: string[];
+  itens: DivergenciaConciliacao[];
+};
+
+const MOTIVO_POR_CODIGO: Record<string, MotivoBloqueio> = {
+  [COD.SEM_SKU]: "sku_nao_homologado",
+  [COD.SKU_FORA_CATALOGO]: "sku_nao_homologado",
+  [COD.SKU_NAO_HOMOLOGADO]: "sku_nao_homologado",
+  [COD.SKU_INATIVO]: "sku_nao_homologado",
+  [COD.FORA_VIGENCIA]: "vigencia_invalida",
+  [COD.PRECO_AUSENTE]: "preco_condicao_divergente",
+  [COD.PRECO_DIVERGENTE]: "preco_condicao_divergente",
+  [COD.ORIGEM_PRECO_NAO_CANONICA]: "preco_condicao_divergente",
+  [COD.CONDICAO_DIVERGENTE]: "preco_condicao_divergente",
+  [COD.SEM_CONDICAO_PERSISTIDA]: "preco_condicao_divergente",
+  [COD.ESCOPO_CATALOGO_AUSENTE]: "escopo_insuficiente",
+  [COD.ESCOPO_INSUFICIENTE]: "escopo_insuficiente",
+  [COD.ESCOPO_FORA_DO_CATALOGO]: "escopo_insuficiente",
+};
+
+const CAMPOS_POR_CODIGO: Record<string, string[]> = {
+  [COD.SEM_SKU]: ["SKU do caso (código do catálogo homologado)"],
+  [COD.SKU_FORA_CATALOGO]: ["SKU do caso (código do catálogo homologado)"],
+  [COD.SKU_NAO_HOMOLOGADO]: ["Status de homologação do SKU", "Elegibilidade do SKU para proposta"],
+  [COD.SKU_INATIVO]: ["SKU ativo no catálogo (reativar ou trocar de SKU)"],
+  [COD.FORA_VIGENCIA]: ["Vigência do SKU (início e fim) no catálogo"],
+  [COD.PRECO_AUSENTE]: ["Preço comercial vigente do SKU no catálogo"],
+  [COD.PRECO_DIVERGENTE]: ["Preço praticado na proposta", "Exceção comercial aprovada e vigente"],
+  [COD.ORIGEM_PRECO_NAO_CANONICA]: ["Origem do preço (catálogo homologado ou exceção aprovada)"],
+  [COD.CONDICAO_DIVERGENTE]: ["Condição comercial praticada (parcelas, forma e vencimento)"],
+  [COD.SEM_CONDICAO_PERSISTIDA]: ["Condição comercial derivada da proposta aprovada"],
+  [COD.ESCOPO_CATALOGO_AUSENTE]: ["Escopo aprovado do SKU (inclusões e entregáveis) no catálogo"],
+  [COD.ESCOPO_INSUFICIENTE]: [
+    "Objetivo do caso",
+    "Serviços contratados",
+    "Inclusões",
+    "Exclusões",
+    "Entregas",
+    "Pessoas abrangidas",
+  ],
+  [COD.ESCOPO_FORA_DO_CATALOGO]: ["Itens de escopo sem correspondência no catálogo"],
+};
+
+const DEFINICAO: Record<MotivoBloqueio, { titulo: string; explicacao: string; onde: string }> = {
+  sku_nao_homologado: {
+    titulo: "SKU não homologado",
+    explicacao:
+      "O SKU do caso não existe, está inativo ou não tem homologação vigente no catálogo. Sem âncora homologada não há OS nem Anexo I.",
+    onde: "Catálogo comercial › homologação de SKU, ou troca do SKU na proposta.",
+  },
+  preco_condicao_divergente: {
+    titulo: "Preço ou condição comercial divergente",
+    explicacao:
+      "O valor ou a condição praticada não coincide com a fonte homologada, ou não existe condição comercial persistida a partir da proposta aprovada.",
+    onde: "Proposta aprovada › condição comercial, ou exceção comercial aprovada no catálogo.",
+  },
+  vigencia_invalida: {
+    titulo: "Vigência inválida",
+    explicacao: "O SKU está fora da janela de vigência homologada na data de hoje.",
+    onde: "Catálogo comercial › vigência do SKU (início e fim).",
+  },
+  escopo_insuficiente: {
+    titulo: "Escopo insuficiente",
+    explicacao:
+      "O escopo do caso não tem os elementos mínimos exigidos pela OS/Anexo I, ou traz itens sem correspondência no catálogo homologado.",
+    onde: "Planejador do caso e proposta › objetivo, serviços, inclusões, exclusões, entregas e pessoas.",
+  },
+};
+
+const ORDEM: MotivoBloqueio[] = [
+  "sku_nao_homologado",
+  "vigencia_invalida",
+  "preco_condicao_divergente",
+  "escopo_insuficiente",
+];
+
+/**
+ * Agrupa as divergências em motivos de bloqueio legíveis, com os campos a
+ * corrigir. Por padrão considera apenas as bloqueantes; `incluirAtencao`
+ * acrescenta as de atenção para leitura completa.
+ */
+export function resumoBloqueio(
+  r: ResultadoConciliacao,
+  opcoes?: { incluirAtencao?: boolean },
+): GrupoBloqueio[] {
+  const alvo = r.divergencias.filter(
+    (x) => x.severidade === "bloqueante" || (opcoes?.incluirAtencao && x.severidade === "atencao"),
+  );
+  const grupos = new Map<MotivoBloqueio, GrupoBloqueio>();
+
+  for (const item of alvo) {
+    const motivo = MOTIVO_POR_CODIGO[item.codigo] ?? "escopo_insuficiente";
+    const def = DEFINICAO[motivo];
+    let g = grupos.get(motivo);
+    if (!g) {
+      g = { motivo, titulo: def.titulo, explicacao: def.explicacao, onde_corrigir: def.onde, campos: [], itens: [] };
+      grupos.set(motivo, g);
+    }
+    g.itens.push(item);
+    for (const campo of CAMPOS_POR_CODIGO[item.codigo] ?? []) {
+      if (!g.campos.includes(campo)) g.campos.push(campo);
+    }
+  }
+
+  return ORDEM.filter((m) => grupos.has(m)).map((m) => grupos.get(m)!);
+}
+

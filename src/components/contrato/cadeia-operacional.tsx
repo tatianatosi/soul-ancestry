@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo } from "@/components/comercial/base";
+import { BloqueioEmissaoOS } from "@/components/contrato/bloqueio-emissao-os";
 import {
   aprovarPropostaCadeia,
   emitirOSCadeia,
@@ -64,10 +65,15 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
     mutationFn: (proposalId: string) => emitir({ data: { proposalId } }),
     onSuccess: (r: any) => {
       toast.success(r.idempotente ? "OS/Anexo I já vigente para este conteúdo." : `OS/Anexo I v${r.versao} emitida em rascunho.`);
+      qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
       invalidar();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
+    },
   });
+
 
   if (q.isLoading) {
     return (
@@ -154,6 +160,8 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
           <span className="self-center text-xs text-navy/50">Assinatura permanece desabilitada nesta entrega.</span>
         </div>
       )}
+
+      {podeEscrever && <BloqueioEmissaoOS proposalId={proposalId} ativo={statusProposta === "aprovada"} />}
     </Painel>
   );
 }
