@@ -46,38 +46,92 @@
 
 :root {
   --radius: 0.75rem;
-  /* Guia de Marca Clube Ancestral */
+
+  /* ---------------------------------------------------------------
+     PALETA APROVADA (CONGELADA) — não alterar sem aceite tela a tela.
+     Qualquer aplicação do Guia de Marca deve ser feita em escopo
+     isolado (ver [data-marca="guia"]), nunca aqui.
+     --------------------------------------------------------------- */
+  --navy: #1B2B4B;
+  --navy-soft: #2A3D63;
+  --gold: #C9A84C;
+  --gold-soft: #E4CE8A;
+  --cream: #F5F0E8;
+  --areia: #ECDFCD;
+  --terracotta: #8B4513;
+  --sage: #6B7B5E;
+  --plum: #7B4F9E;
+  --preto: #101010;
+
+  --background: var(--cream);
+  --foreground: var(--navy);
+  --card: #ffffff;
+  --card-foreground: var(--navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--navy);
+  --primary: var(--navy);
+  --primary-foreground: var(--cream);
+  --secondary: var(--gold);
+  --secondary-foreground: var(--navy);
+  --muted: #EDE6D9;
+  --muted-foreground: #6B6558;
+  --accent: var(--gold-soft);
+  --accent-foreground: var(--navy);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: #ffffff;
+  --border: #E4DBC8;
+  --input: #E4DBC8;
+  --ring: var(--gold);
+}
+
+/* ---------------------------------------------------------------
+   Identidade de marca em escopo isolado e revisável.
+   Aplicada APENAS onde o elemento (ou um ancestral) declara
+   data-marca="guia" — hoje: área de Pesquisa / Gestão de Pesquisa.
+   Tokens semânticos por superfície e estado; nunca substituição global.
+   --------------------------------------------------------------- */
+[data-marca="guia"] {
+  /* marca */
   --navy: #2F4B6E;
   --navy-soft: #40628B;
-  --preto: #101010;
   --gold: #FCB73A;
   --gold-soft: #FFD98A;
   --cream: #ECDFCD;
   --areia: #ECDFCD;
   --terracotta: #9A3A2F;
-  --sage: #6B7B5E;
-  --plum: #7B4F9E;
+  --preto: #101010;
 
+  /* superfícies */
   --background: #F7F1E7;
-  --foreground: var(--preto);
   --card: #ffffff;
-  --card-foreground: var(--preto);
   --popover: #ffffff;
+  --muted: var(--areia);
+
+  /* texto */
+  --foreground: var(--preto);
+  --card-foreground: var(--preto);
   --popover-foreground: var(--preto);
+  --muted-foreground: #5B5348;
+
+  /* ações e estados */
   --primary: var(--navy);
   --primary-foreground: #FFFFFF;
   --secondary: var(--gold);
   --secondary-foreground: var(--preto);
-  --muted: var(--areia);
-  --muted-foreground: #5B5348;
   --accent: var(--gold-soft);
   --accent-foreground: var(--preto);
   --destructive: #9A3A2F;
   --destructive-foreground: #ffffff;
+
+  /* bordas e foco */
   --border: #DCCDB6;
   --input: #DCCDB6;
   --ring: var(--gold);
+
+  background-color: var(--background);
+  color: var(--foreground);
 }
+
 
 @layer base {
   * { border-color: var(--color-border); }
