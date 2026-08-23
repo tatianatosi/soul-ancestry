@@ -27,3 +27,14 @@ export const executarConciliacaoCatalogo = createServerFn({ method: "POST" })
     const org = await orgDoUsuario(supabase, userId);
     return registrarConciliacao(supabase, { org, userId, proposalId: data.proposalId });
   });
+
+/** Varredura somente leitura de todas as propostas vivas contra o catálogo. */
+export const varreduraConciliacaoCatalogo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { varrerConciliacao } = await import("@/lib/conciliacao-catalogo.server");
+    const { orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
+    const supabase = (context as any).supabase;
+    const org = await orgDoUsuario(supabase, context.userId as string);
+    return varrerConciliacao(supabase, { org });
+  });
