@@ -119,6 +119,10 @@ describe("CA-UX-03 Fase B — métricas", () => {
       expect(i.etiquetaEm).toContain("/metricas");
     }
     expect(existsSync("src/routes/_authenticated/conversao.tsx")).toBe(true);
+    const conversao = ler("src/routes/_authenticated/conversao.tsx");
+    expect(conversao).toContain("Fonte canônica de conversão e saúde comercial");
+    expect(conversao).toContain("montarFunil");
+    expect(conversao).toContain("montarSaude");
   });
 });
 
@@ -150,7 +154,7 @@ describe("CA-UX-03 Fase B — resumo comercial e financeiro no Painel Hoje", () 
 });
 
 describe("CA-UX-03 Fase B — prioridade e artefatos", () => {
-  it("prioridade tem cálculo único em prioridade-matriz.ts (sem divergência)", () => {
+  it("prioridade: divergência de entradas registrada, sem alteração de cálculo", () => {
     const consumidores = [
       "src/components/painel/painel-dia.tsx",
       "src/routes/_authenticated/casos.index.tsx",
@@ -159,7 +163,12 @@ describe("CA-UX-03 Fase B — prioridade e artefatos", () => {
       expect(ler(c)).toContain('from "@/lib/prioridade-matriz"');
     }
     const doc = ler("docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md");
-    expect(doc).toContain("sem divergência registrada");
+    expect(doc).toContain("DIVERGÊNCIA DE PRIORIDADE — DECISÃO HUMANA NECESSÁRIA");
+    expect(doc).toContain("Radar Interno / Qualidade");
+    // Radar Interno/Qualidade não consome a matriz: divergência confirmada.
+    expect(ler("src/components/qualidade/painel.tsx")).not.toContain("prioridade-matriz");
+    // Nenhum cálculo alterado.
+    expect(ler("src/lib/prioridade-matriz.ts")).toContain("matriz-elegibilidade-urgencia-v1.0");
   });
 
   it("artefatos obrigatórios existem", () => {
