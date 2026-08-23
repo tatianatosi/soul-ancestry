@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,7 +9,9 @@ import {
   criarPrimeiroAdmin,
   precisaProvisionamento,
   prepararLoginEquipe,
+  registrarFalhaLoginEquipe,
 } from "@/lib/equipe.functions";
+
 import { EquipeMoldura } from "@/components/equipe/moldura";
 import { useHydrated } from "@/hooks/use-hydrated";
 
