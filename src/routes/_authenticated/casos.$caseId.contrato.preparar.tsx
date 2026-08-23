@@ -48,9 +48,13 @@ import {
   enviarParaAssinatura,
   gerarPrevia,
   lerPrevia,
+  materializarAnexosRevisados,
   preencherDeOrigens,
   registrarAssinatura,
 } from "@/lib/contrato-parametros.functions";
+import { MaterializarRevisados } from "@/components/contrato/materializar-revisados";
+import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
+
 import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
 
 const TITULO = "Preparar contrato do caso | Clube Ancestral";
