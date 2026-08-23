@@ -2732,6 +2732,75 @@ export type Database = {
           },
         ]
       }
+      catalog_reconciliation_runs: {
+        Row: {
+          bloqueios: Json
+          case_id: string | null
+          contract_id: string | null
+          created_at: string
+          decisoes_anteriores: Json
+          divergencias: Json
+          executado_por: string | null
+          id: string
+          motivo: string | null
+          organization_id: string
+          origem: string
+          pode_gerar_contrato: boolean
+          pode_gerar_os: boolean
+          preco_homologado: number | null
+          proposal_id: string
+          registradas: number
+          resolvidas: number
+          service_order_id: string | null
+          sku: string | null
+          versao: number
+        }
+        Insert: {
+          bloqueios?: Json
+          case_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          decisoes_anteriores?: Json
+          divergencias?: Json
+          executado_por?: string | null
+          id?: string
+          motivo?: string | null
+          organization_id: string
+          origem?: string
+          pode_gerar_contrato?: boolean
+          pode_gerar_os?: boolean
+          preco_homologado?: number | null
+          proposal_id: string
+          registradas?: number
+          resolvidas?: number
+          service_order_id?: string | null
+          sku?: string | null
+          versao: number
+        }
+        Update: {
+          bloqueios?: Json
+          case_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          decisoes_anteriores?: Json
+          divergencias?: Json
+          executado_por?: string | null
+          id?: string
+          motivo?: string | null
+          organization_id?: string
+          origem?: string
+          pode_gerar_contrato?: boolean
+          pode_gerar_os?: boolean
+          preco_homologado?: number | null
+          proposal_id?: string
+          registradas?: number
+          resolvidas?: number
+          service_order_id?: string | null
+          sku?: string | null
+          versao?: number
+        }
+        Relationships: []
+      }
       catalog_source_divergences: {
         Row: {
           case_id: string | null
