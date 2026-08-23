@@ -40,7 +40,7 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
 
     const checks = await supabase
       .from("case_activation_checks")

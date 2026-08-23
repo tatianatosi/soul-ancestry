@@ -342,12 +342,15 @@ function sanitizar(entidade: Entidade, dados: Record<string, unknown>) {
 
 type SupabaseCliente = { from: (t: string) => any; rpc: (f: string, a?: unknown) => any };
 
-async function resolverOrganizacao(supabase: SupabaseCliente) {
-  const membro = await supabase
+async function resolverOrganizacao(supabase: SupabaseCliente, userId?: string) {
+  // Uma organização com mais de uma pessoa devolve várias linhas visíveis: por
+  // isso a consulta é sempre restringida à própria pessoa e limitada a 1.
+  let consulta = supabase
     .from("organization_members")
     .select("organization_id")
-    .is("archived_at", null)
-    .maybeSingle();
+    .is("archived_at", null);
+  if (userId) consulta = consulta.eq("user_id", userId);
+  const membro = await consulta.limit(1).maybeSingle();
   if (membro.data?.organization_id) return membro.data.organization_id as string;
   // Quem já possui acesso de equipe (pendente/suspenso/revogado) nunca cria nova organização.
   const staff = await supabase.from("staff_access").select("id,status").limit(1).maybeSingle();
@@ -357,6 +360,7 @@ async function resolverOrganizacao(supabase: SupabaseCliente) {
   return criada.data as string;
 
 }
+
 
 export const getContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -382,7 +386,7 @@ export const getContexto = createServerFn({ method: "GET" })
       };
     }
 
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
 
     const [org, perfil, papeis] = await Promise.all([
       supabase.from("organizations").select("id,nome,slug,demo").eq("id", organizationId).maybeSingle(),
@@ -411,7 +415,7 @@ export const listarRegistros = createServerFn({ method: "GET" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     let q = supabase
       .from(data.entidade)
       .select("*")
@@ -431,7 +435,7 @@ export const criarRegistro = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const payload = {
       ...sanitizar(data.entidade, data.dados).saida,
       organization_id: organizationId,
@@ -453,7 +457,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
 
     const atual = await supabase
       .from(data.entidade)
@@ -560,7 +564,7 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { error } = await supabase
       .from(data.entidade)
       .update({
@@ -580,7 +584,7 @@ export const verificarCondicoesCaso = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { error } = await supabase
       .from("crm_casos")
       .update({
@@ -598,7 +602,7 @@ export const ativarCaso = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const caso = await supabase
       .from("crm_casos")
       .select("*")
@@ -631,7 +635,7 @@ export const registrarAcessoEvidencia = createServerFn({ method: "POST" })
   .inputValidator((data: { evidenciaId: string; acao: "upload" | "download" | "alteracao" | "visualizacao" }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { error } = await supabase.from("evidencia_acessos").insert({
       organization_id: organizationId,
       evidencia_id: data.evidenciaId,
@@ -646,7 +650,7 @@ export const listarAcessosEvidencia = createServerFn({ method: "GET" })
   .inputValidator((data: { evidenciaId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { data: linhas } = await supabase
       .from("evidencia_acessos")
       .select("id,acao,user_id,created_at")
@@ -661,7 +665,7 @@ export const listarAuditoria = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { data, error } = await supabase
       .from("audit_logs")
       .select("id,acao,entidade,entidade_id,user_id,created_at,valores_anteriores,valores_posteriores")
@@ -676,7 +680,7 @@ export const listarUsuarios = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const [membros, papeis, perfis] = await Promise.all([
       supabase.from("organization_members").select("user_id,created_at,archived_at").eq("organization_id", organizationId),
       supabase.from("user_roles").select("user_id,role").eq("organization_id", organizationId),
@@ -702,7 +706,7 @@ export const definirPapel = createServerFn({ method: "POST" })
   .inputValidator((data: { userId: string; papel: Papel; conceder: boolean }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
-    const organizationId = await resolverOrganizacao(supabase);
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     if (data.conceder) {
       const { error } = await supabase
         .from("user_roles")

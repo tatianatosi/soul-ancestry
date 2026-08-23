@@ -58,15 +58,19 @@ export function podeAtivar(papeis: Papel[]) {
   return papeis.includes("admin") || papeis.includes("operacoes");
 }
 
-export async function resolverOrganizacao(supabase: SupabaseCliente) {
-  const membro = await supabase
+export async function resolverOrganizacao(supabase: SupabaseCliente, userId?: string) {
+  // Organizações com mais de um membro devolvem várias linhas visíveis: a
+  // consulta é restringida à própria pessoa e limitada a 1 registro.
+  let consulta = supabase
     .from("organization_members")
     .select("organization_id")
-    .is("archived_at", null)
-    .maybeSingle();
+    .is("archived_at", null);
+  if (userId) consulta = consulta.eq("user_id", userId);
+  const membro = await consulta.limit(1).maybeSingle();
   if (!membro.data?.organization_id) throw new Error("Acesso não autorizado.");
   return membro.data.organization_id as string;
 }
+
 
 export async function meusPapeis(supabase: SupabaseCliente, organizationId: string): Promise<Papel[]> {
   const { data } = await supabase.from("user_roles").select("role").eq("organization_id", organizationId);
