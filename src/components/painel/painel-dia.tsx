@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
+import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
 import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
@@ -442,6 +443,8 @@ export function PainelDia() {
         </label>
 
       </div>
+
+      {proprietaria ? <VerificadorAdminProprietaria /> : null}
 
       {/* 0 — Cards do dia */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
