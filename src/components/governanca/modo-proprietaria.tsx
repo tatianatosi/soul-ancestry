@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 
 import { CoberturaModulos } from "@/components/governanca/cobertura-modulos";
+import { ChecklistLancamentoControlado } from "@/components/governanca/checklist-lancamento";
 import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
 import { rotuloHumano } from "@/lib/rotulos-humanos";
 import {
@@ -372,6 +373,9 @@ export function PainelModoProprietaria() {
           </ul>
         )}
       </section>
+
+      {/* 6. Checklist interno do lançamento controlado (somente síntese de evidência) */}
+      <ChecklistLancamentoControlado />
 
       <DetalhesTecnicos titulo="Detalhes técnicos (poderes, módulos e nomes de sistema)">
         <ul className="grid gap-1 sm:grid-cols-2">
