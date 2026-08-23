@@ -37,6 +37,8 @@ export type GrupoEquivalencia = {
   id: string;
   /** Nome do grupo tal como aparece hoje na navegação do Desk. */
   grupo: string;
+  /** Grupo correspondente na navegação CA-UX-03 de 8 grupos. */
+  grupoNovo?: string;
   rotaBase: string;
   linhas: LinhaEquivalencia[];
 };
@@ -45,6 +47,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "visao-geral",
     grupo: "Visão geral",
+    grupoNovo: "Hoje",
     rotaBase: "/painel",
     linhas: [
       { mockup: "Overview / Visão Geral", rota: "/painel", dado: "derivado: casos, tarefas, ops_microentregas, communication_queue", estado: "implementado", nota: "Painel Hoje com ordem canônica e deduplicação." },
@@ -57,6 +60,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "comercial",
     grupo: "Comercial",
+    grupoNovo: "Comercial",
     rotaBase: "/leads",
     linhas: [
       { mockup: "CRM Vivo — leads", rota: "/leads", dado: "leads, lead_sources, discovery_assessments", estado: "implementado" },
@@ -71,6 +75,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "casos",
     grupo: "Casos e núcleos",
+    grupoNovo: "Casos",
     rotaBase: "/casos",
     linhas: [
       { mockup: "Casos 360", rota: "/casos · /casos/$id", dado: "crm_casos, case_members, case_services", estado: "implementado" },
@@ -85,6 +90,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "pesquisa",
     grupo: "Pesquisa genealógica",
+    grupoNovo: "Pesquisa",
     rotaBase: "/pesquisa",
     linhas: [
       { mockup: "Pesquisa e plano de ação", rota: "/pesquisa-modulo · /plano-acao/$caseId", dado: "research_cases, research_action_plan_items, research_hypotheses", estado: "implementado" },
@@ -98,6 +104,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "contratos",
     grupo: "Contratos e financeiro",
+    grupoNovo: "Contratos e financeiro",
     rotaBase: "/contratos",
     linhas: [
       { mockup: "Contratos, prévia e revisão", rota: "/contratos · /casos/$id/contrato/preparar", dado: "contracts, contract_versions, contract_review_events", estado: "implementado" },
@@ -111,6 +118,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "governanca",
     grupo: "Governança e biblioteca",
+    grupoNovo: "Governança",
     rotaBase: "/biblioteca",
     linhas: [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado" },
@@ -126,12 +134,25 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "app-cliente",
     grupo: "App Cliente",
+    grupoNovo: "Cliente",
     rotaBase: "/acessos-portal",
     linhas: [
       { mockup: "Acessos e visibilidade", rota: "/acessos-portal", dado: "client_portal_access, client_portal_case_access, authorized_portal_emails", estado: "implementado", nota: "Link mágico de uso único, 20 min." },
       { mockup: "Atendimento e publicação", rota: "/atendimento", dado: "portal_tickets, portal_ticket_messages, client_deliverables", estado: "implementado", nota: "Publicação nunca automática." },
       { mockup: "Projeção do caso ao cliente", rota: "/portal · /canvas/$token", dado: "app_projections (projeção autorizada)", estado: "implementado", nota: "Somente dados classificados como real." },
       { mockup: "Solicitações de documento", rota: "/atendimento (solicitações)", dado: "portal_document_requests, document_requests", estado: "implementado" },
+    ],
+  },
+  {
+    id: "administracao",
+    grupo: "Administração (novo grupo CA-UX-03)",
+    grupoNovo: "Administração",
+    rotaBase: "/modo-proprietaria",
+    linhas: [
+      { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado", nota: "Reagrupado; nenhuma regra alterada." },
+      { mockup: "Equipe e papéis", rota: "/equipe", dado: "profiles, staff_access, user_roles", estado: "implementado", nota: "Visível somente para admin." },
+      { mockup: "Configurações", rota: "/configuracoes", dado: "organizations, org_settings", estado: "a_confirmar", nota: "Cobertura de parâmetros ainda sem evidência consolidada." },
+      { mockup: "Segurança e verificação administrativa", rota: "/reconfirmar-propriedade · /governanca/varredura-administracao", dado: "audit_logs, owner_override_events", estado: "parcial", nota: "Verificação existe; prova ponta a ponta depende de login manual." },
     ],
   },
 ];
