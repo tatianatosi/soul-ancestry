@@ -65,3 +65,25 @@ Radar Interno → `/qualidade` · Validação Jurídica → `/matriz-juridica` �
 
 ## 5. Aceite necessário para Fase B
 Aprovar: (a) teto de 5 métricas por área, (b) aposentadoria visual dos dois painéis redundantes, (c) enxugamento de `metricas.tsx`, (d) tabela de fontes canônicas acima.
+
+## Fase B — Implementação e resultado (23/08/2026)
+
+Executada integralmente. Nenhuma ação externa, alteração de dados reais, migration, mudança de RLS,
+autenticação, sessão, permissões, integrações, paleta ou App Cliente. Nenhuma rota, arquivo, componente,
+dado ou teste removido.
+
+| Decisão aprovada | Resultado |
+|---|---|
+| Painel Hoje único em `/painel` com 5 blocos | `painel-dia.tsx` mantém fila priorizada, exceções, comercial, prazos e Encontrar no Desk; deduplicação por precedência preservada |
+| Painéis redundantes aposentados visualmente | `painel-hoje.tsx` e `painel-desk-hoje.tsx` só acessíveis por `/historico/painel-hoje` e `/historico/painel-desk-hoje`, fora de menus, com faixa "Visão histórica…" e link para `/painel`; sem redirect |
+| Teto de 5 métricas | `/metricas` exibe 5 cartões de decisão; demais em `<details>` "Histórico e análise", fechado por padrão |
+| Conversão e saúde comercial | Cards "Funil de conversão" e "Higiene comercial" removidos visualmente de `/metricas` e substituídos pelo link "Conversão e saúde comercial — ver no Comercial"; `/conversao` é a única superfície com número |
+| Resumo comercial no Painel Hoje | Frase única "Comercial hoje: X leads aguardando ação", com X definido em `src/lib/comercial-hoje-canonico.ts` e clique para `/conversao` |
+| Prioridade | Cálculo único em `prioridade-matriz.ts`, consumido por Painel Hoje (lista) e Casos 360 (badge). Sem divergência |
+| Financeiro | Resumo preservado no Painel Hoje (`data-painel-resumo="financeiro"`) com detalhe em `/financeiro`; nenhum gate alterado |
+
+Definição canônica de X: união deduplicada de `calls_hoje`, `propostas_sem_followup` e
+`leads_sem_proxima_acao`, com data ≤ hoje+7, excluídos registros já exibidos em filas anteriores e
+registros demo quando `incluirDemo=false`.
+
+Lacunas preservadas: radar multi-país, CAC/ROI sem fonte canônica, envio externo de WhatsApp desligado.
