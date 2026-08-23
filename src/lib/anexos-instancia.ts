@@ -25,6 +25,18 @@ export type AnexoNaTela = {
   modelo: string | null;
 };
 
+/**
+ * Traduz o anexo derivado na tela para o mesmo domínio de status usado na
+ * instância salva (contract_annexes.status).
+ */
+export function statusTelaDeAnexo(a: { aplicavel: boolean; pendencias: unknown[]; estado: string }): string {
+  if (!a.aplicavel) return "not_applicable";
+  if (a.pendencias.length) return "missing";
+  if (a.estado === "aprovado") return "approved";
+  if (a.estado === "em_revisao") return "ready_for_review";
+  return "drafting";
+}
+
 export type EstadoInstancia = "canonica" | "desatualizada" | "nao_materializada" | "somente_persistida";
 
 export type LinhaInstancia = {
