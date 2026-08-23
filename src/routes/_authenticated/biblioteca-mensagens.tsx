@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { OrquestracaoContextual } from "@/components/desk/orquestracao-contextual";
+import {
+  ACAO_PERMITIDA,
+  contextoSeguro,
+  resolverModeloVigente,
+} from "@/lib/fiacao-cadencia-catalogo";
 import { SaasShell } from "@/components/saas/shell";
 import {
   definirStatusTemplate,
@@ -17,6 +22,12 @@ import {
 } from "@/lib/message-library.functions";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-mensagens")({
+  /** CA-OPS-02: contexto de leitura vindo do alerta de cadência em /ops. Nada é gravado. */
+  validateSearch: (search: Record<string, unknown>) => ({
+    alerta: typeof search["alerta"] === "string" ? (search["alerta"] as string) : undefined,
+    caso: typeof search["caso"] === "string" ? (search["caso"] as string) : undefined,
+    codigo: typeof search["codigo"] === "string" ? (search["codigo"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Biblioteca de Mensagens — Clube Ancestral" },
@@ -64,6 +75,7 @@ function preencher(corpo: string, valores: Record<string, string>): string {
 
 function BibliotecaMensagensPage() {
   const queryClient = useQueryClient();
+  const busca_alerta = Route.useSearch();
   const [categoria, setCategoria] = useState("");
   const [status, setStatus] = useState("");
   const [busca, setBusca] = useState("");
@@ -138,6 +150,22 @@ function BibliotecaMensagensPage() {
     });
   }, [templates, categoria, status, busca]);
 
+  /**
+   * CA-OPS-02 — resolução read-only do modelo vigente para o alerta de cadência.
+   * Não registra uso, não cria rascunho, não enfileira e não envia nada.
+   */
+  const contextoAlerta = busca_alerta.alerta
+    ? contextoSeguro(busca_alerta.alerta, { caseId: busca_alerta.caso ?? null, codigo: busca_alerta.codigo ?? null })
+    : null;
+  const resolucao = busca_alerta.alerta ? resolverModeloVigente(busca_alerta.alerta, templates) : null;
+  const modeloResolvidoId = resolucao?.modelo?.id ?? null;
+
+  useEffect(() => {
+    if (!modeloResolvidoId) return;
+    const alvo = templates.find((t) => t.id === modeloResolvidoId);
+    if (alvo) setSelecionado((atual) => atual ?? alvo);
+  }, [modeloResolvidoId, templates]);
+
   const texto = selecionado ? preencher(selecionado.corpo, valores) : "";
   const pendentes = selecionado
     ? selecionado.variaveisObrigatorias.filter((v) => !(valores[v] ?? "").trim())
@@ -157,6 +185,46 @@ function BibliotecaMensagensPage() {
             ))}
           </ul>
         </section>
+
+        {contextoAlerta ? (
+          <section
+            data-fiacao="alerta-cadencia"
+            className="rounded-xl border border-border bg-card p-4"
+          >
+            <h2 className="text-sm font-medium text-foreground">
+              Modelo sugerido para o alerta: {contextoAlerta.rotuloAlerta}
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Contexto de leitura, não persistido. Ação permitida: {ACAO_PERMITIDA.replace(/_/g, " ")}. Nenhuma
+              mensagem é enviada, enfileirada ou registrada por abrir este modelo.
+            </p>
+            <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+              <div>
+                <dt className="inline font-medium text-foreground">Caso: </dt>
+                <dd className="inline">{contextoAlerta.codigoCaso ?? contextoAlerta.caseId ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="inline font-medium text-foreground">Severidade: </dt>
+                <dd className="inline">{contextoAlerta.severidade}</dd>
+              </div>
+              <div>
+                <dt className="inline font-medium text-foreground">Gate aplicável: </dt>
+                <dd className="inline">{contextoAlerta.gate}</dd>
+              </div>
+              <div>
+                <dt className="inline font-medium text-foreground">Variáveis permitidas: </dt>
+                <dd className="inline">{contextoAlerta.variaveisPermitidas.join(", ")}</dd>
+              </div>
+            </dl>
+            {resolucao?.modelo ? (
+              <p className="mt-2 text-xs text-foreground">
+                Modelo vigente resolvido: <strong>{resolucao.modelo.nome}</strong>. Revise e copie manualmente.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-foreground">Não há modelo vigente para este alerta.</p>
+            )}
+          </section>
+        ) : null}
 
         <OrquestracaoContextual />
 
