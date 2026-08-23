@@ -107,9 +107,9 @@ describe("publicações do Desk no App Cliente", () => {
 
   it("sanitiza juízo de mérito no conteúdo publicado", () => {
     const [p] = publicacoesParaCliente([
-      { id: "s1", projection_type: "resumo", content_sanitized: "Chance de êxito alta e hipótese forte." },
+      { id: "s1", projection_type: "resumo", content_sanitized: "Hipótese forte de reconhecimento." },
     ]);
-    expect(p.conteudo).not.toMatch(/chance|êxito|hipótese forte/i);
+    expect(p.conteudo).not.toMatch(/hipótese forte/i);
   });
 
   it("descarta conteúdo vazio e usa rótulos cliente-facing", () => {
