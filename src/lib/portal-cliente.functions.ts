@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -156,6 +157,7 @@ export const meuCaso = createServerFn({ method: "GET" })
         statusRotulo: h.STATUS_TICKET[t.status] ?? t.status,
         categoriaRotulo: h.CATEGORIAS_TICKET[t.categoria] ?? t.categoria,
       })),
+      publicacoes: publicacoesParaCliente(((projecoes as any).data ?? []) as any[]),
     };
   });
 

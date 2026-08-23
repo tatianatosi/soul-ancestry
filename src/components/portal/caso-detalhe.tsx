@@ -12,6 +12,7 @@ import {
   meuCaso,
   prepararEnvioDocumento,
 } from "@/lib/portal-cliente.functions";
+import { AVISO_PUBLICACAO_CLIENTE } from "@/lib/projecoes-cliente";
 
 const CATEGORIAS = [
   { valor: "duvida", rotulo: "Dúvida" },
