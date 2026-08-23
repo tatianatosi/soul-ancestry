@@ -65,10 +65,15 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
     mutationFn: (proposalId: string) => emitir({ data: { proposalId } }),
     onSuccess: (r: any) => {
       toast.success(r.idempotente ? "OS/Anexo I já vigente para este conteúdo." : `OS/Anexo I v${r.versao} emitida em rascunho.`);
+      qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
       invalidar();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
+    },
   });
+
 
   if (q.isLoading) {
     return (
