@@ -35,26 +35,44 @@ function EntrarEquipe() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const preparar = useServerFn(prepararLoginEquipe);
+  const registrarFalha = useServerFn(registrarFalhaLoginEquipe);
   const confirmar = useServerFn(confirmarSessaoEquipe);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [espera, setEspera] = useState(0);
   const pronto = useHydrated();
+
+  // Contagem regressiva do bloqueio por tentativas.
+  useEffect(() => {
+    if (espera <= 0) return;
+    const t = setTimeout(() => setEspera((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [espera]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!pronto) return;
+    // Trava contra envios duplicados (clique repetido, Enter múltiplo).
+    if (carregando || espera > 0) return;
     setErro(null);
     setCarregando(true);
     try {
       const limite = await preparar({ data: { email } });
       if (limite.bloqueado) {
-        setErro("Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.");
+        setEspera(limite.liberaEmSegundos || 60);
+        setErro("Muitas tentativas. Aguarde o tempo indicado antes de tentar novamente.");
         return;
       }
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha });
       if (error) {
+        // Só a falha consome o limite de tentativas.
+        try {
+          await registrarFalha({ data: { email } });
+        } catch {
+          /* contabilização é best-effort */
+        }
         setErro(ERRO_NEUTRO);
         return;
       }
@@ -76,6 +94,10 @@ function EntrarEquipe() {
       setCarregando(false);
     }
   }
+
+  const bloqueado = espera > 0;
+  const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
+
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
