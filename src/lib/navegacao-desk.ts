@@ -2,15 +2,19 @@
  * NAVEGAÇÃO CANÔNICA DO DESK — CA-UX-03 (8 grupos principais)
  *
  * Registro puro de navegação: mapeia grupos → rótulos humanos → rotas já
- * existentes. Não cria rota, não altera dado, não executa ação externa.
+ * existentes. Não cria dado, não altera dado, não executa ação externa.
  *
  * Regras aplicadas:
  * - Exatamente 8 grupos principais para usuário interno autorizado.
  * - Nenhuma rota operacional é removida: toda rota de menu anterior continua
- *   presente em algum grupo (ver `ROTAS_PRESERVADAS`).
- * - Marketing é módulo de Comercial, nunca nona aba.
+ *   presente no menu principal ou no menu da conta (ver `ROTAS_PRESERVADAS`).
+ * - Marketing é a aba 2 (aquisição, canal, conteúdo, atribuição e análise);
+ *   Comercial mantém apenas link contextual, sem duplicar a lista de leads.
+ * - Configurações, Equipe, Perfis e Preferências saem da navegação principal e
+ *   passam ao menu da conta (`MENU_CONTA`) — sem criar nona aba.
  * - Rótulos de interface mudam; URLs permanecem idênticas.
  */
+
 
 export type ItemNav =
   | { grupo: string }
