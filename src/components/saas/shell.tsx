@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import { GRUPOS_DESK, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
+import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
+
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
