@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -44,7 +44,31 @@ function EntrarEquipe() {
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [espera, setEspera] = useState(0);
+  const restauracaoIniciada = useRef(false);
   const pronto = useHydrated();
+
+  // Se já existe uma sessão persistida válida (reload, retorno ao app ou nova
+  // aba), restaura o Desk sem pedir senha e sem disparar um novo signIn.
+  useEffect(() => {
+    if (!pronto || restauracaoIniciada.current) return;
+    restauracaoIniciada.current = true;
+    let cancelado = false;
+    void (async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (cancelado || error || !data.user) return;
+      try {
+        const resultado = await confirmar({});
+        if (cancelado || !resultado.autorizado) return;
+        await queryClient.invalidateQueries();
+        navigate({ to: "/painel", replace: true });
+      } catch {
+        // Uma falha de rede não encerra nem substitui a sessão persistida.
+      }
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [confirmar, navigate, pronto, queryClient]);
 
   // Contagem regressiva do bloqueio por tentativas.
   useEffect(() => {

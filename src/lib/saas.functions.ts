@@ -404,12 +404,21 @@ export const getContexto = createServerFn({ method: "GET" })
         .eq("user_id", context.userId),
     ]);
 
+    // Para a equipe interna, staff_access é a fonte canônica da autorização.
+    // A leitura de user_roles continua compondo o contexto, mas uma resposta
+    // vazia transitória de RLS não pode retirar o papel já validado do staff e
+    // expulsar a proprietária durante reload, renovação do token ou nova aba.
+    const papeisPersistidos = ((papeis.data ?? []) as { role: Papel }[]).map((p) => p.role);
+    const papeisEfetivos = staff.data?.status === "active"
+      ? Array.from(new Set<Papel>([staff.data.role as Papel, ...papeisPersistidos]))
+      : papeisPersistidos;
+
     return {
       userId: context.userId as string,
       organizationId: organizationId as string | null,
       organizacao: (org.data ?? null) as { id: string; nome: string; slug: string; demo: boolean } | null,
       perfil: (perfil.data ?? null) as { id: string; nome: string | null; email: string | null } | null,
-      papeis: ((papeis.data ?? []) as { role: Papel }[]).map((p) => p.role),
+      papeis: papeisEfetivos,
       staff: staff.data
         ? { status: staff.data.status as string, papel: staff.data.role as Papel }
         : { status: "active", papel: "admin" as Papel },
