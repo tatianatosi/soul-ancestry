@@ -1,9 +1,100 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
-import { conciliarCatalogoProposta } from "@/lib/conciliacao-catalogo.functions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  conciliarCatalogoProposta,
+  historicoConciliacaoCatalogo,
+  reprocessarConciliacaoCatalogo,
+} from "@/lib/conciliacao-catalogo.functions";
 import { resumoBloqueio, type GrupoBloqueio, type ResultadoConciliacao } from "@/lib/conciliacao-catalogo";
+
+const dataHora = (v: string | null | undefined) =>
+  v ? new Date(v).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "—";
+
+/** Reprocessamento auditado + histórico versionado das decisões de conciliação. */
+function ReprocessarConciliacao({ proposalId }: { proposalId: string }) {
+  const qc = useQueryClient();
+  const reprocessar = useServerFn(reprocessarConciliacaoCatalogo);
+  const historico = useServerFn(historicoConciliacaoCatalogo);
+  const [motivo, setMotivo] = useState("");
+  const [verHistorico, setVerHistorico] = useState(false);
+
+  const qHist = useQuery({
+    queryKey: ["conciliacao-historico", proposalId],
+    queryFn: () => historico({ data: { proposalId } }),
+    enabled: verHistorico,
+    retry: false,
+  });
+
+  const m = useMutation({
+    mutationFn: () => reprocessar({ data: { proposalId, motivo: motivo.trim() || null } }),
+    onSuccess: (r: any) => {
+      toast.success(
+        `Conciliação reprocessada (versão ${r?.versao ?? "—"}). ${r?.decisoes_preservadas ?? 0} decisão(ões) anterior(es) preservada(s).`,
+      );
+      setMotivo("");
+      qc.invalidateQueries({ queryKey: ["conciliacao-emissao-os", proposalId] });
+      qc.invalidateQueries({ queryKey: ["conciliacao-historico", proposalId] });
+      qc.invalidateQueries({ queryKey: ["divergencias-catalogo"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível reprocessar a conciliação."),
+  });
+
+  const linhas = (qHist.data ?? []) as any[];
+
+  return (
+    <div className="mt-3 rounded-md border border-navy/10 bg-cream/40 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-navy/50">
+        Após corrigir o escopo ou o catálogo
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Input
+          value={motivo}
+          onChange={(e) => setMotivo(e.target.value)}
+          placeholder="Motivo do reprocessamento (opcional)"
+          className="h-8 max-w-xs text-xs"
+        />
+        <Button size="sm" onClick={() => m.mutate()} disabled={m.isPending}>
+          {m.isPending ? "Reprocessando…" : "Reprocessar conciliação"}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setVerHistorico((v) => !v)}>
+          {verHistorico ? "Ocultar histórico" : "Ver histórico"}
+        </Button>
+      </div>
+      <p className="mt-1 text-[11px] text-navy/50">
+        Cada reprocessamento gera uma nova versão. As versões anteriores das decisões de conciliação ficam preservadas e
+        não podem ser alteradas.
+      </p>
+
+      {verHistorico && (
+        <div className="mt-2 space-y-2">
+          {qHist.isLoading && <p className="text-xs text-navy/60">Carregando histórico…</p>}
+          {!qHist.isLoading && linhas.length === 0 && (
+            <p className="text-xs text-navy/60">Nenhum reprocessamento registrado para esta proposta.</p>
+          )}
+          {linhas.map((l) => (
+            <div key={l.id} className="rounded-md border border-navy/10 bg-white/60 p-2 text-xs text-navy/70">
+              <p className="font-medium text-navy">
+                Versão {l.versao} · {dataHora(l.created_at)} ·{" "}
+                {l.pode_gerar_os ? "sem bloqueio" : `${(l.bloqueios ?? []).length} bloqueio(s)`}
+              </p>
+              <p className="mt-0.5">
+                SKU {l.sku ?? "—"} · divergências apuradas: {(l.divergencias ?? []).length} · decisões preservadas:{" "}
+                {(l.decisoes_anteriores ?? []).length}
+              </p>
+              {l.motivo && <p className="mt-0.5">Motivo: {l.motivo}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Resumo legível do motivo do bloqueio de emissão de OS / Anexo I.
