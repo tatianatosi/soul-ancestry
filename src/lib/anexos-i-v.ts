@@ -135,7 +135,7 @@ export type PropostaVinculada = {
   skuAtivoHomologado?: boolean | null;
 };
 
-/** Modelo parametrizável do Anexo I sob revisão jurídica. */
+/** Modelo parametrizável do Anexo I — texto jurídico aprovado; instância técnica pendente de materialização/preenchimento. */
 export const ANEXO_I_MODELO_VERSAO = "ANEXO-I-ORDEM-DE-SERVICO-v1.0";
 
 /** Regras do motor do Anexo I — texto normativo, não editável por caso. */
@@ -240,7 +240,7 @@ export type AutorizacaoPesquisaAnexo = {
   responsavelInterno?: string | null;
 };
 
-/** Modelo parametrizável do Anexo III sob revisão jurídica. */
+/** Modelo parametrizável do Anexo III — texto jurídico aprovado; instância técnica pendente de materialização/preenchimento. */
 export const ANEXO_III_MODELO_VERSAO = "ANEXO-III-AUTORIZACAO-PESQUISA-v1.0";
 
 /** Regras do motor do Anexo III — texto normativo, não editável por caso. */
@@ -295,13 +295,13 @@ export type ProcuracaoAnexo = {
 };
 
 
-/** Modelo condicional do Anexo IV sob revisão jurídica. */
+/** Modelo condicional do Anexo IV — texto jurídico aprovado; instância técnica pendente de materialização/preenchimento. */
 export const ANEXO_IV_MODELO_VERSAO = "ANEXO-IV-PROCURACAO-ESPECIFICA-v1.0";
 
 /** Regras do motor do Anexo IV — texto normativo, não editável por caso. */
 export const REGRAS_MOTOR_ANEXO_IV: string[] = [
   "É sempre condicional; não derivar automaticamente somente por país ou rota.",
-  "Exigir finalidade específica, órgão destinatário, pessoas vinculadas, poderes necessários e revisão humana/jurídica.",
+  "Exigir finalidade específica, órgão destinatário, pessoas vinculadas, poderes necessários e revisão humana.",
   "Estados permitidos: não iniciada, rascunho, aguardando assinatura, assinada, enviada, respondida, arquivada, não aplicável.",
   "Não criar procuração real, não enviar, não assinar e não inferir poderes.",
   "Quando exigida para atividade externa, bloquear a ação até instrumento aprovado e evidência de assinatura quando aplicável.",
@@ -336,7 +336,7 @@ export type AlteracaoEscopoAnexo = {
   dataSolicitacao?: string | null;
 };
 
-/** Modelo parametrizável do Anexo V sob revisão jurídica. */
+/** Modelo parametrizável do Anexo V — texto jurídico aprovado; instância técnica pendente de materialização/preenchimento. */
 export const ANEXO_V_MODELO_VERSAO = "ANEXO-V-ALTERACAO-DE-ESCOPO-v1.0";
 
 /** Regras do motor do Anexo V — texto normativo, não editável por caso. */
@@ -708,7 +708,7 @@ export function anexoIVProcuracao(e: EntradaAnexosIaV): AnexoGovernado {
   return {
     codigo: "ANEXO_IV_PROCURACAO",
     titulo: "Anexo IV — Procuração específica",
-    finalidade: "Instrumento próprio exigido por órgão, com poderes definidos e revisão jurídica.",
+    finalidade: "Instrumento próprio exigido por órgão, com poderes definidos e texto jurídico aprovado.",
     regra: "Sempre condicional: não deriva do país/rota e não é substituído por consentimento.",
     condicional: true,
     aplicavel,

@@ -33,7 +33,7 @@ export const ESTADOS_ANEXO_VARREDURA = [
   "nao_localizado",
   "invalido",
   "substituido",
-  "requer_revisao_juridica",
+  "requer_materializacao",
 ] as const;
 export type EstadoAnexoVarredura = (typeof ESTADOS_ANEXO_VARREDURA)[number];
 
@@ -43,7 +43,7 @@ export const ROTULO_ESTADO_ANEXO_VARREDURA: Record<EstadoAnexoVarredura, string>
   nao_localizado: "Não localizado",
   invalido: "Inválido",
   substituido: "Substituído",
-  requer_revisao_juridica: "Requer materialização no sistema",
+  requer_materializacao: "Requer materialização no sistema",
 };
 
 export type VerificacaoAnexo = "verificado_diretamente" | "apenas_citado_em_relatorio";
@@ -346,7 +346,7 @@ export const MATRIZ_PENDENCIAS: LinhaPendencia[] = [
     risco: "Despesa externa, representação e aditivo sem instrumento válido.",
     efeitoInterno: "Instâncias ficam em estado 'modelo ausente' com prévia marcada.",
     efeitoExterno: "Bloqueia despesa externa, ato em nome do cliente e alteração de escopo.",
-    responsavel: "Proprietária administradora + jurídico",
+    responsavel: "Proprietária administradora / Operações",
     proximaAcao: "Localizar os arquivos aprovados, registrá-los no repositório canônico com versão e vinculá-los ao caso.",
     superavelPorDecisaoAuditada: false,
     prazo: null,
