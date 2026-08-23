@@ -506,3 +506,95 @@ export const ACOES_EXTERNAS_BLOQUEADAS: readonly string[] = [
   "Disparar WhatsApp ou qualquer mensagem",
   "Publicar página, conteúdo ou formulário",
 ] as const;
+
+/* ------------------------------------------------------------------ */
+/* Estados vazios canônicos (CA-UX-04)                                 */
+/* ------------------------------------------------------------------ */
+
+/** Textos exatos aprovados. Nenhum deles pode ser substituído por estimativa. */
+export const VAZIOS_MARKETING = {
+  campanhas: "Ainda não há campanhas cadastradas.",
+  investimento: "Ainda não há investimento classificado por canal.",
+  atribuicao: "Registre campanha e UTM antes de analisar atribuição.",
+  cacRoi: "CAC, ROI e ROAS exigem investimento classificado e atribuição confiável.",
+  captura: "Não há formulário público ou captura de UTM conectada.",
+  whatsapp: "WhatsApp ainda não está atribuído como origem de lead.",
+  handoff: "Os leads identificados seguem para o Comercial.",
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Catálogo governado de origem (lead_sources) e origem_a_confirmar    */
+/* ------------------------------------------------------------------ */
+
+export const ORIGEM_A_CONFIRMAR = "origem_a_confirmar";
+
+/**
+ * Catálogo interno de origens. Valores históricos em texto livre continuam
+ * gravados: quando não pertencem ao catálogo, a leitura mostra
+ * `origem_a_confirmar` sem converter o dado e sem bloquear o Comercial.
+ */
+export const CATALOGO_ORIGENS: readonly { valor: string; rotulo: string; observacao: string }[] = [
+  { valor: "formulario", rotulo: "Formulário", observacao: "Captura pública não conectada." },
+  { valor: "indicacao", rotulo: "Indicação", observacao: "Sem registro de quem indicou." },
+  { valor: "manual", rotulo: "Manual (equipe)", observacao: "Entrada operada pela equipe." },
+  { valor: "whatsapp", rotulo: "WhatsApp", observacao: "Só vale como origem se o valor canônico for gravado." },
+  { valor: "evento", rotulo: "Evento / encontro", observacao: "Registro manual." },
+  { valor: "parceria", rotulo: "Parceria", observacao: "Registro manual." },
+] as const;
+
+export type LeituraOrigem = {
+  /** Valor exatamente como está gravado (nunca alterado). */
+  bruto: string | null;
+  /** Valor canônico do catálogo, ou `origem_a_confirmar`. */
+  canonico: string;
+  rotulo: string;
+  noCatalogo: boolean;
+};
+
+/** Classifica a origem gravada sem alterar o dado de origem. */
+export function classificarOrigem(bruto?: string | null): LeituraOrigem {
+  const chave = (bruto ?? "").trim().toLowerCase();
+  const item = CATALOGO_ORIGENS.find((c) => c.valor === chave);
+  if (!item) {
+    return { bruto: bruto ?? null, canonico: ORIGEM_A_CONFIRMAR, rotulo: "Origem a confirmar", noCatalogo: false };
+  }
+  return { bruto: bruto ?? null, canonico: item.valor, rotulo: item.rotulo, noCatalogo: true };
+}
+
+/** Distribuição de origens do recorte, com o balde `origem_a_confirmar`. */
+export function distribuicaoOrigens(
+  leads: readonly { origem?: string | null }[],
+): { canonico: string; rotulo: string; total: number }[] {
+  const mapa = new Map<string, { canonico: string; rotulo: string; total: number }>();
+  for (const l of leads) {
+    const c = classificarOrigem(l.origem);
+    const atual = mapa.get(c.canonico) ?? { canonico: c.canonico, rotulo: c.rotulo, total: 0 };
+    atual.total += 1;
+    mapa.set(c.canonico, atual);
+  }
+  return [...mapa.values()].sort((a, b) => b.total - a.total);
+}
+
+/* ------------------------------------------------------------------ */
+/* Teto de 5 métricas principais em Marketing                          */
+/* ------------------------------------------------------------------ */
+
+export const TETO_METRICAS_MARKETING = 5;
+
+/** Chaves de decisão exibidas no topo. As demais vão para "Histórico e análise". */
+export const METRICAS_PRINCIPAIS_MARKETING: readonly string[] = [
+  "leads_por_origem",
+  "conversoes_por_canal",
+  "investimento_por_canal",
+  "cac",
+  "roi",
+] as const;
+
+export function separarMetricas(leitura: readonly LeituraMetrica[]): {
+  principais: LeituraMetrica[];
+  historico: LeituraMetrica[];
+} {
+  const principais = leitura.filter((m) => METRICAS_PRINCIPAIS_MARKETING.includes(m.chave));
+  const historico = leitura.filter((m) => !METRICAS_PRINCIPAIS_MARKETING.includes(m.chave));
+  return { principais: principais.slice(0, TETO_METRICAS_MARKETING), historico };
+}

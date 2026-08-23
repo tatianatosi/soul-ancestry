@@ -12,8 +12,11 @@ import {
   FRONTEIRA_MARKETING_COMERCIAL,
   MAPA_MARKETING,
   SECOES_MARKETING,
+  VAZIOS_MARKETING,
+  distribuicaoOrigens,
   leituraMetricas,
   resumoPorOrigem,
+  separarMetricas,
   type Confianca,
 } from "@/lib/marketing-aquisicao";
 
@@ -93,6 +96,8 @@ function Marketing() {
 
   const origens = useMemo(() => resumoPorOrigem(entrada), [entrada]);
   const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
+  const { principais, historico } = useMemo(() => separarMetricas(metricas), [metricas]);
+  const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
 
   return (
     <SaasShell
@@ -151,23 +156,56 @@ function Marketing() {
             <Selo texto={`${entrada.fontes.length} origem(ns) catalogada(s)`} />
             <Selo texto={`${entrada.investimentos.length} lançamento(s) de investimento`} />
           </div>
+          {entrada.campanhas.length === 0 && (
+            <p data-marketing-vazio="campanhas" className="mt-3 text-[13px] text-navy/70">
+              {VAZIOS_MARKETING.campanhas}
+            </p>
+          )}
+          {entrada.investimentos.length === 0 && (
+            <p data-marketing-vazio="investimento" className="mt-1 text-[13px] text-navy/70">
+              {VAZIOS_MARKETING.investimento}
+            </p>
+          )}
           <p className="mt-3 text-[12px] text-navy/55">
             Nenhuma campanha, anúncio ou conexão de mídia é criada, alterada ou conectada por esta tela.
           </p>
         </Bloco>
 
         <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING[2].descricao}>
-          <p>
-            Não existe página pública de captura própria nem CTA com link rastreável. Enquanto isso permanecer, conteúdo
-            não gera origem atribuível e a lacuna fica declarada, sem estimativa.
+          <p data-marketing-vazio="captura">{VAZIOS_MARKETING.captura}</p>
+          <p className="mt-2 text-[12px] text-navy/55">
+            Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna fica declarada, sem estimativa.
           </p>
         </Bloco>
 
         <Bloco id="atribuicao" titulo="Atribuição e origem" descricao={SECOES_MARKETING[3].descricao}>
-          <p className="mb-3">
+          <p data-marketing-vazio="atribuicao" className="mb-3">
             {entrada.atribuicoes.length === 0
-              ? "Nenhum registro de atribuição com UTM. Origem do lead hoje é texto livre, sem taxonomia fechada."
+              ? VAZIOS_MARKETING.atribuicao
               : `${entrada.atribuicoes.length} registro(s) de atribuição disponível(is) para leitura.`}
+          </p>
+
+          <h3 className="font-serif text-base text-navy">Catálogo de origem</h3>
+          <p className="mt-1 text-[12px] text-navy/55">
+            Valores históricos em texto livre são preservados. Fora do catálogo, a leitura mostra
+            <code className="mx-1">origem_a_confirmar</code>, sem conversão automática e sem bloquear o Comercial.
+          </p>
+          {origensCatalogo.length === 0 ? (
+            <p className="mt-2 text-[13px] text-navy/70">Sem leads no recorte para classificar origem.</p>
+          ) : (
+            <ul data-marketing="catalogo-origens" className="mt-2 divide-y divide-navy/10">
+              {origensCatalogo.map((o) => (
+                <li key={o.canonico} className="flex items-center justify-between py-2">
+                  <span className="text-navy">
+                    {o.rotulo} <code className="text-[11px] text-navy/50">{o.canonico}</code>
+                  </span>
+                  <span className="text-[12px] text-navy/60">{o.total} lead(s)</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p data-marketing-vazio="whatsapp" className="mt-3 text-[13px] text-navy/70">
+            {VAZIOS_MARKETING.whatsapp}
           </p>
           <h3 className="font-serif text-base text-navy">WhatsApp por camada</h3>
           <ul className="mt-2 space-y-2">
@@ -207,11 +245,17 @@ function Marketing() {
               </tbody>
             </table>
           </div>
+          <p data-marketing-vazio="handoff" className="mt-3 text-[13px] text-navy/70">
+            {VAZIOS_MARKETING.handoff} O funil comercial detalhado permanece exclusivamente em Conversão.
+          </p>
         </Bloco>
 
         <Bloco id="metricas-canal" titulo="Métricas por canal" descricao={SECOES_MARKETING[5].descricao}>
-          <ul className="space-y-2">
-            {metricas.map((m) => (
+          <p data-marketing-vazio="cac-roi" className="mb-3 text-[13px] text-navy/70">
+            {VAZIOS_MARKETING.cacRoi}
+          </p>
+          <ul data-marketing="metricas-principais" className="space-y-2">
+            {principais.map((m) => (
               <li key={m.chave} className="rounded-lg border border-navy/10 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-navy">{m.nome}</span>
@@ -224,6 +268,26 @@ function Marketing() {
               </li>
             ))}
           </ul>
+          <details data-marketing="historico" className="mt-4 rounded-lg border border-navy/10 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
+            <ul className="mt-3 space-y-2">
+              {historico.map((m) => (
+                <li key={m.chave} className="rounded-lg border border-navy/10 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-navy">{m.nome}</span>
+                    <span className="flex items-center gap-2">
+                      <strong className="text-[13px] text-navy">{m.valor}</strong>
+                      <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12px] text-navy/55">{m.nota}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[11px] text-navy/50">
+              Leitura analítica: não cria tarefa, alerta, fila, status ou dado.
+            </p>
+          </details>
         </Bloco>
 
         <Bloco id="aprendizados" titulo="Aprendizados" descricao={SECOES_MARKETING[6].descricao}>

@@ -152,6 +152,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado", nota: "Movido para o menu da conta; rota, dado e permissão inalterados." },
       { mockup: "Equipe e papéis", rota: "/equipe", dado: "profiles, staff_access, user_roles", estado: "implementado", nota: "Visível somente para admin." },
       { mockup: "Configurações", rota: "/configuracoes", dado: "organizations, org_settings", estado: "a_confirmar", nota: "Cobertura de parâmetros ainda sem evidência consolidada." },
+      { mockup: "Etiquetas canônicas", rota: "/etiquetas", dado: "labels, etiquetas canônicas", estado: "implementado", nota: "Movida de Governança para o menu da conta; rota e permissão inalteradas." },
       { mockup: "Segurança e verificação administrativa", rota: "/reconfirmar-propriedade · /governanca/varredura-administracao", dado: "audit_logs, owner_override_events", estado: "parcial", nota: "Verificação existe; prova ponta a ponta depende de login manual." },
     ],
   },

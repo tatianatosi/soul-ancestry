@@ -50,3 +50,15 @@ do Painel Hoje às de Casos 360, (b) manter leituras propositalmente distintas e
 `/conversao` é a fonte canônica de funil, saúde e higiene comercial, rotulada na própria página com
 "Fonte canônica de conversão e saúde comercial". `/metricas` só exibe link; Painel Hoje só exibe a
 frase "Comercial hoje: X leads aguardando ação".
+
+## Marketing (CA-UX-04)
+
+| indicador | grupo | tipo | fonte canônica | fórmula/regra | recorte | responsável | rota/ação | contagem em | só link/etiqueta em | confiança | observação |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Leads por origem | Marketing | decisão | `leads.origem` | leads com origem ÷ total do recorte, origem fora do catálogo vira `origem_a_confirmar` | recorte atual, demo fora | comercial | `/marketing#visao-geral` | `/marketing` | `/leads` | baixa | origem ainda é texto livre |
+| Conversões por origem e canal | Marketing | decisão | `conversion_events` | contagem agrupada por origem·canal | recorte atual | comercial | `/marketing#metricas-canal` | `/marketing` | `/conversao` | baixa | eventos sem `lead_source_id` |
+| Investimento por canal | Marketing | decisão | `marketing_investments` | soma de valor por canal e competência | competência | financeiro | `/marketing#metricas-canal` | `/marketing` | — | sem dados | "Ainda não há investimento classificado por canal." |
+| CAC | Marketing | decisão | `marketing_investments` + `attribution_records` | investimento classificado ÷ leads atribuíveis | período | financeiro | `/marketing#metricas-canal` | `/marketing` | — | sem dados | "Sem dados suficientes", nunca estimativa |
+| ROI / ROAS | Marketing | decisão | `marketing_investments` + `payments` confirmados | receita atribuída ÷ investimento classificado | período | financeiro | `/marketing#metricas-canal` | `/marketing` | — | sem dados | "Sem dados suficientes", nunca estimativa |
+| Tráfego até WhatsApp | Marketing | histórico | — | cliques rastreados | — | comercial | `/marketing` → Histórico e análise | — | — | sem dados | sem link rastreável próprio |
+| Funil até diagnóstico e proposta | Comercial | histórico em Marketing | `leads`, `crm_casos`, `proposals` | contagem por etapa | recorte atual | comercial | `/conversao` | `/conversao` | `/marketing` | média | Marketing não replica o funil |
