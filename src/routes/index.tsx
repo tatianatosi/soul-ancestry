@@ -5,6 +5,7 @@ import { AppSwitcher } from "@/components/brand";
 import { ClienteApp } from "@/components/cliente-app";
 import { DeskApp } from "@/components/desk-app";
 import { supabase } from "@/integrations/supabase/client";
+import { SuperficieInternaProvider, useSessaoInterna } from "@/lib/superficie-interna";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { caso?: string } => ({
