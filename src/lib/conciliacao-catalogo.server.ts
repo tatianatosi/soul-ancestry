@@ -239,6 +239,123 @@ export async function registrarConciliacao(
 }
 
 /**
+ * Reprocessa a conciliação após correções no escopo ou no product_catalog.
+ *
+ * Preserva a versão anterior das decisões: antes de reexecutar, tira um retrato
+ * das divergências e observações de resolução vigentes e grava esse retrato,
+ * junto do novo resultado, em catalog_reconciliation_runs (append-only).
+ */
+export async function reprocessarConciliacao(
+  supabase: Sb,
+  input: { org: string; userId: string; proposalId: string; motivo?: string | null; hoje?: Date },
+) {
+  const { data: anteriores } = await supabase
+    .from("catalog_source_divergences")
+    .select(
+      "id,sku,tipo,detalhe,severidade,resolvido,observacao_resolucao,resolucao_registrada_em,resolucao_registrada_por,updated_at",
+    )
+    .eq("organization_id", input.org)
+    .eq("fonte_referencia", `conciliacao:${input.proposalId}`);
+
+  const { data: ultima } = await supabase
+    .from("catalog_reconciliation_runs")
+    .select("versao")
+    .eq("proposal_id", input.proposalId)
+    .order("versao", { ascending: false })
+    .limit(1);
+  const versao = Number(((ultima ?? []) as any[])[0]?.versao ?? 0) + 1;
+
+  const r = await registrarConciliacao(supabase, {
+    org: input.org,
+    userId: input.userId,
+    proposalId: input.proposalId,
+    hoje: input.hoje,
+  });
+
+  let contractId: string | null = null;
+  let serviceOrderId: string | null = null;
+  if (r.caseId) {
+    const { data: ct } = await supabase
+      .from("contracts")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", r.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    contractId = ((ct ?? []) as any[])[0]?.id ?? null;
+    const { data: os } = await supabase
+      .from("service_orders")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", r.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    serviceOrderId = ((os ?? []) as any[])[0]?.id ?? null;
+  }
+
+  const { data: run, error } = await supabase
+    .from("catalog_reconciliation_runs")
+    .insert({
+      organization_id: input.org,
+      proposal_id: input.proposalId,
+      case_id: r.caseId ?? null,
+      contract_id: contractId,
+      service_order_id: serviceOrderId,
+      versao,
+      motivo: (input.motivo ?? "").trim() || null,
+      origem: versao === 1 ? "primeira_execucao" : "reprocessamento",
+      sku: r.sku,
+      preco_homologado: r.preco_homologado,
+      pode_gerar_os: r.pode_gerar_os,
+      pode_gerar_contrato: r.pode_gerar_contrato,
+      bloqueios: r.bloqueios,
+      divergencias: r.divergencias,
+      decisoes_anteriores: anteriores ?? [],
+      registradas: r.registradas,
+      resolvidas: r.resolvidas,
+      executado_por: input.userId,
+    })
+    .select("id,versao,created_at")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+
+  await supabase.from("audit_logs").insert({
+    organization_id: input.org,
+    user_id: input.userId,
+    acao: "conciliacao_catalogo_reprocessada",
+    entidade: "proposals",
+    entidade_id: input.proposalId,
+    metadados: {
+      versao,
+      motivo: (input.motivo ?? "").trim() || null,
+      pode_gerar_os: r.pode_gerar_os,
+      decisoes_preservadas: (anteriores ?? []).length,
+    },
+  });
+
+  return { ...r, versao, runId: (run as any)?.id ?? null, decisoes_preservadas: (anteriores ?? []).length };
+}
+
+/** Histórico append-only das execuções de conciliação de uma proposta. */
+export async function historicoConciliacao(
+  supabase: Sb,
+  input: { org: string; proposalId: string; limite?: number },
+) {
+  const { data } = await supabase
+    .from("catalog_reconciliation_runs")
+    .select(
+      "id,versao,motivo,origem,sku,preco_homologado,pode_gerar_os,pode_gerar_contrato,bloqueios,divergencias,decisoes_anteriores,registradas,resolvidas,executado_por,created_at",
+    )
+    .eq("organization_id", input.org)
+    .eq("proposal_id", input.proposalId)
+    .order("versao", { ascending: false })
+    .limit(input.limite ?? 20);
+  return (data ?? []) as any[];
+}
+
+/**
  * Conciliação do contrato: resolve a proposta canônica do caso e devolve o
  * resultado somente leitura. Se o caso não tem proposta, o escopo é
  * insuficiente por definição — não há fonte homologada para o instrumento.
