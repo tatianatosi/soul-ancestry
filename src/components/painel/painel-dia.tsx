@@ -225,6 +225,16 @@ export function PainelDia() {
     (bloqueadosCatalogo as any[]).map((b) => String(b?.case_id ?? b?.caso_id ?? b?.id ?? "")),
   );
 
+  const raizRef = useRef<HTMLDivElement>(null);
+  const problemasLeitura = useVerificacaoLeituraPainel(raizRef, [
+    qDesk.dataUpdatedAt,
+    qCatalogo.dataUpdatedAt,
+    qCad.dataUpdatedAt,
+    qJuridico.dataUpdatedAt,
+    incluirDemo,
+    filtros,
+  ]);
+
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
 
