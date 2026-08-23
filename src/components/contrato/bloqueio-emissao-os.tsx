@@ -150,6 +150,7 @@ export function BloqueioEmissaoOS({ proposalId, ativo = true }: { proposalId: st
             ))}
           </ul>
         )}
+        <ReprocessarConciliacao proposalId={proposalId} />
       </div>
     );
   }
