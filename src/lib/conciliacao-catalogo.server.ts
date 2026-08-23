@@ -200,3 +200,103 @@ export async function registrarConciliacao(
 
   return { ...r, registradas, resolvidas };
 }
+
+/**
+ * Conciliação do contrato: resolve a proposta canônica do caso e devolve o
+ * resultado somente leitura. Se o caso não tem proposta, o escopo é
+ * insuficiente por definição — não há fonte homologada para o instrumento.
+ */
+export async function conciliacaoDoContrato(
+  supabase: Sb,
+  input: { org: string; contractId: string; hoje?: Date },
+): Promise<(ResultadoConciliacao & { proposalId: string | null }) | null> {
+  const { data: contrato } = await supabase
+    .from("contracts")
+    .select("id,organization_id,case_id,proposal_id")
+    .eq("id", input.contractId)
+    .maybeSingle();
+  if (!contrato || contrato.organization_id !== input.org) return null;
+
+  let proposalId: string | null = contrato.proposal_id ?? null;
+  if (!proposalId && contrato.case_id) {
+    const { data } = await supabase
+      .from("proposals")
+      .select("id,status,versao")
+      .eq("organization_id", input.org)
+      .eq("case_id", contrato.case_id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(20);
+    const linhas = (data ?? []) as any[];
+    proposalId = (linhas.find((p) => p.status === "aprovada") ?? linhas[0])?.id ?? null;
+  }
+  if (!proposalId) return null;
+
+  return conciliarPropostaComCatalogo(supabase, { org: input.org, proposalId, hoje: input.hoje });
+}
+
+/** Varredura de todas as propostas vivas contra o catálogo homologado. */
+export async function varrerConciliacao(supabase: Sb, input: { org: string; hoje?: Date }) {
+  const { data } = await supabase
+    .from("proposals")
+    .select("id,versao,status,case_id,dados_teste")
+    .eq("organization_id", input.org)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  const propostas = ((data ?? []) as any[]).filter((p) => p.dados_teste !== true);
+  const casosIds = [...new Set(propostas.map((p) => p.case_id).filter(Boolean))];
+  const { data: casos } = casosIds.length
+    ? await supabase.from("crm_casos").select("id,codigo,titulo").in("id", casosIds)
+    : { data: [] as any[] };
+  const mapaCaso = new Map(((casos ?? []) as any[]).map((c) => [c.id, c]));
+
+  const linhas = [] as {
+    proposalId: string;
+    versao: number | null;
+    status: string | null;
+    caso: string;
+    sku: string | null;
+    preco_homologado: number | null;
+    divergencias: ResultadoConciliacao["divergencias"];
+    bloqueios: string[];
+    pode_gerar_os: boolean;
+    pode_gerar_contrato: boolean;
+  }[];
+
+  for (const p of propostas) {
+    try {
+      const r = await conciliarPropostaComCatalogo(supabase, {
+        org: input.org,
+        proposalId: p.id,
+        hoje: input.hoje,
+      });
+      const caso = mapaCaso.get(p.case_id);
+      linhas.push({
+        proposalId: p.id,
+        versao: p.versao ?? null,
+        status: p.status ?? null,
+        caso: caso ? `${caso.codigo ?? "—"} · ${caso.titulo ?? ""}`.trim() : "—",
+        sku: r.sku,
+        preco_homologado: r.preco_homologado,
+        divergencias: r.divergencias,
+        bloqueios: r.bloqueios,
+        pode_gerar_os: r.pode_gerar_os,
+        pode_gerar_contrato: r.pode_gerar_contrato,
+      });
+    } catch {
+      /* proposta ilegível para conciliação permanece fora da varredura */
+    }
+  }
+
+  return {
+    linhas,
+    resumo: {
+      total: linhas.length,
+      liberadas: linhas.filter((l) => l.pode_gerar_os).length,
+      bloqueadas: linhas.filter((l) => !l.pode_gerar_os).length,
+      atencao: linhas.filter((l) => l.pode_gerar_os && l.divergencias.length > 0).length,
+    },
+  };
+}
