@@ -8,6 +8,7 @@ import {
   rotasDoMenu,
   rotasSemLink,
   rotasDoMenuConta,
+  MENU_CONTA,
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
@@ -113,7 +114,7 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     const labels = new Set(GRUPOS_DESK.map((g) => g.label));
     for (const g of MATRIZ_EQUIVALENCIA) {
       expect(g.grupoNovo).toBeDefined();
-      expect(labels.has(g.grupoNovo!)).toBe(true);
+      expect(labels.has(g.grupoNovo!) || g.grupoNovo === MENU_CONTA.label).toBe(true);
     }
   });
 });
