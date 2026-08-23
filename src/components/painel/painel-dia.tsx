@@ -443,6 +443,8 @@ export function PainelDia() {
 
       </div>
 
+      {proprietaria ? <VerificadorAdminProprietaria /> : null}
+
       {/* 0 — Cards do dia */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
