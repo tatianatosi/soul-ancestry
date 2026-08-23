@@ -45,13 +45,15 @@
 
 :root {
   --radius: 0.75rem;
-  --navy: #1B2B4B;
-  --navy-soft: #2A3D63;
-  --gold: #C9A84C;
-  --gold-soft: #E4CE8A;
-  --cream: #F5F0E8;
+  /* Guia de Marca Clube Ancestral */
+  --navy: #2F4B6E;
+  --navy-soft: #40628B;
+  --preto: #101010;
+  --gold: #FCB73A;
+  --gold-soft: #FFD98A;
+  --cream: #ECDFCD;
   --areia: #ECDFCD;
-  --terracotta: #8B4513;
+  --terracotta: #9A3A2F;
   --sage: #6B7B5E;
   --plum: #7B4F9E;
 
