@@ -6,8 +6,6 @@
  * lê registro; é apenas linguagem de navegação sobre rotas já existentes.
  */
 
-import { PAPEIS_INTERNOS, ehPapelInterno } from "@/lib/superficie-interna-regras";
-
 /** Rótulo humano exibido na navegação e no cabeçalho, sem mudar a URL. */
 export const ROTULOS_HUMANOS: Record<string, string> = {
   "/qualidade": "Radar Interno",

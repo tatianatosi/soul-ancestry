@@ -788,9 +788,7 @@ export function PainelDia() {
             <Link
               key={a.rota}
               to={a.rota}
-              className={`rounded-md border px-3 py-1.5 hover:bg-navy/5 ${
-                a.referencia ? "border-terracotta/40 text-terracotta" : "border-navy/15 text-navy/75"
-              }`}
+              className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
               title={a.onde}
             >
               {a.rotulo}
