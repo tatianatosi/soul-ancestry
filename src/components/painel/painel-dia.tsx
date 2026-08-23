@@ -446,8 +446,10 @@ export function PainelDia() {
 
       {proprietaria ? <VerificadorAdminProprietaria /> : null}
 
+      <AvisoLeituraPainel problemas={problemasLeitura} />
+
       {/* 0 — Cards do dia */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
             <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
