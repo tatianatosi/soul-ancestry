@@ -16,23 +16,40 @@ export function useSuperficieInterna(): boolean {
   return useContext(SuperficieInternaContext);
 }
 
-/** Detecta sessão autenticada de equipe interna (e-mail e senha). */
+/** Detecta sessão autenticada de equipe interna (papel em user_roles). */
 export function useSessaoInterna(): boolean {
   const [interna, setInterna] = useState(false);
 
   useEffect(() => {
     let ativo = true;
 
-    void supabase.auth.getSession().then(({ data }) => {
+    async function avaliar() {
+      const { data } = await supabase.auth.getSession();
+      const usuario = data.session?.user;
+      if (!usuario) {
+        if (ativo) setInterna(false);
+        return;
+      }
+      // Cliente entra por link mágico e não é membro de organização: a leitura de
+      // user_roles volta vazia (RLS). Equipe interna volta com papel.
+      const { data: papeis, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", usuario.id);
       if (!ativo) return;
-      // Cliente entra por link mágico (sem senha); equipe interna tem sessão de usuário
-      // com e-mail confirmado e papel resolvido no servidor. Aqui só liberamos a
-      // camada visual — o controle de acesso real continua no servidor/RLS.
-      setInterna(Boolean(data.session?.user));
-    });
+      setInterna(
+        decidirSuperficieInterna({
+          autenticado: true,
+          papeis: (papeis ?? []).map((p) => p.role as string),
+          erroLeitura: Boolean(error),
+        }),
+      );
+    }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_evento, sessao) => {
-      if (ativo) setInterna(Boolean(sessao?.user));
+    void avaliar();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      void avaliar();
     });
 
     return () => {
@@ -43,6 +60,7 @@ export function useSessaoInterna(): boolean {
 
   return interna;
 }
+
 
 export function SuperficieInternaProvider({ valor, children }: { valor: boolean; children: ReactNode }) {
   return <SuperficieInternaContext.Provider value={valor}>{children}</SuperficieInternaContext.Provider>;
