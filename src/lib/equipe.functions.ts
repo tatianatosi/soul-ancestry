@@ -25,10 +25,22 @@ export const prepararLoginEquipe = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const h = await import("./equipe.server");
     const email = h.normalizarEmail(data.email);
-    if (!h.emailValido(email)) return { bloqueado: false };
-    const bloqueado = await h.limiteExcedido("staff_login", email, 8, 15);
-    return { bloqueado };
+    if (!h.emailValido(email)) return { bloqueado: false, liberaEmSegundos: 0 };
+    // Somente leitura: a tentativa só é contabilizada quando falha.
+    return h.estadoLimite("staff_login", email, 8, 15);
   });
+
+/** Credencial inválida: só a falha consome o limite. */
+export const registrarFalhaLoginEquipe = createServerFn({ method: "POST" })
+  .inputValidator((data: { email: string }) => data)
+  .handler(async ({ data }) => {
+    const h = await import("./equipe.server");
+    const email = h.normalizarEmail(data.email);
+    if (!h.emailValido(email)) return { ok: true };
+    await h.registrarTentativa("staff_login", email);
+    return { ok: true };
+  });
+
 
 /** Pós-login: autenticar não é autorizar. Valida staff_access ativo e deriva papel/organização. */
 export const confirmarSessaoEquipe = createServerFn({ method: "POST" })
