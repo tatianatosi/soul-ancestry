@@ -139,9 +139,11 @@ export function InventarioPatrimonial() {
   const contagem = contarPorStatus();
   const [dominioCsv, setDominioCsv] = useState<Dominio | "todos">("todos");
   const [statusCsv, setStatusCsv] = useState<StatusInventario | "todos">("todos");
+  const [verAmostra, setVerAmostra] = useState(false);
 
   const filtro = { dominio: dominioCsv, status: statusCsv };
   const totalFiltrado = filtrarInventario(filtro).length;
+  const previa = previaCsvInventario(filtro, 5);
 
   return (
     <div className="space-y-4">
