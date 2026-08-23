@@ -38,6 +38,8 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
+import { itensDerivadosDoPainel } from "@/lib/painel-derivados";
+import { ItensDerivados } from "@/components/painel/itens-derivados";
 import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
 import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
 
@@ -516,6 +518,14 @@ export function PainelDia() {
       severidade: s.severidade === "critico" ? "P0" : "P1",
     });
   }
+  // Itens derivados (visão derivada de alertas-derivados.ts) exibidos na
+  // interface sem repetir registro já presente na fila, exceções ou comercial.
+  const derivados = itensDerivadosDoPainel({
+    casosCadencia: (qCad.data?.casos ?? []) as any[],
+    jaExibidos: usados,
+    bloqueadosCatalogo: [...idsBloqueadosCatalogo],
+  });
+
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
   const PESO = { P0: 3, P1: 2, P2: 1 } as const;
   const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
@@ -696,6 +706,18 @@ export function PainelDia() {
               </div>
             );
           })}
+        </div>
+        <div className="mt-4 border-t border-navy/10 pt-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
+            <span className="text-[11px] text-navy/45">Somente leitura · abre o registro canônico</span>
+          </div>
+          <p className="mt-1 text-[11px] text-navy/50">
+            Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa, prazo nem comunicação.
+          </p>
+          <div className="mt-2">
+            <ItensDerivados itens={derivados} />
+          </div>
         </div>
       </section>
 
