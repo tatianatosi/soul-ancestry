@@ -5,6 +5,7 @@ import {
   EVENTOS_INTERNOS,
   ROTULO_EVENTO,
   executarCadeiaJornada,
+  fiarCadenciaDoCaso,
   templatesVigentesPorEtapaCanal,
   type EventoInterno,
 } from "@/lib/orquestracao-jornada";
