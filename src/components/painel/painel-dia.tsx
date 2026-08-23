@@ -643,9 +643,15 @@ export function PainelDia() {
       <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
-          <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-            registro canônico dos indicadores
-          </Link>
+          <span className="flex flex-wrap items-baseline gap-3">
+            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
+            <Link to="/ops" className="text-[11px] font-medium text-navy underline underline-offset-2">
+              Ver cadência e onboarding em risco
+            </Link>
+            <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+              registro canônico dos indicadores
+            </Link>
+          </span>
         </div>
         <p className="mt-1 text-xs text-navy/50">
           Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não geram nova linha de ação.
