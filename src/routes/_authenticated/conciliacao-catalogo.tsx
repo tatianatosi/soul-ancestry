@@ -104,10 +104,7 @@ function ConciliacaoCatalogoPage() {
             <p className="text-sm text-navy/60">Conciliando propostas contra o catálogo homologado…</p>
           </Painel>
         ) : !linhas.length ? (
-          <EstadoVazio
-            titulo="Nada a conciliar"
-            descricao="Não há proposta viva que atenda ao filtro atual."
-          />
+          <EstadoVazio mensagem="Não há proposta viva que atenda ao filtro atual." />
         ) : (
           <div className="space-y-3">
             {linhas.map((l) => (
