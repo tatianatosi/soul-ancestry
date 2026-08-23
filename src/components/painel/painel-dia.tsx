@@ -17,6 +17,7 @@ import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
+import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
 import {
   aplicarFiltrosDia,
