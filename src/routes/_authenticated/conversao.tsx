@@ -117,6 +117,9 @@ function Conversao() {
       titulo="Conversão — funil por eventos"
       descricao="Leitura interna. Nenhuma cobrança, mensagem, contrato ou automação é disparada nesta tela."
     >
+      <p data-conversao="rotulo-canonico" className="text-[11px] uppercase tracking-wide text-navy/50">
+        Fonte canônica de conversão e saúde comercial
+      </p>
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando eventos…" />
       ) : q.isError ? (
