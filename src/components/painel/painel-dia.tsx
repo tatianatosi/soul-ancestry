@@ -122,7 +122,8 @@ function EtiquetaPrioridade({ item }: { item: ItemDia }) {
   return (
     <span
       data-prioridade={r.sinal}
-      title={`${etiqueta.explicacao} · fatores: ${r.fatores.map((f) => `${f.rotulo}=${f.valor ?? "sem dado"}`).join(" | ")}`}
+      aria-label={ROTULO_PRIORIDADE}
+      title={`${ROTULO_PRIORIDADE}: ${etiqueta.explicacao} · fatores: ${r.fatores.map((f) => `${f.rotulo}=${f.valor ?? "sem dado"}`).join(" | ")}`}
       className={`inline-block rounded-full border px-2 py-0.5 text-[10px] leading-tight ${tom}`}
     >
       {etiqueta.texto}
