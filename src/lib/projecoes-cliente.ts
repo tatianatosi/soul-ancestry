@@ -40,7 +40,8 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
 export function rotuloTipoProjecao(tipo: string | null | undefined): string {
   const bruto = String(tipo ?? "").trim();
   if (!bruto) return "Atualização da equipe";
-  return TIPO_PROJECAO_ROTULO[bruto.toLowerCase()] ?? bruto.replace(/_/g, " ");
+  // Tipo sem rótulo aprovado nunca vira texto cru na tela do cliente.
+  return TIPO_PROJECAO_ROTULO[bruto.toLowerCase()] ?? "Atualização da equipe";
 }
 
 /** Aviso fixo exibido junto das publicações no App Cliente. */
