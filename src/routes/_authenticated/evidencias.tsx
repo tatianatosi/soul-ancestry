@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { PageHeader, SectionHeader } from "@/components/desk/ui-desk";
 import { listarAcessosEvidencia, registrarAcessoEvidencia } from "@/lib/saas.functions";
 import { ESTADOS, rotuloEstado } from "@/lib/estados";
 
@@ -39,11 +40,16 @@ function EvidenciasPage() {
   return (
     <SaasShell
       titulo="Evidências"
-      descricao="Cada visualização é registrada. Documentos são evidência, não conclusão jurídica."
+      descricao="Fontes, evidências e próximos passos do caso — uso interno."
     >
+      <PageHeader
+        titulo="Biblioteca de evidências"
+        subtitulo="Caso → hipótese → fonte → evidência → estado de validação. Cada visualização é registrada; documento é evidência, nunca conclusão jurídica."
+      />
       <EntidadeCrud
         entidade="evidencias"
         titulo="Evidências"
+
         podeEscrever={podeEscrever}
         dominio="evidencia"
         colunas={[
@@ -123,12 +129,18 @@ function EvidenciasPage() {
 
       {acessos ? (
         <div className="mt-5 rounded-xl border border-navy/10 bg-white p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-serif text-lg">Registro de acessos</h2>
-            <button onClick={() => setAcessos(null)} className="text-xs text-navy/60 underline">
-              fechar
-            </button>
-          </div>
+          <SectionHeader
+            titulo="Registro de acessos"
+            descricao="Auditoria de visualização desta evidência."
+            acoes={
+              <button
+                onClick={() => setAcessos(null)}
+                className="rounded-md border border-navy/20 px-2 py-1 text-xs text-navy/70 hover:bg-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                Fechar
+              </button>
+            }
+          />
           <ul className="mt-3 space-y-1 text-sm text-navy/70">
             {acessos.length === 0 ? (
               <li>Nenhum acesso registrado ainda.</li>
