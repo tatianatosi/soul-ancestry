@@ -6,6 +6,16 @@ saída do Lovable como urgente por custo, não como projeto de fundo.
 Nenhuma ação foi executada — remoção de pacote, mudança de deploy ou
 cancelamento de plano depende de decisão sua.
 
+**Atualização (mesmo dia):** decisão 1 da seção 6 está respondida — o
+custo é a assinatura mensal do Lovable **e** os créditos de edição por IA,
+que se esgotam antes de dar conta das mudanças necessárias no aplicativo.
+Isso confirma a leitura da seção 3: o consumo de crédito acontece toda vez
+que se pede uma mudança pelo editor do Lovable, não pela hospedagem em si.
+Como o desenvolvimento já está acontecendo por aqui (Claude Code + GitHub)
+desde 23/08, cada mudança feita nesta sessão **não consome nenhum crédito
+do Lovable** — o vazamento de custo já está parcialmente estancado, mesmo
+com a assinatura ainda ativa.
+
 ## 1. A boa notícia: o banco nunca esteve preso ao Lovable
 
 Confirmado em `PACOTE-MIGRACAO-PERMANENTE-v1.0.md` (22/08): 137 migrations
@@ -98,12 +108,38 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
 
 ## 6. Decisão humana necessária
 
-1. O custo do Lovable hoje é por edição (editor/créditos de IA) ou por
-   hospedagem/publicação? Isso define se a Fase imediata já resolve o
-   problema de custo sozinha.
+1. ~~O custo do Lovable hoje é por edição (editor/créditos de IA) ou por
+   hospedagem/publicação?~~ **Respondida:** assinatura mensal + créditos de
+   IA, e os créditos acabam antes de completar as mudanças necessárias.
+   Ver seção 7 para o que isso muda no plano.
 2. Confirma Servla como destino definitivo (decidido em 20/08) ou prefere
    uma ponte mais rápida (Vercel/Cloudflare) enquanto valida a Servla, dado
    que a urgência mudou desde então?
 3. Ok em rodar as Fases técnica e de publicação em paralelo com o uso
    normal do sistema, ou prefere uma janela dedicada (menor risco de
    quebrar o que está em uso agora)?
+
+## 7. O que muda com a decisão 1 respondida
+
+O gargalo é literalmente **créditos de IA que acabam antes da mudança
+terminar** — isso é o oposto de escassez de dinheiro: é escassez de cota
+dentro de um plano já pago. Duas implicações práticas:
+
+- **Nenhum trabalho feito aqui (Claude Code) foi ou será perdido por causa
+  disso.** Tudo o que já foi construído — os 137 migrations, as 182
+  tabelas, todo o código em `src/`, os estudos e auditorias destes últimos
+  dias — está no GitHub e no Supabase, dois serviços que não têm relação
+  nenhuma com o consumo de crédito do Lovable. O investimento já feito não
+  desaparece ao sair do Lovable; ele está preservado independente da
+  assinatura continuar ou não.
+- **A cada mudança que você pedir por aqui em vez de pelo editor do
+  Lovable, zero crédito é gasto.** Isso já reduz o problema hoje, sem
+  esperar a Fase técnica ou a Fase de publicação da seção 4.
+
+Prioridade revista para a Fase imediata (seção 4, item 3): antes de
+rebaixar ou cancelar o plano do Lovable, confirme se a URL que a equipe usa
+no dia a dia é a publicada por ele — se for, isso é o único motivo real
+para manter a assinatura ativa por mais algum tempo, só até a Fase de
+publicação (item 7) entregar um deploy independente. Fora isso, não há
+necessidade de continuar comprando crédito de edição: as mudanças
+seguem saindo por aqui.
