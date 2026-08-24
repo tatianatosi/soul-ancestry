@@ -16,14 +16,25 @@ desde 23/08, cada mudança feita nesta sessão **não consome nenhum crédito
 do Lovable** — o vazamento de custo já está parcialmente estancado, mesmo
 com a assinatura ainda ativa.
 
-## 1. A boa notícia: o banco nunca esteve preso ao Lovable
+## 1. O banco não precisa ser recriado — mas a posse dele precisa ser confirmada
 
 Confirmado em `PACOTE-MIGRACAO-PERMANENTE-v1.0.md` (22/08): 137 migrations
 Supabase aplicadas, 182 tabelas, 520 policies RLS, tudo versionado em
-`supabase/migrations/`. Supabase é um serviço independente — sair do
-Lovable **não exige migrar banco nenhum**, só continuar usando o mesmo
-projeto Supabase (ou portá-lo, se um dia quiser, mas isso é outra decisão).
-O GitHub (`tatianatosi/soul-ancestry`) já é a fonte oficial desde 19/08.
+`supabase/migrations/`. Supabase é uma empresa separada do Lovable — o
+código do banco (migrations) está no GitHub e independe de qualquer um dos
+dois. O GitHub (`tatianatosi/soul-ancestry`) já é a fonte oficial desde
+19/08.
+
+**Correção registrada (24/08):** você apontou que o projeto Supabase foi
+criado pelo próprio Lovable (integração nativa dele), não por você
+diretamente, e que a hospedagem do app hoje está confirmada no Lovable. Isso
+muda a seção 3 abaixo de suposição para fato — e adiciona uma verificação
+que eu não posso fazer por aqui: **confirmar se você consegue entrar em
+supabase.com com login próprio e ver esse projeto na sua conta**, ou se o
+acesso a ele hoje passa só pelo painel do Lovable. Se for só pelo Lovable,
+o banco de dados é uma dependência real de saída, não só a hospedagem do
+app — isso muda a ordem de prioridade da seção 4: confirmar acesso direto
+ao Supabase vira o primeiro passo, antes de qualquer coisa técnica.
 
 ## 2. O que de fato prende o projeto ao Lovable hoje
 
@@ -59,16 +70,21 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
 ## 4. Plano em 3 fases
 
 ### Fase imediata — sem tocar em código (esta semana)
-1. Confirmar se o plano pago do Lovable é cobrado por uso do editor ou por
-   hospedagem/deploy publicado por ele. Isso muda a urgência de cada passo
-   abaixo.
-2. Se for por uso do editor: parar de abrir o editor do Lovable para novos
-   prompts e concentrar o desenvolvimento em Claude Code + GitHub (já é o
-   caso desde 23/08) — isso já reduz custo sem nenhuma mudança técnica.
-3. Verificar no painel do Lovable se o app publicado por ele (preview/
-   produção) é a URL que você e a equipe usam no dia a dia. Se for, o
-   passo 5 (deploy independente) precisa vir antes de desconectar/rebaixar
-   o plano, para não ficar sem app publicado.
+1. ~~Confirmar se o plano pago do Lovable é cobrado por uso do editor ou por
+   hospedagem/deploy publicado por ele.~~ **Respondida:** os dois — assinatura
+   + créditos de edição.
+2. Parar de abrir o editor do Lovable para novos prompts e concentrar o
+   desenvolvimento em Claude Code + GitHub (já é o caso desde 23/08) — isso
+   já reduz custo sem nenhuma mudança técnica.
+3. ~~Verificar se o app publicado pelo Lovable é a URL do dia a dia.~~
+   **Confirmado:** é. A hospedagem está no Lovable hoje — o passo 5 (deploy
+   independente) precisa acontecer antes de desconectar ou rebaixar o
+   plano, para não ficar sem app publicado.
+4. **Novo, prioridade máxima:** confirmar login próprio em supabase.com com
+   acesso ao projeto (`SUPABASE_PROJECT_ID` do `.env`) fora do painel do
+   Lovable. Sem isso confirmado, o banco de dados — não só a hospedagem —
+   é uma dependência real do Lovable, e o plano de saída muda de "trocar
+   hospedagem" para "recuperar posse do banco primeiro".
 
 ### Fase técnica — remover o acoplamento (paralelo, sem pressa de deploy)
 4. Reescrever `vite.config.ts` com os plugins explícitos (TanStack Start,
@@ -102,9 +118,13 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
   sem antes rodar build e testes localmente — o comentário no próprio
   arquivo avisa que duplicar plugins quebra o app.
 - Não desconectar o editor do Lovable antes de confirmar que existe um
-  deploy independente funcionando — senão o app publicado sai do ar.
+  deploy independente funcionando — senão o app publicado sai do ar
+  (confirmado: é a URL que a equipe usa hoje).
 - Não apagar as rotas `/lovable/*` sem antes checar se algo em produção
   (prévia de e-mail, webhook) ainda depende delas.
+- **Não cancelar nem rebaixar o plano do Lovable antes de confirmar acesso
+  próprio ao Supabase** (item 4 da Fase imediata) — cancelar sem isso
+  arrisca perder acesso ao banco de dados real, não só ao app publicado.
 
 ## 6. Decisão humana necessária
 
