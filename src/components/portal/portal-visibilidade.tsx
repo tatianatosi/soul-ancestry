@@ -41,13 +41,16 @@ export function BlocoVisibilidade({
   visibilidade: ResultadoVisibilidade;
   children?: ReactNode;
 }) {
+  const estado = visibilidade.estado;
+  const mostraConteudo = estado === "always_available" || estado === "released";
+
   return (
-    <section className="rounded-xl border border-navy/10 bg-white p-5">
-      <span className="inline-flex rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-        {visibilidade.titulo}
+    <section className={TIPO_CLIENTE.cartao} aria-live="polite">
+      <span className="inline-flex rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium tracking-wide text-navy/80">
+        {COPY_ESTADO_TITULO[estado]}
       </span>
-      <p className="mt-3 text-sm text-navy/70">{visibilidade.mensagem}</p>
-      {children ? <div className="mt-4">{children}</div> : null}
+      <p className={`mt-3 ${TIPO_CLIENTE.corpo}`}>{COPY_ESTADO_TEXTO[estado]}</p>
+      {mostraConteudo && children ? <div className="mt-4">{children}</div> : null}
     </section>
   );
 }
