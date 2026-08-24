@@ -65,6 +65,7 @@ import { Route as AuthenticatedEtiquetasRouteImport } from './routes/_authentica
 import { Route as AuthenticatedEscopoOrigemRouteImport } from './routes/_authenticated/escopo-origem'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedDivergenciasCatalogoRouteImport } from './routes/_authenticated/divergencias-catalogo'
+import { Route as AuthenticatedCrmMestreRouteImport } from './routes/_authenticated/crm-mestre'
 import { Route as AuthenticatedConversaoRouteImport } from './routes/_authenticated/conversao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedConciliacaoCatalogoRouteImport } from './routes/_authenticated/conciliacao-catalogo'
@@ -410,6 +411,11 @@ const AuthenticatedDivergenciasCatalogoRoute =
     path: '/divergencias-catalogo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCrmMestreRoute = AuthenticatedCrmMestreRouteImport.update({
+  id: '/crm-mestre',
+  path: '/crm-mestre',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConversaoRoute = AuthenticatedConversaoRouteImport.update({
   id: '/conversao',
   path: '/conversao',
@@ -735,6 +741,7 @@ export interface FileRoutesByFullPath {
   '/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
+  '/crm-mestre': typeof AuthenticatedCrmMestreRoute
   '/divergencias-catalogo': typeof AuthenticatedDivergenciasCatalogoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
@@ -844,6 +851,7 @@ export interface FileRoutesByTo {
   '/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/conversao': typeof AuthenticatedConversaoRoute
+  '/crm-mestre': typeof AuthenticatedCrmMestreRoute
   '/divergencias-catalogo': typeof AuthenticatedDivergenciasCatalogoRoute
   '/equipe': typeof AuthenticatedEquipeRoute
   '/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
@@ -956,6 +964,7 @@ export interface FileRoutesById {
   '/_authenticated/conciliacao-catalogo': typeof AuthenticatedConciliacaoCatalogoRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/conversao': typeof AuthenticatedConversaoRoute
+  '/_authenticated/crm-mestre': typeof AuthenticatedCrmMestreRoute
   '/_authenticated/divergencias-catalogo': typeof AuthenticatedDivergenciasCatalogoRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/escopo-origem': typeof AuthenticatedEscopoOrigemRoute
@@ -1068,6 +1077,7 @@ export interface FileRouteTypes {
     | '/conciliacao-catalogo'
     | '/configuracoes'
     | '/conversao'
+    | '/crm-mestre'
     | '/divergencias-catalogo'
     | '/equipe'
     | '/escopo-origem'
@@ -1177,6 +1187,7 @@ export interface FileRouteTypes {
     | '/conciliacao-catalogo'
     | '/configuracoes'
     | '/conversao'
+    | '/crm-mestre'
     | '/divergencias-catalogo'
     | '/equipe'
     | '/escopo-origem'
@@ -1288,6 +1299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/conciliacao-catalogo'
     | '/_authenticated/configuracoes'
     | '/_authenticated/conversao'
+    | '/_authenticated/crm-mestre'
     | '/_authenticated/divergencias-catalogo'
     | '/_authenticated/equipe'
     | '/_authenticated/escopo-origem'
@@ -1794,6 +1806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDivergenciasCatalogoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/crm-mestre': {
+      id: '/_authenticated/crm-mestre'
+      path: '/crm-mestre'
+      fullPath: '/crm-mestre'
+      preLoaderRoute: typeof AuthenticatedCrmMestreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/conversao': {
       id: '/_authenticated/conversao'
       path: '/conversao'
@@ -2180,6 +2199,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConciliacaoCatalogoRoute: typeof AuthenticatedConciliacaoCatalogoRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedConversaoRoute: typeof AuthenticatedConversaoRoute
+  AuthenticatedCrmMestreRoute: typeof AuthenticatedCrmMestreRoute
   AuthenticatedDivergenciasCatalogoRoute: typeof AuthenticatedDivergenciasCatalogoRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEscopoOrigemRoute: typeof AuthenticatedEscopoOrigemRoute
@@ -2260,6 +2280,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConciliacaoCatalogoRoute: AuthenticatedConciliacaoCatalogoRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedConversaoRoute: AuthenticatedConversaoRoute,
+  AuthenticatedCrmMestreRoute: AuthenticatedCrmMestreRoute,
   AuthenticatedDivergenciasCatalogoRoute:
     AuthenticatedDivergenciasCatalogoRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
