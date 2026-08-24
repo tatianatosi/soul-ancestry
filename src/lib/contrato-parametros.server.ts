@@ -188,12 +188,12 @@ export function montarPrevia(input: {
 
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><meta name="robots" content="noindex,nofollow"/>
 <title>${esc(caso?.codigo)} — prévia parametrizada</title>
-<style>body{font-family:Georgia,serif;color:#1B2B4B;max-width:820px;margin:32px auto;padding:0 24px;line-height:1.6}
-.selo{border:2px solid #8B4513;color:#8B4513;padding:8px 12px;margin:6px 0;font-family:system-ui;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-h1{font-size:21px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #C9A84C;padding-bottom:4px;margin-top:24px}
+<style>body{font-family:Georgia,serif;color:#2F4B6E;max-width:820px;margin:32px auto;padding:0 24px;line-height:1.6}
+.selo{border:2px solid #9A3A2F;color:#9A3A2F;padding:8px 12px;margin:6px 0;font-family:system-ui;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:21px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #FCB73A;padding-bottom:4px;margin-top:24px}
 h3{font-size:13px;margin-top:16px}table{width:100%;border-collapse:collapse;font-family:system-ui;font-size:11px}
-th,td{border:1px solid #1B2B4B22;padding:4px 6px;text-align:left;vertical-align:top}
-.orig{font-family:system-ui;font-size:11px;color:#1B2B4B99}.pend{color:#8B4513;font-style:italic}</style></head><body>
+th,td{border:1px solid #2F4B6E22;padding:4px 6px;text-align:left;vertical-align:top}
+.orig{font-family:system-ui;font-size:11px;color:#2F4B6E99}.pend{color:#9A3A2F;font-style:italic}</style></head><body>
 <div class="selo">${esc(selo)}</div>
 <h1>${esc(caso?.titulo ?? "Instrumento contratual")}</h1>
 <p><strong>Caso:</strong> ${esc(caso?.codigo)} · <strong>Cliente:</strong> ${esc(cliente?.nome ?? "não vinculado")}</p>

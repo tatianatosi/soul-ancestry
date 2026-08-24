@@ -60,31 +60,31 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#F5F0E8', fontFamily: 'Georgia, "Times New Roman", serif' }
+const main = { backgroundColor: '#F7F1E7', fontFamily: 'Georgia, "Times New Roman", serif' }
 const container = {
   padding: '32px 28px',
   backgroundColor: '#ffffff',
-  borderTop: '4px solid #C9A84C',
+  borderTop: '4px solid #FCB73A',
   maxWidth: '560px',
 }
 const marca = {
   fontSize: '12px',
   letterSpacing: '2px',
-  color: '#C9A84C',
+  color: '#FCB73A',
   margin: '0 0 18px',
   fontFamily: 'Arial, sans-serif',
 }
-const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#1B2B4B', margin: '0 0 18px' }
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#2F4B6E', margin: '0 0 18px' }
 const text = {
   fontSize: '15px',
-  color: '#1B2B4B',
+  color: '#2F4B6E',
   lineHeight: '1.6',
   margin: '0 0 24px',
   fontFamily: 'Arial, sans-serif',
 }
 const button = {
-  backgroundColor: '#1B2B4B',
-  color: '#F5F0E8',
+  backgroundColor: '#2F4B6E',
+  color: '#FFFFFF',
   fontSize: '15px',
   borderRadius: '4px',
   padding: '14px 24px',
@@ -94,15 +94,15 @@ const button = {
 }
 const contingenciaRotulo = {
   fontSize: '13px',
-  color: '#8B4513',
+  color: '#9A3A2F',
   margin: '28px 0 6px',
   fontFamily: 'Arial, sans-serif',
 }
 const contingenciaLink = {
   fontSize: '13px',
-  color: '#1B2B4B',
+  color: '#2F4B6E',
   wordBreak: 'break-all' as const,
   fontFamily: 'Arial, sans-serif',
 }
-const hr = { borderColor: '#F5F0E8', margin: '28px 0 16px' }
+const hr = { borderColor: '#F7F1E7', margin: '28px 0 16px' }
 const footer = { fontSize: '12px', color: '#6b6b6b', margin: 0, fontFamily: 'Arial, sans-serif' }
