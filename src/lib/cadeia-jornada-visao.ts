@@ -130,6 +130,12 @@ export function descreverCadeia(
 /* Somente leitura: nada é criado, enviado, publicado ou persistido.    */
 /* ------------------------------------------------------------------ */
 
+export type PontuacaoAjuste = {
+  elo: EloDerivado;
+  pontos: number;
+  criterios: readonly string[];
+};
+
 export type ProximaAcaoPainel = {
   /** Último elo pendente ou bloqueado da cadeia (exclui o próprio Painel Hoje). */
   elo: EloDerivado | null;
@@ -138,13 +144,136 @@ export type ProximaAcaoPainel = {
   prazo: string;
   destino: string | null;
   motivo: string;
+  /** Verdadeiro quando nenhum elo está pendente ou bloqueado. */
+  semPendencias: boolean;
+  /** Mensagem de status legível para o painel. */
+  status: string;
+  /** Como a sugestão foi obtida: elo pendente ou melhor ajuste disponível. */
+  origem: "elo_pendente" | "melhor_ajuste";
+  /** Evidências que sustentam o estado exibido. */
+  evidencias: readonly string[];
+  /** Pontuação do elo escolhido quando a origem é melhor ajuste. */
+  pontuacao: number | null;
+  /** Critérios que explicam a pontuação do melhor ajuste. */
+  justificativa: readonly string[];
+  /** Ranking completo do melhor ajuste (vazio quando há elos pendentes). */
+  ranking: readonly PontuacaoAjuste[];
 };
 
 const SEM_DEFINICAO = "não definido";
 
 /**
+ * Pontua os elos candidatos ao "melhor ajuste" quando não há elos pendentes.
+ * Regra determinística e explicável: quanto mais avançado e mais completo o
+ * elo, maior a pontuação. Nenhum dado é criado ou persistido.
+ */
+export function pontuarMelhorAjuste(
+  resultado: ResultadoCadeia,
+  elos: readonly EloDerivado[],
+): readonly PontuacaoAjuste[] {
+  const candidatos = elos.filter((e) => e.chave !== "painel_hoje" && e.estado === "concluido");
+  const base = candidatos.length > 0 ? candidatos : elos.filter((e) => e.chave !== "painel_hoje");
+
+  return [...base]
+    .map((elo) => {
+      const criterios: string[] = [];
+      let pontos = 0;
+
+      if (elo.estado === "concluido") {
+        pontos += 40;
+        criterios.push("Elo cumprido (+40)");
+      } else if (elo.estado === "nao_aplicavel") {
+        pontos += 5;
+        criterios.push("Elo não aplicável a este evento (+5)");
+      } else {
+        criterios.push("Elo sem conclusão registrada (+0)");
+      }
+
+      pontos += elo.ordem * 3;
+      criterios.push(`Avanço na cadeia: elo ${elo.ordem} de 11 (+${elo.ordem * 3})`);
+
+      if (resultado.tarefa.titulo) {
+        pontos += 10;
+        criterios.push("Tarefa canônica disponível (+10)");
+      }
+      if (resultado.template.template) {
+        pontos += 10;
+        criterios.push("Modelo vigente disponível (+10)");
+      }
+      if (resultado.tarefa.responsavel_id) {
+        pontos += 5;
+        criterios.push("Responsável definido (+5)");
+      }
+      if (resultado.tarefa.prazo) {
+        pontos += 5;
+        criterios.push("Prazo definido (+5)");
+      }
+
+      return { elo, pontos, criterios };
+    })
+    .sort((a, b) => (b.pontos === a.pontos ? b.elo.ordem - a.elo.ordem : b.pontos - a.pontos));
+}
+
+
+/** Evidências textuais do elo, derivadas do resultado da cadeia. */
+export function evidenciasDoElo(
+  resultado: ResultadoCadeia,
+  elo: EloDerivado,
+): readonly string[] {
+  const r = resultado;
+  const base = [
+    `Elo ${elo.ordem} de 11 — ${elo.rotulo}`,
+    elo.detalhe,
+    `Envio executado: não · persistido: não`,
+  ];
+  const extras: string[] = [];
+  if (r.tarefa.titulo) {
+    extras.push(
+      `Tarefa canônica: ${r.tarefa.titulo} · responsável ${r.tarefa.responsavel_id ?? SEM_DEFINICAO} · prazo ${r.tarefa.prazo ?? SEM_DEFINICAO}`,
+    );
+  }
+  if (r.template.template) {
+    extras.push(
+      `Modelo vigente: ${r.template.template.titulo} (v${r.template.versao ?? 1} · ${r.template.template.canal_previsto})`,
+    );
+  } else {
+    extras.push(`Modelo vigente: ${r.template.motivo}`);
+  }
+  if (r.revisao.pendencias.length > 0) {
+    extras.push(`Pendências de revisão: ${r.revisao.pendencias.join("; ")}`);
+  }
+  if (r.plano.objetoCanonico) extras.push(`Objeto canônico: ${r.plano.objetoCanonico}`);
+  return [...base, ...extras];
+}
+
+export type DetalheElo = {
+  elo: EloDerivado;
+  tarefa: string;
+  responsavel: string;
+  prazo: string;
+  templateResumo: string;
+  evidencias: readonly string[];
+};
+
+/** Detalhe completo de um elo para exibição em drawer, somente leitura. */
+export function detalharElo(resultado: ResultadoCadeia, elo: EloDerivado): DetalheElo {
+  const t = resultado.template.template;
+  return {
+    elo,
+    tarefa: resultado.tarefa.titulo ?? "Sem tarefa nova para este evento",
+    responsavel: resultado.tarefa.responsavel_id ?? SEM_DEFINICAO,
+    prazo: resultado.tarefa.prazo ?? SEM_DEFINICAO,
+    templateResumo: t
+      ? `${t.titulo} (v${resultado.template.versao ?? 1} · ${t.canal_previsto}) — ${t.finalidade}`
+      : resultado.template.motivo,
+    evidencias: evidenciasDoElo(resultado, elo),
+  };
+}
+
+/**
  * Deriva a próxima ação exibida no Painel Hoje a partir do último elo pendente
  * ou bloqueado da cadeia, acrescentando responsável e prazo da tarefa canônica.
+ * Sem elos pendentes, devolve status explícito e a sugestão de melhor ajuste.
  */
 export function proximaAcaoDoPainel(
   resultado: ResultadoCadeia,
@@ -153,17 +282,49 @@ export function proximaAcaoDoPainel(
   const candidatos = elos.filter(
     (e) => e.chave !== "painel_hoje" && (e.estado === "pendente" || e.estado === "bloqueado"),
   );
-  const elo = candidatos.length > 0 ? candidatos[candidatos.length - 1]! : null;
   const item = resultado.painelHoje;
+  const semPendencias = candidatos.length === 0;
 
+  if (semPendencias) {
+    // Melhor ajuste: elo mais bem pontuado pela regra determinística.
+    const ranking = pontuarMelhorAjuste(resultado, elos);
+    const topo = ranking[0] ?? null;
+    const melhor = topo?.elo ?? elos[0] ?? null;
+    return {
+      elo: melhor,
+      rotulo: item?.rotulo ?? "Acompanhar o caso e aguardar o próximo evento canônico",
+      responsavel: resultado.tarefa.responsavel_id ?? SEM_DEFINICAO,
+      prazo: item?.prazo ?? resultado.tarefa.prazo ?? SEM_DEFINICAO,
+      destino: item?.destino ?? resultado.plano.objetoCanonico ?? null,
+      motivo: melhor
+        ? `Sugestão por melhor ajuste — elo ${melhor.ordem} (${melhor.rotulo}), pontuação ${topo?.pontos ?? 0}: ${melhor.detalhe}`
+        : "Nenhum elo disponível para sugestão.",
+      semPendencias: true,
+      status: "Cadeia sem elos pendentes ou bloqueados neste momento.",
+      origem: "melhor_ajuste",
+      evidencias: melhor ? evidenciasDoElo(resultado, melhor) : [],
+      pontuacao: topo?.pontos ?? null,
+      justificativa: topo?.criterios ?? [],
+      ranking,
+    };
+  }
+
+  const elo = candidatos[candidatos.length - 1]!;
   return {
     elo,
-    rotulo: item?.rotulo ?? elo?.rotulo ?? "Nenhuma próxima ação derivada",
+    rotulo: item?.rotulo ?? elo.rotulo,
     responsavel: resultado.tarefa.responsavel_id ?? SEM_DEFINICAO,
     prazo: item?.prazo ?? resultado.tarefa.prazo ?? SEM_DEFINICAO,
     destino: item?.destino ?? resultado.plano.objetoCanonico ?? null,
-    motivo: elo
-      ? `Elo ${elo.ordem} — ${elo.rotulo}: ${elo.detalhe}`
-      : "Cadeia sem elo pendente ou bloqueado neste momento.",
+    motivo: `Elo ${elo.ordem} — ${elo.rotulo}: ${elo.detalhe}`,
+    semPendencias: false,
+    status: `Elo pendente identificado: ${elo.rotulo} (${elo.estado === "bloqueado" ? "bloqueado" : "pendente"}).`,
+    origem: "elo_pendente",
+    evidencias: evidenciasDoElo(resultado, elo),
+    pontuacao: null,
+    justificativa: [],
+    ranking: [],
   };
+
 }
+
