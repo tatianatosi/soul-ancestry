@@ -50,6 +50,18 @@ function contagem(n: unknown): string {
   return typeof n === "number" && Number.isFinite(n) && n > 0 ? String(n) : "";
 }
 
+/** Ordem canônica dos eixos. Nenhuma superfície pode acrescentar ou reordenar. */
+export const EIXOS_RADAR_IDS = ["historia", "documentos", "estrategia", "proximos"] as const;
+
+/**
+ * Guarda de superfície: devolve exatamente os eixos canônicos, na ordem
+ * canônica, descartando qualquer eixo extra ou duplicado que alguma tela
+ * (Cliente ou Ops) tenha tentado injetar.
+ */
+export function garantirEixosCanonicos<T extends { id: EixoRadar["id"] }>(lista: readonly T[]): T[] {
+  return EIXOS_RADAR_IDS.map((id) => lista.find((e) => e.id === id)).filter((e): e is T => e !== undefined);
+}
+
 export function eixosRadar(caso: CaseData): EixoRadar[] {
   const doc = caso.documentos;
   const localizados = limparLista(doc.documentos_localizados ?? []);
