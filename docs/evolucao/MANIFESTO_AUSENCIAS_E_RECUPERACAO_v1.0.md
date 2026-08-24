@@ -4,15 +4,15 @@
 
 Impedir que lacunas históricas sejam preenchidas por inferência. Este manifesto registra o que ainda precisa ser localizado, lido, comparado e classificado antes de entrar como verdade de projeto.
 
-| ID | Artefato/tema ausente ou incompleto | Onde procurar | Evidência necessária | Critério de recuperação |
-|---|---|---|---|---|
-| REC-001 | CA-01 a CA-08. | Drive, Dropbox, transcrições Perplexity, GitHub e histórico do Lovable. | Arquivo original ou transcrição identificável. | Título, data, autoria, escopo e integridade mínimos. |
-| REC-002 | CA-EVO-01. | Drive, Dropbox e histórico de sessões. | Fonte primária ou cópia rastreável. | Vincular à sequência EVO sem presumir conteúdo. |
-| REC-003 | Go-live efetivamente executado. | GitHub, Supabase, Asaas, Drive, CRM e logs. | Evento, alteração de estado, cobrança ou registro operacional. | Separar preparação de execução. |
-| REC-004 | Anexos jurídicos II, IV e V. | Drive jurídico e repositório de contratos. | Template vigente aprovado. | Verificação jurídica e de versão. |
-| REC-005 | Fonte operacional de CRM/tarefas/calendário. | Código, Supabase, planilhas e ferramentas conectadas. | Decisão humana + configuração ativa. | Um sistema por finalidade ou regra explícita de integração. |
-| REC-006 | Bases e skills genealógicas. | Drive, repositório, Desk e artefatos de pesquisa. | Dicionários, fontes, metodologia e restrições. | Classificar por escopo, país, idioma e status jurídico. |
-| REC-007 | Mockups/figmas/designs comparáveis. | Canva, Lovable, GitHub, Drive e screenshots. | Identificador, data, escopo e telas. | Comparar com rota/componente real, não por memória. |
+| ID | Artefato/tema ausente ou incompleto | Onde procurar | Evidência necessária | Critério de recuperação | Status (24/08) |
+|---|---|---|---|---|---|
+| REC-001 | CA-01 a CA-08. | Drive, Dropbox, transcrições Perplexity, GitHub e histórico do Lovable. | Arquivo original ou transcrição identificável. | Título, data, autoria, escopo e integridade mínimos. | **Encerrado sem recuperação.** O texto recuperado de CA-EVO-01 declara como premissa inegociável "CA-01 a CA-08 e SKU TOP 30: não reabrir". A fonte primária resolve a dúvida: não é um artefato perdido a recuperar, é uma decisão de não reabrir. Ver `recuperados/CA-EVO-01_Registro_Mestre_de_Evolucao.md`. |
+| REC-002 | CA-EVO-01. | Drive, Dropbox e histórico de sessões. | Fonte primária ou cópia rastreável. | Vincular à sequência EVO sem presumir conteúdo. | **Recuperado.** Prompt/especificação colado pela Proprietária no chat, preservado em `recuperados/CA-EVO-01_Registro_Mestre_de_Evolucao.md`. Ainda não confirmado se a saída (as 6 tabelas pedidas por esse prompt) chegou a ser gerada e preservada — isso continua em aberto. |
+| REC-003 | Go-live efetivamente executado. | GitHub, Supabase, Asaas, Drive, CRM e logs. | Evento, alteração de estado, cobrança ou registro operacional. | Separar preparação de execução. | Em aberto. `CA-GOV-01` (23/08) e a devolutiva de CA-EVO-02 (15/08, ver `recuperados/`) concordam: caso Ana Luiza segue sem ativação confirmada em nenhuma das duas datas. |
+| REC-004 | Anexos jurídicos II, IV e V. | Drive jurídico e repositório de contratos. | Template vigente aprovado. | Verificação jurídica e de versão. | Parcial. Devolutiva de CA-EVO-02 (15/08) e o código atual (`anexos-i-v.ts`) concordam: modelo/motor existe e está ativo; falta a materialização por caso real. |
+| REC-005 | Fonte operacional de CRM/tarefas/calendário. | Código, Supabase, planilhas e ferramentas conectadas. | Decisão humana + configuração ativa. | Um sistema por finalidade ou regra explícita de integração. | Em aberto — `CA-GOV-01` ainda pede eliminação de duplicidade entre CRMs concorrentes. |
+| REC-006 | Bases e skills genealógicas. | Drive, repositório, Desk e artefatos de pesquisa. | Dicionários, fontes, metodologia e restrições. | Classificar por escopo, país, idioma e status jurídico. | **Parcialmente recuperado.** Bloco 5A (11/08), seu Adendo de Correções e o Piloto 5A.1 (caso real) preservados em `recuperados/BLOCO-5A_Registro_e_Resumo.md` — taxonomia de fontes, dicionário de entidades, regras de evidência e consentimento. Cotejo com o código atual ainda pendente. |
+| REC-007 | Mockups/figmas/designs comparáveis. | Canva, Lovable, GitHub, Drive e screenshots. | Identificador, data, escopo e telas. | Comparar com rota/componente real, não por memória. | **Fechado em 23/08** pela CA-UX-04 — protótipo de 14 abas arquivado em `archive/mockups/`, com tabela de equivalência em `docs/historico/mockups/README.md`. |
 
 ## Protocolo
 
