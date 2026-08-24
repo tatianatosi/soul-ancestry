@@ -354,7 +354,7 @@ export function ClientResearchOnePageModal({
     const opts = {
       pixelRatio: 2,
       cacheBust: true,
-      backgroundColor: "#F5F0E8",
+      backgroundColor: "#F7F1E7",
       width: node.offsetWidth,
       height: node.offsetHeight,
     };
