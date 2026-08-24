@@ -25,11 +25,16 @@ Regra de precedência registrada em memória de projeto: **conflito entre CSS, m
 
 ## 3. Tipografia efetivamente aplicada
 
-- **Títulos:** Cormorant Garamond. **Corpo:** Inter. Carregadas por `<link>` no `src/routes/__root.tsx` (Google Fonts, `display=swap`), nunca por `@import` de URL em CSS.
+- **Títulos:** Cormorant Garamond. **Corpo:** Montserrat (24/08/2026 —
+  troca confirmada pela Proprietária, revertendo a recusa anterior).
+  Carregadas por `<link>` no `src/routes/__root.tsx` (Google Fonts,
+  `display=swap`), nunca por `@import` de URL em CSS.
 - Expostas como `--font-serif` / `--font-sans` em `src/styles.css`.
 - Hierarquia única do App Cliente em `TIPO_CLIENTE` (`titulo`, `subtitulo`, `secao`, `corpo`, `legenda`, `etiqueta`, `botao`, `botaoDiscreto`, `cartao`, `aviso`), usada por todas as telas do portal.
 - Fallbacks fora do navegador: Georgia (títulos) e Arial (corpo) em e-mail; Georgia no contrato em PDF.
-- Montserrat, presente no guia impresso, foi **recusada** por decisão explícita: a tipografia mantida é Inter + Cormorant Garamond.
+- **Histórico:** Montserrat, presente no guia impresso, tinha sido
+  **recusada** por decisão explícita em favor de Inter — decisão revertida
+  em 24/08/2026, ver `docs/evolucao/recuperados/CA-MARCA_Resolucao_Paleta.md`.
 
 ## 4. Token azul incorreto encontrado × token correto aplicado
 
@@ -64,7 +69,7 @@ Os valores retirados sobrevivem apenas em dois lugares legítimos: a lista de pr
 | --- | --- | --- | --- |
 | Asset vetorial oficial definitivo do logo | Ausência de arquivo homologado pela Proprietária | `<BrandLogo />` marca `data-brand-pending` e usa texto neutro; nenhuma marca improvisada é exibida | Substituir o asset referenciado em `src/lib/brand-asset.ts` |
 | Verificação visual autenticada de Home, Jornada, Radar, Entregas, Fase 02 e Conta | Ambiente de verificação sem sessão de cliente; `/portal` redireciona para `/acesso` | Verificado apenas por código e testes; capturas desktop/mobile feitas somente da tela de acesso | Login de cliente no preview, sem qualquer bypass de autenticação |
-| Montserrat do guia impresso | Decisão explícita de recusa registrada em memória | Tipografia permanece Inter + Cormorant Garamond | Nova decisão expressa da Proprietária |
+| ~~Montserrat do guia impresso~~ | ~~Decisão explícita de recusa registrada em memória~~ | **Resolvido 24/08/2026** — Proprietária confirmou a troca; corpo do texto agora usa Montserrat (ver seção 3) | — |
 | Paleta institucional anterior | Decisão explícita de preservação histórica | Confinada a `[data-paleta="anterior"]`, sem alcance no App Cliente | Decisão expressa de remoção |
 
 Nenhuma ação externa, migração, alteração de RLS ou envio ao cliente foi executada nesta etapa.

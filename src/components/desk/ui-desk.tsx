@@ -5,7 +5,7 @@
  * - Somente apresentação. Nenhum componente aqui lê, escreve ou deriva dado.
  * - Cores sempre por token semântico (`bg-navy`, `text-critico`, …); nunca hex.
  * - Títulos e navegação em Cormorant (`font-serif`); tabelas e dados densos
- *   em Inter (`font-sans`), com tabular-nums para números.
+ *   em Montserrat (`font-sans`), com tabular-nums para números.
  */
 import type { ReactNode } from "react";
 
@@ -153,7 +153,7 @@ export function BarraFiltros({ children, className }: { children: ReactNode; cla
   );
 }
 
-/** Moldura de tabela densa: Inter, números tabulares e rolagem horizontal segura. */
+/** Moldura de tabela densa: Montserrat, números tabulares e rolagem horizontal segura. */
 export function TabelaDesk({
   cabecalho,
   children,

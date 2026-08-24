@@ -16,6 +16,37 @@ desde 23/08, cada mudança feita nesta sessão **não consome nenhum crédito
 do Lovable** — o vazamento de custo já está parcialmente estancado, mesmo
 com a assinatura ainda ativa.
 
+## 0. Achado crítico novo (24/08, à tarde): as dependências do projeto só instalam dentro do sandbox do Lovable
+
+Ao tentar rodar os testes automatizados desta sessão, `bun install`
+falhou: **todas** as dependências (não só os pacotes `@lovable.dev/*`)
+estão resolvidas no `bun.lock` para um registro **privado** do Lovable —
+`europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/...` e
+`europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/...` — que
+devolve 403 (acesso negado) para qualquer ambiente fora do sandbox deles.
+Isso vale até para pacotes públicos genéricos (`chalk`, `fflate`,
+`performance-now`). Tentei sobrescrever o registro por variável de
+ambiente (`BUN_CONFIG_REGISTRY`) e não adiantou — a URL de cada pacote já
+está gravada dentro do próprio `bun.lock`, não é uma configuração de
+sessão.
+
+**O que isso significa na prática:** hoje, **nenhum ambiente fora do
+Lovable consegue instalar as dependências do projeto** — nem esta sessão,
+nem a Vercel, nem a Servla, nem sua própria máquina. Isso é mais grave do
+que o acoplamento de `vite.config.ts` já registrado na seção 2: aquele é
+uma troca de arquivo; este exige **regenerar o `bun.lock` contra o
+registro público do npm** (apagar o lock atual e rodar `bun install` de
+novo fora do sandbox, ou revisar se algum registro privado precisa ser
+mantido por licença). Antes de qualquer deploy independente (Vercel ou
+Servla), este é agora o bloqueio técnico prioritário — mais urgente que a
+reescrita do `vite.config.ts`.
+
+**Efeito colateral imediato:** não consigo rodar `npm run build` nem
+`vitest` nesta sessão para validar mudanças de código enquanto isso não
+for resolvido — as mudanças de hoje (paleta, tipografia) foram feitas
+seguindo o padrão exato já existente no arquivo, mas sem confirmação
+automatizada de build.
+
 ## 1. O banco não precisa ser recriado — mas a posse dele precisa ser confirmada
 
 Confirmado em `PACOTE-MIGRACAO-PERMANENTE-v1.0.md` (22/08): 137 migrations
