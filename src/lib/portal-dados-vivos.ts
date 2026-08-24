@@ -153,7 +153,7 @@ export function radarSanitizado(entrada: {
           ? [{ rotulo: "Atualizações publicadas", valor: String(jornada.marcosPublicados) }]
           : [],
     };
-  });
+  }));
 }
 
 /* ------------------------------------------------------------------- árvore */
