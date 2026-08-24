@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PortalShell } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { EIXOS_RADAR_CANONICOS } from "@/lib/radar-eixos";
+import { radarSanitizado } from "@/lib/portal-dados-vivos";
+import { usePortalVivo } from "@/routes/portal/jornada";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -19,21 +20,40 @@ export const Route = createFileRoute("/portal/radar")({
   component: PortalRadar,
 });
 
+const TEXTO_ESTADO: Record<string, string> = {
+  released: "",
+  available_empty: "Sem itens publicados nesta área.",
+  in_preparation: "Esta leitura está em preparação pela equipe.",
+};
+
 function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
+  const { data, isLoading } = usePortalVivo();
+  const eixos = radarSanitizado({ projecoes: data?.projecoes ?? [], documentos: data?.documentos ?? [] });
 
   return (
     <PortalShell titulo="Radar" descricao="Quatro eixos de leitura. Nada aqui é conclusão sobre o seu caso.">
-      {carregando ? (
+      {carregando || isLoading ? (
         <p className="text-sm text-navy/60">Carregando…</p>
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="grid gap-3 sm:grid-cols-2">
-            {EIXOS_RADAR_CANONICOS.map((eixo) => (
+            {eixos.map((eixo) => (
               <article key={eixo.id} className="rounded-lg border border-navy/10 bg-cream/60 p-4">
                 <h2 className="font-serif text-base text-navy">{eixo.titulo}</h2>
                 <p className="mt-1 text-xs text-navy/60">{eixo.resumo}</p>
-                <p className="mt-3 text-xs text-navy/50">Sem leitura publicada no momento.</p>
+                {eixo.itens.length > 0 ? (
+                  <dl className="mt-3 space-y-1">
+                    {eixo.itens.map((i) => (
+                      <div key={i.rotulo} className="flex justify-between text-xs text-navy/70">
+                        <dt>{i.rotulo}</dt>
+                        <dd className="font-medium text-navy">{i.valor}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="mt-3 text-xs text-navy/50">{TEXTO_ESTADO[eixo.estado]}</p>
+                )}
               </article>
             ))}
           </div>
