@@ -19,7 +19,7 @@
 import { diasEntre, saudeDoPlano, contemConteudoInterno } from "@/lib/onboarding-jornada";
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import type { EixoRadar } from "@/lib/radar-eixos";
-import { EIXOS_RADAR_CANONICOS } from "@/lib/radar-eixos";
+import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 
 export type BloqueioFonte = {
   tela: string;
@@ -120,7 +120,7 @@ export function radarSanitizado(entrada: {
   const enviados = docs.filter((d) => d.origem === "cliente").length;
   const jornada = jornadaSanitizada(entrada.projecoes);
 
-  return EIXOS_RADAR_CANONICOS.map((eixo): EixoVivo => {
+  return garantirEixosCanonicos(EIXOS_RADAR_CANONICOS.map((eixo): EixoVivo => {
     if (eixo.id === "historia") {
       return {
         ...eixo,

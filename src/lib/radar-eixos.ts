@@ -69,7 +69,7 @@ export function eixosRadar(caso: CaseData): EixoRadar[] {
   const emValidacao = limparLista(doc.documentos_em_validacao ?? []);
   const solicitacoes = limparLista(doc.proximas_solicitacoes ?? []);
 
-  return EIXOS_RADAR_CANONICOS.map((canon): EixoRadar => {
+  return garantirEixosCanonicos(EIXOS_RADAR_CANONICOS.map((canon): EixoRadar => {
     if (canon.id === "historia") {
       return {
         ...canon,
@@ -138,7 +138,7 @@ export function eixosRadar(caso: CaseData): EixoRadar[] {
       mensagemVazio:
         "Estamos definindo o próximo passo do seu caso. Você será avisada assim que ele estiver pronto.",
     };
-  });
+  }));
 }
 
 /**
