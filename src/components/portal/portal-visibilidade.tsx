@@ -9,6 +9,8 @@ import {
   type TelaApp,
 } from "@/lib/app-visibilidade";
 import { escopoDoPortal } from "@/lib/portal-jornada.functions";
+import { TIPO_CLIENTE } from "@/lib/marca";
+import { COPY_ESTADO_TEXTO, COPY_ESTADO_TITULO } from "@/lib/portal-copy";
 
 /** Escopo conservador enquanto a leitura não retorna: nada é presumido. */
 const ESCOPO_INDEFINIDO: EscopoCliente = {
