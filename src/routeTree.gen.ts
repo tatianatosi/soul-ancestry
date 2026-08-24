@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as PortalRadarRouteImport } from './routes/portal/radar'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
+import { Route as PortalLegadoRouteImport } from './routes/portal/legado'
 import { Route as PortalJornadaRouteImport } from './routes/portal/jornada'
 import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
 import { Route as PortalFase02RouteImport } from './routes/portal/fase-02'
@@ -164,6 +165,11 @@ const PortalRadarRoute = PortalRadarRouteImport.update({
 const PortalPropostaRoute = PortalPropostaRouteImport.update({
   id: '/proposta',
   path: '/proposta',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalLegadoRoute = PortalLegadoRouteImport.update({
+  id: '/legado',
+  path: '/legado',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalJornadaRoute = PortalJornadaRouteImport.update({
@@ -767,6 +773,7 @@ export interface FileRoutesByFullPath {
   '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
@@ -874,6 +881,7 @@ export interface FileRoutesByTo {
   '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
   '/portal': typeof PortalIndexRoute
@@ -984,6 +992,7 @@ export interface FileRoutesById {
   '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
   '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
@@ -1094,6 +1103,7 @@ export interface FileRouteTypes {
     | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
     | '/portal/'
@@ -1201,6 +1211,7 @@ export interface FileRouteTypes {
     | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
     | '/portal'
@@ -1310,6 +1321,7 @@ export interface FileRouteTypes {
     | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
     | '/portal/radar'
     | '/portal/'
@@ -1446,6 +1458,13 @@ declare module '@tanstack/react-router' {
       path: '/proposta'
       fullPath: '/portal/proposta'
       preLoaderRoute: typeof PortalPropostaRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/legado': {
+      id: '/portal/legado'
+      path: '/legado'
+      fullPath: '/portal/legado'
+      preLoaderRoute: typeof PortalLegadoRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/jornada': {
@@ -2326,6 +2345,7 @@ interface PortalRouteRouteChildren {
   PortalFase02Route: typeof PortalFase02Route
   PortalFaturasRoute: typeof PortalFaturasRoute
   PortalJornadaRoute: typeof PortalJornadaRoute
+  PortalLegadoRoute: typeof PortalLegadoRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
   PortalRadarRoute: typeof PortalRadarRoute
   PortalIndexRoute: typeof PortalIndexRoute
@@ -2341,6 +2361,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalFase02Route: PortalFase02Route,
   PortalFaturasRoute: PortalFaturasRoute,
   PortalJornadaRoute: PortalJornadaRoute,
+  PortalLegadoRoute: PortalLegadoRoute,
   PortalPropostaRoute: PortalPropostaRoute,
   PortalRadarRoute: PortalRadarRoute,
   PortalIndexRoute: PortalIndexRoute,
