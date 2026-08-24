@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
-import type { Classificacao, PessoaLista } from "@/lib/clientes-lista";
+import { elegibilidadeAtivacao, type Classificacao, type PessoaLista } from "@/lib/clientes-lista";
 import { semCache } from "@/lib/no-store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -54,6 +54,7 @@ export const listarPessoasCliente = createServerFn({ method: "GET" })
         ativacao_justificativa: p.ativacao_justificativa ?? null,
         contratoAssinado: meus.some((c) => Boolean(c.contrato_assinado)),
         pagamentoConfirmado: meus.some((c) => Boolean(c.pagamento_confirmado)),
+        casosVinculados: meus.length,
         participacoes: membros
           .filter((m) => m.cliente_id === p.id)
           .map((m) => ({ nucleo: nomeNucleo.get(m.nucleo_id) ?? null, papel: m.papel ?? m.vinculo ?? null })),
@@ -74,6 +75,14 @@ export const ativarCliente = createServerFn({ method: "POST" })
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
+
+    // Trava de servidor: recalcula a camada e as condições objetivas antes de promover.
+    const pessoas = await listarPessoasCliente();
+    const pessoa = pessoas.find((p) => p.id === data.id);
+    if (!pessoa) throw new Error("Cadastro não encontrado nesta organização.");
+    const eleg = elegibilidadeAtivacao(pessoa);
+    if (!eleg.apto) throw new Error(`Promoção a cliente ativo bloqueada. ${eleg.pendencias.join(" ")}`);
+
     const { error } = await supabase
       .from("clientes")
       .update({
