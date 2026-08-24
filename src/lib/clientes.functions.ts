@@ -77,9 +77,25 @@ export const ativarCliente = createServerFn({ method: "POST" })
     const organizationId = await organizacaoDo(supabase);
 
     // Trava de servidor: recalcula a camada e as condições objetivas antes de promover.
-    const pessoas = await listarPessoasCliente();
-    const pessoa = pessoas.find((p) => p.id === data.id);
-    if (!pessoa) throw new Error("Cadastro não encontrado nesta organização.");
+    const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
+    const [linhas, casos, membros] = await Promise.all([
+      seguro(eq("clientes").eq("id", data.id)),
+      seguro(eq("crm_casos").is("archived_at", null)),
+      seguro(eq("nucleo_membros").eq("cliente_id", data.id)),
+    ]);
+    const bruto = linhas[0];
+    if (!bruto) throw new Error("Cadastro não encontrado nesta organização.");
+    const meus = casos.filter((c) => c.cliente_id === data.id);
+    const pessoa = {
+      ...bruto,
+      classificacao: (bruto.classificacao ?? "pre_cliente") as Classificacao,
+      status_comercial: bruto.status_comercial ?? null,
+      archived_at: bruto.archived_at ?? null,
+      contratoAssinado: meus.some((c) => Boolean(c.contrato_assinado)),
+      pagamentoConfirmado: meus.some((c) => Boolean(c.pagamento_confirmado)),
+      casosVinculados: meus.length,
+      participacoes: membros.map((m) => ({ nucleo: m.nucleo_id ?? null, papel: m.papel ?? null })),
+    } as PessoaLista;
     const eleg = elegibilidadeAtivacao(pessoa);
     if (!eleg.apto) throw new Error(`Promoção a cliente ativo bloqueada. ${eleg.pendencias.join(" ")}`);
 
