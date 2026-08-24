@@ -8,6 +8,7 @@
  */
 
 import { sanitizarRotuloCliente } from "./canvas-sanitize";
+import { textoParaCliente } from "./portal-linguagem-viva";
 
 export type ProjecaoBruta = {
   id: string;
