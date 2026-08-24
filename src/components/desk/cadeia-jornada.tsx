@@ -45,16 +45,48 @@ export function CadeiaJornada({
   const [aberto, setAberto] = useState<EloDerivado | null>(null);
   const detalhe = aberto ? detalharElo(resultado, aberto) : null;
 
+  const [previa, setPrevia] = useState(false);
+  const [copiado, setCopiado] = useState<"ok" | "erro" | null>(null);
+
   const listaRef = useRef<HTMLOListElement | null>(null);
   const fecharRef = useRef<HTMLButtonElement | null>(null);
   const gatilhoRef = useRef<HTMLButtonElement | null>(null);
+  const painelDrawerRef = useRef<HTMLDivElement | null>(null);
+  const previaRef = useRef<HTMLDivElement | null>(null);
+  const gatilhoPreviaRef = useRef<HTMLButtonElement | null>(null);
 
   const fechar = useCallback(() => {
     setAberto(null);
     gatilhoRef.current?.focus();
   }, []);
 
-  // Fecha o drawer com Escape e devolve o foco ao elo de origem.
+  const fecharPrevia = useCallback(() => {
+    setPrevia(false);
+    gatilhoPreviaRef.current?.focus();
+  }, []);
+
+  /** Mantém o foco preso dentro do container enquanto o diálogo está aberto. */
+  const prenderFoco = (container: HTMLElement | null, e: KeyboardEvent) => {
+    if (e.key !== "Tab" || !container) return;
+    const foco = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, iframe, [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => !el.hasAttribute("disabled"));
+    if (foco.length === 0) return;
+    const primeiro = foco[0]!;
+    const ultimo = foco[foco.length - 1]!;
+    const ativo = document.activeElement;
+    if (e.shiftKey && (ativo === primeiro || !container.contains(ativo))) {
+      e.preventDefault();
+      ultimo.focus();
+    } else if (!e.shiftKey && ativo === ultimo) {
+      e.preventDefault();
+      primeiro.focus();
+    }
+  };
+
+  // Foco inicial, ciclo de Tab/Shift+Tab e Escape no drawer por elo.
   useEffect(() => {
     if (!detalhe) return;
     fecharRef.current?.focus();
@@ -62,11 +94,28 @@ export function CadeiaJornada({
       if (e.key === "Escape") {
         e.stopPropagation();
         fechar();
+        return;
       }
+      prenderFoco(painelDrawerRef.current, e);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [detalhe, fechar]);
+
+  // Foco inicial, ciclo de Tab/Shift+Tab e Escape na prévia de impressão.
+  useEffect(() => {
+    if (!previa) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        fecharPrevia();
+        return;
+      }
+      prenderFoco(previaRef.current, e);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [previa, fecharPrevia]);
 
   /** Navegação por setas, Home e End entre os 11 elos. */
   const navegarPorTeclado = (e: React.KeyboardEvent<HTMLButtonElement>, indice: number) => {
