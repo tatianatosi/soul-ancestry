@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { COPY_TELAS } from "@/lib/portal-copy";
+import { COPY_ESTADO_TEXTO, COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
@@ -23,8 +23,8 @@ export const Route = createFileRoute("/portal/radar")({
 
 const TEXTO_ESTADO: Record<string, string> = {
   released: "",
-  available_empty: "Sem itens publicados nesta área.",
-  in_preparation: "Esta leitura está em preparação pela equipe.",
+  available_empty: COPY_ESTADO_TEXTO.available_empty,
+  in_preparation: COPY_ESTADO_TEXTO.in_preparation,
 };
 
 function PortalRadar() {
