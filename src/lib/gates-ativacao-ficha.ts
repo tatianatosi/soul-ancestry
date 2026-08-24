@@ -165,6 +165,67 @@ export function resumoGatesAtivacao(caso: Linha): {
   };
 }
 
+/* ---------------- Requisitos agrupados por categoria ---------------- */
+
+export type BlocoCategoriaGate = {
+  categoria: CategoriaGate;
+  itens: GateAtivacao[];
+  concluidos: number;
+  total: number;
+  /** Estado derivado da categoria: só é "concluída" quando todos os requisitos têm evidência. */
+  estado: "concluida" | "pendente";
+};
+
+export function gatesPorCategoria(caso: Linha): BlocoCategoriaGate[] {
+  const itens = gatesAtivacaoFicha(caso);
+  return CATEGORIAS_GATE.map((categoria) => {
+    const doGrupo = itens.filter((i) => i.categoria === categoria);
+    const concluidos = doGrupo.filter((i) => i.ok).length;
+    return {
+      categoria,
+      itens: doGrupo,
+      concluidos,
+      total: doGrupo.length,
+      estado: doGrupo.length > 0 && concluidos === doGrupo.length ? "concluida" : "pendente",
+    };
+  });
+}
+
+/**
+ * Estado derivado da ficha a partir dos gates pendentes.
+ * É leitura explicável: nunca altera status, nunca habilita ação externa.
+ */
+export type EstadoDerivadoGates = {
+  rotulo: string;
+  explicacao: string;
+  categoriaBloqueante: CategoriaGate | null;
+  pendentes: GateAtivacao[];
+  elegivel: boolean;
+};
+
+export function estadoDerivadoPorGates(caso: Linha): EstadoDerivadoGates {
+  const itens = gatesAtivacaoFicha(caso);
+  const pendentes = itens.filter((i) => !i.ok);
+  if (pendentes.length === 0) {
+    return {
+      rotulo: "Requisitos completos — ativação depende de decisão humana",
+      explicacao:
+        "Todos os requisitos têm evidência registrada. A ativação continua sendo decidida por pessoa autorizada e revalidada no servidor.",
+      categoriaBloqueante: null,
+      pendentes: [],
+      elegivel: true,
+    };
+  }
+  const primeiro = pendentes[0]!;
+  return {
+    rotulo: `Bloqueado em ${primeiro.categoria}`,
+    explicacao: `${pendentes.length} requisito(s) sem evidência. Primeiro bloqueio: ${primeiro.rotulo} — ${primeiro.motivo ?? "pendente"} (responsável: ${primeiro.responsavel}).`,
+    categoriaBloqueante: primeiro.categoria,
+    pendentes,
+    elegivel: false,
+  };
+}
+
 /* ---------------- Plano de formalização com critério de conclusão ---------------- */
 
 export type PassoFormalizacao = {
