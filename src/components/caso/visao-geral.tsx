@@ -8,12 +8,15 @@ import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { STATUS_PREPARACAO_BLUEPRINT } from "@/lib/blueprint";
 import {
   resumoGatesAtivacao,
+  gatesPorCategoria,
+  estadoDerivadoPorGates,
   passosFormalizacao,
   previsoesCondicionais,
   CHECAGEM_REPRESENTACAO,
   ESCOPO_SOLICITACAO_D1,
   REGRAS_EXCECAO_GATE,
 } from "@/lib/gates-ativacao-ficha";
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
