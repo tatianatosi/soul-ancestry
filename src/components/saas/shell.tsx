@@ -204,10 +204,13 @@ export function SaasShell({
           aberto ? "flex" : "hidden",
         )}
       >
-        <div className="px-2 pb-5">
-          <p className="font-serif text-xl leading-tight text-gold">Clube Ancestral</p>
-          <p className="text-[11px] uppercase tracking-widest text-cream/60">Gestão de pesquisa</p>
+        <div className="px-2 pb-6">
+          <BrandLogo size={34} variant="client-dark" className="items-center" />
+          <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
+            Gestão de pesquisa
+          </p>
         </div>
+
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
