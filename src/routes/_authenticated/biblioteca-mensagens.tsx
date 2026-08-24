@@ -8,6 +8,10 @@ import {
   contextoSeguro,
   resolverModeloVigente,
 } from "@/lib/fiacao-cadencia-catalogo";
+import {
+  CATALOGO_ALIAS_TEMPLATES,
+  PRECEDENCIA_TEMPLATES,
+} from "@/lib/consolidacao-catalogos-templates";
 import { SaasShell } from "@/components/saas/shell";
 import {
   definirStatusTemplate,
