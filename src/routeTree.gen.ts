@@ -21,6 +21,7 @@ import { Route as PortalRadarRouteImport } from './routes/portal/radar'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
 import { Route as PortalJornadaRouteImport } from './routes/portal/jornada'
 import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
+import { Route as PortalFase02RouteImport } from './routes/portal/fase-02'
 import { Route as PortalFase01RouteImport } from './routes/portal/fase-01'
 import { Route as PortalEntregasRouteImport } from './routes/portal/entregas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
@@ -173,6 +174,11 @@ const PortalJornadaRoute = PortalJornadaRouteImport.update({
 const PortalFaturasRoute = PortalFaturasRouteImport.update({
   id: '/faturas',
   path: '/faturas',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalFase02Route = PortalFase02RouteImport.update({
+  id: '/fase-02',
+  path: '/fase-02',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalFase01Route = PortalFase01RouteImport.update({
@@ -758,6 +764,7 @@ export interface FileRoutesByFullPath {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
@@ -864,6 +871,7 @@ export interface FileRoutesByTo {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
@@ -973,6 +981,7 @@ export interface FileRoutesById {
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
@@ -1082,6 +1091,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
@@ -1188,6 +1198,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
@@ -1296,6 +1307,7 @@ export interface FileRouteTypes {
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
@@ -1448,6 +1460,13 @@ declare module '@tanstack/react-router' {
       path: '/faturas'
       fullPath: '/portal/faturas'
       preLoaderRoute: typeof PortalFaturasRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/fase-02': {
+      id: '/portal/fase-02'
+      path: '/fase-02'
+      fullPath: '/portal/fase-02'
+      preLoaderRoute: typeof PortalFase02RouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/fase-01': {
@@ -2304,6 +2323,7 @@ interface PortalRouteRouteChildren {
   PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalEntregasRoute: typeof PortalEntregasRoute
   PortalFase01Route: typeof PortalFase01Route
+  PortalFase02Route: typeof PortalFase02Route
   PortalFaturasRoute: typeof PortalFaturasRoute
   PortalJornadaRoute: typeof PortalJornadaRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
@@ -2318,6 +2338,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalDocumentosRoute: PortalDocumentosRoute,
   PortalEntregasRoute: PortalEntregasRoute,
   PortalFase01Route: PortalFase01Route,
+  PortalFase02Route: PortalFase02Route,
   PortalFaturasRoute: PortalFaturasRoute,
   PortalJornadaRoute: PortalJornadaRoute,
   PortalPropostaRoute: PortalPropostaRoute,
