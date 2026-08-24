@@ -111,6 +111,7 @@ import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_a
 import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedGovernancaCorteVerticalRouteImport } from './routes/_authenticated/governanca.corte-vertical'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
+import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedContratoParametrosIdRouteImport } from './routes/_authenticated/contrato-parametros.$id'
 import { Route as AuthenticatedBibliotecaEvidenciasCaseIdRouteImport } from './routes/_authenticated/biblioteca-evidencias.$caseId'
@@ -676,6 +677,12 @@ const AuthenticatedGovernancaContratoBaseRoute =
     path: '/governanca/contrato-base',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaCatalogoOperacional30Route =
+  AuthenticatedGovernancaCatalogoOperacional30RouteImport.update({
+    id: '/governanca/catalogo-operacional-30',
+    path: '/governanca/catalogo-operacional-30',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/contratos/$id',
@@ -795,6 +802,7 @@ export interface FileRoutesByFullPath {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -905,6 +913,7 @@ export interface FileRoutesByTo {
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -1018,6 +1027,7 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   '/_authenticated/contrato-parametros/$id': typeof AuthenticatedContratoParametrosIdRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
   '/_authenticated/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -1131,6 +1141,7 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
@@ -1241,6 +1252,7 @@ export interface FileRouteTypes {
     | '/biblioteca-evidencias/$caseId'
     | '/contrato-parametros/$id'
     | '/contratos/$id'
+    | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
@@ -1353,6 +1365,7 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca-evidencias/$caseId'
     | '/_authenticated/contrato-parametros/$id'
     | '/_authenticated/contratos/$id'
+    | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
     | '/_authenticated/governanca/corte-vertical'
     | '/_authenticated/governanca/criterios-aceite'
@@ -2128,6 +2141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaContratoBaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/catalogo-operacional-30': {
+      id: '/_authenticated/governanca/catalogo-operacional-30'
+      path: '/governanca/catalogo-operacional-30'
+      fullPath: '/governanca/catalogo-operacional-30'
+      preLoaderRoute: typeof AuthenticatedGovernancaCatalogoOperacional30RouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contratos/$id': {
       id: '/_authenticated/contratos/$id'
       path: '/contratos/$id'
@@ -2232,6 +2252,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
   AuthenticatedContratoParametrosIdRoute: typeof AuthenticatedContratoParametrosIdRoute
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
+  AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
   AuthenticatedGovernancaCorteVerticalRoute: typeof AuthenticatedGovernancaCorteVerticalRoute
   AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
@@ -2317,6 +2338,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContratoParametrosIdRoute:
     AuthenticatedContratoParametrosIdRoute,
   AuthenticatedContratosIdRoute: AuthenticatedContratosIdRoute,
+  AuthenticatedGovernancaCatalogoOperacional30Route:
+    AuthenticatedGovernancaCatalogoOperacional30Route,
   AuthenticatedGovernancaContratoBaseRoute:
     AuthenticatedGovernancaContratoBaseRoute,
   AuthenticatedGovernancaCorteVerticalRoute:
