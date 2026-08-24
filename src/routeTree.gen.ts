@@ -17,6 +17,7 @@ import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
+import { Route as PortalRadarRouteImport } from './routes/portal/radar'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
 import { Route as PortalJornadaRouteImport } from './routes/portal/jornada'
 import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
@@ -149,6 +150,11 @@ const IndexRoute = IndexRouteImport.update({
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalRadarRoute = PortalRadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalPropostaRoute = PortalPropostaRouteImport.update({
@@ -734,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -836,6 +843,7 @@ export interface FileRoutesByTo {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -941,6 +949,7 @@ export interface FileRoutesById {
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -1046,6 +1055,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal/'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1148,6 +1158,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1252,6 +1263,7 @@ export interface FileRouteTypes {
     | '/portal/faturas'
     | '/portal/jornada'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal/'
     | '/_authenticated/achados/$caseId'
     | '/_authenticated/biblioteca-evidencias/$caseId'
@@ -1372,6 +1384,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/portal/'
       preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/radar': {
+      id: '/portal/radar'
+      path: '/radar'
+      fullPath: '/portal/radar'
+      preLoaderRoute: typeof PortalRadarRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/proposta': {
@@ -2228,6 +2247,7 @@ interface PortalRouteRouteChildren {
   PortalFaturasRoute: typeof PortalFaturasRoute
   PortalJornadaRoute: typeof PortalJornadaRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
+  PortalRadarRoute: typeof PortalRadarRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalCasosIdRoute: typeof PortalCasosIdRoute
   PortalMensagensIdRoute: typeof PortalMensagensIdRoute
@@ -2238,6 +2258,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalFaturasRoute: PortalFaturasRoute,
   PortalJornadaRoute: PortalJornadaRoute,
   PortalPropostaRoute: PortalPropostaRoute,
+  PortalRadarRoute: PortalRadarRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCasosIdRoute: PortalCasosIdRoute,
   PortalMensagensIdRoute: PortalMensagensIdRoute,
