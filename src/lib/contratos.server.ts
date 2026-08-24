@@ -105,10 +105,10 @@ export function montarRascunho(input: {
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
 <meta name="robots" content="noindex,nofollow"/>
 <title>${esc(contrato.contract_number)}</title>
-<style>body{font-family:Georgia,serif;color:#1B2B4B;max-width:820px;margin:40px auto;padding:0 24px;line-height:1.6}
-.selo{border:2px solid #8B4513;color:#8B4513;padding:8px 12px;margin:6px 0;font-family:system-ui;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-h1{font-size:22px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #C9A84C;padding-bottom:4px;margin-top:28px}
-.pend{color:#8B4513;font-style:italic}</style></head><body>
+<style>body{font-family:Georgia,serif;color:#2F4B6E;max-width:820px;margin:40px auto;padding:0 24px;line-height:1.6}
+.selo{border:2px solid #9A3A2F;color:#9A3A2F;padding:8px 12px;margin:6px 0;font-family:system-ui;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+h1{font-size:22px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #FCB73A;padding-bottom:4px;margin-top:28px}
+.pend{color:#9A3A2F;font-style:italic}</style></head><body>
 ${selos.map((s) => `<div class="selo">${esc(s)}</div>`).join("")}
 <h1>${esc(contrato.title)}</h1>
 <p><strong>Instrumento:</strong> ${esc(contrato.contract_number)} · ${esc(contrato.contract_type)}</p>
