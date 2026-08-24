@@ -2,7 +2,19 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, type ReactNode } from "react";
-import { FolderOpen, FileText, Receipt, LogOut } from "lucide-react";
+import {
+  FolderOpen,
+  FileText,
+  Receipt,
+  LogOut,
+  Route,
+  Radar,
+  Trees,
+  PackageCheck,
+  BookOpen,
+  UserRound,
+} from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
