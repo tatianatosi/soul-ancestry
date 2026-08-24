@@ -112,9 +112,10 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
    hospedagem/publicação?~~ **Respondida:** assinatura mensal + créditos de
    IA, e os créditos acabam antes de completar as mudanças necessárias.
    Ver seção 7 para o que isso muda no plano.
-2. Confirma Servla como destino definitivo (decidido em 20/08) ou prefere
-   uma ponte mais rápida (Vercel/Cloudflare) enquanto valida a Servla, dado
-   que a urgência mudou desde então?
+2. ~~Confirma Servla como destino definitivo (decidido em 20/08) ou prefere
+   uma ponte mais rápida?~~ **Recomendação, dado o pedido de comparação:**
+   Vercel para publicar rápido agora; ver seção 8 para o motivo e para como
+   isso não compromete a exigência de dado em infraestrutura brasileira.
 3. Ok em rodar as Fases técnica e de publicação em paralelo com o uso
    normal do sistema, ou prefere uma janela dedicada (menor risco de
    quebrar o que está em uso agora)?
@@ -143,3 +144,31 @@ para manter a assinatura ativa por mais algum tempo, só até a Fase de
 publicação (item 7) entregar um deploy independente. Fora isso, não há
 necessidade de continuar comprando crédito de edição: as mudanças
 seguem saindo por aqui.
+
+## 8. Servla × Vercel — comparação direta
+
+| Critério | Vercel | Servla |
+|---|---|---|
+| Tempo até estar no ar | Minutos — conecta o repositório GitHub e publica; suporte nativo à stack (TanStack Start/Nitro) | Dias — checklist de 20/08 nunca foi concluído (Docker, volumes, backup, staging) |
+| Custo | Plano gratuito (Hobby) cobre um app deste porte enquanto o tráfego for baixo/médio | Pago desde o primeiro dia, custo do pacote básico ainda não confirmado tecnicamente |
+| Esforço de configuração | Baixo — hoje o `vite.config.ts` está com Nitro mirando Cloudflare por padrão (herdado do pacote da Lovable); trocar o preset para `vercel` é a única mudança de config necessária | Alto — exige provisionar servidor, container, volumes e rotina de backup do zero |
+| Dado do cliente em infraestrutura brasileira | Não por padrão — mas isso é decidido pela **região do banco**, não pelo host do app (ver abaixo) | Sim, nativamente — datacenter brasileiro |
+| Maturidade/confiabilidade | Alta, uptime e suporte consolidados, larga adoção para esta stack | Provedor menor, sem histórico de uptime testado neste projeto |
+
+**O ponto que muda a decisão:** os dados pessoais e genealógicos sensíveis
+não moram no host do frontend — moram no Supabase, que é um serviço à
+parte com sua própria região configurável (inclusive `sa-east-1`, São
+Paulo). Ou seja, é possível publicar o aplicativo na Vercel **e** manter o
+banco de dados em região brasileira ao mesmo tempo; as duas decisões são
+independentes. Se a exigência de 20/08 por "infraestrutura brasileira" era
+sobre o banco/dado pessoal (mais provável, dado o tipo de dado tratado:
+cidadania, documentos, família), Vercel resolve a urgência sem abrir mão
+disso. Se a exigência era sobre o app inteiro (por contrato específico ou
+exigência jurídica que eu não tenho como confirmar aqui), Servla continua
+sendo obrigatória e a Vercel serve só como ponte temporária, como já
+previsto na seção 4.
+
+**Recomendação:** publicar na Vercel agora para parar de depender do
+Lovable esta semana, confirmar a região do Supabase (provavelmente já em
+`sa-east-1`, a checar), e só depois decidir se vale investir tempo em Servla
+depois — sem isso travar a saída urgente do Lovable.
