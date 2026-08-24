@@ -39,11 +39,16 @@ function EvidenciasPage() {
   return (
     <SaasShell
       titulo="Evidências"
-      descricao="Cada visualização é registrada. Documentos são evidência, não conclusão jurídica."
+      descricao="Fontes, evidências e próximos passos do caso — uso interno."
     >
+      <PageHeader
+        titulo="Biblioteca de evidências"
+        subtitulo="Caso → hipótese → fonte → evidência → estado de validação. Cada visualização é registrada; documento é evidência, nunca conclusão jurídica."
+      />
       <EntidadeCrud
         entidade="evidencias"
         titulo="Evidências"
+
         podeEscrever={podeEscrever}
         dominio="evidencia"
         colunas={[
