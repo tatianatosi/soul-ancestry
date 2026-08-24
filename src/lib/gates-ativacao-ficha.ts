@@ -82,6 +82,8 @@ export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
     rotulo,
     ok,
     responsavel,
+    categoria: CATEGORIA_POR_GATE[chave] ?? "Operação",
+
     motivo: ok ? null : motivo,
     destino: destinos[chave] ?? { rota: `/onboarding/${caseId}`, rotulo: "Abrir requisitos de ativação" },
     evidencia: evidencias[chave] ?? "Evidência documental registrada.",
