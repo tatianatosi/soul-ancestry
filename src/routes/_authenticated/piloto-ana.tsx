@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { BLOQUEIOS_PILOTO, FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
+import { conferenciaPiloto } from "@/lib/piloto-conferencia";
 import { carregarPilotoAna, definirIdCanonicoPiloto, materializarPilotoAna } from "@/lib/piloto-ana.functions";
 
 export const Route = createFileRoute("/_authenticated/piloto-ana")({
@@ -48,6 +49,7 @@ function PilotoAna() {
   });
 
   const caso = q.data?.caso ?? null;
+  const conferencia = conferenciaPiloto(caso as Record<string, unknown> | null);
 
   return (
     <SaasShell
@@ -104,6 +106,94 @@ function PilotoAna() {
               {mMaterializar.isError && <span className="text-sm text-terracotta">{(mMaterializar.error as Error).message}</span>}
             </div>
           </Bloco>
+
+          <section
+            className={
+              "rounded-xl border p-5 " +
+              (conferencia.situacao === "NO_GO"
+                ? "border-terracotta/40 bg-terracotta/5"
+                : "border-navy/15 bg-white")
+            }
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-serif text-lg text-navy">
+                Conferência do piloto — gates A a H ({conferencia.concluidos} de {conferencia.total} conferidos)
+              </h2>
+              <span
+                className={
+                  "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide " +
+                  (conferencia.situacao === "NO_GO" ? "bg-terracotta text-white" : "bg-gold/20 text-navy")
+                }
+              >
+                {conferencia.situacao}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-navy/65">{conferencia.explicacao}</p>
+            <p className="mt-1 text-[11px] text-navy/50">
+              Leitura derivada dos mesmos requisitos da ficha operacional. Não altera estado, não libera cobrança,
+              assinatura, pesquisa externa nem comunicação.
+            </p>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {conferencia.gates.map((g) => (
+                <div
+                  key={g.letra}
+                  className={
+                    "rounded-lg border p-4 " +
+                    (g.ok ? "border-navy/10 bg-white" : "border-terracotta/30 bg-white")
+                  }
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-navy">
+                      Gate {g.letra} — {g.nome}
+                    </p>
+                    <span
+                      className={
+                        "rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide " +
+                        (g.ok ? "bg-gold/15 text-navy" : "bg-terracotta/10 text-terracotta")
+                      }
+                    >
+                      {g.ok ? "conferido" : g.critico ? "crítico pendente" : "pendente"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-navy/60">
+                    {g.categoria} · {g.criterio}
+                  </p>
+
+                  <ul className="mt-3 space-y-2">
+                    {g.campos.map((c) => (
+                      <li key={c.campo} className="rounded border border-navy/10 px-3 py-2">
+                        <p className="text-xs font-medium text-navy">
+                          {c.conferido ? "☑" : "◻"} {c.campo}: <span className="font-normal">{c.valor}</span>
+                        </p>
+                        <p className="text-[11px] text-navy/55">Origem: {c.origem}</p>
+                        <p className="text-[11px] text-navy/55">Evidência exigida: {c.evidencia}</p>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {g.requisitos.length > 0 ? (
+                    <ul className="mt-2 space-y-1 text-[11px] text-navy/60">
+                      {g.requisitos.map((r) => (
+                        <li key={r.chave}>
+                          {r.ok ? "☑" : "◻"} Requisito de ativação: {r.rotulo}
+                          {r.motivo ? ` — ${r.motivo}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  {g.bloqueios.length > 0 ? (
+                    <ul className="mt-2 space-y-1 text-[11px] text-terracotta">
+                      {g.bloqueios.map((b) => (
+                        <li key={b.codigo}>• {b.titulo} — {b.detalhe}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </section>
 
           <Bloco titulo="Decisão humana do identificador canônico">
             <p className="mb-3 text-xs text-navy/60">
