@@ -125,7 +125,7 @@ export function descricaoCamada(valor: Camada): string {
 
 /** Deriva a camada do registro a partir da classificação e dos vínculos reais. */
 export function camadaDoRegistro(p: PessoaLista): Camada {
-  if (p.classificacao === "participante_familiar" || p.participacoes.length > 0) return "family_nucleus";
+  if (p.classificacao === "participante_familiar" || (p.participacoes?.length ?? 0) > 0) return "family_nucleus";
   if (p.classificacao === "cliente_ativo") return "client_profile";
   if ((p.casosVinculados ?? 0) > 0) return "case_member";
   return "pessoa";
