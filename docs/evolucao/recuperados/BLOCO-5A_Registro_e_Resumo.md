@@ -92,6 +92,45 @@ primeira consulta humana, modelo de log de consulta, modelo de revisão
 documental, checklist atualizado do piloto, critérios de conclusão e um
 relatório curto.
 
+## 4. CA-05 — Piloto de Evidência: Consolidação Pré-Consulta Erwin Prade (13/08/2026)
+
+**Preservado em:** `CA-05_Ficha_Pre_Consulta_Erwin_Prade.docx`. Continuação do
+Piloto 5A.1, dois dias depois. **Fecha a pendência que este registro tinha
+deixado em aberto:** o cabeçalho do documento declara "Status das decisões
+de governança: D-01, D-04, D-05, D-06 e D-08 aprovadas (conforme
+informado)" — as decisões que estavam `AGUARDANDO DECISÃO HUMANA` em 11/08
+foram aprovadas até 13/08.
+
+Conteúdo: ficha de pré-consulta manual de um ancestral (Erwin Prade, papel
+"ancestral paterno" na linha de Giovanna Prade, referência `P-04` na
+Matriz de Pessoas do piloto), com:
+- Dados indicados (nascimento, batismo, falecimento, sepultamento) e uma
+  **divergência de data registrada explicitamente** (16/08 vs 17/08/1917),
+  não resolvida por inferência.
+- Matriz de evidências (`ERW-01`, `ERW-02`...) com fonte, modelo M,
+  estado de validação (`dado_pesquisa_inicial`, `pendente_confirmacao` —
+  nunca `validado_por_documento` nesta fase) e próxima ação por item.
+- Regra de visibilidade `desk_only` — nada desta ficha chega ao App Cliente
+  nesta fase.
+- Nesta rodada, nada foi executado externamente: sem busca em sites,
+  FamilySearch, contato com cartório/paróquia/cemitério/consulado, sem
+  mensagem à cliente, sem geração de App/one-page/PDF/proposta/cobrança.
+
+Isso é uma evidência concreta e datada de que o modelo de estados de
+evidência do Bloco 5A (seção 1.2) estava sendo seguido na prática em
+13/08 — disciplina reforça o que os documentos declaram.
+
+## Nota sobre versões do Adendo de Correções
+
+O reenvio do Adendo (`63d8d19e...`) tem hash diferente do primeiro envio
+(`a6faa668...`, já preservado como canônico). Comparando o conteúdo: são
+quase idênticos, exceto que a versão reenviada **não contém** a seção
+"Regra específica de one-page pré-comercial" (regra sobre usar dado "em
+validação documental" numa one-page pré-comercial, sem apresentar como
+fato confirmado). Mantive a versão mais completa (`a6faa668`) como
+canônica; se a ausência dessa seção na segunda cópia for intencional (uma
+revisão que a removeu), avise para eu corrigir.
+
 ## O que ainda falta fazer (proposta, sem implementar)
 
 1. **Cotejar D-01 (consentimento) com o código atual** — existe
