@@ -10,10 +10,10 @@ const HOJE = "2026-08-24";
 describe("cadeia da jornada — visão derivada", () => {
   const resultado = executarCadeiaJornada({
     hoje: HOJE,
-    evento: "proposta_aprovada",
+    evento: "proposta_enviada",
     caso_id: "CA-TESTE-001",
   });
-  const elos = descreverCadeia(resultado, { evento: "proposta_aprovada" });
+  const elos = descreverCadeia(resultado, { evento: "proposta_enviada" });
 
   it("devolve exatamente os 11 elos canônicos em ordem", () => {
     expect(elos.map((e) => e.chave)).toEqual([...ELOS_CADEIA]);
