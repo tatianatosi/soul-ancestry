@@ -137,3 +137,14 @@ export function eixosRadar(caso: CaseData): EixoRadar[] {
 
   return [historia, documentos, estrategia, proximos];
 }
+
+/**
+ * Rótulos canônicos dos quatro eixos, para superfícies do cliente que ainda
+ * não possuem `CaseData` vivo. Nenhum eixo novo pode ser criado.
+ */
+export const EIXOS_RADAR_CANONICOS: { id: EixoRadar["id"]; titulo: string; resumo: string }[] = [
+  { id: "historia", titulo: "História familiar", resumo: "O que já conseguimos reconhecer sobre as pessoas e gerações da sua família." },
+  { id: "documentos", titulo: "Documentos e evidências", resumo: "Como está a organização dos registros que sustentam a sua história." },
+  { id: "estrategia", titulo: "Estratégia e possibilidades", resumo: "Caminhos em análise. Nada aqui é conclusão: cada hipótese depende de evidências documentais." },
+  { id: "proximos", titulo: "Próximos passos e progresso", resumo: "Onde estamos agora e o que vem em seguida na sua jornada." },
+];
