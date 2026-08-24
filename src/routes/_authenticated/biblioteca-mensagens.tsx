@@ -177,6 +177,15 @@ function BibliotecaMensagensPage() {
       descricao="Modelos internos governados para WhatsApp, e-mail, portal e conteúdo editorial. Uso manual, com versão, vigência e trilha de auditoria."
     >
       <div className="space-y-6">
+        <section data-catalogo="precedencia-templates" className="rounded-xl border border-border bg-card p-4">
+          <h2 className="text-sm font-medium text-foreground">Catálogo canônico de modelos</h2>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {PRECEDENCIA_TEMPLATES.regra} A entrada histórica “{CATALOGO_ALIAS_TEMPLATES.rotulo}” da Biblioteca Mestre
+            permanece registrada, sem conteúdo próprio, e aponta para esta tela. Nenhum modelo, versão ou histórico de
+            uso foi removido.
+          </p>
+        </section>
+
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-medium text-foreground">Regras de uso</h2>
           <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
@@ -185,6 +194,7 @@ function BibliotecaMensagensPage() {
             ))}
           </ul>
         </section>
+
 
         {contextoAlerta ? (
           <section
