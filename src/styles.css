@@ -40,8 +40,18 @@
   --color-preto: var(--preto);
   --color-sage: var(--sage);
   --color-plum: var(--plum);
+  /* Estados semânticos do Desk (P2 — identidade visual interna). */
+  --color-critico: var(--critico);
+  --color-critico-suave: var(--critico-suave);
+  --color-atencao: var(--atencao);
+  --color-atencao-suave: var(--atencao-suave);
+  --color-sucesso: var(--sucesso);
+  --color-sucesso-suave: var(--sucesso-suave);
+  --color-bloqueio: var(--bloqueio);
+  --color-bloqueio-suave: var(--bloqueio-suave);
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
 }
 
 :root {
