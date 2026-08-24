@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { descreverCadeia } from "@/lib/cadeia-jornada-visao";
-import { ELOS_CADEIA, executarCadeiaJornada } from "@/lib/orquestracao-jornada";
+import { descreverCadeia, proximaAcaoDoPainel } from "@/lib/cadeia-jornada-visao";
+import { ELOS_CADEIA, EVENTOS_INTERNOS, executarCadeiaJornada } from "@/lib/orquestracao-jornada";
 
 const HOJE = "2026-08-24";
 
@@ -39,5 +39,23 @@ describe("cadeia da jornada — visão derivada", () => {
     const painel = readFileSync("src/components/desk/orquestracao-contextual.tsx", "utf8");
     expect(painel).toContain("<CadeiaJornada");
     expect(componente).not.toMatch(/fetch\(|supabase|insert\(|update\(/);
+  });
+});
+
+describe("proximaAcaoDoPainel", () => {
+  it("liga a próxima ação ao último elo pendente com responsável e prazo", () => {
+    const resultado = executarCadeiaJornada({
+      hoje: "2026-08-24",
+      evento: EVENTOS_INTERNOS[0],
+      caso_id: "CA-TESTE-001",
+      responsavel_id: "tati",
+      prazo: "2026-08-30",
+    });
+    const elos = descreverCadeia(resultado, { evento: EVENTOS_INTERNOS[0] });
+    const proxima = proximaAcaoDoPainel(resultado, elos);
+
+    expect(proxima.responsavel).toBe("tati");
+    expect(proxima.prazo).toBe("2026-08-30");
+    expect(proxima.elo?.chave).not.toBe("painel_hoje");
   });
 });
