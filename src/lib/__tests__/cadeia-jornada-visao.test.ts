@@ -41,3 +41,21 @@ describe("cadeia da jornada — visão derivada", () => {
     expect(componente).not.toMatch(/fetch\(|supabase|insert\(|update\(/);
   });
 });
+
+describe("proximaAcaoDoPainel", () => {
+  it("liga a próxima ação ao último elo pendente com responsável e prazo", () => {
+    const resultado = executarCadeiaJornada({
+      hoje: "2026-08-24",
+      evento: EVENTOS_INTERNOS[0],
+      caso_id: "CA-TESTE-001",
+      responsavel_id: "tati",
+      prazo: "2026-08-30",
+    });
+    const elos = descreverCadeia(resultado, { evento: EVENTOS_INTERNOS[0] });
+    const proxima = proximaAcaoDoPainel(resultado, elos);
+
+    expect(proxima.responsavel).toBe("tati");
+    expect(proxima.prazo).toBe("2026-08-30");
+    expect(proxima.elo?.chave).not.toBe("painel_hoje");
+  });
+});
