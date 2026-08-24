@@ -1,4 +1,4 @@
-import { descreverCadeia, type EstadoElo } from "@/lib/cadeia-jornada-visao";
+import { descreverCadeia, proximaAcaoDoPainel, type EstadoElo } from "@/lib/cadeia-jornada-visao";
 import type { EventoInterno, ResultadoCadeia } from "@/lib/orquestracao-jornada";
 
 const ROTULO_ESTADO: Record<EstadoElo, string> = {
