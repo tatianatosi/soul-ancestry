@@ -25,7 +25,7 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
-import { AlertaDesk, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   head: () => ({
@@ -124,6 +124,17 @@ function CasosPage() {
   });
   const estados = new Map((qAtivacao.data ?? []).map((e) => [e.caseId, e]));
 
+  // Cartões de decisão do grupo Casos — só contam o que já está carregado
+  // por listarEstadoAtivacao; sem fonte real, o cartão mostra "Sem dados
+  // suficientes" (nunca zero ou estimativa).
+  const listaAtivacao = qAtivacao.data ?? [];
+  const casosAtivos = qAtivacao.data ? listaAtivacao.filter((e) => e.ativo).length : null;
+  const aguardandoAtivacao = qAtivacao.data ? listaAtivacao.filter((e) => !e.ativo).length : null;
+  const semResponsavelInterno = qAtivacao.data
+    ? listaAtivacao.filter((e) => !e.ativo && e.motivos.some((m) => m.includes("Responsável interno"))).length
+    : null;
+  const bloqueiosMultiplos = qAtivacao.data ? listaAtivacao.filter((e) => !e.ativo && e.pendentes >= 3).length : null;
+
   return (
     <SaasShell
       titulo="Casos"
@@ -133,6 +144,28 @@ function CasosPage() {
         titulo="Casos em acompanhamento"
         subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
       />
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardIndicador rotulo="Casos ativos" valor={casosAtivos} apoio="14 requisitos validados no servidor" />
+        <CardIndicador
+          rotulo="Aguardando ativação"
+          valor={aguardandoAtivacao}
+          apoio="Ao menos um requisito obrigatório pendente"
+          tom="atencao"
+        />
+        <CardIndicador
+          rotulo="Sem responsável interno"
+          valor={semResponsavelInterno}
+          apoio="Requisito de responsável designado pendente"
+          tom="critico"
+        />
+        <CardIndicador
+          rotulo="Bloqueio de ativação múltiplo"
+          valor={bloqueiosMultiplos}
+          apoio="3 ou mais requisitos pendentes"
+          tom="critico"
+        />
+      </div>
 
       {qAtivacao.isLoading ? (
         <CarregandoDesk linhas={2} rotulo="Verificando requisitos de ativação no servidor" />
