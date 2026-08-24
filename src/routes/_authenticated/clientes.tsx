@@ -10,7 +10,6 @@ import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/
 import {
   CAMADAS,
   CLASSIFICACOES,
-  camadaDoRegistro,
   descricaoCamada,
   rotuloCamada,
   FILTROS_PADRAO,
@@ -169,6 +168,21 @@ function ClientesPage() {
           </button>
         ) : null}
       </div>
+
+      <section className="mb-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
+        <h2 className="text-sm font-medium">Camadas do registro</h2>
+        <ul className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+          {CAMADAS.map((c) => (
+            <li key={c.valor}>
+              <span className="font-medium text-foreground">{c.rotulo}:</span> {c.descricao}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-xs text-muted-foreground">
+          A promoção a cliente ativo fica bloqueada automaticamente enquanto o registro estiver em formalização ou em
+          qualquer estágio de pré-cliente, e para membros de núcleo familiar e cadastros sem caso.
+        </p>
+      </section>
 
       <section className="rounded-lg border border-border">
         <header className="border-b border-border px-4 py-3 text-sm font-medium">
