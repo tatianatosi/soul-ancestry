@@ -56,7 +56,7 @@ export const AVISO_PUBLICACAO_CLIENTE =
 export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoCliente[] {
   return linhas
     .map((linha) => {
-      const conteudo = sanitizarRotuloCliente(String(linha.content_sanitized ?? "").trim() || null);
+      
       const conteudo = textoParaCliente(
         sanitizarRotuloCliente(String(linha.content_sanitized ?? "").trim() || null),
       );
