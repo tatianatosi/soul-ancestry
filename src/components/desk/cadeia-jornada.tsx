@@ -7,7 +7,12 @@ import {
   type EloDerivado,
   type EstadoElo,
 } from "@/lib/cadeia-jornada-visao";
-import { imprimirPdfPainelContextual } from "@/lib/cadeia-jornada-pdf";
+import {
+  htmlImpressaoPainelContextual,
+  imprimirPdfPainelContextual,
+  resumoTextoPainelContextual,
+  type DadosImpressaoPainel,
+} from "@/lib/cadeia-jornada-pdf";
 import { ROTULO_EVENTO, type EventoInterno, type ResultadoCadeia } from "@/lib/orquestracao-jornada";
 
 const ROTULO_ESTADO: Record<EstadoElo, string> = {
