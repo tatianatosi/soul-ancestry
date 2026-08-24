@@ -18,7 +18,7 @@ CA-CID-018,Emissao de Transcricao de Atos no Pais de Origem Europeia,complemento
 CA-CID-019,Declaracao de Valor - Ensino Fundamental ate Universidade,complemento,bloqueado,4500.00,,,,,,,,"","","","",""
 CA-CID-020,Consultoria e Declaracao de Valor,complemento,bloqueado,4500.00,,,,,,,,"","","","",""
 CA-CID-021,Combo Starter Cidadania (Códice + SPID + Consultoria Express),complemento,bloqueado,490.00,,,,,,,,"","","","",""
-CA-CID-023,Assessoria Completa de Cidadania Italiana,produto_pai,bloqueado,4500.00,,,,,,,,"","","","",""
+CA-CID-023,Assessoria Completa de Cidadania Italiana,produto_pai,homologado,4800.00,4500.00,,,,,Tatiana,2026-08-24,4800.00,preco_sugerido_regra_vigente,Tatiana,2026-08-24,"Resolve divergencia Mestre (4500) x Planejador (4800); regra vigente: preco sugerido sempre prevalece em divergencia"
 CA-CID-025,Acompanhamento Familiar — Processo Compartilhado,complemento,homologado,1190.00,,Conforme catálogo homologado,,,,,,"","","","",""
 CA-COMBO-001,Combo Vó (Restauração + Entrevista + Diário),sazonal,bloqueado,490.00,,,,,,,,"","","","",""
 CA-FAM-001,Familiar Conectado,contextual,bloqueado,,,Conforme catálogo homologado,,,,,,"","","","",""
