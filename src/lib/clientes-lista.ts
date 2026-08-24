@@ -82,7 +82,69 @@ export type PessoaLista = {
   contratoAssinado: boolean;
   pagamentoConfirmado: boolean;
   participacoes: Participacao[];
+  /** Quantidade de casos em que a pessoa figura como titular do caso. */
+  casosVinculados?: number;
 };
+
+/**
+ * Camadas de registro — evitam tratar cadastro, perfil de cliente, participação
+ * em caso e pertencimento a núcleo familiar como a mesma coisa.
+ */
+export type Camada = "pessoa" | "client_profile" | "case_member" | "family_nucleus";
+
+export const CAMADAS: { valor: Camada; rotulo: string; descricao: string }[] = [
+  {
+    valor: "pessoa",
+    rotulo: "Pessoa (cadastro)",
+    descricao: "Cadastro de pessoa sem caso e sem núcleo familiar. Não é cliente.",
+  },
+  {
+    valor: "client_profile",
+    rotulo: "Perfil de cliente",
+    descricao: "Perfil de cliente ativo, com contrato assinado, pagamento confirmado e decisão humana registrada.",
+  },
+  {
+    valor: "case_member",
+    rotulo: "Participante de caso",
+    descricao: "Pessoa vinculada a um caso em andamento ou em formalização. Ainda não é cliente ativo.",
+  },
+  {
+    valor: "family_nucleus",
+    rotulo: "Membro de núcleo familiar",
+    descricao: "Beneficiário ou membro do núcleo. Tratado em Núcleos e dossiês, nunca como cliente independente.",
+  },
+];
+
+export function rotuloCamada(valor: Camada): string {
+  return CAMADAS.find((c) => c.valor === valor)?.rotulo ?? "—";
+}
+
+export function descricaoCamada(valor: Camada): string {
+  return CAMADAS.find((c) => c.valor === valor)?.descricao ?? "";
+}
+
+/** Deriva a camada do registro a partir da classificação e dos vínculos reais. */
+export function camadaDoRegistro(p: PessoaLista): Camada {
+  if (p.classificacao === "participante_familiar" || p.participacoes.length > 0) return "family_nucleus";
+  if (p.classificacao === "cliente_ativo") return "client_profile";
+  if ((p.casosVinculados ?? 0) > 0) return "case_member";
+  return "pessoa";
+}
+
+/** Status comerciais que mantêm a pessoa como pré-cliente (promoção automática proibida). */
+export const STATUS_PRE_CLIENTE = [
+  "lead",
+  "oportunidade",
+  "proposta_enviada",
+  "aceite_verbal",
+  "proposta_aprovada",
+  "em_formalizacao",
+] as const;
+
+export function emFormalizacaoOuPre(p: PessoaLista): boolean {
+  const s = typeof p.status_comercial === "string" ? p.status_comercial : "";
+  return (STATUS_PRE_CLIENTE as readonly string[]).includes(s) || s === "";
+}
 
 export type Filtros = {
   estado: "ativos" | "suspensos" | "encerrados" | "arquivados";
