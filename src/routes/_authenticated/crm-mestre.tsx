@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Download, Loader2, Printer, TriangleAlert } from "lucide-react";
 
-import { SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { baixarCsvCrmMestre, imprimirPdfCrmMestre } from "@/lib/crm-mestre-export";
 import {
   BLOQUEIOS_EXEMPLARES_HANDOFF,
   BRIEF_DISCOVERY,
@@ -35,10 +38,119 @@ export const Route = createFileRoute("/_authenticated/crm-mestre")({
     ],
   }),
   component: Pagina,
+  pendingComponent: CarregandoCrmMestre,
+  errorComponent: ErroCrmMestre,
 });
 
 const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
 const TITULO_SECAO = "font-serif text-xl text-navy";
+const BOTAO =
+  "inline-flex items-center gap-2 rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-cream disabled:opacity-60";
+
+/** Estado de carregamento da rota, com a mesma moldura da tela. */
+function CarregandoCrmMestre() {
+  return (
+    <SaasShell
+      titulo="CRM Mestre, Discovery e Handoff"
+      descricao="Carregando o registro somente leitura do CA-04."
+    >
+      <div className="space-y-4" role="status" aria-live="polite">
+        <p className="flex items-center gap-2 text-sm text-navy/70">
+          <Loader2 className="h-4 w-4 animate-spin text-gold" aria-hidden="true" />
+          Carregando o registro somente leitura…
+        </p>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={`${CARTAO} space-y-2`}>
+            <div className="h-4 w-1/3 animate-pulse rounded bg-navy/10" />
+            <div className="h-3 w-full animate-pulse rounded bg-navy/5" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-navy/5" />
+          </div>
+        ))}
+      </div>
+    </SaasShell>
+  );
+}
+
+/** Estado de erro: mensagem clara, sem detalhe técnico e com nova tentativa. */
+function ErroCrmMestre({ reset }: { reset: () => void }) {
+  return (
+    <SaasShell
+      titulo="CRM Mestre, Discovery e Handoff"
+      descricao="Não foi possível exibir o registro agora."
+    >
+      <div className="rounded-xl border border-terracotta/30 bg-terracotta/10 p-6 text-sm text-navy">
+        <p className="flex items-center gap-2 font-medium text-terracotta">
+          <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+          Não conseguimos carregar esta tela agora.
+        </p>
+        <p className="mt-2 text-navy/80">
+          Nenhum dado foi alterado. Tente novamente em instantes; se persistir, registre em Governança.
+        </p>
+        <button type="button" onClick={reset} className={`${BOTAO} mt-4`}>
+          Tentar novamente
+        </button>
+      </div>
+    </SaasShell>
+  );
+}
+
+/** Seção com estado vazio explícito quando a fonte canônica não traz itens. */
+function Secao({
+  titulo,
+  vazio,
+  mensagemVazio,
+  children,
+}: {
+  titulo: string;
+  vazio: boolean;
+  mensagemVazio: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <h2 className={TITULO_SECAO}>{titulo}</h2>
+      {vazio ? <EstadoVazio mensagem={mensagemVazio} /> : children}
+    </section>
+  );
+}
+
+/** Exportação somente leitura: CSV e PDF (impressão do navegador). */
+function AcoesExportacao() {
+  const [erro, setErro] = useState<string | null>(null);
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={BOTAO}
+          onClick={() => {
+            setErro(null);
+            try {
+              baixarCsvCrmMestre();
+            } catch {
+              setErro("Não foi possível gerar o CSV agora.");
+            }
+          }}
+        >
+          <Download className="h-4 w-4" aria-hidden="true" /> Exportar CSV
+        </button>
+        <button
+          type="button"
+          className={BOTAO}
+          onClick={() => {
+            setErro(null);
+            const ok = imprimirPdfCrmMestre();
+            if (!ok) setErro("Libere as janelas pop-up para salvar o PDF.");
+          }}
+        >
+          <Printer className="h-4 w-4" aria-hidden="true" /> Exportar PDF
+        </button>
+      </div>
+      {erro ? <p className="text-xs text-terracotta">{erro}</p> : null}
+    </div>
+  );
+}
 
 function Pagina() {
   const listas = Object.keys(LISTAS_BASE_CA04) as NomeListaCA04[];
@@ -47,10 +159,10 @@ function Pagina() {
     <SaasShell
       titulo="CRM Mestre, Discovery e Handoff"
       descricao="CA-04 v1.0.1 — somente leitura. Nenhum dado é criado ou alterado aqui, nenhuma ação externa é disparada e nenhuma fonte de verdade é substituída."
+      acoes={<AcoesExportacao />}
     >
       <div className="space-y-10">
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Fontes de verdade</h2>
+        <Secao titulo={"Fontes de verdade"} vazio={FONTES_VERDADE_CA04.length === 0} mensagemVazio={"Nenhuma fonte de verdade registrada nesta versão do CA-04."}>
           <div className="grid gap-3 md:grid-cols-2">
             {FONTES_VERDADE_CA04.map((f) => (
               <article key={f.camada} className={CARTAO}>
@@ -60,33 +172,29 @@ function Pagina() {
               </article>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Eixo Comercial</h2>
+        <Secao titulo={"Eixo Comercial"} vazio={EIXO_COMERCIAL_TRANSICOES.length === 0} mensagemVazio={"Nenhuma transição comercial registrada nesta versão."}>
           <TabelaTransicoes transicoes={EIXO_COMERCIAL_TRANSICOES} />
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Eixo Formalização/Operação</h2>
+        <Secao titulo={"Eixo Formalização/Operação"} vazio={EIXO_FORMALIZACAO_TRANSICOES.length === 0} mensagemVazio={"Nenhuma transição de formalização registrada nesta versão."}>
           <TabelaTransicoes transicoes={EIXO_FORMALIZACAO_TRANSICOES} />
           <p className="rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm text-navy">
             Resultado comercial é sempre derivado dos dois eixos. O estado exato que marca “Convertido”
             depende de decisão humana ainda pendente — nada é derivado como convertido antes dela.
           </p>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Roteiro Mestre de Discovery v2</h2>
+        <Secao titulo={"Roteiro Mestre de Discovery v2"} vazio={ROTEIRO_DISCOVERY_V2.length === 0} mensagemVazio={"Roteiro ainda não publicado nesta versão."}>
           <ol className={`${CARTAO} list-decimal space-y-1 pl-6 text-sm text-navy/85`}>
             {ROTEIRO_DISCOVERY_V2.map((passo) => (
               <li key={passo}>{passo}</li>
             ))}
           </ol>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Brief de Discovery por pessoa</h2>
+        <Secao titulo={"Brief de Discovery por pessoa"} vazio={BRIEF_DISCOVERY.length === 0} mensagemVazio={"Nenhum campo de Brief registrado nesta versão."}>
           <div className={`${CARTAO} overflow-x-auto`}>
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead className="text-xs uppercase tracking-wide text-navy/60">
@@ -107,10 +215,9 @@ function Pagina() {
               </tbody>
             </table>
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Matriz de handoff</h2>
+        <Secao titulo={"Matriz de handoff"} vazio={MATRIZ_HANDOFF_CA04.length === 0} mensagemVazio={"Nenhuma etapa de handoff registrada nesta versão."}>
           <div className="space-y-3">
             {MATRIZ_HANDOFF_CA04.map((e) => (
               <article key={e.etapa} className={CARTAO}>
@@ -131,10 +238,9 @@ function Pagina() {
               <li key={b}>{b}</li>
             ))}
           </ul>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Nunca projetar ao cliente</h2>
+        <Secao titulo={"Nunca projetar ao cliente"} vazio={(CAMPOS_PROIBIDOS_CLIENTE_CA04 as readonly string[]).length === 0} mensagemVazio={"Nenhum campo proibido registrado nesta versão."}>
           <div className={`${CARTAO} flex flex-wrap gap-2`}>
             {CAMPOS_PROIBIDOS_CLIENTE_CA04.map((c) => (
               <span key={c} className="rounded-full border border-terracotta/30 bg-terracotta/10 px-3 py-1 text-xs text-terracotta">
@@ -142,10 +248,9 @@ function Pagina() {
               </span>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Listas controladas (LISTAS_BASE v1.1)</h2>
+        <Secao titulo={"Listas controladas (LISTAS_BASE v1.1)"} vazio={listas.length === 0} mensagemVazio={"Nenhuma lista controlada disponível nesta versão."}>
           <div className="grid gap-3 md:grid-cols-2">
             {listas.map((nome) => (
               <details key={nome} className={CARTAO}>
@@ -160,10 +265,9 @@ function Pagina() {
               </details>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Decisões humanas pendentes</h2>
+        <Secao titulo={"Decisões humanas pendentes"} vazio={DECISOES_PENDENTES_CA04.length === 0} mensagemVazio={"Nenhuma decisão humana pendente registrada."}>
           <ol className={`${CARTAO} space-y-2 text-sm text-navy/85`}>
             {DECISOES_PENDENTES_CA04.map((d) => (
               <li key={d.numero} className="flex gap-3">
@@ -175,7 +279,7 @@ function Pagina() {
               </li>
             ))}
           </ol>
-        </section>
+        </Secao>
       </div>
     </SaasShell>
   );
