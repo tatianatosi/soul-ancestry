@@ -22,6 +22,7 @@ import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
 import { Route as PortalJornadaRouteImport } from './routes/portal/jornada'
 import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
+import { Route as PortalArvoreRouteImport } from './routes/portal/arvore'
 import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
 import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
 import { Route as EquipeEsqueciMinhaSenhaRouteImport } from './routes/equipe.esqueci-minha-senha'
@@ -175,6 +176,11 @@ const PortalFaturasRoute = PortalFaturasRouteImport.update({
 const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalArvoreRoute = PortalArvoreRouteImport.update({
+  id: '/arvore',
+  path: '/arvore',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const EquipeSemPermissaoRoute = EquipeSemPermissaoRouteImport.update({
@@ -736,6 +742,7 @@ export interface FileRoutesByFullPath {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
@@ -839,6 +846,7 @@ export interface FileRoutesByTo {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
@@ -945,6 +953,7 @@ export interface FileRoutesById {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/faturas': typeof PortalFaturasRoute
   '/portal/jornada': typeof PortalJornadaRoute
@@ -1051,6 +1060,7 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
     | '/portal/documentos'
     | '/portal/faturas'
     | '/portal/jornada'
@@ -1154,6 +1164,7 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
     | '/portal/documentos'
     | '/portal/faturas'
     | '/portal/jornada'
@@ -1259,6 +1270,7 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
     | '/portal/documentos'
     | '/portal/faturas'
     | '/portal/jornada'
@@ -1419,6 +1431,13 @@ declare module '@tanstack/react-router' {
       path: '/documentos'
       fullPath: '/portal/documentos'
       preLoaderRoute: typeof PortalDocumentosRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/arvore': {
+      id: '/portal/arvore'
+      path: '/arvore'
+      fullPath: '/portal/arvore'
+      preLoaderRoute: typeof PortalArvoreRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/equipe/sem-permissao': {
@@ -2243,6 +2262,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface PortalRouteRouteChildren {
+  PortalArvoreRoute: typeof PortalArvoreRoute
   PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalFaturasRoute: typeof PortalFaturasRoute
   PortalJornadaRoute: typeof PortalJornadaRoute
@@ -2254,6 +2274,7 @@ interface PortalRouteRouteChildren {
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
+  PortalArvoreRoute: PortalArvoreRoute,
   PortalDocumentosRoute: PortalDocumentosRoute,
   PortalFaturasRoute: PortalFaturasRoute,
   PortalJornadaRoute: PortalJornadaRoute,
