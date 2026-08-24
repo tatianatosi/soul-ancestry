@@ -25,6 +25,7 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
+import { AlertaDesk, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   head: () => ({
@@ -128,6 +129,20 @@ function CasosPage() {
       titulo="Casos"
       descricao="Comercial, formalização, financeiro e operação são eixos independentes. Hipótese de elegibilidade é sempre provisória e ativação depende de gates validados no servidor."
     >
+      <PageHeader
+        titulo="Casos em acompanhamento"
+        subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
+      />
+
+      {qAtivacao.isLoading ? (
+        <CarregandoDesk linhas={2} rotulo="Verificando requisitos de ativação no servidor" />
+      ) : null}
+      {qAtivacao.error ? (
+        <AlertaDesk tom="critico" titulo="Não foi possível ler o estado de ativação">
+          A lista continua visível, mas o estado de ativação não pôde ser verificado agora. Nenhum caso foi ativado.
+        </AlertaDesk>
+      ) : null}
+
       <EntidadeCrud
         entidade="crm_casos"
         titulo="Casos"
@@ -145,6 +160,7 @@ function CasosPage() {
             </label>
           </div>
         }
+
 
         colunas={[
           {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { CadeiaJornada } from "@/components/desk/cadeia-jornada";
 import {
   EVENTOS_INTERNOS,
   ROTULO_EVENTO,
@@ -147,6 +148,8 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
               Nenhum modelo vigente aplicável a este evento. Nada é sugerido, criado ou enviado.
             </p>
           )}
+
+          <CadeiaJornada resultado={cadeia} evento={evento as EventoInterno} />
 
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs">
             <a

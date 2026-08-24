@@ -25,6 +25,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -317,6 +318,8 @@ function FichaCaso() {
     [caso, form],
   );
 
+  const derivadoGates = useMemo(() => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>), [caso]);
+
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
 
   if (q.isLoading) {
@@ -406,6 +409,21 @@ function FichaCaso() {
         ))}
       </div>
       <p className="-mt-4 mb-3 text-xs text-navy/55">Motivo do status derivado: {derivado.motivo}</p>
+      <div
+        className={
+          "mb-6 rounded-xl border px-4 py-3 " +
+          (derivadoGates.elegivel ? "border-navy/15 bg-navy/5" : "border-terracotta/40 bg-terracotta/10")
+        }
+      >
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado derivado pelos requisitos de ativação</p>
+        <p className="mt-1 text-sm font-medium text-navy">{derivadoGates.rotulo}</p>
+        <p className="mt-1 text-xs text-navy/65">{derivadoGates.explicacao}</p>
+        <p className="mt-1 text-[11px] text-navy/50">
+          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do cliente. As travas são
+          revalidadas no servidor.
+        </p>
+      </div>
+
       <div className="mb-6 flex flex-wrap gap-4">
         <Link
           to="/achados/$caseId"
