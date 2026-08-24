@@ -222,13 +222,26 @@ export function participantesDeNucleo(pessoas: PessoaLista[], incluirDemos: bool
   );
 }
 
-export type Elegibilidade = { apto: boolean; pendencias: string[] };
+export type Elegibilidade = { apto: boolean; pendencias: string[]; camada: Camada };
 
-/** Condições objetivas para promover a cliente ativo (decisão humana continua obrigatória). */
+/**
+ * Condições objetivas para promover a cliente ativo (decisão humana continua obrigatória).
+ * Bloqueio automático: pessoa sem caso, membro de núcleo, e qualquer pessoa em
+ * formalização ou em estágio de pré-cliente nunca podem ser promovidas aqui.
+ */
 export function elegibilidadeAtivacao(p: PessoaLista): Elegibilidade {
   const pendencias: string[] = [];
+  const camada = camadaDoRegistro(p);
+
+  if (camada === "family_nucleus")
+    pendencias.push("Membro de núcleo familiar não vira cliente independente — tratar em Núcleos e dossiês.");
+  if (camada === "pessoa") pendencias.push("Cadastro de pessoa sem caso vinculado — abra o caso antes de ativar.");
+  if (emFormalizacaoOuPre(p))
+    pendencias.push(
+      `Registro em ${rotuloDe(STATUS_COMERCIAL, p.status_comercial) || "estágio de pré-cliente"} — promoção a cliente ativo bloqueada até a contratação.`,
+    );
   if (!p.contratoAssinado) pendencias.push("Contrato assinado não registrado.");
   if (!p.pagamentoConfirmado) pendencias.push("Pagamento inicial não confirmado.");
   if (p.archived_at) pendencias.push("Cadastro arquivado.");
-  return { apto: pendencias.length === 0, pendencias };
+  return { apto: pendencias.length === 0, pendencias, camada };
 }
