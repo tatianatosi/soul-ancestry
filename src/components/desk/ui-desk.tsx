@@ -13,6 +13,14 @@ import { cn } from "@/lib/utils";
 
 export type TomEstado = "neutro" | "critico" | "atencao" | "sucesso" | "bloqueio";
 
+const TOM_TEXTO: Record<TomEstado, string> = {
+  neutro: "text-navy",
+  critico: "text-critico",
+  atencao: "text-atencao",
+  sucesso: "text-sucesso",
+  bloqueio: "text-bloqueio",
+};
+
 const TOM_CLASSE: Record<TomEstado, string> = {
   neutro: "border-navy/15 bg-white text-navy/75",
   critico: "border-critico/30 bg-critico-suave text-critico",
@@ -89,7 +97,7 @@ export function CardIndicador({
       <p
         className={cn(
           "mt-1 font-serif text-3xl leading-none tabular-nums",
-          temValor ? (tom === "neutro" ? "text-navy" : `text-${tom}`) : "text-navy/40",
+          temValor ? TOM_TEXTO[tom] : "text-navy/40",
         )}
       >
         {temValor ? valor : "—"}
