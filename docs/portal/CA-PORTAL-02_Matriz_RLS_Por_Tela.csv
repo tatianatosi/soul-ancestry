@@ -1,0 +1,11 @@
+rota;fonte_de_dados;tabela_view_rpc;policy_rls;associacao_ao_caso;teste_acesso_cruzado;resultado
+/portal;dados vivos sanitizados;portal_casos (view security_invoker);crm_casos + portal_caso_permitido(id);case_id do vinculo ativo do cliente;leitura sem sessao de cliente;0 linhas (permission denied na funcao) - isolado
+/portal/jornada;portal_projecoes -> jornadaSanitizada;app_projections;app_proj_select_portal;portal_caso_permitido(case_id);leitura sem sessao;0 linhas - isolado
+/portal/radar;portal_projecoes + documents;app_projections, documents;app_proj_select_portal, documents_sel_portal;portal_caso_permitido + portal_meu_cliente;leitura sem sessao;0 linhas - isolado
+/portal/arvore;portal_projecoes tipo arvore;app_projections;app_proj_select_portal;portal_caso_permitido(case_id);leitura sem sessao;0 linhas - isolado
+/portal/documentos;consulta existente do portal;documents;documents_sel_portal;portal_caso_permitido + client_id;inalterada no CA-PORTAL-02;isolada por policy existente
+/portal/entregas;BLOQUEADO;client_deliverables;apenas is_org_member (sem policy de portal);nao comprovada para cliente;nao aplicavel;conteudo bloqueado - estado seguro
+/portal/fase-01;somente visibilidade;escopoDoPortal;sem exposicao de contrato;n/a;n/a;estado seguro
+/portal/fase-02;somente visibilidade;escopoDoPortal;sem exposicao de escopo;n/a;n/a;estado seguro, permiteUpsell=false
+/portal/legado;BLOQUEADO;knowledge_items / client_deliverables;sem released_to_client com policy de portal;nao comprovada;nao aplicavel;conteudo bloqueado - estado seguro
+/portal/conta;portalContexto existente;client_portal_access;politicas existentes do portal;auth_user_id = auth.uid();inalterada;isolada por policy existente
