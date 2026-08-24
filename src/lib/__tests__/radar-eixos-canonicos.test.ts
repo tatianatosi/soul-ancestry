@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { casoAna } from "@/data/casos";
+import { caseDataGiovanna } from "@/data/caseDataGiovanna";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import {
   EIXOS_RADAR_CANONICOS,
@@ -20,7 +20,7 @@ describe("Eixos canônicos do Radar (Cliente e Ops)", () => {
   });
 
   it("eixosRadar devolve apenas os eixos canônicos, na ordem canônica", () => {
-    const eixos = eixosRadar(casoAna);
+    const eixos = eixosRadar(caseDataGiovanna);
     expect(eixos).toHaveLength(EIXOS_RADAR_CANONICOS.length);
     expect(eixos.map((e) => e.id)).toEqual(ESPERADO);
     for (const eixo of eixos) {
