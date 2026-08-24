@@ -7,6 +7,7 @@ import { useState } from "react";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
+import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 
 export const Route = createFileRoute("/portal/documentos")({
   head: () => ({
@@ -35,7 +36,8 @@ function DocumentosPage() {
       const r = await baixar({ data: { documentoId: id } });
       window.open(r.url, "_blank", "noopener");
     } catch (e) {
-      setErro((e as Error).message);
+      // Falha nunca revela ID, tabela, política ou endpoint ao cliente.
+      setErro(mensagemDeFalha(e));
     }
   }
 
@@ -65,8 +67,8 @@ function DocumentosPage() {
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
                   >
                     <div>
-                      <p className="font-medium">{d.titulo}</p>
-                      <p className="text-xs text-navy/50">{d.caso}</p>
+                      <p className="font-medium">{textoParaCliente(d.titulo)}</p>
+                      <p className="text-xs text-navy/50">{textoParaCliente(d.caso)}</p>
                     </div>
                     <button
                       onClick={() => abrir(d.id)}
@@ -94,14 +96,16 @@ function DocumentosPage() {
                     className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 bg-white p-4"
                   >
                     <div>
-                      <p className="font-medium">{d.titulo}</p>
+                      <p className="font-medium">{textoParaCliente(d.titulo)}</p>
                       <p className="text-xs text-navy/50">
-                        {d.caso} · enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
+                        {textoParaCliente(d.caso)} · enviado em {new Date(d.enviadoEm).toLocaleDateString("pt-BR")}
                       </p>
-                      {d.motivo ? <p className="mt-1 text-sm text-navy/70">{d.motivo}</p> : null}
+                      {textoParaCliente(d.motivo) ? (
+                        <p className="mt-1 text-sm text-navy/70">{textoParaCliente(d.motivo)}</p>
+                      ) : null}
                     </div>
                     <span className="rounded-full border border-navy/15 bg-cream px-2.5 py-0.5 text-[11px] font-medium text-navy/70">
-                      {d.statusRotulo}
+                      {rotuloEstadoVivo(d.statusRotulo)}
                     </span>
                   </li>
                 ))}
