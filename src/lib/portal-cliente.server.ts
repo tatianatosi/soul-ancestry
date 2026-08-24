@@ -131,3 +131,35 @@ export async function casoAutorizado(supabase: Sb, casoId: string) {
     .maybeSingle();
   return (data ?? null) as Record<string, any> | null;
 }
+
+/**
+ * Alerta interno de atendimento: a mensagem do cliente entra na fila da equipe.
+ * Nunca envia e-mail, WhatsApp ou aciona automação externa, e nunca grava o
+ * conteúdo da mensagem — só a referência do ticket e do caso.
+ */
+export async function alertaInternoTicket(params: {
+  organizationId: string;
+  casoId: string | null;
+  ticketId: string;
+  assunto: string;
+  novo: boolean;
+}) {
+  if (!params.casoId) return;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any).from("case_alerts").insert({
+      organization_id: params.organizationId,
+      case_id: params.casoId,
+      tipo: "atendimento_cliente",
+      criticidade: "atencao",
+      titulo: params.novo
+        ? `Novo atendimento do cliente: ${String(params.assunto).slice(0, 120)}`
+        : `Nova mensagem do cliente no atendimento: ${String(params.assunto).slice(0, 120)}`,
+      detalhe: `Ticket ${params.ticketId}. Responder em Atendimento ao cliente. Nenhuma comunicação externa foi disparada.`,
+      status: "pending",
+    });
+  } catch {
+    // Alerta é acessório: a mensagem do cliente não pode falhar por causa dele.
+  }
+}
+
