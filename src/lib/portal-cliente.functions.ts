@@ -337,6 +337,14 @@ export const abrirTicket = createServerFn({ method: "POST" })
     });
     if (msg.error) throw new Error(msg.error.message);
 
+    await h.alertaInternoTicket({
+      organizationId: acesso.organization_id,
+      casoId: data.casoId,
+      ticketId: ticket.data.id as string,
+      assunto,
+      novo: true,
+    });
+
     return { id: ticket.data.id as string };
   });
 
@@ -390,6 +398,22 @@ export const responderTicketCliente = createServerFn({ method: "POST" })
       corpo: mensagem,
     });
     if (r.error) throw new Error(r.error.message);
+
+    // Fila interna da equipe (sem envio externo e sem conteúdo da mensagem).
+    const t = await supabase
+      .from("portal_tickets")
+      .select("id, case_id, assunto")
+      .eq("id", data.ticketId)
+      .maybeSingle();
+    if (t.data) {
+      await h.alertaInternoTicket({
+        organizationId: acesso.organization_id,
+        casoId: t.data.case_id ?? null,
+        ticketId: data.ticketId,
+        assunto: t.data.assunto ?? "Atendimento",
+        novo: false,
+      });
+    }
     return { ok: true };
   });
 
