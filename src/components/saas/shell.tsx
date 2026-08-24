@@ -27,6 +27,8 @@ import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import { GRUPOS_DESK, MENU_CONTA, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
+import { BrandLogo } from "@/components/brand";
+
 
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
