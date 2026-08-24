@@ -286,9 +286,10 @@ export function proximaAcaoDoPainel(
   const semPendencias = candidatos.length === 0;
 
   if (semPendencias) {
-    // Melhor ajuste: último elo concluído; se não houver, o primeiro elo da cadeia.
-    const concluidos = elos.filter((e) => e.estado === "concluido");
-    const melhor = concluidos.length > 0 ? concluidos[concluidos.length - 1]! : (elos[0] ?? null);
+    // Melhor ajuste: elo mais bem pontuado pela regra determinística.
+    const ranking = pontuarMelhorAjuste(resultado, elos);
+    const topo = ranking[0] ?? null;
+    const melhor = topo?.elo ?? elos[0] ?? null;
     return {
       elo: melhor,
       rotulo: item?.rotulo ?? "Acompanhar o caso e aguardar o próximo evento canônico",
@@ -296,12 +297,15 @@ export function proximaAcaoDoPainel(
       prazo: item?.prazo ?? resultado.tarefa.prazo ?? SEM_DEFINICAO,
       destino: item?.destino ?? resultado.plano.objetoCanonico ?? null,
       motivo: melhor
-        ? `Sugestão por melhor ajuste — elo ${melhor.ordem} (${melhor.rotulo}): ${melhor.detalhe}`
+        ? `Sugestão por melhor ajuste — elo ${melhor.ordem} (${melhor.rotulo}), pontuação ${topo?.pontos ?? 0}: ${melhor.detalhe}`
         : "Nenhum elo disponível para sugestão.",
       semPendencias: true,
       status: "Cadeia sem elos pendentes ou bloqueados neste momento.",
       origem: "melhor_ajuste",
       evidencias: melhor ? evidenciasDoElo(resultado, melhor) : [],
+      pontuacao: topo?.pontos ?? null,
+      justificativa: topo?.criterios ?? [],
+      ranking,
     };
   }
 
@@ -317,6 +321,10 @@ export function proximaAcaoDoPainel(
     status: `Elo pendente identificado: ${elo.rotulo} (${elo.estado === "bloqueado" ? "bloqueado" : "pendente"}).`,
     origem: "elo_pendente",
     evidencias: evidenciasDoElo(resultado, elo),
+    pontuacao: null,
+    justificativa: [],
+    ranking: [],
   };
+
 }
 
