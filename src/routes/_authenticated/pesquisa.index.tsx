@@ -6,6 +6,7 @@ import { SaasShell } from "@/components/saas/shell";
 import {
   AlertaDesk,
   BadgeDesk,
+  CardIndicador,
   CarregandoDesk,
   PageHeader,
   VazioDesk,
@@ -34,6 +35,10 @@ function PesquisaIndex() {
   const q = useQuery({ queryKey: ["pesquisa", "casos"], queryFn: () => carregar() });
   const casos = q.data ?? [];
 
+  const casosAtivos = q.data ? casos.filter((c) => c["status"] === "ativo").length : null;
+  const semVia = q.data ? casos.filter((c) => !c["via"]).length : null;
+  const semPais = q.data ? casos.filter((c) => !c["pais"]).length : null;
+
   return (
     <SaasShell
       titulo="Pesquisa genealógica"
@@ -43,6 +48,13 @@ function PesquisaIndex() {
         titulo="Casos em pesquisa"
         subtitulo="Hierarquia de leitura: caso → hipótese → fonte → evidência → estado de validação. Achados são hipóteses com estado de validação, nunca confirmação."
       />
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardIndicador rotulo="Casos em pesquisa" valor={q.data ? casos.length : null} tom="neutro" />
+        <CardIndicador rotulo="Casos ativos" valor={casosAtivos} tom="sucesso" />
+        <CardIndicador rotulo="Sem via jurídica definida" valor={semVia} tom={semVia ? "atencao" : "neutro"} />
+        <CardIndicador rotulo="Sem país definido" valor={semPais} tom={semPais ? "atencao" : "neutro"} />
+      </div>
 
       {q.isLoading ? <CarregandoDesk linhas={4} rotulo="Carregando casos de pesquisa" /> : null}
       {q.error ? (
