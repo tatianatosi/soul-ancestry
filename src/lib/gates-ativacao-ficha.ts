@@ -8,11 +8,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
 
+/** Categorias canônicas da ficha operacional (mesma ordem da lista de casos). */
+export const CATEGORIAS_GATE = ["Comercial", "Formalização", "Financeiro", "Operação"] as const;
+export type CategoriaGate = (typeof CATEGORIAS_GATE)[number];
+
 export type GateAtivacao = {
   chave: string;
   rotulo: string;
   ok: boolean;
   responsavel: string;
+  /** Categoria operacional a que o requisito pertence. */
+  categoria: CategoriaGate;
   motivo: string | null;
   /** Registro canônico que resolve a pendência (um clique). */
   destino: { rota: string; rotulo: string };
@@ -20,7 +26,18 @@ export type GateAtivacao = {
   evidencia: string;
 };
 
+const CATEGORIA_POR_GATE: Record<string, CategoriaGate> = {
+  escopo_sku_preco: "Comercial",
+  canva_completo: "Comercial",
+  instrumentos_preparados: "Formalização",
+  assinatura: "Formalização",
+  cobranca_aprovada: "Financeiro",
+  pagamento_confirmado: "Financeiro",
+  aprovacao_ativacao: "Operação",
+};
+
 const preenchido = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+
 
 /** Os 7 requisitos de ativação, na ordem em que precisam ser cumpridos. */
 export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
