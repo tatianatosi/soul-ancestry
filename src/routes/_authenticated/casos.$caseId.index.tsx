@@ -25,6 +25,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -316,6 +317,8 @@ function FichaCaso() {
       }),
     [caso, form],
   );
+
+  const derivadoGates = useMemo(() => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>), [caso]);
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
 
