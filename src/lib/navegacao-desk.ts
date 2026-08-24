@@ -164,6 +164,10 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/homologacao-skus", label: "Homologação de SKUs" },
       { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
       { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
+      {
+        to: "/governanca/catalogo-operacional-30",
+        label: "Catálogo Operacional 30 (CA-06)",
+      },
       { grupo: "Financeiro" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
       { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Bloqueios de cobrança" },
