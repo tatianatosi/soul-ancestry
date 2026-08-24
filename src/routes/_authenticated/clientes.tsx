@@ -8,7 +8,10 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/clientes.functions";
 import {
+  CAMADAS,
   CLASSIFICACOES,
+  descricaoCamada,
+  rotuloCamada,
   FILTROS_PADRAO,
   ORIGENS,
   PAISES,
@@ -53,10 +56,11 @@ const ABAS: { valor: Filtros["estado"]; rotulo: string }[] = [
   { valor: "arquivados", rotulo: "Arquivados" },
 ];
 
-function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo"; children: React.ReactNode }) {
+function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo" | "caso"; children: React.ReactNode }) {
   const tons: Record<string, string> = {
     ativo: "bg-primary/10 text-primary border-primary/30",
     pre: "bg-muted text-muted-foreground border-border",
+    caso: "bg-secondary/20 text-foreground border-border",
     nucleo: "bg-accent/15 text-accent-foreground border-accent/30",
     demo: "bg-destructive/10 text-destructive border-destructive/30",
   };
@@ -165,6 +169,21 @@ function ClientesPage() {
         ) : null}
       </div>
 
+      <section className="mb-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
+        <h2 className="text-sm font-medium">Camadas do registro</h2>
+        <ul className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+          {CAMADAS.map((c) => (
+            <li key={c.valor}>
+              <span className="font-medium text-foreground">{c.rotulo}:</span> {c.descricao}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-xs text-muted-foreground">
+          A promoção a cliente ativo fica bloqueada automaticamente enquanto o registro estiver em formalização ou em
+          qualquer estágio de pré-cliente, e para membros de núcleo familiar e cadastros sem caso.
+        </p>
+      </section>
+
       <section className="rounded-lg border border-border">
         <header className="border-b border-border px-4 py-3 text-sm font-medium">
           Perfis de cliente ({lista.length})
@@ -179,6 +198,7 @@ function ClientesPage() {
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="px-4 py-2">Pessoa</th>
+                  <th className="px-4 py-2">Camada do registro</th>
                   <th className="px-4 py-2">Classificação</th>
                   <th className="px-4 py-2">Origem</th>
                   <th className="px-4 py-2">Status comercial</th>
@@ -198,6 +218,22 @@ function ClientesPage() {
                           {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
                         </div>
                         <p className="text-xs text-muted-foreground">{p.email ?? "—"}</p>
+                      </td>
+                      <td className="px-4 py-2">
+                        <Etiqueta
+                          tom={
+                            eleg.camada === "client_profile"
+                              ? "ativo"
+                              : eleg.camada === "family_nucleus"
+                                ? "nucleo"
+                                : eleg.camada === "case_member"
+                                  ? "caso"
+                                  : "pre"
+                          }
+                        >
+                          {rotuloCamada(eleg.camada)}
+                        </Etiqueta>
+                        <p className="mt-1 max-w-[16rem] text-[11px] text-muted-foreground">{descricaoCamada(eleg.camada)}</p>
                       </td>
                       <td className="px-4 py-2">
                         <Etiqueta tom={p.classificacao === "cliente_ativo" ? "ativo" : "pre"}>
