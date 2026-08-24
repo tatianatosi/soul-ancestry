@@ -107,6 +107,7 @@ import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from
 import { Route as AuthenticatedGovernancaInventarioPatrimonialRouteImport } from './routes/_authenticated/governanca.inventario-patrimonial'
 import { Route as AuthenticatedGovernancaIndicadoresRouteImport } from './routes/_authenticated/governanca.indicadores'
 import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './routes/_authenticated/governanca.identificadores'
+import { Route as AuthenticatedGovernancaDicionarioCallsCrmRouteImport } from './routes/_authenticated/governanca.dicionario-calls-crm'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedGovernancaCorteVerticalRouteImport } from './routes/_authenticated/governanca.corte-vertical'
@@ -653,6 +654,12 @@ const AuthenticatedGovernancaIdentificadoresRoute =
     path: '/governanca/identificadores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGovernancaDicionarioCallsCrmRoute =
+  AuthenticatedGovernancaDicionarioCallsCrmRouteImport.update({
+    id: '/governanca/dicionario-calls-crm',
+    path: '/governanca/dicionario-calls-crm',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGovernancaDecisoesRoute =
   AuthenticatedGovernancaDecisoesRouteImport.update({
     id: '/governanca/decisoes',
@@ -807,6 +814,7 @@ export interface FileRoutesByFullPath {
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
+  '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
@@ -918,6 +926,7 @@ export interface FileRoutesByTo {
   '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
+  '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
   '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
@@ -1032,6 +1041,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
   '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
+  '/_authenticated/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
   '/_authenticated/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
   '/_authenticated/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
   '/_authenticated/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
@@ -1146,6 +1156,7 @@ export interface FileRouteTypes {
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
+    | '/governanca/dicionario-calls-crm'
     | '/governanca/identificadores'
     | '/governanca/indicadores'
     | '/governanca/inventario-patrimonial'
@@ -1257,6 +1268,7 @@ export interface FileRouteTypes {
     | '/governanca/corte-vertical'
     | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
+    | '/governanca/dicionario-calls-crm'
     | '/governanca/identificadores'
     | '/governanca/indicadores'
     | '/governanca/inventario-patrimonial'
@@ -1370,6 +1382,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/corte-vertical'
     | '/_authenticated/governanca/criterios-aceite'
     | '/_authenticated/governanca/decisoes'
+    | '/_authenticated/governanca/dicionario-calls-crm'
     | '/_authenticated/governanca/identificadores'
     | '/_authenticated/governanca/indicadores'
     | '/_authenticated/governanca/inventario-patrimonial'
@@ -2113,6 +2126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaIdentificadoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/governanca/dicionario-calls-crm': {
+      id: '/_authenticated/governanca/dicionario-calls-crm'
+      path: '/governanca/dicionario-calls-crm'
+      fullPath: '/governanca/dicionario-calls-crm'
+      preLoaderRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/governanca/decisoes': {
       id: '/_authenticated/governanca/decisoes'
       path: '/governanca/decisoes'
@@ -2257,6 +2277,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaCorteVerticalRoute: typeof AuthenticatedGovernancaCorteVerticalRoute
   AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
+  AuthenticatedGovernancaDicionarioCallsCrmRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
   AuthenticatedGovernancaIdentificadoresRoute: typeof AuthenticatedGovernancaIdentificadoresRoute
   AuthenticatedGovernancaIndicadoresRoute: typeof AuthenticatedGovernancaIndicadoresRoute
   AuthenticatedGovernancaInventarioPatrimonialRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRoute
@@ -2347,6 +2368,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGovernancaCriteriosAceiteRoute:
     AuthenticatedGovernancaCriteriosAceiteRoute,
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
+  AuthenticatedGovernancaDicionarioCallsCrmRoute:
+    AuthenticatedGovernancaDicionarioCallsCrmRoute,
   AuthenticatedGovernancaIdentificadoresRoute:
     AuthenticatedGovernancaIdentificadoresRoute,
   AuthenticatedGovernancaIndicadoresRoute:
