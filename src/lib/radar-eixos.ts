@@ -57,85 +57,76 @@ export function eixosRadar(caso: CaseData): EixoRadar[] {
   const emValidacao = limparLista(doc.documentos_em_validacao ?? []);
   const solicitacoes = limparLista(doc.proximas_solicitacoes ?? []);
 
-  /* 1. História familiar */
-  const historia: EixoRadar = {
-    id: "historia",
-    titulo: "História familiar",
-    resumo: "O que já conseguimos reconhecer sobre as pessoas e gerações da sua família.",
-    estado: preenchido(limparCopy(caso.arvore.conexao_chave))
-      ? "identificado"
-      : "em_confirmacao",
-    itens: itens(
-      item("Linha investigada", caso.arvore.linha_prioritaria),
-      item("Pessoas reconhecidas", contagem(caso.arvore.pessoas_conectadas)),
-      item("Gerações lidas", contagem(caso.arvore.geracoes_lidas)),
-      item("Contexto familiar", caso.arvore.conexao_chave),
-      item("Território de origem", caso.arvore.conexao_territorial),
-    ),
-    mensagemVazio:
-      "Estamos organizando as informações da sua família. Assim que houver leitura consolidada, ela aparece aqui.",
-  };
-
-  /* 2. Documentos e evidências */
-  const documentos: EixoRadar = {
-    id: "documentos",
-    titulo: "Documentos e evidências",
-    resumo: "Como está a organização dos registros que sustentam a sua história.",
-    estado:
-      pendentes.length > 0 || emValidacao.length > 0
-        ? "em_confirmacao"
-        : localizados.length > 0
+  return EIXOS_RADAR_CANONICOS.map((canon): EixoRadar => {
+    if (canon.id === "historia") {
+      return {
+        ...canon,
+        estado: preenchido(limparCopy(caso.arvore.conexao_chave))
           ? "identificado"
-          : "proxima_etapa",
-    itens: itens(
-      item("Disponíveis", contagem(localizados.length)),
-      item("Em validação", contagem(emValidacao.length)),
-      item("Pendentes", contagem(pendentes.length)),
-      item("A solicitar", contagem(solicitacoes.length)),
-      item("Foco documental", doc.documento_principal),
-    ),
-    mensagemVazio:
-      "A organização documental do seu caso está em preparação. Vamos avisar assim que houver novidades.",
-  };
+          : "em_confirmacao",
+        itens: itens(
+          item("Linha investigada", caso.arvore.linha_prioritaria),
+          item("Pessoas reconhecidas", contagem(caso.arvore.pessoas_conectadas)),
+          item("Gerações lidas", contagem(caso.arvore.geracoes_lidas)),
+          item("Contexto familiar", caso.arvore.conexao_chave),
+          item("Território de origem", caso.arvore.conexao_territorial),
+        ),
+        mensagemVazio:
+          "Estamos organizando as informações da sua família. Assim que houver leitura consolidada, ela aparece aqui.",
+      };
+    }
 
-  /* 3. Estratégia e possibilidades */
-  const estrategiaItens = itens(
-    item("Leitura em análise", rotaLabel(caso)),
-    item("Hipótese em análise", caso.rota.hipotese_principal),
-    item("Precisa confirmar", caso.arvore.lacuna_critica),
-    item(
-      "Ponto de atenção",
-      caso.alerta.ativo ? caso.alerta.texto : "",
-    ),
-  );
-  const estrategia: EixoRadar = {
-    id: "estrategia",
-    titulo: "Estratégia e possibilidades",
-    resumo:
-      "Caminhos em análise. Nada aqui é conclusão: cada hipótese depende de evidências documentais.",
-    estado: "em_confirmacao",
-    itens: estrategiaItens,
-    mensagemVazio:
-      "As hipóteses do seu caso ainda estão em análise. Elas serão apresentadas quando houver base documental.",
-  };
+    if (canon.id === "documentos") {
+      return {
+        ...canon,
+        estado:
+          pendentes.length > 0 || emValidacao.length > 0
+            ? "em_confirmacao"
+            : localizados.length > 0
+              ? "identificado"
+              : "proxima_etapa",
+        itens: itens(
+          item("Disponíveis", contagem(localizados.length)),
+          item("Em validação", contagem(emValidacao.length)),
+          item("Pendentes", contagem(pendentes.length)),
+          item("A solicitar", contagem(solicitacoes.length)),
+          item("Foco documental", doc.documento_principal),
+        ),
+        mensagemVazio:
+          "A organização documental do seu caso está em preparação. Vamos avisar assim que houver novidades.",
+      };
+    }
 
-  /* 4. Próximos passos e progresso */
-  const proximos: EixoRadar = {
-    id: "proximos",
-    titulo: "Próximos passos e progresso",
-    resumo: "Onde estamos agora e o que vem em seguida na sua jornada.",
-    estado: "proxima_etapa",
-    itens: itens(
-      item("Etapa atual", caso.jornada.etapa_atual),
-      item("Entrega em andamento", caso.conta.status_jornada),
-      item("Pendência prioritária", doc.pendencia_principal),
-      item("Próximo passo", proximaEtapaCliente(caso)),
-    ),
-    mensagemVazio:
-      "Estamos definindo o próximo passo do seu caso. Você será avisada assim que ele estiver pronto.",
-  };
+    if (canon.id === "estrategia") {
+      const estrategiaItens = itens(
+        item("Leitura em análise", rotaLabel(caso)),
+        item("Hipótese em análise", caso.rota.hipotese_principal),
+        item("Precisa confirmar", caso.arvore.lacuna_critica),
+        item("Ponto de atenção", caso.alerta.ativo ? caso.alerta.texto : ""),
+      );
+      return {
+        ...canon,
+        estado: "em_confirmacao",
+        itens: estrategiaItens,
+        mensagemVazio:
+          "As hipóteses do seu caso ainda estão em análise. Elas serão apresentadas quando houver base documental.",
+      };
+    }
 
-  return [historia, documentos, estrategia, proximos];
+    /* canon.id === "proximos" */
+    return {
+      ...canon,
+      estado: "proxima_etapa",
+      itens: itens(
+        item("Etapa atual", caso.jornada.etapa_atual),
+        item("Entrega em andamento", caso.conta.status_jornada),
+        item("Pendência prioritária", doc.pendencia_principal),
+        item("Próximo passo", proximaEtapaCliente(caso)),
+      ),
+      mensagemVazio:
+        "Estamos definindo o próximo passo do seu caso. Você será avisada assim que ele estiver pronto.",
+    };
+  });
 }
 
 /**
