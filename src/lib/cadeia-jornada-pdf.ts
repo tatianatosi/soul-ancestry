@@ -103,6 +103,51 @@ export function htmlImpressaoPainelContextual(dados: DadosImpressaoPainel): stri
 </body></html>`;
 }
 
+/**
+ * Resumo em texto simples do painel contextual, em formato padronizado,
+ * para copiar à área de transferência. Não envia nem persiste nada.
+ */
+export function resumoTextoPainelContextual(dados: DadosImpressaoPainel): string {
+  const { proxima, elos } = dados;
+  const linhas: string[] = [
+    "CLUBE ANCESTRAL — PAINEL CONTEXTUAL DA CADEIA DA JORNADA (somente leitura)",
+    `Evento: ${dados.evento}`,
+    `Gerado em: ${dados.data}`,
+    "",
+    "PRÓXIMA AÇÃO NO PAINEL HOJE",
+    `- Status: ${proxima.status}`,
+    `- Ação: ${proxima.rotulo}`,
+    `- Responsável: ${proxima.responsavel}`,
+    `- Prazo: ${proxima.prazo}`,
+    `- Objeto canônico: ${proxima.destino ?? "—"}`,
+    `- Origem da sugestão: ${proxima.origem === "melhor_ajuste" ? "melhor ajuste" : "elo pendente"}`,
+    "",
+    "MOTIVO",
+    proxima.motivo,
+    "",
+    "EVIDÊNCIAS",
+    ...proxima.evidencias.map((e) => `- ${e}`),
+  ];
+
+  if (proxima.justificativa.length > 0) {
+    linhas.push(
+      "",
+      `PONTUAÇÃO DO MELHOR AJUSTE: ${proxima.pontuacao ?? 0}`,
+      ...proxima.justificativa.map((c) => `- ${c}`),
+    );
+  }
+
+  linhas.push(
+    "",
+    "CADEIA DA JORNADA (11 ELOS)",
+    ...elos.map((e) => `${e.ordem}. ${e.rotulo} — ${ROTULO_ESTADO_PDF[e.estado]} — ${e.detalhe}`),
+    "",
+    "Uso interno. Nenhum envio, publicação ou gravação foi executado.",
+  );
+
+  return linhas.join("\n");
+}
+
 /** Abre a janela de impressão do navegador para salvar em PDF. */
 export function imprimirPdfPainelContextual(dados: DadosImpressaoPainel): boolean {
   if (typeof window === "undefined") return false;
