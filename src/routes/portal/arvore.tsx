@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PortalShell } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
+import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
+import { usePortalVivo } from "@/routes/portal/jornada";
 
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
@@ -20,16 +22,28 @@ export const Route = createFileRoute("/portal/arvore")({
 
 function PortalArvore() {
   const { visibilidade, carregando } = useVisibilidade("arvore");
+  const { data, isLoading } = usePortalVivo();
+  const itens = arvoreSanitizada(data?.projecoes ?? []);
 
   return (
     <PortalShell titulo="Árvore" descricao="A leitura da sua família é publicada aqui quando estiver confirmada.">
-      {carregando ? (
+      {carregando || isLoading ? (
         <p className="text-sm text-navy/60">Carregando…</p>
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
-          <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-            Nenhuma pessoa, relação ou data foi publicada para visualização até agora.
-          </p>
+          {itens.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
+              Nenhuma pessoa, relação ou data foi publicada para visualização até agora.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {itens.map((item) => (
+                <li key={item.id} className="rounded-lg border border-navy/10 bg-white p-3 text-sm text-navy/70">
+                  {item.conteudo}
+                </li>
+              ))}
+            </ul>
+          )}
         </BlocoVisibilidade>
       )}
     </PortalShell>
