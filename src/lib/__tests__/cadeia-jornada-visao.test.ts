@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { descreverCadeia } from "@/lib/cadeia-jornada-visao";
-import { ELOS_CADEIA, executarCadeiaJornada } from "@/lib/orquestracao-jornada";
+import { descreverCadeia, proximaAcaoDoPainel } from "@/lib/cadeia-jornada-visao";
+import { ELOS_CADEIA, EVENTOS_INTERNOS, executarCadeiaJornada } from "@/lib/orquestracao-jornada";
 
 const HOJE = "2026-08-24";
 
