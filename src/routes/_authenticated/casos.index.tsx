@@ -25,6 +25,7 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
+import { AlertaDesk, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   head: () => ({
