@@ -174,16 +174,98 @@ export function CadeiaJornada({
             Estado derivado de cada elo para este evento. Nenhuma etapa executa ação externa.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={exportarPdf}
-          data-cadeia="exportar-pdf"
-          aria-label="Gerar PDF somente leitura do painel contextual para revisão e arquivamento"
-          className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Gerar PDF somente leitura
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={copiarResumo}
+            data-cadeia="copiar-resumo"
+            aria-label="Copiar resumo padronizado do painel contextual (motivo, evidências e próxima ação)"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Copiar resumo
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              gatilhoPreviaRef.current = e.currentTarget;
+              setPrevia(true);
+            }}
+            data-cadeia="exportar-pdf"
+            aria-haspopup="dialog"
+            aria-expanded={previa}
+            aria-label="Pré-visualizar o PDF somente leitura do painel contextual antes de imprimir"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Gerar PDF somente leitura
+          </button>
+        </div>
       </div>
+
+      <p
+        className="mt-2 text-xs text-muted-foreground"
+        data-cadeia="copiar-status"
+        role="status"
+        aria-live="polite"
+      >
+        {copiado === "ok"
+          ? "Resumo copiado para a área de transferência."
+          : copiado === "erro"
+            ? "Não foi possível copiar automaticamente. Use a prévia para revisar e copiar manualmente."
+            : ""}
+      </p>
+
+      {previa ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cadeia-previa-titulo"
+          data-cadeia="previa-pdf"
+          onClick={fecharPrevia}
+        >
+          <div
+            ref={previaRef}
+            className="flex h-full max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-border bg-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-2 border-b border-border p-4">
+              <div>
+                <p id="cadeia-previa-titulo" className="text-sm font-medium text-foreground">
+                  Prévia do PDF somente leitura
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Exatamente o conteúdo que sai na impressão. Nada é enviado, publicado ou gravado.
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  onClick={exportarPdf}
+                  data-cadeia="previa-imprimir"
+                  aria-label="Abrir a impressão do navegador para salvar o PDF revisado"
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Imprimir / salvar PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={fecharPrevia}
+                  aria-label="Fechar prévia do PDF"
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+            <iframe
+              title="Prévia do documento somente leitura do painel contextual"
+              data-cadeia="previa-iframe"
+              className="h-full w-full flex-1 bg-background"
+              srcDoc={htmlImpressaoPainelContextual(dadosImpressao)}
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div
         className={`mt-3 rounded-lg border p-3 text-xs ${
