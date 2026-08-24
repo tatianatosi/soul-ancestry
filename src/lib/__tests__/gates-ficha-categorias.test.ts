@@ -16,9 +16,9 @@ const casoCompleto = {
   escopo_incluido_resumido: "incluído",
   escopo_excluido_resumido: "excluído",
   marcos_gerais_da_proposta: "marcos",
-  preparacao_instrumentos: "pronto_para_assinatura",
+  preparacao_status: "pronto_para_assinatura",
   contrato_assinado: true,
-  cobranca_aprovada: true,
+  situacao_financeira: "quitado",
   pagamento_confirmado: true,
   ativacao_operacional: "aprovada",
 };
