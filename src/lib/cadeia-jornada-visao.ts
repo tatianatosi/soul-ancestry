@@ -130,6 +130,12 @@ export function descreverCadeia(
 /* Somente leitura: nada é criado, enviado, publicado ou persistido.    */
 /* ------------------------------------------------------------------ */
 
+export type PontuacaoAjuste = {
+  elo: EloDerivado;
+  pontos: number;
+  criterios: readonly string[];
+};
+
 export type ProximaAcaoPainel = {
   /** Último elo pendente ou bloqueado da cadeia (exclui o próprio Painel Hoje). */
   elo: EloDerivado | null;
@@ -146,9 +152,68 @@ export type ProximaAcaoPainel = {
   origem: "elo_pendente" | "melhor_ajuste";
   /** Evidências que sustentam o estado exibido. */
   evidencias: readonly string[];
+  /** Pontuação do elo escolhido quando a origem é melhor ajuste. */
+  pontuacao: number | null;
+  /** Critérios que explicam a pontuação do melhor ajuste. */
+  justificativa: readonly string[];
+  /** Ranking completo do melhor ajuste (vazio quando há elos pendentes). */
+  ranking: readonly PontuacaoAjuste[];
 };
 
 const SEM_DEFINICAO = "não definido";
+
+/**
+ * Pontua os elos candidatos ao "melhor ajuste" quando não há elos pendentes.
+ * Regra determinística e explicável: quanto mais avançado e mais completo o
+ * elo, maior a pontuação. Nenhum dado é criado ou persistido.
+ */
+export function pontuarMelhorAjuste(
+  resultado: ResultadoCadeia,
+  elos: readonly EloDerivado[],
+): readonly PontuacaoAjuste[] {
+  const candidatos = elos.filter((e) => e.chave !== "painel_hoje" && e.estado === "concluido");
+  const base = candidatos.length > 0 ? candidatos : elos.filter((e) => e.chave !== "painel_hoje");
+
+  return [...base]
+    .map((elo) => {
+      const criterios: string[] = [];
+      let pontos = 0;
+
+      if (elo.estado === "concluido") {
+        pontos += 40;
+        criterios.push("Elo cumprido (+40)");
+      } else if (elo.estado === "nao_aplicavel") {
+        pontos += 5;
+        criterios.push("Elo não aplicável a este evento (+5)");
+      } else {
+        criterios.push("Elo sem conclusão registrada (+0)");
+      }
+
+      pontos += elo.ordem * 3;
+      criterios.push(`Avanço na cadeia: elo ${elo.ordem} de 11 (+${elo.ordem * 3})`);
+
+      if (resultado.tarefa.titulo) {
+        pontos += 10;
+        criterios.push("Tarefa canônica disponível (+10)");
+      }
+      if (resultado.template.template) {
+        pontos += 10;
+        criterios.push("Modelo vigente disponível (+10)");
+      }
+      if (resultado.tarefa.responsavel_id) {
+        pontos += 5;
+        criterios.push("Responsável definido (+5)");
+      }
+      if (resultado.tarefa.prazo) {
+        pontos += 5;
+        criterios.push("Prazo definido (+5)");
+      }
+
+      return { elo, pontos, criterios };
+    })
+    .sort((a, b) => (b.pontos === a.pontos ? b.elo.ordem - a.elo.ordem : b.pontos - a.pontos));
+}
+
 
 /** Evidências textuais do elo, derivadas do resultado da cadeia. */
 export function evidenciasDoElo(
