@@ -16,7 +16,16 @@ desde 23/08, cada mudança feita nesta sessão **não consome nenhum crédito
 do Lovable** — o vazamento de custo já está parcialmente estancado, mesmo
 com a assinatura ainda ativa.
 
-## 0. Achado crítico novo (24/08, à tarde): as dependências do projeto só instalam dentro do sandbox do Lovable
+## 0. Resolvido (24/08, à noite): dependências agora instalam fora do Lovable
+
+O `bun.lock` foi apagado e regenerado contra o registro público do npm.
+Validação completa nesta sessão: `tsc --noEmit` sem erros, `vitest run`
+com os 134 arquivos de teste (1210 testes) passando, e `vite build`
+concluído com sucesso — a primeira vez que o projeto builda fora do
+sandbox do Lovable nesta auditoria toda. Este bloqueio (seção original
+abaixo, preservada como registro) está fechado.
+
+### Achado crítico original (24/08, à tarde) — como referência histórica
 
 Ao tentar rodar os testes automatizados desta sessão, `bun install`
 falhou: **todas** as dependências (não só os pacotes `@lovable.dev/*`)

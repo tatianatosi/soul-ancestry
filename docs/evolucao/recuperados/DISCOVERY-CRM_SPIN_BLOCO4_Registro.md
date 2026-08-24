@@ -87,6 +87,31 @@ nenhuma tarefa vai para Go-live/Formalização/Documentos/Financeiro/Fase
 armazenamento/LGPD, gravação, compartilhamento de documento) — com a
 política final de LGPD marcada **PENDENTE DE VALIDAÇÃO HUMANA**.
 
+## Decisão registrada (24/08): preço divergente usa sempre o preço sugerido
+
+Em resposta direta à divergência do item 2 (`CA-CID-023`: R$4.500 na
+Mestre vs. R$4.800 no Planejador), a Proprietária confirmou: **em
+qualquer divergência de preço, prevalece o preço sugerido.**
+
+Verificado no código: essa regra **já está implementada** e não é nova —
+`src/lib/preco-sugerido-canonico.ts` declara no próprio cabeçalho "Decisão
+institucional já tomada: todo SKU utilizável usa o `preco_sugerido`
+canônico... como referência comercial operacional interna", e
+`resolverPrecoSugerido()` já retorna o valor do preço sugerido mesmo
+quando há divergência com o preço praticado — só marca o estado como
+"com ressalva" (`PRECO_PRATICADO_DIFERENTE`), nunca bloqueia nem usa o
+outro valor. A matriz de precedência (`MATRIZ_PRECEDENCIA_PRECO`) também
+já documenta essa ordem: condição comercial aprovada > proposta aprovada
+> preço sugerido do catálogo.
+
+**O que essa decisão não resolve sozinha:** a divergência do Bloco 4 foi
+encontrada em **planilhas externas** (Planilha Mestre × Planejador
+Universal no Google Sheets), fora deste repositório — o código do app já
+segue a regra corretamente, mas as duas planilhas em si continuam
+divergentes até alguém corrigir manualmente o valor de `CA-CID-023` (e
+qualquer outro SKU na mesma situação) direto nas planilhas, usando o
+preço sugerido como referência.
+
 ## O que ainda não foi feito nesta rodada
 
 Não cotejei os itens específicos do checklist de go-live do Bloco 4 (17
