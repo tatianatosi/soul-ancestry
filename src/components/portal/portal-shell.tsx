@@ -21,6 +21,8 @@ import { BrandLogo } from "@/components/brand";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
+import { TIPO_CLIENTE } from "@/lib/marca";
+import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 
 export function usePortal() {
   const carregar = useServerFn(portalContexto);
@@ -50,20 +52,20 @@ export function PortalShell({
   const nav =
     data?.nivel === "client_workspace"
       ? [
-          { to: "/portal", label: "Home", icon: FolderOpen },
-          { to: "/portal/jornada", label: "Jornada", icon: Route },
-          { to: "/portal/radar", label: "Radar", icon: Radar },
-          { to: "/portal/arvore", label: "Árvore", icon: Trees },
-          { to: "/portal/documentos", label: "Documentos", icon: FileText },
-          { to: "/portal/entregas", label: "Entregas da Jornada", icon: PackageCheck },
-          { to: "/portal/fase-01", label: "Fase 01", icon: FileText },
-          { to: "/portal/fase-02", label: "Fase 02", icon: FileText },
-          { to: "/portal/legado", label: "Legado", icon: BookOpen },
-          { to: "/portal/conta", label: "Conta", icon: UserRound },
-          { to: "/portal/faturas", label: "Faturas", icon: Receipt },
-          { to: "/portal/proposta", label: "Proposta", icon: Receipt },
+          { to: "/portal", label: COPY_TELAS.casos.navegacao, icon: FolderOpen },
+          { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
+          { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
+          { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
+          { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
+          { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
+          { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
+          { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
+          { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
+          { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
+          { to: "/portal/faturas", label: COPY_TELAS.faturas.navegacao, icon: Receipt },
+          { to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt },
         ]
-      : [{ to: "/portal/proposta", label: "Proposta", icon: Receipt }];
+      : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 
 
   async function sair() {
@@ -82,14 +84,17 @@ export function PortalShell({
             <BrandLogo size={36} variant="client-dark" showText={false} />
             <div className="min-w-0">
               <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
-              <p className="truncate text-[11px] uppercase tracking-widest text-cream/60">
-                {data?.cliente?.nome ?? "Portal do cliente"}
+              <p className="truncate text-[11px] uppercase tracking-widest text-cream/70">
+                {data?.cliente?.nome ?? "Aplicativo do cliente"}
               </p>
             </div>
           </div>
 
-          <button onClick={sair} className="flex items-center gap-2 rounded-lg border border-cream/25 px-3 py-1.5 text-xs">
-            <LogOut className="h-3.5 w-3.5" /> Sair
+          <button
+            onClick={sair}
+            className="flex items-center gap-2 rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream transition-colors hover:bg-cream/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
+          >
+            <LogOut className="h-3.5 w-3.5" /> {COPY_GERAL.sair}
           </button>
         </div>
       </header>
@@ -102,19 +107,22 @@ export function PortalShell({
               to={to}
               className={cn(
                 "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm",
-                rota === to ? "border-gold font-medium text-navy" : "border-transparent text-navy/60",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                rota === to
+                  ? "border-gold font-medium text-navy"
+                  : "border-transparent text-navy/70 hover:text-navy",
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" aria-hidden="true" />
               {label}
             </Link>
           ))}
         </div>
       </nav>
 
-      <main className="mx-auto max-w-4xl px-4 py-6 lg:px-8">
-        <h1 className="font-serif text-2xl">{titulo}</h1>
-        {descricao ? <p className="mt-1 text-sm text-navy/60">{descricao}</p> : null}
+      <main id="conteudo-portal" className="mx-auto max-w-4xl px-4 py-6 lg:px-8">
+        <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
+        {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
         <div className="mt-5">{children}</div>
       </main>
     </div>
@@ -123,8 +131,17 @@ export function PortalShell({
 
 export function PortalVazio({ mensagem }: { mensagem: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-navy/20 bg-white/70 p-10 text-center text-sm text-navy/60">
+    <div className="rounded-xl border border-dashed border-navy/20 bg-white/70 p-10 text-center text-sm text-navy/75">
       {mensagem}
     </div>
+  );
+}
+
+/** Estado de carregamento padrão do App Cliente. */
+export function PortalCarregando() {
+  return (
+    <p className={TIPO_CLIENTE.corpo} role="status">
+      {COPY_GERAL.carregando}
+    </p>
   );
 }

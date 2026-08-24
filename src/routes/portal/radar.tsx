@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PortalShell } from "@/components/portal/portal-shell";
+import { COPY_ESTADO_TEXTO, COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import { usePortalVivo } from "@/routes/portal/jornada";
@@ -22,8 +23,8 @@ export const Route = createFileRoute("/portal/radar")({
 
 const TEXTO_ESTADO: Record<string, string> = {
   released: "",
-  available_empty: "Sem itens publicados nesta área.",
-  in_preparation: "Esta leitura está em preparação pela equipe.",
+  available_empty: COPY_ESTADO_TEXTO.available_empty,
+  in_preparation: COPY_ESTADO_TEXTO.in_preparation,
 };
 
 function PortalRadar() {
@@ -32,9 +33,9 @@ function PortalRadar() {
   const eixos = radarSanitizado({ projecoes: data?.projecoes ?? [], documentos: data?.documentos ?? [] });
 
   return (
-    <PortalShell titulo="Radar" descricao="Quatro eixos de leitura. Nada aqui é conclusão sobre o seu caso.">
+    <PortalShell titulo={COPY_TELAS.radar.titulo} descricao={COPY_TELAS.radar.descricao}>
       {carregando || isLoading ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="grid gap-3 sm:grid-cols-2">

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PortalShell } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 
 export const Route = createFileRoute("/portal/entregas")({
@@ -22,9 +23,9 @@ function PortalEntregas() {
   const { visibilidade, carregando } = useVisibilidade("entrega");
 
   return (
-    <PortalShell titulo="Entregas da Jornada" descricao="Só aparece aqui o que já foi publicado para você.">
+    <PortalShell titulo={COPY_TELAS.entregas.titulo} descricao={COPY_TELAS.entregas.descricao}>
       {carregando ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">

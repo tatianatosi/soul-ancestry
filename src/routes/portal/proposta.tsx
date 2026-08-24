@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { portalProposta } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/portal/proposta")({
@@ -29,16 +30,16 @@ function PropostaPage() {
   const { data, isLoading } = useQuery({ queryKey: ["portal-proposta"], queryFn: () => carregar({}) });
 
   return (
-    <PortalShell titulo="Proposta" descricao="Resumo do que foi apresentado pela equipe.">
+    <PortalShell titulo={COPY_TELAS.proposta.titulo} descricao={COPY_TELAS.proposta.descricao}>
       {isLoading ? (
-        <PortalVazio mensagem="Carregando…" />
+        <PortalCarregando />
       ) : (
         <div className="space-y-6">
           <section>
             <h2 className="font-serif text-xl">Escopo</h2>
             {!data?.casos.length ? (
               <div className="mt-3">
-                <PortalVazio mensagem="Nenhum escopo liberado para você até o momento." />
+                <PortalVazio mensagem="O detalhamento aparece aqui assim que estiver disponível para você." />
               </div>
             ) : (
               <ul className="mt-3 space-y-3">
@@ -56,7 +57,7 @@ function PropostaPage() {
             <h2 className="font-serif text-xl">Condições</h2>
             {!data?.faturas.length ? (
               <div className="mt-3">
-                <PortalVazio mensagem="Nenhuma condição financeira liberada para você." />
+                <PortalVazio mensagem="As condições combinadas aparecem aqui assim que estiverem disponíveis para você." />
               </div>
             ) : (
               <ul className="mt-3 space-y-3">

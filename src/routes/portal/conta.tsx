@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { PortalShell, usePortal } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 
 export const Route = createFileRoute("/portal/conta")({
@@ -23,9 +24,9 @@ function PortalConta() {
   const { data } = usePortal();
 
   return (
-    <PortalShell titulo="Conta" descricao="Dados básicos do seu acesso.">
+    <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
       {carregando ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <dl className="grid gap-3 sm:grid-cols-2">
@@ -35,7 +36,7 @@ function PortalConta() {
             </div>
             <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
               <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>
-              <dd className="text-sm text-navy">Portal do cliente</dd>
+              <dd className="text-sm text-navy">Aplicativo do cliente</dd>
             </div>
           </dl>
 

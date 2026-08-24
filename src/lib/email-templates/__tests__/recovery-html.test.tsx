@@ -45,8 +45,8 @@ describe("e-mail de recuperação — HTML entregue", () => {
 
   it("usa CTA inline-block com área de toque e contraste da marca, sem CSS externo", async () => {
     const markup = await html();
-    expect(markup).toMatch(/background-color:#1B2B4B/i);
-    expect(markup).toMatch(/color:#F5F0E8/i);
+    expect(markup).toMatch(/background-color:#2F4B6E/i);
+    expect(markup).toMatch(/color:#FFFFFF/i);
     expect(markup).toMatch(/padding:14px 24px/);
     expect(markup).toMatch(/display:inline-block/);
     expect(markup).not.toMatch(/<style/i);

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PortalShell } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { usePortalVivo } from "@/routes/portal/jornada";
@@ -26,14 +27,14 @@ function PortalArvore() {
   const itens = arvoreSanitizada(data?.projecoes ?? []);
 
   return (
-    <PortalShell titulo="Árvore" descricao="A leitura da sua família é publicada aqui quando estiver confirmada.">
+    <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
       {carregando || isLoading ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           {itens.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
-              Nenhuma pessoa, relação ou data foi publicada para visualização até agora.
+              {COPY_TELAS.arvore.vazio}
             </p>
           ) : (
             <ul className="space-y-3">

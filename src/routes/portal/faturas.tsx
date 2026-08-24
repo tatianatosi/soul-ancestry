@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/faturas")({
@@ -29,13 +30,13 @@ function FaturasPage() {
   });
 
   return (
-    <PortalShell titulo="Faturas" descricao="Aparecem apenas as faturas liberadas pela equipe.">
+    <PortalShell titulo={COPY_TELAS.faturas.titulo} descricao={COPY_TELAS.faturas.descricao}>
       {isLoading ? (
-        <PortalVazio mensagem="Carregando…" />
+        <PortalCarregando />
       ) : isError ? (
-        <PortalVazio mensagem="Este acesso não está autorizado a ver faturas. Fale com a equipe." />
+        <PortalVazio mensagem={COPY_GERAL.semPermissao} />
       ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem="Nenhuma fatura liberada para visualização." />
+        <PortalVazio mensagem={COPY_TELAS.faturas.vazio} />
       ) : (
         <ul className="space-y-2">
           {data.map((f) => (
