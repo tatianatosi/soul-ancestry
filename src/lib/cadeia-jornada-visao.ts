@@ -124,3 +124,46 @@ export function descreverCadeia(
     detalhe: mapa[chave].detalhe,
   }));
 }
+
+/* ------------------------------------------------------------------ */
+/* Próxima ação do Painel Hoje ligada ao último elo pendente.           */
+/* Somente leitura: nada é criado, enviado, publicado ou persistido.    */
+/* ------------------------------------------------------------------ */
+
+export type ProximaAcaoPainel = {
+  /** Último elo pendente ou bloqueado da cadeia (exclui o próprio Painel Hoje). */
+  elo: EloDerivado | null;
+  rotulo: string;
+  responsavel: string;
+  prazo: string;
+  destino: string | null;
+  motivo: string;
+};
+
+const SEM_DEFINICAO = "não definido";
+
+/**
+ * Deriva a próxima ação exibida no Painel Hoje a partir do último elo pendente
+ * ou bloqueado da cadeia, acrescentando responsável e prazo da tarefa canônica.
+ */
+export function proximaAcaoDoPainel(
+  resultado: ResultadoCadeia,
+  elos: readonly EloDerivado[],
+): ProximaAcaoPainel {
+  const candidatos = elos.filter(
+    (e) => e.chave !== "painel_hoje" && (e.estado === "pendente" || e.estado === "bloqueado"),
+  );
+  const elo = candidatos.length > 0 ? candidatos[candidatos.length - 1]! : null;
+  const item = resultado.painelHoje;
+
+  return {
+    elo,
+    rotulo: item?.rotulo ?? elo?.rotulo ?? "Nenhuma próxima ação derivada",
+    responsavel: resultado.tarefa.responsavel_id ?? SEM_DEFINICAO,
+    prazo: item?.prazo ?? resultado.tarefa.prazo ?? SEM_DEFINICAO,
+    destino: item?.destino ?? resultado.plano.objetoCanonico ?? null,
+    motivo: elo
+      ? `Elo ${elo.ordem} — ${elo.rotulo}: ${elo.detalhe}`
+      : "Cadeia sem elo pendente ou bloqueado neste momento.",
+  };
+}
