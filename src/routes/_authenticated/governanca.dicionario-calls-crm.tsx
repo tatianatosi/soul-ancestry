@@ -66,7 +66,7 @@ const CORES: Record<string, string> = {
   verde: "text-emerald-700",
   amarelo: "text-amber-700",
   laranja: "text-orange-700",
-  vermelho: "text-terracota",
+  vermelho: "text-terracotta",
   neutro: "text-navy/60",
 };
 
@@ -192,7 +192,7 @@ function DicionarioCallsCrm() {
           <ul className="space-y-1">
             {SUBSTITUICOES_OBRIGATORIAS.map((s) => (
               <li key={s.evitar}>
-                <span className="text-terracota">Evitar:</span> “{s.evitar}” → <span className="text-navy">{s.usar}</span>
+                <span className="text-terracotta">Evitar:</span> “{s.evitar}” → <span className="text-navy">{s.usar}</span>
               </li>
             ))}
           </ul>
