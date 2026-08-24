@@ -35,7 +35,8 @@ function DocumentosPage() {
       const r = await baixar({ data: { documentoId: id } });
       window.open(r.url, "_blank", "noopener");
     } catch (e) {
-      setErro((e as Error).message);
+      // Falha nunca revela ID, tabela, política ou endpoint ao cliente.
+      setErro(mensagemDeFalha(e));
     }
   }
 
