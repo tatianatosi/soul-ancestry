@@ -57,6 +57,9 @@ export function publicacoesParaCliente(linhas: ProjecaoBruta[]): PublicacaoClien
   return linhas
     .map((linha) => {
       const conteudo = sanitizarRotuloCliente(String(linha.content_sanitized ?? "").trim() || null);
+      const conteudo = textoParaCliente(
+        sanitizarRotuloCliente(String(linha.content_sanitized ?? "").trim() || null),
+      );
       if (!conteudo) return null;
       const tipo = String(linha.projection_type ?? "").trim().toLowerCase() || "atualizacao";
       const publicadoEm = linha.effective_from ?? linha.updated_at ?? null;
