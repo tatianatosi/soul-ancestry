@@ -1,5 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 
+import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell } from "@/components/portal/portal-shell";
 import { PortalCasoDetalhe } from "@/components/portal/caso-detalhe";
 
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/portal/casos/$id")({
 function CasoPage() {
   const { id } = useParams({ from: "/portal/casos/$id" });
   return (
-    <PortalShell titulo="Meu caso" descricao="Somente informações liberadas para você pela equipe.">
+    <PortalShell titulo={COPY_TELAS.casos.titulo} descricao={COPY_TELAS.casos.descricao}>
       <PortalCasoDetalhe casoId={id} />
     </PortalShell>
   );

@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { meuTicket, responderTicketCliente } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/mensagens/$id")({
@@ -43,15 +44,15 @@ function MensagemPage() {
 
   if (isLoading) {
     return (
-      <PortalShell titulo="Atendimento">
-        <PortalVazio mensagem="Carregando…" />
+      <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
+        <PortalCarregando />
       </PortalShell>
     );
   }
   if (!data) {
     return (
-      <PortalShell titulo="Atendimento">
-        <PortalVazio mensagem="Este atendimento não está disponível para o seu acesso." />
+      <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
+        <PortalVazio mensagem={COPY_GERAL.semPermissao} />
       </PortalShell>
     );
   }
@@ -95,7 +96,7 @@ function MensagemPage() {
           </button>
         </div>
       ) : (
-        <p className="mt-5 text-sm text-navy/60">Este atendimento foi encerrado. Abra um novo pelo seu caso.</p>
+        <p className="mt-5 text-sm text-navy/60">Esta conversa foi encerrada. Você pode iniciar uma nova quando precisar.</p>
       )}
     </PortalShell>
   );

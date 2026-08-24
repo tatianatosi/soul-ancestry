@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/")({
@@ -25,11 +26,11 @@ function PortalHome() {
   const { data, isLoading } = useQuery({ queryKey: ["portal-meus-casos"], queryFn: () => carregar({}) });
 
   return (
-    <PortalShell titulo="Meus casos" descricao="Somente casos liberados para o seu acesso aparecem aqui.">
+    <PortalShell titulo={COPY_TELAS.casos.titulo} descricao={COPY_TELAS.casos.descricao}>
       {isLoading ? (
-        <PortalVazio mensagem="Carregando…" />
+        <PortalCarregando />
       ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem="Nenhum caso liberado para visualização no momento." />
+        <PortalVazio mensagem={COPY_TELAS.casos.vazio} />
       ) : (
         <ul className="space-y-3">
           {data.map((c) => (

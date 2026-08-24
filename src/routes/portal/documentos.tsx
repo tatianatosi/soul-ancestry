@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Download } from "lucide-react";
 import { useState } from "react";
 
-import { PortalShell, PortalVazio } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/documentos")({
@@ -39,7 +40,7 @@ function DocumentosPage() {
   }
 
   return (
-    <PortalShell titulo="Documentos" descricao="Você baixa apenas o que a equipe liberou para o seu acesso.">
+    <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
           {erro}
@@ -47,14 +48,14 @@ function DocumentosPage() {
       ) : null}
 
       {isLoading ? (
-        <PortalVazio mensagem="Carregando…" />
+        <PortalCarregando />
       ) : (
         <div className="space-y-8">
           <section>
-            <h2 className="font-serif text-xl">Entregas liberadas</h2>
+            <h2 className="font-serif text-xl">Preparado para você</h2>
             {!data || data.entregas.length === 0 ? (
               <div className="mt-3">
-                <PortalVazio mensagem="Nenhuma entrega liberada até o momento." />
+                <PortalVazio mensagem={COPY_TELAS.documentos.vazio} />
               </div>
             ) : (
               <ul className="mt-3 space-y-2">
@@ -80,10 +81,10 @@ function DocumentosPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-xl">Meus envios</h2>
+            <h2 className="font-serif text-xl">O que você compartilhou</h2>
             {!data || data.envios.length === 0 ? (
               <div className="mt-3">
-                <PortalVazio mensagem="Você ainda não enviou documentos." />
+                <PortalVazio mensagem="Você ainda não compartilhou documentos conosco." />
               </div>
             ) : (
               <ul className="mt-3 space-y-2">

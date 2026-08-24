@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { PortalShell } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
@@ -33,9 +34,9 @@ function PortalJornada() {
   const jornada = jornadaSanitizada(data?.projecoes ?? []);
 
   return (
-    <PortalShell titulo="Jornada" descricao="As etapas do seu acompanhamento, em linguagem simples.">
+    <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
       {carregando || isLoading ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
@@ -43,7 +44,7 @@ function PortalJornada() {
           </p>
           {jornada.linha.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
-              Nenhuma atualização publicada até agora.
+              {COPY_TELAS.jornada.vazio}
             </p>
           ) : (
             <ol className="space-y-3">

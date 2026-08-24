@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PortalShell } from "@/components/portal/portal-shell";
+import { COPY_TELAS } from "@/lib/portal-copy";
+import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import { usePortalVivo } from "@/routes/portal/jornada";
@@ -32,9 +33,9 @@ function PortalRadar() {
   const eixos = radarSanitizado({ projecoes: data?.projecoes ?? [], documentos: data?.documentos ?? [] });
 
   return (
-    <PortalShell titulo="Radar" descricao="Quatro eixos de leitura. Nada aqui é conclusão sobre o seu caso.">
+    <PortalShell titulo={COPY_TELAS.radar.titulo} descricao={COPY_TELAS.radar.descricao}>
       {carregando || isLoading ? (
-        <p className="text-sm text-navy/60">Carregando…</p>
+        <PortalCarregando />
       ) : (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="grid gap-3 sm:grid-cols-2">
