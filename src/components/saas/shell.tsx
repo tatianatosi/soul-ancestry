@@ -27,6 +27,8 @@ import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import { GRUPOS_DESK, MENU_CONTA, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
+import { BrandLogo } from "@/components/brand";
+
 
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
@@ -204,10 +206,13 @@ export function SaasShell({
           aberto ? "flex" : "hidden",
         )}
       >
-        <div className="px-2 pb-5">
-          <p className="font-serif text-xl leading-tight text-gold">Clube Ancestral</p>
-          <p className="text-[11px] uppercase tracking-widest text-cream/60">Gestão de pesquisa</p>
+        <div className="px-2 pb-6">
+          <BrandLogo size={34} variant="client-dark" className="items-center" />
+          <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
+            Gestão de pesquisa
+          </p>
         </div>
+
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
@@ -329,6 +334,8 @@ export function SaasShell({
           <button className="lg:hidden" onClick={() => setAberto((v) => !v)} aria-label="Abrir navegação">
             <Menu className="h-5 w-5" />
           </button>
+          <BrandLogo size={30} showText={false} variant="client-light" className="shrink-0 lg:hidden" />
+
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
             {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
