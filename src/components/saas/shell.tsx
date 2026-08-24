@@ -332,6 +332,8 @@ export function SaasShell({
           <button className="lg:hidden" onClick={() => setAberto((v) => !v)} aria-label="Abrir navegação">
             <Menu className="h-5 w-5" />
           </button>
+          <BrandLogo size={30} showText={false} variant="client-light" className="shrink-0 lg:hidden" />
+
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
             {descricao ? <p className="text-sm text-navy/60">{descricao}</p> : null}
