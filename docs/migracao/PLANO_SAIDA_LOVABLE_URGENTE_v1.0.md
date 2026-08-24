@@ -25,16 +25,13 @@ código do banco (migrations) está no GitHub e independe de qualquer um dos
 dois. O GitHub (`tatianatosi/soul-ancestry`) já é a fonte oficial desde
 19/08.
 
-**Correção registrada (24/08):** você apontou que o projeto Supabase foi
-criado pelo próprio Lovable (integração nativa dele), não por você
-diretamente, e que a hospedagem do app hoje está confirmada no Lovable. Isso
-muda a seção 3 abaixo de suposição para fato — e adiciona uma verificação
-que eu não posso fazer por aqui: **confirmar se você consegue entrar em
-supabase.com com login próprio e ver esse projeto na sua conta**, ou se o
-acesso a ele hoje passa só pelo painel do Lovable. Se for só pelo Lovable,
-o banco de dados é uma dependência real de saída, não só a hospedagem do
-app — isso muda a ordem de prioridade da seção 4: confirmar acesso direto
-ao Supabase vira o primeiro passo, antes de qualquer coisa técnica.
+**Correção registrada (24/08), depois resolvida no mesmo dia:** você
+apontou que não sabia se o projeto Supabase era seu ou do Lovable. Verificado
+com print de tela: você é **Owner** direto no Supabase
+(`tati@pluggedresearch.com`, organização "Clube Ancestral", projeto
+`zsxpdbhdvbuulwpepemd`). **O banco de dados não é uma dependência do
+Lovable** — a única dependência real de hospedagem que resta é o app
+publicado (item 3 abaixo), não o banco.
 
 ## 2. O que de fato prende o projeto ao Lovable hoje
 
@@ -80,11 +77,19 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
    **Confirmado:** é. A hospedagem está no Lovable hoje — o passo 5 (deploy
    independente) precisa acontecer antes de desconectar ou rebaixar o
    plano, para não ficar sem app publicado.
-4. **Novo, prioridade máxima:** confirmar login próprio em supabase.com com
-   acesso ao projeto (`SUPABASE_PROJECT_ID` do `.env`) fora do painel do
-   Lovable. Sem isso confirmado, o banco de dados — não só a hospedagem —
-   é uma dependência real do Lovable, e o plano de saída muda de "trocar
-   hospedagem" para "recuperar posse do banco primeiro".
+4. ~~Confirmar login próprio em supabase.com com acesso ao projeto.~~
+   **Confirmado (24/08, com print de tela):** login `tati@pluggedresearch.com`
+   é **Owner** da organização "Clube Ancestral" no Supabase, projeto
+   `zsxpdbhdvbuulwpepemd`, plano Free. **O banco não é uma dependência do
+   Lovable** — é seu, com posse direta. Isso remove o maior risco da saída.
+   **Achado novo:** a região do projeto é `us-east-2` (Ohio, EUA), **não**
+   São Paulo — ao contrário do que a seção 8 presumia como provável. Isso
+   não bloqueia a saída do Lovable, mas muda a resposta sobre
+   "infraestrutura brasileira": hoje o dado não está no Brasil de jeito
+   nenhum, independente de onde o app for hospedado (Vercel ou Servla).
+   Se a exigência de dado em solo brasileiro for real, é um projeto à
+   parte — Supabase não migra região de um projeto existente; exigiria
+   criar projeto novo em `sa-east-1` e migrar dados.
 
 ### Fase técnica — remover o acoplamento (paralelo, sem pressa de deploy)
 4. Reescrever `vite.config.ts` com os plugins explícitos (TanStack Start,
@@ -122,9 +127,9 @@ publicar/hospedar, que é a parte que ainda gera dependência contínua.
   (confirmado: é a URL que a equipe usa hoje).
 - Não apagar as rotas `/lovable/*` sem antes checar se algo em produção
   (prévia de e-mail, webhook) ainda depende delas.
-- **Não cancelar nem rebaixar o plano do Lovable antes de confirmar acesso
-  próprio ao Supabase** (item 4 da Fase imediata) — cancelar sem isso
-  arrisca perder acesso ao banco de dados real, não só ao app publicado.
+- Acesso ao Supabase já confirmado (item 4) — o cuidado que resta é só com
+  o app publicado (item 3): não desconectar o Lovable sem deploy
+  independente pronto.
 
 ## 6. Decisão humana necessária
 
