@@ -337,6 +337,14 @@ export const abrirTicket = createServerFn({ method: "POST" })
     });
     if (msg.error) throw new Error(msg.error.message);
 
+    await h.alertaInternoTicket({
+      organizationId: acesso.organization_id,
+      casoId: data.casoId,
+      ticketId: ticket.data.id as string,
+      assunto,
+      novo: true,
+    });
+
     return { id: ticket.data.id as string };
   });
 
