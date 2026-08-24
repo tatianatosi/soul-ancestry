@@ -48,6 +48,8 @@ export function textoParaCliente(valor: unknown): string {
   s = limparCopy(s);
   if (!s) return "";
   if (contemTermoProibido(s)) return "";
+  // Sobra sem palavra (números, pontuação) é resíduo técnico, não conteúdo.
+  if (!/[a-zà-ú]{2,}/i.test(s)) return "";
   return s;
 }
 
