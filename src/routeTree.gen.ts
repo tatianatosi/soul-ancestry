@@ -17,9 +17,17 @@ import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
+import { Route as PortalRadarRouteImport } from './routes/portal/radar'
 import { Route as PortalPropostaRouteImport } from './routes/portal/proposta'
+import { Route as PortalLegadoRouteImport } from './routes/portal/legado'
+import { Route as PortalJornadaRouteImport } from './routes/portal/jornada'
 import { Route as PortalFaturasRouteImport } from './routes/portal/faturas'
+import { Route as PortalFase02RouteImport } from './routes/portal/fase-02'
+import { Route as PortalFase01RouteImport } from './routes/portal/fase-01'
+import { Route as PortalEntregasRouteImport } from './routes/portal/entregas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
+import { Route as PortalContaRouteImport } from './routes/portal/conta'
+import { Route as PortalArvoreRouteImport } from './routes/portal/arvore'
 import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
 import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
 import { Route as EquipeEsqueciMinhaSenhaRouteImport } from './routes/equipe.esqueci-minha-senha'
@@ -150,9 +158,24 @@ const PortalIndexRoute = PortalIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const PortalRadarRoute = PortalRadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
 const PortalPropostaRoute = PortalPropostaRouteImport.update({
   id: '/proposta',
   path: '/proposta',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalLegadoRoute = PortalLegadoRouteImport.update({
+  id: '/legado',
+  path: '/legado',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalJornadaRoute = PortalJornadaRouteImport.update({
+  id: '/jornada',
+  path: '/jornada',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalFaturasRoute = PortalFaturasRouteImport.update({
@@ -160,9 +183,34 @@ const PortalFaturasRoute = PortalFaturasRouteImport.update({
   path: '/faturas',
   getParentRoute: () => PortalRouteRoute,
 } as any)
+const PortalFase02Route = PortalFase02RouteImport.update({
+  id: '/fase-02',
+  path: '/fase-02',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalFase01Route = PortalFase01RouteImport.update({
+  id: '/fase-01',
+  path: '/fase-01',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalEntregasRoute = PortalEntregasRouteImport.update({
+  id: '/entregas',
+  path: '/entregas',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
 const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalContaRoute = PortalContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalArvoreRoute = PortalArvoreRouteImport.update({
+  id: '/arvore',
+  path: '/arvore',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const EquipeSemPermissaoRoute = EquipeSemPermissaoRouteImport.update({
@@ -724,9 +772,17 @@ export interface FileRoutesByFullPath {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/entregas': typeof PortalEntregasRoute
+  '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
+  '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -825,9 +881,17 @@ export interface FileRoutesByTo {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/entregas': typeof PortalEntregasRoute
+  '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
+  '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal': typeof PortalIndexRoute
   '/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -929,9 +993,17 @@ export interface FileRoutesById {
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
+  '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
+  '/portal/entregas': typeof PortalEntregasRoute
+  '/portal/fase-01': typeof PortalFase01Route
+  '/portal/fase-02': typeof PortalFase02Route
   '/portal/faturas': typeof PortalFaturasRoute
+  '/portal/jornada': typeof PortalJornadaRoute
+  '/portal/legado': typeof PortalLegadoRoute
   '/portal/proposta': typeof PortalPropostaRoute
+  '/portal/radar': typeof PortalRadarRoute
   '/portal/': typeof PortalIndexRoute
   '/_authenticated/achados/$caseId': typeof AuthenticatedAchadosCaseIdRoute
   '/_authenticated/biblioteca-evidencias/$caseId': typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -1033,9 +1105,17 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
+    | '/portal/entregas'
+    | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
+    | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal/'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1134,9 +1214,17 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
+    | '/portal/entregas'
+    | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
+    | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal'
     | '/achados/$caseId'
     | '/biblioteca-evidencias/$caseId'
@@ -1237,9 +1325,17 @@ export interface FileRouteTypes {
     | '/equipe/esqueci-minha-senha'
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
+    | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
+    | '/portal/entregas'
+    | '/portal/fase-01'
+    | '/portal/fase-02'
     | '/portal/faturas'
+    | '/portal/jornada'
+    | '/portal/legado'
     | '/portal/proposta'
+    | '/portal/radar'
     | '/portal/'
     | '/_authenticated/achados/$caseId'
     | '/_authenticated/biblioteca-evidencias/$caseId'
@@ -1362,11 +1458,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalIndexRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/portal/radar': {
+      id: '/portal/radar'
+      path: '/radar'
+      fullPath: '/portal/radar'
+      preLoaderRoute: typeof PortalRadarRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/portal/proposta': {
       id: '/portal/proposta'
       path: '/proposta'
       fullPath: '/portal/proposta'
       preLoaderRoute: typeof PortalPropostaRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/legado': {
+      id: '/portal/legado'
+      path: '/legado'
+      fullPath: '/portal/legado'
+      preLoaderRoute: typeof PortalLegadoRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/jornada': {
+      id: '/portal/jornada'
+      path: '/jornada'
+      fullPath: '/portal/jornada'
+      preLoaderRoute: typeof PortalJornadaRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/faturas': {
@@ -1376,11 +1493,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalFaturasRouteImport
       parentRoute: typeof PortalRouteRoute
     }
+    '/portal/fase-02': {
+      id: '/portal/fase-02'
+      path: '/fase-02'
+      fullPath: '/portal/fase-02'
+      preLoaderRoute: typeof PortalFase02RouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/fase-01': {
+      id: '/portal/fase-01'
+      path: '/fase-01'
+      fullPath: '/portal/fase-01'
+      preLoaderRoute: typeof PortalFase01RouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/entregas': {
+      id: '/portal/entregas'
+      path: '/entregas'
+      fullPath: '/portal/entregas'
+      preLoaderRoute: typeof PortalEntregasRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
     '/portal/documentos': {
       id: '/portal/documentos'
       path: '/documentos'
       fullPath: '/portal/documentos'
       preLoaderRoute: typeof PortalDocumentosRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/conta': {
+      id: '/portal/conta'
+      path: '/conta'
+      fullPath: '/portal/conta'
+      preLoaderRoute: typeof PortalContaRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/arvore': {
+      id: '/portal/arvore'
+      path: '/arvore'
+      fullPath: '/portal/arvore'
+      preLoaderRoute: typeof PortalArvoreRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/equipe/sem-permissao': {
@@ -2205,18 +2357,34 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface PortalRouteRouteChildren {
+  PortalArvoreRoute: typeof PortalArvoreRoute
+  PortalContaRoute: typeof PortalContaRoute
   PortalDocumentosRoute: typeof PortalDocumentosRoute
+  PortalEntregasRoute: typeof PortalEntregasRoute
+  PortalFase01Route: typeof PortalFase01Route
+  PortalFase02Route: typeof PortalFase02Route
   PortalFaturasRoute: typeof PortalFaturasRoute
+  PortalJornadaRoute: typeof PortalJornadaRoute
+  PortalLegadoRoute: typeof PortalLegadoRoute
   PortalPropostaRoute: typeof PortalPropostaRoute
+  PortalRadarRoute: typeof PortalRadarRoute
   PortalIndexRoute: typeof PortalIndexRoute
   PortalCasosIdRoute: typeof PortalCasosIdRoute
   PortalMensagensIdRoute: typeof PortalMensagensIdRoute
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
+  PortalArvoreRoute: PortalArvoreRoute,
+  PortalContaRoute: PortalContaRoute,
   PortalDocumentosRoute: PortalDocumentosRoute,
+  PortalEntregasRoute: PortalEntregasRoute,
+  PortalFase01Route: PortalFase01Route,
+  PortalFase02Route: PortalFase02Route,
   PortalFaturasRoute: PortalFaturasRoute,
+  PortalJornadaRoute: PortalJornadaRoute,
+  PortalLegadoRoute: PortalLegadoRoute,
   PortalPropostaRoute: PortalPropostaRoute,
+  PortalRadarRoute: PortalRadarRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCasosIdRoute: PortalCasosIdRoute,
   PortalMensagensIdRoute: PortalMensagensIdRoute,
