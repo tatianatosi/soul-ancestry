@@ -8,7 +8,11 @@ import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/clientes.functions";
 import {
+  CAMADAS,
   CLASSIFICACOES,
+  camadaDoRegistro,
+  descricaoCamada,
+  rotuloCamada,
   FILTROS_PADRAO,
   ORIGENS,
   PAISES,
@@ -53,10 +57,11 @@ const ABAS: { valor: Filtros["estado"]; rotulo: string }[] = [
   { valor: "arquivados", rotulo: "Arquivados" },
 ];
 
-function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo"; children: React.ReactNode }) {
+function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo" | "caso"; children: React.ReactNode }) {
   const tons: Record<string, string> = {
     ativo: "bg-primary/10 text-primary border-primary/30",
     pre: "bg-muted text-muted-foreground border-border",
+    caso: "bg-secondary/20 text-foreground border-border",
     nucleo: "bg-accent/15 text-accent-foreground border-accent/30",
     demo: "bg-destructive/10 text-destructive border-destructive/30",
   };
@@ -179,6 +184,7 @@ function ClientesPage() {
               <thead className="text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="px-4 py-2">Pessoa</th>
+                  <th className="px-4 py-2">Camada do registro</th>
                   <th className="px-4 py-2">Classificação</th>
                   <th className="px-4 py-2">Origem</th>
                   <th className="px-4 py-2">Status comercial</th>
@@ -198,6 +204,22 @@ function ClientesPage() {
                           {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
                         </div>
                         <p className="text-xs text-muted-foreground">{p.email ?? "—"}</p>
+                      </td>
+                      <td className="px-4 py-2">
+                        <Etiqueta
+                          tom={
+                            eleg.camada === "client_profile"
+                              ? "ativo"
+                              : eleg.camada === "family_nucleus"
+                                ? "nucleo"
+                                : eleg.camada === "case_member"
+                                  ? "caso"
+                                  : "pre"
+                          }
+                        >
+                          {rotuloCamada(eleg.camada)}
+                        </Etiqueta>
+                        <p className="mt-1 max-w-[16rem] text-[11px] text-muted-foreground">{descricaoCamada(eleg.camada)}</p>
                       </td>
                       <td className="px-4 py-2">
                         <Etiqueta tom={p.classificacao === "cliente_ativo" ? "ativo" : "pre"}>
