@@ -162,8 +162,7 @@ function Pagina() {
       acoes={<AcoesExportacao />}
     >
       <div className="space-y-10">
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Fontes de verdade</h2>
+        <Secao titulo={"Fontes de verdade"} vazio={FONTES_VERDADE_CA04.length === 0} mensagemVazio={"Nenhuma fonte de verdade registrada nesta versão do CA-04."}>
           <div className="grid gap-3 md:grid-cols-2">
             {FONTES_VERDADE_CA04.map((f) => (
               <article key={f.camada} className={CARTAO}>
@@ -173,33 +172,29 @@ function Pagina() {
               </article>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Eixo Comercial</h2>
+        <Secao titulo={"Eixo Comercial"} vazio={EIXO_COMERCIAL_TRANSICOES.length === 0} mensagemVazio={"Nenhuma transição comercial registrada nesta versão."}>
           <TabelaTransicoes transicoes={EIXO_COMERCIAL_TRANSICOES} />
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Eixo Formalização/Operação</h2>
+        <Secao titulo={"Eixo Formalização/Operação"} vazio={EIXO_FORMALIZACAO_TRANSICOES.length === 0} mensagemVazio={"Nenhuma transição de formalização registrada nesta versão."}>
           <TabelaTransicoes transicoes={EIXO_FORMALIZACAO_TRANSICOES} />
           <p className="rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm text-navy">
             Resultado comercial é sempre derivado dos dois eixos. O estado exato que marca “Convertido”
             depende de decisão humana ainda pendente — nada é derivado como convertido antes dela.
           </p>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Roteiro Mestre de Discovery v2</h2>
+        <Secao titulo={"Roteiro Mestre de Discovery v2"} vazio={ROTEIRO_DISCOVERY_V2.length === 0} mensagemVazio={"Roteiro ainda não publicado nesta versão."}>
           <ol className={`${CARTAO} list-decimal space-y-1 pl-6 text-sm text-navy/85`}>
             {ROTEIRO_DISCOVERY_V2.map((passo) => (
               <li key={passo}>{passo}</li>
             ))}
           </ol>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Brief de Discovery por pessoa</h2>
+        <Secao titulo={"Brief de Discovery por pessoa"} vazio={BRIEF_DISCOVERY.length === 0} mensagemVazio={"Nenhum campo de Brief registrado nesta versão."}>
           <div className={`${CARTAO} overflow-x-auto`}>
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead className="text-xs uppercase tracking-wide text-navy/60">
@@ -220,10 +215,9 @@ function Pagina() {
               </tbody>
             </table>
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Matriz de handoff</h2>
+        <Secao titulo={"Matriz de handoff"} vazio={MATRIZ_HANDOFF_CA04.length === 0} mensagemVazio={"Nenhuma etapa de handoff registrada nesta versão."}>
           <div className="space-y-3">
             {MATRIZ_HANDOFF_CA04.map((e) => (
               <article key={e.etapa} className={CARTAO}>
@@ -244,10 +238,9 @@ function Pagina() {
               <li key={b}>{b}</li>
             ))}
           </ul>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Nunca projetar ao cliente</h2>
+        <Secao titulo={"Nunca projetar ao cliente"} vazio={CAMPOS_PROIBIDOS_CLIENTE_CA04.length === 0} mensagemVazio={"Nenhum campo proibido registrado nesta versão."}>
           <div className={`${CARTAO} flex flex-wrap gap-2`}>
             {CAMPOS_PROIBIDOS_CLIENTE_CA04.map((c) => (
               <span key={c} className="rounded-full border border-terracotta/30 bg-terracotta/10 px-3 py-1 text-xs text-terracotta">
@@ -255,10 +248,9 @@ function Pagina() {
               </span>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Listas controladas (LISTAS_BASE v1.1)</h2>
+        <Secao titulo={"Listas controladas (LISTAS_BASE v1.1)"} vazio={listas.length === 0} mensagemVazio={"Nenhuma lista controlada disponível nesta versão."}>
           <div className="grid gap-3 md:grid-cols-2">
             {listas.map((nome) => (
               <details key={nome} className={CARTAO}>
@@ -273,10 +265,9 @@ function Pagina() {
               </details>
             ))}
           </div>
-        </section>
+        </Secao>
 
-        <section className="space-y-3">
-          <h2 className={TITULO_SECAO}>Decisões humanas pendentes</h2>
+        <Secao titulo={"Decisões humanas pendentes"} vazio={DECISOES_PENDENTES_CA04.length === 0} mensagemVazio={"Nenhuma decisão humana pendente registrada."}>
           <ol className={`${CARTAO} space-y-2 text-sm text-navy/85`}>
             {DECISOES_PENDENTES_CA04.map((d) => (
               <li key={d.numero} className="flex gap-3">
@@ -288,7 +279,7 @@ function Pagina() {
               </li>
             ))}
           </ol>
-        </section>
+        </Secao>
       </div>
     </SaasShell>
   );
