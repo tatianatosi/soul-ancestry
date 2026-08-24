@@ -297,7 +297,11 @@ export const AUDITORIA_MODULOS_ALERTA: AuditoriaModuloAlerta[] = [
   },
 ];
 
-/** Duplicidade de catálogos de templates — decisão humana pendente. */
+/**
+ * Duplicidade de catálogos de templates — RESOLVIDA em CA-OPS-03.
+ * Precedência canônica em src/lib/consolidacao-catalogos-templates.ts.
+ * Mantido aqui como registro histórico da decisão; nenhuma rota foi removida.
+ */
 export const DUPLICIDADE_CATALOGOS_TEMPLATE = {
   oficialOperacional: {
     id: "biblioteca-mensagens",
@@ -313,5 +317,7 @@ export const DUPLICIDADE_CATALOGOS_TEMPLATE = {
   },
   mesmaFonte: false,
   precedencia: "/biblioteca-mensagens prevalece para qualquer comunicação operacional.",
-  decisaoHumanaPendente: true,
+  decisaoHumanaPendente: false,
+  resolucao: "CA-OPS-03: 'Modelos institucionais' vira apontador histórico para /biblioteca-mensagens.",
 } as const;
+

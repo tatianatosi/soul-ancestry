@@ -100,7 +100,8 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
 
   it("8. duplicidade de catálogos está documentada", () => {
     expect(DUPLICIDADE_CATALOGOS_TEMPLATE.mesmaFonte).toBe(false);
-    expect(DUPLICIDADE_CATALOGOS_TEMPLATE.decisaoHumanaPendente).toBe(true);
+    // CA-OPS-03 resolveu a duplicidade: precedência fixada, sem pendência humana.
+    expect(DUPLICIDADE_CATALOGOS_TEMPLATE.decisaoHumanaPendente).toBe(false);
     const doc = readFileSync("docs/operacao/CA-OPS-02_Fiacao_Cadencia_Mensagens_Alertas.md", "utf8");
     expect(doc).toContain("Duplicidade de catálogos");
   });
@@ -112,7 +113,7 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
         expect(rotas.some((r) => m.destino.includes(r))).toBe(true);
       }
       if (m.estadoReal && m.estadoReal !== "conectado") {
-        expect(m.destino).toMatch(/Sem rota|Sem fonte/);
+        expect(m.destino).toMatch(/Sem rota|Sem fonte|Apontador histórico/);
       }
     }
     const semSuperficie = MODULOS_DESK.find((m) => m.id === "ale-rascunhos");
