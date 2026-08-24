@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { htmlImpressaoPainelContextual } from "@/lib/cadeia-jornada-pdf";
+import { htmlImpressaoPainelContextual, resumoTextoPainelContextual } from "@/lib/cadeia-jornada-pdf";
 import {
   descreverCadeia,
   detalharElo,
@@ -110,5 +110,119 @@ describe("PDF somente leitura do painel contextual", () => {
     expect(html).toContain("somente leitura");
     for (const elo of elosSemPendencias) expect(html).toContain(elo.rotulo);
     expect(html).not.toMatch(/enviar|publicar agora/i);
+  });
+});
+
+describe("resumoTextoPainelContextual — texto simples para copiar (PROMPT painel contextual)", () => {
+  const proxima = proximaAcaoDoPainel(resultadoReal, elosSemPendencias);
+  const texto = resumoTextoPainelContextual({
+    evento: "Proposta enviada",
+    data: HOJE,
+    proxima,
+    elos: elosSemPendencias,
+  });
+
+  it("contém motivo, evidências e próxima ação em texto simples", () => {
+    expect(texto).toContain("PRÓXIMA AÇÃO NO PAINEL HOJE");
+    expect(texto).toContain(`Ação: ${proxima.rotulo}`);
+    expect(texto).toContain(`Responsável: ${proxima.responsavel}`);
+    expect(texto).toContain(`Prazo: ${proxima.prazo}`);
+    expect(texto).toContain("MOTIVO");
+    expect(texto).toContain(proxima.motivo);
+    expect(texto).toContain("EVIDÊNCIAS");
+    for (const e of proxima.evidencias) expect(texto).toContain(`- ${e}`);
+  });
+
+  it("contém a pontuação do melhor ajuste quando aplicável", () => {
+    expect(texto).toContain(`PONTUAÇÃO DO MELHOR AJUSTE: ${proxima.pontuacao}`);
+    for (const c of proxima.justificativa) expect(texto).toContain(`- ${c}`);
+  });
+
+  it("contém os 11 elos da cadeia da jornada em texto simples", () => {
+    expect(elosSemPendencias).toHaveLength(11);
+    for (const elo of elosSemPendencias) {
+      expect(texto).toContain(`${elo.ordem}. ${elo.rotulo}`);
+      expect(texto).toContain(elo.detalhe);
+    }
+  });
+
+  it("declara explicitamente que nada foi enviado, publicado ou gravado", () => {
+    expect(texto).toMatch(/uso interno.*nenhum envio, publicação ou gravação/i);
+  });
+
+  it("é texto simples (sem marcação HTML) — diferente do documento de impressão", () => {
+    expect(texto).not.toMatch(/<[a-z]+[^>]*>/i);
+  });
+});
+
+describe("botão Copiar resumo — clipboard e fallback acessível", () => {
+  const componente = readFileSync("src/components/desk/cadeia-jornada.tsx", "utf8");
+
+  it("usa navigator.clipboard.writeText com o resumo padronizado", () => {
+    expect(componente).toContain("navigator.clipboard.writeText(texto)");
+    expect(componente).toContain("resumoTextoPainelContextual(dadosImpressao)");
+  });
+
+  it("trata rejeição/indisponibilidade do clipboard com fallback, nunca deixando o clique sem retorno", () => {
+    expect(componente).toMatch(/try\s*{\s*await navigator\.clipboard\.writeText\(texto\);[\s\S]*?}\s*catch\s*{/);
+    expect(componente).toContain('setCopiado("erro")');
+  });
+
+  it("mostra a mensagem de status em região aria-live, para leitor de tela", () => {
+    expect(componente).toContain('data-cadeia="copiar-status"');
+    expect(componente).toContain('role="status"');
+    expect(componente).toContain('aria-live="polite"');
+    expect(componente).toContain("Resumo copiado para a área de transferência.");
+    expect(componente).toContain("Não foi possível copiar automaticamente");
+  });
+});
+
+describe("prévia de PDF em diálogo com iframe (PROMPT painel contextual)", () => {
+  const componente = readFileSync("src/components/desk/cadeia-jornada.tsx", "utf8");
+
+  it("Gerar PDF somente leitura abre a prévia em diálogo modal", () => {
+    expect(componente).toContain('data-cadeia="exportar-pdf"');
+    expect(componente).toContain("setPrevia(true)");
+    expect(componente).toMatch(/data-cadeia="previa-pdf"[\s\S]*?role="dialog"/);
+    expect(componente).toContain('aria-modal="true"');
+  });
+
+  it("a prévia usa o mesmo documento (mesma função) que a impressão", () => {
+    expect(componente).toContain("srcDoc={htmlImpressaoPainelContextual(dadosImpressao)}");
+    expect(componente).toContain("imprimirPdfPainelContextual(dadosImpressao)");
+  });
+
+  it("Fechar encerra a prévia e devolve o foco ao gatilho que a abriu", () => {
+    expect(componente).toContain("gatilhoPreviaRef.current = e.currentTarget");
+    expect(componente).toMatch(/fecharPrevia = useCallback\(\(\) => \{\s*setPrevia\(false\);\s*gatilhoPreviaRef\.current\?\.focus\(\);/);
+    expect(componente).toContain('aria-label="Fechar prévia do PDF"');
+  });
+
+  it("Escape fecha tanto o drawer por elo quanto a prévia de impressão", () => {
+    const escapes = componente.match(/e\.key === "Escape"/g) ?? [];
+    expect(escapes.length).toBeGreaterThanOrEqual(2);
+    expect(componente).toContain("fecharPrevia();");
+  });
+
+  it("Tab e Shift+Tab ficam presos dentro do drawer e da prévia (mesma função de trap para os dois)", () => {
+    expect(componente).toContain("prenderFoco(painelDrawerRef.current, e)");
+    expect(componente).toContain("prenderFoco(previaRef.current, e)");
+    expect(componente).toMatch(/const prenderFoco = \(container: HTMLElement \| null, e: KeyboardEvent\)/);
+  });
+});
+
+describe("ausência de efeitos externos no painel contextual e no PDF (PROMPT painel contextual)", () => {
+  it("nem o componente nem o gerador de PDF chamam rede, banco ou API externa", () => {
+    const componente = readFileSync("src/components/desk/cadeia-jornada.tsx", "utf8");
+    const pdf = readFileSync("src/lib/cadeia-jornada-pdf.ts", "utf8");
+    for (const fonte of [componente, pdf]) {
+      expect(fonte).not.toMatch(/fetch\(|supabase|\.insert\(|\.update\(|createServerFn/);
+    }
+  });
+
+  it("a impressão só usa a janela de impressão nativa do navegador, sem envio de dados", () => {
+    const pdf = readFileSync("src/lib/cadeia-jornada-pdf.ts", "utf8");
+    expect(pdf).toContain("janela.print()");
+    expect(pdf).not.toMatch(/XMLHttpRequest|axios|\.post\(|\.send\(/);
   });
 });
