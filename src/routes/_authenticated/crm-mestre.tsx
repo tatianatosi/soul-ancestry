@@ -240,7 +240,7 @@ function Pagina() {
           </ul>
         </Secao>
 
-        <Secao titulo={"Nunca projetar ao cliente"} vazio={CAMPOS_PROIBIDOS_CLIENTE_CA04.length === 0} mensagemVazio={"Nenhum campo proibido registrado nesta versão."}>
+        <Secao titulo={"Nunca projetar ao cliente"} vazio={(CAMPOS_PROIBIDOS_CLIENTE_CA04 as readonly string[]).length === 0} mensagemVazio={"Nenhum campo proibido registrado nesta versão."}>
           <div className={`${CARTAO} flex flex-wrap gap-2`}>
             {CAMPOS_PROIBIDOS_CLIENTE_CA04.map((c) => (
               <span key={c} className="rounded-full border border-terracotta/30 bg-terracotta/10 px-3 py-1 text-xs text-terracotta">
