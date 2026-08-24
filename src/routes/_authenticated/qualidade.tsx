@@ -31,6 +31,7 @@ function QualidadePage() {
       titulo="Radar Interno"
       descricao="Antes chamado Qualidade e fechamento. Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
     >
+      <EixosCanonicosInternos />
       <PainelQualidade />
     </SaasShell>
   );
