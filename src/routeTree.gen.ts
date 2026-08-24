@@ -26,6 +26,7 @@ import { Route as PortalFase02RouteImport } from './routes/portal/fase-02'
 import { Route as PortalFase01RouteImport } from './routes/portal/fase-01'
 import { Route as PortalEntregasRouteImport } from './routes/portal/entregas'
 import { Route as PortalDocumentosRouteImport } from './routes/portal/documentos'
+import { Route as PortalContaRouteImport } from './routes/portal/conta'
 import { Route as PortalArvoreRouteImport } from './routes/portal/arvore'
 import { Route as EquipeSemPermissaoRouteImport } from './routes/equipe.sem-permissao'
 import { Route as EquipeRedefinirSenhaRouteImport } from './routes/equipe.redefinir-senha'
@@ -200,6 +201,11 @@ const PortalEntregasRoute = PortalEntregasRouteImport.update({
 const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
+  getParentRoute: () => PortalRouteRoute,
+} as any)
+const PortalContaRoute = PortalContaRouteImport.update({
+  id: '/conta',
+  path: '/conta',
   getParentRoute: () => PortalRouteRoute,
 } as any)
 const PortalArvoreRoute = PortalArvoreRouteImport.update({
@@ -767,6 +773,7 @@ export interface FileRoutesByFullPath {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
@@ -875,6 +882,7 @@ export interface FileRoutesByTo {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
@@ -986,6 +994,7 @@ export interface FileRoutesById {
   '/equipe/redefinir-senha': typeof EquipeRedefinirSenhaRoute
   '/equipe/sem-permissao': typeof EquipeSemPermissaoRoute
   '/portal/arvore': typeof PortalArvoreRoute
+  '/portal/conta': typeof PortalContaRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/entregas': typeof PortalEntregasRoute
   '/portal/fase-01': typeof PortalFase01Route
@@ -1097,6 +1106,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
@@ -1205,6 +1215,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
@@ -1315,6 +1326,7 @@ export interface FileRouteTypes {
     | '/equipe/redefinir-senha'
     | '/equipe/sem-permissao'
     | '/portal/arvore'
+    | '/portal/conta'
     | '/portal/documentos'
     | '/portal/entregas'
     | '/portal/fase-01'
@@ -1507,6 +1519,13 @@ declare module '@tanstack/react-router' {
       path: '/documentos'
       fullPath: '/portal/documentos'
       preLoaderRoute: typeof PortalDocumentosRouteImport
+      parentRoute: typeof PortalRouteRoute
+    }
+    '/portal/conta': {
+      id: '/portal/conta'
+      path: '/conta'
+      fullPath: '/portal/conta'
+      preLoaderRoute: typeof PortalContaRouteImport
       parentRoute: typeof PortalRouteRoute
     }
     '/portal/arvore': {
@@ -2339,6 +2358,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface PortalRouteRouteChildren {
   PortalArvoreRoute: typeof PortalArvoreRoute
+  PortalContaRoute: typeof PortalContaRoute
   PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalEntregasRoute: typeof PortalEntregasRoute
   PortalFase01Route: typeof PortalFase01Route
@@ -2355,6 +2375,7 @@ interface PortalRouteRouteChildren {
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalArvoreRoute: PortalArvoreRoute,
+  PortalContaRoute: PortalContaRoute,
   PortalDocumentosRoute: PortalDocumentosRoute,
   PortalEntregasRoute: PortalEntregasRoute,
   PortalFase01Route: PortalFase01Route,

@@ -38,12 +38,21 @@ export function PortalShell({
   const nav =
     data?.nivel === "client_workspace"
       ? [
-          { to: "/portal", label: "Meus casos", icon: FolderOpen },
+          { to: "/portal", label: "Home", icon: FolderOpen },
+          { to: "/portal/jornada", label: "Jornada", icon: Route },
+          { to: "/portal/radar", label: "Radar", icon: Radar },
+          { to: "/portal/arvore", label: "Árvore", icon: Trees },
           { to: "/portal/documentos", label: "Documentos", icon: FileText },
+          { to: "/portal/entregas", label: "Entregas da Jornada", icon: PackageCheck },
+          { to: "/portal/fase-01", label: "Fase 01", icon: FileText },
+          { to: "/portal/fase-02", label: "Fase 02", icon: FileText },
+          { to: "/portal/legado", label: "Legado", icon: BookOpen },
+          { to: "/portal/conta", label: "Conta", icon: UserRound },
           { to: "/portal/faturas", label: "Faturas", icon: Receipt },
           { to: "/portal/proposta", label: "Proposta", icon: Receipt },
         ]
       : [{ to: "/portal/proposta", label: "Proposta", icon: Receipt }];
+
 
   async function sair() {
     await queryClient.cancelQueries();
