@@ -137,13 +137,26 @@ export function CadeiaJornada({
     botoes[destino]?.focus();
   };
 
+  const dadosImpressao: DadosImpressaoPainel = {
+    evento: ROTULO_EVENTO[evento],
+    data: new Date().toISOString().slice(0, 10),
+    proxima,
+    elos,
+  };
+
   const exportarPdf = () => {
-    imprimirPdfPainelContextual({
-      evento: ROTULO_EVENTO[evento],
-      data: new Date().toISOString().slice(0, 10),
-      proxima,
-      elos,
-    });
+    imprimirPdfPainelContextual(dadosImpressao);
+  };
+
+  const copiarResumo = async () => {
+    const texto = resumoTextoPainelContextual(dadosImpressao);
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado("ok");
+    } catch {
+      setCopiado("erro");
+    }
+    window.setTimeout(() => setCopiado(null), 4000);
   };
 
   return (
