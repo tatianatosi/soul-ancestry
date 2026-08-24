@@ -3,9 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
-import { Painel, Selo } from "@/components/comercial/base";
+import {
+  AlertaDesk,
+  BadgeDesk,
+  CarregandoDesk,
+  PageHeader,
+  VazioDesk,
+} from "@/components/desk/ui-desk";
 import { listarCasosPesquisa } from "@/lib/pesquisa.functions";
 import { PendenciasCriticasPesquisa } from "@/components/painel/pendencias-criticas-pesquisa";
+
 
 export const Route = createFileRoute("/_authenticated/pesquisa/")({
   head: () => ({
