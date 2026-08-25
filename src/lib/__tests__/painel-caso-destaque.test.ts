@@ -94,3 +94,35 @@ describe("marca: logo servido pelo próprio domínio", () => {
     expect(home).toContain('variant="client-light"');
   });
 });
+
+describe("Sinais de atenção recolhido por padrão", () => {
+  const painel = readFileSync("src/components/painel/painel-dia.tsx", "utf8");
+
+  it("abre fechado", () => {
+    expect(painel).toContain("const [sinaisAbertos, setSinaisAbertos] = useState(false)");
+  });
+
+  it("o conteúdo detalhado fica atrás do estado", () => {
+    expect(painel).toContain("{!sinaisAbertos ? null : (");
+  });
+
+  it("o cabeçalho é um botão acessível com estado declarado", () => {
+    expect(painel).toContain("aria-expanded={sinaisAbertos}");
+  });
+
+  it("total e maior gravidade continuam visíveis mesmo recolhido", () => {
+    // Um P0 não pode ficar escondido atrás de um clique.
+    expect(painel).toContain("const totalSinais = todasLinhasSinais.length");
+    expect(painel).toContain("const graveGeral = maiorGravidade(todasLinhasSinais)");
+    expect(painel).toContain("{graveGeral ? (");
+  });
+
+  it("continua sendo o bloco imediatamente após as exceções", () => {
+    const excecoes = painel.indexOf('data-painel-bloco="excecoes"');
+    const sinais = painel.indexOf('data-painel-bloco="sinais"');
+    const comercial = painel.indexOf('data-painel-bloco="comercial"');
+    expect(excecoes).toBeGreaterThan(-1);
+    expect(sinais).toBeGreaterThan(excecoes);
+    expect(comercial).toBeGreaterThan(sinais);
+  });
+});

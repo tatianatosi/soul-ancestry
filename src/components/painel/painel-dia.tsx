@@ -44,14 +44,21 @@ import {
 import { itensDerivadosDoPainel } from "@/lib/painel-derivados";
 import { ItensDerivados } from "@/components/painel/itens-derivados";
 import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
-import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
+import {
+  validarPainelHoje,
+  type ProblemaPainel,
+  type RegistroRenderizado,
+} from "@/lib/painel-ordem";
 
 /**
  * Verificação de leitura da tela: confere, no que foi de fato renderizado, a
  * ordem canônica dos blocos (Sinais de atenção logo após Exceções que exigem
  * dono) e a ausência de registro repetido na fila. Só observa o DOM.
  */
-function useVerificacaoLeituraPainel(raiz: React.RefObject<HTMLDivElement | null>, dependencias: unknown[]) {
+function useVerificacaoLeituraPainel(
+  raiz: React.RefObject<HTMLDivElement | null>,
+  dependencias: unknown[],
+) {
   const [problemas, setProblemas] = useState<ProblemaPainel[]>([]);
   useEffect(() => {
     const no = raiz.current;
@@ -90,12 +97,20 @@ function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
   );
 }
 
-
-
-function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
+function LinkItem({
+  item,
+  children,
+}: {
+  item: { id: string; tipo: "lead" | "caso" };
+  children: React.ReactNode;
+}) {
   if (item.tipo === "caso") {
     return (
-      <Link to="/casos/$caseId" params={{ caseId: item.id }} className="text-navy underline underline-offset-2">
+      <Link
+        to="/casos/$caseId"
+        params={{ caseId: item.id }}
+        className="text-navy underline underline-offset-2"
+      >
         {children}
       </Link>
     );
@@ -149,31 +164,35 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li data-registro={`${item.tipo}:${item.id}`} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+    <li
+      data-registro={`${item.tipo}:${item.id}`}
+      className="min-w-0 rounded-lg border border-navy/10 px-3 py-2"
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
         <span className="min-w-0 break-words">
           <LinkItem item={item}>{item.rotulo}</LinkItem>
         </span>
         <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
-      <p className="mt-0.5"><EtiquetaPrioridade item={item} /></p>
+      <p className="mt-0.5">
+        <EtiquetaPrioridade item={item} />
+      </p>
       <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
-
 
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
           <span className="text-navy/60">Responsável: {item.responsavel}</span>
         ) : (
           <span className="rounded bg-terracotta/10 px-1.5 py-0.5 text-terracotta">
-            Falha de qualidade: sem responsável definido · proprietário atual: Não definido · ação exigida: Atribuição humana
-            necessária
+            Falha de qualidade: sem responsável definido · proprietário atual: Não definido · ação
+            exigida: Atribuição humana necessária
           </span>
         )}
       </p>
       {item.bloqueios.length > 0 ? (
         <p className="mt-1 text-[11px] text-navy/50">
-          +{item.bloqueios.length} bloqueio{item.bloqueios.length === 1 ? "" : "s"} no mesmo registro — abrir a ficha para a lista
-          completa.
+          +{item.bloqueios.length} bloqueio{item.bloqueios.length === 1 ? "" : "s"} no mesmo
+          registro — abrir a ficha para a lista completa.
         </p>
       ) : null}
       {proprietaria ? (
@@ -187,7 +206,6 @@ function Linha({
     </li>
   );
 }
-
 
 /**
  * Tom de cada métrica de decisão do topo. Só se aplica quando há valor maior
@@ -212,7 +230,8 @@ const GRUPOS_INDICADOR = [
   {
     chave: "formalizacao" as const,
     titulo: "Formalização e comercial",
-    resumo: "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
+    resumo:
+      "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
     rota: "/conversao" as const,
     acao: "Abrir conversão e funil",
   },
@@ -226,7 +245,8 @@ const GRUPOS_INDICADOR = [
   {
     chave: "financeiro" as const,
     titulo: "Financeiro",
-    resumo: "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
+    resumo:
+      "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
     rota: "/financeiro" as const,
     acao: "Abrir financeiro",
   },
@@ -245,8 +265,9 @@ export function PainelDia() {
   const carregarCadencia = useServerFn(painelCadencia);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
+  // Sinais de atenção é diagnóstico, não operação: vem recolhido por padrão.
+  const [sinaisAbertos, setSinaisAbertos] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosDia>({ responsavel: "", area: "", etapa: "" });
-
 
   const qDesk = useQuery({
     queryKey: ["painel-desk-hoje", incluirDemo],
@@ -254,9 +275,17 @@ export function PainelDia() {
     retry: false,
   });
   const carregarModo = useServerFn(estadoModoProprietaria);
-  const qModo = useQuery({ queryKey: ["painel-modo-proprietaria"], queryFn: () => carregarModo(), retry: false });
+  const qModo = useQuery({
+    queryKey: ["painel-modo-proprietaria"],
+    queryFn: () => carregarModo(),
+    retry: false,
+  });
   const proprietaria = podeExibirAcoesRapidas(qModo.data);
-  const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
+  const qCad = useQuery({
+    queryKey: ["painel-cadencia"],
+    queryFn: () => carregarCadencia(),
+    retry: false,
+  });
   const carregarBloqueios = useServerFn(casosBloqueadosPorCatalogo);
   const qCatalogo = useQuery({
     queryKey: ["painel-bloqueios-catalogo", incluirDemo],
@@ -271,7 +300,9 @@ export function PainelDia() {
   });
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
   const instrumentosComBloqueio = instrumentosJuridico.filter((i) => i.bloqueios > 0);
-  const instrumentosComPendencia = instrumentosJuridico.filter((i) => i.bloqueios === 0 && i.pendentes > 0);
+  const instrumentosComPendencia = instrumentosJuridico.filter(
+    (i) => i.bloqueios === 0 && i.pendentes > 0,
+  );
 
   const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
   const idsBloqueadosCatalogo = new Set(
@@ -289,7 +320,8 @@ export function PainelDia() {
   ]);
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
-  if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
+  if (qDesk.isError || !qDesk.data)
+    return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
 
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
@@ -299,13 +331,17 @@ export function PainelDia() {
   const cards = cardsHoje(filas, { incluirDemo, itens });
   const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
-  const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
+  const priorizadaVisivel = priorizada.map((f) => ({
+    ...f,
+    itens: aplicarFiltrosDia(f.itens, filtros),
+  }));
   const usados = chavesExibidas(priorizada);
   const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
 
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
-  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina]) usados.add(`${i.tipo}:${i.id}`);
+  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina])
+    usados.add(`${i.tipo}:${i.id}`);
   // Cadência: motivo, evidência e o toque que faz avançar. Deriva das filas e
   // dos casos já carregados, respeitando a precedência — registro exibido em
   // bloco anterior não reaparece aqui. Calculada antes de `usados` receber os
@@ -319,7 +355,8 @@ export function PainelDia() {
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
-  const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
+  const qtd = (chave: string) =>
+    (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
 
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
@@ -352,7 +389,6 @@ export function PainelDia() {
     { total: 0, criticos: 0, hoje: 0 },
   );
 
-
   // Linhas por indicador: motivo, responsável, prazo/idade e severidade, deduplicadas por registro.
   const linhasIndicadores: LinhaIndicadorDia[] = [];
   const addLinha = (
@@ -365,7 +401,8 @@ export function PainelDia() {
     responsavel: string | null,
     prazo: string,
   ) => {
-    if (total > 0) linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
+    if (total > 0)
+      linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
   };
 
   addLinha(
@@ -550,22 +587,33 @@ export function PainelDia() {
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
   const PESO = { P0: 3, P1: 2, P2: 1 } as const;
   const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
-    ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
+    ls.reduce<LinhaIndicadorDia["severidade"] | null>(
+      (m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m),
+      null,
+    );
 
-
+  // Resumo que o cabeçalho de "Sinais de atenção" mostra mesmo recolhido:
+  // quantos sinais existem e qual a maior gravidade entre eles. Um P0 nunca
+  // fica escondido atrás de um clique.
+  const todasLinhasSinais = GRUPOS_INDICADOR.flatMap((g) => agrupado[g.chave]);
+  const totalSinais = todasLinhasSinais.length;
+  const graveGeral = maiorGravidade(todasLinhasSinais);
 
   return (
     <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <p className="min-w-0 text-sm text-navy/60">
-          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
-          proprietárias.
+          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e
+          planejamento ficam nas áreas proprietárias.
         </p>
         <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
-          <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={incluirDemo}
+            onChange={(e) => setIncluirDemo(e.target.checked)}
+          />
           Incluir demonstrações
         </label>
-
       </div>
 
       {proprietaria ? <VerificadorAdminProprietaria /> : null}
@@ -593,7 +641,10 @@ export function PainelDia() {
       <CasoEmDestaque dados={casoDestaque} />
 
       {/* 2 — Minha fila priorizada */}
-      <section data-painel-bloco="fila_priorizada" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="fila_priorizada"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
           <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
@@ -622,11 +673,12 @@ export function PainelDia() {
             ))}
           </div>
         </div>
-        <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
+        <p className="mt-1 text-xs text-navy/50">
+          Ordenada pela data da próxima ação, nunca pela data de criação.
+        </p>
         <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {priorizadaVisivel.map((f) => (
             <div key={f.chave} className="min-w-0">
-
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
               </p>
@@ -640,16 +692,20 @@ export function PainelDia() {
                     aoSalvar={() => void qDesk.refetch()}
                   />
                 ))}
-                {f.itens.length === 0 ? <li className="text-xs text-navy/50">Nada nesta faixa.</li> : null}
+                {f.itens.length === 0 ? (
+                  <li className="text-xs text-navy/50">Nada nesta faixa.</li>
+                ) : null}
               </ul>
             </div>
           ))}
         </div>
       </section>
 
-
       {/* 2 — Exceções que exigem dono */}
-      <section data-painel-bloco="excecoes" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="excecoes"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
@@ -657,7 +713,6 @@ export function PainelDia() {
           <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {excecoes.map((e) => (
               <div key={e.chave} className="min-w-0">
-
                 <p className="text-xs uppercase tracking-wide text-navy/50">
                   {e.rotulo} · {e.itens.length}
                 </p>
@@ -689,87 +744,149 @@ export function PainelDia() {
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
 
+      {/*
+        Decisão da Proprietária (25/08): Sinais de atenção passa a vir
+        recolhido. Depois que o topo ganhou as métricas de decisão e o caso em
+        destaque, e o bloco de cadência passou a dizer o que fazer, estes cinco
+        contadores são diagnóstico, não operação — e empurravam para baixo da
+        dobra justamente o que exige ação.
+
+        O cabeçalho continua visível com o total e a maior gravidade: um P0
+        nunca fica escondido atrás de um clique.
+      */}
       <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
+          <button
+            type="button"
+            onClick={() => setSinaisAbertos((v) => !v)}
+            aria-expanded={sinaisAbertos}
+            className="flex min-w-0 items-baseline gap-2 text-left"
+          >
+            <span className="font-serif text-lg text-navy">Sinais de atenção</span>
+            <span className="shrink-0 text-xs tabular-nums text-navy/55">
+              {totalSinais === 0 ? "nenhum" : totalSinais}
+            </span>
+            {graveGeral ? (
+              <span
+                className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                  graveGeral === "P0"
+                    ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                    : graveGeral === "P1"
+                      ? "border-gold/50 bg-gold/10 text-navy"
+                      : "border-navy/20 text-navy/60"
+                }`}
+              >
+                {graveGeral}
+              </span>
+            ) : null}
+            <span className="shrink-0 text-[11px] text-navy/45">
+              {sinaisAbertos ? "ocultar" : "ver"}
+            </span>
+          </button>
           <span className="flex flex-wrap items-baseline gap-3">
             {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
-            <Link to="/ops" className="text-[11px] font-medium text-navy underline underline-offset-2">
+            <Link
+              to="/ops"
+              className="text-[11px] font-medium text-navy underline underline-offset-2"
+            >
               Ver cadência e onboarding em risco
             </Link>
-            <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
+            <Link
+              to="/governanca/indicadores"
+              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
+            >
               registro canônico dos indicadores
             </Link>
           </span>
         </div>
-        <p className="mt-1 text-xs text-navy/50">
-          Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não geram nova linha de ação.
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {GRUPOS_INDICADOR.map((g) => {
-            const linhas = agrupado[g.chave];
-            const grave = maiorGravidade(linhas);
-            return (
-              <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
-                  <span className="min-w-0 break-words text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="flex shrink-0 items-center gap-1.5">
-
-                    <span className="font-serif text-lg text-navy">{linhas.length}</span>
-                    {grave ? (
-                      <span
-                        className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                          grave === "P0"
-                            ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                            : grave === "P1"
-                              ? "border-gold/50 bg-gold/10 text-navy"
-                              : "border-navy/20 text-navy/60"
-                        }`}
-                      >
-                        {grave}
+        {!sinaisAbertos ? null : (
+          <>
+            <p className="mt-1 text-xs text-navy/50">
+              Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não
+              geram nova linha de ação.
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {GRUPOS_INDICADOR.map((g) => {
+                const linhas = agrupado[g.chave];
+                const grave = maiorGravidade(linhas);
+                return (
+                  <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+                      <span className="min-w-0 break-words text-sm font-medium text-navy">
+                        {g.titulo}
                       </span>
-                    ) : null}
-                  </span>
-                </div>
-                <p className="mt-0.5 break-words text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
-                <div className="mt-1 flex flex-wrap gap-3">
-                  <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
-                    {g.acao}
-                  </Link>
-                  {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
-                    <Link to="/catalogo" className="text-[11px] text-navy underline underline-offset-2">
-                      Governança de Catálogo ({bloqueadosCatalogo.length}) — {EXCECAO_CONDICAO_COMERCIAL}
-                    </Link>
-                  ) : null}
-                </div>
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        <span className="font-serif text-lg text-navy">{linhas.length}</span>
+                        {grave ? (
+                          <span
+                            className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                              grave === "P0"
+                                ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
+                                : grave === "P1"
+                                  ? "border-gold/50 bg-gold/10 text-navy"
+                                  : "border-navy/20 text-navy/60"
+                            }`}
+                          >
+                            {grave}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 break-words text-[11px] text-navy/55">
+                      {linhas[0]?.motivo ?? g.resumo}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-3">
+                      <Link
+                        to={g.rota}
+                        className="text-[11px] text-navy underline underline-offset-2"
+                      >
+                        {g.acao}
+                      </Link>
+                      {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
+                        <Link
+                          to="/catalogo"
+                          className="text-[11px] text-navy underline underline-offset-2"
+                        >
+                          Governança de Catálogo ({bloqueadosCatalogo.length}) —{" "}
+                          {EXCECAO_CONDICAO_COMERCIAL}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 border-t border-navy/10 pt-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
+                <span className="text-[11px] text-navy/45">
+                  Cadência e onboarding · somente leitura
+                </span>
               </div>
-            );
-          })}
-        </div>
-        <div className="mt-4 border-t border-navy/10 pt-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
-            <span className="text-[11px] text-navy/45">Cadência e onboarding · somente leitura</span>
-          </div>
-          <p className="mt-1 text-[11px] text-navy/50">
-            Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa, prazo nem comunicação.
-          </p>
-          <div className="mt-2">
-            <ItensDerivados itens={derivados} />
-          </div>
-          <Link
-            to="/ops"
-            className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
-          >
-            Ver cadência completa
-          </Link>
-
-        </div>
+              <p className="mt-1 text-[11px] text-navy/50">
+                Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa,
+                prazo nem comunicação.
+              </p>
+              <div className="mt-2">
+                <ItensDerivados itens={derivados} />
+              </div>
+              <Link
+                to="/ops"
+                className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
+              >
+                Ver cadência completa
+              </Link>
+            </div>
+          </>
+        )}
       </section>
 
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
-      <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="comercial"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
@@ -788,7 +905,8 @@ export function PainelDia() {
           </Link>
         </p>
         <p className="mt-1 text-xs text-navy/50">
-          Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já presente nas filas acima.
+          Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já
+          presente nas filas acima.
         </p>
         {/*
           CA-UX-02 §7, regra de não duplicação: contrato enviado e pagamento
@@ -804,19 +922,21 @@ export function PainelDia() {
         </p>
       </section>
 
-
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="min-w-0 font-serif text-lg text-navy">Cadência — quem precisa de um toque</h2>
+          <h2 className="min-w-0 font-serif text-lg text-navy">
+            Cadência — quem precisa de um toque
+          </h2>
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
 
         <p className="mt-1 text-xs text-navy/50">
-          Quem parou, há quanto tempo, por quê e qual toque faz avançar. Ausência de prazo é exibida como “Sem prazo
-          definido”, nunca como número. Registro já exibido nos blocos acima não reaparece aqui.
+          Quem parou, há quanto tempo, por quê e qual toque faz avançar. Ausência de prazo é exibida
+          como “Sem prazo definido”, nunca como número. Registro já exibido nos blocos acima não
+          reaparece aqui.
         </p>
 
         <FilaCadencia itens={cadenciaFollowUp} carregando={qCad.isLoading} erro={qCad.isError} />
@@ -829,10 +949,15 @@ export function PainelDia() {
         existentes, um em cima do outro. Continua sendo descoberta pura:
         abrir um link não cria nem altera nada.
       */}
-      <section data-painel-bloco="descoberta" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="descoberta"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
 
-        <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">Começar alguma coisa</p>
+        <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
+          Começar alguma coisa
+        </p>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
             { to: "/leads" as const, rotulo: "Novo lead" },
@@ -843,7 +968,11 @@ export function PainelDia() {
             { to: "/financeiro" as const, rotulo: "Registrar pagamento" },
             { to: "/acessos-portal" as const, rotulo: "Publicar entrega no App Cliente" },
           ].map((a) => (
-            <Link key={a.to} to={a.to} className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5">
+            <Link
+              key={a.to}
+              to={a.to}
+              className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
+            >
               {a.rotulo}
             </Link>
           ))}
@@ -866,22 +995,44 @@ export function PainelDia() {
         </div>
       </section>
 
-
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
-        <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
+        <button
+          onClick={() => setAjuda((v) => !v)}
+          className="text-xs uppercase tracking-wide text-navy/55"
+        >
           {ajuda ? "Ocultar ajuda" : "Como ler estas informações"}
         </button>
         {ajuda ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-xs">
-            <li>Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na maior urgência aplicável.</li>
-            <li>Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios na ficha do caso.</li>
+            <li>
+              Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na
+              maior urgência aplicável.
+            </li>
+            <li>
+              Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios
+              na ficha do caso.
+            </li>
 
-            <li>Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na ficha do registro.</li>
-            <li>Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em número.</li>
-            <li>Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir demonstrações”.</li>
-            <li>Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários — aqui só priorização.</li>
-            <li>Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até confirmação documental.</li>
-
+            <li>
+              Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na
+              ficha do registro.
+            </li>
+            <li>
+              Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em
+              número.
+            </li>
+            <li>
+              Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir
+              demonstrações”.
+            </li>
+            <li>
+              Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários
+              — aqui só priorização.
+            </li>
+            <li>
+              Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até
+              confirmação documental.
+            </li>
           </ul>
         ) : null}
       </div>
