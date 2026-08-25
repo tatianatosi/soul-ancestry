@@ -56,19 +56,51 @@ exige licença e auto-hospedagem (`@font-face`). A substituição por Great
 Vibes provavelmente foi uma decisão de engenharia razoável — mas não está
 registrada em lugar nenhum, o que a torna indistinguível de um engano.
 
-### Decisão humana necessária
+### Decisões da Proprietária — 25/08/2026
 
-Nenhuma das duas foi alterada nesta sessão. São decisões de marca, não de
-código:
+Ambas resolvidas, registradas aqui como decisão consciente:
 
-1. **Cormorant Garamond fica ou sai?** Se o guia é exaustivo, todo título
-   do Desk deveria ser Montserrat, e a interface mudaria bastante. Se o
-   guia cobre só marca/logo e a interface pode ter face própria, então
-   Cormorant precisa ser adotada explicitamente em documento, não por
-   omissão.
-2. **Great Vibes é substituta autorizada de Amolena Boutique Script?** Se
-   sim, registrar como substituição consciente. Se não, é preciso
-   licenciar a Amolena e auto-hospedar.
+1. **O guia cobre marca e logo, não a interface.** Portanto Cormorant
+   Garamond está **autorizada** como tipografia de interface do Desk e do
+   App Cliente. Não é divergência: é escopo. O guia não pretende governar
+   a tipografia de produto.
+2. **Great Vibes é substituta autorizada** da Amolena Boutique Script na
+   aplicação digital. Não é preciso licenciar nem auto-hospedar a Amolena
+   para a web. A Amolena permanece a face do logo em peças de marca.
+
+Com isso não resta nenhuma divergência tipográfica em aberto entre o guia
+e o código.
+
+## Como a marca aparece hoje no App Cliente — dois achados
+
+`src/components/portal/portal-shell.tsx` (linhas 84–86):
+
+```tsx
+<BrandLogo size={36} variant="client-dark" showText={false} />
+<p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
+```
+
+**Achado 1 — o wordmark do App Cliente não usa a face de script.**
+O shell passa `showText={false}`, o que desliga o wordmark do `BrandLogo`
+(o único lugar do código onde Great Vibes é aplicada, `brand.tsx:65`), e
+depois escreve "Clube Ancestral" por conta própria em `font-serif` —
+Cormorant Garamond — em dourado. Ou seja: a substituição que acabou de ser
+autorizada não está em uso na tela do cliente. O nome da marca aparece em
+Cormorant, não em script.
+
+Isso é decisão de design a confirmar, não defeito: pode ser deliberado
+(script em peça de marca, serifada na interface) ou pode ser um efeito
+colateral de `showText={false}`.
+
+**Achado 2 — a imagem do logo quebra fora do Lovable.**
+`BrandLogo` só cai no placeholder textual quando `BRAND_LOGO_URL` é nulo.
+Ela não é: aponta para `/__l5e/assets-v1/…`, rota exclusiva do Lovable.
+Fora de lá o `<img>` dá 404, e **não existe `onError`** — nenhum fallback.
+O cabeçalho do App Cliente renderiza um ícone de imagem quebrada ao lado
+de "Clube Ancestral" em Cormorant dourado.
+
+Atenuante: a projeção do App Cliente ainda não foi publicada (PEND-12), então
+nenhum cliente real viu isso. Mas é a primeira coisa que vão ver quando for.
 
 ## O que este documento não resolve
 
