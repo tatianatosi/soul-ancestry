@@ -9,6 +9,8 @@ import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
+import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
+import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -31,7 +33,6 @@ import {
   filaPriorizada,
   hojeISO,
   opcoesFiltroDia,
-  textoDiasSemTouchpoint,
   textoPrazo,
   agruparLinhasIndicadores,
   type FiltrosDia,
@@ -302,8 +303,19 @@ export function PainelDia() {
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
   for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina]) usados.add(`${i.tipo}:${i.id}`);
+  // Cadência: motivo, evidência e o toque que faz avançar. Deriva das filas e
+  // dos casos já carregados, respeitando a precedência — registro exibido em
+  // bloco anterior não reaparece aqui. Calculada antes de `usados` receber os
+  // casos de cadência, senão excluiria exatamente o que precisa mostrar.
+  const cadenciaFollowUp = derivarCadenciaDoPainel({
+    filas: filas as any[],
+    casosCadencia: (qCad.data?.casos ?? []) as Record<string, unknown>[],
+    jaExibidos: usados,
+    incluirDemo,
+  });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
+  for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
 
   const sinais = sinaisMarketing({
@@ -779,31 +791,18 @@ export function PainelDia() {
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
+          <h2 className="min-w-0 font-serif text-lg text-navy">Cadência — quem precisa de um toque</h2>
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
 
         <p className="mt-1 text-xs text-navy/50">
-          Somente situações com ação necessária. Ausência de prazo é exibida como “Sem prazo definido”, nunca como número. Os
-          prazos do dia já estão na fila priorizada.
+          Quem parou, há quanto tempo, por quê e qual toque faz avançar. Ausência de prazo é exibida como “Sem prazo
+          definido”, nunca como número. Registro já exibido nos blocos acima não reaparece aqui.
         </p>
-        {cadencia.length > 0 ? (
-          <ul className="mt-3 space-y-1 text-xs text-navy/65">
-            {cadencia.map((c: any) => (
-              <li key={String(c["id"])}>
-                <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
-                  {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
-                </Link>{" "}
-                · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status} ·{" "}
-                {textoPrazo(c["prazo_proxima_acao"] ? String(c["prazo_proxima_acao"]).slice(0, 10) : null)}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
-        )}
+
+        <FilaCadencia itens={cadenciaFollowUp} carregando={qCad.isLoading} erro={qCad.isError} />
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
