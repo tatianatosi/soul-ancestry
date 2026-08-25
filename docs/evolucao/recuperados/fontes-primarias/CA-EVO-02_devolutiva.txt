@@ -1,0 +1,104 @@
+CA-EVO-02 — DEVOLUTIVA PADRONIZADA
+Projeto: Clube Ancestral
+Prompt: CA-EVO-02 — Automações, Gatilhos e Sobreposições
+Data: 15/08/2026
+Estado: CONCLUÍDO_COM_REFINAMENTO_PENDENTE
+
+---
+
+O QUE FOI ENTREGUE
+
+1. Mapa de automações e templates
+   - 40+ itens mapeados em 14 seções funcionais
+   - 10 colunas por item: item, sistema/local, finalidade,
+     entrada, saída, gatilho, estado, evidência verificável,
+     risco de duplicidade, ação correta
+
+2. Sobreposições identificadas
+   - 12 sobreposições concretas com ações de eliminação
+
+3. Gatilhos e bloqueios
+   - Mapeados por item
+   - Separacao entre status global do sistema e status por caso
+
+4. Evidências e estados
+   - Cada item com evidência verificável
+   - Fontes: Auditoria Mãe, CA-10A1, memory, Drive search, skills
+
+5. Ordem dos próximos prompts
+   - CA-EVO-03 a CA-EVO-08
+
+---
+
+AJUSTES FACTUAIS APLICADOS
+
+1. Gates da Ana Luiza
+   - Aceite comercial já confirmado
+   - Bloqueio atual: contrato específico inexistente,
+     dados cadastrais pendentes, Asaas/pesquisa/despesas não ativados
+
+2. Anexos I, II, IV, V
+   - Corrigidos de NAO_LOCALIZADO para IMPLEMENTADO_E_ATIVO
+   - Localizados no Drive (pasta 01_Modelos-e-Jurídico)
+   - Conforme memória de sessão anterior
+
+3. Pasta 01_Modelos-e-Jurídico
+   - Corrigida de NAO_LOCALIZADO para IMPLEMENTADO_E_ATIVO
+   - Referenciada como localização dos anexos genéricos
+
+4. Pasta/dossiê Ana Luiza
+   - Marcada como referência conflitante
+   - Pasta ativa criada em pré-onboarding antes do contrato assinado
+   - Pendente de validação no Drive
+
+5. Client Varredura
+   - Reformulada como artefato/instruções da skill autônoma
+     não localizados nesta sessão
+
+6. Resumo de estados
+   - Contagens removidas
+   - Substituídas por itens representativos
+
+7. Ordem dos prompts
+   - Substituída pela sequência definida pela usuária
+   - CA-EVO-03 a CA-EVO-08
+
+8. Typos corrigidos
+   - Sheets_Export_Logo -> Sheets_Export_Logs
+   - Dilência -> Diligência
+   - histórico -> referência histórica
+
+---
+
+REFINAMENTO PENDENTE (registrado, não aplicado)
+
+Dualidade de estados:
+- ESTADO_GLOBAL_DO_MODELO/SISTEMA: IMPLEMENTADO_E_ATIVO
+- ESTADO_NO_CASO_ESPECIFICO: PENDENTE_DE_CLASSIFICACAO_E_USO_POR_GATILHO
+
+Padrão exemplificado:
+- Anexo III: global = modelo existente e reutilizável
+  Caso Ana Luiza = não aplicado; só pode ser preenchido e
+  assinado quando houver finalidade e autorização de pesquisa
+  aplicáveis.
+
+---
+
+SISTEMAS EXTERNOS PRESERVADOS
+
+- Google Drive: não alterado
+- CRM / Pipeline: não alterado
+- Planejador Universal: não alterado
+- Asaas: não alterado
+- App Cliente / Ancestral Canvas: não alterado
+- Desk Intelligence: não alterado
+- Google Forms: não alterado
+- Google Tasks: não alterado
+- Google Calendar: não alterado
+- Dropbox: não indexado (restrição de escopo)
+
+---
+
+PRÓXIMA ABA
+
+CA-EVO-03 — Motor Contratual Modular

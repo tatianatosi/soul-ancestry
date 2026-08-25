@@ -1,0 +1,410 @@
+CA-EVO-05A — DEVOLUTIVA PADRONIZADA
+Projeto: Clube Ancestral
+Prompt: CA-EVO-05A — Preparação de Go-Live Ana Luiza
+Data: 15/08/2026
+Estado: CONCLUIDO_COM_BLOQUEIOS_CRITICOS_IDENTIFICADOS
+
+Aceite formal da proposta: CONFIRMADO em 14/08/2026
+Risco de expiração da proposta: RESOLVIDO
+Renovação por expiração: NÃO NECESSÁRIA
+Responsável: Tatiana Tosi / Perplexity Computer
+Caso: Ana Luiza Gomes Silveira Rodrigues — Áustria, §58c StbG
+Referência interna: CA-EVO-03 (Motor Contratual Modular) + CA-EVO-04 (Dados Vivos e Integrações) → CA-EVO-05A
+
+====================================================================
+O QUE FOI ENTREGUE
+====================================================================
+
+1. DECLARAÇÃO EXECUTIVA DE PRONTIDÃO
+   - Aceite formal da proposta: CONFIRMADO em 14/08/2026
+   - Status: GO_CONDICIONAL para preparação; NO-GO para ativação
+   - Risco de expiração da proposta: RESOLVIDO (aceite ocorreu antes de 19/08/2026)
+   - 12 bloqueios críticos identificados (aceite não integra a lista)
+   - Escopo permitido e proibido definido sem ambiguidade
+   - Nenhum sistema externo foi alterado
+
+2. REGISTRO DE EVIDÊNCIAS
+   - 11 fontes consultadas em modo leitura
+   - 11 evidências diretas verificadas nesta sessão:
+     · E01: Proposta Canva (DAHSB6nbt_M) — 7 páginas, R$ 9.600, válida até 19/08/2026
+     · E02: Conteúdo da proposta Canva — 3×R$320/mês × 10 meses; Ana R$4.800 + Pai R$2.400 + Irmã R$2.400
+     · E03: Contrato-Mãe no Drive — placeholder de 55 bytes, sem conteúdo contratual
+     · E04: Dossiê Consolidado no Drive — 13 seções estruturadas e preenchidas
+     · E05: Checklist §58c no Drive — 4 blocos + fontes oficiais
+     · E06: Configuração Asaas no Drive — 3 assinaturas R$320 × 10; nextDueDate 2026-10-01
+     · E07: Pasta raiz do caso no Drive — "CA-CID-AT-FAM-2026-001 — Família Silveira Rodrigues"
+     · E08: 9 subpastas do caso (00 a 08) criadas em pré-onboarding
+     · E09: Registro na planilha go-live — CA-AUT-ANALUIZA-FAM-2026-001; status: "Proposta aprovada — pré-onboarding autorizado"; prioridade: Crítica
+     · E10: Documentos de discovery no Drive — 2 recordings, 1 transcript, 1 roteiro
+     · E11: Aceite formal escrito da proposta realizado em 14/08/2026 — confirmação da gestora
+   - 15 evidências herdadas de CA-EVO-03, CA-EVO-04, CA-10A1 e memória
+   - Regra de precedência: evidência direta desta sessão prevalece sobre herdada
+
+3. MATRIZ MESTRE DE GO-LIVE
+   - 29 itens de prontidão cobertos
+   - 14 colunas por item: domínio, item, fonte de verdade, estado global,
+     estado no caso, evidência verificável, lacuna/conflito, gatilho necessário,
+     bloqueio, responsável sugerido, próxima ação permitida, ação proibida,
+     critério de conclusão, impacto no go/no-go
+   - Cobertura obrigatória completa:
+     · Aceite comercial
+     · ID canônico
+     · Cadastro da contratante
+     · Dados oficiais da contratada
+     · Núcleo familiar e participantes
+     · Proposta-mestre e sua validade
+     · SKU, preço, escopo e condição
+     · Contrato específico
+     · Anexo I (Ordem de Serviço)
+     · Anexos II a V
+     · Método de assinatura
+     · Revisão jurídica
+     · Asaas Customer, assinatura e cobrança
+     · Primeira cobrança/pagamento
+     · Desk/Dossiê
+     · Drive/pastas e permissões
+     · Planejador
+     · CRM/handoff
+     · Tarefas
+     · Calendário
+     · Pesquisa externa
+     · Despesas externas
+     · Diligências/procurações
+     · App/One Page
+     · Logs e integração
+
+4. CHECKLIST CADASTRAL E DE CONSENTIMENTOS
+   - 3 blocos, 26 campos totais:
+     · Bloco A — Contratante principal (Ana Luiza): 10 campos
+     · Bloco B — Contratada (Clube Ancestral): 6 campos
+     · Bloco C — Núcleo familiar: 10 campos
+   - Classificação LGPD por campo
+   - Evidência aceitável, status, bloqueios (contrato/Asaas/pesquisa) e próximo
+     passo permitido por campo
+
+5. MATRIZ COMERCIAL E DE ESCOPO
+   - 17 elementos comerciais cobertos
+   - Equivalência aritmética R$960 vs 3×R$320 documentada:
+     · Valor total evidenciado: R$ 9.600,00
+     · Comunicação agregada ao cliente: 10 mensalidades familiares de R$ 960,00
+     · Operação financeira planejada: 3 assinaturas Asaas de R$ 320,00/mês por 10 meses
+     · Total mensal equivalente: R$ 960,00 (3×R$320)
+     · Estado: PARCIALMENTE_CONFIRMADO / DEPENDENTE_DE_RECONFIRMACAO_NA_PLANILHA_MESTRE_E_OS
+   - Conflitos identificados e regras de precedência aplicadas
+   - Mapeamento A-E (dossiê) → I-V (CA-EVO-03) proposto, com ressalva de revisão jurídica
+
+6. SEQUÊNCIA OPERACIONAL DE ATIVAÇÃO (CA-EVO-05B)
+   - 7 fases (0 a 6) com 40+ ações sequenciais
+   - Fase 0: Decisões de governança (8 ações + 5 sub-ações de resolução de ID)
+   - Fase 1: Formalização (6 ações — gatilho: aceite formal escrito)
+   - Fase 2: Preparação contratual (6 ações — gatilho: dados + revisão jurídica)
+   - Fase 3: Assinatura (3 ações — gatilho: contrato + OS + anexos preparados)
+   - Fase 4: Ativação financeira (5 ações — gatilho: contrato assinado)
+   - Fase 5: Pré-cobrança (3 ações — gatilho: setembro/2026)
+   - Fase 6: Execução operacional (6 ações — gatilho: contrato + 1ª cobrança)
+   - Gatilhos de entrada e saída por ação
+   - Mapeamento A-E → I-V proposto
+
+7. CRITÉRIOS OBJETIVOS GO/NO-GO PARA CA-EVO-05B
+   - 14 critérios de GO (G01 a G14) — todos devem ser atendidos simultaneamente
+   - 10 critérios de NO-GO (N01 a N10) — qualquer um bloqueia
+   - Matriz de decisão por cenário (GO / GO_CONDICIONAL / NO-GO)
+   - Estado atual: 10 de 14 critérios G pendentes; 10 bloqueios N ativos
+
+====================================================================
+BLOQUEIOS CRÍTICOS (12)
+====================================================================
+
+O aceite formal da proposta NÃO integra a lista de bloqueios críticos.
+Ele foi confirmado em 14/08/2026 e remove exclusivamente o risco de
+expiração da proposta. Os 12 bloqueios abaixo permanecem ativos.
+
+1.  ID canônico não resolvido
+    - Divergência: CA-CID-AT-FAM-2026-001 (dossiê) vs CA-AUT-ANALUIZA-FAM-2026-001 (go-live)
+    - Estado: ID_CANONICO_PENDENTE_DE_CONFIRMACAO
+    - Impacto: CRÍTICO — bloqueia todos os documentos
+
+2.  Dados cadastrais da contratante não coletados
+    - Nome, CPF, RG, profissão, estado civil, endereço, e-mail, telefone — todos PENDENTE_DE_DADO
+    - Impacto: CRÍTICO — bloqueia contrato e Asaas
+
+3.  Dados oficiais da contratada não verificados
+    - Razão social, CNPJ, endereço, e-mail oficial — PENDENTE_DE_DADO
+    - Genérico v2 traz CNPJ 10.448.812/0001-58 — verificar se vigente
+    - Impacto: ALTO — bloqueia contrato
+
+4.  Contrato-Mãe é placeholder (55 bytes)
+    - Doc ID 1h_GqWpZ7KH1chlw43YGa51h0nnfyudgxZpNWvJCgQV8
+    - Conteúdo: placeholder sem conteúdo contratual preenchido
+    - Impacto: CRÍTICO — bloqueia toda a ativação
+
+5.  Anexo I (Ordem de Serviço) não preparado
+    - Template existe (IMPLEMENTADO_E_ATIVO globalmente)
+    - Escopo detalhado e responsável pelo caso pendentes
+    - Impacto: CRÍTICO — bloqueia Asaas
+
+6.  12 temas jurídicos pendentes de revisão do advogado
+    - 6 ausentes no Modelo de Estudo: composição documental, despesas externas,
+      cancelamento/rescisão, procurações, comunicações, propriedade intelectual
+    - 2 parcialmente compatíveis: objeto do serviço, proteção de dados
+    - 2 conflitantes: assinatura eletrônica (física vs digital), foro (SP vs domicílio)
+    - 2 compatíveis: escopo/limites, deveres do cliente
+    - Impacto: CRÍTICO — bloqueia contrato completo
+
+7.  Método de assinatura não definido
+    - Modelo de Estudo prevê assinatura física
+    - Operação depende de assinatura eletrônica
+    - Conflito direto requer decisão do advogado
+    - Impacto: ALTO — bloqueia assinatura
+
+8.  Asaas não ativado
+    - Configuração documentada (3×R$320, nextDueDate 2026-10-01)
+    - Não executada: contrato não assinado, OS não aprovada, dados pendentes
+    - Impacto: CRÍTICO — bloqueia cobrança
+
+9.  Pastas do caso criadas antes do contrato
+    - 9 subpastas (00 a 08) criadas em pré-onboarding
+    - Estado: REFERENCIA_CONFLITANTE_PENDENTE_DE_VALIDACAO
+    - Impacto: MÉDIO — exige validação de conformidade
+
+10. Alice (irmã) sem nome completo
+    - Nome completo pendente
+    - Necessário para contrato, Anexo I e Asaas
+    - Impacto: ALTO — bloqueia Anexo I e Asaas
+
+11. Felipe (menor) sem representação legal documentada
+    - Dependente menor vinculado à Ana Luiza
+    - Documentação de guarda/representação pendente
+    - Impacto: ALTO — bloqueia contrato e app
+
+12. Validação de proposta contra Planilha Mestre pendente
+    - Auditoria Mãe registra valores conflitantes: R$5.900 vs R$4.800 vs R$9.600
+    - SKU não identificado para o caso
+    - Impacto: CRÍTICO — bloqueia OS e Asaas
+
+====================================================================
+RISCO IMEDIATO
+====================================================================
+
+RESOLVIDO. A proposta Canva (DAHSB6nbt_M), com validade registrada até
+19/08/2026, foi formalmente aceita em 14/08/2026.
+
+Estado: CONFIRMADO.
+
+Consequências:
+- O aceite ocorreu antes do vencimento.
+- Não é necessária renovação da proposta por expiração para esta contratação.
+- A reconciliação de SKU, preço, escopo, condição e proposta-mestre com a
+  Planilha Mestre permanece obrigatória antes de contrato, OS ou Asaas.
+- A ativação operacional continua em NO_GO enquanto os demais bloqueios
+  críticos não forem resolvidos.
+
+====================================================================
+DECISÕES VINCULANTES HERDADAS PRESERVADAS
+====================================================================
+
+- Modelo de Estudo Genealógico = única matriz jurídica vigente
+- Modelo Simples e Modelo 2024 = referência histórica sem uso operacional
+- Contrato-base genérico v2 = insumo complementar de comparação
+- Nenhuma mudança de cláusula sem revisão jurídica prévia
+- Não criar terceiro ID para o caso
+- Dois níveis de estado aplicados (global vs caso) em todos os itens
+- Fontes de verdade e regras de precedência conforme CA-EVO-04:
+  · CRM/Painel: entrada, status comercial, aceite e handoff
+  · Planilha Mestre: SKU, preço, escopo, condição, status e link autorizado
+  · Asaas: cliente, cobrança, pagamento e assinatura (não define preço/escopo)
+  · Desk/Dossiê: caso, evidências, documentos, pendências, decisões e histórico
+  · Planejador Universal: cronograma, marcos, responsáveis e etapas
+  · Drive Compartilhado: documentos operacionais de clientes ativos
+  · Canva: fonte-mestre de proposta
+  · App/One Page: apenas conteúdo aprovado, sanitizado e elegível
+  · Dropbox: backup/histórico; nunca fonte operacional ou versão vigente
+
+====================================================================
+SISTEMAS EXTERNOS PRESERVADOS
+====================================================================
+
+- Google Drive: não alterado (apenas leitura)
+- Canva: não alterado (apenas leitura)
+- Google Sheets: não alterado (apenas leitura)
+- CRM / Pipeline: não alterado
+- Planejador Universal: não alterado
+- Asaas: não alterado
+- App Cliente / Ancestral Canvas: não alterado
+- Desk Intelligence: não alterado
+- Google Forms: não alterado
+- Google Tasks: não alterado
+- Google Calendar: não alterado
+- Dropbox: não alterado
+- WhatsApp: não enviado
+- E-mail: não enviado
+
+====================================================================
+DECISÕES PENDENTES (10)
+====================================================================
+
+D01. Eleger ID canônico do caso (Tatiana / operação)
+D02. Revisar 12 cláusulas do cotejo (Advogado)
+D03. Definir método de assinatura (Advogado)
+D04. Definir foro (Advogado)
+D05. Flexibilizar cláusula de pagamento (Advogado)
+D06. Verificar dados da contratada (Tatiana / jurídico)
+D07. Identificar SKU na Planilha Mestre (Tatiana / operação)
+D08. Designar responsável pelo caso (Tatiana / operação)
+D09. Definir CRM ativo (Tatiana / operação)
+D10. Registrar e conciliar o aceite formal de 14/08/2026 na fonte canônica
+     de status comercial, quando houver etapa operacional autorizada
+     (Tatiana / operação).
+
+     Estado: PENDENTE_DE_CONCILIACAO_DE_EVIDENCIA.
+     Não bloqueia a validade da proposta aceita.
+     Não autoriza nenhuma alteração de CRM neste CA-EVO-05A.
+
+====================================================================
+ENCAMINHAMENTOS SUGERIDOS
+====================================================================
+
+1. Imediato — registro de aceite confirmado:
+   - Manter o aceite formal de 14/08/2026 como evidência válida de contratação.
+   - Não renovar a proposta por simples expiração da data de 19/08/2026.
+   - Na próxima etapa autorizada, conciliar o registro do aceite com a fonte
+     canônica de status comercial, sem alterar nada neste CA-EVO-05A.
+
+2. Curto prazo (pré-contrato):
+   Resolver ID canônico; coletar dados cadastrais; verificar dados da
+   contratada; identificar SKU; designar responsável.
+
+3. Jurídico (paralelo):
+   Encaminhar cotejo ao advogado para revisão das 12 cláusulas, definição
+   de assinatura, foro e pagamento.
+
+4. Médio prazo — após aceite formal já confirmado e após eliminação dos
+   bloqueios aplicáveis:
+   - Preparar contrato específico a partir do Modelo de Estudo Genealógico.
+   - Preparar Anexo I com escopo, entregas, valor, parcelamento, cronograma,
+     critérios de aceite e responsável consolidados.
+   - Acionar anexos individuais somente por gatilho concreto.
+   - Submeter para revisão interna e jurídica aplicável.
+
+5. Pré-ativação financeira — somente após contrato e Anexo I assinados:
+   - Criar cadastro de cliente e assinaturas no Asaas apenas após confirmação
+     específica para a ação externa.
+   - Validar o valor, SKU, parcelamento, vencimento e Case_ID contra a fonte
+     de verdade antes de qualquer criação no Asaas.
+
+6. Ativação operacional — somente após contrato assinado e primeira cobrança
+   confirmada conforme regra aprovada:
+   - Iniciar pesquisa externa somente se os gatilhos e autorizações aplicáveis
+     estiverem atendidos.
+
+====================================================================
+PRÓXIMA ABA
+====================================================================
+
+CA-EVO-05B — Ativação Controlada do Go-Live
+
+CONDIÇÃO PARA AVANÇO AO CA-EVO-05B:
+
+- Aceite formal: requisito atendido em 14/08/2026.
+- Todos os demais critérios de GO aplicáveis devem ser atendidos.
+- Nenhum bloqueio absoluto de contrato, identificação, cadastro, escopo,
+  preço, assinatura, revisão jurídica, financeiro ou autorização pode estar ativo.
+- Toda ação externa deve ser precedida de confirmação específica, com alvo,
+  dados, conteúdo e efeito completamente resolvidos.
+
+O aceite confirmado não autoriza por si só a ativação operacional.
+
+====================================================================
+FIM DA DEVOLUTIVA CA-EVO-05A
+====================================================================
+
+====================================================================
+ADENDO DE CORREÇÃO — 15/08/2026
+====================================================================
+
+ACEITE FORMAL CONFIRMADO PELA GESTORA EM 14/08/2026
+
+Correções aplicadas:
+
+1. Aceite comercial: PARCIALMENTE_CONFIRMADO → CONFIRMADO
+2. Risco de expiração da proposta: ALTA → RESOLVIDO
+3. Decisão D10: Renovar proposta → Registrar e conciliar aceite formal
+4. Critério G01: PENDENTE → ATENDIDO (14/08/2026)
+5. Critério N07: RISCO (4 dias) → RESOLVIDO
+6. Evidência E11: Adicionada (aceite formal escrito em 14/08/2026)
+7. Encaminhamento imediato: Monitorar validade → Manter aceite como evidência
+8. Condição de passagem: Atualizada com aceite como requisito atendido
+9. Bloqueios críticos: Nota adicionada — aceite NÃO integra a lista
+10. Devolutiva: Atualizada com aceite confirmado e risco resolvido
+
+Estado consolidado após correção:
+
+  Aceite formal da proposta: CONFIRMADO em 14/08/2026
+  Risco de expiração da proposta: RESOLVIDO
+  Renovação por expiração: NÃO NECESSÁRIA
+  Preparação: GO_CONDICIONAL
+  Ativação operacional: NO_GO
+  Bloqueios críticos restantes: 12
+  Sistemas externos: preservados sem alteração
+
+Nenhum documento externo foi alterado. As correções são apenas de
+registro e estado no documento preparatório.
+
+====================================================================
+FIM DO ADENDO CA-EVO-05A
+====================================================================
+
+====================================================================
+PRÓXIMOS PASSOS — GO-LIVE ANA LUIZA
+====================================================================
+
+Estado geral: GO_CONDICIONAL para preparação | NO_GO para ativação
+Aceite formal: CONFIRMADO em 14/08/2026
+
+Ordem  Próximo passo                                                       Responsável          Estado                         Condição de saída
+-----  ------------------------------------------------------------------  -------------------  -----------------------------  ---------------------------------------------------------
+  1    Formalizar a decisão do ID canônico, sem criar um terceiro ID      Tatiana / operação   PENDENTE                       Um ID definido e o outro registrado como alias/histórico
+  2    Coletar e validar dados cadastrais da Ana Luiza                    Tatiana / operação   PENDENTE                       Nome, CPF, RG, profissão, estado civil, endereço, e-mail e telefone confirmados
+  3    Validar o núcleo familiar                                          Tatiana / operação   PENDENTE                       Nome completo de Alice e representação legal de Felipe documentados
+  4    Confirmar os dados da contratada                                    Tatiana / jurídico   PENDENTE                       Razão social, CNPJ, endereço, e-mail oficial e representante confirmados
+  5    Reconciliar proposta, SKU, escopo, preço, parcelas e vencimento    Tatiana / operação   PENDENTE                       Uma condição comercial única e verificável para contrato, OS e Asaas
+  6    Designar responsável pelo caso e consolidar cronograma/entregas   Tatiana / operação   PENDENTE                       Responsável, marcos, entregas e critérios de aceite definidos
+  7    Submeter os pontos do cotejo ao advogado                           Jurídico             REQUER_REVISAO_JURIDICA        Parecer sobre cláusulas, foro, assinatura, despesas, cancelamento, procurações e pagamentos
+  8    Definir método de assinatura válido                                 Jurídico / operação  BLOQUEADO_POR_GATILHO          Método aprovado, evidência de assinatura e envio de cópia definidos
+  9    Preparar contrato específico e Anexo I                             Operação / jurídico BLOQUEADO_POR_GATILHO          Todos os dados e revisões concluídos; documentos revisados internamente
+ 10    Validar a estrutura já existente no Drive                           Tatiana / operação   PENDENTE_DE_VALIDACAO         Conformidade das nove subpastas criada em pré-onboarding registrada
+ 11    Validar localização ou status dos Anexos II, IV, V e da pasta      Tatiana / operação   PENDENTE_DE_VERIFICACAO_DIRETA Evidência atualizada para uso futuro
+ 12    Preparar ativação do Asaas, sem executar                           Operação             BLOQUEADO_POR_GATILHO          Dados, contrato, OS, SKU, valor e vencimento confirmados
+ 13    Autorizar CA-EVO-05B somente após todos os bloqueios resolvidos    Tatiana             NO_GO                          Decisão formal de passagem para ativação controlada
+
+Esses passos refletem os 12 bloqueios ainda ativos; o aceite formal já
+foi satisfeito e não precisa mais ser tratado como pendência.
+
+--------------------------------------------------------------------
+REGRAS DA MESMA ABA
+--------------------------------------------------------------------
+
+NÃO EXECUTAR NESTA ABA:
+- Criação ou preenchimento de contrato, OS ou anexos
+- Ativação de cliente, assinatura, cobrança ou link no Asaas
+- Início de pesquisa externa, despesas ou diligências
+- Alterações em Drive, CRM, Planejador, App, Tasks ou Calendar
+- Envio de qualquer mensagem ao cliente
+
+--------------------------------------------------------------------
+GATILHO DE PASSAGEM
+--------------------------------------------------------------------
+
+Só avance ao CA-EVO-05B — Ativação Controlada do Go-Live quando houver:
+
+- ID canônico formalmente definido.
+- Cadastro das partes validado.
+- Condição comercial reconciliada na Planilha Mestre.
+- Contrato e Anexo I preparados e juridicamente aprovados.
+- Método de assinatura definido.
+- Autorizações condicionais classificadas.
+- Confirmação específica antes de cada ação externa irreversível.
+
+====================================================================
+FIM DOS PRÓXIMOS PASSOS — GO-LIVE ANA LUIZA
+====================================================================

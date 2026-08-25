@@ -1,0 +1,344 @@
+CA-EVO-05B — FASE 1 — DEVOLUTIVA PADRONIZADA
+Projeto: Clube Ancestral
+Caso: CA-CID-AT-FAM-2026-001
+Alias histórico: CA-AUT-ANALUIZA-FAM-2026-001
+Responsável: Tatiana Tosi
+Data: 15/08/2026
+Estado: CONCLUIDO_COM_PENDENCIAS
+
+====================================================================
+ESTADO DE ENTRADA
+====================================================================
+
+Gate A: APROVADO_COM_RESSALVA
+
+- Case_ID canônico: CA-CID-AT-FAM-2026-001
+- Alias histórico: CA-AUT-ANALUIZA-FAM-2026-001
+- Aceite formal: CONFIRMADO em 14/08/2026
+- Risco de expiração: RESOLVIDO
+- Responsável do caso: Tatiana Tosi
+- CRM MESTRE: NAO_VALIDADO_COMO_FONTE_OPERACIONAL
+- OPS / Pipeline_Vendas: NAO_VALIDADO_COMO_FONTE_OPERACIONAL
+- D09 CRM: BLOQUEADO_POR_DECISAO_DE_GOVERNANCA
+- Preparação: GO_CONDICIONAL
+- Ativação operacional: NO_GO
+- Bloqueios críticos remanescentes: 11 + 1 novo (B13)
+
+====================================================================
+MATRIZ TRANSITÓRIA DE FONTES
+====================================================================
+
+| Domínio | Fonte temporária | Regra |
+|---|---|---|
+| Aceite comercial | Evidência escrita + Dossiê | Aceite de 14/08/2026 é válido |
+| Caso, familiares, documentos e decisões | Desk/Dossiê | Fonte operacional do caso |
+| Proposta vigente | Canva | Fonte-mestre; Dropbox é histórico |
+| SKU, preço, escopo e condições | Planilha Mestre, após reconciliação | Não usar proposta ou Asaas como fonte de preço |
+| Cobrança e pagamento | Asaas, apenas após transação futura | Não criar nada nesta fase |
+| Cronograma | Planejador, após correções estruturais | Não criar eventos ou tarefas paralelas |
+
+====================================================================
+O QUE FOI VALIDADO
+====================================================================
+
+1. CADASTRO DA CONTRATANTE PRINCIPAL
+
+| Campo | Fonte de verdade | Evidência disponível | Status | LGPD | Bloqueia contrato | Bloqueia Asaas | Próximo passo |
+|---|---|---|---|---|---|---|---|
+| Nome completo | Dossiê | "Ana Luiza Gomes Silveira Rodrigues" | CONFIRMADO | Dado pessoal | NÃO | NÃO | Nenhum |
+| CPF | Nenhuma fonte verificada | Não localizado | PENDENTE | Alto risco | SIM | SIM | Solicitar à contratante |
+| RG | Nenhuma fonte verificada | Não localizado | PENDENTE | Dado pessoal | SIM | NÃO | Solicitar à contratante |
+| Profissão | Nenhuma fonte verificada | Não localizado | PENDENTE | Médio | SIM | NÃO | Solicitar à contratante |
+| Estado civil | Nenhuma fonte verificada | Não localizado | PENDENTE | Médio | SIM | NÃO | Solicitar à contratante |
+| Endereço completo | Nenhuma fonte verificada | Não localizado | PENDENTE | Dado pessoal | SIM | SIM | Solicitar à contratante |
+| E-mail | Dossiê | "analuizabox@gmail.com" | CONFIRMADO | Dado pessoal | NÃO | SIM (validar) | Validar como canal formal |
+| Telefone/WhatsApp | Dossiê | WhatsApp (Adriel Felipe — interlocutor) | PARCIALMENTE_CONFIRMADO | Dado pessoal | NÃO | SIM | Confirmar número direto da Ana |
+| Dados para assinatura | Nenhuma fonte | Não localizado | BLOQUEADO_POR_GATILHO | Dado pessoal | SIM | NÃO | Aguardar método de assinatura |
+| Canal formal de comunicação | Genérico v2 Seção 11 | E-mail e WhatsApp autorizados | PENDENTE (requer revisão jurídica) | Baixo | SIM | NÃO | Aguardar revisão jurídica |
+
+2. DADOS DA CONTRATADA
+
+| Campo | Fonte de verdade | Evidência disponível | Status | Próximo passo |
+|---|---|---|---|---|
+| Razão social | Contrato social vigente | Genérico v2: "operando como Clube Ancestral" — não confirmado | PENDENTE | Verificar contrato social |
+| CNPJ | Contrato social vigente | Genérico v2: 10.448.812/0001-58 — não confirmado | PENDENTE | Verificar contra Receita Federal |
+| Endereço | Contrato social vigente | Genérico v2: Rua Nova York, 822, Apt. 142, Brooklin, CEP 04560-001, São Paulo – SP — não confirmado | PENDENTE | Verificar contrato social |
+| E-mail oficial | Configuração oficial | Não localizado em fonte verificada | PENDENTE | Verificar configuração oficial |
+| Representante legal | Contrato social vigente | Não confirmado em fonte verificada | PENDENTE | Verificar contrato social |
+| Confirmação societária | Contrato social vigente | Nenhuma verificação direta realizada | PENDENTE | Solicitar documentação societária atual |
+
+AVISO: Não usar o CNPJ, endereço ou dados do genérico v2 como definitivos sem
+confirmação contra documentação oficial vigente.
+
+3. NÚCLEO FAMILIAR E REPRESENTAÇÃO
+
+| Pessoa | Papel no caso | Nome completo | Documento/ID | Estado | Pendência |
+|---|---|---|---|---|---|
+| Ana Luiza Gomes Silveira Rodrigues | Contratante / titular / Processo A | CONFIRMADO | E-mail confirmado; CPF/RG pendentes | PARCIALMENTE_CONFIRMADO | Coletar CPF, RG, profissão, estado civil, endereço |
+| Adair Pinto Silveira Júnior | Pai / participante / Processo B | CONFIRMADO | Nenhum documento coletado | PARCIALMENTE_CONFIRMADO | Coletar dados cadastrais completos |
+| Alice Gomes Silveira | Irmã / participante / Processo C | PENDENTE (nome completo a coletar) | Nenhum documento coletado | PENDENTE_DE_DADO | Confirmar nome completo e coletar dados |
+| Felipe Silveira Rodrigues | Dependente menor / Processo A | CONFIRMADO (nome) | Representação legal não documentada | PENDENTE_DE_DADO | Documentar representação legal de Ana por Felipe |
+| Adriel Felipe (marido) | Fora do escopo | N/A | N/A | NAO_APLICAVEL | Processo separado de naturalização por casamento |
+
+Classificação de uso por sistema:
+- Contrato: Ana (contratante), Adair e Alice (participantes), Felipe (dependente com representação)
+- Anexo I: Todos os 4 membros do núcleo
+- Asaas: Ana, Adair e Alice (3 assinaturas; Felipe não tem assinatura)
+- Dossiê: Todos os 4 + Adriel como interlocutor
+- Drive: Pastas 02 (Ana+Filho), 03 (Pai), 04 (Irmã) — individuais
+- App: Painel familiar + 3 áreas individuais; Ana vê Felipe
+
+4. RECONCILIAÇÃO COMERCIAL — SKU, PREÇO, CONDIÇÃO E PARCELAMENTO
+
+4.1. Matriz de fontes para reconciliação
+
+| Elemento | Fonte principal | Papel |
+|---|---|---|
+| SKU operacional de cidadania austríaca | Planejador Universal | Identifica a trilha/linha operacional do caso |
+| Preço, condição e status comercial | Planilha Mestre | Reconciliar valor comercial antes de contrato, OS ou Asaas |
+| Proposta aprovada | Canva | Evidência da oferta aceita e da apresentação comercial |
+| Cobrança futura | Asaas | Espelha somente o que for aprovado em contrato e OS |
+
+4.2. SKU operacional no Planejador Universal
+
+| Campo | Valor evidenciado | Fonte |
+|---|---|---|
+| SKU | PACOTE-AT-01 | Planejador Universal, aba PARAMETROS |
+| Nacionalidade | Austríaca | Planejador PARAMETROS |
+| Honorários | R$ 4.800 | Planejador PARAMETROS |
+| Despesas | R$ 1.800 | Planejador PARAMETROS |
+| Taxas | R$ 600 | Planejador PARAMETROS |
+| Parcelamento | 6 parcelas | Planejador PARAMETROS |
+| Tipo de prefixo | PACOTE-* (SKU de proposta, não oficial CA-*) | Auditoria Mãe Seção 9.3 |
+| Status | Parcialmente validado | Auditoria Mãe |
+
+4.3. Correspondência entre fontes
+
+| Campo | Planejador Universal | Planilha Mestre | Proposta Canva (aceita) | Configuração Asaas |
+|---|---|---|---|---|
+| SKU | PACOTE-AT-01 | NÃO_EXISTENTE | N/A (proposta não usa SKU) | N/A |
+| Valor honorários | R$ 4.800 (individual) | N/A | R$ 9.600 (total familiar) | R$ 320/mês × 3 assinaturas |
+| Parcelamento | 6 parcelas | N/A | 10 mensalidades familiares | 10 ciclos mensais |
+| Escopo | Individual (1 processo) | N/A | Familiar (3 processos + 1 dependente) | 3 assinaturas |
+| Status | Parcialmente validado | N/A | Aceita em 14/08/2026 | Configurada, não ativada |
+
+4.4. Divergências identificadas
+
+1. SKU: PACOTE-AT-01 existe no Planejador mas não na Planilha Mestre
+2. Valor: Planejador R$ 4.800 (individual) vs Canva R$ 9.600 (familiar) — não são o mesmo produto
+3. Parcelamento: Planejador 6 parcelas vs Canva/Asaas 10 meses
+4. Escopo: Planejador é individual (1 processo); proposta aceita é familiar (3 processos + 1 dependente)
+5. Prefixo: PACOTE-AT-01 é SKU de proposta (prefixo PACOTE-*), não SKU oficial (prefixo CA-*)
+6. Auditoria Mãe registra conflito histórico: R$5.900 vs R$4.800 vs R$9.600 para o caso
+
+4.5. Equivalência aritmética R$ 960 vs 3×R$ 320
+
+| Dimensão | Valor | Fonte |
+|---|---|---|
+| Valor total evidenciado | R$ 9.600,00 | Canva (DAHSB6nbt_M); Dossiê; go-live |
+| Comunicação agregada ao cliente | 10 mensalidades familiares de R$ 960,00 | Canva; memória (family_proposal_acceptance.md) |
+| Operação financeira planejada | 3 assinaturas Asaas de R$ 320,00/mês por 10 meses | Canva; Configuração Asaas (E06) |
+| Total mensal equivalente | R$ 960,00 (3×R$320) | Confirmação aritmética |
+| Fonte-mestre de proposta | Canva (Design ID DAHSB6nbt_M) | CA-EVO-04 regra 6 |
+| Fonte de verdade para SKU/preço/condição | Planilha Mestre | CA-EVO-04 regra 1 |
+| Estado | PARCIALMENTE_CONFIRMADO / DEPENDENTE_DE_RECONFIRMACAO_NA_PLANILHA_MESTRE_E_OS | — |
+| Impacto | Bloqueia Anexo I e Asaas até a OS explicitar a modelagem correta | — |
+
+4.6. Estado da reconciliação
+
+SKU_COMERCIAL_PENDENTE_DE_CADASTRO_E_RECONCILIACAO
+
+O SKU PACOTE-AT-01 do Planejador Universal é um SKU de referência para
+cidadania austríaca individual (R$ 4.800, 6 parcelas). Não corresponde ao
+pacote familiar aceito na proposta Canva (R$ 9.600, 10 mensalidades,
+3 processos + 1 dependente). Nenhum SKU de Áustria/§58c ou pacote familiar
+existe na Planilha Mestre.
+
+A criação ou identificação de um SKU que corresponda ao pacote familiar de
+R$ 9.600 é pré-requisito para contrato, Anexo I e Asaas.
+
+Nenhuma alteração foi feita em nenhum sistema.
+
+5. ESCOPO, ENTREGAS E CRITÉRIOS DE ACEITE
+
+| Elemento | Valor/estado | Evidência | Estado |
+|---|---|---|---|
+| Linha de cidadania | Áustria, §58c StbG (reparação histórica) | Canva; Dossiê seção 3 | CONFIRMADO |
+| Objetivo do caso | Cidadania austríaca para 3 titulares + 1 dependente, com pesquisa compartilhada | Canva; Dossiê seção 1 | CONFIRMADO |
+| Titulares | Ana Luiza, Adair, Alice | Dossiê seção 3 | CONFIRMADO |
+| Dependente | Felipe (vinculado a Ana) | Dossiê seção 3; CA-10A1 | CONFIRMADO |
+| Entregas incluídas | Dossiê-base compartilhado; análise de enquadramento §58c; declarações individuais; relatório de elegibilidade; acompanhamento coordenado | Canva páginas 3-5 | CONFIRMADO |
+| Entregas excluídas | Busca presencial em cartórios; solicitações externas; emissão de certidões; pesquisa ativa prolongada; representação jurídica; garantia de resultado | Modelo de Estudo Cláusula 1; Canva | CONFIRMADO |
+| Critérios de aceite | NÃO DEFINIDOS explicitamente | Nenhuma fonte | PENDENTE |
+| Marcos | 5 etapas: diagnóstico → pendências → execução → complementos → continuidade | Canva página 5 | CONFIRMADO (marcos gerais) |
+| Responsável | Tatiana Tosi | Decisão formal da gestora | CONFIRMADO |
+| Dependências do cliente | Fornecer documentos; informar nomes/datas/locais corretos; efetuar pagamento | Modelo de Estudo Cláusula 2 | CONFIRMADO |
+| Dependências do Clube | Análise técnica; relatório em PDF; 1 reunião online de apresentação | Modelo de Estudo Cláusulas 3-4 | CONFIRMADO |
+| Dependências de terceiros | Arquivos austríacos (MA 35, Kriegsarchiv); Arolsen; Yad Vashem; USHMM; IKG; consulado | Checklist §58c Blocos 2-3 | IDENTIFICADAS (não iniciadas) |
+| Necessidade de Anexo II | Sim — despesas externas futuras (certidões, traduções, apostilas) | Dossiê seção 4 | PENDENTE_DE_CLASSIFICACAO |
+| Necessidade de Anexo III | Sim — pesquisa externa em arquivos austríacos | Checklist §58c Bloco 2 | PENDENTE_DE_CLASSIFICACAO |
+| Necessidade de Anexo IV | Potencial — diligência consular | Dossiê seção 9 | PENDENTE_DE_CLASSIFICACAO |
+| Necessidade de Anexo V | Não aplicável agora (contrato não assinado) | N/A | NAO_APLICAVEL |
+
+6. CRONOGRAMA PREPARATÓRIO
+
+| Marco | Estado | Dependência |
+|---|---|---|
+| Coleta cadastral concluída | PENDENTE | Solicitar dados à contratante e núcleo familiar |
+| ID canônico registrado | CONCLUÍDO | CA-CID-AT-FAM-2026-001 definido; alias CA-AUT registrado |
+| Condição comercial reconciliada | PENDENTE | SKU inexistente na Planilha Mestre; requer criação/identificação |
+| Revisão jurídica concluída | PENDENTE | 12 temas do cotejo aguardando advogado |
+| Contrato e Anexo I preparados | BLOQUEADO | Depende de cadastro + comercial + jurídico |
+| Assinatura concluída | BLOQUEADO | Depende de contrato preparado + método definido |
+| Asaas preparado | BLOQUEADO | Depende de contrato assinado + OS + SKU + dados |
+| Primeira cobrança confirmada | BLOQUEADO | Depende de Asaas ativo (01/10/2026 planejado) |
+| Pesquisa externa autorizada | BLOQUEADO | Depende de contrato + 1ª cobrança + Anexo III |
+
+====================================================================
+BLOQUEIOS REMANESCENTES
+====================================================================
+
+B01. ID canônico — RESOLVIDO
+     CA-CID-AT-FAM-2026-001 definido; CA-AUT-ANALUIZA-FAM-2026-001 como alias.
+
+B02. Dados cadastrais da contratante pendentes
+     CPF, RG, profissão, estado civil, endereço não coletados.
+     Impacto: CRÍTICO — bloqueia contrato e Asaas.
+
+B03. Dados oficiais da contratada pendentes
+     Razão social, CNPJ, endereço, e-mail, representante não confirmados.
+     Impacto: ALTO — bloqueia contrato.
+
+B04. Contrato-Mãe é placeholder e não foi preparado
+     Doc ID 1h_GqWpZ7KH1chlw43YGa51h0nnfyudgxZpNWvJCgQV8; 55 bytes.
+     Impacto: CRÍTICO — bloqueia toda a ativação.
+
+B05. Anexo I não preparado; escopo e responsável pendentes
+     Escopo parcialmente consolidado; responsável designado; critérios de aceite pendentes.
+     Impacto: CRÍTICO — bloqueia Asaas.
+
+B06. Revisão jurídica pendente (12 temas)
+     6 ausentes, 2 parcialmente compatíveis, 2 conflitantes, 2 compatíveis.
+     Impacto: CRÍTICO — bloqueia contrato completo.
+
+B07. Método de assinatura não definido
+     Modelo prevê assinatura física; operação depende de eletrônica.
+     Impacto: ALTO — bloqueia assinatura.
+
+B08. Asaas não ativado
+     Configuração documentada (3×R$320, nextDueDate 2026-10-01); não executada.
+     Impacto: CRÍTICO — bloqueia cobrança.
+
+B09. Pastas do caso criadas em pré-onboarding — PARCIALMENTE RESOLVIDO
+     9 subpastas validadas como alinhadas; Dossiê em 00 e 01 (referência cruzada).
+     Impacto: BAIXO — conformidade registrada.
+
+B10. Nome completo de Alice pendente
+     Impacto: ALTO — bloqueia Anexo I e Asaas.
+
+B11. Representação legal de Felipe pendente
+     Impacto: ALTO — bloqueia contrato e app.
+
+B12. SKU, preço, escopo e condição requerem reconciliação com a Planilha Mestre
+     SKU de Áustria/§58c INEXISTENTE na Planilha Mestre.
+     Impacto: CRÍTICO — bloqueia OS e Asaas.
+
+B13. NOVO — SKU de Áustria/§58c e pacote familiar de R$ 9.600 não existem na Planilha Mestre
+     PACOTE-AT-01 no Planejador é individual (R$ 4.800, 6 parcelas); não corresponde
+     ao pacote familiar aceito (R$ 9.600, 10 mensalidades, 3 processos).
+     Requer criação ou identificação de SKU antes de contrato, OS e Asaas.
+     Impacto: CRÍTICO — bloqueia contrato, OS e Asaas.
+
+D09. Saneamento e decisão de CRM — BLOQUEADO_POR_DECISAO_DE_GOVERNANCA
+     CRM MESTRE e OPS/Pipeline_Vendas: NAO_VALIDADO_COMO_FONTE_OPERACIONAL.
+     Não bloqueia etapas que não dependem de CRM.
+
+====================================================================
+CRITÉRIOS DE SAÍDA
+====================================================================
+
+- G1 (Cadastro da contratante): PENDENTE
+  CPF, RG, profissão, estado civil, endereço não coletados.
+
+- G2 (Dados da contratada): PENDENTE
+  Nenhum dado confirmado contra fonte oficial.
+
+- G3 (Nome de Alice): PENDENTE
+  Nome completo não confirmado.
+
+- G4 (Representação de Felipe): PENDENTE
+  Documentação de representação legal não coletada.
+
+- G5 (SKU na Planilha Mestre): PENDENTE
+  SKU de Áustria/§58c INEXISTENTE na Planilha Mestre.
+  PACOTE-AT-01 existe apenas no Planejador como SKU de referência individual.
+
+- G6 (Reconciliação comercial): PENDENTE
+  SKU não identificado; divergência de valores não resolvida.
+  Estado: SKU_COMERCIAL_PENDENTE_DE_CADASTRO_E_RECONCILIACAO.
+
+- G7 (Entregas, critérios de aceite, responsável, cronograma): PARCIALMENTE
+  Entregas e marcos confirmados; critérios de aceite não definidos;
+  responsável designado; cronograma mapeado.
+
+- G8 (Pacote de escopo): PARCIALMENTE
+  Matriz de escopo consolidada; critérios de aceite pendentes.
+
+- G9 (Nenhum dado por inferência): ATENDIDO
+  Todos os dados pendentes marcados como PENDENTE.
+
+- G10 (Nenhum sistema externo alterado): ATENDIDO
+  Apenas leitura executada em todas as fontes.
+
+====================================================================
+FASE 1: BLOQUEADA_POR_DADO_OU_RECONCILIACAO
+====================================================================
+
+G1-G6 pendentes. G7-G8 parcialmente atendidos. G9-G10 atendidos.
+
+A Fase 1 não pode ser concluída enquanto:
+1. Dados cadastrais não forem coletados (G1-G4);
+2. SKU não for identificado ou criado na Planilha Mestre (G5-G6);
+3. Critérios de aceite não forem definidos (G7-G8).
+
+====================================================================
+SISTEMAS EXTERNOS PRESERVADOS
+====================================================================
+
+- CRM MESTRE: não alterado (NAO_VALIDADO_COMO_FONTE_OPERACIONAL)
+- OPS / Pipeline_Vendas: não alterado (NAO_VALIDADO_COMO_FONTE_OPERACIONAL)
+- Google Drive: não alterado (apenas leitura)
+- Canva: não alterado (apenas leitura)
+- Planilha Mestre: não alterada (apenas leitura)
+- Planejador Universal: não alterado (apenas leitura)
+- Asaas: não alterado
+- Desk: não alterado
+- App / One Page: não alterado
+- Google Tasks: não alterado
+- Google Calendar: não alterado
+- Dropbox: não alterado
+- Webhooks / APIs: não executados
+- Comunicações externas: não enviadas
+
+====================================================================
+PRÓXIMA FASE
+====================================================================
+
+CA-EVO-05B — FASE 2 — JURÍDICO E DOCUMENTAL
+
+Condição:
+Somente iniciar quando os dados cadastrais, comerciais e de escopo
+estiverem completos, reconciliados e evidenciados.
+
+AÇÕES PERMITIDAS ANTES DA FASE 2 (todas requerem confirmação específica):
+
+1. Solicitar coleta de dados cadastrais à contratante.
+2. Solicitar verificação de dados da contratada contra contrato social.
+3. Solicitar criação/identificação de SKU de Áustria/§58c na Planilha Mestre.
+4. Definir critérios de aceite por entrega.
+5. Confirmar nome completo de Alice.
+6. Documentar representação legal de Felipe.
+
+====================================================================
+FIM DA DEVOLUTIVA — CA-EVO-05B FASE 1
+====================================================================
