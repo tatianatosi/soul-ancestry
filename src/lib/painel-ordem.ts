@@ -23,14 +23,21 @@ export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
   { chave: "destaque", titulo: "Caso em destaque", fila: false },
   { chave: "fila_priorizada", titulo: "Minha fila priorizada", fila: true },
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
-  { chave: "sinais", titulo: "Sinais de atenção", fila: false },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
   { chave: "prazos", titulo: "Cadência — quem precisa de um toque", fila: true },
   { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },
 ] as const;
 
-/** Par cuja adjacência é obrigatória: sinais logo depois das exceções. */
-export const PAR_OBRIGATORIO = { antes: "excecoes", depois: "sinais" } as const;
+/**
+ * Par cuja adjacência é obrigatória.
+ *
+ * 25/08/2026 — deixou de existir. A regra nasceu para impedir que algo se
+ * inserisse entre "Exceções que exigem dono" e "Sinais de atenção". Com a
+ * fusão de Sinais em "Encontrar no Desk" (decisão da Proprietária), não há
+ * mais par a preservar. Fica `null` em vez de sumir, para que a ausência seja
+ * uma decisão registrada e não pareça esquecimento.
+ */
+export const PAR_OBRIGATORIO: { antes: string; depois: string } | null = null;
 
 export type ProblemaPainel = { chave: string; mensagem: string };
 
@@ -74,23 +81,25 @@ export function validarOrdemPainel(chavesRenderizadas: readonly string[]): Probl
     });
   }
 
-  const iAntes = canonicas.indexOf(PAR_OBRIGATORIO.antes);
-  const iDepois = canonicas.indexOf(PAR_OBRIGATORIO.depois);
-  if (iAntes >= 0 && iDepois >= 0 && iDepois !== iAntes + 1) {
-    problemas.push({
-      chave: "adjacencia",
-      mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” precisa vir imediatamente após “${titulo(
-        PAR_OBRIGATORIO.antes,
-      )}”.`,
-    });
-  }
-  if (iAntes >= 0 && iDepois < 0) {
-    problemas.push({
-      chave: "adjacencia",
-      mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” não foi renderizado depois de “${titulo(
-        PAR_OBRIGATORIO.antes,
-      )}”.`,
-    });
+  if (PAR_OBRIGATORIO) {
+    const iAntes = canonicas.indexOf(PAR_OBRIGATORIO.antes);
+    const iDepois = canonicas.indexOf(PAR_OBRIGATORIO.depois);
+    if (iAntes >= 0 && iDepois >= 0 && iDepois !== iAntes + 1) {
+      problemas.push({
+        chave: "adjacencia",
+        mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” precisa vir imediatamente após “${titulo(
+          PAR_OBRIGATORIO.antes,
+        )}”.`,
+      });
+    }
+    if (iAntes >= 0 && iDepois < 0) {
+      problemas.push({
+        chave: "adjacencia",
+        mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” não foi renderizado depois de “${titulo(
+          PAR_OBRIGATORIO.antes,
+        )}”.`,
+      });
+    }
   }
 
   return problemas;

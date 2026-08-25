@@ -13,6 +13,7 @@ import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
+import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -265,8 +266,6 @@ export function PainelDia() {
   const carregarCadencia = useServerFn(painelCadencia);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [ajuda, setAjuda] = useState(false);
-  // Sinais de atenção é diagnóstico, não operação: vem recolhido por padrão.
-  const [sinaisAbertos, setSinaisAbertos] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosDia>({ responsavel: "", area: "", etapa: "" });
 
   const qDesk = useQuery({
@@ -592,13 +591,6 @@ export function PainelDia() {
       null,
     );
 
-  // Resumo que o cabeçalho de "Sinais de atenção" mostra mesmo recolhido:
-  // quantos sinais existem e qual a maior gravidade entre eles. Um P0 nunca
-  // fica escondido atrás de um clique.
-  const todasLinhasSinais = GRUPOS_INDICADOR.flatMap((g) => agrupado[g.chave]);
-  const totalSinais = todasLinhasSinais.length;
-  const graveGeral = maiorGravidade(todasLinhasSinais);
-
   return (
     <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
@@ -744,143 +736,6 @@ export function PainelDia() {
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
 
-      {/*
-        Decisão da Proprietária (25/08): Sinais de atenção passa a vir
-        recolhido. Depois que o topo ganhou as métricas de decisão e o caso em
-        destaque, e o bloco de cadência passou a dizer o que fazer, estes cinco
-        contadores são diagnóstico, não operação — e empurravam para baixo da
-        dobra justamente o que exige ação.
-
-        O cabeçalho continua visível com o total e a maior gravidade: um P0
-        nunca fica escondido atrás de um clique.
-      */}
-      <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setSinaisAbertos((v) => !v)}
-            aria-expanded={sinaisAbertos}
-            className="flex min-w-0 items-baseline gap-2 text-left"
-          >
-            <span className="font-serif text-lg text-navy">Sinais de atenção</span>
-            <span className="shrink-0 text-xs tabular-nums text-navy/55">
-              {totalSinais === 0 ? "nenhum" : totalSinais}
-            </span>
-            {graveGeral ? (
-              <span
-                className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                  graveGeral === "P0"
-                    ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                    : graveGeral === "P1"
-                      ? "border-gold/50 bg-gold/10 text-navy"
-                      : "border-navy/20 text-navy/60"
-                }`}
-              >
-                {graveGeral}
-              </span>
-            ) : null}
-            <span className="shrink-0 text-[11px] text-navy/45">
-              {sinaisAbertos ? "ocultar" : "ver"}
-            </span>
-          </button>
-          <span className="flex flex-wrap items-baseline gap-3">
-            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
-            <Link
-              to="/ops"
-              className="text-[11px] font-medium text-navy underline underline-offset-2"
-            >
-              Ver cadência e onboarding em risco
-            </Link>
-            <Link
-              to="/governanca/indicadores"
-              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
-            >
-              registro canônico dos indicadores
-            </Link>
-          </span>
-        </div>
-        {!sinaisAbertos ? null : (
-          <>
-            <p className="mt-1 text-xs text-navy/50">
-              Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não
-              geram nova linha de ação.
-            </p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {GRUPOS_INDICADOR.map((g) => {
-                const linhas = agrupado[g.chave];
-                const grave = maiorGravidade(linhas);
-                return (
-                  <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
-                      <span className="min-w-0 break-words text-sm font-medium text-navy">
-                        {g.titulo}
-                      </span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        <span className="font-serif text-lg text-navy">{linhas.length}</span>
-                        {grave ? (
-                          <span
-                            className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                              grave === "P0"
-                                ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                                : grave === "P1"
-                                  ? "border-gold/50 bg-gold/10 text-navy"
-                                  : "border-navy/20 text-navy/60"
-                            }`}
-                          >
-                            {grave}
-                          </span>
-                        ) : null}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 break-words text-[11px] text-navy/55">
-                      {linhas[0]?.motivo ?? g.resumo}
-                    </p>
-                    <div className="mt-1 flex flex-wrap gap-3">
-                      <Link
-                        to={g.rota}
-                        className="text-[11px] text-navy underline underline-offset-2"
-                      >
-                        {g.acao}
-                      </Link>
-                      {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
-                        <Link
-                          to="/catalogo"
-                          className="text-[11px] text-navy underline underline-offset-2"
-                        >
-                          Governança de Catálogo ({bloqueadosCatalogo.length}) —{" "}
-                          {EXCECAO_CONDICAO_COMERCIAL}
-                        </Link>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 border-t border-navy/10 pt-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
-                <span className="text-[11px] text-navy/45">
-                  Cadência e onboarding · somente leitura
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-navy/50">
-                Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa,
-                prazo nem comunicação.
-              </p>
-              <div className="mt-2">
-                <ItensDerivados itens={derivados} />
-              </div>
-              <Link
-                to="/ops"
-                className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
-              >
-                Ver cadência completa
-              </Link>
-            </div>
-          </>
-        )}
-      </section>
-
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
       <section
@@ -940,6 +795,30 @@ export function PainelDia() {
         </p>
 
         <FilaCadencia itens={cadenciaFollowUp} carregando={qCad.isLoading} erro={qCad.isError} />
+
+        {/*
+          Itens derivados moraram dentro de "Sinais de atenção" até 25/08. Com
+          a fusão daquele bloco, vieram para cá: são cadência e onboarding, o
+          mesmo assunto desta seção. Continuam somente leitura — não criam
+          tarefa, prazo nem comunicação.
+        */}
+        <div className="mt-4 border-t border-navy/10 pt-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
+            <span className="text-[11px] text-navy/45">
+              Cadência e onboarding · somente leitura
+            </span>
+          </div>
+          <div className="mt-2">
+            <ItensDerivados itens={derivados} />
+          </div>
+          <Link
+            to="/ops"
+            className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
+          >
+            Ver cadência completa
+          </Link>
+        </div>
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
@@ -993,6 +872,38 @@ export function PainelDia() {
             </Link>
           ))}
         </div>
+
+        {/*
+          Sinais de atenção, fundidos aqui em 25/08. Cada grupo já era contagem,
+          gravidade e link para a página canônica — a mesma natureza deste
+          bloco, com severidade por cima. Só conta e linka.
+        */}
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3 border-t border-navy/10 pt-3">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">
+            Onde há sinal de atenção
+          </p>
+          <span className="flex flex-wrap items-baseline gap-3">
+            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
+            <Link
+              to="/ops"
+              className="text-[11px] font-medium text-navy underline underline-offset-2"
+            >
+              Ver cadência e onboarding em risco
+            </Link>
+            <Link
+              to="/governanca/indicadores"
+              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
+            >
+              registro canônico dos indicadores
+            </Link>
+          </span>
+        </div>
+        <SinaisPorGrupo
+          grupos={GRUPOS_INDICADOR}
+          agrupado={agrupado}
+          maiorGravidade={maiorGravidade}
+          bloqueadosCatalogo={bloqueadosCatalogo}
+        />
       </section>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
