@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clube Ancestral — Painel Evolutivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#2F4B6E; --navy-deep:#1B2B4B; --gold:#FCB73A; --cream:#ECDFCD;
+    --bg:#F7F1E7; --terra:#9A3A2F; --ink:#101010; --line:#DCCDB6;
+    --green:#3F7A4E; --amber:#B9822E; --red:#9A3A2F; --blue:#3B5C82;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:56px 28px 80px;}
+  h1,h2,h3{font-family:'Fraunces',serif; color:var(--navy-deep); margin:0;}
+  .eyebrow{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--terra); font-weight:600; margin-bottom:10px;
+  }
+  header.hero{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:40px;
+    flex-wrap:wrap; gap:20px;
+  }
+  header.hero h1{font-size:clamp(28px,4vw,42px); font-weight:600; line-height:1.1;}
+  header.hero p{color:#5b5142; max-width:520px; margin-top:10px; font-size:14.5px; line-height:1.55;}
+  .date-badge{
+    font-size:12px; color:var(--navy); background:#fff; border:1px solid var(--line);
+    padding:8px 14px; border-radius:100px; white-space:nowrap;
+  }
+
+  /* score row */
+  .scores{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:48px;}
+  .score-card{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px 18px;
+    position:relative; overflow:hidden;
+  }
+  .score-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+  }
+  .score-card.ok::before{background:var(--green);}
+  .score-card.partial::before{background:var(--amber);}
+  .score-card.gap::before{background:var(--red);}
+  .score-card.na::before{background:var(--blue);}
+  .score-num{font-family:'Fraunces',serif; font-size:34px; font-weight:600; color:var(--navy-deep);}
+  .score-label{font-size:12.5px; color:#6b6152; margin-top:2px;}
+
+  section{margin-bottom:56px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:8px;}
+  .section-head h2{font-size:22px; font-weight:600;}
+  .section-note{font-size:12.5px; color:#8a7e6c; max-width:360px; text-align:right;}
+
+  /* timeline */
+  .timeline{position:relative; padding-left:26px;}
+  .timeline::before{content:""; position:absolute; left:6px; top:6px; bottom:6px; width:2px; background:var(--line);}
+  .tl-item{position:relative; padding-bottom:26px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-dot{
+    position:absolute; left:-26px; top:3px; width:14px; height:14px; border-radius:50%;
+    background:var(--gold); border:3px solid var(--bg); box-shadow:0 0 0 1.5px var(--navy);
+  }
+  .tl-item.current .tl-dot{background:var(--terra); box-shadow:0 0 0 1.5px var(--terra);}
+  .tl-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+  .tl-v{font-family:'Fraunces',serif; font-weight:600; color:var(--navy-deep); font-size:16px;}
+  .tl-date{font-size:11.5px; color:#9a8f7d;}
+  .tl-name{font-size:14px; font-weight:600; color:var(--terra);}
+  .tl-desc{font-size:13px; color:#5b5142; margin-top:4px; line-height:1.5; max-width:760px;}
+
+  /* families progress */
+  .fam-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:760px){.fam-grid{grid-template-columns:1fr;}}
+  .fam-card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px 22px;}
+  .fam-title{font-size:14.5px; font-weight:600; color:var(--navy-deep); margin-bottom:4px;}
+  .fam-sub{font-size:12px; color:#8a7e6c; margin-bottom:14px;}
+  .bar-track{height:8px; background:var(--cream); border-radius:100px; overflow:hidden; margin-bottom:8px;}
+  .bar-fill{height:100%; border-radius:100px;}
+  .fam-foot{display:flex; justify-content:space-between; font-size:11.5px; color:#8a7e6c;}
+
+  /* prompt table */
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:14px; overflow:hidden; border:1px solid var(--line);}
+  th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:#8a7e6c; font-weight:600; padding:12px 16px; background:var(--cream); border-bottom:1px solid var(--line);
+  }
+  td{padding:13px 16px; font-size:13px; color:#3a3428; border-bottom:1px solid #efe6d6; vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .pill{
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:100px;
+    white-space:nowrap;
+  }
+  .pill.ok{background:#e3f0e6; color:var(--green);}
+  .pill.partial{background:#faedd7; color:var(--amber);}
+  .pill.gap{background:#f6e0dc; color:var(--red);}
+  .pill.na{background:#e2eaf3; color:var(--blue);}
+  td.num{color:#b3a892; font-variant-numeric:tabular-nums;}
+
+  footer{
+    margin-top:60px; padding-top:24px; border-top:1px solid var(--line);
+    font-size:11.5px; color:#9a8f7d; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Auditoria de produto · leitura direta de código</div>
+      <h1>Clube Ancestral<br>painel evolutivo</h1>
+      <p>Do protótipo de janeiro de 2025 à reconciliação mockup → produção confirmada no repositório
+      publicado. Cada número aqui vem de arquivo lido, não de suposição.</p>
+    </div>
+    <div class="date-badge">Atualizado em 24 de agosto de 2026</div>
+  </header>
+
+  <div class="scores">
+    <div class="score-card ok">
+      <div class="score-num">7</div>
+      <div class="score-label">prompts confirmados<br>concluídos</div>
+    </div>
+    <div class="score-card partial">
+      <div class="score-num">4</div>
+      <div class="score-label">parcialmente<br>executados</div>
+    </div>
+    <div class="score-card gap">
+      <div class="score-num">1</div>
+      <div class="score-label">não executado<br>(Governança estática)</div>
+    </div>
+    <div class="score-card na">
+      <div class="score-num">1</div>
+      <div class="score-label">exige sessão logada real<br>para verificar</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <h2>Linha do tempo do produto</h2>
+      <div class="section-note">V1 a V10 vêm do inventário tela a tela; V11 é esta auditoria.</div>
+    </div>
+    <div class="timeline">
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V1</span><span class="tl-date">jan/2025</span><span class="tl-name">Protótipo visual</span></div>
+        <div class="tl-desc">Base do projeto: raiz, home e protótipo navegável.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V2</span><span class="tl-date">4 jul 2026</span><span class="tl-name">Mockup navegável</span></div>
+        <div class="tl-desc">App Cliente e Desk Intelligence como superfícies completas.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V3</span><span class="tl-date">11 ago</span><span class="tl-name">Devolutivas</span></div>
+        <div class="tl-desc">Devolutiva inicial ao cliente e Studio de devolutivas interno.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V4</span><span class="tl-date">16 ago</span><span class="tl-name">Fundação SaaS</span></div>
+        <div class="tl-desc">Autenticação separada, Portal do Cliente, 27 telas de Desk — maior salto do produto.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V5</span><span class="tl-date">18–19 ago</span><span class="tl-name">CRM vivo</span></div>
+        <div class="tl-desc">Ficha operacional, conversão por eventos, matriz jurídica, caso-piloto.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V6</span><span class="tl-date">20 ago</span><span class="tl-name">Pesquisa e evidências</span></div>
+        <div class="tl-desc">Cadeia genealógica completa: pessoas, achados, biblioteca de evidências.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V7</span><span class="tl-date">21 ago</span><span class="tl-name">Governança e mockup canônico</span></div>
+        <div class="tl-desc">Núcleos familiares, indicadores, corte vertical, mockup v2 aprovado.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V8</span><span class="tl-date">22 ago</span><span class="tl-name">Contratos, catálogo, Modo Proprietária</span></div>
+        <div class="tl-desc">Catálogo comercial, modelos contratuais, Modo Proprietária Administradora.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V9</span><span class="tl-date">23 ago</span><span class="tl-name">Conciliação, bloqueios e acesso</span></div>
+        <div class="tl-desc">Conciliação de catálogo, correções de sessão/login — mesmo dia da falha de login em produção.</div>
+      </div>
+      <div class="tl-item"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V10</span><span class="tl-date">23 ago</span><span class="tl-name">Paleta e linguagem humana</span></div>
+        <div class="tl-desc">Paleta navy/dourado/bege/terracota, rótulos humanos, Modo Proprietária em 5 blocos.</div>
+      </div>
+      <div class="tl-item current"><span class="tl-dot"></span>
+        <div class="tl-head"><span class="tl-v">V11</span><span class="tl-date">23–24 ago</span><span class="tl-name">Reconciliação mockup → produção</span></div>
+        <div class="tl-desc">8 grupos de menu com trava de regressão automática, jornada do cliente
+        reconciliada (10 telas do spec + dado vivo), 51 módulos contextuais classificados, matriz de
+        equivalência formal — confirmado por leitura direta do repositório GitHub.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Famílias de achados — progresso real</h2>
+      <div class="section-note">Cada barra reflete o que foi confirmado no código, não o que foi só prometido.</div>
+    </div>
+    <div class="fam-grid">
+      <div class="fam-card">
+        <div class="fam-title">Arquitetura de navegação (14 abas → 8 grupos)</div>
+        <div class="fam-sub">Trava de regressão, duplicidade declarada, matriz de equivalência</div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="fam-foot"><span>Confirmado</span><span>100%</span></div>
+      </div>
+      <div class="fam-card">
+        <div class="fam-title">Jornada do App Cliente</div>
+        <div class="fam-sub">10 telas do spec da Founder + Faturas/Proposta, com dado vivo</div>
+        <div class="bar-track"><div class="bar-fill" style="width:95%;background:var(--green);"></div></div>
+        <div class="fam-foot"><span>Confirmado — isolamento RLS não testado ao vivo</span><span>95%</span></div>
+      </div>
+      <div class="fam-card">
+        <div class="fam-title">Módulos contextuais do Desk (51 catalogados)</div>
+        <div class="fam-sub">26 operacional · 5 métrica · 6 duplicado (resolvido) · 14 a confirmar</div>
+        <div class="bar-track"><div class="bar-fill" style="width:73%;background:var(--gold);"></div></div>
+        <div class="fam-foot"><span>Classificado — 14 itens ainda em aberto</span><span>73%</span></div>
+      </div>
+      <div class="fam-card">
+        <div class="fam-title">Governança — dado vivo vs. estático</div>
+        <div class="fam-sub">Log de decisões e Indicadores continuam 100% estáticos</div>
+        <div class="bar-track"><div class="bar-fill" style="width:23%;background:var(--terra);"></div></div>
+        <div class="fam-foot"><span>Não executado</span><span>23%</span></div>
+      </div>
+      <div class="fam-card">
+        <div class="fam-title">Métricas e cards duplicados</div>
+        <div class="fam-sub">Funil de conversão resolvido; sinal de prioridade parcialmente unificado</div>
+        <div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--gold);"></div></div>
+        <div class="fam-foot"><span>Maior parte resolvida</span><span>80%</span></div>
+      </div>
+      <div class="fam-card">
+        <div class="fam-title">Conexão Biblioteca de Mensagens ↔ Onboarding</div>
+        <div class="fam-sub">Dois sistemas reais, ainda sem nenhum link entre si</div>
+        <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--terra);"></div></div>
+        <div class="fam-foot"><span>Não executado</span><span>10%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Status de cada prompt enviado</h2>
+      <div class="section-note">13 prompts e estudos, do estudo inicial de UX ao compêndio final.</div>
+    </div>
+    <table>
+      <thead>
+        <tr><th style="width:32px">#</th><th>Prompt</th><th>Foco</th><th style="width:110px">Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Estudo UX/UI e Prontidão para Deploy</td><td>Achados críticos, gates, recomendações P0/P1/P2</td><td><span class="pill ok">Concluído</span></td></tr>
+        <tr><td class="num">2</td><td>Pré-lançamento (login, paleta, UI interna, dado demo)</td><td>4 bloqueadores de lançamento</td><td><span class="pill na">Não verificável</span></td></tr>
+        <tr><td class="num">3</td><td>Pós-lançamento (módulos + 10 melhorias UX)</td><td>Auditoria de módulos e métricas por aba</td><td><span class="pill partial">Parcial</span></td></tr>
+        <tr><td class="num">4</td><td>Decisões rápidas (Perplexity)</td><td>3 decisões de produto para o lançamento</td><td><span class="pill ok">Concluído</span></td></tr>
+        <tr><td class="num">5</td><td>Consolidação de métricas e cards</td><td>Funil, prioridade e financeiro duplicados</td><td><span class="pill ok">Concluído</span></td></tr>
+        <tr><td class="num">6</td><td>Arquitetura — conciliação completa</td><td>Radar Interno, prioridade, alertas, matriz de equivalência</td><td><span class="pill ok">Concluído</span></td></tr>
+        <tr><td class="num">7</td><td>Conectar sistemas isolados</td><td>Biblioteca de Mensagens × Onboarding-Jornada, Alertas</td><td><span class="pill partial">Parcial</span></td></tr>
+        <tr><td class="num">8</td><td>Jornada do pesquisador e ponte com o cliente</td><td>Painel Hoje por papel, rotas órfãs, publicação ao cliente</td><td><span class="pill partial">Parcial</span></td></tr>
+        <tr><td class="num">9</td><td>Jornada do cliente — estrutura</td><td>10 telas do spec + Faturas/Proposta</td><td><span class="pill ok">Concluído</span></td></tr>
+        <tr><td class="num">10</td><td>Jornada do cliente — dado vivo e isolamento</td><td>Radar/Jornada com dado real, RLS por caso</td><td><span class="pill ok">Concluído (estrutura)</span></td></tr>
+        <tr><td class="num">11</td><td>Pente-fino Governança e Biblioteca</td><td>8 módulos estáticos — virar dado real ou documentado</td><td><span class="pill gap">Não executado</span></td></tr>
+        <tr><td class="num">12</td><td>Pendências confirmadas (pós-leitura do repo)</td><td>Consolidação intermediária</td><td><span class="pill na">Substituído</span></td></tr>
+        <tr><td class="num">13</td><td>Compêndio final</td><td>Governança + Métricas + Conexão de sistemas, fundidos</td><td><span class="pill partial">Enviado nesta rodada</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <span>Clube Ancestral · painel gerado a partir de leitura direta de código, não de estimativa</span>
+    <span>Fontes: soul-ancestry-main.zip (GitHub) · soul-ancestry.lovable.app · soul-ancestry.vercel.app</span>
+  </footer>
+
+</div>
+</body>
+</html>
