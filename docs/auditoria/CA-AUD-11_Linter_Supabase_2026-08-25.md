@@ -49,11 +49,25 @@ rodar `pg_get_functiondef` e decidir se ainda serve para alguma coisa.
 
 ## 3 — Proteção contra senha vazada desativada
 
-**Estado: PENDENTE.**
+**Estado: FECHADO em 25/08/2026.** Ativada pela Proprietária no painel.
 
-O Supabase pode conferir senhas novas contra a base do HaveIBeenPwned e
-recusar as que já vazaram. Fica em **Authentication → Providers → Email**.
-Vale ligar antes de existir conta de cliente real.
+O Supabase passa a conferir toda senha nova contra a base do
+HaveIBeenPwned e a recusar as que já vazaram. A verificação usa
+k-anonimato: só um prefixo do hash sai, nunca a senha.
+
+Vale registrar o momento: a proteção age apenas sobre senha **nova**, não
+revisa as existentes. Foi ligada **antes de existir qualquer conta de
+cliente real**, então toda conta do App Cliente nasce sob essa checagem —
+e são contas que dão acesso a árvore genealógica, documentos pessoais e
+faturas.
+
+## Estado final dos três achados
+
+| Achado | Estado |
+| --- | --- |
+| `anon` executa SECURITY DEFINER | fechado |
+| `authenticated` executa SECURITY DEFINER | fechado |
+| Proteção contra senha vazada | fechado |
 
 ## O que este documento não cobre
 
