@@ -10,7 +10,9 @@ import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
+import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
+import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -295,6 +297,7 @@ export function PainelDia() {
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
   const cards = cardsHoje(filas, { incluirDemo, itens });
+  const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
   const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
   const usados = chavesExibidas(priorizada);
@@ -582,7 +585,14 @@ export function PainelDia() {
         ))}
       </section>
 
-      {/* 1 — Minha fila priorizada */}
+      {/*
+        1 — Caso em destaque (mockup Fase 01). O que olhar primeiro, com a
+        regra que o colocou no topo. Reusa `calcularPrioridade`, a mesma
+        função da fila e de Casos 360 — nenhum cálculo paralelo.
+      */}
+      <CasoEmDestaque dados={casoDestaque} />
+
+      {/* 2 — Minha fila priorizada */}
       <section data-painel-bloco="fila_priorizada" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
@@ -666,6 +676,15 @@ export function PainelDia() {
             ))}
           </div>
         )}
+
+        {/*
+          Decisão da Proprietária (25/08): a fila de revisão jurídica é uma
+          exceção que exige dono, e passa a morar dentro deste bloco em vez de
+          ocupar superfície própria entre Sinais e Comercial.
+        */}
+        <div className="mt-4 border-t border-navy/10 pt-4">
+          <FilaRevisaoJuridica compacto />
+        </div>
       </section>
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
@@ -748,8 +767,6 @@ export function PainelDia() {
         </div>
       </section>
 
-      <FilaRevisaoJuridica compacto />
-
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
       <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
@@ -806,9 +823,17 @@ export function PainelDia() {
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
-      <section data-painel-bloco="atalhos" className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Atalhos</h2>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+      {/*
+        6 — Encontrar no Desk. Decisão da Proprietária (25/08): o bloco
+        "Atalhos" foi fundido aqui — eram dois blocos de links para rotas
+        existentes, um em cima do outro. Continua sendo descoberta pura:
+        abrir um link não cria nem altera nada.
+      */}
+      <section data-painel-bloco="descoberta" className="rounded-xl border border-navy/10 bg-white p-5">
+        <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
+
+        <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">Começar alguma coisa</p>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
             { to: "/leads" as const, rotulo: "Novo lead" },
             { to: "/propostas" as const, rotulo: "Abrir proposta" },
@@ -823,15 +848,11 @@ export function PainelDia() {
             </Link>
           ))}
         </div>
-      </section>
 
-      {/* 7 — Encontrar no Desk: apenas descoberta de módulos existentes. Nenhum dado é criado ou alterado. */}
-      <section data-painel-bloco="descoberta" className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
-        <p className="mt-1 text-xs text-navy/55">
-          Onde vivem os módulos que mudaram de nome. Abrir um link não executa nada.
+        <p className="mt-4 text-[11px] uppercase tracking-wide text-navy/50">
+          Módulos que mudaram de nome
         </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {ATALHOS_DESCOBERTA.map((a) => (
             <Link
               key={a.rota}

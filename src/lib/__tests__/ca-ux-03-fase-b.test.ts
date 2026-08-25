@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -25,13 +25,37 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
   const painel = ler("src/components/painel/painel-dia.tsx");
 
   it("mantém os cinco blocos operacionais aprovados", () => {
-    const blocos = new Set([...painel.matchAll(/data-painel-bloco="([a-z]+)"/g)].map((m) => m[1]));
-    // fila priorizada (sinais), exceções da proprietária, comercial hoje, casos por prazo e Encontrar no Desk
-    for (const b of ["sinais", "excecoes", "comercial", "prazos", "descoberta"]) {
+    // Varre todos os componentes do painel, não só painel-dia.tsx: um bloco
+    // declarado em componente filho também ocupa superfície na tela.
+    const dir = "src/components/painel";
+    const fontes = readdirSync(dir)
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => ler(`${dir}/${f}`))
+      .join("\n");
+    const blocos = new Set([...fontes.matchAll(/data-painel-bloco="([a-z_]+)"/g)].map((m) => m[1]));
+
+    // Os cinco blocos do CA-UX-02 §6.
+    for (const b of ["fila_priorizada", "excecoes", "comercial", "prazos", "descoberta"]) {
       expect(blocos.has(b)).toBe(true);
     }
-    // nenhuma nova fila operacional além dos blocos aprovados e dos auxiliares de leitura
-    for (const b of blocos) expect(["cards", "atalhos", "sinais", "excecoes", "comercial", "prazos", "descoberta"]).toContain(b);
+
+    // Nenhuma superfície nova além dos cinco e dos auxiliares de leitura
+    // aprovados: métricas de decisão, caso em destaque e sinais de atenção.
+    const permitidos = [
+      "cards",
+      "destaque",
+      "fila_priorizada",
+      "excecoes",
+      "sinais",
+      "comercial",
+      "prazos",
+      "descoberta",
+    ];
+    for (const b of blocos) expect(permitidos).toContain(b);
+
+    // Decisão da Proprietária (25/08): "Atalhos" foi fundido em
+    // "Encontrar no Desk" e não volta como bloco próprio.
+    expect(blocos.has("atalhos")).toBe(false);
   });
 
 

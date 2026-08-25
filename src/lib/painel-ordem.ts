@@ -19,13 +19,13 @@ export type BlocoPainel = {
 
 /** Ordem canônica dos blocos do Painel Hoje, de cima para baixo. */
 export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
-  { chave: "cards", titulo: "Cards do dia", fila: false },
+  { chave: "cards", titulo: "Métricas de decisão do dia", fila: false },
+  { chave: "destaque", titulo: "Caso em destaque", fila: false },
   { chave: "fila_priorizada", titulo: "Minha fila priorizada", fila: true },
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
   { chave: "sinais", titulo: "Sinais de atenção", fila: false },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
-  { chave: "prazos", titulo: "Casos com prazo em atenção", fila: false },
-  { chave: "atalhos", titulo: "Atalhos", fila: false },
+  { chave: "prazos", titulo: "Cadência — quem precisa de um toque", fila: true },
   { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },
 ] as const;
 
@@ -34,7 +34,8 @@ export const PAR_OBRIGATORIO = { antes: "excecoes", depois: "sinais" } as const;
 
 export type ProblemaPainel = { chave: string; mensagem: string };
 
-const titulo = (chave: string) => ORDEM_BLOCOS_PAINEL.find((b) => b.chave === chave)?.titulo ?? chave;
+const titulo = (chave: string) =>
+  ORDEM_BLOCOS_PAINEL.find((b) => b.chave === chave)?.titulo ?? chave;
 
 /**
  * Confere a ordem dos blocos efetivamente renderizados.
@@ -48,11 +49,17 @@ export function validarOrdemPainel(chavesRenderizadas: readonly string[]): Probl
 
   for (const chave of chavesRenderizadas) {
     if (!conhecidas.has(chave)) {
-      problemas.push({ chave, mensagem: `Bloco “${chave}” não faz parte da ordem canônica do painel.` });
+      problemas.push({
+        chave,
+        mensagem: `Bloco “${chave}” não faz parte da ordem canônica do painel.`,
+      });
       continue;
     }
     if (vistas.has(chave)) {
-      problemas.push({ chave, mensagem: `Bloco “${titulo(chave)}” aparece mais de uma vez na tela.` });
+      problemas.push({
+        chave,
+        mensagem: `Bloco “${titulo(chave)}” aparece mais de uma vez na tela.`,
+      });
     }
     vistas.add(chave);
   }
@@ -96,7 +103,9 @@ export type RegistroRenderizado = { bloco: string; tipo: string; id: string };
  * Um mesmo lead/caso listado duas vezes é defeito: a ação principal fica na
  * fila priorizada e os demais bloqueios ficam na ficha do registro.
  */
-export function duplicidadesDeRegistro(registros: readonly RegistroRenderizado[]): ProblemaPainel[] {
+export function duplicidadesDeRegistro(
+  registros: readonly RegistroRenderizado[],
+): ProblemaPainel[] {
   const blocosFila = new Set(ORDEM_BLOCOS_PAINEL.filter((b) => b.fila).map((b) => b.chave));
   const ondeApareceu = new Map<string, string[]>();
   for (const r of registros) {
