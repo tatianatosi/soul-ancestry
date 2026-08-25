@@ -1,0 +1,222 @@
+PROMPT LOVABLE — CA-LOVABLE-ONBOARDING-JORNADA-v1.0
+Versão: 1.0
+Data: 21/08/2026
+Destino: Soul Ancestry no Lovable
+
+IMPLEMENTAR E RESTAURAR O ONBOARDING PADRÃO, A JORNADA DE CASO, O PLANEJADOR OPERACIONAL E AS ENTREGAS SANITIZADAS DENTRO DA ESTRUTURA ATUAL DO SOUL ANCESTRY.
+
+IMPORTANTE:
+- Não criar novas abas principais.
+- Não redesenhar a navegação já aprovada.
+- No Desk, usar Casos 360 → Go-live e os painéis contextuais existentes.
+- No App Cliente, manter exclusivamente as abas Home, Jornada, Radar, Árvore, Documentos e Legado.
+- Não criar abas globais Entregas, Fase 1 ou Fase 2.
+- Fase 1 e Fase 2, quando aplicáveis, são estados/entregas dentro da Jornada, nunca abas adicionais.
+- Não criar contrato, assinatura, cobrança, link Asaas, mensagem externa, pesquisa externa ou publicação automática nesta entrega.
+
+OBJETIVO
+Criar um onboarding padrão reutilizável, acionado somente após contrato assinado e pagamento inicial confirmado, que organize núcleo, dossi, plano, checklist, responsável, próximas ações, alertas de cadência e primeiras entregas. O App Cliente deve receber somente conteúdo sanitizado, aprovado e publicado.
+
+GATES OBRIGATÓRIOS
+
+Onboarding não pode iniciar sem todos:
+- contrato assinado registrado;
+- pagamento inicial confirmado registrado;
+- responsável principal definido;
+- núcleo familiar validado quando aplicável;
+- dossi-mãe vinculado ou criado;
+- ambiente e nível de acesso definidos;
+- case_service consolidado;
+- checklist inicial criado;
+- plano de ação criado.
+
+Nenhum desses gates pode ser inferido por status visual.
+
+ESTADOS
+
+Eixo de formalização/operação:
+- nao_iniciado
+- formalizacao_em_preparacao
+- contrato_enviado
+- contrato_assinado
+- pagamento_inicial_confirmado
+- onboarding_iniciado
+- caso_ativo
+- arquivado
+
+Estado derivado do caso:
+- pre_onboarding_bloqueado
+- formalizacao_pendente
+- onboarding_pendente
+- em_execucao
+- aguardando_cliente
+- aguardando_terceiro
+- concluido
+- arquivado
+
+ONBOARDING PADRÃO
+
+Criar template reutilizável com checklist:
+- contrato assinado;
+- pagamento inicial confirmado;
+- responsável principal;
+- núcleo familiar e participantes validados;
+- representação de menor, quando aplicável;
+- dossi-mãe;
+- ambiente e nível de acesso;
+- case_service e escopo;
+- checklist documental inicial;
+- plano de ação;
+- primeira ação datada;
+- call de onboarding, quando aplicável;
+- primeira microentrega planejada até D7;
+- regra de atualização contextualizada antes de D14.
+
+Criar ou ajustar case_plans:
+- id
+- case_id
+- family_id opcional
+- case_service_id opcional
+- fase_jornada
+- marco_atual
+- responsavel_user_id
+- proxima_acao
+- prazo_proxima_acao
+- checklist_aplicavel
+- pendencias_cliente
+- pendencias_internas
+- entrega_robusta_atual
+- proxima_microentrega
+- ultima_atualizacao_cliente_em
+- proxima_atualizacao_limite_em
+- dias_sem_touchpoint
+- status_saude: regular | atencao | critico
+- status
+- created_at
+- updated_at
+
+FASES PADRONIZADAS DA JORNADA
+- aceite_e_formalizacao
+- onboarding
+- pesquisa_inicial
+- pesquisa_e_validacao
+- preparacao_documental
+- protocolo_e_acompanhamento
+- reconhecimento
+- pos_reconhecimento
+
+MICROENTREGAS E ENTREGAS
+
+Criar ou ajustar client_deliverables:
+- id
+- case_id
+- family_id opcional
+- tipo_entrega
+- fase_jornada
+- titulo_cliente
+- resumo_aprovado
+- approval_status: draft | in_review | approved | published | archived
+- prioridade
+- deeplink_aprovado opcional
+- notification_channel: none | app | whatsapp | email
+- available_at
+- viewed_at
+- internal_reference
+- responsavel_user_id
+- created_at
+- updated_at
+
+Tipos iniciais:
+- boas_vindas
+- plano_de_acao
+- checklist_documental
+- confirmacao_documento_recebido
+- documento_localizado
+- documento_validado
+- pendencia_contextualizada
+- atualizacao_sem_acao_cliente
+- arvore_inicial
+- relatorio_parcial
+- proximo_passo_personalizado
+
+Regras:
+- uma entrega não é evidência bruta;
+- fonte, hipótese, risco, documento interno, preço, anotação de equipe e dados de terceiro não podem entrar no resumo ao cliente;
+- somente approval_status published pode aparecer no App Cliente;
+- nenhum envio externo automático;
+- WhatsApp/e-mail, se previstos, devem gerar no máximo rascunho interno sujeito a aprovação humana futura.
+
+CADÊNCIA
+
+- D7: primeira microentrega deve estar planejada, não obrigatoriamente enviada automaticamente.
+- D10 sem touchpoint: alerta interno de atenção.
+- D14 sem atualização contextualizada: alerta interno crítico e rascunho interno de atualização, nunca envio automático.
+- Espera externa só suspende o alerta quando o motivo, responsável, prazo de rechecagem e comunicação contextualizada estiverem registrados.
+
+APP CLIENTE
+
+Home:
+- mostrar somente resumo sanitizado, etapa atual, próxima ação permitida, pendências apropriadas e entregas publicadas.
+
+Jornada:
+- mostrar etapas progressivas sanitizadas;
+- não revelar bloqueios internos, nota jurídica, preços, fontes, evidências, hipóteses, riscos, documentos internos ou condições comerciais;
+- não liberar conteúdo de fases sem gate;
+- se onboarding não iniciou, mostrar estado seguro e genérico, sem prometer cronograma ou resultado.
+
+Documentos:
+- mostrar somente itens/documentos explicitamente aprovados e visíveis ao cliente;
+- upload interno e documentos de pesquisa não aparecem automaticamente.
+
+Legado:
+- preservar integralmente legado-visibilidade.ts;
+- somente app_projection ou client_deliverable com autorizado === true e publicado === true;
+- sem upsell automático;
+- sem fonte, evidência, hipótese, risco, preço ou documento interno.
+
+CONTROLE DE VISIBILIDADE
+
+Antes de onboarding:
+- Jornada pode existir como aba fixa, mas sem conteúdo operacional liberado;
+- não mostrar Entregas, Fase 1 ou Fase 2 como abas ou rotas públicas;
+- URLs diretas devem devolver estado bloqueado/indisponível, não dados internos;
+- Legado continua fixo e vazio se não houver projeção autorizada/publicada.
+
+Depois de onboarding:
+- liberar somente conteúdos explicitamente publicados;
+- uma fase não libera a outra automaticamente;
+- toda rota deve validar os mesmos gates da interface.
+
+CASO ANA — OBRIGATÓRIO
+
+Para CA-CID-AT-FAM-2026-001:
+- manter pre_onboarding_bloqueado;
+- não iniciar onboarding;
+- não criar plano ativo, boas-vindas, acesso do App, microentrega real ou comunicação;
+- manter bloqueios atuais de proposta, cadastro, case_service, condição comercial, critérios de aceite e matriz jurídica;
+- Felipe não recebe App, contrato ou anexo individual sem representação documentada;
+- permitir somente diagnóstico interno do que falta para onboarding.
+
+SEGURANÇA E AUDITORIA
+- Aplicar RLS por caso e organização.
+- Registrar mudanças de gate, etapa, checklist, plano e aprovação de entrega.
+- Bloquear exclusão física de registros críticos; permitir arquivamento lógico com motivo.
+- Não expor PII ou detalhes internos no App Cliente.
+
+CRITÉRIOS DE ACEITE
+- Não há novas abas principais.
+- Onboarding só inicia depois de contrato assinado e pagamento inicial confirmado, além dos demais gates.
+- Caso ativo não pode ser definido manualmente sem gates.
+- Case plan persiste após recarregar.
+- Alertas D10/D14 aparecem apenas no Desk.
+- Entregas exigem aprovação e publicação antes do App Cliente.
+- App Cliente não exibe fontes, evidências, hipóteses, riscos, documentos internos, preço ou condição comercial.
+- Entregas/Fase 1/Fase 2 não aparecem como abas globais e URLs diretas respeitam gates.
+- Ana permanece bloqueada e sem onboarding.
+- Build, typecheck e testes aplicáveis ficam limpos.
+
+ANTES DE IMPLEMENTAR
+Apresente plano de arquivos, migrations, componentes, políticas RLS e testes.
+
+AO FINAL
+Informe migrations, telas/rotas, testes, commit identificável e roteiro de validação visual.

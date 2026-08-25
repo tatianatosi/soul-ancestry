@@ -1,0 +1,191 @@
+PROMPT LOVABLE — G-08: FONTES E DOCUMENTOS EM PESQUISA TRANSVERSAL
+Versão: v1.1
+Data: 20/08/2026
+Caso piloto prioritário: Ana — CA-CID-AT-FAM-2026-001
+
+AJUSTE DE ESCOPO
+Implementar o upload e a catalogação de documentos exclusivamente dentro do eixo existente “Pesquisa Transversal”.
+
+Não criar nova aba global, novo item de menu, nova área de navegação, rota pública adicional nem redesenho de interface. Reutilizar a rota, layout, componentes, estados de autenticação e padrões de autorização existentes em Pesquisa Transversal.
+
+O caso Ana deve ser o caso piloto obrigatório para aceite funcional, persistência, RLS e isolamento. Não preencher dados genealógicos reais por suposição e não publicar qualquer conteúdo no App Cliente.
+
+OBJETIVO
+Permitir que a equipe interna do Clube Ancestral carregue, catalogue, consulte, revise metadados e arquive logicamente documentos reais associados a um caso. Esses documentos serão Fontes de Pesquisa; não são, por si só, evidências, achados, relações, eventos ou linhagens.
+
+LOCAL DE INTERFACE
+Casos → [caso] → Pesquisa Transversal
+
+Dentro da tela existente, incluir apenas uma seção contextual de trabalho chamada “Fontes e documentos”. Preferir painel, seção, card ou accordion já coerente com a página atual. Se houver subtabs locais existentes, encaixar nela somente se não criar navegação nova. Não alterar a arquitetura de navegação global.
+
+CASO PILOTO OBRIGATÓRIO — ANA
+Aplicar e validar o fluxo no caso:
+- Código: CA-CID-AT-FAM-2026-001
+- Titular: Ana
+
+No caso Ana, permitir relacionar um documento a:
+- Ana
+- Adair
+- Alice
+- Felipe
+- Pessoa ainda não identificada
+
+Regras específicas da Ana:
+- O upload de documentos não remove nem altera automaticamente bloqueios atuais de proposta, cadastro, condição comercial, case_service, critérios de aceite, matriz jurídica, assinatura, financeiro ou onboarding.
+- Felipe continua sem contrato, App Cliente ou anexo individual até que haja representação documentada e decisão humana aplicável.
+- Nenhum documento carregado pode preencher automaticamente a Ficha Genealógica, árvore, timeline, relação familiar, evento, linhagem, evidência, achado ou relatório.
+- Nada carregado pode ser publicado no App Cliente, inclusive na aba Legado.
+- Não usar arquivos ou dados reais de Ana, Adair, Alice ou Felipe como fixtures de demonstração.
+
+TELA PRINCIPAL
+Na seção “Fontes e documentos”, mostrar:
+- Cabeçalho contextual com contador de documentos ativos do caso.
+- Botão “Adicionar documento”.
+- Campo de busca por nome/título, pessoa relacionada, tipo ou origem.
+- Filtros por status, tipo documental, pessoa relacionada, origem, país/local e confidencialidade.
+- Lista/tabela de documentos com:
+  - nome/título interno;
+  - tipo;
+  - pessoa relacionada;
+  - origem/emissor;
+  - data do documento;
+  - local, quando informado;
+  - status de revisão;
+  - qualidade/origem;
+  - data de inclusão;
+  - autor do upload;
+  - ações: ver detalhes, editar metadados e arquivar.
+
+FLUXO “ADICIONAR DOCUMENTO”
+Aceitar PDF, JPG, JPEG e PNG. Aceitar TIFF apenas se o storage atual já suportar esse formato.
+
+Validar extensão, tamanho máximo conforme padrão atual do projeto, erro de upload, arquivo corrompido e falha de permissão.
+
+Campos obrigatórios:
+- Arquivo.
+- Tipo de documento, por catálogo controlado.
+- Pessoa relacionada ou “Pessoa ainda não identificada”.
+- Origem do documento.
+- Estado inicial: pendente_revisao.
+
+Campos opcionais:
+- Título interno.
+- Data do documento.
+- País.
+- Estado/província.
+- Cidade/localidade.
+- Instituição emissora: cartório, arquivo, consulado, família ou outra.
+- Livro, folha, termo, matrícula, referência ou URL de origem.
+- Idioma.
+- Observações descritivas.
+- Nível de confidencialidade.
+- Tipo/qualidade de origem.
+
+CATÁLOGO CONTROLADO DE TIPOS
+- Certidão de nascimento
+- Certidão de casamento
+- Certidão de óbito
+- Registro civil
+- Inteiro teor
+- Certidão estrangeira
+- Registro religioso ou batismo
+- Registro de imigração
+- Lista de passageiros
+- Registro consular
+- Naturalização
+- Passaporte
+- Documento de identidade
+- Comprovante de residência
+- Documento militar
+- Documento notarial
+- Inventário ou testamento
+- Documento judicial
+- Documento de cidadania
+- Certidão negativa ou positiva
+- Registro de arquivo histórico
+- Fotografia ou imagem histórica
+- Correspondência
+- Árvore genealógica recebida da família
+- Relato familiar
+- Documento comercial ou contratual
+- Proposta Canva
+- Outro documento
+
+ESTADOS
+- pendente_revisao
+- revisado
+- rejeitado
+- arquivado
+
+QUALIDADE/ORIGEM
+- original_oficial
+- copia_autenticada
+- copia_simples
+- imagem_digital
+- relato_familiar
+- fonte_secundaria
+- origem_a_confirmar
+
+MODELO E INTEGRIDADE
+- Todo registro deve estar obrigatoriamente associado ao case_id.
+- Pessoa relacionada deve usar referência à pessoa já existente no núcleo do caso, quando identificada; não duplicar pessoas em texto livre.
+- “Pessoa ainda não identificada” deve ser estado controlado, não um novo cadastro de pessoa.
+- O upload cria somente um Documento/Fonte.
+- Manter autoria, timestamps de criação e alteração, status e auditoria sanitizada.
+- Implementar arquivamento lógico com motivo obrigatório.
+- Bloquear exclusão física na UI e no banco/trigger.
+
+SEGURANÇA E STORAGE
+- Aplicar RLS por organização e por caso: somente equipe autorizada pode ler, incluir, editar metadados e arquivar documentos daquele caso.
+- Manter arquivos em storage privado.
+- Usar URL temporária/assinada apenas se esse for o padrão já adotado no projeto.
+- Nunca expor URL pública permanente.
+- Não exibir CPF completo, dados sensíveis desnecessários, preço, condição comercial ou outras informações não necessárias na lista.
+- Não permitir leitura, alteração ou download cruzado entre casos.
+
+SEPARAÇÃO OBRIGATÓRIA DE CONCEITOS
+- Documento/Fonte: material bruto recebido ou referência externa.
+- Evidência: interpretação posterior, revisável, criada a partir de documento/fonte.
+- Achado: conclusão de pesquisa posterior.
+- Pessoa, relação, evento e linhagem: entidades genealógicas posteriores.
+
+É EXPRESSAMENTE PROIBIDO IMPLEMENTAR NESTA ENTREGA
+- OCR.
+- IA.
+- Extração automática de texto.
+- Criação automática de evidências.
+- Criação automática de pessoas.
+- Criação automática de relações, eventos ou linhagens.
+- Criação automática de achados ou relatórios.
+- Pesquisa externa.
+- Publicação no App Cliente.
+- Contrato, cláusula, cobrança, comunicação ou integração externa.
+
+INTEGRAÇÃO FUTURA — NÃO IMPLEMENTAR AGORA
+Preparar somente o ponto de extensão técnico para uma futura ação “Preparar para extração assistida”. Ela pode ficar invisível nesta entrega ou identificada como indisponível/em breve apenas se encaixar naturalmente na interface existente. Não criar botão ou aba extra apenas para essa futura função.
+
+A futura extração deverá produzir sugestões revisáveis; nunca poderá gravar automaticamente dados genealógicos consolidados.
+
+REGRA DO APP CLIENTE E LEGADO
+- Nada desta seção pode aparecer na aba Legado nem em qualquer outra área do App Cliente.
+- Não modificar a regra de `legado-visibilidade.ts` já entregue.
+- Somente itens de origem app_projection ou client_deliverable que sejam autorizado === true e publicado === true podem aparecer no App Cliente.
+- Fonte bruta, evidência, hipótese, risco, preço, documento interno e informação de terceiro nunca podem ser projetados.
+
+CRITÉRIOS DE ACEITE
+- A seção “Fontes e documentos” funciona dentro de Pesquisa Transversal.
+- Nenhuma nova aba global, rota pública, item de menu ou navegação adicional foi criada.
+- O caso Ana (CA-CID-AT-FAM-2026-001) é validado no fluxo.
+- É possível enviar documento e cadastrar seus metadados por caso.
+- O tipo é selecionado por catálogo controlado.
+- O registro nasce em pendente_revisao.
+- Metadados podem ser editados com auditoria.
+- Arquivamento lógico funciona; exclusão física é bloqueada.
+- RLS impede leitura e operação entre casos ou usuários sem permissão.
+- O upload não altera Ficha Genealógica, gates da Ana, contrato, assinatura, financeiro, onboarding ou App Cliente.
+- Não há conteúdo de documento no App Cliente/Legado.
+- Build, typecheck e testes ficam limpos.
+- Criar testes para upload/metadados, edição auditada, arquivamento lógico, isolamento RLS, proibição de exclusão física e ausência de criação automática de dados genealógicos.
+
+PROCESSO
+Antes de realizar alteração estrutural, apresentar o plano de arquivos, migrations, tabelas, políticas RLS, storage, componentes e testes que serão criados ou modificados. Não ampliar o escopo desta entrega.

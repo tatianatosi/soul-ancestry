@@ -1,0 +1,22 @@
+ID;Área;Capacidade;Local correto (8 áreas);Evidência nesta thread;Status;Lacuna/Ação
+A01;Hoje;Fila diária, exceções, prioridade, atalhos;Hoje;Painel Hoje em 5 blocos mencionado;PARCIAL;Auditar rota e confirmar radar de prioridade
+A02;Marketing;Aquisição, origem, UTM, canais, conteúdo, CAC;Comercial > Marketing e aquisição;Discussão desta thread e CRM com origem de lead;PENDENTE;Mapear componentes e integrações reais
+A03;Comercial;Leads, triagem, calls, propostas, conversão;Comercial;Fluxo canônico e Calls Discovery documentados;PARCIAL;Confirmar visibilidade no menu e guardas
+A04;Casos;Casos 360, núcleos, documentos, entregas;Casos;Documentado no contexto;PARCIAL;Auditar rotas e sobreposições
+A05;Pesquisa;Pesquisa genealógica transversal, pessoas, ramos, fontes, evidências, documentos, validação, achados, relatórios, alertas;Casos > Pesquisa Genealógica e Evidências;G-04 e cadeia de pesquisa de 7 elos documentados;PARCIAL;Mapear todas as 9 seções e bases/catálogos
+A06;Fontes;Catálogo de fontes, matriz de avaliação, acesso, documentos;Casos > Pesquisa > Fontes e documentos;G-08 documentado;PARCIAL;Confirmar rota, RLS e acessibilidade interna
+A07;Assistente;Assistente IA por caso, confirmação de case_id, bloqueio por dados insuficientes, DEMO explícita;Casos > Assistente de pesquisa;Regra de confirmação e DEMO documentada;PARCIAL;Localizar rota/componente/guardas e provas
+A08;Cliente;Espelho sanitizado das 7 abas, publicações, atividade;Cliente;Pedido desta thread;PENDENTE;Implementar apenas com projeção canônica e preview read-only
+A09;Financeiro;Condições, despesas, faturas, conciliação;Financeiro;Mencionado no contexto;PARCIAL;Manter gates comerciais
+A10;Operação;Checklist semanal, tarefas, SLA, capacidade;Operação;Mencionado no contexto;PARCIAL;Eliminar duplicações com Alertas e Hoje
+A11;Governança;Jurídico, radar interno, alertas derivados, integrações, biblioteca, homologação, auditoria;Governança;Usuária relata perda de Jurídico e Radar Interno;NÃO COMPROVADO;Auditar rotas, menu e guardas
+A12;Administração;Equipe, perfis, Modo Proprietária;Menu proprietário;Verificação de acesso proprietária documentada;PARCIAL;Confirmar acesso publicado
+P01;P0.1;Acesso proprietária e isolamento do App Cliente;Pré-lançamento;Prompt entregue nesta thread;NÃO COMPROVADO;Solicitar devolutiva/evidência
+P02;P0.2;Classificação e bloqueio de dados não reais;Pré-lançamento;Devolutiva: 935 testes/build local;IMPLEMENTADO LOCALMENTE;Validar domínio publicado read-only
+P03;P0.3;Checklist de lançamento controlado;Pré-lançamento;Prompt entregue nesta thread;NÃO COMPROVADO;Executar após P0.1 e P0.2 publicado
+P04;ARQ;Auditoria 14 abas, módulos perdidos e sobreposição;Arquitetura;Prompt entregue nesta thread;NÃO COMPROVADO;Executar read-only
+P05;MKT;Mapeamento Marketing;Arquitetura;Complemento entregue nesta thread;NÃO COMPROVADO;Incluir na auditoria ARQ
+P06;ESP;Espelho do App Cliente;Cliente;Prompt entregue nesta thread;NÃO COMPROVADO;Executar após prova de isolamento
+P07;P1.1;Alertas como visão derivada;Pós-lançamento;Prompt entregue nesta thread;NÃO COMPROVADO;Não executar sem auditoria de duplicação
+P08;P1.2;Prioridade no Painel Hoje;Pós-lançamento;Prompt entregue nesta thread;NÃO COMPROVADO;Não executar antes de localizar radar atual
+P09;P2.1;T1/T2, autoria e consolidação;Pós-lançamento;Prompt entregue nesta thread;NÃO COMPROVADO;Planejar após lançamento controlado
