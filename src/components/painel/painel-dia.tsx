@@ -8,6 +8,7 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
+import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
@@ -29,7 +30,6 @@ import {
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
-  itensNaoExibidos,
   opcoesFiltroDia,
   textoDiasSemTouchpoint,
   textoPrazo,
@@ -186,6 +186,18 @@ function Linha({
 }
 
 
+/**
+ * Tom de cada métrica de decisão do topo. Só se aplica quando há valor maior
+ * que zero: um contador zerado é boa notícia e não deve aparecer em vermelho.
+ */
+const TOM_DO_CARD: Record<string, TomEstado> = {
+  acoes_vencidas: "critico",
+  acoes_hoje: "atencao",
+  sem_responsavel: "atencao",
+  excecoes_criticas: "critico",
+  sla_em_risco: "atencao",
+};
+
 const GRUPOS_INDICADOR = [
   {
     chave: "integridade" as const,
@@ -281,7 +293,7 @@ export function PainelDia() {
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const cards = cardsHoje(filas, { incluirDemo });
+  const cards = cardsHoje(filas, { incluirDemo, itens });
   const opcoes = opcoesFiltroDia(itens);
   const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
   const usados = chavesExibidas(priorizada);
@@ -293,12 +305,6 @@ export function PainelDia() {
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
-  // Somente leitura das filas já carregadas: resumo comercial conta sem repetir item já presente na fila.
-  const itensFila = (chave: string) =>
-    itensNaoExibidos(((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]), usados, {
-      incluirDemo,
-      tipoPadrao: "lead",
-    });
 
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
@@ -551,14 +557,16 @@ export function PainelDia() {
 
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
-      {/* 0 — Cards do dia */}
-      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
+      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => (
-          <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{c.total}</p>
-            <p className="mt-1 text-[11px] text-navy/55">{c.leitura}</p>
-          </div>
+          <CardIndicador
+            key={c.chave}
+            rotulo={c.rotulo}
+            valor={c.total}
+            apoio={c.leitura}
+            tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
+          />
         ))}
       </section>
 
@@ -753,10 +761,16 @@ export function PainelDia() {
         <p className="mt-1 text-xs text-navy/50">
           Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já presente nas filas acima.
         </p>
+        {/*
+          CA-UX-02 §7, regra de não duplicação: contrato enviado e pagamento
+          aguardado já são contados no cartão "Exceções críticas". Aqui vale
+          rótulo e link para a página canônica, nunca uma segunda contagem —
+          que, por deduplicar contra as filas acima, daria outro número sob o
+          mesmo nome.
+        */}
         <p data-painel-resumo="financeiro" className="mt-3 text-sm text-navy">
           <Link to="/financeiro" className="text-navy underline underline-offset-2">
-            Financeiro hoje: {itensFila("contratos_enviados_pendentes").length} contrato(s) enviado(s) ·{" "}
-            {itensFila("pagamentos_aguardados").length} pagamento(s) aguardado(s)
+            Financeiro hoje: contratos enviados e pagamentos aguardados
           </Link>
         </p>
       </section>

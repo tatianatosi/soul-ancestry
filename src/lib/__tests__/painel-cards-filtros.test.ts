@@ -20,23 +20,52 @@ const filas = [
 ] as never[];
 
 describe("cards e filtros do Painel Hoje", () => {
-  it("expõe os oito cards canônicos na ordem definida", () => {
+  it("expõe as cinco métricas de decisão do CA-UX-02 §7, nesta ordem", () => {
     const cards = cardsHoje(filas);
     expect(cards.map((c) => c.chave)).toEqual([
       "acoes_vencidas",
       "acoes_hoje",
-      "leads_sem_responsavel",
-      "propostas_sem_followup",
+      "sem_responsavel",
+      "excecoes_criticas",
+      "sla_em_risco",
+    ]);
+  });
+
+  it("nenhum cartão reconta um número já exibido por outro bloco da tela", () => {
+    // As filas de bloqueio deixaram de ter um cartão cada e passaram a
+    // consolidar em "Exceções críticas" — o bloco Comercial só linka.
+    const chaves = cardsHoje(filas).map((c) => c.chave);
+    for (const fila of [
       "contratos_enviados_pendentes",
       "pagamentos_aguardados",
       "onboardings_pendentes",
       "casos_pendencia_documental",
-    ]);
+      "propostas_sem_followup",
+    ]) {
+      expect(chaves).not.toContain(fila);
+    }
   });
 
   it("exclui fixtures de demonstração por padrão", () => {
-    expect(cardsHoje(filas).find((c) => c.chave === "contratos_enviados_pendentes")?.total).toBe(0);
-    expect(cardsHoje(filas, { incluirDemo: true }).find((c) => c.chave === "contratos_enviados_pendentes")?.total).toBe(1);
+    const criticas = (o?: { incluirDemo: boolean }) =>
+      cardsHoje(filas, o).find((c) => c.chave === "excecoes_criticas")?.total;
+    expect(criticas()).toBe(0);
+    expect(criticas({ incluirDemo: true })).toBe(1);
+  });
+
+  it("conta registro distinto, não ocorrência, em exceções críticas", () => {
+    const mesmo = item("dup", { rotulo: "Lead travado" });
+    const emDuasFilas = [
+      { chave: "contratos_enviados_pendentes", rotulo: "Contratos", criticidade: 2, itens: [mesmo] },
+      { chave: "pagamentos_aguardados", rotulo: "Pagamentos", criticidade: 2, itens: [mesmo] },
+    ] as never[];
+    expect(cardsHoje(emDuasFilas).find((c) => c.chave === "excecoes_criticas")?.total).toBe(1);
+  });
+
+  it("declara ausência de dado em SLA em risco, nunca zero", () => {
+    // A consulta do Painel Hoje ainda não carrega sla_status; o cartão precisa
+    // dizer "sem dados suficientes" em vez de afirmar que não há risco.
+    expect(cardsHoje(filas).find((c) => c.chave === "sla_em_risco")?.total).toBeNull();
   });
 
   it("deriva opções de filtro dos próprios itens e restringe a fila", () => {

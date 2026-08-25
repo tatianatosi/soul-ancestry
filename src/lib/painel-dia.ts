@@ -300,34 +300,82 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
 export type CardHoje = {
   chave: string;
   rotulo: string;
-  total: number;
+  /**
+   * Nulo quando a fonte canônica do indicador não está carregada. Ausência de
+   * fonte nunca vira zero: o cartão declara "sem dados suficientes".
+   */
+  total: number | null;
   /** Leitura curta do que o número significa. Sem juízo de mérito. */
   leitura: string;
 };
 
-/** Chaves de fila exibidas como cards fixos do Painel Hoje, na ordem canônica. */
+/**
+ * Métricas de decisão do topo do Painel Hoje, na ordem canônica do CA-UX-02 §7
+ * (grupo Visão geral: vencidos; vence hoje; sem responsável; exceções críticas;
+ * SLA em risco). O limite de cinco é normativo — o mesmo parágrafo manda que
+ * métrica secundária fique em "Ver detalhes", não no topo.
+ *
+ * As filas de bloqueio que antes ocupavam um cartão cada (contrato enviado,
+ * pagamento aguardado, onboarding pendente, documento aguardado) não se
+ * perderam: consolidam-se em "Exceções críticas" e seguem detalhadas em
+ * Sinais de atenção e nas páginas canônicas.
+ */
 export const CARDS_HOJE: { chave: string; rotulo: string; leitura: string }[] = [
-  { chave: "acoes_vencidas", rotulo: "Ações vencidas", leitura: "Próxima ação com data anterior a hoje" },
-  { chave: "acoes_hoje", rotulo: "Ações de hoje", leitura: "Próxima ação datada para hoje" },
-  { chave: "leads_sem_responsavel", rotulo: "Leads sem responsável", leitura: "Lead ativo sem dono nominal" },
+  { chave: "acoes_vencidas", rotulo: "Vencidos", leitura: "Próxima ação com data anterior a hoje" },
+  { chave: "acoes_hoje", rotulo: "Vence hoje", leitura: "Próxima ação datada para hoje" },
   {
-    chave: "propostas_sem_followup",
-    rotulo: "Propostas sem próxima ação",
-    leitura: "Proposta ou contrato sem próxima ação definida",
+    chave: "sem_responsavel",
+    rotulo: "Sem responsável",
+    leitura: "Registro operacional ativo sem dono nominal",
   },
-  { chave: "contratos_enviados_pendentes", rotulo: "Contratos enviados", leitura: "Aguardando assinatura" },
-  { chave: "pagamentos_aguardados", rotulo: "Pagamentos aguardados", leitura: "Contrato assinado sem pagamento confirmado" },
-  { chave: "onboardings_pendentes", rotulo: "Onboardings pendentes", leitura: "Pagamento confirmado sem onboarding iniciado" },
-  { chave: "casos_pendencia_documental", rotulo: "Documentos aguardados", leitura: "Caso com pendência documental" },
+  {
+    chave: "excecoes_criticas",
+    rotulo: "Exceções críticas",
+    leitura: "Contrato, pagamento, onboarding ou documento em bloqueio",
+  },
+  {
+    chave: "sla_em_risco",
+    rotulo: "SLA em risco",
+    leitura: "Tarefa ou micro-entrega com SLA marcado em risco",
+  },
 ];
 
-/** Contagem por card, respeitando o recorte de fixtures de demonstração. */
-export function cardsHoje(filas: Fila[], opcoes?: { incluirDemo?: boolean }): CardHoje[] {
-  return CARDS_HOJE.map((c) => {
-    const itens = (filas.find((f) => f.chave === c.chave)?.itens ?? []) as ItemFila[];
-    const total = opcoes?.incluirDemo ? itens.length : itens.filter((i) => !eDemo(i.rotulo)).length;
-    return { ...c, total, rotulo: c.rotulo, leitura: c.leitura };
-  });
+/**
+ * Contagem por cartão, respeitando o recorte de fixtures de demonstração.
+ *
+ * Cada cartão tem uma única fonte canônica e nenhum deles reconta um número já
+ * exibido por outro bloco da mesma tela (CA-UX-02 §7, regra de não duplicação).
+ */
+export function cardsHoje(
+  filas: Fila[],
+  opcoes?: { incluirDemo?: boolean; itens?: ItemDia[] },
+): CardHoje[] {
+  const incluirDemo = opcoes?.incluirDemo ?? false;
+  const itens = opcoes?.itens ?? consolidarDia(filas);
+  const visiveis = <T extends { rotulo: string }>(lista: T[]) =>
+    incluirDemo ? lista : lista.filter((i) => !eDemo(i.rotulo));
+
+  const daFila = (chave: string) =>
+    visiveis((filas.find((f) => f.chave === chave)?.itens ?? []) as ItemFila[]).length;
+
+  // Registros distintos presentes em qualquer fila de bloqueio. Conta registro,
+  // não ocorrência: um caso travado em duas filas é uma exceção, não duas.
+  const criticos = new Set(
+    filas.filter((f) => FILAS_BLOQUEIO.has(f.chave)).flatMap((f) => visiveis(f.itens).map(chaveDe)),
+  );
+
+  const valor: Record<string, number | null> = {
+    acoes_vencidas: daFila("acoes_vencidas"),
+    acoes_hoje: daFila("acoes_hoje"),
+    sem_responsavel: visiveis(itens.filter((i) => i.semResponsavel)).length,
+    excecoes_criticas: criticos.size,
+    // CA-UX-02 §7 pede SLA em risco. A fonte é tarefas.sla_status /
+    // ops_microentregas.prazo_status, que a consulta do Painel Hoje ainda não
+    // carrega. Sem a fonte, o cartão declara ausência — nunca zero.
+    sla_em_risco: null,
+  };
+
+  return CARDS_HOJE.map((c) => ({ ...c, total: valor[c.chave] ?? null }));
 }
 
 export type FiltrosDia = { responsavel?: string | null; area?: string | null; etapa?: string | null };
