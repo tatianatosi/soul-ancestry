@@ -29,6 +29,7 @@ export function BrandLogo({
   const minimal = variant === "internal-minimal";
   const cor = textColor ?? VARIANT_TEXT[variant];
   const alturaLogo = minimal ? Math.round(size * 0.8) : size;
+  const [imagemFalhou, setImagemFalhou] = useState(false);
 
   // Sem asset oficial: placeholder neutro, sem inventar marca.
   if (!BRAND_LOGO_URL) {
@@ -45,19 +46,35 @@ export function BrandLogo({
 
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <img
-        src={BRAND_LOGO_URL}
-        alt={BRAND_NAME}
-        loading="lazy"
-        decoding="async"
-        style={{
-          height: alturaLogo,
-          width: "auto",
-          objectFit: "contain",
-          background: "transparent",
-          padding: Math.max(2, Math.round(alturaLogo * 0.06)),
-        }}
-      />
+      {/*
+        Se o arquivo do logo falhar por qualquer motivo (rota errada, asset
+        removido, rede), a marca vira o nome escrito — nunca um ícone de
+        imagem quebrada no cabeçalho.
+      */}
+      {imagemFalhou ? (
+        <span
+          className="font-serif tracking-wide"
+          style={{ fontSize: Math.round(alturaLogo * 0.55), color: cor }}
+          data-brand-logo-fallback="true"
+        >
+          {BRAND_NAME}
+        </span>
+      ) : (
+        <img
+          src={BRAND_LOGO_URL}
+          alt={BRAND_NAME}
+          loading="lazy"
+          decoding="async"
+          onError={() => setImagemFalhou(true)}
+          style={{
+            height: alturaLogo,
+            width: "auto",
+            objectFit: "contain",
+            background: "transparent",
+            padding: Math.max(2, Math.round(alturaLogo * 0.06)),
+          }}
+        />
+      )}
       {showText && !minimal && (
         <span
           className="italic leading-none tracking-wide"

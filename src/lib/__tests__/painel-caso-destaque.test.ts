@@ -1,4 +1,7 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+
+import { BRAND_LOGO_URL } from "@/lib/brand-asset";
 
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import type { ItemDia } from "@/lib/painel-dia";
@@ -63,5 +66,31 @@ describe("caso em destaque do Painel Hoje", () => {
     const escolha = escolherCasoDestaque([item("a")]);
     expect(escolha?.prioridade.regra.length ?? 0).toBeGreaterThan(0);
     expect(escolha?.prioridade.versao).toContain("matriz-elegibilidade-urgencia");
+  });
+});
+
+describe("marca: logo servido pelo próprio domínio", () => {
+  const ler = (p: string) => readFileSync(p, "utf8");
+
+  it("BRAND_LOGO_URL não aponta para rota exclusiva do Lovable", () => {
+    expect(BRAND_LOGO_URL).toBe("/clube-ancestral-logo.svg");
+    expect(BRAND_LOGO_URL ?? "").not.toContain("__l5e");
+  });
+
+  it("o arquivo existe em public/ e é o asset oficial", () => {
+    expect(existsSync("public/clube-ancestral-logo.svg")).toBe(true);
+    expect(statSync("public/clube-ancestral-logo.svg").size).toBe(127559);
+  });
+
+  it("o logo tem fallback textual se a imagem falhar", () => {
+    const brand = ler("src/components/brand.tsx");
+    expect(brand).toContain("onError");
+    expect(brand).toContain("data-brand-logo-fallback");
+  });
+
+  it("a vitrine pública declara noindex e usa a variante legível no fundo creme", () => {
+    const home = ler("src/routes/index.tsx");
+    expect(home).toContain('{ name: "robots", content: "noindex" }');
+    expect(home).toContain('variant="client-light"');
   });
 });
