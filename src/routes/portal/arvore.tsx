@@ -21,7 +21,7 @@ export const Route = createFileRoute("/portal/arvore")({
   component: PortalArvore,
 });
 
-function PortalArvore() {
+export function PortalArvore() {
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading } = usePortalVivo();
   const itens = arvoreSanitizada(data?.projecoes ?? []);

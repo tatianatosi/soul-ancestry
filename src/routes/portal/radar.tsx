@@ -28,7 +28,7 @@ const TEXTO_ESTADO: Record<string, string> = {
   in_preparation: COPY_ESTADO_TEXTO.in_preparation,
 };
 
-function PortalRadar() {
+export function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
   const { data, isLoading } = usePortalVivo();
   // Cards de pontuação e textos seguem exatamente o conjunto e a ordem canônicos.

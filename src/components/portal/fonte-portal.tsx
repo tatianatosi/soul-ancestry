@@ -36,10 +36,27 @@ export type DadosPortal = {
   documentos: DocumentoPortal[];
 };
 
+/**
+ * Prévia: presente apenas quando as telas do portal são exibidas de dentro do
+ * Desk. Governa três coisas que não podem valer para o cliente real:
+ *
+ *  - o `PortalShell` não redireciona quem não é cliente autorizado (numa rota
+ *    interna, ninguém é — e a redireção expulsaria a Proprietária da página);
+ *  - o cabeçalho mostra de quem é a projeção, em vez do nome do cliente logado;
+ *  - o selo aparece no topo, sempre, sem depender de quem montou a tela.
+ */
+export type PreviaPortal = {
+  /** Faixa obrigatória no topo. Nunca vazia. */
+  selo: string;
+  /** Identifica a origem do que está sendo exibido. */
+  titulo: string;
+};
+
 export type FontePortal = {
   dados: DadosPortal;
   carregando: boolean;
   erro: boolean;
+  previa: PreviaPortal;
 };
 
 const FontePortalContext = createContext<FontePortal | null>(null);
@@ -74,4 +91,13 @@ export function usePortalVivo() {
     return { data: externa.dados, isLoading: externa.carregando, isError: externa.erro };
   }
   return { data: consulta.data, isLoading: consulta.isLoading, isError: consulta.isError };
+}
+
+/**
+ * `null` no App Cliente de verdade; preenchido quando a tela está sendo
+ * exibida de dentro do Desk. É o único sinal que distingue os dois casos —
+ * não existe prop solta nem flag global.
+ */
+export function usePreviaPortal(): PreviaPortal | null {
+  return useContext(FontePortalContext)?.previa ?? null;
 }

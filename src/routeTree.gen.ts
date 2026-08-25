@@ -17,6 +17,7 @@ import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
@@ -160,6 +161,12 @@ const AuthenticatedAcessosPortalRoute =
   AuthenticatedAcessosPortalRouteImport.update({
     id: '/acessos-portal',
     path: '/acessos-portal',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppClienteDemoRoute =
+  AuthenticatedAppClienteDemoRouteImport.update({
+    id: '/app-cliente-demo',
+    path: '/app-cliente-demo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAtendimentoRoute =
@@ -745,6 +752,7 @@ export interface FileRoutesByFullPath {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -857,6 +865,7 @@ export interface FileRoutesByTo {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -972,6 +981,7 @@ export interface FileRoutesById {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -1087,6 +1097,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
     | '/biblioteca'
@@ -1199,6 +1210,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
     | '/biblioteca'
@@ -1313,6 +1325,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
     | '/_authenticated/auditoria'
     | '/_authenticated/biblioteca'
@@ -1494,6 +1507,13 @@ declare module '@tanstack/react-router' {
       path: '/acessos-portal'
       fullPath: '/acessos-portal'
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app-cliente-demo': {
+      id: '/_authenticated/app-cliente-demo'
+      path: '/app-cliente-demo'
+      fullPath: '/app-cliente-demo'
+      preLoaderRoute: typeof AuthenticatedAppClienteDemoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/atendimento': {
@@ -2229,6 +2249,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
@@ -2312,6 +2333,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,

@@ -15,10 +15,8 @@
  * - Rótulos de interface mudam; URLs permanecem idênticas.
  */
 
-
 export type ItemNav =
-  | { grupo: string }
-  | { to: string; label: string; hash?: string; adminOnly?: boolean };
+  { grupo: string } | { to: string; label: string; hash?: string; adminOnly?: boolean };
 
 export type GrupoDesk = {
   id: string;
@@ -187,7 +185,12 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      { to: "/acessos-portal", hash: "espelho", label: "Espelho read-only da projeção" },
+      // 25/08/2026 — o item apontava para `/acessos-portal#espelho`, âncora que
+      // nunca existiu naquela página: o link levava a uma tela de convites, sem
+      // espelho nenhum. Passa a apontar para a sessão demo, que é real e usa os
+      // componentes do próprio App Cliente. O espelho de caso real (mesma
+      // camada, outra fonte de dado) entra como passo seguinte.
+      { to: "/app-cliente-demo", label: "Sessão demo do App Cliente" },
     ],
   },
   {
@@ -219,7 +222,10 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
       { to: "/governanca/varredura-completude", label: "Completude" },
       { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      { to: "/governanca/matriz-equivalencia", label: "Matriz de equivalência — rota → dado → estado" },
+      {
+        to: "/governanca/matriz-equivalencia",
+        label: "Matriz de equivalência — rota → dado → estado",
+      },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { grupo: "Integrações" },
       { to: "/integracoes", label: "Integrações" },
@@ -252,7 +258,6 @@ export const MENU_CONTA: {
     { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
   ],
 } as const;
-
 
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
@@ -335,7 +340,6 @@ export function rotasDoMenuConta(): string[] {
   return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
 }
 
-
 /** Rotas preservadas que perderam link de menu (devem ser zero). */
 export function rotasSemLink(): string[] {
   const menu = new Set(rotasDoMenu());
@@ -369,7 +373,6 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
-
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [

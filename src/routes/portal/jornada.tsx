@@ -23,7 +23,7 @@ export const Route = createFileRoute("/portal/jornada")({
   component: PortalJornada,
 });
 
-function PortalJornada() {
+export function PortalJornada() {
   const { visibilidade, carregando } = useVisibilidade("jornada");
   const { data, isLoading } = usePortalVivo();
   const jornada = jornadaSanitizada(data?.projecoes ?? []);
