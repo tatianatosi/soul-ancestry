@@ -5,7 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import { garantirEixosCanonicos } from "@/lib/radar-eixos";
-import { usePortalVivo } from "@/routes/portal/jornada";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
