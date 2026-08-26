@@ -323,8 +323,8 @@ export function CadeiaJornada({
           <p className="font-medium text-foreground">Motivo e evidências</p>
           <p className="mt-1 text-muted-foreground">{proxima.motivo}</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
-            {proxima.evidencias.map((ev) => (
-              <li key={ev}>{ev}</li>
+            {proxima.evidencias.map((ev, i) => (
+              <li key={`${i}-${ev}`}>{ev}</li>
             ))}
           </ul>
         </div>
@@ -466,8 +466,8 @@ export function CadeiaJornada({
             <div className="mt-4 border-t border-border pt-3" data-cadeia="drawer-evidencias">
               <p className="font-medium text-foreground">Evidências</p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
-                {detalhe.evidencias.map((ev) => (
-                  <li key={ev}>{ev}</li>
+                {detalhe.evidencias.map((ev, i) => (
+                  <li key={`${i}-${ev}`}>{ev}</li>
                 ))}
               </ul>
             </div>
