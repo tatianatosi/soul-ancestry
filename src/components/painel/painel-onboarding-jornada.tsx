@@ -33,7 +33,8 @@ export function PainelOnboardingJornada() {
     <section className="mt-6 rounded-xl border border-navy/10 bg-white p-5">
       <h2 className="font-serif text-xl text-navy">Onboarding e jornada</h2>
       <p className="mt-1 text-xs text-navy/60">
-        Diagnóstico interno de gates, cadência e entregas. Nenhuma comunicação é enviada automaticamente.
+        Diagnóstico interno de gates, cadência e entregas. Nenhuma comunicação é enviada
+        automaticamente.
       </p>
 
       {error ? (
@@ -47,7 +48,9 @@ export function PainelOnboardingJornada() {
             <div
               key={c.chave}
               className={`rounded-lg border p-3 ${
-                c.alerta && valor > 0 ? "border-terracotta/40 bg-terracotta/5" : "border-navy/10 bg-cream/40"
+                c.alerta && valor > 0
+                  ? "border-terracotta/40 bg-terracotta/5"
+                  : "border-navy/10 bg-cream/40"
               }`}
             >
               <p className="text-[11px] uppercase tracking-wide text-navy/50">{c.rotulo}</p>
@@ -73,7 +76,9 @@ export function PainelOnboardingJornada() {
             <tbody>
               {data.casos.slice(0, 25).map((c) => (
                 <tr key={c.case_id} className="border-t border-navy/5 align-top">
-                  <td className="py-2 pr-3 font-medium text-navy">{c.codigo ?? c.case_id.slice(0, 8)}</td>
+                  <td className="py-2 pr-3 font-medium text-navy">
+                    {c.codigo ?? c.case_id.slice(0, 8)}
+                  </td>
                   <td className="py-2 pr-3 text-navy/70">{rotulo(ESTADO_DERIVADO, c.estado)}</td>
                   <td className="py-2 pr-3 text-navy/70">{c.diagnostico.replace(/_/g, " ")}</td>
                   <td className="py-2 pr-3 text-navy/70">{c.proxima_acao ?? "—"}</td>
@@ -91,7 +96,11 @@ export function PainelOnboardingJornada() {
                                   {" · "}
                                   <Link
                                     to="/biblioteca-mensagens"
-                                    search={{ alerta: tipo, caso: c.case_id, codigo: c.codigo ?? undefined }}
+                                    search={{
+                                      alerta: tipo,
+                                      caso: c.case_id,
+                                      codigo: c.codigo ?? undefined,
+                                    }}
                                     className="underline underline-offset-2"
                                   >
                                     Abrir modelo sugerido

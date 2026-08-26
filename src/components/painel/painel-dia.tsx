@@ -14,6 +14,7 @@ import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { JornadaCasos } from "@/components/painel/jornada-casos";
+import { AncoraApp } from "@/components/painel/ancora-app";
 import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
@@ -614,6 +615,7 @@ export function PainelDia() {
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
+      <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => (
           <CardIndicador
@@ -650,6 +652,7 @@ export function PainelDia() {
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <AncoraApp bloco="fila_priorizada" />
           <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
             {(
               [
@@ -710,6 +713,7 @@ export function PainelDia() {
         className="rounded-xl border border-navy/10 bg-white p-5"
       >
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
+        <AncoraApp bloco="excecoes" />
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
         ) : (
@@ -755,6 +759,7 @@ export function PainelDia() {
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
+          <AncoraApp bloco="comercial" />
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
             Conversão e saúde comercial
           </Link>
@@ -794,6 +799,7 @@ export function PainelDia() {
           <h2 className="min-w-0 font-serif text-lg text-navy">
             Cadência — quem precisa de um toque
           </h2>
+          <AncoraApp bloco="prazos" />
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
@@ -844,6 +850,7 @@ export function PainelDia() {
         className="rounded-xl border border-navy/10 bg-white p-5"
       >
         <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
+        <AncoraApp bloco="descoberta" />
 
         <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
           Começar alguma coisa

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ROTULO_SINAL } from "@/lib/prioridade-matriz";
 import { textoPrazo } from "@/lib/painel-dia";
 import type { CasoDestaque as CasoDestaqueDados } from "@/lib/painel-caso-destaque";
+import { AncoraApp } from "@/components/painel/ancora-app";
 
 /**
  * Caso em destaque — o que a Proprietária deve olhar primeiro.
@@ -52,6 +53,7 @@ export function CasoEmDestaque({ dados }: { dados: CasoDestaqueDados | null }) {
           {ROTULO_SINAL[prioridade.sinal]}
         </span>
       </div>
+      <AncoraApp bloco="destaque" />
 
       <p className="mt-3 font-serif text-2xl leading-tight text-navy">
         <Link

@@ -10,9 +10,14 @@ import { painelFormalizacao } from "@/lib/formalizacao-painel.functions";
  */
 export function PainelFormalizacao() {
   const carregar = useServerFn(painelFormalizacao);
-  const q = useQuery({ queryKey: ["painel-formalizacao"], queryFn: () => carregar(), retry: false });
+  const q = useQuery({
+    queryKey: ["painel-formalizacao"],
+    queryFn: () => carregar(),
+    retry: false,
+  });
 
-  if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando filas de formalização…</p>;
+  if (q.isLoading)
+    return <p className="mt-6 text-sm text-navy/50">Carregando filas de formalização…</p>;
   if (q.isError || !q.data) return null;
 
   const { filas, resumo } = q.data;
@@ -22,12 +27,16 @@ export function PainelFormalizacao() {
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-serif text-xl text-navy">Formalização, dossiê e cadência</h2>
         <p className="text-xs text-navy/55">
-          {resumo.emFormalizacao} em formalização · {resumo.atencao} em atenção · {resumo.criticos} críticos
+          {resumo.emFormalizacao} em formalização · {resumo.atencao} em atenção · {resumo.criticos}{" "}
+          críticos
         </p>
       </div>
 
       {(() => {
-        const porCaso = new Map<string, { rotulo: string; gates: { fila: string; detalhe: string }[] }>();
+        const porCaso = new Map<
+          string,
+          { rotulo: string; gates: { fila: string; detalhe: string }[] }
+        >();
         for (const f of filas) {
           for (const i of f.itens) {
             const atual = porCaso.get(i.id) ?? { rotulo: i.rotulo, gates: [] };
@@ -46,24 +55,37 @@ export function PainelFormalizacao() {
               {linhas.slice(0, 8).map(([id, c]) => (
                 <li key={id} className="py-2 text-xs">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <Link to="/casos/$caseId" params={{ caseId: id }} className="font-medium text-navy underline">
+                    <Link
+                      to="/casos/$caseId"
+                      params={{ caseId: id }}
+                      className="font-medium text-navy underline"
+                    >
                       {c.rotulo}
                     </Link>
                     <span
                       className={`rounded-full border px-2 py-0.5 text-[10px] ${
-                        c.gates.length > 2 ? "border-terracotta/40 bg-terracotta/5 text-terracotta" : "border-navy/15 text-navy/60"
+                        c.gates.length > 2
+                          ? "border-terracotta/40 bg-terracotta/5 text-terracotta"
+                          : "border-navy/15 text-navy/60"
                       }`}
                     >
                       {c.gates.length} gate(s) pendente(s)
                     </span>
                   </div>
                   <p className="mt-1 text-navy/70">
-                    <span className="font-medium text-navy">Próximo marco:</span> {c.gates[0]!.fila} — {c.gates[0]!.detalhe}
+                    <span className="font-medium text-navy">Próximo marco:</span> {c.gates[0]!.fila}{" "}
+                    — {c.gates[0]!.detalhe}
                   </p>
                   <p className="text-navy/50">
-                    Também pendente: {c.gates.slice(1).map((g) => g.fila).join(" · ") || "nenhum outro gate"}
+                    Também pendente:{" "}
+                    {c.gates
+                      .slice(1)
+                      .map((g) => g.fila)
+                      .join(" · ") || "nenhum outro gate"}
                   </p>
-                  <p className="text-navy/45">Responsável e prazo ficam na ficha operacional do caso.</p>
+                  <p className="text-navy/45">
+                    Responsável e prazo ficam na ficha operacional do caso.
+                  </p>
                 </li>
               ))}
             </ul>

@@ -35,9 +35,13 @@ function Linha({ i }: { i: ItemFilaCatalogo }) {
         <span className="rounded-full border border-navy/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-navy/60">
           {ROTULO_PRIORIDADE[i.prioridade]}
         </span>
-        <span className="text-[10px] uppercase tracking-wide text-navy/50">{ROTULO_ESTADO_CATALOGO[i.estado]}</span>
+        <span className="text-[10px] uppercase tracking-wide text-navy/50">
+          {ROTULO_ESTADO_CATALOGO[i.estado]}
+        </span>
         {i.dados_teste ? (
-          <span className="rounded-full border border-gold/50 bg-gold/10 px-1.5 py-0.5 text-[10px] text-navy">TESTE</span>
+          <span className="rounded-full border border-gold/50 bg-gold/10 px-1.5 py-0.5 text-[10px] text-navy">
+            TESTE
+          </span>
         ) : null}
       </div>
       <p className="mt-0.5 text-[11px] text-navy/70">Pendência: {i.pendencia_principal}</p>
@@ -70,20 +74,29 @@ export function CatalogoSaneamento() {
         <h2 className="font-serif text-lg text-navy">Catálogo e homologação de SKUs</h2>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-[11px] text-navy/60">
-            <input type="checkbox" checked={incluirTeste} onChange={(e) => setIncluirTeste(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={incluirTeste}
+              onChange={(e) => setIncluirTeste(e.target.checked)}
+            />
             Incluir demonstrações
           </label>
-          <Link to="/catalogo" className="text-[11px] text-navy/50 underline underline-offset-2 hover:text-navy/70">
+          <Link
+            to="/catalogo"
+            className="text-[11px] text-navy/50 underline underline-offset-2 hover:text-navy/70"
+          >
             catálogo canônico
           </Link>
         </div>
       </div>
       <p className="mt-1 text-xs text-navy/50">
-        Fila de saneamento somente leitura. Um SKU aparece uma única vez por fila. Nenhum link é criado, nenhuma cobrança é
-        enviada e nenhuma oferta é publicada no App Cliente.
+        Fila de saneamento somente leitura. Um SKU aparece uma única vez por fila. Nenhum link é
+        criado, nenhuma cobrança é enviada e nenhuma oferta é publicada no App Cliente.
       </p>
 
-      {q.isLoading ? <p className="mt-3 text-xs text-navy/50">Carregando saneamento de catálogo…</p> : null}
+      {q.isLoading ? (
+        <p className="mt-3 text-xs text-navy/50">Carregando saneamento de catálogo…</p>
+      ) : null}
 
       {ind ? (
         <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-3 lg:grid-cols-6">
@@ -115,7 +128,9 @@ export function CatalogoSaneamento() {
                 {filas[f].map((i) => (
                   <Linha key={`${f}-${i.sku_codigo}`} i={i} />
                 ))}
-                {filas[f].length === 0 ? <li className="text-[11px] text-navy/50">Nada pendente nesta fila.</li> : null}
+                {filas[f].length === 0 ? (
+                  <li className="text-[11px] text-navy/50">Nada pendente nesta fila.</li>
+                ) : null}
               </ul>
             </div>
           ))}
@@ -132,11 +147,15 @@ export function CatalogoSaneamento() {
                   {p.responsavel}: {p.total}
                 </li>
               ))}
-              {!ind.pendencias_por_responsavel.length ? <li className="text-navy/50">Sem pendências.</li> : null}
+              {!ind.pendencias_por_responsavel.length ? (
+                <li className="text-navy/50">Sem pendências.</li>
+              ) : null}
             </ul>
           </div>
           <div className="rounded-lg border border-navy/10 p-3">
-            <p className="uppercase tracking-wide text-navy/45">Links de cobrança por estado (referência)</p>
+            <p className="uppercase tracking-wide text-navy/45">
+              Links de cobrança por estado (referência)
+            </p>
             <ul className="mt-1 space-y-0.5 text-navy/70">
               {Object.entries(ind.links_por_estado).map(([k, v]) => (
                 <li key={k}>

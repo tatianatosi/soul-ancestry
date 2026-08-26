@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { etapaQuePedeAtencao, lerJornada, type CasoNaJornada } from "@/lib/painel-jornada";
+import { AncoraApp } from "@/components/painel/ancora-app";
 
 /**
  * Jornada dos casos — as oito fases como percurso, com a saúde de contato
@@ -25,6 +26,7 @@ export function JornadaCasos({ casos }: { casos: readonly CasoNaJornada[] }) {
           toque
         </p>
       </div>
+      <AncoraApp bloco="jornada" />
 
       {atencao ? (
         <p className="mt-2 text-xs text-terracotta">
