@@ -48,7 +48,7 @@ export function JornadaCasos({ casos }: { casos: readonly CasoNaJornada[] }) {
             <li key={e.id}>
               <Link
                 to="/casos"
-                search={{ fase: e.id } as never}
+                search={{ fase: e.id }}
                 className={`block h-full rounded-lg border p-3 transition-colors ${
                   vazia
                     ? "border-navy/10 bg-cream/30 hover:bg-cream/50"

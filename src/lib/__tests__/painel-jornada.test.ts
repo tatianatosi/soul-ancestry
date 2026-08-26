@@ -84,3 +84,29 @@ describe("jornada dos casos", () => {
     expect(etapaQuePedeAtencao(l)).toBeNull();
   });
 });
+
+describe("a etapa é navegação, não enfeite", () => {
+  it("o destino do cartão declara validateSearch para fase", async () => {
+    // Sem isto o link levaria à lista inteira, e a jornada seria decorativa.
+    const { readFileSync } = await import("node:fs");
+    const rota = readFileSync("src/routes/_authenticated/casos.index.tsx", "utf8");
+    expect(rota).toContain("validateSearch");
+    expect(rota).toMatch(/fase\?:\s*string/);
+  });
+
+  it("a lista filtrada avisa que está filtrada e oferece a saída", async () => {
+    const { readFileSync } = await import("node:fs");
+    const rota = readFileSync("src/routes/_authenticated/casos.index.tsx", "utf8");
+    expect(rota).toContain("Ver todos os casos");
+    expect(rota).toContain("rotuloFase(faseFiltro)");
+  });
+
+  it("o cartão da jornada aponta para /casos com a fase da etapa", async () => {
+    const { readFileSync } = await import("node:fs");
+    const comp = readFileSync("src/components/painel/jornada-casos.tsx", "utf8");
+    expect(comp).toContain('to="/casos"');
+    expect(comp).toContain("search={{ fase: e.id }}");
+    // Sem cast: se o search deixar de ser tipado pela rota, o tsc quebra.
+    expect(comp).not.toContain("as never");
+  });
+});
