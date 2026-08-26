@@ -18,7 +18,6 @@ import { AncoraApp } from "@/components/painel/ancora-app";
 import { AberturaPainel } from "@/components/painel/abertura";
 import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
-import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
 import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
@@ -611,8 +610,21 @@ export function PainelDia() {
         </label>
       </div>
 
-      {proprietaria ? <VerificadorAdminProprietaria /> : null}
+      {/*
+        26/08/2026 — o verificador de acesso administrativo saiu daqui.
 
+        Ele foi pedido pela Proprietária em 25/08, no meio da crise de acesso,
+        quando não estava claro se ela ainda era admin. Era instrumento de
+        emergência, e a emergência acabou: o vínculo está confirmado no banco.
+
+        Ficar no Painel custava duas coisas. Era o mesmo diagnóstico que a
+        Governança já oferece — e lá acompanhado da reconfirmação, que é a
+        parte que de fato conserta; aqui o botão só sabia mandar a pessoa
+        para outra tela. E ocupava, todo dia, um espaço no Painel Hoje, que
+        existe para o que pede ação hoje.
+
+        A ferramenta completa continua em Modo Proprietária / Governança.
+      */}
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
       {/*
