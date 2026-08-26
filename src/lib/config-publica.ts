@@ -28,9 +28,20 @@ export type ConfigPublica = { url: string; publishableKey: string };
 /** Onde o navegador encontra a configuração injetada pelo servidor. */
 export const CHAVE_GLOBAL = "__CA_CONFIG_PUBLICA__";
 
+/**
+ * Ambiente do servidor, ou objeto vazio fora dele.
+ *
+ * `process` não existe no navegador: usar `process.env` como valor padrão
+ * direto lançaria ReferenceError se esta função fosse chamada do lado do
+ * cliente por engano. Sem fonte, a resposta é "não sei" — nunca uma exceção.
+ */
+function ambienteDoServidor(): Record<string, string | undefined> {
+  return typeof process !== "undefined" && process.env ? process.env : {};
+}
+
 /** Lê a configuração pública do ambiente do servidor. */
 export function configPublicaDoServidor(
-  env: Record<string, string | undefined> = process.env,
+  env: Record<string, string | undefined> = ambienteDoServidor(),
 ): ConfigPublica | null {
   const url = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const publishableKey = env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY;

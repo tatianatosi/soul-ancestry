@@ -136,3 +136,15 @@ describe("o shell do servidor injeta a configuração", () => {
     expect(src).toContain(": null}");
   });
 });
+
+describe("robustez fora do servidor", () => {
+  it("chamada sem process não lança — devolve null", () => {
+    const g = globalThis as unknown as Record<string, unknown>;
+    const antes = g.process;
+    // Simula o navegador, onde `process` não existe.
+    delete g.process;
+    expect(() => configPublicaDoServidor()).not.toThrow();
+    expect(configPublicaDoServidor()).toBeNull();
+    g.process = antes;
+  });
+});
