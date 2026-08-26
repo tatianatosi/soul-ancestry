@@ -8,6 +8,7 @@ import {
   type EstadoElo,
 } from "@/lib/cadeia-jornada-visao";
 import {
+  baixarResumoTxtPainelContextual,
   htmlImpressaoPainelContextual,
   imprimirPdfPainelContextual,
   resumoTextoPainelContextual,
