@@ -40,7 +40,10 @@ export const Route = createFileRoute("/_authenticated/clientes")({
           "Perfis de cliente elegíveis, pré-clientes e participantes de núcleo familiar, com arquivamento e trilha de auditoria.",
       },
       { property: "og:title", content: "Clientes — Clube Ancestral" },
-      { property: "og:description", content: "Clientes ativos, pré-clientes e participantes de núcleo familiar." },
+      {
+        property: "og:description",
+        content: "Clientes ativos, pré-clientes e participantes de núcleo familiar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -56,7 +59,13 @@ const ABAS: { valor: Filtros["estado"]; rotulo: string }[] = [
   { valor: "arquivados", rotulo: "Arquivados" },
 ];
 
-function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo" | "caso"; children: React.ReactNode }) {
+function Etiqueta({
+  tom,
+  children,
+}: {
+  tom: "ativo" | "pre" | "nucleo" | "demo" | "caso";
+  children: React.ReactNode;
+}) {
   const tons: Record<string, string> = {
     ativo: "bg-primary/10 text-primary border-primary/30",
     pre: "bg-muted text-muted-foreground border-border",
@@ -65,7 +74,12 @@ function Etiqueta({ tom, children }: { tom: "ativo" | "pre" | "nucleo" | "demo" 
     demo: "bg-destructive/10 text-destructive border-destructive/30",
   };
   return (
-    <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium", tons[tom])}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        tons[tom],
+      )}
+    >
       {children}
     </span>
   );
@@ -82,8 +96,12 @@ function ClientesPage() {
 
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
-  const [ativando, setAtivando] = useState<{ pessoa: PessoaLista; justificativa: string } | null>(null);
-  const [arquivando, setArquivando] = useState<{ pessoa: PessoaLista; motivo: string } | null>(null);
+  const [ativando, setAtivando] = useState<{ pessoa: PessoaLista; justificativa: string } | null>(
+    null,
+  );
+  const [arquivando, setArquivando] = useState<{ pessoa: PessoaLista; motivo: string } | null>(
+    null,
+  );
   const [novo, setNovo] = useState<Record<string, string> | null>(null);
 
   const q = useQuery({ queryKey: ["clientes-pessoas"], queryFn: () => carregar() });
@@ -110,14 +128,23 @@ function ClientesPage() {
 
   const lista = filtrarClientes(pessoas, filtros);
   const participantes = participantesDeNucleo(pessoas, filtros.incluirDemonstracoes);
-  const preClientes = pessoas.filter((p) => !p.archived_at && p.classificacao === "pre_cliente" && (filtros.incluirDemonstracoes || !p.is_demo));
+  const preClientes = pessoas.filter(
+    (p) =>
+      !p.archived_at &&
+      p.classificacao === "pre_cliente" &&
+      (filtros.incluirDemonstracoes || !p.is_demo),
+  );
 
   return (
     <SaasShell
       titulo="Clientes"
       descricao="Perfil de cliente só existe após ativação elegível. Pré-clientes, participantes de núcleo e demonstrações ficam fora da lista principal."
     >
-      {erro ? <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">{erro}</p> : null}
+      {erro ? (
+        <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {erro}
+        </p>
+      ) : null}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {ABAS.map((a) => (
@@ -127,7 +154,9 @@ function ClientesPage() {
             onClick={() => setFiltros((f) => ({ ...f, estado: a.valor }))}
             className={cn(
               "rounded-full border px-3 py-1 text-sm",
-              filtros.estado === a.valor ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground",
+              filtros.estado === a.valor
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground",
             )}
           >
             {a.rotulo}
@@ -162,7 +191,16 @@ function ClientesPage() {
           <button
             type="button"
             className="ml-auto rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-            onClick={() => setNovo({ nome: "", email: "", telefone: "", origem: "planejador", pais_interesse: "Áustria", status_comercial: "lead" })}
+            onClick={() =>
+              setNovo({
+                nome: "",
+                email: "",
+                telefone: "",
+                origem: "planejador",
+                pais_interesse: "Áustria",
+                status_comercial: "lead",
+              })
+            }
           >
             Novo cadastro
           </button>
@@ -179,8 +217,9 @@ function ClientesPage() {
           ))}
         </ul>
         <p className="mt-2 text-xs text-muted-foreground">
-          A promoção a cliente ativo fica bloqueada automaticamente enquanto o registro estiver em formalização ou em
-          qualquer estágio de pré-cliente, e para membros de núcleo familiar e cadastros sem caso.
+          A promoção a cliente ativo fica bloqueada automaticamente enquanto o registro estiver em
+          formalização ou em qualquer estágio de pré-cliente, e para membros de núcleo familiar e
+          cadastros sem caso.
         </p>
       </section>
 
@@ -214,7 +253,18 @@ function ClientesPage() {
                     <tr key={p.id} className="border-t border-border align-top">
                       <td className="px-4 py-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{p.nome_social || p.nome}</span>
+                          {/*
+                            O nome vira porta. Antes esta lista era o fim do
+                            caminho: dava para ver que a pessoa existe e não
+                            dava para abrir a pessoa.
+                          */}
+                          <Link
+                            to="/pessoas/$clienteId"
+                            params={{ clienteId: p.id }}
+                            className="font-medium underline decoration-transparent underline-offset-4 transition-colors hover:decoration-current"
+                          >
+                            {p.nome_social || p.nome}
+                          </Link>
                           {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
                         </div>
                         <p className="text-xs text-muted-foreground">{p.email ?? "—"}</p>
@@ -233,7 +283,9 @@ function ClientesPage() {
                         >
                           {rotuloCamada(eleg.camada)}
                         </Etiqueta>
-                        <p className="mt-1 max-w-[16rem] text-[11px] text-muted-foreground">{descricaoCamada(eleg.camada)}</p>
+                        <p className="mt-1 max-w-[16rem] text-[11px] text-muted-foreground">
+                          {descricaoCamada(eleg.camada)}
+                        </p>
                       </td>
                       <td className="px-4 py-2">
                         <Etiqueta tom={p.classificacao === "cliente_ativo" ? "ativo" : "pre"}>
@@ -241,19 +293,29 @@ function ClientesPage() {
                         </Etiqueta>
                       </td>
                       <td className="px-4 py-2">{rotuloDe(ORIGENS, p.origem)}</td>
-                      <td className="px-4 py-2">{rotuloDe(STATUS_COMERCIAL, p.status_comercial)}</td>
+                      <td className="px-4 py-2">
+                        {rotuloDe(STATUS_COMERCIAL, p.status_comercial)}
+                      </td>
                       <td className="px-4 py-2">{normalizarPais(p.pais_interesse) ?? "—"}</td>
-                      <td className="px-4 py-2">{p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}</td>
+                      <td className="px-4 py-2">
+                        {p.archived_at ? "Arquivado" : rotuloEstado("cliente", p.status)}
+                      </td>
                       <td className="px-4 py-2">
                         {p.archived_at ? (
-                          <span className="text-xs text-muted-foreground">{p.archive_motivo ?? "—"}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {p.archive_motivo ?? "—"}
+                          </span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
                             {p.classificacao !== "cliente_ativo" ? (
                               <button
                                 type="button"
                                 disabled={!podeEscrever || somenteLeitura || !eleg.apto}
-                                title={eleg.apto ? "Registrar decisão humana de ativação" : eleg.pendencias.join(" ")}
+                                title={
+                                  eleg.apto
+                                    ? "Registrar decisão humana de ativação"
+                                    : eleg.pendencias.join(" ")
+                                }
                                 onClick={() => setAtivando({ pessoa: p, justificativa: "" })}
                                 className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
                               >
@@ -296,22 +358,28 @@ function ClientesPage() {
         </header>
         {!filtros.incluirParticipantes ? (
           <p className="px-4 py-4 text-sm text-muted-foreground">
-            Beneficiários e membros do núcleo não são clientes independentes. Os dados pessoais deles são tratados em
-            Núcleos e dossiês; marque “Incluir participantes de núcleo” para conferir o vínculo aqui.
+            Beneficiários e membros do núcleo não são clientes independentes. Os dados pessoais
+            deles são tratados em Núcleos e dossiês; marque “Incluir participantes de núcleo” para
+            conferir o vínculo aqui.
           </p>
         ) : participantes.length === 0 ? (
           <p className="px-4 py-4 text-sm text-muted-foreground">Nenhum participante registrado.</p>
         ) : (
           <ul className="divide-y divide-border">
             {participantes.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+              >
                 <div>
                   <span className="font-medium">{p.nome}</span>{" "}
                   <Etiqueta tom="nucleo">Participante do núcleo</Etiqueta>
                   {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
                   <p className="text-xs text-muted-foreground">
                     {p.participacoes.length
-                      ? p.participacoes.map((v) => `${v.nucleo ?? "Núcleo"} — ${v.papel ?? "participante"}`).join(" · ")
+                      ? p.participacoes
+                          .map((v) => `${v.nucleo ?? "Núcleo"} — ${v.papel ?? "participante"}`)
+                          .join(" · ")
                       : "Vínculo registrado no dossiê do caso."}
                   </p>
                   <p className="text-[11px] text-muted-foreground">{destinoDoRegistro(p)}</p>
@@ -322,7 +390,9 @@ function ClientesPage() {
                   onClick={() => {
                     const motivo = window.prompt("Motivo da contratação individual documentada:");
                     if (motivo && motivo.trim().length >= 5) {
-                      void executar(() => reclassificar({ data: { id: p.id, classificacao: "pre_cliente", motivo } }));
+                      void executar(() =>
+                        reclassificar({ data: { id: p.id, classificacao: "pre_cliente", motivo } }),
+                      );
                     }
                   }}
                   className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
@@ -344,36 +414,44 @@ function ClientesPage() {
         </header>
         {!filtros.incluirPreClientes ? (
           <p className="px-4 py-4 text-sm text-muted-foreground">
-            Pré-onboarding é estado interno do caso: esses registros seguem como lead, oportunidade e caso em
-            formalização até contrato assinado, pagamento inicial confirmado e decisão humana de ativação. Marque
-            “Incluir pré-clientes” para vê-los aqui.
+            Pré-onboarding é estado interno do caso: esses registros seguem como lead, oportunidade
+            e caso em formalização até contrato assinado, pagamento inicial confirmado e decisão
+            humana de ativação. Marque “Incluir pré-clientes” para vê-los aqui.
           </p>
         ) : (
           <ul className="divide-y divide-border">
             {preClientes.map((p) => (
-              <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+              >
                 <span>
                   {p.nome} {p.is_demo ? <Etiqueta tom="demo">Demonstração</Etiqueta> : null}
-                  <span className="block text-[11px] text-muted-foreground">{destinoDoRegistro(p)}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {destinoDoRegistro(p)}
+                  </span>
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {rotuloDe(STATUS_COMERCIAL, p.status_comercial)} · {p.contratoAssinado ? "contrato assinado" : "sem contrato assinado"} ·{" "}
+                  {rotuloDe(STATUS_COMERCIAL, p.status_comercial)} ·{" "}
+                  {p.contratoAssinado ? "contrato assinado" : "sem contrato assinado"} ·{" "}
                   {p.pagamentoConfirmado ? "pagamento confirmado" : "sem pagamento inicial"}
                 </span>
               </li>
             ))}
-            {preClientes.length === 0 ? <li className="px-4 py-4 text-sm text-muted-foreground">Nenhum pré-cliente.</li> : null}
+            {preClientes.length === 0 ? (
+              <li className="px-4 py-4 text-sm text-muted-foreground">Nenhum pré-cliente.</li>
+            ) : null}
           </ul>
         )}
       </section>
-
 
       {ativando ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4">
           <div className="w-full max-w-md rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Ativar {ativando.pessoa.nome}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              A ativação é decisão humana registrada. O servidor confere contrato assinado e pagamento inicial confirmado.
+              A ativação é decisão humana registrada. O servidor confere contrato assinado e
+              pagamento inicial confirmado.
             </p>
             <textarea
               className="mt-3 w-full rounded-md border border-border bg-background p-2 text-sm"
@@ -383,13 +461,19 @@ function ClientesPage() {
               onChange={(e) => setAtivando({ ...ativando, justificativa: e.target.value })}
             />
             <div className="mt-3 flex justify-end gap-2">
-              <button type="button" className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setAtivando(null)}>
+              <button
+                type="button"
+                className="rounded-md border border-border px-3 py-1.5 text-sm"
+                onClick={() => setAtivando(null)}
+              >
                 Cancelar
               </button>
               <button
                 type="button"
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-                onClick={() => mAtivar.mutate({ id: ativando.pessoa.id, justificativa: ativando.justificativa })}
+                onClick={() =>
+                  mAtivar.mutate({ id: ativando.pessoa.id, justificativa: ativando.justificativa })
+                }
               >
                 Registrar ativação
               </button>
@@ -402,7 +486,9 @@ function ClientesPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4">
           <div className="w-full max-w-md rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Arquivar {arquivando.pessoa.nome}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Não há exclusão física: o histórico é preservado com motivo, autor e data.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Não há exclusão física: o histórico é preservado com motivo, autor e data.
+            </p>
             <textarea
               className="mt-3 w-full rounded-md border border-border bg-background p-2 text-sm"
               rows={3}
@@ -411,7 +497,11 @@ function ClientesPage() {
               onChange={(e) => setArquivando({ ...arquivando, motivo: e.target.value })}
             />
             <div className="mt-3 flex justify-end gap-2">
-              <button type="button" className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setArquivando(null)}>
+              <button
+                type="button"
+                className="rounded-md border border-border px-3 py-1.5 text-sm"
+                onClick={() => setArquivando(null)}
+              >
                 Cancelar
               </button>
               <button
@@ -419,9 +509,11 @@ function ClientesPage() {
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
                 onClick={() => {
                   const alvo = arquivando;
-                  void executar(() => arquivar({ data: { entidade: "clientes", id: alvo.pessoa.id, motivo: alvo.motivo } })).then(() =>
-                    setArquivando(null),
-                  );
+                  void executar(() =>
+                    arquivar({
+                      data: { entidade: "clientes", id: alvo.pessoa.id, motivo: alvo.motivo },
+                    }),
+                  ).then(() => setArquivando(null));
                 }}
               >
                 Arquivar
@@ -435,7 +527,10 @@ function ClientesPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-4">
           <div className="w-full max-w-md rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold">Novo cadastro de pessoa</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Todo cadastro entra como pré-cliente. Ativação exige contrato, pagamento e decisão humana.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Todo cadastro entra como pré-cliente. Ativação exige contrato, pagamento e decisão
+              humana.
+            </p>
             <div className="mt-3 space-y-2">
               {[
                 { chave: "nome", rotulo: "Nome" },
@@ -509,15 +604,25 @@ function ClientesPage() {
               </label>
             </div>
             <div className="mt-3 flex justify-end gap-2">
-              <button type="button" className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setNovo(null)}>
+              <button
+                type="button"
+                className="rounded-md border border-border px-3 py-1.5 text-sm"
+                onClick={() => setNovo(null)}
+              >
                 Cancelar
               </button>
               <button
                 type="button"
                 className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
                 onClick={() => {
-                  const dados = { ...novo, status: "pre_onboarding", classificacao: novo["classificacao"] ?? "pre_cliente" };
-                  void executar(() => criar({ data: { entidade: "clientes", dados } })).then(() => setNovo(null));
+                  const dados = {
+                    ...novo,
+                    status: "pre_onboarding",
+                    classificacao: novo["classificacao"] ?? "pre_cliente",
+                  };
+                  void executar(() => criar({ data: { entidade: "clientes", dados } })).then(() =>
+                    setNovo(null),
+                  );
                 }}
               >
                 Cadastrar
