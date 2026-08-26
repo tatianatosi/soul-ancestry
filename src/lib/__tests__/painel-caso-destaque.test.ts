@@ -126,7 +126,15 @@ describe("Sinais de atenção fundidos em Encontrar no Desk", () => {
   it("o painel volta aos cinco blocos da norma, mais os auxiliares de leitura", () => {
     const blocos = [...painel.matchAll(/data-painel-bloco="([a-z_]+)"/g)].map((m) => m[1]);
     expect(new Set(blocos)).toEqual(
-      new Set(["cards", "fila_priorizada", "excecoes", "comercial", "prazos", "descoberta"]),
+      new Set([
+        "cards",
+        "jornada",
+        "fila_priorizada",
+        "excecoes",
+        "comercial",
+        "prazos",
+        "descoberta",
+      ]),
     );
   });
 });

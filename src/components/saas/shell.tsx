@@ -25,11 +25,15 @@ import { registrarLogoutEquipe } from "@/lib/equipe.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
-import { GRUPOS_DESK, MENU_CONTA, type GrupoDesk, type ItemNav } from "@/lib/navegacao-desk";
+import {
+  GRUPOS_DESK,
+  MENU_CONTA,
+  origemDoAtalho,
+  type GrupoDesk,
+  type ItemNav,
+} from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
 import { BrandLogo } from "@/components/brand";
-
-
 
 const PAPEIS_ESCRITA: Papel[] = ["admin", "operacoes", "pesquisador", "comercial", "financeiro"];
 
@@ -64,8 +68,10 @@ export function useSaas() {
     ehAdmin: papeis.includes("admin"),
     podeEscrever: papeis.some((p) => PAPEIS_ESCRITA.includes(p)),
     podeFinanceiro: papeis.includes("admin") || papeis.includes("financeiro"),
-    podeComercial: papeis.includes("admin") || papeis.includes("comercial") || papeis.includes("operacoes"),
-    podePesquisa: papeis.includes("admin") || papeis.includes("operacoes") || papeis.includes("pesquisador"),
+    podeComercial:
+      papeis.includes("admin") || papeis.includes("comercial") || papeis.includes("operacoes"),
+    podePesquisa:
+      papeis.includes("admin") || papeis.includes("operacoes") || papeis.includes("pesquisador"),
     somenteLeitura: papeis.length > 0 && !papeis.some((p) => PAPEIS_ESCRITA.includes(p)),
   };
 }
@@ -106,8 +112,6 @@ const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
   ...(g.agrupador ? { agrupador: true } : {}),
   sub: g.sub,
 }));
-
-
 
 export function SaasShell({
   titulo,
@@ -159,7 +163,6 @@ export function SaasShell({
     };
   }, [isLoading, isError, autorizado, navigate, refetch]);
 
-
   async function sair() {
     try {
       await registrarSaida({});
@@ -172,8 +175,6 @@ export function SaasShell({
     limparArmazenamentoDaSessao();
     navigate({ to: "/equipe/entrar", replace: true });
   }
-
-
 
   // Admin não ganha abas novas: os módulos administrativos entram como
   // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
@@ -197,7 +198,6 @@ export function SaasShell({
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
   }));
 
-
   return (
     <div className="flex min-h-screen bg-cream text-navy">
       <aside
@@ -216,7 +216,9 @@ export function SaasShell({
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
             const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
-            const links = sub.filter((s): s is { to: string; label: string; hash?: string } => "to" in s);
+            const links = sub.filter(
+              (s): s is { to: string; label: string; hash?: string } => "to" in s,
+            );
             const rotaAtiva = rota === to || links.some((s) => rota.startsWith(s.to));
             const expandida = rotaAtiva || secaoAberta === to;
             return (
@@ -228,7 +230,9 @@ export function SaasShell({
                     onClick={() => setSecaoAberta((v) => (v === to ? null : to))}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                      rotaAtiva ? "bg-cream/15 text-cream font-medium" : "text-cream/80 hover:bg-cream/10",
+                      rotaAtiva
+                        ? "bg-cream/15 text-cream font-medium"
+                        : "text-cream/80 hover:bg-cream/10",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -241,7 +245,9 @@ export function SaasShell({
                         {badgeDe(to)}
                       </span>
                     ) : null}
-                    <ChevronDown className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")} />
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                    />
                   </button>
                 ) : (
                   <Link
@@ -253,7 +259,9 @@ export function SaasShell({
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                      rota === to ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                      rota === to
+                        ? "bg-gold text-navy font-medium"
+                        : "text-cream/80 hover:bg-cream/10",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -278,10 +286,20 @@ export function SaasShell({
                           onClick={() => setAberto(false)}
                           className={cn(
                             "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                            rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
+                            rota.startsWith(s.to)
+                              ? "bg-cream/15 text-cream font-medium"
+                              : "text-cream/65 hover:bg-cream/10",
                           )}
                         >
                           {s.label}
+                          {/* Atalho para rota que mora em outro grupo: sem esta
+                              marca, a repetição deliberada lê-se como
+                              duplicação. */}
+                          {origemDoAtalho(label, s.to) ? (
+                            <span className="ml-1.5 text-[10px] font-normal text-cream/40">
+                              ↗ {origemDoAtalho(label, s.to)}
+                            </span>
+                          ) : null}
                         </Link>
                       ),
                     )}
@@ -290,7 +308,6 @@ export function SaasShell({
               </div>
             );
           })}
-
         </nav>
         <div className="mt-4 border-t border-cream/15 pt-3">
           <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
@@ -306,7 +323,9 @@ export function SaasShell({
                 onClick={() => setAberto(false)}
                 className={cn(
                   "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                  rota.startsWith(s.to) ? "bg-cream/15 text-cream font-medium" : "text-cream/65 hover:bg-cream/10",
+                  rota.startsWith(s.to)
+                    ? "bg-cream/15 text-cream font-medium"
+                    : "text-cream/65 hover:bg-cream/10",
                 )}
               >
                 {s.label}
@@ -331,10 +350,19 @@ export function SaasShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 border-b border-navy/10 bg-white px-4 py-4 lg:px-8">
-          <button className="lg:hidden" onClick={() => setAberto((v) => !v)} aria-label="Abrir navegação">
+          <button
+            className="lg:hidden"
+            onClick={() => setAberto((v) => !v)}
+            aria-label="Abrir navegação"
+          >
             <Menu className="h-5 w-5" />
           </button>
-          <BrandLogo size={30} showText={false} variant="client-light" className="shrink-0 lg:hidden" />
+          <BrandLogo
+            size={30}
+            showText={false}
+            variant="client-light"
+            className="shrink-0 lg:hidden"
+          />
 
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-serif text-2xl">{titulo}</h1>
@@ -352,7 +380,9 @@ export function SaasShell({
         <main
           className="min-w-0 flex-1 p-4 lg:p-8"
           data-marca={
-            rota.startsWith("/pesquisa") || rota === "/evidencias" || rota.startsWith("/evidencias/")
+            rota.startsWith("/pesquisa") ||
+            rota === "/evidencias" ||
+            rota.startsWith("/evidencias/")
               ? "guia"
               : undefined
           }
@@ -362,8 +392,6 @@ export function SaasShell({
         {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
             conforme papel e contexto. Não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
-
-
       </div>
     </div>
   );

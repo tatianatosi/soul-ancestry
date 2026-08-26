@@ -20,6 +20,10 @@ export type BlocoPainel = {
 export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
   { chave: "cards", titulo: "Métricas de decisão do dia", fila: false },
   { chave: "destaque", titulo: "Caso em destaque", fila: false },
+  // 26/08/2026 — a jornada entra logo depois do destaque: primeiro o caso que
+  // pede o olho, depois onde a carteira inteira está. Não é fila (não gera
+  // linha de trabalho por registro), é leitura de posição.
+  { chave: "jornada", titulo: "Jornada dos casos", fila: false },
   { chave: "fila_priorizada", titulo: "Minha fila priorizada", fila: true },
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },

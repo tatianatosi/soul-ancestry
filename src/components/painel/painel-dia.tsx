@@ -13,6 +13,7 @@ import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
+import { JornadaCasos } from "@/components/painel/jornada-casos";
 import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
@@ -632,7 +633,17 @@ export function PainelDia() {
       */}
       <CasoEmDestaque dados={casoDestaque} />
 
-      {/* 2 — Minha fila priorizada */}
+      {/*
+        2 — Jornada dos casos. A fase como percurso, com a saúde de contato
+        dentro de cada etapa. Não repete a fila: a fila diz o que fazer hoje,
+        a jornada diz onde a carteira está. Vem da mesma consulta de cadência
+        que o Painel já fazia — só passou a trazer o campo `fase`.
+      */}
+      <section data-painel-bloco="jornada">
+        <JornadaCasos casos={(qCad.data?.casos ?? []) as never} />
+      </section>
+
+      {/* 3 — Minha fila priorizada */}
       <section
         data-painel-bloco="fila_priorizada"
         className="rounded-xl border border-navy/10 bg-white p-5"

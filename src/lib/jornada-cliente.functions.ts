@@ -264,7 +264,7 @@ export const painelCadencia = createServerFn({ method: "GET" })
     const { data: casos, error } = await supabase
       .from("crm_casos")
       .select(
-        "id,codigo,titulo,ultimo_touchpoint_em,ultima_atualizacao_material_em,proximo_marco_verificavel,aguardando_instituicao_externa,motivo_espera_externa,proxima_atualizacao_limite_em,created_at",
+        "id,codigo,titulo,fase,ultimo_touchpoint_em,ultima_atualizacao_material_em,proximo_marco_verificavel,aguardando_instituicao_externa,motivo_espera_externa,proxima_atualizacao_limite_em,created_at",
       )
       .eq("organization_id", ctx.organizationId)
       .is("archived_at", null)

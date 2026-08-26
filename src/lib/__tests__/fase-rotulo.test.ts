@@ -42,3 +42,35 @@ describe("rótulo de fase", () => {
     );
   });
 });
+
+describe("atalhos contextuais no menu", () => {
+  it("marca o grupo de origem quando a rota é citada de fora dele", async () => {
+    const { origemDoAtalho } = await import("@/lib/navegacao-desk");
+    // /matriz-juridica mora em Governança e é citada em Comercial e Casos.
+    expect(origemDoAtalho("Comercial", "/matriz-juridica")).toBe("Governança");
+    expect(origemDoAtalho("Casos", "/matriz-juridica")).toBe("Governança");
+  });
+
+  it("não marca a entrada canônica — não há nada a dizer ali", async () => {
+    const { origemDoAtalho } = await import("@/lib/navegacao-desk");
+    expect(origemDoAtalho("Governança", "/matriz-juridica")).toBeNull();
+    expect(origemDoAtalho("Marketing", "/marketing")).toBeNull();
+  });
+
+  it("rota sem registro de atalho não ganha marca", async () => {
+    const { origemDoAtalho } = await import("@/lib/navegacao-desk");
+    expect(origemDoAtalho("Casos", "/tarefas")).toBeNull();
+  });
+
+  it("toda rota de LINKS_CONTEXTUAIS aparece mesmo nos grupos declarados", async () => {
+    const { GRUPOS_DESK, LINKS_CONTEXTUAIS } = await import("@/lib/navegacao-desk");
+    for (const l of LINKS_CONTEXTUAIS) {
+      for (const nome of [l.origem, ...l.tambemEm]) {
+        const g = GRUPOS_DESK.find((x) => x.label === nome);
+        expect(g, `grupo ${nome} não existe`).toBeTruthy();
+        const tem = g!.sub.some((s) => "to" in s && s.to === l.rota);
+        expect(tem, `${l.rota} deveria estar em ${nome}`).toBe(true);
+      }
+    }
+  });
+});

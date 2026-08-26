@@ -374,6 +374,25 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
 
+/**
+ * O grupo onde a rota mora, quando ela está sendo citada de fora dele.
+ *
+ * 26/08/2026 — a Proprietária leu o menu como tendo "muitas sobreposições".
+ * As repetições são deliberadas (`LINKS_CONTEXTUAIS`), mas eram indistinguíveis
+ * da entrada canônica: `/matriz-juridica` aparecia com o MESMO rótulo em três
+ * grupos, sem nada dizendo que mora em Governança. Repetição sem marca lê-se
+ * como duplicação.
+ *
+ * Devolve o grupo de origem quando o item é atalho, e null quando é a entrada
+ * canônica — aí não há nada a marcar.
+ */
+export function origemDoAtalho(grupoLabel: string, rota: string): string | null {
+  const registro = LINKS_CONTEXTUAIS.find((l) => l.rota === rota);
+  if (!registro) return null;
+  if (registro.origem === grupoLabel) return null;
+  return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
+}
+
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
   { item: "Radar multi-país", motivo: "Sem fonte canônica definida; nenhum cálculo é simulado." },

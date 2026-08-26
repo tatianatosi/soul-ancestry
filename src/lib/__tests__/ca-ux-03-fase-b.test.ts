@@ -40,10 +40,18 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
     }
 
     // Nenhuma superfície nova além dos cinco e dos auxiliares de leitura
-    // aprovados: métricas de decisão, caso em destaque e sinais de atenção.
+    // aprovados: métricas de decisão, caso em destaque, sinais de atenção e
+    // jornada dos casos.
+    //
+    // 26/08/2026 — "jornada" entrou por decisão da Proprietária ("não quero
+    // listas e sim jornada dentro do sistema"). É auxiliar de leitura, não um
+    // sexto bloco de trabalho: `fila: false` em ORDEM_BLOCOS_PAINEL, não gera
+    // linha por registro e não disputa a fila diária. Diz onde a carteira
+    // está; quem diz o que fazer hoje continua sendo "Minha fila priorizada".
     const permitidos = [
       "cards",
       "destaque",
+      "jornada",
       "fila_priorizada",
       "excecoes",
       "sinais",
