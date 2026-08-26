@@ -103,7 +103,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Consultoria em genealogia e cidadania europeia." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      // 26/08/2026 — `twitter:site` declarava "@Lovable" em TODA página, ou
+      // seja, a landing pública atribuía a publicação à ferramenta de origem.
+      // Removido em vez de substituído: o perfil oficial da Clube Ancestral no
+      // X não está definido, e inventar um handle erra de outro jeito.
     ],
     links: [
       {
