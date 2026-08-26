@@ -393,6 +393,41 @@ export function origemDoAtalho(grupoLabel: string, rota: string): string | null 
   return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
 }
 
+/**
+ * Natureza de cada biblioteca do Desk.
+ *
+ * 26/08/2026 — princípio da Proprietária: "temos muitas bibliotecas que são e
+ * podem ser chamadas por motores, outras são descritivas… muita info significa
+ * nenhuma info".
+ *
+ * `motor`      — algo no sistema chama esta biblioteca e ela muda o que sai
+ *                (template versionado, evidência vinculada a caso).
+ * `descritiva` — referência para leitura humana; nada a consome para agir.
+ *
+ * A distinção é medida, não opinada: `motor` só vale para biblioteca com
+ * função de servidor própria ou consumida por caminho que produz saída.
+ */
+export const NATUREZA_BIBLIOTECA: readonly {
+  rota: string;
+  natureza: "motor" | "descritiva";
+  nota: string;
+}[] = [
+  {
+    rota: "/biblioteca-mensagens",
+    natureza: "motor",
+    nota: "Template versionado que a fila de comunicação consome; muda o texto que sai.",
+  },
+  {
+    rota: "/biblioteca",
+    natureza: "descritiva",
+    nota: "Curadoria e conhecimento. Nada a consome para produzir saída.",
+  },
+] as const;
+
+export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)[number] | null {
+  return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
+}
+
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
   { item: "Radar multi-país", motivo: "Sem fonte canônica definida; nenhum cálculo é simulado." },

@@ -79,3 +79,61 @@ describe("a frase preserva nome próprio", () => {
     }
   });
 });
+
+describe("de-para Base × Premium", () => {
+  it("os itens vêm da planilha, sem inventar linha", async () => {
+    const { DE_PARA_BASE_PREMIUM } = await import("@/lib/par-app-desk");
+    const itens = DE_PARA_BASE_PREMIUM.map((d) => d.item);
+    expect(itens).toContain("Linha do tempo do caso");
+    expect(itens).toContain("Radar de países");
+    expect(itens).toContain("Árvore / genograma");
+    expect(DE_PARA_BASE_PREMIUM).toHaveLength(6);
+  });
+
+  it("nenhum valor monetário ou faixa de ticket entra neste módulo", async () => {
+    // A planilha traz "Ticket sugerido R$ 2.000–4.000", mas ela mesma diz
+    // "ajustar pela sua planilha", e preço segue bloqueado por DH-001/002/008.
+    // O que se proíbe é o VALOR — a palavra "preço" numa frase que diz que
+    // preço nunca aparece ao cliente é justamente a trava, e pode ficar.
+    const mod = await import("@/lib/par-app-desk");
+    const json = JSON.stringify(mod.DE_PARA_BASE_PREMIUM) + JSON.stringify(mod.PARES_APP_DESK);
+    expect(json).not.toMatch(/R\$\s*[\d.]/);
+    expect(json).not.toMatch(/ticket/i);
+    expect(json).not.toMatch(/\d[\d.]*\s*[–-]\s*\d[\d.]*\s*\+?\s*(reais|mil)/i);
+  });
+
+  it("a linha do item de ticket da planilha não foi importada", async () => {
+    const { DE_PARA_BASE_PREMIUM } = await import("@/lib/par-app-desk");
+    expect(DE_PARA_BASE_PREMIUM.some((d) => /ticket/i.test(d.item))).toBe(false);
+  });
+
+  it("a linha do tempo espelha a redação da planilha", async () => {
+    const { parDoBloco } = await import("@/lib/par-app-desk");
+    expect(parDoBloco("jornada")?.oQueOClienteVe).toBe("4–6 marcos principais");
+  });
+});
+
+describe("natureza das bibliotecas", () => {
+  it("separa biblioteca que um motor chama de biblioteca de referência", async () => {
+    const { naturezaDaBiblioteca } = await import("@/lib/navegacao-desk");
+    expect(naturezaDaBiblioteca("/biblioteca-mensagens")?.natureza).toBe("motor");
+    expect(naturezaDaBiblioteca("/biblioteca")?.natureza).toBe("descritiva");
+  });
+
+  it("toda biblioteca declarada existe no menu", async () => {
+    const { GRUPOS_DESK, NATUREZA_BIBLIOTECA } = await import("@/lib/navegacao-desk");
+    const rotas = new Set(
+      GRUPOS_DESK.flatMap((g) =>
+        g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to),
+      ),
+    );
+    for (const b of NATUREZA_BIBLIOTECA) {
+      expect(rotas.has(b.rota), `${b.rota} declarada mas fora do menu`).toBe(true);
+    }
+  });
+
+  it("cada natureza vem com a nota que justifica a classificação", async () => {
+    const { NATUREZA_BIBLIOTECA } = await import("@/lib/navegacao-desk");
+    for (const b of NATUREZA_BIBLIOTECA) expect(b.nota.length).toBeGreaterThan(20);
+  });
+});

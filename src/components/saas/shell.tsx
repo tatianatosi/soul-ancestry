@@ -28,6 +28,7 @@ import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   GRUPOS_DESK,
   MENU_CONTA,
+  naturezaDaBiblioteca,
   origemDoAtalho,
   type GrupoDesk,
   type ItemNav,
@@ -298,6 +299,20 @@ export function SaasShell({
                           {origemDoAtalho(label, s.to) ? (
                             <span className="ml-1.5 text-[10px] font-normal text-cream/40">
                               ↗ {origemDoAtalho(label, s.to)}
+                            </span>
+                          ) : null}
+                          {/* Biblioteca que um motor chama não se lê igual a
+                              biblioteca de referência. Sem a marca, as duas
+                              parecem a mesma coisa no menu. */}
+                          {naturezaDaBiblioteca(s.to) ? (
+                            <span
+                              className="ml-1.5 text-[10px] font-normal text-cream/40"
+                              title={naturezaDaBiblioteca(s.to)!.nota}
+                            >
+                              ·{" "}
+                              {naturezaDaBiblioteca(s.to)!.natureza === "motor"
+                                ? "motor"
+                                : "referência"}
                             </span>
                           ) : null}
                         </Link>

@@ -36,12 +36,57 @@ export type ParAppDesk = {
   alcance: AlcanceNoCliente;
 };
 
+/**
+ * De-para Base × Premium, da planilha
+ * "Item · App Cliente Fase 1 (Base) · App + Intelligence Desk v2 (Premium)".
+ *
+ * É a fonte da diferença de profundidade por item. Ticket NÃO entra aqui: a
+ * própria planilha diz "ajustar pela sua planilha", e preço segue bloqueado por
+ * DH-001/002/008 — nenhum valor comercial é exibido a partir deste módulo.
+ */
+export const DE_PARA_BASE_PREMIUM: readonly {
+  item: string;
+  base: string;
+  premium: string;
+}[] = [
+  {
+    item: "Linha do tempo do caso",
+    base: "4–6 marcos principais",
+    premium: "Versão estendida com insights adicionais",
+  },
+  {
+    item: "Documentos",
+    base: "Lista + status + instruções simples",
+    premium: "Lista + priorização de riscos + comentários",
+  },
+  {
+    item: "Comunicação",
+    base: "Atualizações essenciais + WhatsApp",
+    premium: "Atualizações + relatórios consolidados",
+  },
+  {
+    item: "Radar de países",
+    base: "Indicação básica (país foco)",
+    premium: "Radar multi-país com índice de elegibilidade",
+  },
+  {
+    item: "Árvore / genograma",
+    base: "Versão simplificada",
+    premium: "Versão avançada com marcação de nós críticos",
+  },
+  {
+    item: "Inteligência interna",
+    base: "Organização simples no Desk",
+    premium: "Desk completo com matriz de fontes e alertas",
+  },
+] as const;
+
 export const PARES_APP_DESK: readonly ParAppDesk[] = [
   {
     chave: "jornada",
     telaApp: "Jornada / Timeline",
-    oQueOClienteVe: "Progresso e próximos passos",
-    oQueODeskVe: "Estágio operacional, prioridade e há quanto tempo está sem toque",
+    oQueOClienteVe: "4–6 marcos principais",
+    oQueODeskVe: "Versão estendida, com estágio, prioridade e dias sem toque",
     alcance: "sanitizado",
   },
   {
@@ -54,15 +99,15 @@ export const PARES_APP_DESK: readonly ParAppDesk[] = [
   {
     chave: "prazos",
     telaApp: "Home / Painel",
-    oQueOClienteVe: "Novidades relevantes, quando liberadas",
+    oQueOClienteVe: "Atualizações essenciais e WhatsApp",
     oQueODeskVe: "Quem precisa de um toque e o que faz avançar",
     alcance: "sanitizado",
   },
   {
     chave: "excecoes",
     telaApp: "Documentos",
-    oQueOClienteVe: "O que já existe e o que falta, em linguagem clara",
-    oQueODeskVe: "Bloqueio, dono nominal e gate pendente",
+    oQueOClienteVe: "Lista, status e instruções simples",
+    oQueODeskVe: "Priorização de riscos, bloqueio, dono nominal e gate pendente",
     alcance: "sanitizado",
   },
   {
