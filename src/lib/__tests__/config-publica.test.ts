@@ -3,35 +3,77 @@ import { describe, expect, it } from "vitest";
 
 import {
   CHAVE_GLOBAL,
+  PROJETO_DECLARADO,
+  ambienteDivergente,
   configPublicaDoNavegador,
   configPublicaDoServidor,
+  refDaUrl,
   scriptDeConfigPublica,
 } from "@/lib/config-publica";
 
 describe("configuração pública em tempo de execução", () => {
-  it("lê as variáveis de servidor que já existem no deploy", () => {
+  it("o ambiente prevalece quando aponta para o projeto declarado", () => {
     const c = configPublicaDoServidor({
-      SUPABASE_URL: "https://exemplo.supabase.co",
-      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_exemplo",
+      SUPABASE_URL: PROJETO_DECLARADO.url,
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_do_ambiente",
     });
-    expect(c).toEqual({
-      url: "https://exemplo.supabase.co",
-      publishableKey: "sb_publishable_exemplo",
-    });
+    expect(c.url).toBe(PROJETO_DECLARADO.url);
+    expect(c.publishableKey).toBe("sb_publishable_do_ambiente");
   });
 
-  it("aceita também a grafia VITE_, para não quebrar quem já a definiu", () => {
+  it("ambiente apontando para OUTRO projeto é ignorado — foi o bug do dia inteiro", () => {
+    // A Vercel apontava para um projeto vazio; o login dizia "senha incorreta"
+    // para uma conta que existe, só que no projeto declarado.
     const c = configPublicaDoServidor({
-      VITE_SUPABASE_URL: "https://exemplo.supabase.co",
+      SUPABASE_URL: "https://zsxpdbhdvbuulwpepemd.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_do_projeto_errado",
+    });
+    expect(c.url).toBe(PROJETO_DECLARADO.url);
+    expect(c.publishableKey).toBe(PROJETO_DECLARADO.publishableKey);
+  });
+
+  it("a divergência é detectável, para poder ser dita na tela", () => {
+    expect(ambienteDivergente({ SUPABASE_URL: "https://outro.supabase.co" })).toBe("outro");
+    expect(ambienteDivergente({ SUPABASE_URL: PROJETO_DECLARADO.url })).toBeNull();
+    expect(ambienteDivergente({})).toBeNull();
+  });
+
+  it("o projeto declarado é o mesmo de supabase/config.toml", () => {
+    const toml = readFileSync("supabase/config.toml", "utf8");
+    expect(toml).toContain(`project_id = "${PROJETO_DECLARADO.ref}"`);
+  });
+
+  it("NUNCA há chave secreta ou service role no valor declarado", () => {
+    const json = JSON.stringify(PROJETO_DECLARADO);
+    expect(json).not.toMatch(/secret|service_role/i);
+    expect(PROJETO_DECLARADO.publishableKey.startsWith("sb_publishable_")).toBe(true);
+  });
+
+  it("aceita também a grafia VITE_, quando aponta ao projeto declarado", () => {
+    const c = configPublicaDoServidor({
+      VITE_SUPABASE_URL: PROJETO_DECLARADO.url,
       VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_exemplo",
     });
-    expect(c?.url).toBe("https://exemplo.supabase.co");
+    expect(c.publishableKey).toBe("sb_publishable_exemplo");
   });
 
-  it("faltando qualquer metade, não devolve configuração pela metade", () => {
-    expect(configPublicaDoServidor({ SUPABASE_URL: "https://x.supabase.co" })).toBeNull();
-    expect(configPublicaDoServidor({ SUPABASE_PUBLISHABLE_KEY: "k" })).toBeNull();
-    expect(configPublicaDoServidor({})).toBeNull();
+  it("refDaUrl extrai o projeto e recusa lixo", () => {
+    expect(refDaUrl("https://abc123.supabase.co")).toBe("abc123");
+    expect(refDaUrl("  https://ABC.supabase.co/rest ")).toBe("abc");
+    expect(refDaUrl("nao-e-url")).toBeNull();
+  });
+
+  it("faltando qualquer metade, cai no projeto declarado — nunca em meia configuração", () => {
+    for (const env of [
+      { SUPABASE_URL: "https://x.supabase.co" },
+      { SUPABASE_PUBLISHABLE_KEY: "k" },
+      {},
+    ]) {
+      expect(configPublicaDoServidor(env)).toEqual({
+        url: PROJETO_DECLARADO.url,
+        publishableKey: PROJETO_DECLARADO.publishableKey,
+      });
+    }
   });
 
   it("sem configuração, nenhum script é injetado", () => {
@@ -41,7 +83,7 @@ describe("configuração pública em tempo de execução", () => {
   it("NUNCA carrega chave secreta ou service role", () => {
     // A trava que importa: só o que é público por desenho atravessa.
     const c = configPublicaDoServidor({
-      SUPABASE_URL: "https://exemplo.supabase.co",
+      SUPABASE_URL: PROJETO_DECLARADO.url,
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_exemplo",
       SUPABASE_SECRET_KEY: "sb_secret_NAO_PODE_VAZAR",
       SUPABASE_SERVICE_ROLE_KEY: "service_role_NAO_PODE_VAZAR",
@@ -50,7 +92,7 @@ describe("configuração pública em tempo de execução", () => {
     expect(script).not.toContain("NAO_PODE_VAZAR");
     expect(script).not.toMatch(/secret/i);
     expect(script).not.toMatch(/service_role/i);
-    expect(Object.keys(c ?? {})).toEqual(["url", "publishableKey"]);
+    expect(Object.keys(c)).toEqual(["url", "publishableKey"]);
   });
 
   it("o script não pode fechar a tag nem injetar código", () => {
@@ -138,13 +180,13 @@ describe("o shell do servidor injeta a configuração", () => {
 });
 
 describe("robustez fora do servidor", () => {
-  it("chamada sem process não lança — devolve null", () => {
+  it("chamada sem process não lança — cai no projeto declarado", () => {
     const g = globalThis as unknown as Record<string, unknown>;
     const antes = g.process;
     // Simula o navegador, onde `process` não existe.
     delete g.process;
     expect(() => configPublicaDoServidor()).not.toThrow();
-    expect(configPublicaDoServidor()).toBeNull();
+    expect(configPublicaDoServidor().url).toBe(PROJETO_DECLARADO.url);
     g.process = antes;
   });
 });

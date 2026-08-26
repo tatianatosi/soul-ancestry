@@ -23,6 +23,44 @@
  * Chave secreta e service role NUNCA passam por aqui. Há teste para isso.
  */
 
+/**
+ * O projeto Supabase deste aplicativo, declarado no repositório.
+ *
+ * 26/08/2026 — a Proprietária passou o dia sem conseguir entrar. A causa,
+ * comprovada no HTML servido: as variáveis da Vercel apontavam para OUTRO
+ * projeto Supabase, vazio, onde a conta dela não existe. O login falhava com
+ * "senha ou e-mail incorretos" — e era verdade: a conta não estava lá.
+ *
+ * Estes valores são a identidade do aplicativo, não segredo:
+ *  - `REF` é o mesmo que `supabase/config.toml` declara, e é o projeto onde as
+ *    migrations deste repositório foram aplicadas;
+ *  - a chave publicável é pública por desenho — ela viaja no navegador de
+ *    qualquer visitante e quem protege o dado é o RLS, não o sigilo dela.
+ *
+ * Chave secreta e service role NUNCA entram aqui, e há teste para isso.
+ */
+export const PROJETO_DECLARADO = {
+  ref: "liiqqibnirnpnvjmjrpj",
+  url: "https://liiqqibnirnpnvjmjrpj.supabase.co",
+  publishableKey: "sb_publishable_ZJlqScMiYsZHudNvBeA1KQ_B4ozV8kh",
+} as const;
+
+/**
+ * A configuração do projeto declarado, só com o que a tela precisa.
+ *
+ * `ref` fica de fora de propósito: ele é derivável da URL e não tem por que
+ * viajar no HTML.
+ */
+function declarado(): ConfigPublica {
+  return { url: PROJETO_DECLARADO.url, publishableKey: PROJETO_DECLARADO.publishableKey };
+}
+
+/** Extrai o ref do projeto a partir da URL. */
+export function refDaUrl(url: string): string | null {
+  const m = /^https:\/\/([a-z0-9]+)\.supabase\.co/i.exec(url.trim());
+  return m ? m[1].toLowerCase() : null;
+}
+
 export type ConfigPublica = { url: string; publishableKey: string };
 
 /** Onde o navegador encontra a configuração injetada pelo servidor. */
@@ -42,11 +80,35 @@ function ambienteDoServidor(): Record<string, string | undefined> {
 /** Lê a configuração pública do ambiente do servidor. */
 export function configPublicaDoServidor(
   env: Record<string, string | undefined> = ambienteDoServidor(),
-): ConfigPublica | null {
+): ConfigPublica {
   const url = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
   const publishableKey = env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !publishableKey) return null;
-  return { url, publishableKey };
+
+  // Sem ambiente, vale o projeto declarado no repositório.
+  if (!url || !publishableKey) return declarado();
+
+  /*
+    O ambiente só prevalece quando aponta para o MESMO projeto que este
+    repositório declara. Apontando para outro, o aplicativo estaria falando com
+    um banco onde suas próprias migrations nunca rodaram — e foi exatamente
+    isso que aconteceu: a Vercel apontava para um projeto vazio, e o login
+    dizia "senha incorreta" para uma conta que existe, só que em outro lugar.
+
+    Preferir o declarado é o comportamento seguro: o repositório sabe a que
+    banco ele pertence. Para apontar a outro projeto, muda-se `config.toml` e
+    estes valores juntos — deliberadamente, não por variável solta.
+  */
+  return refDaUrl(url) === PROJETO_DECLARADO.ref ? { url, publishableKey } : declarado();
+}
+
+/** O ambiente aponta para um projeto diferente do declarado? */
+export function ambienteDivergente(
+  env: Record<string, string | undefined> = ambienteDoServidor(),
+): string | null {
+  const url = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+  if (!url) return null;
+  const ref = refDaUrl(url);
+  return ref && ref !== PROJETO_DECLARADO.ref ? ref : null;
 }
 
 /**
