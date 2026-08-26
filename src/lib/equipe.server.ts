@@ -137,6 +137,50 @@ export async function staffPorUsuario(userId: string) {
   return (data ?? [])[0] ?? null;
 }
 
+/**
+ * A própria linha de permissão, lida com o token de quem está entrando.
+ *
+ * 26/08/2026 — a autorização dependia inteiramente da chave secreta. Quando a
+ * chave do ambiente pertencia a outro projeto, ninguém conseguia entrar: o
+ * servidor não tinha como ler `staff_access` e concluía "sem vínculo" para uma
+ * conta que existe e está ativa.
+ *
+ * Mas ler a PRÓPRIA linha nunca precisou de service role: a política
+ * `staff_select_self` (`auth_user_id = auth.uid()`) já autoriza exatamente
+ * isso. Este caminho usa o cliente do próprio usuário, com RLS ligado — o
+ * banco continua sendo quem decide o que ela pode ver, e ela só enxerga a
+ * própria linha.
+ *
+ * Não é um afrouxamento: a mesma informação, obtida de uma fonte que não exige
+ * segredo. O token tem de ser válido e emitido pelo projeto declarado.
+ */
+export async function staffPorUsuarioComRls(clienteDoUsuario: any, userId: string) {
+  const { data } = await clienteDoUsuario
+    .from("staff_access")
+    .select("id, organization_id, auth_user_id, email, full_name, role, status, archived_at")
+    .eq("auth_user_id", userId)
+    .is("archived_at", null)
+    .limit(1);
+  return (data ?? [])[0] ?? null;
+}
+
+/**
+ * Executa um efeito colateral administrativo sem deixá-lo derrubar o login.
+ *
+ * Registrar auditoria, carimbar `last_login_at` e sincronizar papéis são
+ * consequências de entrar, não condições para entrar. Enquanto a chave secreta
+ * do ambiente não servir, elas falham — e quem falha não pode ser a porta.
+ */
+export async function efeitoAdministrativo(rotulo: string, acao: () => Promise<unknown>) {
+  try {
+    await acao();
+    return true;
+  } catch (e) {
+    console.error(`[equipe] efeito administrativo ignorado (${rotulo}):`, e);
+    return false;
+  }
+}
+
 /** Sincroniza vínculo e papel a partir de staff_access (nunca do front-end). */
 export async function sincronizarVinculo(staff: any, userId: string) {
   const membership = await adminClient
