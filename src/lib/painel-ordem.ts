@@ -2,8 +2,7 @@
  * Painel Hoje — contrato de leitura da tela.
  *
  * Duas regras de UI viram verificação executável, não convenção de código:
- *  1. Ordem canônica dos blocos, com "Sinais de atenção" imediatamente após
- *     "Exceções que exigem dono".
+ *  1. Ordem canônica dos blocos, de cima para baixo.
  *  2. Fila de trabalho sem duplicidade: um registro (lead ou caso) aparece uma
  *     única vez nos blocos que geram linha de ação.
  *
