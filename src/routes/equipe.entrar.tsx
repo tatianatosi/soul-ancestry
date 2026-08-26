@@ -13,8 +13,8 @@ import {
 } from "@/lib/equipe.functions";
 
 import { EquipeMoldura } from "@/components/equipe/moldura";
+import { AvisoConfiguracao } from "@/components/equipe/aviso-configuracao";
 import { useHydrated } from "@/hooks/use-hydrated";
-
 
 export const Route = createFileRoute("/equipe/entrar")({
   head: () => ({
@@ -91,7 +91,10 @@ function EntrarEquipe() {
         setErro("Muitas tentativas. Aguarde o tempo indicado antes de tentar novamente.");
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: senha,
+      });
       if (error) {
         // Só a falha consome o limite de tentativas.
         try {
@@ -130,7 +133,6 @@ function EntrarEquipe() {
       navigate({ to: "/painel", replace: true });
     } catch {
       setErro(ERRO_NEUTRO);
-
     } finally {
       setCarregando(false);
     }
@@ -138,7 +140,6 @@ function EntrarEquipe() {
 
   const bloqueado = espera > 0;
   const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
-
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
@@ -193,11 +194,15 @@ function EntrarEquipe() {
                 ? "Entrando…"
                 : "Entrar"}
         </button>
-
       </form>
 
+      <AvisoConfiguracao />
+
       <div className="mt-5 space-y-2 text-sm">
-        <Link to="/equipe/esqueci-minha-senha" className="block text-navy/70 underline underline-offset-4">
+        <Link
+          to="/equipe/esqueci-minha-senha"
+          className="block text-navy/70 underline underline-offset-4"
+        >
           Esqueci minha senha
         </Link>
         <Link to="/acesso" className="block text-navy/50 underline underline-offset-4">
@@ -217,7 +222,11 @@ function PrimeiroAcesso() {
   const verificar = useServerFn(precisaProvisionamento);
   const criar = useServerFn(criarPrimeiroAdmin);
   const navigate = useNavigate();
-  const q = useQuery({ queryKey: ["provisionamento-equipe"], queryFn: () => verificar({}), retry: false });
+  const q = useQuery({
+    queryKey: ["provisionamento-equipe"],
+    queryFn: () => verificar({}),
+    retry: false,
+  });
   const [form, setForm] = useState({ organizacao: "", nome: "", email: "", senha: "" });
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
@@ -247,11 +256,16 @@ function PrimeiroAcesso() {
   }
 
   return (
-    <form onSubmit={criarConta} method="post" action="?" className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
+    <form
+      onSubmit={criarConta}
+      method="post"
+      action="?"
+      className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4"
+    >
       <p className="text-sm font-medium text-navy">Primeiro acesso da organização</p>
       <p className="text-xs text-navy/60">
-        Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador. Depois disso, novos
-        membros só entram por convite.
+        Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador.
+        Depois disso, novos membros só entram por convite.
       </p>
       {(
         [
@@ -283,4 +297,3 @@ function PrimeiroAcesso() {
     </form>
   );
 }
-

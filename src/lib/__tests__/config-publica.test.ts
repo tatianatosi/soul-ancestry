@@ -148,3 +148,24 @@ describe("robustez fora do servidor", () => {
     g.process = antes;
   });
 });
+
+describe("aviso de configuração na tela de login", () => {
+  it("só aparece quando não há configuração por nenhum dos caminhos", () => {
+    const src = readFileSync("src/components/equipe/aviso-configuracao.tsx", "utf8");
+    expect(src).toContain("import.meta.env.VITE_SUPABASE_URL");
+    expect(src).toContain("configPublicaDoNavegador()");
+    expect(src).toContain("if (temBuildTime || temRuntime) return null;");
+  });
+
+  it("não expõe valor de configuração, só informa a ausência", () => {
+    const src = readFileSync("src/components/equipe/aviso-configuracao.tsx", "utf8");
+    // Booleanos apenas: nada do valor entra no texto.
+    expect(src).toContain("!!configPublicaDoNavegador()");
+    expect(src).not.toMatch(/\.url\b|\.publishableKey\b/);
+  });
+
+  it("a tela de login renderiza o aviso", () => {
+    const rota = readFileSync("src/routes/equipe.entrar.tsx", "utf8");
+    expect(rota).toContain("<AvisoConfiguracao />");
+  });
+});
