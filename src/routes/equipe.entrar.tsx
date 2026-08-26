@@ -84,6 +84,8 @@ function EntrarEquipe() {
     if (carregando || espera > 0) return;
     setErro(null);
     setCarregando(true);
+    // Fora do `try` de propósito: o `catch` precisa saber onde parou.
+    let etapa: "limite" | "senha" | "confirmacao" = "limite";
     try {
       const limite = await preparar({ data: { email } });
       if (limite.bloqueado) {
@@ -91,6 +93,7 @@ function EntrarEquipe() {
         setErro("Muitas tentativas. Aguarde o tempo indicado antes de tentar novamente.");
         return;
       }
+      etapa = "senha";
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password: senha,
@@ -123,6 +126,7 @@ function EntrarEquipe() {
       // Desk abre como "Sem papel atribuído" mesmo para a admin.
       await queryClient.cancelQueries();
       queryClient.clear();
+      etapa = "confirmacao";
       const r = await confirmar({});
       if (!r.autorizado) {
         setErro("Autenticação válida, mas esta conta não tem acesso interno ativo.");
@@ -132,7 +136,27 @@ function EntrarEquipe() {
       await queryClient.invalidateQueries();
       navigate({ to: "/painel", replace: true });
     } catch {
-      setErro(ERRO_NEUTRO);
+      /*
+        26/08/2026 — este `catch` dizia só a frase neutra, para qualquer falha.
+        Custou um dia inteiro de diagnóstico: a senha estava certa, o signIn
+        tinha funcionado, e o que quebrava era o passo SEGUINTE, no servidor.
+        A tela não tinha como distinguir "senha errada" de "servidor falando
+        com o banco errado" — e quem estava na frente dela também não.
+
+        A mensagem continua sem revelar se a conta existe. O que ela passa a
+        revelar é em que etapa parou, que é informação sobre o SISTEMA, não
+        sobre a pessoa.
+      */
+      if (etapa === "confirmacao") {
+        setErro(
+          "Sua senha foi aceita, mas o servidor não conseguiu confirmar a sessão. " +
+            "Isso é falha de configuração do servidor, não da sua senha.",
+        );
+      } else if (etapa === "senha") {
+        setErro("Não foi possível falar com o serviço de autenticação. Tente novamente em instantes.");
+      } else {
+        setErro(ERRO_NEUTRO);
+      }
     } finally {
       setCarregando(false);
     }

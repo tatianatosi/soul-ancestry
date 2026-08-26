@@ -12,6 +12,7 @@
 import { createHash } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { chavePublicavelDoServidor, urlDoServidor } from "./config-servidor";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const adminClient = supabaseAdmin as any;
@@ -43,7 +44,7 @@ export function senhaValida(senha: string) {
 /** Identificador embaralhado: o e-mail nunca é gravado em texto no controle de tentativas. */
 function hashAssunto(valor: string) {
   return createHash("sha256")
-    .update(`${process.env["SUPABASE_URL"] ?? "ca"}::${normalizarEmail(valor)}`)
+    .update(`${urlDoServidor()}::${normalizarEmail(valor)}`)
     .digest("hex");
 }
 
@@ -180,8 +181,8 @@ export async function revogarVinculo(staff: any) {
 
 /** Cliente publishable no servidor: usado só para disparar e-mails de autenticação. */
 export function clientePublico() {
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient(process.env["SUPABASE_URL"]!, key, {
+  const key = chavePublicavelDoServidor();
+  return createClient(urlDoServidor(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
       fetch: (input: any, init: any) => {
