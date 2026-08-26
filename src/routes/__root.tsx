@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 
 import { destinoLinkAuth } from "../lib/link-auth";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { configPublicaDoServidor, scriptDeConfigPublica } from "@/lib/config-publica";
 import { supabase } from "../integrations/supabase/client";
 import { ehTransicaoDeIdentidade } from "../lib/guarda-sessao";
 
@@ -46,7 +47,6 @@ function NotFoundComponent() {
           >
             Voltar ao início
           </Link>
-
         </div>
       </div>
     </div>
@@ -97,7 +97,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Clube Ancestral — Genealogia & Cidadania Europeia" },
-      { name: "description", content: "Consultoria em genealogia e cidadania europeia. Reconecte-se à sua história familiar." },
+      {
+        name: "description",
+        content:
+          "Consultoria em genealogia e cidadania europeia. Reconecte-se à sua história familiar.",
+      },
       { name: "author", content: "Clube Ancestral" },
       { property: "og:title", content: "Clube Ancestral" },
       { property: "og:description", content: "Consultoria em genealogia e cidadania europeia." },
@@ -118,7 +122,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/clube-ancestral-logo.svg", type: "image/svg+xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Great+Vibes&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Great+Vibes&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -128,10 +135,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  /*
+    A configuração pública do Supabase é injetada aqui, no servidor, para que o
+    navegador não dependa de `VITE_*` em tempo de build. Sem isto, uma build
+    feita sem essas variáveis — como a da Vercel — entrega um cliente que lança
+    antes de qualquer tentativa de login.
+
+    Só entram URL e chave publicável. Chave secreta e service role não passam
+    por este caminho, e há teste que verifica isso.
+  */
+  const config = scriptDeConfigPublica(configPublicaDoServidor());
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        {config ? <script dangerouslySetInnerHTML={{ __html: config }} /> : null}
       </head>
       <body>
         {children}
@@ -167,4 +186,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-
