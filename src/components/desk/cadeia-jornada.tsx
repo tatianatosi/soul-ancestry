@@ -160,6 +160,12 @@ export function CadeiaJornada({
     window.setTimeout(() => setCopiado(null), 4000);
   };
 
+  const baixarResumoTxt = () => {
+    const ok = baixarResumoTxtPainelContextual(dadosImpressao);
+    setCopiado(ok ? "baixado" : "erro");
+    window.setTimeout(() => setCopiado(null), 4000);
+  };
+
   return (
     <section
       className="mt-6 border-t border-border pt-4"
