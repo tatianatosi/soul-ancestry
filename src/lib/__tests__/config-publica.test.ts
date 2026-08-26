@@ -169,3 +169,16 @@ describe("aviso de configuração na tela de login", () => {
     expect(rota).toContain("<AvisoConfiguracao />");
   });
 });
+
+describe("o aviso não dá alarme falso", () => {
+  it("não decide antes de hidratar", () => {
+    // No servidor `window` não existe: sem esta guarda, o aviso vermelho
+    // aparecia na primeira pintura mesmo com a configuração presente.
+    const src = readFileSync("src/components/equipe/aviso-configuracao.tsx", "utf8");
+    expect(src).toContain("useHydrated()");
+    const iHidratado = src.indexOf("if (!hidratado) return null;");
+    const iLeitura = src.indexOf("configPublicaDoNavegador()");
+    expect(iHidratado).toBeGreaterThan(-1);
+    expect(iHidratado).toBeLessThan(iLeitura);
+  });
+});

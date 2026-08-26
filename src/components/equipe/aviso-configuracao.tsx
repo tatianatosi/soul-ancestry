@@ -1,4 +1,5 @@
 import { configPublicaDoNavegador } from "@/lib/config-publica";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 /**
  * Aviso na tela quando a configuração do Supabase não chegou ao navegador.
@@ -11,6 +12,16 @@ import { configPublicaDoNavegador } from "@/lib/config-publica";
  * onde. Não expõe valor nenhum — só informa se a configuração chegou.
  */
 export function AvisoConfiguracao() {
+  const hidratado = useHydrated();
+
+  /*
+    Só decide depois de hidratar. No servidor `window` não existe, então a
+    leitura de runtime devolve null e o aviso apareceria mesmo quando a
+    configuração está presente — um alarme falso e vermelho na primeira
+    pintura. Antes de hidratar, não afirma nada.
+  */
+  if (!hidratado) return null;
+
   // Em build com `VITE_*` embutida, o cliente funciona mesmo sem injeção.
   const temBuildTime = !!import.meta.env.VITE_SUPABASE_URL;
   const temRuntime = !!configPublicaDoNavegador();
