@@ -8,6 +8,7 @@ import {
   type EstadoElo,
 } from "@/lib/cadeia-jornada-visao";
 import {
+  baixarResumoTxtPainelContextual,
   htmlImpressaoPainelContextual,
   imprimirPdfPainelContextual,
   resumoTextoPainelContextual,
@@ -46,7 +47,7 @@ export function CadeiaJornada({
   const detalhe = aberto ? detalharElo(resultado, aberto) : null;
 
   const [previa, setPrevia] = useState(false);
-  const [copiado, setCopiado] = useState<"ok" | "erro" | null>(null);
+  const [copiado, setCopiado] = useState<"ok" | "erro" | "baixado" | null>(null);
 
   const listaRef = useRef<HTMLOListElement | null>(null);
   const fecharRef = useRef<HTMLButtonElement | null>(null);
@@ -159,6 +160,12 @@ export function CadeiaJornada({
     window.setTimeout(() => setCopiado(null), 4000);
   };
 
+  const baixarResumoTxt = () => {
+    const ok = baixarResumoTxtPainelContextual(dadosImpressao);
+    setCopiado(ok ? "baixado" : "erro");
+    window.setTimeout(() => setCopiado(null), 4000);
+  };
+
   return (
     <section
       className="mt-6 border-t border-border pt-4"
@@ -186,6 +193,15 @@ export function CadeiaJornada({
           </button>
           <button
             type="button"
+            onClick={baixarResumoTxt}
+            data-cadeia="baixar-txt"
+            aria-label="Baixar o resumo do painel contextual em arquivo .txt para arquivar junto ao PDF"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Baixar resumo (.txt)
+          </button>
+          <button
+            type="button"
             onClick={(e) => {
               gatilhoPreviaRef.current = e.currentTarget;
               setPrevia(true);
@@ -207,11 +223,13 @@ export function CadeiaJornada({
         role="status"
         aria-live="polite"
       >
-        {copiado === "ok"
-          ? "Resumo copiado para a área de transferência."
-          : copiado === "erro"
-            ? "Não foi possível copiar automaticamente. Use a prévia para revisar e copiar manualmente."
-            : ""}
+        {copiado === "baixado"
+          ? "Resumo baixado em arquivo .txt."
+          : copiado === "ok"
+            ? "Resumo copiado para a área de transferência."
+            : copiado === "erro"
+              ? "Não foi possível copiar automaticamente. Use a prévia para revisar e copiar manualmente."
+              : ""}
       </p>
 
       {previa ? (
@@ -305,8 +323,8 @@ export function CadeiaJornada({
           <p className="font-medium text-foreground">Motivo e evidências</p>
           <p className="mt-1 text-muted-foreground">{proxima.motivo}</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
-            {proxima.evidencias.map((ev) => (
-              <li key={ev}>{ev}</li>
+            {proxima.evidencias.map((ev, i) => (
+              <li key={`${i}-${ev}`}>{ev}</li>
             ))}
           </ul>
         </div>
@@ -448,8 +466,8 @@ export function CadeiaJornada({
             <div className="mt-4 border-t border-border pt-3" data-cadeia="drawer-evidencias">
               <p className="font-medium text-foreground">Evidências</p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-muted-foreground">
-                {detalhe.evidencias.map((ev) => (
-                  <li key={ev}>{ev}</li>
+                {detalhe.evidencias.map((ev, i) => (
+                  <li key={`${i}-${ev}`}>{ev}</li>
                 ))}
               </ul>
             </div>
