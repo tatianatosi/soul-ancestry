@@ -35,8 +35,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
-
 import {
   EIXO_COMERCIAL,
   EIXO_FORMALIZACAO,
@@ -62,7 +60,11 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
   head: () => ({
     meta: [
       { title: "Ficha operacional do caso — Clube Ancestral" },
-      { name: "description", content: "Ficha operacional canônica do caso: eixos de status, pessoas, riscos e próxima ação." },
+      {
+        name: "description",
+        content:
+          "Ficha operacional canônica do caso: eixos de status, pessoas, riscos e próxima ação.",
+      },
       { property: "og:title", content: "Ficha operacional do caso — Clube Ancestral" },
       { property: "og:description", content: "Registro operacional do caso no Desk Intelligence." },
       { property: "og:type", content: "website" },
@@ -76,7 +78,11 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/")({
 /* ---------------- Campos básicos ---------------- */
 
 function Rotulo({ children }: { children: React.ReactNode }) {
-  return <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-navy/50">{children}</span>;
+  return (
+    <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-navy/50">
+      {children}
+    </span>
+  );
 }
 
 const inputCls =
@@ -103,9 +109,21 @@ function Texto({
     <label className="block">
       <Rotulo>{label}</Rotulo>
       {area ? (
-        <textarea className={inputCls} rows={4} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+        <textarea
+          className={inputCls}
+          rows={4}
+          value={valor}
+          disabled={desabilitado}
+          onChange={(e) => onChange(e.target.value)}
+        />
       ) : (
-        <input className={inputCls} type={tipo} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)} />
+        <input
+          className={inputCls}
+          type={tipo}
+          value={valor}
+          disabled={desabilitado}
+          onChange={(e) => onChange(e.target.value)}
+        />
       )}
       {ajuda ? <span className="mt-1 block text-[11px] text-navy/45">{ajuda}</span> : null}
     </label>
@@ -130,7 +148,12 @@ function Selecao({
   return (
     <label className="block">
       <Rotulo>{label}</Rotulo>
-      <select className={inputCls} value={valor} disabled={desabilitado} onChange={(e) => onChange(e.target.value)}>
+      <select
+        className={inputCls}
+        value={valor}
+        disabled={desabilitado}
+        onChange={(e) => onChange(e.target.value)}
+      >
         <option value="">— selecionar —</option>
         {opcoes.map((o) => (
           <option key={o.valor} value={o.valor}>
@@ -167,10 +190,14 @@ function Multi({
               key={o.valor}
               type="button"
               disabled={desabilitado}
-              onClick={() => onChange(ativo ? valores.filter((v) => v !== o.valor) : [...valores, o.valor])}
+              onClick={() =>
+                onChange(ativo ? valores.filter((v) => v !== o.valor) : [...valores, o.valor])
+              }
               className={
                 "rounded-full border px-3 py-1 text-xs transition-colors " +
-                (ativo ? "border-gold bg-gold/20 text-navy" : "border-navy/15 text-navy/60 hover:bg-navy/5")
+                (ativo
+                  ? "border-gold bg-gold/20 text-navy"
+                  : "border-navy/15 text-navy/60 hover:bg-navy/5")
               }
             >
               {o.rotulo}
@@ -182,11 +209,49 @@ function Multi({
   );
 }
 
-function Secao({ titulo, descricao, children }: { titulo: string; descricao?: string; children: React.ReactNode }) {
+/**
+ * Uma seção da página única do Caso 360.
+ *
+ * Carrega a âncora que o índice usa e um título discreto, para quem rola saber
+ * onde está sem depender de ter clicado num botão.
+ */
+function SecaoAncora({
+  id,
+  titulo,
+  children,
+}: {
+  id: string;
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={`secao-${id}`} data-secao-caso={id} className="scroll-mt-16">
+      <h2 className="mb-2 flex items-center gap-2 font-serif text-lg text-navy">
+        <span className="h-3.5 w-1 rounded-full bg-gold" aria-hidden />
+        {titulo}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function Secao({
+  titulo,
+  descricao,
+  children,
+}: {
+  titulo: string;
+  descricao?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="rounded-xl border border-navy/10 bg-white p-5">
       <h2 className="font-serif text-lg text-navy">{titulo}</h2>
-      {descricao ? <p className="mb-4 mt-1 text-xs text-navy/55">{descricao}</p> : <div className="mb-4" />}
+      {descricao ? (
+        <p className="mb-4 mt-1 text-xs text-navy/55">{descricao}</p>
+      ) : (
+        <div className="mb-4" />
+      )}
       {children}
     </section>
   );
@@ -194,20 +259,31 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao?: st
 
 /* ---------------- Página ---------------- */
 
-const ABAS = [
+/**
+ * Seções do Caso 360, na ordem em que a página as apresenta.
+ *
+ * 26/08/2026 — eram 13 abas independentes. O documento de fluxo é explícito:
+ * "no Caso 360, o ideal é uma página única com seções contextuais, não abas
+ * independentes que disputam a mesma informação". Adotado por decisão da
+ * Proprietária.
+ *
+ * Nenhuma seção foi removida ou fundida: as mesmas 13 continuam, agora
+ * empilhadas e alcançáveis por um índice fixo, em vez de escondidas atrás de
+ * um clique que faz o resto sumir.
+ */
+const SECOES = [
   { id: "visao", rotulo: "Visão geral" },
   { id: "caso", rotulo: "Caso" },
+  { id: "comercial", rotulo: "Comercial e formalização" },
+  { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoas" },
   { id: "cadastro", rotulo: "Cadastro e núcleo" },
-
   { id: "produto", rotulo: "Produto e trilha" },
   { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "onboarding", rotulo: "Onboarding" },
   { id: "fechamento", rotulo: "Fechamento" },
   { id: "jornada", rotulo: "Jornada do cliente" },
-  { id: "comercial", rotulo: "Comercial e formalização" },
-  { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "log", rotulo: "Registro de alterações" },
 ] as const;
 
@@ -220,14 +296,21 @@ function FichaCaso() {
   const criar = useServerFn(criarRegistro);
   const qc = useQueryClient();
 
-  const q = useQuery({ queryKey: ["ficha-caso", id], queryFn: () => carregar({ data: { id } }), retry: false });
-  const qc2 = useQuery({ queryKey: ["caso-canonico", id], queryFn: () => carregarCanon({ data: { caseId: id } }), retry: false });
+  const q = useQuery({
+    queryKey: ["ficha-caso", id],
+    queryFn: () => carregar({ data: { id } }),
+    retry: false,
+  });
+  const qc2 = useQuery({
+    queryKey: ["caso-canonico", id],
+    queryFn: () => carregarCanon({ data: { caseId: id } }),
+    retry: false,
+  });
   const recarregar = () => {
     void qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
     void qc.invalidateQueries({ queryKey: ["caso-canonico", id] });
   };
 
-  const [aba, setAba] = useState<(typeof ABAS)[number]["id"]>("visao");
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
   const [camposSalvos, setCamposSalvos] = useState<string[]>([]);
@@ -259,7 +342,6 @@ function FichaCaso() {
     withResolver: true,
   });
 
-
   const v = (chave: string): string => {
     const atual = chave in form ? form[chave] : caso?.[chave];
     return atual === null || atual === undefined ? "" : String(atual);
@@ -290,7 +372,6 @@ function FichaCaso() {
     },
   });
 
-
   const derivado = useMemo(
     () =>
       derivarStatusCaso({
@@ -318,7 +399,10 @@ function FichaCaso() {
     [caso, form],
   );
 
-  const derivadoGates = useMemo(() => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>), [caso]);
+  const derivadoGates = useMemo(
+    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>),
+    [caso],
+  );
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
 
@@ -332,7 +416,9 @@ function FichaCaso() {
   if (q.isError || !caso) {
     return (
       <SaasShell titulo="Ficha operacional do caso">
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Caso não encontrado."} />
+        <EstadoVazio
+          mensagem={q.error instanceof Error ? q.error.message : "Caso não encontrado."}
+        />
       </SaasShell>
     );
   }
@@ -368,7 +454,8 @@ function FichaCaso() {
     >
       {ehFixtureLinha(caso as never) ? (
         <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs font-medium tracking-wide text-navy">
-          {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem App Cliente.
+          {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem
+          App Cliente.
         </p>
       ) : null}
       <VinculoNucleo
@@ -379,9 +466,10 @@ function FichaCaso() {
         estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
       />
 
-
       {erro ? (
-        <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">{erro}</p>
+        <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
+          {erro}
+        </p>
       ) : null}
       {!erro && !sujo && camposSalvos.length ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
@@ -390,7 +478,8 @@ function FichaCaso() {
       ) : null}
       {bloqueado ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Edição indisponível: {caso["archived_at"] ? "caso arquivado." : "seu papel é somente leitura."}
+          Edição indisponível:{" "}
+          {caso["archived_at"] ? "caso arquivado." : "seu papel é somente leitura."}
         </p>
       ) : null}
 
@@ -408,19 +497,25 @@ function FichaCaso() {
           </div>
         ))}
       </div>
-      <p className="-mt-4 mb-3 text-xs text-navy/55">Motivo do status derivado: {derivado.motivo}</p>
+      <p className="-mt-4 mb-3 text-xs text-navy/55">
+        Motivo do status derivado: {derivado.motivo}
+      </p>
       <div
         className={
           "mb-6 rounded-xl border px-4 py-3 " +
-          (derivadoGates.elegivel ? "border-navy/15 bg-navy/5" : "border-terracotta/40 bg-terracotta/10")
+          (derivadoGates.elegivel
+            ? "border-navy/15 bg-navy/5"
+            : "border-terracotta/40 bg-terracotta/10")
         }
       >
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado derivado pelos requisitos de ativação</p>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">
+          Estado derivado pelos requisitos de ativação
+        </p>
         <p className="mt-1 text-sm font-medium text-navy">{derivadoGates.rotulo}</p>
         <p className="mt-1 text-xs text-navy/65">{derivadoGates.explicacao}</p>
         <p className="mt-1 text-[11px] text-navy/50">
-          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do cliente. As travas são
-          revalidadas no servidor.
+          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do
+          cliente. As travas são revalidadas no servidor.
         </p>
       </div>
 
@@ -461,7 +556,10 @@ function FichaCaso() {
         >
           Pesquisa e Evidências → Plano de Ação de Pesquisa →
         </Link>
-        <Link to="/fontes-genealogicas" className="text-xs font-medium text-navy underline decoration-gold underline-offset-4">
+        <Link
+          to="/fontes-genealogicas"
+          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+        >
           Pesquisa e Evidências → Fontes e Integrações Genealógicas (catálogo interno) →
         </Link>
         <Link
@@ -471,16 +569,13 @@ function FichaCaso() {
         >
           Relatórios de fase (F1 a F5 e memória de legado) →
         </Link>
-
       </div>
-
-
-
-
 
       {sugestoes.length ? (
         <div className="mb-6 rounded-xl border border-gold/40 bg-gold/10 p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy">Sugestões de jornada (não executam ação)</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy">
+            Sugestões de jornada (não executam ação)
+          </p>
           <ul className="space-y-1 text-sm text-navy/80">
             {sugestoes.map((s) => (
               <li key={s.titulo}>
@@ -491,331 +586,573 @@ function FichaCaso() {
         </div>
       ) : null}
 
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-navy/10 pb-3">
-        {ABAS.map((a) => (
-          <button
+      {/* Índice: leva à seção sem esconder as outras. */}
+      <nav
+        aria-label="Seções do caso"
+        className="sticky top-0 z-10 -mx-1 mb-5 flex flex-wrap gap-1.5 border-b border-navy/10 bg-cream/95 px-1 py-2 backdrop-blur"
+      >
+        {SECOES.map((a) => (
+          <a
             key={a.id}
-            onClick={() => setAba(a.id)}
-            className={
-              "rounded-lg px-3 py-1.5 text-sm " +
-              (aba === a.id ? "bg-navy text-cream" : "text-navy/60 hover:bg-navy/5")
-            }
+            href={`#secao-${a.id}`}
+            className="rounded-lg px-2.5 py-1 text-[13px] text-navy/65 transition-colors hover:bg-navy/5 hover:text-navy"
           >
             {a.rotulo}
-          </button>
+          </a>
         ))}
-      </div>
+      </nav>
 
-      {aba === "visao" ? (
-        <AbaVisaoGeral
-          caso={caso}
-          timeline={q.data?.timeline ?? []}
-          blueprint={q.data?.blueprint ?? []}
-          filaDrive={q.data?.filaDrive ?? []}
-        />
-      ) : null}
+      <div className="space-y-8">
+        <SecaoAncora id="visao" titulo="Visão geral">
+          <AbaVisaoGeral
+            caso={caso}
+            timeline={q.data?.timeline ?? []}
+            blueprint={q.data?.blueprint ?? []}
+            filaDrive={q.data?.filaDrive ?? []}
+          />
+        </SecaoAncora>
 
-      {aba === "caso" ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Secao titulo="Identificação" descricao="Registro de caso — distinto de família e de pessoa.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Texto label="Título do caso" valor={v("titulo")} onChange={(x) => set("titulo", x)} desabilitado={bloqueado} />
-              <div>
-                <Rotulo>Identificador canônico</Rotulo>
-                <p className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
-                  {String(caso?.["codigo"] ?? "—")}
-                  {ehFixture(caso?.["codigo"] as string | null) && (
-                    <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
-                      {ROTULO_FIXTURE}
-                    </span>
-                  )}
-                </p>
-                <p className="mt-1 text-xs text-navy/50">
-                  Gerado pelo servidor e imutável. Modelo: {String(caso?.["modelo"] ?? "—")}. País, via, produto e preço
-                  ficam em campos estruturados e nunca compõem o identificador.
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <Rotulo>Identificadores históricos (aliases)</Rotulo>
-                {(qc2.data?.aliases ?? []).length === 0 ? (
-                  <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/60">
-                    Nenhum identificador histórico registrado.
+        <SecaoAncora id="caso" titulo="Caso">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Secao
+              titulo="Identificação"
+              descricao="Registro de caso — distinto de família e de pessoa."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Texto
+                  label="Título do caso"
+                  valor={v("titulo")}
+                  onChange={(x) => set("titulo", x)}
+                  desabilitado={bloqueado}
+                />
+                <div>
+                  <Rotulo>Identificador canônico</Rotulo>
+                  <p className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                    {String(caso?.["codigo"] ?? "—")}
+                    {ehFixture(caso?.["codigo"] as string | null) && (
+                      <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
+                        {ROTULO_FIXTURE}
+                      </span>
+                    )}
                   </p>
-                ) : (
-                  <ul className="space-y-1">
-                    {(qc2.data?.aliases ?? []).map((a) => (
-                      <li
-                        key={String(a["id"])}
-                        className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
-                      >
-                        <span className="font-mono text-navy">{String(a["alias"])}</span>
-                        <span className="ml-2 text-xs text-navy/50">
-                          {String(a["alias_type"] ?? "historico")} · origem {String(a["source"] ?? "—")}
-                          {a["superseded_by"] ? ` · substituído por ${String(a["superseded_by"])}` : ""}
-                        </span>
+                  <p className="mt-1 text-xs text-navy/50">
+                    Gerado pelo servidor e imutável. Modelo: {String(caso?.["modelo"] ?? "—")}.
+                    País, via, produto e preço ficam em campos estruturados e nunca compõem o
+                    identificador.
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <Rotulo>Identificadores históricos (aliases)</Rotulo>
+                  {(qc2.data?.aliases ?? []).length === 0 ? (
+                    <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/60">
+                      Nenhum identificador histórico registrado.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {(qc2.data?.aliases ?? []).map((a) => (
+                        <li
+                          key={String(a["id"])}
+                          className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
+                        >
+                          <span className="font-mono text-navy">{String(a["alias"])}</span>
+                          <span className="ml-2 text-xs text-navy/50">
+                            {String(a["alias_type"] ?? "historico")} · origem{" "}
+                            {String(a["source"] ?? "—")}
+                            {a["superseded_by"]
+                              ? ` · substituído por ${String(a["superseded_by"])}`
+                              : ""}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="mt-1 text-xs text-navy/50">
+                    Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
+                  </p>
+                </div>
+                <Texto
+                  label="Data de entrada do caso"
+                  tipo="date"
+                  valor={v("data_entrada_caso")}
+                  onChange={(x) => set("data_entrada_caso", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Case service / trilha (ID)"
+                  valor={v("citizenship_track_id")}
+                  onChange={(x) => set("citizenship_track_id", x)}
+                  desabilitado={bloqueado}
+                />
+                <div>
+                  <Rotulo>Cliente vinculado</Rotulo>
+                  <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70">
+                    {q.data?.cliente?.nome ?? "Sem cliente vinculado"}
+                  </p>
+                </div>
+              </div>
+            </Secao>
+
+            <Secao titulo="Responsabilidade" descricao="Toda entrega tem responsável nomeado.">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Texto
+                  label="Responsável principal"
+                  valor={v("responsavel_principal")}
+                  onChange={(x) => set("responsavel_principal", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Cargo do responsável"
+                  valor={v("cargo_responsavel_principal")}
+                  onChange={(x) => set("cargo_responsavel_principal", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Supervisora do caso"
+                  valor={v("supervisora_do_caso")}
+                  onChange={(x) => set("supervisora_do_caso", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Colaboradores (separados por vírgula)"
+                  valor={arr("colaboradores_do_caso").join(", ")}
+                  onChange={(x) =>
+                    set(
+                      "colaboradores_do_caso",
+                      x
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                  desabilitado={bloqueado}
+                />
+              </div>
+            </Secao>
+
+            <Secao titulo="Próxima ação" descricao="Lista controlada; 'Outro' exige justificativa.">
+              <div className="grid gap-4">
+                <Selecao
+                  label="Próxima ação"
+                  valor={v("proxima_acao_codigo")}
+                  opcoes={PROXIMAS_ACOES}
+                  onChange={(x) => set("proxima_acao_codigo", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Justificativa / detalhe"
+                  valor={v("proxima_acao_justificativa")}
+                  onChange={(x) => set("proxima_acao_justificativa", x)}
+                  desabilitado={bloqueado}
+                  area
+                  ajuda={
+                    v("proxima_acao_codigo") === "outro_justificar"
+                      ? "Obrigatório quando a ação é 'Outro'."
+                      : undefined
+                  }
+                />
+              </div>
+            </Secao>
+
+            <Secao titulo="Brief interno" descricao="Uso interno — nunca exibido ao cliente.">
+              <div className="grid gap-4">
+                <Selecao
+                  label="Origem do brief"
+                  valor={v("origem_brief")}
+                  opcoes={ORIGEM_BRIEF}
+                  onChange={(x) => set("origem_brief", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Link de origem interna"
+                  valor={v("link_origem_interna")}
+                  onChange={(x) => set("link_origem_interna", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Resumo interno"
+                  valor={v("resumo_interno")}
+                  onChange={(x) => set("resumo_interno", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+                <Texto
+                  label="Brief interno"
+                  valor={v("brief_interno")}
+                  onChange={(x) => set("brief_interno", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+              </div>
+            </Secao>
+          </div>
+        </SecaoAncora>
+
+        <SecaoAncora id="comercial" titulo="Comercial e formalização">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Secao titulo="Eixo comercial">
+              <div className="grid gap-4">
+                <Selecao
+                  label="Etapa comercial"
+                  valor={v("eixo_comercial")}
+                  opcoes={EIXO_COMERCIAL}
+                  onChange={(x) => set("eixo_comercial", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Data da confirmação formal da proposta"
+                  tipo="date"
+                  valor={v("data_confirmacao_formal_proposta")}
+                  onChange={(x) => set("data_confirmacao_formal_proposta", x)}
+                  desabilitado={bloqueado}
+                />
+              </div>
+            </Secao>
+
+            <Secao
+              titulo="Eixo de formalização e operação"
+              descricao="'Cliente ativo' só é derivado com contrato, pagamento, responsável, núcleo e plano."
+            >
+              <div className="grid gap-4">
+                <Selecao
+                  label="Etapa de formalização"
+                  valor={v("eixo_formalizacao")}
+                  opcoes={EIXO_FORMALIZACAO}
+                  onChange={(x) => set("eixo_formalizacao", x)}
+                  desabilitado={bloqueado}
+                />
+                <ul className="space-y-1 text-xs text-navy/60">
+                  <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
+                  <li>Pagamento confirmado: {caso["pagamento_confirmado"] ? "sim" : "não"}</li>
+                  <li>
+                    Plano inicial (tarefas): {q.data?.planoInicialOk ? "registrado" : "pendente"}
+                  </li>
+                </ul>
+                <div className="rounded-lg border border-navy/10 bg-white/60 p-3">
+                  <p className="text-xs font-semibold text-navy">
+                    Completude do núcleo familiar (critérios persistidos)
+                  </p>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    {(q.data?.nucleoCriterios ?? []).map((c) => (
+                      <li key={c.chave} className={c.ok ? "text-navy/60" : "text-terracotta"}>
+                        {c.ok ? "✓" : "•"} {c.rotulo}
+                        {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
                       </li>
                     ))}
+                    {(q.data?.nucleoCriterios ?? []).length === 0 ? (
+                      <li className="text-navy/50">Sem critérios avaliados.</li>
+                    ) : null}
                   </ul>
-                )}
-                <p className="mt-1 text-xs text-navy/50">
-                  Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
+                </div>
+
+                <Link
+                  to="/onboarding/$id"
+                  params={{ id }}
+                  className="text-xs font-medium text-navy underline"
+                >
+                  Abrir painel de onboarding e ativação
+                </Link>
+              </div>
+            </Secao>
+
+            <Secao
+              titulo="Proposta (referência interna)"
+              descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Texto
+                  label="Referência interna da proposta"
+                  valor={v("proposta_referencia_interna")}
+                  onChange={(x) => set("proposta_referencia_interna", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Data da proposta"
+                  tipo="date"
+                  valor={v("data_proposta")}
+                  onChange={(x) => set("data_proposta", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Link interno da proposta"
+                  valor={v("proposta_url_interna")}
+                  onChange={(x) => set("proposta_url_interna", x)}
+                  desabilitado={bloqueado}
+                />
+                <Selecao
+                  label="Condição comercial interna"
+                  valor={String(
+                    v("condicao_comercial_interna_pendente") === "false" ? "false" : "true",
+                  )}
+                  opcoes={[
+                    { valor: "true", rotulo: "Pendente de homologação" },
+                    { valor: "false", rotulo: "Homologada" },
+                  ]}
+                  onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Escopo incluído (resumo)"
+                  valor={v("escopo_incluido_resumido")}
+                  onChange={(x) => set("escopo_incluido_resumido", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+                <Texto
+                  label="Escopo excluído (resumo)"
+                  valor={v("escopo_excluido_resumido")}
+                  onChange={(x) => set("escopo_excluido_resumido", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                <Link
+                  to="/casos/$caseId/contrato/preparar"
+                  params={{ caseId: id }}
+                  className="rounded-md border border-gold/50 px-3 py-1.5 text-navy hover:bg-gold/10"
+                >
+                  Preparar contrato
+                </Link>
+                <Link
+                  to="/propostas"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Propostas
+                </Link>
+                <Link
+                  to="/ordens-servico"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Ordens de serviço
+                </Link>
+                <Link
+                  to="/nucleos"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Núcleos familiares e dossiê-mãe
+                </Link>
+              </div>
+            </Secao>
+          </div>
+        </SecaoAncora>
+
+        <SecaoAncora id="tecnico" titulo="Técnico e riscos">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Secao
+              titulo="País e via"
+              descricao="Sugestões são preliminares e sempre editáveis; nunca conclusão jurídica."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Selecao
+                  label="País da linha prioritária"
+                  valor={v("pais_linha_prioritaria")}
+                  opcoes={PAISES_LINHA}
+                  onChange={(x) => set("pais_linha_prioritaria", x)}
+                  desabilitado={bloqueado}
+                />
+                <Selecao
+                  label="Via jurídica preliminar"
+                  valor={v("via_juridica_preliminar")}
+                  opcoes={VIAS_JURIDICAS}
+                  onChange={(x) => set("via_juridica_preliminar", x)}
+                  desabilitado={bloqueado}
+                />
+                <Selecao
+                  label="Status da via"
+                  valor={v("status_via")}
+                  opcoes={STATUS_VIA}
+                  onChange={(x) => set("status_via", x)}
+                  desabilitado={bloqueado}
+                />
+                <Selecao
+                  label="Revisão humana jurídica"
+                  valor={v("revisao_humana_juridica")}
+                  opcoes={REVISAO_JURIDICA}
+                  onChange={(x) => set("revisao_humana_juridica", x)}
+                  desabilitado={bloqueado}
+                />
+              </div>
+              {viaSugerida && viaSugerida !== v("via_juridica_preliminar") ? (
+                <p className="mt-3 text-xs text-navy/60">
+                  Sugestão do sistema: {rotulo(VIAS_JURIDICAS, viaSugerida)}.{" "}
+                  {!bloqueado ? (
+                    <button
+                      className="underline"
+                      onClick={() => {
+                        set("via_juridica_preliminar", viaSugerida);
+                        set("status_via", "sugerida");
+                      }}
+                    >
+                      aplicar como sugestão
+                    </button>
+                  ) : null}
                 </p>
-              </div>
-              <Texto label="Data de entrada do caso" tipo="date" valor={v("data_entrada_caso")} onChange={(x) => set("data_entrada_caso", x)} desabilitado={bloqueado} />
-              <Texto label="Case service / trilha (ID)" valor={v("citizenship_track_id")} onChange={(x) => set("citizenship_track_id", x)} desabilitado={bloqueado} />
-              <div>
-                <Rotulo>Cliente vinculado</Rotulo>
-                <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70">
-                  {q.data?.cliente?.nome ?? "Sem cliente vinculado"}
-                </p>
-              </div>
-            </div>
-          </Secao>
+              ) : null}
+            </Secao>
 
+            <Secao
+              titulo="Hipótese e radar"
+              descricao="Hipótese de trabalho interna, sempre provisória."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Selecao
+                  label="Status do radar"
+                  valor={v("status_radar")}
+                  opcoes={STATUS_RADAR}
+                  onChange={(x) => set("status_radar", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Aderência (%)"
+                  tipo="number"
+                  valor={v("radar_aderencia_percentual")}
+                  onChange={(x) => set("radar_aderencia_percentual", x)}
+                  desabilitado={bloqueado}
+                  ajuda="Só preencher com cálculo revisado internamente."
+                />
+              </div>
+              <div className="mt-4">
+                <Texto
+                  label="Hipótese de trabalho interna"
+                  valor={v("hipotese_trabalho_interna")}
+                  onChange={(x) => set("hipotese_trabalho_interna", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+              </div>
+            </Secao>
 
-          <Secao titulo="Responsabilidade" descricao="Toda entrega tem responsável nomeado.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Texto label="Responsável principal" valor={v("responsavel_principal")} onChange={(x) => set("responsavel_principal", x)} desabilitado={bloqueado} />
-              <Texto label="Cargo do responsável" valor={v("cargo_responsavel_principal")} onChange={(x) => set("cargo_responsavel_principal", x)} desabilitado={bloqueado} />
-              <Texto label="Supervisora do caso" valor={v("supervisora_do_caso")} onChange={(x) => set("supervisora_do_caso", x)} desabilitado={bloqueado} />
-              <Texto
-                label="Colaboradores (separados por vírgula)"
-                valor={arr("colaboradores_do_caso").join(", ")}
-                onChange={(x) => set("colaboradores_do_caso", x.split(",").map((s) => s.trim()).filter(Boolean))}
+            <Secao
+              titulo="Riscos identificados"
+              descricao="Lista controlada e acumulável. 'Outro' exige detalhamento no brief."
+            >
+              <Multi
+                label="Riscos"
+                valores={arr("riscos_identificados")}
+                opcoes={RISCOS}
+                onChange={(x) => set("riscos_identificados", x)}
                 desabilitado={bloqueado}
               />
-            </div>
-          </Secao>
+            </Secao>
 
-          <Secao titulo="Próxima ação" descricao="Lista controlada; 'Outro' exige justificativa.">
-            <div className="grid gap-4">
-              <Selecao label="Próxima ação" valor={v("proxima_acao_codigo")} opcoes={PROXIMAS_ACOES} onChange={(x) => set("proxima_acao_codigo", x)} desabilitado={bloqueado} />
-              <Texto
-                label="Justificativa / detalhe"
-                valor={v("proxima_acao_justificativa")}
-                onChange={(x) => set("proxima_acao_justificativa", x)}
-                desabilitado={bloqueado}
-                area
-                ajuda={v("proxima_acao_codigo") === "outro_justificar" ? "Obrigatório quando a ação é 'Outro'." : undefined}
-              />
-            </div>
-          </Secao>
+            <PainelFichaPiloto caseId={id} />
+          </div>
+        </SecaoAncora>
 
-          <Secao titulo="Brief interno" descricao="Uso interno — nunca exibido ao cliente.">
-            <div className="grid gap-4">
-              <Selecao label="Origem do brief" valor={v("origem_brief")} opcoes={ORIGEM_BRIEF} onChange={(x) => set("origem_brief", x)} desabilitado={bloqueado} />
-              <Texto label="Link de origem interna" valor={v("link_origem_interna")} onChange={(x) => set("link_origem_interna", x)} desabilitado={bloqueado} />
-              <Texto label="Resumo interno" valor={v("resumo_interno")} onChange={(x) => set("resumo_interno", x)} desabilitado={bloqueado} area />
-              <Texto label="Brief interno" valor={v("brief_interno")} onChange={(x) => set("brief_interno", x)} desabilitado={bloqueado} area />
-            </div>
-          </Secao>
-        </div>
-      ) : null}
+        <SecaoAncora id="pessoas" titulo="Pessoas">
+          <AbaPessoas
+            casoId={id}
+            membros={q.data?.membros ?? []}
+            bloqueado={bloqueado}
+            onMudou={recarregar}
+            atualizar={atualizar}
+            criar={criar}
+          />
+        </SecaoAncora>
 
-      {aba === "comercial" ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Secao titulo="Eixo comercial">
-            <div className="grid gap-4">
-              <Selecao label="Etapa comercial" valor={v("eixo_comercial")} opcoes={EIXO_COMERCIAL} onChange={(x) => set("eixo_comercial", x)} desabilitado={bloqueado} />
-              <Texto label="Data da confirmação formal da proposta" tipo="date" valor={v("data_confirmacao_formal_proposta")} onChange={(x) => set("data_confirmacao_formal_proposta", x)} desabilitado={bloqueado} />
-            </div>
-          </Secao>
+        <SecaoAncora id="cadastro" titulo="Cadastro e núcleo">
+          <AbaCadastro caseId={id} bloqueado={bloqueado} />
+        </SecaoAncora>
 
-          <Secao titulo="Eixo de formalização e operação" descricao="'Cliente ativo' só é derivado com contrato, pagamento, responsável, núcleo e plano.">
-            <div className="grid gap-4">
-              <Selecao label="Etapa de formalização" valor={v("eixo_formalizacao")} opcoes={EIXO_FORMALIZACAO} onChange={(x) => set("eixo_formalizacao", x)} desabilitado={bloqueado} />
-              <ul className="space-y-1 text-xs text-navy/60">
-                <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
-                <li>Pagamento confirmado: {caso["pagamento_confirmado"] ? "sim" : "não"}</li>
-                <li>Plano inicial (tarefas): {q.data?.planoInicialOk ? "registrado" : "pendente"}</li>
-              </ul>
-              <div className="rounded-lg border border-navy/10 bg-white/60 p-3">
-                <p className="text-xs font-semibold text-navy">Completude do núcleo familiar (critérios persistidos)</p>
-                <ul className="mt-2 space-y-1 text-xs">
-                  {(q.data?.nucleoCriterios ?? []).map((c) => (
-                    <li key={c.chave} className={c.ok ? "text-navy/60" : "text-terracotta"}>
-                      {c.ok ? "✓" : "•"} {c.rotulo}
-                      {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
-                    </li>
-                  ))}
-                  {(q.data?.nucleoCriterios ?? []).length === 0 ? <li className="text-navy/50">Sem critérios avaliados.</li> : null}
-                </ul>
-              </div>
+        <SecaoAncora id="produto" titulo="Produto e trilha">
+          <div className="space-y-5">
+            <AbaProdutoTrilha
+              caseId={id}
+              produtos={qc2.data?.produtos ?? []}
+              trilhas={qc2.data?.trilhas ?? []}
+              servicos={qc2.data?.servicos ?? []}
+              bloqueado={bloqueado}
+              onMudou={recarregar}
+            />
+            <ConsolidacaoCaseService caseId={id} />
+          </div>
+        </SecaoAncora>
 
-              <Link to="/onboarding/$id" params={{ id }} className="text-xs font-medium text-navy underline">
-                Abrir painel de onboarding e ativação
-              </Link>
-            </div>
-          </Secao>
-
-          <Secao titulo="Proposta (referência interna)" descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Texto label="Referência interna da proposta" valor={v("proposta_referencia_interna")} onChange={(x) => set("proposta_referencia_interna", x)} desabilitado={bloqueado} />
-              <Texto label="Data da proposta" tipo="date" valor={v("data_proposta")} onChange={(x) => set("data_proposta", x)} desabilitado={bloqueado} />
-              <Texto label="Link interno da proposta" valor={v("proposta_url_interna")} onChange={(x) => set("proposta_url_interna", x)} desabilitado={bloqueado} />
-              <Selecao
-                label="Condição comercial interna"
-                valor={String(v("condicao_comercial_interna_pendente") === "false" ? "false" : "true")}
-                opcoes={[
-                  { valor: "true", rotulo: "Pendente de homologação" },
-                  { valor: "false", rotulo: "Homologada" },
-                ]}
-                onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
-                desabilitado={bloqueado}
-              />
-              <Texto label="Escopo incluído (resumo)" valor={v("escopo_incluido_resumido")} onChange={(x) => set("escopo_incluido_resumido", x)} desabilitado={bloqueado} area />
-              <Texto label="Escopo excluído (resumo)" valor={v("escopo_excluido_resumido")} onChange={(x) => set("escopo_excluido_resumido", x)} desabilitado={bloqueado} area />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3 text-xs">
-              <Link to="/casos/$caseId/contrato/preparar" params={{ caseId: id }} className="rounded-md border border-gold/50 px-3 py-1.5 text-navy hover:bg-gold/10">
-                Preparar contrato
-              </Link>
-              <Link to="/propostas" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
-                Propostas
-              </Link>
-              <Link to="/ordens-servico" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
-                Ordens de serviço
-              </Link>
-              <Link to="/nucleos" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
-                Núcleos familiares e dossiê-mãe
-              </Link>
-            </div>
-          </Secao>
-        </div>
-      ) : null}
-
-      {aba === "tecnico" ? (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Secao titulo="País e via" descricao="Sugestões são preliminares e sempre editáveis; nunca conclusão jurídica.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Selecao label="País da linha prioritária" valor={v("pais_linha_prioritaria")} opcoes={PAISES_LINHA} onChange={(x) => set("pais_linha_prioritaria", x)} desabilitado={bloqueado} />
-              <Selecao label="Via jurídica preliminar" valor={v("via_juridica_preliminar")} opcoes={VIAS_JURIDICAS} onChange={(x) => set("via_juridica_preliminar", x)} desabilitado={bloqueado} />
-              <Selecao label="Status da via" valor={v("status_via")} opcoes={STATUS_VIA} onChange={(x) => set("status_via", x)} desabilitado={bloqueado} />
-              <Selecao label="Revisão humana jurídica" valor={v("revisao_humana_juridica")} opcoes={REVISAO_JURIDICA} onChange={(x) => set("revisao_humana_juridica", x)} desabilitado={bloqueado} />
-            </div>
-            {viaSugerida && viaSugerida !== v("via_juridica_preliminar") ? (
-              <p className="mt-3 text-xs text-navy/60">
-                Sugestão do sistema: {rotulo(VIAS_JURIDICAS, viaSugerida)}.{" "}
-                {!bloqueado ? (
-                  <button className="underline" onClick={() => { set("via_juridica_preliminar", viaSugerida); set("status_via", "sugerida"); }}>
-                    aplicar como sugestão
-                  </button>
-                ) : null}
-              </p>
-            ) : null}
-          </Secao>
-
-          <Secao titulo="Hipótese e radar" descricao="Hipótese de trabalho interna, sempre provisória.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Selecao label="Status do radar" valor={v("status_radar")} opcoes={STATUS_RADAR} onChange={(x) => set("status_radar", x)} desabilitado={bloqueado} />
-              <Texto label="Aderência (%)" tipo="number" valor={v("radar_aderencia_percentual")} onChange={(x) => set("radar_aderencia_percentual", x)} desabilitado={bloqueado} ajuda="Só preencher com cálculo revisado internamente." />
-            </div>
-            <div className="mt-4">
-              <Texto label="Hipótese de trabalho interna" valor={v("hipotese_trabalho_interna")} onChange={(x) => set("hipotese_trabalho_interna", x)} desabilitado={bloqueado} area />
-            </div>
-          </Secao>
-
-          <Secao titulo="Riscos identificados" descricao="Lista controlada e acumulável. 'Outro' exige detalhamento no brief.">
-            <Multi label="Riscos" valores={arr("riscos_identificados")} opcoes={RISCOS} onChange={(x) => set("riscos_identificados", x)} desabilitado={bloqueado} />
-          </Secao>
-
-          <PainelFichaPiloto caseId={id} />
-        </div>
-      ) : null}
-
-
-      {aba === "pessoas" ? <AbaPessoas casoId={id} membros={q.data?.membros ?? []} bloqueado={bloqueado} onMudou={recarregar} atualizar={atualizar} criar={criar} /> : null}
-
-      {aba === "cadastro" ? <AbaCadastro caseId={id} bloqueado={bloqueado} /> : null}
-
-
-      {aba === "produto" ? (
-        <div className="space-y-5">
-          <AbaProdutoTrilha
+        <SecaoAncora id="acao" titulo="Próxima ação e alertas">
+          <AbaProximaAcao
             caseId={id}
-            produtos={qc2.data?.produtos ?? []}
-            trilhas={qc2.data?.trilhas ?? []}
-            servicos={qc2.data?.servicos ?? []}
+            caso={caso}
+            alertas={qc2.data?.alertas ?? []}
+            comunicacoes={qc2.data?.comunicacoes ?? []}
+            bloqueado={bloqueado}
+            onMudou={recarregar}
+            v={v}
+            set={set}
+          />
+        </SecaoAncora>
+
+        <SecaoAncora id="etiquetas" titulo="Etiquetas">
+          <AbaEtiquetas
+            caseId={id}
+            taxonomia={qc2.data?.taxonomia ?? []}
+            aplicadas={qc2.data?.etiquetas ?? []}
             bloqueado={bloqueado}
             onMudou={recarregar}
           />
-          <ConsolidacaoCaseService caseId={id} />
-        </div>
-      ) : null}
+        </SecaoAncora>
 
-      {aba === "acao" ? (
-        <AbaProximaAcao
-          caseId={id}
-          caso={caso}
-          alertas={qc2.data?.alertas ?? []}
-          comunicacoes={qc2.data?.comunicacoes ?? []}
-          bloqueado={bloqueado}
-          onMudou={recarregar}
-          v={v}
-          set={set}
-        />
-      ) : null}
+        <SecaoAncora id="onboarding" titulo="Onboarding">
+          <AbaOnboarding
+            caso={caso}
+            itens={qc2.data?.onboarding ?? []}
+            nucleos={qc2.data?.nucleos ?? []}
+            membrosNucleo={qc2.data?.membrosNucleo ?? []}
+            planoInicialOk={Boolean(q.data?.planoInicialOk)}
+            bloqueado={bloqueado}
+            onMudou={recarregar}
+          />
+        </SecaoAncora>
 
-      {aba === "etiquetas" ? (
-        <AbaEtiquetas
-          caseId={id}
-          taxonomia={qc2.data?.taxonomia ?? []}
-          aplicadas={qc2.data?.etiquetas ?? []}
-          bloqueado={bloqueado}
-          onMudou={recarregar}
-        />
-      ) : null}
+        <SecaoAncora id="fechamento" titulo="Fechamento">
+          <AbaFechamento casoId={id} bloqueado={bloqueado} />
+        </SecaoAncora>
 
-      {aba === "onboarding" ? (
-        <AbaOnboarding
-          caso={caso}
-          itens={qc2.data?.onboarding ?? []}
-          nucleos={qc2.data?.nucleos ?? []}
-          membrosNucleo={qc2.data?.membrosNucleo ?? []}
-          planoInicialOk={Boolean(q.data?.planoInicialOk)}
-          bloqueado={bloqueado}
-          onMudou={recarregar}
-        />
-      ) : null}
+        <SecaoAncora id="jornada" titulo="Jornada do cliente">
+          <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
+        </SecaoAncora>
 
-      {aba === "fechamento" ? <AbaFechamento casoId={id} bloqueado={bloqueado} /> : null}
-
-      {aba === "jornada" ? <AbaJornadaCliente casoId={id} bloqueado={bloqueado} /> : null}
-
-      {aba === "log" ? (
-        <Secao titulo="Registro de alterações" descricao="Quem alterou, quando e o quê. Nada é apagado.">
-          {(q.data?.log ?? []).length === 0 ? (
-            <p className="text-sm text-navy/55">Nenhuma alteração registrada ainda.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
-                  <tr>
-                    <th className="py-2 pr-4">Quando</th>
-                    <th className="py-2 pr-4">Registro</th>
-                    <th className="py-2 pr-4">Campo</th>
-                    <th className="py-2 pr-4">Anterior</th>
-                    <th className="py-2">Novo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(q.data?.log ?? []).map((l: Record<string, unknown>) => (
-                    <tr key={String(l["id"])} className="border-t border-navy/10 align-top">
-                      <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
-                        {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
-                      </td>
-                      <td className="py-2 pr-4 text-navy/70">{String(l["entidade"])}</td>
-                      <td className="py-2 pr-4 font-medium">{String(l["campo"])}</td>
-                      <td className="py-2 pr-4 text-navy/60">{l["valor_anterior"] ? String(l["valor_anterior"]) : "—"}</td>
-                      <td className="py-2 text-navy/80">{l["valor_novo"] ? String(l["valor_novo"]) : "—"}</td>
+        <SecaoAncora id="log" titulo="Registro de alterações">
+          <Secao
+            titulo="Registro de alterações"
+            descricao="Quem alterou, quando e o quê. Nada é apagado."
+          >
+            {(q.data?.log ?? []).length === 0 ? (
+              <p className="text-sm text-navy/55">Nenhuma alteração registrada ainda.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                    <tr>
+                      <th className="py-2 pr-4">Quando</th>
+                      <th className="py-2 pr-4">Registro</th>
+                      <th className="py-2 pr-4">Campo</th>
+                      <th className="py-2 pr-4">Anterior</th>
+                      <th className="py-2">Novo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Secao>
-      ) : null}
+                  </thead>
+                  <tbody>
+                    {(q.data?.log ?? []).map((l: Record<string, unknown>) => (
+                      <tr key={String(l["id"])} className="border-t border-navy/10 align-top">
+                        <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
+                          {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
+                        </td>
+                        <td className="py-2 pr-4 text-navy/70">{String(l["entidade"])}</td>
+                        <td className="py-2 pr-4 font-medium">{String(l["campo"])}</td>
+                        <td className="py-2 pr-4 text-navy/60">
+                          {l["valor_anterior"] ? String(l["valor_anterior"]) : "—"}
+                        </td>
+                        <td className="py-2 text-navy/80">
+                          {l["valor_novo"] ? String(l["valor_novo"]) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Secao>
+        </SecaoAncora>
+      </div>
 
       <MapaPersistenciaCaso />
 
@@ -824,8 +1161,8 @@ function FichaCaso() {
           <AlertDialogHeader>
             <AlertDialogTitle>Há alterações não salvas nesta ficha</AlertDialogTitle>
             <AlertDialogDescription>
-              {Object.keys(form).length} campo(s) alterado(s) ainda não foram gravados no banco. Escolha o que fazer
-              antes de sair.
+              {Object.keys(form).length} campo(s) alterado(s) ainda não foram gravados no banco.
+              Escolha o que fazer antes de sair.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -862,7 +1199,6 @@ function FichaCaso() {
         </AlertDialogContent>
       </AlertDialog>
     </SaasShell>
-
   );
 }
 
@@ -880,18 +1216,29 @@ function AbaPessoas({
   membros: Record<string, unknown>[];
   bloqueado: boolean;
   onMudou: () => void;
-  atualizar: (a: { data: { entidade: "case_members"; id: string; dados: Record<string, unknown> } }) => Promise<unknown>;
-  criar: (a: { data: { entidade: "case_members"; dados: Record<string, unknown> } }) => Promise<unknown>;
+  atualizar: (a: {
+    data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
+  }) => Promise<unknown>;
+  criar: (a: {
+    data: { entidade: "case_members"; dados: Record<string, unknown> };
+  }) => Promise<unknown>;
 }) {
   const [novo, setNovo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
 
   const carregarNucleos = useServerFn(listarNucleos);
-  const qNucleos = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregarNucleos(), retry: false });
-  const temNucleo = ((qNucleos.data ?? []) as { case_id: string | null }[]).some((n) => n.case_id === casoId);
+  const qNucleos = useQuery({
+    queryKey: ["nucleos-desk"],
+    queryFn: () => carregarNucleos(),
+    retry: false,
+  });
+  const temNucleo = ((qNucleos.data ?? []) as { case_id: string | null }[]).some(
+    (n) => n.case_id === casoId,
+  );
 
   const mCriar = useMutation({
-    mutationFn: () => criar({ data: { entidade: "case_members", dados: { case_id: casoId, nome: novo.trim() } } }),
+    mutationFn: () =>
+      criar({ data: { entidade: "case_members", dados: { case_id: casoId, nome: novo.trim() } } }),
     onSuccess: () => {
       setNovo("");
       setErro(null);
@@ -902,7 +1249,6 @@ function AbaPessoas({
 
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
   if (temNucleo) return <PessoasDoNucleo caseId={casoId} />;
-
 
   return (
     <div className="space-y-5">
@@ -932,7 +1278,15 @@ function AbaPessoas({
       {membros.length === 0 ? (
         <EstadoVazio mensagem="Nenhuma pessoa registrada neste caso." />
       ) : (
-        membros.map((m) => <CartaoPessoa key={String(m["id"])} pessoa={m} bloqueado={bloqueado} atualizar={atualizar} onMudou={onMudou} />)
+        membros.map((m) => (
+          <CartaoPessoa
+            key={String(m["id"])}
+            pessoa={m}
+            bloqueado={bloqueado}
+            atualizar={atualizar}
+            onMudou={onMudou}
+          />
+        ))
       )}
     </div>
   );
@@ -946,7 +1300,9 @@ function CartaoPessoa({
 }: {
   pessoa: Record<string, unknown>;
   bloqueado: boolean;
-  atualizar: (a: { data: { entidade: "case_members"; id: string; dados: Record<string, unknown> } }) => Promise<unknown>;
+  atualizar: (a: {
+    data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
+  }) => Promise<unknown>;
   onMudou: () => void;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
@@ -961,7 +1317,8 @@ function CartaoPessoa({
   const set = (k: string, valor: unknown) => setForm((f) => ({ ...f, [k]: valor }));
 
   const m = useMutation({
-    mutationFn: () => atualizar({ data: { entidade: "case_members", id: String(pessoa["id"]), dados: form } }),
+    mutationFn: () =>
+      atualizar({ data: { entidade: "case_members", id: String(pessoa["id"]), dados: form } }),
     onSuccess: () => {
       setForm({});
       setErro(null);
@@ -979,30 +1336,117 @@ function CartaoPessoa({
   })();
 
   return (
-    <Secao titulo={String(pessoa["nome"] ?? "Pessoa")} descricao={`Status cadastral: ${rotulo(STATUS_CADASTRAL, v("status_cadastral"))}`}>
+    <Secao
+      titulo={String(pessoa["nome"] ?? "Pessoa")}
+      descricao={`Status cadastral: ${rotulo(STATUS_CADASTRAL, v("status_cadastral"))}`}
+    >
       {erro ? <p className="mb-3 text-sm text-terracotta">{erro}</p> : null}
       {menor ? (
         <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy">
-          Pessoa menor de idade: dependente representado. Não pode assinar — informe o representante legal.
+          Pessoa menor de idade: dependente representado. Não pode assinar — informe o representante
+          legal.
         </p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Selecao label="Papel no caso" valor={v("papel_no_caso")} opcoes={PAPEIS_PESSOA} onChange={(x) => set("papel_no_caso", x)} desabilitado={bloqueado} />
-        <Selecao label="Status cadastral" valor={v("status_cadastral")} opcoes={STATUS_CADASTRAL} onChange={(x) => set("status_cadastral", x)} desabilitado={bloqueado} />
-        <Texto label="Parentesco" valor={v("parentesco")} onChange={(x) => set("parentesco", x)} desabilitado={bloqueado} />
-        <Texto label="Data de nascimento" tipo="date" valor={v("data_nascimento")} onChange={(x) => set("data_nascimento", x)} desabilitado={bloqueado} />
-        <Texto label="Local de nascimento" valor={v("local_nascimento")} onChange={(x) => set("local_nascimento", x)} desabilitado={bloqueado} />
-        <Texto label="Representante legal" valor={v("representante_legal")} onChange={(x) => set("representante_legal", x)} desabilitado={bloqueado} />
-        <Texto label="CPF" valor={v("cpf")} onChange={(x) => set("cpf", x)} desabilitado={bloqueado} />
-        <Texto label="RG / documento" valor={v("rg")} onChange={(x) => set("rg", x)} desabilitado={bloqueado} />
-        <Texto label="Estado civil" valor={v("estado_civil")} onChange={(x) => set("estado_civil", x)} desabilitado={bloqueado} />
-        <Texto label="Profissão" valor={v("profissao")} onChange={(x) => set("profissao", x)} desabilitado={bloqueado} />
-        <Texto label="Telefone" valor={v("telefone")} onChange={(x) => set("telefone", x)} desabilitado={bloqueado} />
-        <Texto label="E-mail" valor={v("email")} onChange={(x) => set("email", x)} desabilitado={bloqueado} />
-        <Texto label="Endereço" valor={v("endereco")} onChange={(x) => set("endereco", x)} desabilitado={bloqueado} />
-        <Texto label="CEP" valor={v("cep")} onChange={(x) => set("cep", x)} desabilitado={bloqueado} />
-        <Texto label="Documentos pendentes" valor={v("documentos_pendentes")} onChange={(x) => set("documentos_pendentes", x)} desabilitado={bloqueado} />
-        <Texto label="Consentimentos" valor={v("consentimentos")} onChange={(x) => set("consentimentos", x)} desabilitado={bloqueado} />
+        <Selecao
+          label="Papel no caso"
+          valor={v("papel_no_caso")}
+          opcoes={PAPEIS_PESSOA}
+          onChange={(x) => set("papel_no_caso", x)}
+          desabilitado={bloqueado}
+        />
+        <Selecao
+          label="Status cadastral"
+          valor={v("status_cadastral")}
+          opcoes={STATUS_CADASTRAL}
+          onChange={(x) => set("status_cadastral", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Parentesco"
+          valor={v("parentesco")}
+          onChange={(x) => set("parentesco", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Data de nascimento"
+          tipo="date"
+          valor={v("data_nascimento")}
+          onChange={(x) => set("data_nascimento", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Local de nascimento"
+          valor={v("local_nascimento")}
+          onChange={(x) => set("local_nascimento", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Representante legal"
+          valor={v("representante_legal")}
+          onChange={(x) => set("representante_legal", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="CPF"
+          valor={v("cpf")}
+          onChange={(x) => set("cpf", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="RG / documento"
+          valor={v("rg")}
+          onChange={(x) => set("rg", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Estado civil"
+          valor={v("estado_civil")}
+          onChange={(x) => set("estado_civil", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Profissão"
+          valor={v("profissao")}
+          onChange={(x) => set("profissao", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Telefone"
+          valor={v("telefone")}
+          onChange={(x) => set("telefone", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="E-mail"
+          valor={v("email")}
+          onChange={(x) => set("email", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Endereço"
+          valor={v("endereco")}
+          onChange={(x) => set("endereco", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="CEP"
+          valor={v("cep")}
+          onChange={(x) => set("cep", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Documentos pendentes"
+          valor={v("documentos_pendentes")}
+          onChange={(x) => set("documentos_pendentes", x)}
+          desabilitado={bloqueado}
+        />
+        <Texto
+          label="Consentimentos"
+          valor={v("consentimentos")}
+          onChange={(x) => set("consentimentos", x)}
+          desabilitado={bloqueado}
+        />
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button
@@ -1013,7 +1457,13 @@ function CartaoPessoa({
           Salvar pessoa
         </button>
         <span className="text-xs text-navy/55">
-          {m.isPending ? "Salvando…" : sujo ? "Alterações não salvas" : salvo ? `Salvo às ${salvo}` : ""}
+          {m.isPending
+            ? "Salvando…"
+            : sujo
+              ? "Alterações não salvas"
+              : salvo
+                ? `Salvo às ${salvo}`
+                : ""}
         </span>
       </div>
     </Secao>

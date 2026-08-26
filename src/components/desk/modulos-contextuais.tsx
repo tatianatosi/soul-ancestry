@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Bot, ChevronRight, X } from "lucide-react";
 
-import { fonteUnicaDe, modulosDaTela, TELA_DESK_LABEL, TIPO_MODULO_LABEL, type TelaDesk } from "@/lib/desk-modulos";
+import {
+  fonteUnicaDe,
+  modulosDaTela,
+  TELA_DESK_LABEL,
+  TIPO_MODULO_LABEL,
+  type TelaDesk,
+} from "@/lib/desk-modulos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,7 +40,9 @@ export function PainelModulosContextuais({ tela }: { tela: TelaDesk }) {
             {badges.length > 0 ? ` · ${badges.length} indicadores` : ""}
           </span>
         </span>
-        <ChevronRight className={cn("h-4 w-4 shrink-0 text-navy/50 transition", aberto && "rotate-90")} />
+        <ChevronRight
+          className={cn("h-4 w-4 shrink-0 text-navy/50 transition", aberto && "rotate-90")}
+        />
       </button>
 
       {badges.length > 0 && (
@@ -84,8 +92,8 @@ export function PainelModulosContextuais({ tela }: { tela: TelaDesk }) {
         </ul>
       ) : (
         <p className="mt-2 text-[12px] text-navy/60">
-          Os módulos profundos permanecem dentro desta tela como subrota ou painel. Nenhum deles vira aba
-          principal.
+          Os módulos profundos permanecem dentro desta tela como subrota ou painel. Nenhum deles
+          vira aba principal.
         </p>
       )}
     </section>
@@ -112,7 +120,9 @@ export function AssistenteLateral({ contexto }: { contexto: string }) {
         <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-navy/20 bg-white shadow-2xl">
           <header className="flex items-center justify-between border-b border-navy/10 bg-navy px-4 py-3 text-cream">
             <div>
-              <p className="text-[11px] uppercase tracking-widest text-gold">Assistente contextual</p>
+              <p className="text-[11px] uppercase tracking-widest text-gold">
+                Assistente contextual
+              </p>
               <p className="font-serif text-lg">{contexto}</p>
             </div>
             <button type="button" onClick={() => setAberto(false)} aria-label="Fechar assistente">
@@ -121,12 +131,12 @@ export function AssistenteLateral({ contexto }: { contexto: string }) {
           </header>
           <div className="flex-1 space-y-3 overflow-y-auto p-4 text-sm text-navy/75">
             <p>
-              O assistente lê o contexto da tela aberta ({contexto}) e do caso selecionado para apoiar a
-              leitura operacional.
+              O assistente lê o contexto da tela aberta ({contexto}) e do caso selecionado para
+              apoiar a leitura operacional.
             </p>
             <p className="rounded-xl border border-navy/10 bg-cream/60 p-3 text-[12px]">
-              Nenhuma cobrança, contrato, mensagem, pesquisa externa, pasta, integração ou publicação é
-              executada a partir deste painel.
+              Nenhuma cobrança, contrato, mensagem, pesquisa externa, pasta, integração ou
+              publicação é executada a partir deste painel.
             </p>
           </div>
         </aside>
