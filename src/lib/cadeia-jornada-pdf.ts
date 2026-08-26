@@ -148,6 +148,28 @@ export function resumoTextoPainelContextual(dados: DadosImpressaoPainel): string
   return linhas.join("\n");
 }
 
+export function nomeArquivoResumoTxt(data: string): string {
+  return `painel-contextual-cadeia_${data}.txt`;
+}
+
+/**
+ * Baixa o resumo padronizado como arquivo .txt local, para arquivar junto ao
+ * PDF. É download local do navegador: nada é enviado, publicado ou persistido.
+ */
+export function baixarResumoTxtPainelContextual(dados: DadosImpressaoPainel): boolean {
+  if (typeof window === "undefined" || typeof document === "undefined") return false;
+  const blob = new Blob([resumoTextoPainelContextual(dados)], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivoResumoTxt(dados.data);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  return true;
+}
+
 /** Abre a janela de impressão do navegador para salvar em PDF. */
 export function imprimirPdfPainelContextual(dados: DadosImpressaoPainel): boolean {
   if (typeof window === "undefined") return false;
