@@ -63,3 +63,19 @@ describe("par App ↔ Desk", () => {
     }
   });
 });
+
+describe("a frase preserva nome próprio", () => {
+  it("não rebaixa a marca no meio do texto", () => {
+    // toLowerCase() na string inteira escrevia "no desk" na tela.
+    expect(frasePar("descoberta")).toContain("no Desk");
+    expect(frasePar("descoberta")).not.toContain("no desk");
+  });
+
+  it("nenhuma frase gerada contém a marca em minúscula", () => {
+    for (const p of PARES_APP_DESK) {
+      const f = frasePar(p.chave) ?? "";
+      expect(f, `frase de "${p.chave}"`).not.toMatch(/\bdesk\b/);
+      expect(f).not.toMatch(/\bapp cliente\b/);
+    }
+  });
+});

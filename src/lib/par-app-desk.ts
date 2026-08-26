@@ -100,12 +100,22 @@ export function parDoBloco(chave: string): ParAppDesk | null {
 }
 
 /**
+ * Minusculiza só a primeira letra, para a frase emendar.
+ *
+ * `toLowerCase()` na string inteira rebaixava nome próprio no meio do texto —
+ * "onde encontrar cada assunto no desk" saía com a marca em minúscula na tela.
+ */
+function emendar(texto: string): string {
+  return texto.charAt(0).toLowerCase() + texto.slice(1);
+}
+
+/**
  * Frase curta no formato do mockup: o que o App mostra, o que o Desk mostra.
  * Devolve null quando o bloco não tem par declarado — sem par, nada é escrito.
  */
 export function frasePar(chave: string): string | null {
   const p = parDoBloco(chave);
   if (!p) return null;
-  if (p.alcance === "nunca") return `Não chega ao cliente. Aqui: ${p.oQueODeskVe.toLowerCase()}.`;
-  return `App mostra ${p.oQueOClienteVe.toLowerCase()}; aqui, ${p.oQueODeskVe.toLowerCase()}.`;
+  if (p.alcance === "nunca") return `Não chega ao cliente. Aqui: ${emendar(p.oQueODeskVe)}.`;
+  return `App mostra ${emendar(p.oQueOClienteVe)}; aqui, ${emendar(p.oQueODeskVe)}.`;
 }
