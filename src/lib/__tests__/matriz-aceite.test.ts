@@ -8,7 +8,11 @@ import {
   avaliarCriteriosAceite,
   blocosRenderizados,
 } from "@/lib/matriz-aceite";
-import { anexosIaVTeste, criteriosAceiteTeste, matrizRenderizacaoPreviaTeste } from "@/lib/contrato-base-previa";
+import {
+  anexosIaVTeste,
+  criteriosAceiteTeste,
+  matrizRenderizacaoPreviaTeste,
+} from "@/lib/contrato-base-previa";
 
 describe("matriz de renderização e gates v1.0", () => {
   it("cobre os 16 blocos da especificação", () => {
@@ -56,7 +60,9 @@ describe("matriz de renderização e gates v1.0", () => {
     };
     expect(aceiteConcluido(avaliarCriteriosAceite(base))).toBe(true);
     expect(aceiteConcluido(avaliarCriteriosAceite({ ...base, rascunhosDoCaso: 2 }))).toBe(false);
-    expect(aceiteConcluido(avaliarCriteriosAceite({ ...base, nenhumaAcaoExternaExecutada: false }))).toBe(false);
+    expect(
+      aceiteConcluido(avaliarCriteriosAceite({ ...base, nenhumaAcaoExternaExecutada: false })),
+    ).toBe(false);
   });
 
   it("prévia TESTE atende os oito critérios de aceite", () => {

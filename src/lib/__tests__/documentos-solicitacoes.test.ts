@@ -41,14 +41,22 @@ describe("G-04 — Documentos e Solicitações", () => {
   });
 
   it("4. Requer tradução/apostila não gera despesa nem cobrança", () => {
-    const fin = efeitoFinanceiro({ ...base, status: "requer_traducao_apostila", estimated_external_cost: 320 });
+    const fin = efeitoFinanceiro({
+      ...base,
+      status: "requer_traducao_apostila",
+      estimated_external_cost: 320,
+    });
     expect(fin.criaDespesa).toBe(false);
     expect(fin.criaCobranca).toBe(false);
     expect(fin.natureza).toBe("previsao_interna");
   });
 
   it("5. Não localizado exige ação alternativa com prazo e responsável", () => {
-    const semAcao = validarSolicitacao({ ...base, status: "nao_localizado", requested_at: "2026-08-01" });
+    const semAcao = validarSolicitacao({
+      ...base,
+      status: "nao_localizado",
+      requested_at: "2026-08-01",
+    });
     expect(semAcao.ok).toBe(false);
     expect(semAcao.erros.join(" ")).toContain("próxima ação");
     expect(efeitosDoStatus({ ...base, status: "nao_localizado" }).exigeAcaoAlternativa).toBe(true);
@@ -66,11 +74,15 @@ describe("G-04 — Documentos e Solicitações", () => {
 
   it("data do pedido é obrigatória a partir de Solicitado", () => {
     expect(validarSolicitacao({ ...base, status: "solicitado" }).ok).toBe(false);
-    expect(validarSolicitacao({ ...base, status: "solicitado", requested_at: "2026-08-10" }).ok).toBe(true);
+    expect(
+      validarSolicitacao({ ...base, status: "solicitado", requested_at: "2026-08-10" }).ok,
+    ).toBe(true);
   });
 
   it("data de recebimento é obrigatória em Recebido", () => {
-    expect(validarSolicitacao({ ...base, status: "recebido", requested_at: "2026-08-01" }).ok).toBe(false);
+    expect(validarSolicitacao({ ...base, status: "recebido", requested_at: "2026-08-01" }).ok).toBe(
+      false,
+    );
   });
 
   it("nome completo não é texto livre quando há pessoa cadastrada", () => {
@@ -79,7 +91,11 @@ describe("G-04 — Documentos e Solicitações", () => {
   });
 
   it("sem pessoa cadastrada aceita nome completo em texto", () => {
-    const r = validarSolicitacao({ ...base, research_person_id: null, full_name_text: "Adair Tosi" });
+    const r = validarSolicitacao({
+      ...base,
+      research_person_id: null,
+      full_name_text: "Adair Tosi",
+    });
     expect(r.ok).toBe(true);
   });
 

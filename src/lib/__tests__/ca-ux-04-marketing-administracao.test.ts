@@ -21,7 +21,16 @@ import {
 } from "@/lib/marketing-aquisicao";
 
 const ler = (p: string) => readFileSync(p, "utf8");
-const ORDEM = ["hoje", "marketing", "comercial", "casos", "pesquisa", "contratos", "cliente", "governanca"];
+const ORDEM = [
+  "hoje",
+  "marketing",
+  "comercial",
+  "casos",
+  "pesquisa",
+  "contratos",
+  "cliente",
+  "governanca",
+];
 
 describe("CA-UX-04 — navegação", () => {
   it("tem exatamente 8 grupos na ordem aprovada, com Marketing em 2º", () => {
@@ -105,15 +114,32 @@ describe("CA-UX-04 — origem, atribuição e estados vazios", () => {
     const pagina = ler("src/routes/_authenticated/marketing.tsx");
     for (const t of Object.values(VAZIOS_MARKETING)) expect(t.length).toBeGreaterThan(10);
     expect(VAZIOS_MARKETING.campanhas).toBe("Ainda não há campanhas cadastradas.");
-    expect(VAZIOS_MARKETING.cacRoi).toBe("CAC, ROI e ROAS exigem investimento classificado e atribuição confiável.");
-    for (const chave of ["campanhas", "investimento", "atribuicao", "cac-roi", "captura", "whatsapp", "handoff"]) {
+    expect(VAZIOS_MARKETING.cacRoi).toBe(
+      "CAC, ROI e ROAS exigem investimento classificado e atribuição confiável.",
+    );
+    for (const chave of [
+      "campanhas",
+      "investimento",
+      "atribuicao",
+      "cac-roi",
+      "captura",
+      "whatsapp",
+      "handoff",
+    ]) {
       expect(pagina).toContain(`data-marketing-vazio="${chave}"`);
     }
   });
 });
 
 describe("CA-UX-04 — métricas e WhatsApp", () => {
-  const vazio = { leads: [], eventos: [], investimentos: [], campanhas: [], fontes: [], atribuicoes: [] };
+  const vazio = {
+    leads: [],
+    eventos: [],
+    investimentos: [],
+    campanhas: [],
+    fontes: [],
+    atribuicoes: [],
+  };
 
   it("CAC, ROI e ROAS não retornam número sem dados suficientes", () => {
     const leitura = leituraMetricas(vazio);
@@ -151,6 +177,8 @@ describe("CA-UX-04 — artefatos", () => {
       "entidade_ou_indicador;fonte_canonica;grupo;tipo;quando_entra_em_comercial;permissao;pode_criar_registro;pode_enviar_externamente;estado_sem_dado;observacao",
     );
     expect(ler("docs/changelog/2026-08-23_CA-UX-04.md")).toContain("Marketing como 2º grupo");
-    expect(ler("docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md")).toContain("## Marketing (CA-UX-04)");
+    expect(ler("docs/ux/CA-UX-03_Fontes_Canonicas_Indicadores.md")).toContain(
+      "## Marketing (CA-UX-04)",
+    );
   });
 });

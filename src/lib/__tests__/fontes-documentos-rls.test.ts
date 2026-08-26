@@ -24,7 +24,12 @@ const docAna: Documento = {
   confidencialidade: "equipe_do_caso",
 };
 const docOutroCaso: Documento = { ...docAna, id: "doc-2", caseId: casoOutro.id };
-const docOutraOrg: Documento = { ...docAna, id: "doc-3", organizationId: ORG_B, caseId: casoOutraOrg.id };
+const docOutraOrg: Documento = {
+  ...docAna,
+  id: "doc-3",
+  organizationId: ORG_B,
+  caseId: casoOutraOrg.id,
+};
 const docRestrito: Documento = { ...docAna, id: "doc-4", confidencialidade: "restrito" };
 
 const admin: Usuario = { userId: "u-admin", organizacoes: [ORG_A], papeis: { [ORG_A]: "admin" } };
@@ -38,7 +43,11 @@ const pesquisadorOutro: Usuario = {
   organizacoes: [ORG_A],
   papeis: { [ORG_A]: "pesquisador" },
 };
-const leitura: Usuario = { userId: "u-leitura", organizacoes: [ORG_A], papeis: { [ORG_A]: "leitura" } };
+const leitura: Usuario = {
+  userId: "u-leitura",
+  organizacoes: [ORG_A],
+  papeis: { [ORG_A]: "leitura" },
+};
 const deOutraOrg: Usuario = { userId: "u-b", organizacoes: [ORG_B], papeis: { [ORG_B]: "admin" } };
 
 describe("RLS de fontes e documentos — acessos legítimos", () => {
@@ -51,7 +60,9 @@ describe("RLS de fontes e documentos — acessos legítimos", () => {
 
   it("pesquisador responsável pelo caso tem acesso completo àquele caso", () => {
     expect(podePesquisarCaso(pesquisadorResponsavel, casoAna)).toBe(true);
-    expect(avaliarAcessoDocumento("update", pesquisadorResponsavel, docAna, casoAna).permitido).toBe(true);
+    expect(
+      avaliarAcessoDocumento("update", pesquisadorResponsavel, docAna, casoAna).permitido,
+    ).toBe(true);
   });
 });
 
@@ -68,7 +79,9 @@ describe("RLS de fontes e documentos — negativas por caso", () => {
   });
 
   it("pesquisador de outro caso não edita nem arquiva documento do caso da Ana", () => {
-    expect(avaliarAcessoDocumento("update", pesquisadorOutro, docAna, casoAna).permitido).toBe(false);
+    expect(avaliarAcessoDocumento("update", pesquisadorOutro, docAna, casoAna).permitido).toBe(
+      false,
+    );
     expect(podeArquivarDocumento(pesquisadorOutro, docAna, casoAna).permitido).toBe(false);
   });
 
@@ -97,7 +110,9 @@ describe("RLS de fontes e documentos — negativas por organização e papel", (
         motivo: "FORA_DA_ORGANIZACAO",
       });
     }
-    expect(podeArquivarDocumento(admin, docOutraOrg, casoOutraOrg).motivo).toBe("FORA_DA_ORGANIZACAO");
+    expect(podeArquivarDocumento(admin, docOutraOrg, casoOutraOrg).motivo).toBe(
+      "FORA_DA_ORGANIZACAO",
+    );
   });
 
   it("papel leitura consulta, mas não inclui, edita nem arquiva", () => {
@@ -108,8 +123,14 @@ describe("RLS de fontes e documentos — negativas por organização e papel", (
 
   it("documento restrito só é lido por admin ou pesquisador do caso", () => {
     expect(avaliarAcessoDocumento("select", admin, docRestrito, casoAna).permitido).toBe(true);
-    expect(avaliarAcessoDocumento("select", pesquisadorResponsavel, docRestrito, casoAna).permitido).toBe(true);
-    const comercial: Usuario = { userId: "u-com", organizacoes: [ORG_A], papeis: { [ORG_A]: "comercial" } };
+    expect(
+      avaliarAcessoDocumento("select", pesquisadorResponsavel, docRestrito, casoAna).permitido,
+    ).toBe(true);
+    const comercial: Usuario = {
+      userId: "u-com",
+      organizacoes: [ORG_A],
+      papeis: { [ORG_A]: "comercial" },
+    };
     expect(avaliarAcessoDocumento("select", comercial, docRestrito, casoAna)).toEqual({
       permitido: false,
       motivo: "DOCUMENTO_RESTRITO",
@@ -117,6 +138,9 @@ describe("RLS de fontes e documentos — negativas por organização e papel", (
   });
 
   it("nenhum papel pode excluir fisicamente", () => {
-    expect(podeExcluirFisicamente()).toEqual({ permitido: false, motivo: "EXCLUSAO_FISICA_PROIBIDA" });
+    expect(podeExcluirFisicamente()).toEqual({
+      permitido: false,
+      motivo: "EXCLUSAO_FISICA_PROIBIDA",
+    });
   });
 });

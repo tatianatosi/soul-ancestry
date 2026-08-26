@@ -35,9 +35,9 @@ describe("CA-PORTAL-04 — critério 11: dados vivos com copy de cliente", () =>
   });
 
   it("lista descarta itens vazios e duplicados", () => {
-    expect(listaParaCliente(["Registro localizado.", "Registro localizado.", "case_id 12"])).toEqual([
-      "Registro localizado.",
-    ]);
+    expect(
+      listaParaCliente(["Registro localizado.", "Registro localizado.", "case_id 12"]),
+    ).toEqual(["Registro localizado."]);
   });
 
   it("estado técnico vira linguagem humana; desconhecido vira rótulo neutro", () => {
@@ -53,8 +53,16 @@ describe("CA-PORTAL-04 — critério 11: dados vivos com copy de cliente", () =>
 
   it("publicação com marca técnica não atravessa para o cliente", () => {
     const linhas = publicacoesParaCliente([
-      { id: "1", projection_type: "marco", content_sanitized: "Etapa concluída no case_id 42 (public.crm_casos)." },
-      { id: "2", projection_type: "marco", content_sanitized: "Primeira etapa da sua jornada concluída." },
+      {
+        id: "1",
+        projection_type: "marco",
+        content_sanitized: "Etapa concluída no case_id 42 (public.crm_casos).",
+      },
+      {
+        id: "2",
+        projection_type: "marco",
+        content_sanitized: "Primeira etapa da sua jornada concluída.",
+      },
     ]);
     expect(linhas.map((l) => l.conteudo)).toContain("Primeira etapa da sua jornada concluída.");
     expect(linhas.every((l) => !/case_id|public\./i.test(l.conteudo))).toBe(true);
@@ -76,7 +84,9 @@ describe("CA-PORTAL-04 — critério 12: estados não revelam existência de dad
   });
 
   it("erro real é substituído por mensagem de cliente", () => {
-    expect(mensagemDeFalha(new Error("permission denied for table documents (RLS)"))).toBe(MENSAGEM_FALHA);
+    expect(mensagemDeFalha(new Error("permission denied for table documents (RLS)"))).toBe(
+      MENSAGEM_FALHA,
+    );
   });
 });
 

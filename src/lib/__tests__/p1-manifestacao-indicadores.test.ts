@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { INDICADORES, MANIFESTACAO_INDICADOR } from "@/lib/indicadores-governanca";
-import { agruparLinhasIndicadores, deduplicarLinhasIndicadores, type LinhaIndicadorDia } from "@/lib/painel-dia";
+import {
+  agruparLinhasIndicadores,
+  deduplicarLinhasIndicadores,
+  type LinhaIndicadorDia,
+} from "@/lib/painel-dia";
 
 describe("P1 — manifestação dos indicadores", () => {
   it("os 16 indicadores têm componente_tipo, severidade e regra de sem dados", () => {
@@ -9,7 +13,9 @@ describe("P1 — manifestação dos indicadores", () => {
     for (const i of INDICADORES) {
       const m = MANIFESTACAO_INDICADOR[i.codigo];
       expect(m, i.codigo).toBeDefined();
-      expect(["card", "fila", "badge", "filtro", "drawer", "detalhe"]).toContain(m!.componente_tipo);
+      expect(["card", "fila", "badge", "filtro", "drawer", "detalhe"]).toContain(
+        m!.componente_tipo,
+      );
       expect(["P0", "P1", "P2"]).toContain(m!.severidade);
       expect(m!.sem_dados.length).toBeGreaterThan(10);
     }
@@ -39,10 +45,32 @@ describe("P1 — manifestação dos indicadores", () => {
 
   it("agrupa nos cinco grupos compactos do Painel Hoje", () => {
     const g = agruparLinhasIndicadores([
-      { chave: "a", grupo: "integridade", codigo: "IND-RAD-01", motivo: "m", responsavel: null, prazo: "p", severidade: "P1" },
-      { chave: "b", grupo: "cliente", codigo: "IND-COM-03", motivo: "m", responsavel: "Tati", prazo: "p", severidade: "P2" },
+      {
+        chave: "a",
+        grupo: "integridade",
+        codigo: "IND-RAD-01",
+        motivo: "m",
+        responsavel: null,
+        prazo: "p",
+        severidade: "P1",
+      },
+      {
+        chave: "b",
+        grupo: "cliente",
+        codigo: "IND-COM-03",
+        motivo: "m",
+        responsavel: "Tati",
+        prazo: "p",
+        severidade: "P2",
+      },
     ]);
-    expect(Object.keys(g)).toEqual(["integridade", "formalizacao", "operacao", "financeiro", "cliente"]);
+    expect(Object.keys(g)).toEqual([
+      "integridade",
+      "formalizacao",
+      "operacao",
+      "financeiro",
+      "cliente",
+    ]);
     expect(g.integridade).toHaveLength(1);
     expect(g.cliente[0]!.responsavel).toBe("Tati");
   });

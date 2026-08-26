@@ -97,11 +97,9 @@ describe("reconciliação Anexos I–V — três camadas", () => {
   });
 
   it("exige fonte jurídica antes de uso externo para II, IV e V", () => {
-    expect(ANEXOS_TRES_CAMADAS.filter(exigeMaterializacaoAntesDeUsoExterno).map((a) => a.codigo)).toEqual([
-      "ANEXO_II",
-      "ANEXO_IV",
-      "ANEXO_V",
-    ]);
+    expect(
+      ANEXOS_TRES_CAMADAS.filter(exigeMaterializacaoAntesDeUsoExterno).map((a) => a.codigo),
+    ).toEqual(["ANEXO_II", "ANEXO_IV", "ANEXO_V"]);
   });
 
   it("registra as correções de afirmações anteriores e a confirmação literal", () => {

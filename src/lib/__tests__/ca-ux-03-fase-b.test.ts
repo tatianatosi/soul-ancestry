@@ -66,7 +66,6 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
     expect(blocos.has("atalhos")).toBe(false);
   });
 
-
   it("é a única superfície que conta a fila do dia", () => {
     expect(contagensPermitidas(ROTA_PAINEL_CANONICO)).toContain("Vencidos e vence hoje");
     expect(somenteEtiqueta("Vencidos e vence hoje", "/metricas")).toBe(true);
@@ -125,7 +124,9 @@ describe("CA-UX-03 Fase B — métricas", () => {
   const metricas = ler("src/routes/_authenticated/metricas.tsx");
 
   it("respeita o teto de cinco métricas principais", () => {
-    const bloco = metricas.split('data-metricas="principais"')[1]!.split('data-metricas="link-conversao"')[0]!;
+    const bloco = metricas
+      .split('data-metricas="principais"')[1]!
+      .split('data-metricas="link-conversao"')[0]!;
     const cartoes = [...bloco.matchAll(/<Cartao titulo=/g)].length;
     expect(cartoes).toBe(TETO_METRICAS_PRINCIPAIS);
     expect(respeitaTetoMetricas(cartoes)).toBe(true);
@@ -164,7 +165,10 @@ describe("CA-UX-03 Fase B — resumo comercial e financeiro no Painel Hoje", () 
   it("conta leads aguardando ação sem repetir registro", () => {
     const total = contarLeadsAguardandoAcao({
       calls: [{ id: "a", tipo: "lead" }],
-      propostas: [{ id: "a", tipo: "lead" }, { id: "b", tipo: "lead" }],
+      propostas: [
+        { id: "a", tipo: "lead" },
+        { id: "b", tipo: "lead" },
+      ],
       semDisciplina: [{ id: "c", tipo: "lead" }],
     });
     expect(total).toBe(3);
@@ -211,6 +215,8 @@ describe("CA-UX-03 Fase B — prioridade e artefatos", () => {
     ]) {
       expect(existsSync(f)).toBe(true);
     }
-    expect(ler("docs/ux/fase-a-auditoria-metricas-desk.md")).toContain("Fase B — Implementação e resultado");
+    expect(ler("docs/ux/fase-a-auditoria-metricas-desk.md")).toContain(
+      "Fase B — Implementação e resultado",
+    );
   });
 });

@@ -125,7 +125,9 @@ describe("catálogo canônico — links de cobrança (somente referência)", () 
   });
 
   it("uso com exigência de checkout bloqueia sem link validado", () => {
-    expect(bloqueiosDeUso(sku(), { exigeCheckout: true })).toContain("Link de cobrança não validado");
+    expect(bloqueiosDeUso(sku(), { exigeCheckout: true })).toContain(
+      "Link de cobrança não validado",
+    );
   });
 });
 
@@ -139,7 +141,11 @@ describe("catálogo canônico — filas do Painel Hoje", () => {
         estado_catalogo: "em_revisao",
         links: [link({ sku_codigo: "C" })],
       }),
-      sku({ sku_codigo: "D", prioridade_portfolio: "fora_do_portfolio", tipo_cobranca: "sob_consulta" }),
+      sku({
+        sku_codigo: "D",
+        prioridade_portfolio: "fora_do_portfolio",
+        tipo_cobranca: "sob_consulta",
+      }),
       sku({ sku_codigo: "T", dados_teste: true, entregaveis: [] }),
     ];
     const { filas, indicadores } = saneamentoDeCatalogo(dados);
@@ -147,7 +153,9 @@ describe("catálogo canônico — filas do Painel Hoje", () => {
     expect(filas.revisar_link.map((i) => i.sku_codigo)).toContain("B");
     expect(filas.pronto_homologacao.map((i) => i.sku_codigo)).toContain("C");
     expect(filas.portfolio_racionalizar.map((i) => i.sku_codigo)).toContain("D");
-    const todos = Object.values(filas).flat().map((i) => i.sku_codigo);
+    const todos = Object.values(filas)
+      .flat()
+      .map((i) => i.sku_codigo);
     expect(todos).not.toContain("T");
     expect(indicadores.bloqueiam_proposta).toBe(filas.bloqueia_proposta.length);
   });
@@ -158,9 +166,12 @@ describe("catálogo canônico — filas do Painel Hoje", () => {
   });
 
   it("filtro explícito inclui registros de teste", () => {
-    const { filas } = saneamentoDeCatalogo([sku({ sku_codigo: "T", dados_teste: true, entregaveis: [] })], {
-      incluirTeste: true,
-    });
+    const { filas } = saneamentoDeCatalogo(
+      [sku({ sku_codigo: "T", dados_teste: true, entregaveis: [] })],
+      {
+        incluirTeste: true,
+      },
+    );
     expect(filas.bloqueia_proposta.map((i) => i.sku_codigo)).toContain("T");
   });
 });

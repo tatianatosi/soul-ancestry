@@ -48,7 +48,10 @@ describe("checklist padrão", () => {
 
 describe("diagnóstico de onboarding", () => {
   it("bloqueia sem contrato e pagamento", () => {
-    const d = diagnosticarOnboarding({ ...casoCompleto, contrato_assinado: false, pagamento_confirmado: false }, ctxCompleto);
+    const d = diagnosticarOnboarding(
+      { ...casoCompleto, contrato_assinado: false, pagamento_confirmado: false },
+      ctxCompleto,
+    );
     expect(d.status).toBe("bloqueado");
     expect(podeIniciarOnboarding(d).ok).toBe(false);
   });
@@ -63,7 +66,14 @@ describe("diagnóstico de onboarding", () => {
     const d = diagnosticarOnboarding(casoCompleto, ctxCompleto);
     expect(podeAtivarCaso(casoCompleto, d).ok).toBe(false);
     expect(
-      podeAtivarCaso({ ...casoCompleto, eixo_operacao: "onboarding_iniciado", onboarding_iniciado_em: "2026-08-01" }, d).ok,
+      podeAtivarCaso(
+        {
+          ...casoCompleto,
+          eixo_operacao: "onboarding_iniciado",
+          onboarding_iniciado_em: "2026-08-01",
+        },
+        d,
+      ).ok,
     ).toBe(true);
   });
 
@@ -78,13 +88,20 @@ describe("cadência interna", () => {
   const hoje = new Date("2026-09-01T12:00:00Z");
 
   it("alerta D7 sem microentrega planejada", () => {
-    const a = avaliarCadencia({ onboardingIniciadoEm: "2026-08-20", primeiraMicroentregaPlanejada: false }, hoje);
+    const a = avaliarCadencia(
+      { onboardingIniciadoEm: "2026-08-20", primeiraMicroentregaPlanejada: false },
+      hoje,
+    );
     expect(a.some((x) => x.regra === "D7")).toBe(true);
   });
 
   it("alerta D10 e D14 por ausência de touchpoint", () => {
     const a = avaliarCadencia(
-      { onboardingIniciadoEm: "2026-08-01", primeiraMicroentregaPlanejada: true, ultimoTouchpointEm: "2026-08-10" },
+      {
+        onboardingIniciadoEm: "2026-08-01",
+        primeiraMicroentregaPlanejada: true,
+        ultimoTouchpointEm: "2026-08-10",
+      },
       hoje,
     );
     expect(a.map((x) => x.regra)).toEqual(expect.arrayContaining(["D10", "D14"]));
@@ -106,7 +123,12 @@ describe("cadência interna", () => {
   it("espera externa incompleta não suspende", () => {
     expect(
       esperaExternaSuspendeAlerta(
-        { motivo: "Cartório", responsavel_user_id: "u1", prazo_rechecagem: "2026-09-30", status: "em_espera" },
+        {
+          motivo: "Cartório",
+          responsavel_user_id: "u1",
+          prazo_rechecagem: "2026-09-30",
+          status: "em_espera",
+        },
         hoje,
       ),
     ).toBe(false);
@@ -127,21 +149,36 @@ describe("cadência interna", () => {
 
 describe("projeção sanitizada para o cliente", () => {
   it("só publica entrega aprovada, publicada e sem conteúdo interno", () => {
-    const saida = projetarEntregasCliente([
-      { id: "1", case_id: "c", approval_status: "approved", approved_by: "u", summary_approved: "Tudo certo" },
-      { id: "2", case_id: "c", approval_status: "published", summary_approved: "Sem aprovador" },
-      { id: "3", case_id: "c", approval_status: "published", approved_by: "u", summary_approved: "Preço R$ 1.000" },
-      {
-        id: "4",
-        case_id: "c",
-        approval_status: "published",
-        approved_by: "u",
-        title_client: "Boas-vindas",
-        summary_approved: "Recebemos seus dados e seguimos com a preparação.",
-        journey_phase: "onboarding",
-        deliverable_type: "boas_vindas",
-      },
-    ], "c");
+    const saida = projetarEntregasCliente(
+      [
+        {
+          id: "1",
+          case_id: "c",
+          approval_status: "approved",
+          approved_by: "u",
+          summary_approved: "Tudo certo",
+        },
+        { id: "2", case_id: "c", approval_status: "published", summary_approved: "Sem aprovador" },
+        {
+          id: "3",
+          case_id: "c",
+          approval_status: "published",
+          approved_by: "u",
+          summary_approved: "Preço R$ 1.000",
+        },
+        {
+          id: "4",
+          case_id: "c",
+          approval_status: "published",
+          approved_by: "u",
+          title_client: "Boas-vindas",
+          summary_approved: "Recebemos seus dados e seguimos com a preparação.",
+          journey_phase: "onboarding",
+          deliverable_type: "boas_vindas",
+        },
+      ],
+      "c",
+    );
     expect(saida.map((s) => s.id)).toEqual(["4"]);
     expect(saida[0].fase).toBe("Preparação do seu acompanhamento");
   });

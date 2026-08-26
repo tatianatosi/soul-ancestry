@@ -36,7 +36,11 @@ describe("ANA-A-01 — saneamento da proposta Canva", () => {
   it("1. página não extraída permanece pendente e bloqueia", () => {
     const linhas = statusPaginas([
       { page_number: 1, extracao_status: "extraida" },
-      { page_number: 3, extracao_status: "em_extracao", campos_nao_localizados: ["servicos_incluidos"] },
+      {
+        page_number: 3,
+        extracao_status: "em_extracao",
+        campos_nao_localizados: ["servicos_incluidos"],
+      },
     ]);
     expect(linhas).toHaveLength(7);
     expect(linhas[0]?.bloqueia).toBe(false);

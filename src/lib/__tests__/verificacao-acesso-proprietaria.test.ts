@@ -13,7 +13,11 @@ const USER = "92fa5a0c-0000-0000-0000-000000000000";
 function retratoIntegro(): RetratoAcesso {
   return {
     perfis: [{ id: USER, email: EMAIL_PROPRIETARIA }],
-    organizacao: { id: ORGANIZACAO_CANONICA_ID, slug: ORGANIZACAO_CANONICA_SLUG, archived_at: null },
+    organizacao: {
+      id: ORGANIZACAO_CANONICA_ID,
+      slug: ORGANIZACAO_CANONICA_SLUG,
+      archived_at: null,
+    },
     memberships: [{ organization_id: ORGANIZACAO_CANONICA_ID, user_id: USER, archived_at: null }],
     papeis: [{ organization_id: ORGANIZACAO_CANONICA_ID, user_id: USER, role: "admin" }],
     staff: [
@@ -50,7 +54,13 @@ describe("verificação de acesso da Proprietária Administradora", () => {
 
   it("reprova quando o vínculo com a organização foi arquivado", () => {
     const base = retratoIntegro();
-    base.memberships = [{ organization_id: ORGANIZACAO_CANONICA_ID, user_id: USER, archived_at: "2026-08-20T00:00:00Z" }];
+    base.memberships = [
+      {
+        organization_id: ORGANIZACAO_CANONICA_ID,
+        user_id: USER,
+        archived_at: "2026-08-20T00:00:00Z",
+      },
+    ];
     const r = verificarAcessoProprietaria(base);
     expect(chave(r, "membership_ativo").aprovado).toBe(false);
     expect(r.aprovado).toBe(false);
@@ -94,7 +104,10 @@ describe("verificação de acesso da Proprietária Administradora", () => {
 
   it("ignora perfis de outros e-mails ao resolver a proprietária", () => {
     const base = retratoIntegro();
-    base.perfis = [{ id: "demo", email: "admin.demo@exemplo.test" }, { id: USER, email: EMAIL_PROPRIETARIA }];
+    base.perfis = [
+      { id: "demo", email: "admin.demo@exemplo.test" },
+      { id: USER, email: EMAIL_PROPRIETARIA },
+    ];
     expect(verificarAcessoProprietaria(base).aprovado).toBe(true);
   });
 });

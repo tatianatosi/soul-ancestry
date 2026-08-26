@@ -60,7 +60,13 @@ describe("revisão item a item para homologação", () => {
 
   it("bloqueia SKU sem responsáveis, entregáveis ou fonte de preço", () => {
     const [i] = itensRevisao([
-      base({ id: "id-2", sku_codigo: "SKU-002", responsavel_comercial: null, entregaveis: [], preco_fonte: null }),
+      base({
+        id: "id-2",
+        sku_codigo: "SKU-002",
+        responsavel_comercial: null,
+        entregaveis: [],
+        preco_fonte: null,
+      }),
     ]);
     expect(i.elegivel).toBe(false);
     expect(i.pendencias.length).toBeGreaterThan(0);
@@ -76,7 +82,10 @@ describe("revisão item a item para homologação", () => {
   });
 
   it("exige decisão em todos os itens, motivo e confirmação explícita", () => {
-    const itens = itensRevisao([base({ id: "a", sku_codigo: "SKU-002" }), base({ id: "b", sku_codigo: "SKU-003" })]);
+    const itens = itensRevisao([
+      base({ id: "a", sku_codigo: "SKU-002" }),
+      base({ id: "b", sku_codigo: "SKU-003" }),
+    ]);
     const decisoes: Record<string, DecisaoRevisao> = { a: "homologar" };
     const erros = validarConfirmacaoLote({ itens, decisoes, motivo: "curto", confirmado: false });
     expect(erros).toHaveLength(3);
@@ -94,7 +103,10 @@ describe("revisão item a item para homologação", () => {
   });
 
   it("aceita lote válido e devolve apenas os elegíveis", () => {
-    const itens = itensRevisao([base({ id: "a", sku_codigo: "SKU-002" }), base({ id: "b", sku_codigo: "SKU-003" })]);
+    const itens = itensRevisao([
+      base({ id: "a", sku_codigo: "SKU-002" }),
+      base({ id: "b", sku_codigo: "SKU-003" }),
+    ]);
     const entrada = {
       itens,
       decisoes: { a: "homologar", b: "manter_rascunho" } as Record<string, DecisaoRevisao>,

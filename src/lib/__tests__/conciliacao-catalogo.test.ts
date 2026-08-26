@@ -63,7 +63,10 @@ describe("conciliação de catálogo", () => {
   });
 
   it("bloqueia SKU não homologado", () => {
-    const r = conciliarCatalogo({ ...base, produto: { ...produto, status_homologacao: "em_revisao" } });
+    const r = conciliarCatalogo({
+      ...base,
+      produto: { ...produto, status_homologacao: "em_revisao" },
+    });
     expect(r.divergencias.some((d) => d.codigo === COD.SKU_NAO_HOMOLOGADO)).toBe(true);
     expect(r.pode_gerar_contrato).toBe(false);
   });
@@ -99,8 +102,12 @@ describe("conciliação de catálogo", () => {
       condicaoObservada: "à vista",
       escopo: { ...base.escopo, inclusoes: ["Consultoria extra"] },
     });
-    expect(r.divergencias.find((d) => d.codigo === COD.ESCOPO_FORA_DO_CATALOGO)?.severidade).toBe("atencao");
-    expect(r.divergencias.find((d) => d.codigo === COD.CONDICAO_DIVERGENTE)?.severidade).toBe("atencao");
+    expect(r.divergencias.find((d) => d.codigo === COD.ESCOPO_FORA_DO_CATALOGO)?.severidade).toBe(
+      "atencao",
+    );
+    expect(r.divergencias.find((d) => d.codigo === COD.CONDICAO_DIVERGENTE)?.severidade).toBe(
+      "atencao",
+    );
     expect(r.pode_gerar_os).toBe(true);
   });
 

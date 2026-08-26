@@ -61,13 +61,17 @@ describe("agenda assistida — pauta sem dado interno para o cliente (PROMPT 06)
   });
 
   it("recusa pauta com dado interno quando o destino é o cliente", () => {
-    const r = validarPautaParaDestino(base({ destino: "cliente", textoPauta: "Revisar hipótese de linhagem e gate financeiro" }));
+    const r = validarPautaParaDestino(
+      base({ destino: "cliente", textoPauta: "Revisar hipótese de linhagem e gate financeiro" }),
+    );
     expect(r.valida).toBe(false);
     expect(r.erros.join(" ")).toMatch(/termo de uso interno/i);
   });
 
   it("mesma pauta é aceita quando o destino é interno", () => {
-    const r = validarPautaParaDestino(base({ destino: "interno", textoPauta: "Revisar hipótese de linhagem e gate financeiro" }));
+    const r = validarPautaParaDestino(
+      base({ destino: "interno", textoPauta: "Revisar hipótese de linhagem e gate financeiro" }),
+    );
     expect(r.valida).toBe(true);
   });
 

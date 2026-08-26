@@ -137,3 +137,29 @@ describe("natureza das bibliotecas", () => {
     for (const b of NATUREZA_BIBLIOTECA) expect(b.nota.length).toBeGreaterThan(20);
   });
 });
+
+describe("bibliotecas dentro dos módulos contextuais", () => {
+  it("classifica pelo que faz, lendo o catálogo — não à mão", async () => {
+    const { bibliotecasContextuais } = await import("@/lib/desk-modulos");
+    const b = bibliotecasContextuais();
+    expect(b.length).toBeGreaterThan(5);
+    expect(b.every((x) => ["motor", "referência", "duplicada"].includes(x.natureza))).toBe(true);
+  });
+
+  it("biblioteca duplicada aponta a fonte única", async () => {
+    const { bibliotecasContextuais } = await import("@/lib/desk-modulos");
+    for (const b of bibliotecasContextuais().filter((x) => x.natureza === "duplicada")) {
+      expect(b.fonteUnica, `${b.nome} duplicada sem fonte única`).toBeTruthy();
+    }
+  });
+
+  it("o resumo torna 'muitas bibliotecas' um número verificável", async () => {
+    const { resumoBibliotecasContextuais, bibliotecasContextuais } =
+      await import("@/lib/desk-modulos");
+    const r = resumoBibliotecasContextuais();
+    const soma = r.motor + r["referência"] + r.duplicada;
+    expect(soma).toBe(bibliotecasContextuais().length);
+    // Hoje: mais referência que motor — é o achado, não um defeito do teste.
+    expect(r["referência"]).toBeGreaterThan(r.motor);
+  });
+});

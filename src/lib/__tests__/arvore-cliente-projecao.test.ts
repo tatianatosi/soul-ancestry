@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { projecaoLimpa, projetarArvoreCliente } from "@/lib/arvore-cliente-projecao";
 
 const pessoas = [
-  { id: "1", canonical_name: "Ana Luiza", birth_date: "1912-04-03T00:00:00Z", client_projection_status: "publicado", hipotese: "linha materna", confidence_level: "media" },
+  {
+    id: "1",
+    canonical_name: "Ana Luiza",
+    birth_date: "1912-04-03T00:00:00Z",
+    client_projection_status: "publicado",
+    hipotese: "linha materna",
+    confidence_level: "media",
+  },
   { id: "2", canonical_name: "Pessoa em pesquisa", client_projection_status: "interno" },
   { id: "3", canonical_name: "Adair", client_projection_status: "autorizado", death_date: null },
 ];

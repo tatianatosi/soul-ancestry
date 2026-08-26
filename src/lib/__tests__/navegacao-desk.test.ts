@@ -69,7 +69,9 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
 
   it("mantém Validação Jurídica em Governança com link contextual em Comercial e Casos", () => {
     const temJuridica = (id: string) =>
-      GRUPOS_DESK.find((g) => g.id === id)!.sub.some((s) => "to" in s && s.to === "/matriz-juridica");
+      GRUPOS_DESK.find((g) => g.id === id)!.sub.some(
+        (s) => "to" in s && s.to === "/matriz-juridica",
+      );
     expect(temJuridica("governanca")).toBe(true);
     expect(temJuridica("comercial")).toBe(true);
     expect(temJuridica("casos")).toBe(true);
@@ -80,10 +82,16 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
       to: string;
       label: string;
     }[];
-    expect(todos.some((s) => s.to === "/qualidade" && s.label === "Radar Interno e Qualidade")).toBe(true);
-    expect(todos.some((s) => s.to === "/matriz-juridica" && s.label === "Validação Jurídica")).toBe(true);
     expect(
-      todos.some((s) => s.to === "/pesquisa-modulo" && s.label === "Pesquisa Genealógica e Evidências"),
+      todos.some((s) => s.to === "/qualidade" && s.label === "Radar Interno e Qualidade"),
+    ).toBe(true);
+    expect(todos.some((s) => s.to === "/matriz-juridica" && s.label === "Validação Jurídica")).toBe(
+      true,
+    );
+    expect(
+      todos.some(
+        (s) => s.to === "/pesquisa-modulo" && s.label === "Pesquisa Genealógica e Evidências",
+      ),
     ).toBe(true);
   });
 

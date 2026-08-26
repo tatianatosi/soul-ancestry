@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { etapaQuePedeAtencao, lerJornada, type CasoNaJornada } from "@/lib/painel-jornada";
+import { MEDIDOR, etapaQuePedeAtencao, lerJornada, type CasoNaJornada } from "@/lib/painel-jornada";
 import { AncoraApp } from "@/components/painel/ancora-app";
 
 /**
@@ -71,15 +71,33 @@ export function JornadaCasos({ casos }: { casos: readonly CasoNaJornada[] }) {
                 {/* O que o cliente lê da mesma etapa, no App. */}
                 <p className="mt-0.5 text-[11px] italic text-navy/45">“{e.rotuloCliente}”</p>
 
+                {/* Medidor: fatia desta etapa na carteira. Trilho de uma
+                    matiz só; a severidade mora no preenchimento, para o estado
+                    ser lido na barra inteira. */}
+                <div
+                  className="mt-2 h-1.5 w-full overflow-hidden rounded-full"
+                  style={{ background: MEDIDOR.trilho }}
+                  role="img"
+                  aria-label={`${e.total} de ${leitura.total} casos nesta etapa`}
+                >
+                  <div
+                    className="h-full rounded-full transition-[width] duration-500"
+                    style={{ width: `${Math.round(e.fatia * 100)}%`, background: e.tomMedidor }}
+                  />
+                </div>
+
                 {parado ? (
-                  <p className="mt-2 text-[11px] text-terracotta">
+                  <p className="mt-1.5 flex items-center gap-1 text-[11px] text-terracotta">
+                    <span aria-hidden>●</span>
                     {e.semToque} sem toque
                     {e.piorEspera !== null ? ` · há ${e.piorEspera} dias` : ""}
                   </p>
                 ) : vazia ? (
-                  <p className="mt-2 text-[11px] text-navy/40">Nenhum caso aqui</p>
+                  <p className="mt-1.5 text-[11px] text-navy/40">Nenhum caso aqui</p>
                 ) : (
-                  <p className="mt-2 text-[11px] text-navy/50">Cadência em dia</p>
+                  <p className="mt-1.5 flex items-center gap-1 text-[11px] text-navy/50">
+                    <span aria-hidden>●</span> Cadência em dia
+                  </p>
                 )}
 
                 {e.exemplo && parado ? (

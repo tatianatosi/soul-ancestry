@@ -19,12 +19,17 @@ const solicitacaoAnaLuiza = (over: Partial<SolicitacaoOverride> = {}): Solicitac
   tipo: "iniciar_antes_pagamento",
   casoId: CASO_ANA_LUIZA,
   objetoAfetado: "inicio_preparacao_interna",
-  condicaoOriginal: "Início condicionado a pagamento inicial confirmado (gate de ativação do caso).",
+  condicaoOriginal:
+    "Início condicionado a pagamento inicial confirmado (gate de ativação do caso).",
   gatesPendentes: [
-    { chave: "pagamento_confirmado_ou_condicao_financeira_autorizada", motivo: "Primeira cobrança prevista para 01/10/2026, ainda não confirmada." },
+    {
+      chave: "pagamento_confirmado_ou_condicao_financeira_autorizada",
+      motivo: "Primeira cobrança prevista para 01/10/2026, ainda não confirmada.",
+    },
   ],
   escopoLiberado: ["preparacao_contratual", "coleta_de_dados", "onboarding_interno"],
-  justificativa: "Aceite formal registrado e proposta familiar aprovada; adiantar preparação reduz atraso após a confirmação do pagamento.",
+  justificativa:
+    "Aceite formal registrado e proposta familiar aprovada; adiantar preparação reduz atraso após a confirmação do pagamento.",
   autorPapel: "admin",
   autorUserId: "user-proprietaria-1",
   dataRevisao: "2026-10-15T00:00:00.000Z",
@@ -47,7 +52,9 @@ describe("override auditável da Proprietária — validação (PROMPT 02)", () 
   });
 
   it("aceita o papel canônico proprietaria_administradora, além de admin", () => {
-    const r = validarSolicitacaoOverride(solicitacaoAnaLuiza({ autorPapel: "proprietaria_administradora" }));
+    const r = validarSolicitacaoOverride(
+      solicitacaoAnaLuiza({ autorPapel: "proprietaria_administradora" }),
+    );
     expect(r.valida).toBe(true);
   });
 
@@ -73,7 +80,9 @@ describe("override auditável da Proprietária — validação (PROMPT 02)", () 
 
   it("exige data de revisão/expiração válida", () => {
     expect(validarSolicitacaoOverride(solicitacaoAnaLuiza({ dataRevisao: "" })).valida).toBe(false);
-    expect(validarSolicitacaoOverride(solicitacaoAnaLuiza({ dataRevisao: "não-é-uma-data" })).valida).toBe(false);
+    expect(
+      validarSolicitacaoOverride(solicitacaoAnaLuiza({ dataRevisao: "não-é-uma-data" })).valida,
+    ).toBe(false);
   });
 
   it("recusa escopo fora do permitido para o tipo de override — nunca amplia o alcance sozinho", () => {
@@ -86,7 +95,13 @@ describe("override auditável da Proprietária — validação (PROMPT 02)", () 
 
   it("escopo liberável de iniciar_antes_pagamento nunca inclui assinatura, cobrança, envio ou publicação", () => {
     const escopo = ESCOPOS_LIBERAVEIS.iniciar_antes_pagamento;
-    for (const proibido of ["assinatura", "cobranca", "envio_cliente", "publicacao_portal", "pesquisa_externa"]) {
+    for (const proibido of [
+      "assinatura",
+      "cobranca",
+      "envio_cliente",
+      "publicacao_portal",
+      "pesquisa_externa",
+    ]) {
       expect(escopo).not.toContain(proibido);
     }
   });
@@ -94,15 +109,21 @@ describe("override auditável da Proprietária — validação (PROMPT 02)", () 
 
 describe("estado do override — expiração e revogação (PROMPT 02)", () => {
   it("fica LIBERADO_POR_OVERRIDE_PROPRIETARIA antes da data de revisão", () => {
-    expect(estadoOverride({ dataRevisao: "2026-10-15T00:00:00.000Z", agora: "2026-09-01T00:00:00.000Z" })).toBe(
-      "LIBERADO_POR_OVERRIDE_PROPRIETARIA",
-    );
+    expect(
+      estadoOverride({
+        dataRevisao: "2026-10-15T00:00:00.000Z",
+        agora: "2026-09-01T00:00:00.000Z",
+      }),
+    ).toBe("LIBERADO_POR_OVERRIDE_PROPRIETARIA");
   });
 
   it("expira automaticamente após a data de revisão, sem exigir ação manual para deixar de valer", () => {
-    expect(estadoOverride({ dataRevisao: "2026-10-15T00:00:00.000Z", agora: "2026-10-16T00:00:00.000Z" })).toBe(
-      "EXPIRADO_AGUARDA_REVISAO",
-    );
+    expect(
+      estadoOverride({
+        dataRevisao: "2026-10-15T00:00:00.000Z",
+        agora: "2026-10-16T00:00:00.000Z",
+      }),
+    ).toBe("EXPIRADO_AGUARDA_REVISAO");
   });
 
   it("revogação sempre prevalece, mesmo antes da data de revisão", () => {
@@ -127,28 +148,57 @@ describe("permiteEscopoInterno — nunca consulta nem infere campo financeiro", 
   ];
 
   it("libera exatamente o escopo autorizado, para o caso e tipo corretos", () => {
-    expect(permiteEscopoInterno(overridesAtivos, CASO_ANA_LUIZA, "iniciar_antes_pagamento", "preparacao_contratual")).toBe(
-      true,
-    );
+    expect(
+      permiteEscopoInterno(
+        overridesAtivos,
+        CASO_ANA_LUIZA,
+        "iniciar_antes_pagamento",
+        "preparacao_contratual",
+      ),
+    ).toBe(true);
   });
 
   it("não libera escopo não incluído na exceção", () => {
-    expect(permiteEscopoInterno(overridesAtivos, CASO_ANA_LUIZA, "iniciar_antes_pagamento", "onboarding_interno")).toBe(
-      false,
-    );
+    expect(
+      permiteEscopoInterno(
+        overridesAtivos,
+        CASO_ANA_LUIZA,
+        "iniciar_antes_pagamento",
+        "onboarding_interno",
+      ),
+    ).toBe(false);
   });
 
   it("não vaza para outro caso", () => {
-    expect(permiteEscopoInterno(overridesAtivos, "outro-caso", "iniciar_antes_pagamento", "preparacao_contratual")).toBe(
-      false,
-    );
+    expect(
+      permiteEscopoInterno(
+        overridesAtivos,
+        "outro-caso",
+        "iniciar_antes_pagamento",
+        "preparacao_contratual",
+      ),
+    ).toBe(false);
   });
 
   it("um override expirado ou revogado nunca libera escopo", () => {
     const expirado = [{ ...overridesAtivos[0], estado: "EXPIRADO_AGUARDA_REVISAO" as const }];
     const revogado = [{ ...overridesAtivos[0], estado: "REVOGADO" as const }];
-    expect(permiteEscopoInterno(expirado, CASO_ANA_LUIZA, "iniciar_antes_pagamento", "preparacao_contratual")).toBe(false);
-    expect(permiteEscopoInterno(revogado, CASO_ANA_LUIZA, "iniciar_antes_pagamento", "preparacao_contratual")).toBe(false);
+    expect(
+      permiteEscopoInterno(
+        expirado,
+        CASO_ANA_LUIZA,
+        "iniciar_antes_pagamento",
+        "preparacao_contratual",
+      ),
+    ).toBe(false);
+    expect(
+      permiteEscopoInterno(
+        revogado,
+        CASO_ANA_LUIZA,
+        "iniciar_antes_pagamento",
+        "preparacao_contratual",
+      ),
+    ).toBe(false);
   });
 });
 

@@ -14,7 +14,13 @@ describe("lote de aprovações S-01 a S-05", () => {
   it("projeta exatamente cinco itens numerados a partir de APR-01…APR-05", () => {
     const itens = itensLoteS01aS05();
     expect(itens.map((i) => i.id)).toEqual(["S-01", "S-02", "S-03", "S-04", "S-05"]);
-    expect(itens.map((i) => i.origem_id)).toEqual(["APR-01", "APR-02", "APR-03", "APR-04", "APR-05"]);
+    expect(itens.map((i) => i.origem_id)).toEqual([
+      "APR-01",
+      "APR-02",
+      "APR-03",
+      "APR-04",
+      "APR-05",
+    ]);
   });
 
   it("define estado interno alvo conforme a exigência de confirmação externa", () => {

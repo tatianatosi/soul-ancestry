@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 
-import { ATALHOS_DESCOBERTA, ROTULOS_HUMANOS, ROTULO_PRIORIDADE, rotuloHumano } from "@/lib/descoberta-desk";
+import {
+  ATALHOS_DESCOBERTA,
+  ROTULOS_HUMANOS,
+  ROTULO_PRIORIDADE,
+  rotuloHumano,
+} from "@/lib/descoberta-desk";
 import { ORDEM_BLOCOS_PAINEL, validarOrdemPainel } from "@/lib/painel-ordem";
 
 const shell = readFileSync("src/components/saas/shell.tsx", "utf8");
@@ -23,7 +28,9 @@ describe("nomenclatura humana", () => {
   });
 
   it("mantém os cabeçalhos das telas alinhados ao rótulo humano", () => {
-    expect(readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8")).toContain('titulo="Radar Interno"');
+    expect(readFileSync("src/routes/_authenticated/qualidade.tsx", "utf8")).toContain(
+      'titulo="Radar Interno"',
+    );
     expect(readFileSync("src/routes/_authenticated/matriz-juridica.tsx", "utf8")).toContain(
       'titulo="Validação Jurídica"',
     );
@@ -95,7 +102,13 @@ describe("superfícies preservadas", () => {
 
   it("a rota / é vitrine institucional limpa, sem mockup nem rótulos internos", () => {
     const raiz = readFileSync("src/routes/index.tsx", "utf8");
-    for (const proibido of ["referencia-mockup-desk", "DeskApp", "ClienteApp", "AppSwitcher", "Módulos internos"]) {
+    for (const proibido of [
+      "referencia-mockup-desk",
+      "DeskApp",
+      "ClienteApp",
+      "AppSwitcher",
+      "Módulos internos",
+    ]) {
       expect(raiz).not.toContain(proibido);
     }
   });

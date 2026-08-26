@@ -47,7 +47,10 @@ describe("matriz jurídica — ANA-E-01", () => {
   });
 
   it("3. tema bloqueante pendente impede assinatura", () => {
-    const r = avaliarAssinaturaPelaMatriz([linha({}), linha({ tema_codigo: "parcelamento", tema: "Parcelamento", bloqueia_assinatura: false })]);
+    const r = avaliarAssinaturaPelaMatriz([
+      linha({}),
+      linha({ tema_codigo: "parcelamento", tema: "Parcelamento", bloqueia_assinatura: false }),
+    ]);
     expect(r.liberada).toBe(false);
     expect(r.bloqueios).toHaveLength(1);
   });

@@ -76,9 +76,9 @@ describe("App Cliente — visibilidade progressiva", () => {
   });
 
   it("8. dados internos não aparecem: SKU nunca é rótulo do cliente", () => {
-    expect(nomeComercialParaCliente({ nomeComercial: "Pesquisa Ancestral", sku: "CA-CID-AT-001" })).toBe(
-      "Pesquisa Ancestral",
-    );
+    expect(
+      nomeComercialParaCliente({ nomeComercial: "Pesquisa Ancestral", sku: "CA-CID-AT-001" }),
+    ).toBe("Pesquisa Ancestral");
     expect(nomeComercialParaCliente({ sku: "CA-CID-AT-001", fase: "Fase 01" })).toBe("Fase 01");
   });
 

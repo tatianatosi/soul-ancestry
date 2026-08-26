@@ -5,16 +5,25 @@ import { estadoAcao, listaAcoes, pendenciasAcao, resumoAcoes } from "@/lib/proxi
 
 const HOJE = new Date("2026-08-22T12:00:00Z");
 
-const lead = (p: Partial<LeadDesk>): LeadDesk => ({ id: crypto.randomUUID(), nome: "Lead", ...p }) as LeadDesk;
+const lead = (p: Partial<LeadDesk>): LeadDesk =>
+  ({ id: crypto.randomUUID(), nome: "Lead", ...p }) as LeadDesk;
 
 describe("próximas ações", () => {
   it("deriva o estado a partir do prazo", () => {
     expect(estadoAcao(lead({}), HOJE)).toBe("sem_acao");
     expect(estadoAcao(lead({ proxima_acao: "agendar_call" }), HOJE)).toBe("sem_data");
-    expect(estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-20" }), HOJE)).toBe("atrasada");
-    expect(estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-22" }), HOJE)).toBe("hoje");
-    expect(estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-26" }), HOJE)).toBe("proxima");
-    expect(estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-10-01" }), HOJE)).toBe("futura");
+    expect(
+      estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-20" }), HOJE),
+    ).toBe("atrasada");
+    expect(
+      estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-22" }), HOJE),
+    ).toBe("hoje");
+    expect(
+      estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-26" }), HOJE),
+    ).toBe("proxima");
+    expect(
+      estadoAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-10-01" }), HOJE),
+    ).toBe("futura");
   });
 
   it("gera uma única linha por lead e ignora arquivados e testes", () => {
@@ -46,13 +55,25 @@ describe("próximas ações", () => {
 
   it("aponta pendências de saneamento sem juízo de mérito", () => {
     expect(pendenciasAcao(lead({}))).toHaveLength(2);
-    expect(pendenciasAcao(lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-30", responsavel_nome: "Tati" }))).toEqual([]);
+    expect(
+      pendenciasAcao(
+        lead({
+          proxima_acao: "agendar_call",
+          proxima_acao_em: "2026-08-30",
+          responsavel_nome: "Tati",
+        }),
+      ),
+    ).toEqual([]);
   });
 
   it("resume a fila com cada linha em um único estado", () => {
     const linhas = listaAcoes(
       [
-        lead({ proxima_acao: "agendar_call", proxima_acao_em: "2026-08-10", responsavel_nome: "Tati" }),
+        lead({
+          proxima_acao: "agendar_call",
+          proxima_acao_em: "2026-08-10",
+          responsavel_nome: "Tati",
+        }),
         lead({ proxima_acao: "agendar_call" }),
       ],
       { hoje: HOJE },

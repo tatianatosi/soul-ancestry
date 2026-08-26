@@ -110,3 +110,34 @@ describe("a etapa é navegação, não enfeite", () => {
     expect(comp).not.toContain("as never");
   });
 });
+
+describe("medidor da etapa", () => {
+  it("a fatia é a razão real, não estimativa", async () => {
+    const { lerJornada } = await import("@/lib/painel-jornada");
+    const l = lerJornada([
+      { id: "a", fase: "onboarding", cadencia: null },
+      { id: "b", fase: "onboarding", cadencia: null },
+      { id: "c", fase: "pesquisa_inicial", cadencia: null },
+      { id: "d", fase: "pesquisa_inicial", cadencia: null },
+    ]);
+    expect(l.etapas.find((e) => e.id === "onboarding")?.fatia).toBeCloseTo(0.5);
+    expect(l.etapas.reduce((t, e) => t + e.fatia, 0)).toBeCloseTo(1);
+  });
+
+  it("a severidade mora no preenchimento, e o crítico ganha do atenção", async () => {
+    const { lerJornada, MEDIDOR } = await import("@/lib/painel-jornada");
+    const l = lerJornada([
+      { id: "a", fase: "onboarding", cadencia: { status: "atencao", diasSemTouchpoint: 11 } },
+      { id: "b", fase: "onboarding", cadencia: { status: "critico", diasSemTouchpoint: 20 } },
+      { id: "c", fase: "reconhecimento", cadencia: { status: "regular", diasSemTouchpoint: 1 } },
+    ]);
+    expect(l.etapas.find((e) => e.id === "onboarding")?.tomMedidor).toBe(MEDIDOR.critico);
+    expect(l.etapas.find((e) => e.id === "reconhecimento")?.tomMedidor).toBe(MEDIDOR.normal);
+  });
+
+  it("carteira vazia não divide por zero", async () => {
+    const { lerJornada } = await import("@/lib/painel-jornada");
+    const l = lerJornada([]);
+    expect(l.etapas.every((e) => e.fatia === 0)).toBe(true);
+  });
+});

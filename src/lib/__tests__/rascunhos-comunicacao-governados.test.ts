@@ -23,7 +23,9 @@ const ctxJoao = (over: Partial<ContextoRascunho> = {}): ContextoRascunho => ({
 
 describe("templates conhecidos (PROMPT 07) — João e Lara", () => {
   it("mensagem de João não menciona a esposa como parte contratual", () => {
-    expect(TEMPLATE_CONFIRMACAO_FORMAL_JOAO.corpo.toLowerCase()).not.toMatch(/esposa|cônjuge|conjuge/);
+    expect(TEMPLATE_CONFIRMACAO_FORMAL_JOAO.corpo.toLowerCase()).not.toMatch(
+      /esposa|cônjuge|conjuge/,
+    );
   });
 
   it("mensagem de João é curta e pede confirmação, sem prometer resultado", () => {
@@ -40,7 +42,11 @@ describe("templates conhecidos (PROMPT 07) — João e Lara", () => {
 
 describe("escolha da versão vigente do template (PROMPT 07)", () => {
   const v1: TemplateComunicacao = { ...TEMPLATE_CONFIRMACAO_FORMAL_JOAO, versao: 1 };
-  const v2: TemplateComunicacao = { ...TEMPLATE_CONFIRMACAO_FORMAL_JOAO, versao: 2, corpo: "versão nova" };
+  const v2: TemplateComunicacao = {
+    ...TEMPLATE_CONFIRMACAO_FORMAL_JOAO,
+    versao: 2,
+    corpo: "versão nova",
+  };
   const v1Antiga: TemplateComunicacao = { ...v1, vigente: false };
 
   it("escolhe a maior versão vigente", () => {
@@ -77,7 +83,11 @@ describe("montarRascunhoComunicacao — bloqueios antes da sugestão (PROMPT 07)
   });
 
   it("bloqueia sem destinatário resolvido", () => {
-    const r = montarRascunhoComunicacao(TEMPLATES_CONHECIDOS, ctxJoao({ destinatarioResolvido: false }), AGORA);
+    const r = montarRascunhoComunicacao(
+      TEMPLATES_CONHECIDOS,
+      ctxJoao({ destinatarioResolvido: false }),
+      AGORA,
+    );
     expect(r.estado).toBe("bloqueado");
     if (r.estado === "bloqueado") expect(r.motivos.join(" ")).toMatch(/destinatário/i);
   });
@@ -93,7 +103,11 @@ describe("montarRascunhoComunicacao — bloqueios antes da sugestão (PROMPT 07)
   });
 
   it("bloqueia quando não há template vigente para o propósito informado", () => {
-    const r = montarRascunhoComunicacao(TEMPLATES_CONHECIDOS, ctxJoao({ proposito: "propósito-inexistente" }), AGORA);
+    const r = montarRascunhoComunicacao(
+      TEMPLATES_CONHECIDOS,
+      ctxJoao({ proposito: "propósito-inexistente" }),
+      AGORA,
+    );
     expect(r.estado).toBe("bloqueado");
     if (r.estado === "bloqueado") expect(r.motivos.join(" ")).toMatch(/nenhuma versão vigente/i);
   });
@@ -111,11 +125,15 @@ describe("montarRascunhoComunicacao — bloqueios antes da sugestão (PROMPT 07)
   it("usa o modelo de Lara para o propósito de convite de agendamento", () => {
     const r = montarRascunhoComunicacao(
       TEMPLATES_CONHECIDOS,
-      ctxJoao({ proposito: "convite_agendamento_reuniao", contextoCaso: "Proposta pronta, reunião não marcada." }),
+      ctxJoao({
+        proposito: "convite_agendamento_reuniao",
+        contextoCaso: "Proposta pronta, reunião não marcada.",
+      }),
       AGORA,
     );
     expect(r.estado).toBe("rascunho_interno");
-    if (r.estado === "rascunho_interno") expect(r.origem.templateId).toBe(TEMPLATE_FOLLOW_UP_LARA.id);
+    if (r.estado === "rascunho_interno")
+      expect(r.origem.templateId).toBe(TEMPLATE_FOLLOW_UP_LARA.id);
   });
 });
 
@@ -124,14 +142,19 @@ describe("auditabilidade e ausência de handler de envio (PROMPT 07)", () => {
     const r = montarRascunhoComunicacao(TEMPLATES_CONHECIDOS, ctxJoao(), AGORA);
     expect(r.estado).toBe("rascunho_interno");
     if (r.estado === "rascunho_interno") {
-      expect(r.origem).toEqual({ templateId: TEMPLATE_CONFIRMACAO_FORMAL_JOAO.id, versao: TEMPLATE_CONFIRMACAO_FORMAL_JOAO.versao });
+      expect(r.origem).toEqual({
+        templateId: TEMPLATE_CONFIRMACAO_FORMAL_JOAO.id,
+        versao: TEMPLATE_CONFIRMACAO_FORMAL_JOAO.versao,
+      });
     }
   });
 
   it("o módulo não exporta nenhuma função de envio, criação de contato, campanha ou fila externa", async () => {
     const modulo = await import("../rascunhos-comunicacao-governados");
     const nomes = Object.keys(modulo);
-    const suspeitos = nomes.filter((n) => /enviar|send|dispatch|disparar|contato|campanha/i.test(n));
+    const suspeitos = nomes.filter((n) =>
+      /enviar|send|dispatch|disparar|contato|campanha/i.test(n),
+    );
     expect(suspeitos).toEqual([]);
   });
 });

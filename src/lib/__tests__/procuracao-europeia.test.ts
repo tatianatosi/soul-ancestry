@@ -54,7 +54,11 @@ describe("procuração europeia parametrizada", () => {
   });
 
   it("não escolhe país por fallback em nenhuma hipótese", () => {
-    for (const entrada of [{}, { propostaAprovadaVinculada: { pais: "" } }, { casoConfirmado: { pais: "Suíça" } }]) {
+    for (const entrada of [
+      {},
+      { propostaAprovadaVinculada: { pais: "" } },
+      { casoConfirmado: { pais: "Suíça" } },
+    ]) {
       const c = resolverContextoEuropeu(entrada);
       expect(c.country).toBe("A confirmar");
       expect(c.title).not.toMatch(/Itália|Brasil/);

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { AMBIENTES_DOSSIE, CATALOGOS, NIVEIS_ACESSO_DOSSIE, validarLead, type LeadDesk } from "@/lib/crm-desk";
+import {
+  AMBIENTES_DOSSIE,
+  CATALOGOS,
+  NIVEIS_ACESSO_DOSSIE,
+  validarLead,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 
 const base: LeadDesk = {
   nome: "Lead de teste",

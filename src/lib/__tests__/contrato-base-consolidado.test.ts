@@ -8,7 +8,10 @@ import {
   PROIBICOES_IDENTIFICACAO,
   VARIAVEIS_PERMITIDAS,
 } from "@/lib/contrato-base-consolidado";
-import { SECOES_DOCUMENTO_PUBLICADO, clausulasSemSecaoPublicada } from "@/lib/contrato-base-consolidado";
+import {
+  SECOES_DOCUMENTO_PUBLICADO,
+  clausulasSemSecaoPublicada,
+} from "@/lib/contrato-base-consolidado";
 import {
   VARIAVEIS_TESTE,
   anexosDaPreviaTeste,
@@ -20,7 +23,9 @@ import {
 describe("contrato-base consolidado v1.0", () => {
   it("registra as 14 cláusulas fixas, numeradas e com conteúdo", () => {
     expect(CLAUSULAS_FIXAS).toHaveLength(14);
-    expect(CLAUSULAS_FIXAS.map((c) => c.numero)).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
+    expect(CLAUSULAS_FIXAS.map((c) => c.numero)).toEqual(
+      Array.from({ length: 14 }, (_, i) => i + 1),
+    );
     for (const c of CLAUSULAS_FIXAS) {
       expect(c.titulo.length).toBeGreaterThan(5);
       expect(c.itens.length).toBeGreaterThan(0);
@@ -33,7 +38,9 @@ describe("contrato-base consolidado v1.0", () => {
   });
 
   it("perfil institucional não expõe dado pessoal do sócio", () => {
-    const texto = PERFIL_INSTITUCIONAL.map((c) => `${c.campo} ${c.valor}`).join(" ").toLowerCase();
+    const texto = PERFIL_INSTITUCIONAL.map((c) => `${c.campo} ${c.valor}`)
+      .join(" ")
+      .toLowerCase();
     for (const proibido of ["cpf", "rg", "estado civil", "nacionalidade"]) {
       expect(texto).not.toContain(proibido);
     }

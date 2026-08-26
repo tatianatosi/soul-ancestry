@@ -15,6 +15,7 @@ import { FilaCadencia } from "@/components/painel/fila-cadencia";
 import { CasoEmDestaque } from "@/components/painel/caso-destaque";
 import { JornadaCasos } from "@/components/painel/jornada-casos";
 import { AncoraApp } from "@/components/painel/ancora-app";
+import { AberturaPainel } from "@/components/painel/abertura";
 import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
 import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
@@ -613,6 +614,13 @@ export function PainelDia() {
       {proprietaria ? <VerificadorAdminProprietaria /> : null}
 
       <AvisoLeituraPainel problemas={problemasLeitura} />
+
+      {/*
+        Abertura: a frase antes do número. O Painel abria com cinco métricas, e
+        quem chega de manhã lia cinco números sem saber o que fazer com eles.
+        Nada de novo é calculado aqui — é leitura do que já foi derivado.
+      */}
+      <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />

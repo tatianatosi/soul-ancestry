@@ -30,7 +30,16 @@ describe("CA-PORTAL-03 — branding das superfícies de cliente", () => {
     const doc = readFileSync("docs/portal/CA-PORTAL-03_Matriz_Copy_Branding.md", "utf8");
     expect(doc).toContain("Matriz de Copy e Branding");
     expect(doc).toContain("Guia de Marca");
-    for (const tela of ["Jornada", "Radar", "Árvore", "Fase 01", "Fase 02", "Legado", "Faturas", "Proposta"]) {
+    for (const tela of [
+      "Jornada",
+      "Radar",
+      "Árvore",
+      "Fase 01",
+      "Fase 02",
+      "Legado",
+      "Faturas",
+      "Proposta",
+    ]) {
       expect(doc).toContain(tela);
     }
   });

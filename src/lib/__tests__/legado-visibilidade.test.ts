@@ -64,7 +64,9 @@ describe("Legado — visibilidade e sanitização", () => {
   });
 
   it("7. título com termo interno invalida o item inteiro", () => {
-    expect(sanitizarItemLegado({ ...base, titulo: "Risco documental na linha paterna" })).toBeNull();
+    expect(
+      sanitizarItemLegado({ ...base, titulo: "Risco documental na linha paterna" }),
+    ).toBeNull();
   });
 
   it("8. client_deliverable autorizado também é aceito", () => {

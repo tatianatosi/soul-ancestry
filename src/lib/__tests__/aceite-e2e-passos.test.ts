@@ -10,14 +10,7 @@ import {
 describe("roteiro E2E do aceite operacional (passos 3 a 8)", () => {
   it("cobre exatamente os passos 3 a 8", () => {
     expect(PASSOS_ACEITE_E2E.map((p) => p.numero)).toEqual([3, 4, 5, 6, 7, 8]);
-    expect(PASSOS_ACEITE_E2E.map((p) => p.id)).toEqual([
-      "P3",
-      "P4",
-      "P5",
-      "P6",
-      "P7",
-      "P8",
-    ]);
+    expect(PASSOS_ACEITE_E2E.map((p) => p.id)).toEqual(["P3", "P4", "P5", "P6", "P7", "P8"]);
   });
 
   it("usa rotas internas autenticadas e capturas únicas", () => {

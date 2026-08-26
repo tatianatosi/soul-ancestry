@@ -75,7 +75,11 @@ describe("import graph do runtime", () => {
   it("nenhuma rota /prototipo, /mockup ou /referencia-mockup-desk é declarada", () => {
     for (const arquivo of RUNTIME) {
       const conteudo = readFileSync(arquivo, "utf8");
-      for (const rota of ['createFileRoute("/prototipo")', 'createFileRoute("/mockup")', "referencia-mockup-desk"]) {
+      for (const rota of [
+        'createFileRoute("/prototipo")',
+        'createFileRoute("/mockup")',
+        "referencia-mockup-desk",
+      ]) {
         if (arquivo.endsWith("descoberta-desk.ts")) continue; // apenas comentário histórico
         expect(`${arquivo}:${conteudo.includes(rota)}`).toBe(`${arquivo}:false`);
       }

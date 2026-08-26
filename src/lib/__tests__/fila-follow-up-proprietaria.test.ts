@@ -29,7 +29,9 @@ describe("fila de follow-up da Proprietária (PROMPT 05)", () => {
   it("deduplica: a mesma pessoa/caso nunca aparece duas vezes, mesmo com dois motivos aplicáveis", () => {
     const duplicado: EntradaFollowUp = { ...FIXTURE_ANA_LUIZA, motivo: "cadencia_vencida" };
     const itens = montarFilaFollowUp([FIXTURE_ANA_LUIZA, duplicado]);
-    expect(itens.filter((i) => i.pessoaOuCasoId === FIXTURE_ANA_LUIZA.pessoaOuCasoId)).toHaveLength(1);
+    expect(itens.filter((i) => i.pessoaOuCasoId === FIXTURE_ANA_LUIZA.pessoaOuCasoId)).toHaveLength(
+      1,
+    );
   });
 
   it("precedência: vencimento_financeiro vence cadencia_vencida para o mesmo objeto", () => {
@@ -71,7 +73,9 @@ describe("fila de follow-up da Proprietária (PROMPT 05)", () => {
 
 describe("estado de carregamento da fila — nunca conclui pendência resolvida em falha", () => {
   it("carregando tem prioridade sobre erro e vazio", () => {
-    expect(estadoCarregamentoFila({ carregando: true, erro: true, quantidade: 0 })).toBe("carregando");
+    expect(estadoCarregamentoFila({ carregando: true, erro: true, quantidade: 0 })).toBe(
+      "carregando",
+    );
   });
 
   it("erro nunca vira 'vazio' silenciosamente", () => {
@@ -83,6 +87,8 @@ describe("estado de carregamento da fila — nunca conclui pendência resolvida 
   });
 
   it("pronto quando há itens e nenhuma falha", () => {
-    expect(estadoCarregamentoFila({ carregando: false, erro: false, quantidade: 3 })).toBe("pronto");
+    expect(estadoCarregamentoFila({ carregando: false, erro: false, quantidade: 3 })).toBe(
+      "pronto",
+    );
   });
 });

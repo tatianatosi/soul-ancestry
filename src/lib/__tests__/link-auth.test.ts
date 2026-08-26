@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { ROTA_ACESSO_CLIENTE, ROTA_SENHA_EQUIPE, destinoLinkAuth, temTokenAuth } from "@/lib/link-auth";
+import {
+  ROTA_ACESSO_CLIENTE,
+  ROTA_SENHA_EQUIPE,
+  destinoLinkAuth,
+  temTokenAuth,
+} from "@/lib/link-auth";
 
 describe("captura de links oficiais de autenticação", () => {
   it("reencaminha convite que aterrissa na home para a tela pública de senha", () => {

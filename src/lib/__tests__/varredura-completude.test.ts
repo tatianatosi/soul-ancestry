@@ -15,7 +15,9 @@ import {
 
 describe("varredura de completude", () => {
   it("marca Anexos II, IV e V como não localizados", () => {
-    const codigos = anexosNaoLocalizados().map((a) => a.codigo).sort();
+    const codigos = anexosNaoLocalizados()
+      .map((a) => a.codigo)
+      .sort();
     expect(codigos).toEqual(["ANEXO_II", "ANEXO_IV", "ANEXO_V"]);
   });
 
@@ -45,7 +47,9 @@ describe("varredura de completude", () => {
   });
 
   it("separa superáveis de itens que exigem confirmação externa", () => {
-    expect(pendenciasSuperaveis().length + aguardandoConfirmacaoExterna().length).toBe(MATRIZ_PENDENCIAS.length);
+    expect(pendenciasSuperaveis().length + aguardandoConfirmacaoExterna().length).toBe(
+      MATRIZ_PENDENCIAS.length,
+    );
     expect(aguardandoConfirmacaoExterna().some((l) => l.id === "PEND-07")).toBe(true);
   });
 
@@ -63,6 +67,8 @@ describe("varredura de completude", () => {
 
   it("mantém a confirmação literal da varredura", () => {
     expect(CONFIRMACAO_VARREDURA_COMPLETUDE).toContain("Anexos II, IV e V");
-    expect(CONFIRMACAO_VARREDURA_COMPLETUDE).toContain("preparar atos externos para confirmação final");
+    expect(CONFIRMACAO_VARREDURA_COMPLETUDE).toContain(
+      "preparar atos externos para confirmação final",
+    );
   });
 });

@@ -47,7 +47,11 @@ describe("Dicionário de validações Calls → CRM", () => {
   });
 
   it("exige contrato, pagamento e dossiê para Convertido e motivo para perda", () => {
-    expect(avaliarBloqueiosCalls({ ...base, resultadoComercial: "Convertido" }).some((b) => b.regra === 2)).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, resultadoComercial: "Convertido" }).some(
+        (b) => b.regra === 2,
+      ),
+    ).toBe(true);
     expect(
       avaliarBloqueiosCalls({
         ...base,
@@ -57,29 +61,57 @@ describe("Dicionário de validações Calls → CRM", () => {
         linkDossie: "https://interno/dossie",
       }).some((b) => b.regra === 2),
     ).toBe(false);
-    expect(avaliarBloqueiosCalls({ ...base, resultadoComercial: "Perdido — preço" }).some((b) => b.regra === 5)).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, resultadoComercial: "Perdido — preço" }).some(
+        (b) => b.regra === 5,
+      ),
+    ).toBe(true);
   });
 
   it("aplica as travas de etapa, call realizada e elegibilidade forte", () => {
-    expect(avaliarBloqueiosCalls({ ...base, etapaFunil: "Contrato assinado" }).some((b) => b.regra === 3)).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, etapaFunil: "Onboarding" }).some((b) => b.regra === 4)).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, statusCall: "Realizada" }).some((b) => b.regra === 6)).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, elegibilidadePreliminar: "Forte" }).some((b) => b.regra === 7)).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, etapaFunil: "Contrato assinado" }).some(
+        (b) => b.regra === 3,
+      ),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, etapaFunil: "Onboarding" }).some((b) => b.regra === 4),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, statusCall: "Realizada" }).some((b) => b.regra === 6),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, elegibilidadePreliminar: "Forte" }).some(
+        (b) => b.regra === 7,
+      ),
+    ).toBe(true);
   });
 
   it("bloqueia oferta de protocolo em via encerrada, despesa aprovada sem lastro e gravação sem consentimento", () => {
     expect(
-      avaliarBloqueiosCalls({ ...base, statusVia: "Encerrada para novos pedidos", ofertaProtocoloAssessoria: true }).some(
-        (b) => b.regra === 8,
+      avaliarBloqueiosCalls({
+        ...base,
+        statusVia: "Encerrada para novos pedidos",
+        ofertaProtocoloAssessoria: true,
+      }).some((b) => b.regra === 8),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, statusDespesasTerceiros: "Aprovadas" }).some(
+        (b) => b.regra === 9,
       ),
     ).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, statusDespesasTerceiros: "Aprovadas" }).some((b) => b.regra === 9)).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, linkGravacao: "https://x" }).some((b) => b.regra === 10)).toBe(true);
-    expect(avaliarBloqueiosCalls({ ...base, fazParteDeNucleo: true }).some((b) => b.regra === 11)).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, linkGravacao: "https://x" }).some((b) => b.regra === 10),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, fazParteDeNucleo: true }).some((b) => b.regra === 11),
+    ).toBe(true);
   });
 
   it("exige responsável, etapa e próxima ação datada em lead ativo e prazo não retroativo", () => {
-    expect(avaliarBloqueiosCalls({ ...base, leadAtivo: true }).some((b) => b.campo === "Lead ativo")).toBe(true);
+    expect(
+      avaliarBloqueiosCalls({ ...base, leadAtivo: true }).some((b) => b.campo === "Lead ativo"),
+    ).toBe(true);
     expect(
       avaliarBloqueiosCalls({ ...base, prazoProximaAcao: "2026-08-20" }).some(
         (b) => b.campo === "Prazo da próxima ação",
@@ -102,12 +134,18 @@ describe("Glossário oficial", () => {
   });
 
   it("aponta termo bloqueado e substituição em texto cliente-facing", () => {
-    const avisos = revisarTerminologiaCliente("A linha confirmada indica via judicial para o caso.");
+    const avisos = revisarTerminologiaCliente(
+      "A linha confirmada indica via judicial para o caso.",
+    );
     expect(avisos.some((a) => a.includes("via judicial"))).toBe(true);
     expect(avisos.some((a) => a.includes("linha confirmada"))).toBe(true);
   });
 
   it("não sinaliza texto já sanitizado", () => {
-    expect(revisarTerminologiaCliente("Linha familiar em análise. Próximo passo recomendado: enviar documento.")).toEqual([]);
+    expect(
+      revisarTerminologiaCliente(
+        "Linha familiar em análise. Próximo passo recomendado: enviar documento.",
+      ),
+    ).toEqual([]);
   });
 });

@@ -13,7 +13,11 @@ const fonte = ["22222222-2222-2222-2222-222222222222"];
 
 describe("G-06 — Achados genealógicos", () => {
   it("1. achado sem evidência e sem fonte é negado", () => {
-    const b = validarAchado({ finding_type: "registro_civil", evidence_links: [], source_links: [] });
+    const b = validarAchado({
+      finding_type: "registro_civil",
+      evidence_links: [],
+      source_links: [],
+    });
     expect(b.map((x) => x.codigo)).toContain("ACHADO_SEM_EVIDENCIA");
   });
 
@@ -81,8 +85,12 @@ describe("G-06 — Encontros de linhagem", () => {
   });
 
   it("marco de origem dispensa a segunda linha, mas não a evidência", () => {
-    expect(validarEncontro({ encounter_type: "marco_de_origem", evidence_links_a: evid })).toEqual([]);
-    expect(validarEncontro({ encounter_type: "marco_de_origem" }).map((x) => x.codigo)).toContain("MARCO_SEM_EVIDENCIA");
+    expect(validarEncontro({ encounter_type: "marco_de_origem", evidence_links_a: evid })).toEqual(
+      [],
+    );
+    expect(validarEncontro({ encounter_type: "marco_de_origem" }).map((x) => x.codigo)).toContain(
+      "MARCO_SEM_EVIDENCIA",
+    );
   });
 
   it("3. encontro sem disclaimer não pode ser aprovado", () => {
@@ -97,7 +105,11 @@ describe("G-06 — Encontros de linhagem", () => {
   });
 
   it("4. hipótese não aparece como conexão confirmada", () => {
-    const b = validarEncontro({ ...base, encounter_type: "conexao_confirmada", confidence_internal: "hipotese" });
+    const b = validarEncontro({
+      ...base,
+      encounter_type: "conexao_confirmada",
+      confidence_internal: "hipotese",
+    });
     expect(b.map((x) => x.codigo)).toContain("CONEXAO_NAO_COMPROVADA");
     expect(
       validarEncontro({
@@ -152,7 +164,9 @@ describe("G-06 — Projeção para o App Cliente", () => {
   });
 
   it("sem aprovação, disclaimer ou resumo não há projeção", () => {
-    expect(projetarEncontroParaCliente({ ...aprovado, approval_status: "em_aprovacao" })).toBeNull();
+    expect(
+      projetarEncontroParaCliente({ ...aprovado, approval_status: "em_aprovacao" }),
+    ).toBeNull();
     expect(projetarEncontroParaCliente({ ...aprovado, disclaimer_obrigatorio: false })).toBeNull();
     expect(projetarEncontroParaCliente({ ...aprovado, resumo_aprovado_cliente: "  " })).toBeNull();
   });

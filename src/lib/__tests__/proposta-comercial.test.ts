@@ -25,7 +25,9 @@ describe("proposta aprovada como fonte comercial", () => {
   it("importa os valores estruturados do caso da Ana", () => {
     expect(mapa["valor_total"]).toBe("9600");
     expect(mapa["forma_pagamento"]).toBe("assinatura_mensal");
-    expect(mapa["parcelas"]).toBe("3 assinaturas mensais de 320 por responsável, durante 10 meses (total mensal 960)");
+    expect(mapa["parcelas"]).toBe(
+      "3 assinaturas mensais de 320 por responsável, durante 10 meses (total mensal 960)",
+    );
   });
 
   it("nunca deriva datas de vencimento", () => {
@@ -41,13 +43,16 @@ describe("proposta aprovada como fonte comercial", () => {
     expect(mapa["despesas_externas"]).toBeUndefined();
     const r = candidatosComerciaisDaProposta({
       ...PROPOSTA_ANA,
-      exclusoes: "Despesas de terceiros (taxas, traduções e apostilas) são pagas diretamente pelo cliente, mediante comunicação e aprovação prévia.",
+      exclusoes:
+        "Despesas de terceiros (taxas, traduções e apostilas) são pagas diretamente pelo cliente, mediante comunicação e aprovação prévia.",
     });
     expect(r.find((x) => x.campo === "despesas_externas")?.valor).toBe("paga_direto");
   });
 
   it("proposta arquivada, substituída ou recusada não pré-carrega", () => {
-    expect(propostaAptaParaPrecarga({ ...PROPOSTA_ANA, archived_at: "2026-08-18T00:00:00Z" })).toBe(false);
+    expect(propostaAptaParaPrecarga({ ...PROPOSTA_ANA, archived_at: "2026-08-18T00:00:00Z" })).toBe(
+      false,
+    );
     for (const status of ["substituida", "recusada", "rascunho", "enviada"]) {
       expect(candidatosComerciaisDaProposta({ ...PROPOSTA_ANA, status })).toEqual([]);
     }

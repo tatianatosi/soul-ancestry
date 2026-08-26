@@ -71,7 +71,12 @@ describe("gates com três estados e override interno auditado", () => {
   });
 
   it("recusa qualquer ação externa por override", () => {
-    for (const externa of ["solicitar_assinatura", "emitir_cobranca", "publicar_no_app_cliente", "enviar_whatsapp"]) {
+    for (const externa of [
+      "solicitar_assinatura",
+      "emitir_cobranca",
+      "publicar_no_app_cliente",
+      "enviar_whatsapp",
+    ]) {
       expect(validarOverrideInterno(base({ avanco_interno: externa })).valida).toBe(false);
       expect(validarOverrideInterno(base({ gate: externa })).valida).toBe(false);
     }
@@ -79,8 +84,12 @@ describe("gates com três estados e override interno auditado", () => {
 
   it("assinatura, financeiro e portal param em aguardando_confirmacao_externa", () => {
     expect(avancoPermitido("assinatura", "assinado")).toBe("aguardando_confirmacao_externa");
-    expect(avancoPermitido("financeiro", "cobranca_emitida")).toBe("aguardando_confirmacao_externa");
-    expect(avancoPermitido("portal_onboarding", "publicado")).toBe("aguardando_confirmacao_externa");
+    expect(avancoPermitido("financeiro", "cobranca_emitida")).toBe(
+      "aguardando_confirmacao_externa",
+    );
+    expect(avancoPermitido("portal_onboarding", "publicado")).toBe(
+      "aguardando_confirmacao_externa",
+    );
     expect(AVANCO_INTERNO_MAXIMO.assinatura).toBe("aguardando_confirmacao_externa");
   });
 

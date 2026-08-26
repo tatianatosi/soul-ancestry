@@ -1,12 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { classificarPrazo, escadaConversao, handoffLead, listaPrioritaria, type Fila, type LeadDesk } from "@/lib/crm-desk";
+import {
+  classificarPrazo,
+  escadaConversao,
+  handoffLead,
+  listaPrioritaria,
+  type Fila,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 
 const base: LeadDesk = { nome: "Teste" };
 
 describe("escada de conversão", () => {
   it("João: aceite verbal com confirmação formal pendente mantém contrato e cobrança bloqueados", () => {
-    const joao: LeadDesk = { ...base, nome: "João", eixo_comercial: "negociacao", eixo_formalizacao: "nao_iniciado" };
+    const joao: LeadDesk = {
+      ...base,
+      nome: "João",
+      eixo_comercial: "negociacao",
+      eixo_formalizacao: "nao_iniciado",
+    };
     const e = escadaConversao(joao);
     expect(e[0]?.estado).toBe("concluido");
     expect(e[1]?.estado).toBe("em_andamento");
@@ -29,7 +41,9 @@ describe("escada de conversão", () => {
 
   it("aceite verbal nunca conclui contrato/cobrança nem onboarding", () => {
     const e = escadaConversao({ ...base, eixo_comercial: "proposta_enviada" });
-    expect(e.filter((d) => d.estado === "concluido").map((d) => d.chave)).toEqual(["aceite_verbal"]);
+    expect(e.filter((d) => d.estado === "concluido").map((d) => d.chave)).toEqual([
+      "aceite_verbal",
+    ]);
   });
 });
 

@@ -1,20 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { bloqueioCriacaoPorNome, chavePessoa, resumoPorPessoa, type ItemChecklist } from "@/lib/cadastro-checklist";
+import {
+  bloqueioCriacaoPorNome,
+  chavePessoa,
+  resumoPorPessoa,
+  type ItemChecklist,
+} from "@/lib/cadastro-checklist";
 import { bloqueiosDependentes, type Dependente } from "@/lib/dependentes";
 import { avaliarNucleo, pendenciasNucleo } from "@/lib/nucleo-completude";
 
 const item = (p: Partial<ItemChecklist>): ItemChecklist => ({
-  case_id: "caso", pessoa_tipo: "titular", pessoa_nome: "Adair Pinto Silveira Júnior",
-  pessoa_ref_id: "membro-adair", campo: "cpf", campo_rotulo: "CPF", obrigatorio: true,
-  status: "pendente", acesso_restrito: true, ordem: 0, ...p,
+  case_id: "caso",
+  pessoa_tipo: "titular",
+  pessoa_nome: "Adair Pinto Silveira Júnior",
+  pessoa_ref_id: "membro-adair",
+  campo: "cpf",
+  campo_rotulo: "CPF",
+  obrigatorio: true,
+  status: "pendente",
+  acesso_restrito: true,
+  ordem: 0,
+  ...p,
 });
 
 const felipe = (p: Partial<Dependente> = {}): Dependente => ({
-  case_id: "caso", nome_completo: "Felipe", vinculo_com_titular: "filho",
-  dependent_person_id: "membro-felipe", titular_responsavel_legal_id: "membro-ana",
-  status_representacao: "pendente", participa_do_contrato: false, possui_acesso_app: false,
-  anexo_individual_aplicavel: false, ...p,
+  case_id: "caso",
+  nome_completo: "Felipe",
+  vinculo_com_titular: "filho",
+  dependent_person_id: "membro-felipe",
+  titular_responsavel_legal_id: "membro-ana",
+  status_representacao: "pendente",
+  participa_do_contrato: false,
+  possui_acesso_app: false,
+  anexo_individual_aplicavel: false,
+  ...p,
 });
 
 describe("ANA-B-01 — cadastro por pessoa e núcleo", () => {
@@ -39,8 +58,12 @@ describe("ANA-B-01 — cadastro por pessoa e núcleo", () => {
         pessoasExistentes: [{ id: "membro-adair", nome: "Adair Pinto Silveira Júnior" }],
       }),
     ).toMatch(/referência por ID/);
-    expect(bloqueioCriacaoPorNome({ pessoa_tipo: "titular", pessoa_nome: "Nova pessoa" })).toMatch(/pessoa_ref_id/);
-    expect(bloqueioCriacaoPorNome({ pessoa_tipo: "titular", pessoa_nome: "X", pessoa_ref_id: "m1" })).toBeNull();
+    expect(bloqueioCriacaoPorNome({ pessoa_tipo: "titular", pessoa_nome: "Nova pessoa" })).toMatch(
+      /pessoa_ref_id/,
+    );
+    expect(
+      bloqueioCriacaoPorNome({ pessoa_tipo: "titular", pessoa_nome: "X", pessoa_ref_id: "m1" }),
+    ).toBeNull();
   });
 
   it("3. Felipe persiste as FKs de pessoa e responsável legal", () => {
@@ -54,7 +77,9 @@ describe("ANA-B-01 — cadastro por pessoa e núcleo", () => {
   });
 
   it("5. Felipe participando sem representação documentada bloqueia", () => {
-    const codigos = bloqueiosDependentes([felipe({ participa_do_contrato: true })]).map((b) => b.codigo);
+    const codigos = bloqueiosDependentes([felipe({ participa_do_contrato: true })]).map(
+      (b) => b.codigo,
+    );
     expect(codigos).toContain("DEPENDENTE_REPRESENTACAO_PENDENTE");
     const semFk = bloqueiosDependentes([
       felipe({ possui_acesso_app: true, titular_responsavel_legal_id: null }),
@@ -75,7 +100,13 @@ describe("ANA-B-01 — cadastro por pessoa e núcleo", () => {
     expect(pendenciasNucleo(parcial).every((p) => Boolean(p.motivo))).toBe(true);
 
     const completo = avaliarNucleo({
-      nucleo: { id: "n1", contratante_nome: "Ana", dossie_mae: "DOSSIE-ANA", ambiente: "producao", nivel_acesso: "restrito" },
+      nucleo: {
+        id: "n1",
+        contratante_nome: "Ana",
+        dossie_mae: "DOSSIE-ANA",
+        ambiente: "producao",
+        nivel_acesso: "restrito",
+      },
       membros: [{ papel: "contratante_signatario" }],
       dependentes: [{ status_representacao: "documentada" }],
     });

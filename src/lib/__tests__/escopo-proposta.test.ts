@@ -45,8 +45,18 @@ describe("escopo da proposta Canva", () => {
       proposta: base,
       extraidos,
       valores: [
-        { campo: "servicos_incluidos", valor: "Pesquisa documental", origem: "proposta", status: "validado" },
-        { campo: "valor_total", valor: "R$ 30.000", origem: "whatsapp", status: "importado_a_confirmar" },
+        {
+          campo: "servicos_incluidos",
+          valor: "Pesquisa documental",
+          origem: "proposta",
+          status: "validado",
+        },
+        {
+          campo: "valor_total",
+          valor: "R$ 30.000",
+          origem: "whatsapp",
+          status: "importado_a_confirmar",
+        },
       ],
     });
     const porCampo = (c: string) => linhas.find((l) => l.campo === c)!;

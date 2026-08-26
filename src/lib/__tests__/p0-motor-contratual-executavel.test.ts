@@ -45,7 +45,8 @@ import { precoDeFonteHomologada, estadoMetodoAssinatura } from "@/lib/perfil-ins
 import { filtrarClientes, type PessoaLista } from "@/lib/clientes-lista";
 import { ANEXOS_FAMILIARES } from "@/lib/matriz-aceite";
 
-const clone = (): EntradaAnexosIaV => JSON.parse(JSON.stringify(ENTRADA_TESTE_ANEXOS)) as EntradaAnexosIaV;
+const clone = (): EntradaAnexosIaV =>
+  JSON.parse(JSON.stringify(ENTRADA_TESTE_ANEXOS)) as EntradaAnexosIaV;
 
 describe("P0 — motor contratual executável", () => {
   it("1. apenas MODELO-ESTUDO + BASE-GEN-V2 geram prévia", () => {
@@ -70,8 +71,19 @@ describe("P0 — motor contratual executável", () => {
 
   it("3. snapshot imutável só nasce em evento de governança", () => {
     const chave = chaveRascunho("ORG-TESTE", "CA-TESTE-000", "MODELO-ESTUDO");
-    let estado = aplicarAcaoRascunho(estadoInicial(), { chave, conteudo: { a: 1 }, em: "2026-01-01T10:00:00Z" });
-    const base = { chave, motivo: "teste", autor: "TESTE", em: "2026-01-02T10:00:00Z", versaoModelo: "MODELO-ESTUDO", perfilInstitucional: "v1" };
+    let estado = aplicarAcaoRascunho(estadoInicial(), {
+      chave,
+      conteudo: { a: 1 },
+      em: "2026-01-01T10:00:00Z",
+    });
+    const base = {
+      chave,
+      motivo: "teste",
+      autor: "TESTE",
+      em: "2026-01-02T10:00:00Z",
+      versaoModelo: "MODELO-ESTUDO",
+      perfilInstitucional: "v1",
+    };
     estado = registrarEventoGovernanca(estado, { ...base, evento: "salvar_campo" });
     expect(estado.snapshots).toHaveLength(0);
     estado = registrarEventoGovernanca(estado, { ...base, evento: "revisao_solicitada" });
@@ -92,7 +104,9 @@ describe("P0 — motor contratual executável", () => {
     for (const estado of ["arquivada", "substituida", "recusada", "expirada"] as const) {
       const r = propostaSatisfazGate({ ...e.proposta!, estado }, e.caseId);
       expect(r.ok).toBe(false);
-      expect(anexoIOrdemServico({ ...e, proposta: { ...e.proposta!, estado } }).gatesBloqueados).toContain("previa_final");
+      expect(
+        anexoIOrdemServico({ ...e, proposta: { ...e.proposta!, estado } }).gatesBloqueados,
+      ).toContain("previa_final");
     }
   });
 
@@ -114,7 +128,9 @@ describe("P0 — motor contratual executável", () => {
   });
 
   it("8. despesa externa não entra como receita/custo/reembolso padrão do Clube", () => {
-    expect(classificacaoFinanceiraDespesa()).toBe("nao_contabilizavel_como_receita_ou_custo_do_clube");
+    expect(classificacaoFinanceiraDespesa()).toBe(
+      "nao_contabilizavel_como_receita_ou_custo_do_clube",
+    );
   });
 
   it("9. Anexo III não cria pesquisa externa sem aceite específico", () => {
@@ -157,10 +173,15 @@ describe("P0 — motor contratual executável", () => {
   });
 
   it("13. preço não vem de WhatsApp, transcrição, template ou valor livre", () => {
-    for (const f of ["whatsapp", "transcricao", "template", "manual", null]) expect(precoDeFonteHomologada(f)).toBe(false);
-    for (const f of ["planilha_mestre", "planejador_homologado", "sku_homologado"]) expect(precoDeFonteHomologada(f)).toBe(true);
+    for (const f of ["whatsapp", "transcricao", "template", "manual", null])
+      expect(precoDeFonteHomologada(f)).toBe(false);
+    for (const f of ["planilha_mestre", "planejador_homologado", "sku_homologado"])
+      expect(precoDeFonteHomologada(f)).toBe(true);
     const e = clone();
-    const anexo = anexoIOrdemServico({ ...e, proposta: { ...e.proposta!, fontePreco: "whatsapp" } });
+    const anexo = anexoIOrdemServico({
+      ...e,
+      proposta: { ...e.proposta!, fontePreco: "whatsapp" },
+    });
     expect(anexo.campos.find((c) => c.rotulo.startsWith("4.1"))!.valor).toBeNull();
   });
 
@@ -209,16 +230,24 @@ describe("P0 — motor contratual executável", () => {
 
   it("17. nenhuma ação externa é disparada pelo motor", () => {
     const conteudo = JSON.stringify(anexosIaV(clone())).toLowerCase();
-    expect(conteudo).not.toMatch(/enviado para assinatura|assinado em|cobran[çc]a criada|e-mail enviado|whatsapp enviado|pedido protocolado/);
+    expect(conteudo).not.toMatch(
+      /enviado para assinatura|assinado em|cobran[çc]a criada|e-mail enviado|whatsapp enviado|pedido protocolado/,
+    );
     expect(previaTesteAssinavel()).toBe(false);
   });
 
   it("18. isolamento por organização está na chave do rascunho", () => {
-    expect(chaveRascunho("ORG-A", "CA-1", "MODELO-ESTUDO")).not.toBe(chaveRascunho("ORG-B", "CA-1", "MODELO-ESTUDO"));
+    expect(chaveRascunho("ORG-A", "CA-1", "MODELO-ESTUDO")).not.toBe(
+      chaveRascunho("ORG-B", "CA-1", "MODELO-ESTUDO"),
+    );
   });
 
   it("19. dados DEMO não viram fallback", () => {
-    const base = { archived_at: null, classificacao: "cliente", status: "ativo" } as unknown as PessoaLista;
+    const base = {
+      archived_at: null,
+      classificacao: "cliente",
+      status: "ativo",
+    } as unknown as PessoaLista;
     const pessoas = [
       { ...base, id: "1", nome: "TESTE Real", is_demo: false },
       { ...base, id: "2", nome: "TESTE Demo", is_demo: true },

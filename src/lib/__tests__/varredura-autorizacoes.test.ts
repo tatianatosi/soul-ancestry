@@ -36,7 +36,9 @@ describe("varredura de autorizações", () => {
   });
 
   it("toda ação externa pertence ao catálogo canônico e exige confirmação", () => {
-    const externas = AREAS_CANONICAS.flatMap((a) => a.acoes).filter((a) => a.natureza === "externa");
+    const externas = AREAS_CANONICAS.flatMap((a) => a.acoes).filter(
+      (a) => a.natureza === "externa",
+    );
     expect(externas.length).toBeGreaterThan(0);
     for (const acao of externas) {
       expect(ACOES_EXTERNAS as readonly string[]).toContain(acao.chave);
@@ -60,7 +62,12 @@ describe("varredura de autorizações", () => {
 
   it("exceção regularizada nunca é vencida e prazo sugerido respeita o tipo", () => {
     const base = new Date("2026-01-01T00:00:00.000Z");
-    expect(excecaoVencida({ valido_ate: "2025-01-01T00:00:00.000Z", regularizado_em: "2025-02-01" }, base)).toBe(false);
+    expect(
+      excecaoVencida(
+        { valido_ate: "2025-01-01T00:00:00.000Z", regularizado_em: "2025-02-01" },
+        base,
+      ),
+    ).toBe(false);
     expect(excecaoVencida({ valido_ate: "2025-01-01T00:00:00.000Z" }, base)).toBe(true);
     expect(excecaoVencida({ valido_ate: null }, base)).toBe(false);
 
@@ -130,9 +137,18 @@ describe("varredura final — áreas, exceções e documentos", () => {
 
   it("exceção reaparece na fila antes de expirar e nunca falsifica atos", () => {
     const agora = new Date("2026-01-10T00:00:00.000Z");
-    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-01-12T00:00:00.000Z" }, agora)).toBe(true);
-    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-02-12T00:00:00.000Z" }, agora)).toBe(false);
-    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-01-12T00:00:00.000Z", regularizado_em: "2026-01-11" }, agora)).toBe(false);
+    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-01-12T00:00:00.000Z" }, agora)).toBe(
+      true,
+    );
+    expect(excecaoDeveReaparecerNaFila({ valido_ate: "2026-02-12T00:00:00.000Z" }, agora)).toBe(
+      false,
+    );
+    expect(
+      excecaoDeveReaparecerNaFila(
+        { valido_ate: "2026-01-12T00:00:00.000Z", regularizado_em: "2026-01-11" },
+        agora,
+      ),
+    ).toBe(false);
     expect(EXCECAO_NUNCA_FALSIFICA).toContain("pagamento");
     expect(STATUS_EXCECAO).toEqual(["aberta", "regularizada", "expirada", "revogada"]);
     expect(CAMPOS_EXCECAO).toContain("responsavel_regularizacao");

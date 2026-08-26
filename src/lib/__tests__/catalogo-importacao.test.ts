@@ -12,7 +12,10 @@ import {
   selecionavelEmProposta,
 } from "@/lib/catalogo-importacao";
 
-const catalogoImportado = SKUS_TOP_PARETO.map((s) => ({ sku: s.sku, fonte_versao: FONTE_MESTRE_VERSAO }));
+const catalogoImportado = SKUS_TOP_PARETO.map((s) => ({
+  sku: s.sku,
+  fonte_versao: FONTE_MESTRE_VERSAO,
+}));
 
 describe("catálogo — fonte canônica", () => {
   it("mapa somente-leitura reflete a planilha mestre", () => {
@@ -45,7 +48,9 @@ describe("catálogo — fonte canônica", () => {
   });
 
   it("nova versão da fonte gera atualização controlada, sem apagar histórico", () => {
-    const p = previaImportacao(catalogoImportado.map((c) => ({ ...c, fonte_versao: "OFICIAL-1/antiga" })));
+    const p = previaImportacao(
+      catalogoImportado.map((c) => ({ ...c, fonte_versao: "OFICIAL-1/antiga" })),
+    );
     expect(p.resumo.atualizar).toBe(30);
     expect(p.linhas.every((l) => l.motivo === "Nova versão da fonte")).toBe(true);
   });
@@ -56,7 +61,12 @@ describe("catálogo — fonte canônica", () => {
 });
 
 describe("consumo pelo motor", () => {
-  const ativo = { sku: "CA-CID-001", status_fonte: "Ativo", status_produto: "ativo", preco_sugerido: 260 };
+  const ativo = {
+    sku: "CA-CID-001",
+    status_fonte: "Ativo",
+    status_produto: "ativo",
+    preco_sugerido: 260,
+  };
 
   it("SKU ativo importado pode ser selecionado em proposta", () => {
     expect(selecionavelEmProposta(ativo)).toEqual({ permitido: true, motivo: null });

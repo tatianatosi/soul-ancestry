@@ -53,7 +53,10 @@ const criterio = (over: Partial<CriterioRegistro> = {}): CriterioRegistro => ({
 
 describe("ANA-C-01 — condição comercial e consolidação", () => {
   it("1. produto sem homologador/data/vigência bloqueia a condição comercial", () => {
-    const eleg = avaliarElegibilidadePreco({ ...produtoOk, homologado_por: null, vigencia_inicio: null }, HOJE);
+    const eleg = avaliarElegibilidadePreco(
+      { ...produtoOk, homologado_por: null, vigencia_inicio: null },
+      HOJE,
+    );
     expect(eleg.elegivel).toBe(false);
     expect(eleg.uso_contratual_financeiro).toBe("bloqueado");
     const av = avaliarCondicao(condicaoCompleta, eleg);
@@ -85,7 +88,10 @@ describe("ANA-C-01 — condição comercial e consolidação", () => {
   it("3. critério pendente impede promoção do case service", () => {
     const eleg = avaliarElegibilidadePreco(produtoOk, HOJE);
     const prom = avaliarPromocaoCaseService({
-      criterios: [criterio(), criterio({ criterio_codigo: "CRIT-2", status: "pendente_decisao_humana" })],
+      criterios: [
+        criterio(),
+        criterio({ criterio_codigo: "CRIT-2", status: "pendente_decisao_humana" }),
+      ],
       condicao: avaliarCondicao(condicaoCompleta, eleg),
       referenciaContratualInterna: "REF-INTERNA-01",
       divergencias: [],
@@ -131,15 +137,27 @@ describe("ANA-C-01 — condição comercial e consolidação", () => {
 
   it("5. nenhum campo de preço pode ser gravado livremente", () => {
     const eleg = avaliarElegibilidadePreco(produtoOk, HOJE);
-    expect(validarGravacaoPreco({ campos: { preco_acordado: 8000 }, precoCatalogo: 9600, elegibilidade: eleg }).permitido).toBe(
-      false,
-    );
     expect(
-      validarGravacaoPreco({ campos: { valor_total_referencia: 9600 }, precoCatalogo: 9600, elegibilidade: eleg }).permitido,
+      validarGravacaoPreco({
+        campos: { preco_acordado: 8000 },
+        precoCatalogo: 9600,
+        elegibilidade: eleg,
+      }).permitido,
+    ).toBe(false);
+    expect(
+      validarGravacaoPreco({
+        campos: { valor_total_referencia: 9600 },
+        precoCatalogo: 9600,
+        elegibilidade: eleg,
+      }).permitido,
     ).toBe(true);
     const semHomolog = avaliarElegibilidadePreco({ ...produtoOk, homologado_em: null }, HOJE);
     expect(
-      validarGravacaoPreco({ campos: { preco_acordado: 9600 }, precoCatalogo: 9600, elegibilidade: semHomolog }).permitido,
+      validarGravacaoPreco({
+        campos: { preco_acordado: 9600 },
+        precoCatalogo: 9600,
+        elegibilidade: semHomolog,
+      }).permitido,
     ).toBe(false);
     expect(
       validarGravacaoPreco({

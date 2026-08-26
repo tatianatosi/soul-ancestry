@@ -124,7 +124,9 @@ describe("proposta estruturada e preço da fonte mestre", () => {
 
   it("bloqueia SKU sem referência da Planilha Mestre", () => {
     const p = { ...propostaValida(), preco_fonte_referencia: null };
-    expect(bloqueiosAprovacaoProposta(p, sku({ fonte_referencia: null })).length).toBeGreaterThan(0);
+    expect(bloqueiosAprovacaoProposta(p, sku({ fonte_referencia: null })).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("bloqueia proposta sem origem no planejador", () => {
@@ -151,7 +153,9 @@ describe("condição comercial e OS/Anexo I", () => {
   });
 
   it("OS sem condição comercial persistida é bloqueada", () => {
-    expect(bloqueiosOS(conteudoOSDaProposta(propostaValida(), null))).toContain("OS sem condição comercial persistida.");
+    expect(bloqueiosOS(conteudoOSDaProposta(propostaValida(), null))).toContain(
+      "OS sem condição comercial persistida.",
+    );
   });
 });
 

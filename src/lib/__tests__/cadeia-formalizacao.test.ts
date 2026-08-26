@@ -52,7 +52,11 @@ describe("cadeia de formalização", () => {
   });
 
   it("quebra apenas o texto declarado, sem inventar item", () => {
-    expect(quebrarEmItens("- Pesquisa\n- Dossiê; Tradução")).toEqual(["Pesquisa", "Dossiê", "Tradução"]);
+    expect(quebrarEmItens("- Pesquisa\n- Dossiê; Tradução")).toEqual([
+      "Pesquisa",
+      "Dossiê",
+      "Tradução",
+    ]);
     expect(quebrarEmItens(null)).toEqual([]);
   });
 
@@ -176,7 +180,9 @@ describe("cadeia de formalização", () => {
       assinaturaRegistradaEm: null,
       hoje: new Date("2026-08-22"),
     });
-    expect(r.elos.filter((e) => e.chave !== "assinatura").every((e) => e.estado === "ok")).toBe(true);
+    expect(r.elos.filter((e) => e.chave !== "assinatura").every((e) => e.estado === "ok")).toBe(
+      true,
+    );
     expect(r.assinaturaLiberada).toBe(true);
     expect(r.elos.at(-1)?.estado).toBe("pendente");
   });

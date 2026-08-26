@@ -80,9 +80,15 @@ describe("ampliação para todas as áreas do Desk", () => {
   });
 
   it("mantém cobrança e publicação como confirmação final, nunca operação direta", () => {
-    const cobranca = validarOperacaoModulo("admin", { modulo: "financeiro", operacao: "emitir_cobranca" });
+    const cobranca = validarOperacaoModulo("admin", {
+      modulo: "financeiro",
+      operacao: "emitir_cobranca",
+    });
     expect(cobranca.valida).toBe(false);
-    const publicar = validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: "publicar_no_app_cliente" });
+    const publicar = validarOperacaoModulo("admin", {
+      modulo: "app_cliente",
+      operacao: "publicar_no_app_cliente",
+    });
     expect(publicar.valida).toBe(false);
   });
 
@@ -94,20 +100,33 @@ describe("ampliação para todas as áreas do Desk", () => {
 describe("regra geral aplicada área a área", () => {
   it("permite vincular plano, revisar Canva, derivar versão congelada e aprovar achado interno", () => {
     expect(operacaoDoModulo("planejador", "vincular_plano")?.entidade).toBe("case_plans");
-    expect(operacaoDoModulo("proposta_escopo", "revisar_paginas_canva")?.entidade).toBe("proposal_canva_pages");
-    expect(operacaoDoModulo("formalizacao", "derivar_versao_congelada")?.entidade).toBe("contract_versions");
+    expect(operacaoDoModulo("proposta_escopo", "revisar_paginas_canva")?.entidade).toBe(
+      "proposal_canva_pages",
+    );
+    expect(operacaoDoModulo("formalizacao", "derivar_versao_congelada")?.entidade).toBe(
+      "contract_versions",
+    );
     expect(operacaoDoModulo("pesquisa_operacao", "aprovar_evidencia_interna")?.entidade).toBe(
       "genealogical_findings",
     );
   });
 
   it("bloqueia qualquer operação do App Cliente sobre dado TESTE/DEMO", () => {
-    for (const op of ["editar_projecao_app", "aprovar_projecao_app", "definir_destinatario_visibilidade"]) {
-      const r = validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: op, dados_teste: true });
+    for (const op of [
+      "editar_projecao_app",
+      "aprovar_projecao_app",
+      "definir_destinatario_visibilidade",
+    ]) {
+      const r = validarOperacaoModulo("admin", {
+        modulo: "app_cliente",
+        operacao: op,
+        dados_teste: true,
+      });
       expect(r.valida).toBe(false);
     }
     expect(
-      validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: "aprovar_projecao_app" }).valida,
+      validarOperacaoModulo("admin", { modulo: "app_cliente", operacao: "aprovar_projecao_app" })
+        .valida,
     ).toBe(true);
   });
 

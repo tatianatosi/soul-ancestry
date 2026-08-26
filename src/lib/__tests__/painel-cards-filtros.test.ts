@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { aplicarFiltrosDia, cadenciaRelevante, cardsHoje, consolidarDia, itensNaoExibidos, opcoesFiltroDia } from "@/lib/painel-dia";
+import {
+  aplicarFiltrosDia,
+  cadenciaRelevante,
+  cardsHoje,
+  consolidarDia,
+  itensNaoExibidos,
+  opcoesFiltroDia,
+} from "@/lib/painel-dia";
 
 const item = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -16,7 +23,12 @@ const item = (id: string, extra: Record<string, unknown> = {}) => ({
 
 const filas = [
   { chave: "acoes_vencidas", rotulo: "Ações vencidas", criticidade: 1, itens: [item("l1")] },
-  { chave: "contratos_enviados_pendentes", rotulo: "Contratos", criticidade: 2, itens: [item("l2", { rotulo: "demo João" })] },
+  {
+    chave: "contratos_enviados_pendentes",
+    rotulo: "Contratos",
+    criticidade: 2,
+    itens: [item("l2", { rotulo: "demo João" })],
+  },
 ] as never[];
 
 describe("cards e filtros do Painel Hoje", () => {
@@ -56,7 +68,12 @@ describe("cards e filtros do Painel Hoje", () => {
   it("conta registro distinto, não ocorrência, em exceções críticas", () => {
     const mesmo = item("dup", { rotulo: "Lead travado" });
     const emDuasFilas = [
-      { chave: "contratos_enviados_pendentes", rotulo: "Contratos", criticidade: 2, itens: [mesmo] },
+      {
+        chave: "contratos_enviados_pendentes",
+        rotulo: "Contratos",
+        criticidade: 2,
+        itens: [mesmo],
+      },
       { chave: "pagamentos_aguardados", rotulo: "Pagamentos", criticidade: 2, itens: [mesmo] },
     ] as never[];
     expect(cardsHoje(emDuasFilas).find((c) => c.chave === "excecoes_criticas")?.total).toBe(1);
@@ -70,7 +87,11 @@ describe("cards e filtros do Painel Hoje", () => {
 
   it("deriva opções de filtro dos próprios itens e restringe a fila", () => {
     const itens = consolidarDia(filas);
-    expect(opcoesFiltroDia(itens)).toEqual({ responsaveis: ["Tati"], areas: ["comercial"], etapas: ["proposta_enviada"] });
+    expect(opcoesFiltroDia(itens)).toEqual({
+      responsaveis: ["Tati"],
+      areas: ["comercial"],
+      etapas: ["proposta_enviada"],
+    });
     expect(aplicarFiltrosDia(itens, { area: "operacoes" })).toHaveLength(0);
     expect(aplicarFiltrosDia(itens, { area: "comercial", responsavel: "Tati" })).toHaveLength(1);
   });

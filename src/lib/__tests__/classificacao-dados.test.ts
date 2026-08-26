@@ -71,7 +71,9 @@ describe("P0.2 — classificação de origem", () => {
     expect(normalizarClassificacao(undefined)).toBe("nao_classificado");
     expect(bloqueadoParaCliente({ id: "s" } as never)).toBe(true);
     // nunca promove a real por omissão
-    expect(classificarLinha({ id: "s", origem_confirmada: false } as never)).toBe("nao_classificado");
+    expect(classificarLinha({ id: "s", origem_confirmada: false } as never)).toBe(
+      "nao_classificado",
+    );
     expect(classificarLinha({ id: "s", origem_confirmada: true } as never)).toBe("real");
   });
 

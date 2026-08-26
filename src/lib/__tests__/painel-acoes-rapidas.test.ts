@@ -4,7 +4,9 @@ import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 
 describe("visibilidade das ações rápidas da proprietária", () => {
   it("exibe para a sessão de proprietária administradora", () => {
-    expect(podeExibirAcoesRapidas({ ativo: true, papel: "proprietaria_administradora" })).toBe(true);
+    expect(podeExibirAcoesRapidas({ ativo: true, papel: "proprietaria_administradora" })).toBe(
+      true,
+    );
   });
 
   it("exibe para o portador do papel na organização (admin)", () => {

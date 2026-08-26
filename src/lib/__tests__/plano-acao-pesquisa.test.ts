@@ -34,12 +34,20 @@ describe("G-07B plano de ação de pesquisa", () => {
   it("2. ação aguardando resposta sem next_check_at é negada", () => {
     const erros = validarItemPlano({ ...base, status: "aguardando_resposta" });
     expect(erros).toContain("Item aguardando resposta exige data de próxima rechecagem.");
-    expect(validarItemPlano({ ...base, status: "aguardando_resposta", next_check_at: "2026-08-27" })).toEqual([]);
+    expect(
+      validarItemPlano({ ...base, status: "aguardando_resposta", next_check_at: "2026-08-27" }),
+    ).toEqual([]);
   });
 
   it("3. ação realizada sem resultado interno é negada; com resultado gera interação imutável", () => {
-    expect(validarItemPlano({ ...base, status: "realizada" })).toContain("Registre o resultado interno da ação realizada.");
-    const valido = { ...base, status: "realizada" as const, contact_result_internal: "Atendente confirmou acervo." };
+    expect(validarItemPlano({ ...base, status: "realizada" })).toContain(
+      "Registre o resultado interno da ação realizada.",
+    );
+    const valido = {
+      ...base,
+      status: "realizada" as const,
+      contact_result_internal: "Atendente confirmou acervo.",
+    };
     expect(validarItemPlano(valido)).toEqual([]);
     const rascunho = rascunhoComunicacao(valido);
     expect(rascunho.status).toBe("draft_created");
@@ -47,7 +55,12 @@ describe("G-07B plano de ação de pesquisa", () => {
   });
 
   it("4. estimativa de terceiro calcula faixa e não cria lançamento financeiro", () => {
-    const calc = calcularEstimativa({ quantity: 2, unit_price_min: 80, unit_price_max: 120, currency: "BRL" });
+    const calc = calcularEstimativa({
+      quantity: 2,
+      unit_price_min: 80,
+      unit_price_max: 120,
+      currency: "BRL",
+    });
     expect(calc.estimated_total_min).toBe(160);
     expect(calc.estimated_total_max).toBe(240);
     expect(calc.geraLancamentoFinanceiro).toBe(false);
@@ -59,7 +72,9 @@ describe("G-07B plano de ação de pesquisa", () => {
     expect(externo.estado).toBe("draft_created");
     expect(externo.requerAprovacaoHumana).toBe(true);
     expect(externo.podeEnviarPelaUI).toBe(false);
-    expect(estadoComunicacaoUI({ ...base, suggested_channel: "desk_only" }).estado).toBe("sem_comunicacao");
+    expect(estadoComunicacaoUI({ ...base, suggested_channel: "desk_only" }).estado).toBe(
+      "sem_comunicacao",
+    );
   });
 
   it("6. fixture não aparece no Painel Hoje", () => {
@@ -72,7 +87,13 @@ describe("G-07B plano de ação de pesquisa", () => {
       [
         base,
         { ...base, id: "a2", due_date: "2026-08-24", priority: "alta" },
-        { ...base, id: "a3", status: "aguardando_resposta", next_check_at: "2026-08-19", due_date: null },
+        {
+          ...base,
+          id: "a3",
+          status: "aguardando_resposta",
+          next_check_at: "2026-08-19",
+          due_date: null,
+        },
         { ...base, id: "a4", status: "concluida", contact_result_internal: "ok" },
       ],
       HOJE,

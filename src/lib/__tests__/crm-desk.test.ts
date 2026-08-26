@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { calcularMetricasCrm, montarFilasHoje, resultadoComercialDerivado, validarLead, type LeadDesk } from "@/lib/crm-desk";
+import {
+  calcularMetricasCrm,
+  montarFilasHoje,
+  resultadoComercialDerivado,
+  validarLead,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 import { bloqueiosDependentes, participaDeFormalizacao, type Dependente } from "@/lib/dependentes";
-import { TEMAS_JURIDICOS, podeGerarClausula, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
+import {
+  TEMAS_JURIDICOS,
+  podeGerarClausula,
+  temasBloqueantesPendentes,
+  type LinhaMatriz,
+} from "@/lib/matriz-juridica";
 
 const base: LeadDesk = {
   nome: "Teste",
@@ -25,13 +36,22 @@ describe("CRM desk — listas controladas e travas", () => {
   });
 
   it("exige responsável e próxima ação em lead ativo", () => {
-    const erros = validarLead({ ...base, responsavel_nome: null, proxima_acao: null, proxima_acao_em: null });
-    expect(erros.map((e) => e.campo)).toEqual(expect.arrayContaining(["responsavel_nome", "proxima_acao", "proxima_acao_em"]));
+    const erros = validarLead({
+      ...base,
+      responsavel_nome: null,
+      proxima_acao: null,
+      proxima_acao_em: null,
+    });
+    expect(erros.map((e) => e.campo)).toEqual(
+      expect.arrayContaining(["responsavel_nome", "proxima_acao", "proxima_acao_em"]),
+    );
   });
 
   it("exige resumo validado e resultado após Discovery", () => {
     const erros = validarLead({ ...base, eixo_comercial: "discovery_realizada" });
-    expect(erros.map((e) => e.campo)).toEqual(expect.arrayContaining(["discovery_resultado", "resumo_validado"]));
+    expect(erros.map((e) => e.campo)).toEqual(
+      expect.arrayContaining(["discovery_resultado", "resumo_validado"]),
+    );
   });
 
   it("exige referência do Asaas para pagamento inicial confirmado", () => {
@@ -54,7 +74,9 @@ describe("CRM desk — listas controladas e travas", () => {
   });
 
   it("deriva o resultado comercial sem substituir os eixos", () => {
-    expect(resultadoComercialDerivado({ ...base, eixo_formalizacao: "caso_ativo" })).toContain("Ganho");
+    expect(resultadoComercialDerivado({ ...base, eixo_formalizacao: "caso_ativo" })).toContain(
+      "Ganho",
+    );
     expect(resultadoComercialDerivado({ ...base, eixo_comercial: "perdido" })).toBe("Perdido");
   });
 });
@@ -62,8 +84,22 @@ describe("CRM desk — listas controladas e travas", () => {
 describe("Painel Hoje e métricas", () => {
   const hoje = new Date("2026-08-19T12:00:00Z");
   const leads: LeadDesk[] = [
-    { ...base, id: "1", codigo: "CA-LEAD-2026-0001", proxima_acao_em: "2026-08-10", created_at: "2026-08-01T00:00:00Z", origem: "indicacao" },
-    { ...base, id: "2", codigo: "CA-LEAD-2026-0002", proxima_acao_em: "2026-08-19", created_at: "2026-08-05T00:00:00Z", origem: "indicacao" },
+    {
+      ...base,
+      id: "1",
+      codigo: "CA-LEAD-2026-0001",
+      proxima_acao_em: "2026-08-10",
+      created_at: "2026-08-01T00:00:00Z",
+      origem: "indicacao",
+    },
+    {
+      ...base,
+      id: "2",
+      codigo: "CA-LEAD-2026-0002",
+      proxima_acao_em: "2026-08-19",
+      created_at: "2026-08-05T00:00:00Z",
+      origem: "indicacao",
+    },
   ];
 
   it("ordena filas por criticidade e coloca vencidas primeiro", () => {
@@ -101,7 +137,9 @@ describe("Dependentes", () => {
   });
 
   it("acesso ao App exige representação documentada", () => {
-    const b = bloqueiosDependentes([{ ...d, possui_acesso_app: true, status_representacao: "nao_aplicavel" }]);
+    const b = bloqueiosDependentes([
+      { ...d, possui_acesso_app: true, status_representacao: "nao_aplicavel" },
+    ]);
     expect(b.some((x) => x.codigo === "DEPENDENTE_APP_SEM_REPRESENTACAO")).toBe(true);
   });
 });
@@ -131,6 +169,9 @@ describe("Matriz jurídica", () => {
 
   it("tema aprovado sem versão jurídica também não gera cláusula", () => {
     expect(podeGerarClausula({ ...linhas[0], status: "aprovado" }).permitido).toBe(false);
-    expect(podeGerarClausula({ ...linhas[0], status: "aprovado", versao_juridica_aplicavel: "v1" }).permitido).toBe(true);
+    expect(
+      podeGerarClausula({ ...linhas[0], status: "aprovado", versao_juridica_aplicavel: "v1" })
+        .permitido,
+    ).toBe(true);
   });
 });

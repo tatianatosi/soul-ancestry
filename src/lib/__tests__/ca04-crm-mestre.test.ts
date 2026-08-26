@@ -36,21 +36,44 @@ describe("CA-04 — regras de dependência e bloqueio", () => {
   });
 
   it("bloqueia link de gravação com consentimento recusado ou não solicitado", () => {
-    expect(avaliarBloqueiosCA04({ consentimentoGravacao: "Recusado", linkGravacao: "x" }).some((x) => x.regra === 3)).toBe(true);
-    expect(avaliarBloqueiosCA04({ consentimentoGravacao: "Não solicitado", linkGravacao: "x" }).some((x) => x.regra === 4)).toBe(true);
+    expect(
+      avaliarBloqueiosCA04({ consentimentoGravacao: "Recusado", linkGravacao: "x" }).some(
+        (x) => x.regra === 3,
+      ),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCA04({ consentimentoGravacao: "Não solicitado", linkGravacao: "x" }).some(
+        (x) => x.regra === 4,
+      ),
+    ).toBe(true);
   });
 
   it("exige data, canal e versão do aviso quando o consentimento é concedido", () => {
-    expect(avaliarBloqueiosCA04({ consentimentoGravacao: "Concedido" }).some((x) => x.regra === 5)).toBe(true);
+    expect(
+      avaliarBloqueiosCA04({ consentimentoGravacao: "Concedido" }).some((x) => x.regra === 5),
+    ).toBe(true);
   });
 
   it("bloqueia pesquisa aplicável sem autorização registrada", () => {
-    expect(avaliarBloqueiosCA04({ pesquisaAplicavel: true, autorizacaoPesquisaPrevia: "Pendente" }).some((x) => x.regra === 10)).toBe(true);
-    expect(avaliarBloqueiosCA04({ pesquisaAplicavel: true, autorizacaoPesquisaPrevia: "Registrada" }).some((x) => x.regra === 10)).toBe(false);
+    expect(
+      avaliarBloqueiosCA04({ pesquisaAplicavel: true, autorizacaoPesquisaPrevia: "Pendente" }).some(
+        (x) => x.regra === 10,
+      ),
+    ).toBe(true);
+    expect(
+      avaliarBloqueiosCA04({
+        pesquisaAplicavel: true,
+        autorizacaoPesquisaPrevia: "Registrada",
+      }).some((x) => x.regra === 10),
+    ).toBe(false);
   });
 
   it("não aceita pagamento confirmado sem referência transacional", () => {
-    expect(avaliarBloqueiosCA04({ eixoFormalizacao: "Pagamento inicial confirmado" }).some((x) => x.regra === 14)).toBe(true);
+    expect(
+      avaliarBloqueiosCA04({ eixoFormalizacao: "Pagamento inicial confirmado" }).some(
+        (x) => x.regra === 14,
+      ),
+    ).toBe(true);
   });
 
   it("registro completo não gera bloqueio", () => {
@@ -68,13 +91,18 @@ describe("CA-04 — regras de dependência e bloqueio", () => {
 
 describe("CA-04 — derivação do resultado comercial", () => {
   it("nunca deriva Convertido sem a decisão humana pendente", () => {
-    const r = derivarResultadoComercial({ eixoComercial: "Negociação", eixoFormalizacao: "Cliente ativo" });
+    const r = derivarResultadoComercial({
+      eixoComercial: "Negociação",
+      eixoFormalizacao: "Cliente ativo",
+    });
     expect(r.resultado).not.toBe("Convertido");
     expect(r.dependeDecisaoHumana).toBe(true);
   });
 
   it("desdobra perda pelo motivo registrado", () => {
-    expect(derivarResultadoComercial({ eixoComercial: "Perdido", motivoPerda: "Preço" }).resultado).toBe("Perdido — preço");
+    expect(
+      derivarResultadoComercial({ eixoComercial: "Perdido", motivoPerda: "Preço" }).resultado,
+    ).toBe("Perdido — preço");
   });
 
   it("mantém Em aberto antes da proposta", () => {
@@ -104,7 +132,9 @@ describe("CA-04 — estados, discovery e handoff", () => {
   it("handoff termina no cliente somente após aprovação humana", () => {
     expect(MATRIZ_HANDOFF_CA04).toHaveLength(5);
     expect(MATRIZ_HANDOFF_CA04.at(-1)?.condicaoAprovacao).toMatch(/Revisão humana obrigatória/);
-    expect(BRIEF_DISCOVERY.some((c) => c.campo === "Sinal de aderência preliminar" && c.retornaAoCrm)).toBe(true);
+    expect(
+      BRIEF_DISCOVERY.some((c) => c.campo === "Sinal de aderência preliminar" && c.retornaAoCrm),
+    ).toBe(true);
   });
 
   it("mantém as 13 decisões humanas pendentes", () => {

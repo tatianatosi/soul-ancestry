@@ -24,6 +24,25 @@ export type CasoNaJornada = {
   cadencia?: { status?: string | null; diasSemTouchpoint?: number | null } | null;
 };
 
+/**
+ * Cores do medidor de etapa.
+ *
+ * Rampa ordinal de uma matiz só, validada contra a superfície clara: o trilho
+ * (#9DB4CC) passa em 2.08:1 e o preenchimento é o navy da marca. O
+ * preenchimento carrega a severidade — navy, ouro, terracota —, e o trilho
+ * continua o mesmo, para o estado ser lido na barra inteira.
+ *
+ * Oito matizes distinguíveis não passam na validação (ΔL entre passos adjacentes
+ * fica abaixo do piso), e acima de ~7 classes a resposta deixa de ser cor. Por
+ * isso: medidor de uma matiz por etapa, e ênfase só onde há o que olhar.
+ */
+export const MEDIDOR = {
+  trilho: "#9DB4CC",
+  normal: "#2F4B6E",
+  atencao: "#FCB73A",
+  critico: "#9A3A2F",
+} as const;
+
 export type EtapaJornada = {
   id: string;
   rotulo: string;
@@ -37,6 +56,10 @@ export type EtapaJornada = {
   piorEspera: number | null;
   /** Um caso concreto para abrir, escolhido pela pior espera. */
   exemplo: { id: string; rotulo: string; dias: number | null } | null;
+  /** Fatia da carteira nesta etapa, de 0 a 1. Medidor, não estimativa. */
+  fatia: number;
+  /** Cor do preenchimento do medidor; a severidade mora no fill. */
+  tomMedidor: (typeof MEDIDOR)[keyof typeof MEDIDOR];
 };
 
 export type LeituraJornada = {
@@ -85,6 +108,8 @@ export function lerJornada(casos: readonly CasoNaJornada[] = []): LeituraJornada
     else fora.set(bruta, (fora.get(bruta) ?? 0) + 1);
   }
 
+  const total = casos.length;
+
   const etapas = FASES_JORNADA.map((f, i) => {
     const lista = porEtapa.get(norm(f.id)) ?? [];
     const comDias = lista
@@ -104,6 +129,12 @@ export function lerJornada(casos: readonly CasoNaJornada[] = []): LeituraJornada
       }).length,
       piorEspera: pior?.dias ?? null,
       exemplo: pior ? { id: pior.c.id, rotulo: rotuloDoCaso(pior.c), dias: pior.dias } : null,
+      fatia: total > 0 ? lista.length / total : 0,
+      tomMedidor: lista.some((c) => c.cadencia?.status === "critico")
+        ? MEDIDOR.critico
+        : lista.some((c) => c.cadencia?.status === "atencao")
+          ? MEDIDOR.atencao
+          : MEDIDOR.normal,
     } satisfies EtapaJornada;
   });
 
@@ -113,7 +144,7 @@ export function lerJornada(casos: readonly CasoNaJornada[] = []): LeituraJornada
       .map(([fase, total]) => ({ fase, total }))
       .sort((a, b) => b.total - a.total),
     semFase,
-    total: casos.length,
+    total,
   };
 }
 

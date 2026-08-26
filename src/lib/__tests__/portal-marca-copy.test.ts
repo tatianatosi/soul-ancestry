@@ -15,8 +15,12 @@ import {
 const RAIZ = process.cwd();
 
 function arquivosDoCliente(): string[] {
-  const rotas = readdirSync(join(RAIZ, "src/routes/portal")).map((f) => join("src/routes/portal", f));
-  const comps = readdirSync(join(RAIZ, "src/components/portal")).map((f) => join("src/components/portal", f));
+  const rotas = readdirSync(join(RAIZ, "src/routes/portal")).map((f) =>
+    join("src/routes/portal", f),
+  );
+  const comps = readdirSync(join(RAIZ, "src/components/portal")).map((f) =>
+    join("src/components/portal", f),
+  );
   const emails = readdirSync(join(RAIZ, "src/lib/email-templates"))
     .filter((f) => f.endsWith(".tsx"))
     .map((f) => join("src/lib/email-templates", f));

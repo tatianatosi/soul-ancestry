@@ -22,9 +22,9 @@ describe("CA-06 — Catálogo Operacional 30", () => {
   it("registra os 61 itens fora do catálogo com a distribuição declarada", () => {
     expect(FORA_DO_CATALOGO_30).toHaveLength(61);
     expect(resumoForaCatalogo()).toEqual({
-      "ARQUIVAR_HISTÓRICO": 19,
+      ARQUIVAR_HISTÓRICO: 19,
       FASE_2: 18,
-      "PENDENTE_DE_VALIDAÇÃO": 13,
+      PENDENTE_DE_VALIDAÇÃO: 13,
       FUNDIR: 11,
     });
   });

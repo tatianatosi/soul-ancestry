@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { ROTEIRO_DISCOVERY, marcoUsavelExternamente, pesquisaExternaPermitida, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import {
+  ROTEIRO_DISCOVERY,
+  marcoUsavelExternamente,
+  pesquisaExternaPermitida,
+  sinaisQualidadeLead,
+} from "@/lib/discovery-roteiro";
 import { validarLead, type LeadDesk } from "@/lib/crm-desk";
 
 const base: LeadDesk = { nome: "Teste" } as LeadDesk;
@@ -22,7 +27,11 @@ describe("Roteiro vivo de Discovery", () => {
   it("exige data, canal e versão do aviso quando o consentimento é concedido", () => {
     const erros = validarLead({ ...base, consentimento_status: "concedido" });
     expect(erros.map((e) => e.campo)).toEqual(
-      expect.arrayContaining(["consentimento_em", "consentimento_canal", "consentimento_versao_aviso"]),
+      expect.arrayContaining([
+        "consentimento_em",
+        "consentimento_canal",
+        "consentimento_versao_aviso",
+      ]),
     );
   });
 
@@ -30,7 +39,9 @@ describe("Roteiro vivo de Discovery", () => {
     const erros = validarLead({ ...base, pesquisa_previa_escopo: ["triagem_publica"] });
     expect(erros.some((e) => e.campo === "pesquisa_previa_escopo")).toBe(true);
     expect(pesquisaExternaPermitida(base)).toBe(false);
-    expect(pesquisaExternaPermitida({ ...base, pesquisa_previa_autorizacao: "registrada" })).toBe(true);
+    expect(pesquisaExternaPermitida({ ...base, pesquisa_previa_autorizacao: "registrada" })).toBe(
+      true,
+    );
   });
 
   it("marco a revisar nunca sustenta comunicação externa", () => {

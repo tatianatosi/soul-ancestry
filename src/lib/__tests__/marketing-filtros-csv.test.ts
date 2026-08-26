@@ -33,13 +33,17 @@ describe("filtros de marketing", () => {
     };
     const r = filtrarEntrada(entrada, { periodo: "7d", canal: "todos" }, agora);
     expect(r.leads).toHaveLength(1);
-    expect(filtrarEntrada(entrada, { periodo: "tudo", canal: "todos" }, agora).leads).toHaveLength(2);
+    expect(filtrarEntrada(entrada, { periodo: "tudo", canal: "todos" }, agora).leads).toHaveLength(
+      2,
+    );
   });
 
   it("segmenta por canal e expõe o balde sem atribuição", () => {
     const entrada = { ...vazia, leads: [{ origem: "indicacao" }, {}] as never };
     expect(canaisDisponiveis(entrada).map((c) => c.valor)).toContain(CANAL_SEM_ATRIBUICAO);
-    expect(filtrarEntrada(entrada, { periodo: "tudo", canal: "indicacao" }, agora).leads).toHaveLength(1);
+    expect(
+      filtrarEntrada(entrada, { periodo: "tudo", canal: "indicacao" }, agora).leads,
+    ).toHaveLength(1);
   });
 });
 
@@ -48,7 +52,9 @@ describe("explicação de CAC, ROI e ROAS", () => {
     const cac = explicarMetrica("cac", vazia);
     expect(cac.faltantes.length).toBeGreaterThan(0);
     expect(cac.tooltip).toContain("Faltam:");
-    expect(explicarMetrica("roas", vazia).faltantes.some((f) => f.campo.includes("receita"))).toBe(true);
+    expect(explicarMetrica("roas", vazia).faltantes.some((f) => f.campo.includes("receita"))).toBe(
+      true,
+    );
   });
 });
 

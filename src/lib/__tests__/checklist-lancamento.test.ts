@@ -41,7 +41,12 @@ describe("P0.3 — checklist de lançamento controlado", () => {
 
   it("2. o aceite exige ação explícita (decisão, responsável, motivo) e é auditado", () => {
     expect(
-      validarDecisaoLancamento({ decisao: null, responsavel: "", motivo: "", cienteDosPendentes: false }),
+      validarDecisaoLancamento({
+        decisao: null,
+        responsavel: "",
+        motivo: "",
+        cienteDosPendentes: false,
+      }),
     ).toHaveLength(3);
 
     expect(

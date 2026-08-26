@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { htmlImpressaoPainelContextual, resumoTextoPainelContextual } from "@/lib/cadeia-jornada-pdf";
+import {
+  htmlImpressaoPainelContextual,
+  resumoTextoPainelContextual,
+} from "@/lib/cadeia-jornada-pdf";
 import {
   descreverCadeia,
   detalharElo,
@@ -10,7 +13,11 @@ import {
   proximaAcaoDoPainel,
   type EloDerivado,
 } from "@/lib/cadeia-jornada-visao";
-import { ELOS_CADEIA, executarCadeiaJornada, type ResultadoCadeia } from "@/lib/orquestracao-jornada";
+import {
+  ELOS_CADEIA,
+  executarCadeiaJornada,
+  type ResultadoCadeia,
+} from "@/lib/orquestracao-jornada";
 
 const HOJE = "2026-08-24";
 
@@ -164,7 +171,9 @@ describe("botão Copiar resumo — clipboard e fallback acessível", () => {
   });
 
   it("trata rejeição/indisponibilidade do clipboard com fallback, nunca deixando o clique sem retorno", () => {
-    expect(componente).toMatch(/try\s*{\s*await navigator\.clipboard\.writeText\(texto\);[\s\S]*?}\s*catch\s*{/);
+    expect(componente).toMatch(
+      /try\s*{\s*await navigator\.clipboard\.writeText\(texto\);[\s\S]*?}\s*catch\s*{/,
+    );
     expect(componente).toContain('setCopiado("erro")');
   });
 
@@ -194,7 +203,9 @@ describe("prévia de PDF em diálogo com iframe (PROMPT painel contextual)", () 
 
   it("Fechar encerra a prévia e devolve o foco ao gatilho que a abriu", () => {
     expect(componente).toContain("gatilhoPreviaRef.current = e.currentTarget");
-    expect(componente).toMatch(/fecharPrevia = useCallback\(\(\) => \{\s*setPrevia\(false\);\s*gatilhoPreviaRef\.current\?\.focus\(\);/);
+    expect(componente).toMatch(
+      /fecharPrevia = useCallback\(\(\) => \{\s*setPrevia\(false\);\s*gatilhoPreviaRef\.current\?\.focus\(\);/,
+    );
     expect(componente).toContain('aria-label="Fechar prévia do PDF"');
   });
 
@@ -207,7 +218,9 @@ describe("prévia de PDF em diálogo com iframe (PROMPT painel contextual)", () 
   it("Tab e Shift+Tab ficam presos dentro do drawer e da prévia (mesma função de trap para os dois)", () => {
     expect(componente).toContain("prenderFoco(painelDrawerRef.current, e)");
     expect(componente).toContain("prenderFoco(previaRef.current, e)");
-    expect(componente).toMatch(/const prenderFoco = \(container: HTMLElement \| null, e: KeyboardEvent\)/);
+    expect(componente).toMatch(
+      /const prenderFoco = \(container: HTMLElement \| null, e: KeyboardEvent\)/,
+    );
   });
 });
 
