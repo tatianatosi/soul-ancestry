@@ -31,6 +31,7 @@ import {
 
 const ATALHOS = [
   { para: "/painel", rotulo: "Painel de hoje" },
+  { para: "/app-cliente-demo", rotulo: "Ver como cliente" },
   { para: "/casos", rotulo: "Casos" },
   { para: "/leads", rotulo: "Leads e comercial" },
   { para: "/contratos", rotulo: "Contratos" },
