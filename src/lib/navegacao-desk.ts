@@ -88,7 +88,11 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Calls Discovery" },
       { grupo: "CRM" },
-      { to: "/leads", hash: "crm-contatos", label: "CRM, contatos e interações" },
+      // 27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). O
+      // modelo de contatos/oportunidades (0 registros desde 21/08) saiu do
+      // menu, seguindo o mesmo padrão dos painéis históricos: link direto
+      // em /leads (id="crm-contatos"), sem entrada em nav/atalhos/descoberta.
+      // Preservado em /historico/fluxo-comercial-canonico.
       { to: "/crm-mestre", label: "CRM Mestre, Discovery e handoff" },
       {
         to: "/governanca/dicionario-calls-crm",

@@ -4,11 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
-import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
-import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -878,23 +876,21 @@ function LeadsPage() {
         </div>
       </div>
 
-      <div className="mt-6 space-y-3">
-        <h2 className="font-serif text-xl text-navy">Fluxo comercial canônico</h2>
-        <p className="text-xs text-navy/55">
-          Contatos, oportunidades, Discovery, aceite verbal e confirmação formal. Nenhum registro aqui cria contrato, cobrança,
-          assinatura, onboarding, pesquisa externa ou App Cliente.
-        </p>
-        <FluxoComercialCanonico />
-      </div>
-
-      <div id="crm-contatos" className="mt-6 scroll-mt-24 space-y-3">
-        <h2 className="font-serif text-xl text-navy">Contatos, conversas e eventos de funil</h2>
-        <p className="text-xs text-navy/55">
-          Núcleo operacional canônico do Desk. Conversas são imutáveis e eventos sensíveis exigem confirmação humana e evidência
-          interna. Nada aqui envia mensagem nem gera ato externo.
-        </p>
-        <PainelCanonicoCrm podeEscrever={podeEscrever} />
-      </div>
+      {/*
+        27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). Fluxo
+        comercial canônico (contacts/opportunities) e o painel de contatos
+        rodavam em paralelo aqui, dentro do CRM que ela usa de verdade —
+        0 registros gravados desde 21/08, confirmado no banco. Saíram para
+        /historico/fluxo-comercial-canonico: nada foi apagado, só parou de
+        competir visualmente com o CRM real desta tela.
+      */}
+      <p id="crm-contatos" className="mt-6 scroll-mt-24 rounded-lg border border-navy/15 bg-cream px-3 py-2 text-xs text-navy/70">
+        O modelo de contatos/oportunidades (fluxo comercial canônico) nunca teve dado real gravado — virou visão
+        histórica.{" "}
+        <Link to="/historico/fluxo-comercial-canonico" className="underline">
+          Abrir visão histórica
+        </Link>
+      </p>
 
       <div id="crm-templates" className="mt-6 scroll-mt-24">
         <TemplatesWhatsapp />

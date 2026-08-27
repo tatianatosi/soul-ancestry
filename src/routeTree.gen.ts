@@ -104,6 +104,7 @@ import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from '.
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
 import { Route as AuthenticatedGovernancaVarreduraAdministracaoRouteImport } from './routes/_authenticated/governanca.varredura-administracao'
 import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
+import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
 import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
 import { Route as AuthenticatedHistoricoPainelHojeRouteImport } from './routes/_authenticated/historico.painel-hoje'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
@@ -642,6 +643,12 @@ const AuthenticatedGovernancaVarreduraCompletudeRoute =
     path: '/governanca/varredura-completude',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHistoricoFluxoComercialCanonicoRoute =
+  AuthenticatedHistoricoFluxoComercialCanonicoRouteImport.update({
+    id: '/historico/fluxo-comercial-canonico',
+    path: '/historico/fluxo-comercial-canonico',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHistoricoPainelDeskHojeRoute =
   AuthenticatedHistoricoPainelDeskHojeRouteImport.update({
     id: '/historico/painel-desk-hoje',
@@ -850,6 +857,7 @@ export interface FileRoutesByFullPath {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -965,6 +973,7 @@ export interface FileRoutesByTo {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -1083,6 +1092,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/_authenticated/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/_authenticated/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -1201,6 +1211,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
     | '/onboarding/$id'
@@ -1316,6 +1327,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
     | '/onboarding/$id'
@@ -1433,6 +1445,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/modulos-contextuais'
     | '/_authenticated/governanca/varredura-administracao'
     | '/_authenticated/governanca/varredura-completude'
+    | '/_authenticated/historico/fluxo-comercial-canonico'
     | '/_authenticated/historico/painel-desk-hoje'
     | '/_authenticated/historico/painel-hoje'
     | '/_authenticated/onboarding/$id'
@@ -2145,6 +2158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/historico/fluxo-comercial-canonico': {
+      id: '/_authenticated/historico/fluxo-comercial-canonico'
+      path: '/historico/fluxo-comercial-canonico'
+      fullPath: '/historico/fluxo-comercial-canonico'
+      preLoaderRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/historico/painel-desk-hoje': {
       id: '/_authenticated/historico/painel-desk-hoje'
       path: '/historico/painel-desk-hoje'
@@ -2352,6 +2372,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
   AuthenticatedGovernancaVarreduraAdministracaoRoute: typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
   AuthenticatedHistoricoPainelHojeRoute: typeof AuthenticatedHistoricoPainelHojeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
@@ -2458,6 +2479,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaVarreduraAdministracaoRoute,
   AuthenticatedGovernancaVarreduraCompletudeRoute:
     AuthenticatedGovernancaVarreduraCompletudeRoute,
+  AuthenticatedHistoricoFluxoComercialCanonicoRoute:
+    AuthenticatedHistoricoFluxoComercialCanonicoRoute,
   AuthenticatedHistoricoPainelDeskHojeRoute:
     AuthenticatedHistoricoPainelDeskHojeRoute,
   AuthenticatedHistoricoPainelHojeRoute: AuthenticatedHistoricoPainelHojeRoute,

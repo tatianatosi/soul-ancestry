@@ -64,7 +64,13 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
     rotaBase: "/leads",
     linhas: [
       { mockup: "CRM Vivo — leads", rota: "/leads", dado: "leads, lead_sources, discovery_assessments", estado: "implementado" },
-      { mockup: "Calls e interações", rota: "/calls · /leads#crm-contatos", dado: "crm_interactions, touchpoints", estado: "implementado", nota: "Interações imutáveis." },
+      // 27/08/2026 — linha misturava duas tabelas com destinos diferentes.
+      // touchpoints é real (crm.functions.ts, onboarding-jornada.functions.ts,
+      // 8 registros). crm_interactions nunca teve registro (0 linhas) — vivia
+      // em PainelCanonicoCrm, dentro do modelo contacts/opportunities que a
+      // Proprietária confirmou nunca ter usado; relocado para
+      // /historico/fluxo-comercial-canonico.
+      { mockup: "Calls e interações", rota: "/calls · /leads", dado: "touchpoints", estado: "implementado", nota: "Cadência e onboarding leem touchpoints. crm_interactions (histórico, 0 registros) mora em /historico/fluxo-comercial-canonico." },
       { mockup: "Próximas ações", rota: "/proximas-acoes", dado: "derivado: tarefas + leads", estado: "implementado" },
       { mockup: "Planejador", rota: "/casos#planejador", dado: "planner_tarefas", estado: "parcial" },
       { mockup: "Propostas (páginas 1–7)", rota: "/propostas", dado: "proposals, proposal_canva_pages", estado: "implementado" },
