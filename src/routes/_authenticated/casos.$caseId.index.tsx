@@ -276,8 +276,7 @@ const SECOES = [
   { id: "caso", rotulo: "Caso" },
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
-  { id: "pessoas", rotulo: "Pessoas" },
-  { id: "cadastro", rotulo: "Cadastro e núcleo" },
+  { id: "pessoas", rotulo: "Pessoa e família" },
   { id: "produto", rotulo: "Produto e trilha" },
   { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "onboarding", rotulo: "Onboarding" },
@@ -1050,19 +1049,18 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="pessoas" titulo="Pessoas">
-          <AbaPessoas
-            casoId={id}
-            membros={q.data?.membros ?? []}
-            bloqueado={bloqueado}
-            onMudou={recarregar}
-            atualizar={atualizar}
-            criar={criar}
-          />
-        </SecaoAncora>
-
-        <SecaoAncora id="cadastro" titulo="Cadastro e núcleo">
-          <AbaCadastro caseId={id} bloqueado={bloqueado} />
+        <SecaoAncora id="pessoas" titulo="Pessoa e família">
+          <div className="space-y-5">
+            <AbaPessoas
+              casoId={id}
+              membros={q.data?.membros ?? []}
+              bloqueado={bloqueado}
+              onMudou={recarregar}
+              atualizar={atualizar}
+              criar={criar}
+            />
+            <AbaCadastro caseId={id} bloqueado={bloqueado} />
+          </div>
         </SecaoAncora>
 
         <SecaoAncora id="produto" titulo="Produto e trilha">
