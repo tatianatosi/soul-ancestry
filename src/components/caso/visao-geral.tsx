@@ -16,6 +16,9 @@ import {
   ESCOPO_SOLICITACAO_D1,
   REGRAS_EXCECAO_GATE,
 } from "@/lib/gates-ativacao-ficha";
+import { posicionar } from "@/lib/matriz-posicionamento";
+import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
+import { papelDoRegistro } from "@/lib/caso-ficha";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,6 +26,44 @@ type Linha = Record<string, any>;
 
 function data(v?: string | null): string {
   return v ? new Date(v).toLocaleDateString("pt-BR") : "—";
+}
+
+const TOM_SINAL: Record<SinalPrioridade, string> = {
+  critica: "border-terracotta/50 bg-terracotta/10 text-terracotta",
+  atencao: "border-gold/60 bg-gold/15 text-navy",
+  acompanhada: "border-navy/15 bg-navy/5 text-navy/75",
+  sem_dados: "border-navy/10 bg-navy/5 text-navy/50",
+};
+
+/**
+ * O mesmo sinal que a Matriz de Prioridades (`/qualidade`) já calcula para
+ * todo caso — trazido para dentro da ficha, para não obrigar quem está
+ * olhando UM caso a ir a outra tela ler a urgência dele.
+ */
+function FaixaPrioridade({ caso }: { caso: Linha }) {
+  const p = posicionar({
+    tipo: "caso",
+    id: String(caso["id"] ?? ""),
+    rotulo: String(caso["codigo"] ?? caso["titulo"] ?? caso["id"] ?? ""),
+    elegibilidade: (caso["hipotese_elegibilidade"] as string) ?? null,
+    prazo: (caso["prazo_proxima_acao"] as string) ?? null,
+    diasSemTouchpoint: (caso["dias_sem_touchpoint"] as number) ?? null,
+    esperaExternaAtiva: Boolean(caso["aguardando_instituicao_externa"]),
+    responsavel: (caso["proxima_acao_responsavel"] as string) ?? null,
+    origem: papelDoRegistro(caso).valor === "demo" ? "demo" : "real",
+  });
+
+  return (
+    <div className={`flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 ${TOM_SINAL[p.sinal]}`}>
+      <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+        {ROTULO_SINAL[p.sinal]}
+      </span>
+      <p className="text-sm">{p.porque}</p>
+      <Link to="/qualidade" className="ml-auto text-xs font-medium underline underline-offset-2">
+        Ver na matriz de prioridades
+      </Link>
+    </div>
+  );
 }
 
 function Cartao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -77,6 +118,10 @@ export function AbaVisaoGeral({
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
+      <div className="lg:col-span-2">
+        <FaixaPrioridade caso={caso} />
+      </div>
+
       <section className="rounded-xl border border-navy/15 bg-white p-5 lg:col-span-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-serif text-lg text-navy">
