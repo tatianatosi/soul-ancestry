@@ -55,6 +55,8 @@ export function DescoberturasAlertas({
     );
   }
 
+  const clienteConfirmado = cliente;
+
   async function enviarAlerta(achado: AchadoParaAlerta) {
     setEnviando(achado.id);
     setErroEnvio(null);
@@ -63,7 +65,7 @@ export function DescoberturasAlertas({
         await onAlertaSending(achado);
       }
       // TODO: Integrar com API de WhatsApp/notificações
-      console.log("Alerta enviado para", cliente.whatsapp, achado);
+      console.log("Alerta enviado para", clienteConfirmado.whatsapp, achado);
     } catch (err) {
       setErroEnvio((err as Error).message);
     } finally {
@@ -72,7 +74,7 @@ export function DescoberturasAlertas({
   }
 
   function copiarTemplate(achado: AchadoParaAlerta) {
-    const alerta = gerarAlertaAchado(achado, cliente);
+    const alerta = gerarAlertaAchado(achado, clienteConfirmado);
     navigator.clipboard.writeText(alerta.template);
     setCopiado(achado.id);
     setTimeout(() => setCopiado(null), 2000);

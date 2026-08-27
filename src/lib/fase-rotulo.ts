@@ -18,12 +18,22 @@
  * um lugar só, para que a unificação futura tenha um alvo óbvio.
  */
 
-import { FASES_JORNADA as FASES_ONBOARDING } from "@/lib/onboarding-jornada";
+import { FASES_JORNADA as FASES_ONBOARDING, type FaseJornada } from "@/lib/onboarding-jornada";
 import { ROTULO_FASE as ROTULO_ENTREGA } from "@/lib/jornada-cliente";
 
 /** Remove o "_e_" opcional para que as duas grafias colidam na mesma chave. */
 function normalizar(valor: string): string {
   return valor.trim().toLowerCase().replace(/_e_/g, "_");
+}
+
+/**
+ * O id canônico (`onboarding-jornada.ts`) correspondente a um valor de
+ * `jornada-cliente.ts`, ou `null` se não reconhecido. Reaproveitado por
+ * `jornada-de-para.ts` para não duplicar esta tabela de correspondência.
+ */
+export function idCanonicoDeFase(valor: string): FaseJornada | null {
+  const alvo = normalizar(valor);
+  return FASES_ONBOARDING.find((f) => normalizar(f.id) === alvo)?.id ?? null;
 }
 
 const MAPA = new Map<string, string>();
