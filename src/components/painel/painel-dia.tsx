@@ -325,6 +325,7 @@ export function PainelDia() {
     return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
 
   const filas = qDesk.data.filas;
+  const metricas = qDesk.data.metricas;
   const hoje = hojeISO();
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
@@ -942,6 +943,71 @@ export function PainelDia() {
           maiorGravidade={maiorGravidade}
           bloqueadosCatalogo={bloqueadosCatalogo}
         />
+      </section>
+
+      {/*
+        27/08/2026 — CA-04 pedia métricas diárias visíveis no Painel Hoje; o
+        CA-UX-02 §7 tirou métricas daqui porque "quem chega de manhã lia
+        cinco números sem saber o que fazer com eles". As duas coisas
+        cabem: leitura compacta, no fim da página (não na abertura), sem
+        recalcular nada — é o mesmo `metricas` que /metricas já mostra.
+      */}
+      <section
+        data-painel-bloco="metricas-dia"
+        className="rounded-xl border border-navy/10 bg-cream/40 p-4"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-xs uppercase tracking-wide text-navy/50">Métricas de hoje — leitura</p>
+          <Link to="/metricas" className="text-[11px] text-navy/55 underline">
+            Ver métricas na íntegra
+          </Link>
+        </div>
+        <div className="mt-3 grid gap-3 text-xs text-navy/70 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <p className="text-navy/45">Leads por origem</p>
+            <ul className="mt-1 space-y-0.5">
+              {metricas.porOrigem.slice(0, 3).map((o) => (
+                <li key={o.origem}>
+                  {o.origem}: {o.total}
+                </li>
+              ))}
+              {!metricas.porOrigem.length ? <li>Sem origens registradas.</li> : null}
+            </ul>
+          </div>
+          <div>
+            <p className="text-navy/45">Discovery</p>
+            <ul className="mt-1 space-y-0.5">
+              <li>Agendadas: {metricas.calls.agendadas}</li>
+              <li>Realizadas: {metricas.calls.realizadas}</li>
+              <li>No-show: {metricas.calls.noShow}</li>
+              <li>
+                Conversão: {metricas.calls.conversao === null ? "—" : `${metricas.calls.conversao}%`}
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-navy/45">Funil comercial</p>
+            <ul className="mt-1 space-y-0.5">
+              {metricas.funil.map((e) => (
+                <li key={e.etapa}>
+                  {e.etapa}: {e.para}/{e.de}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-navy/45">Higiene e pendência</p>
+            <ul className="mt-1 space-y-0.5">
+              <li>Leads sem próxima ação: {metricas.semProximaAcao}</li>
+              <li>Follow-ups vencidos: {metricas.followupsVencidos}</li>
+              {metricas.casosPorNacionalidadeVia.slice(0, 2).map((c) => (
+                <li key={c.chave}>
+                  {c.chave}: {c.total}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
