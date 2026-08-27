@@ -1,9 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
-import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
@@ -35,11 +34,19 @@ function QualidadePage() {
     >
       <EixosCanonicosInternos />
       {/*
-        A matriz Elegibilidade × Urgência. O motor existia desde o P1.2 e era
-        consumido só como etiqueta numa coluna; esta é a primeira tela que o
-        desenha como matriz — o posicionamento de cada caso na carteira.
+        27/08/2026 — a matriz Elegibilidade × Urgência morou aqui até hoje.
+        A Proprietária pediu a mudança: "aqui sabemos as emergências" é em
+        Casos 360, não no Radar Interno — é lá que o dia a dia acontece.
+        A matriz se mudou para /casos; fica só o link, para quem já tinha o
+        hábito de olhar aqui.
       */}
-      <MatrizPrioridadesConectada />
+      <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
+        A matriz de prioridades (Elegibilidade × Urgência) agora mora em{" "}
+        <Link to="/casos" className="font-medium text-navy underline">
+          Casos 360
+        </Link>
+        , junto dos casos que ela posiciona.
+      </p>
       <PainelQualidade />
     </SaasShell>
   );

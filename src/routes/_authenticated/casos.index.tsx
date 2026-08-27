@@ -27,6 +27,7 @@ import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   /**
@@ -226,6 +227,16 @@ function CasosPage() {
           caso foi ativado.
         </AlertaDesk>
       ) : null}
+
+      {/*
+        27/08/2026 — morava só no Radar Interno (/qualidade). A Proprietária
+        pediu que viesse para cá: "aqui sabemos as emergências" — é em Casos
+        360 que o dia a dia acontece, não num radar à parte. Mesmo motor,
+        mesmo componente, novo endereço.
+      */}
+      <div className="mb-6">
+        <MatrizPrioridadesConectada />
+      </div>
 
       <EntidadeCrud
         entidade="crm_casos"
