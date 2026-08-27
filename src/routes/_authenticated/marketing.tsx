@@ -6,14 +6,16 @@ import { useMemo, useState } from "react";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
-  ACOES_EXTERNAS_BLOQUEADAS,
   CAMADAS_WHATSAPP,
   CANAIS_HANDOFF,
   FRONTEIRA_MARKETING_COMERCIAL,
   MAPA_MARKETING,
   SECOES_MARKETING,
   VAZIOS_MARKETING,
+  aprendizadosCampanha,
+  desempenhoPorCanal,
   distribuicaoOrigens,
+  formatarIndicador,
   leituraMetricas,
   resumoPorOrigem,
   separarMetricas,
@@ -109,6 +111,10 @@ function Marketing() {
       campanhas: q.data?.campanhas ?? [],
       fontes: q.data?.fontes ?? [],
       atribuicoes: q.data?.atribuicoes ?? [],
+      // Só para checar pagamento confirmado por atribuição — CAC/ROI reais,
+      // nunca contam lead ou proposta como venda, só caso com pagamento
+      // confirmado.
+      casos: (q.data?.casos ?? []) as { id?: string | null; pagamento_confirmado?: boolean | null }[],
     }),
     [q.data],
   );
@@ -126,6 +132,8 @@ function Marketing() {
   const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
   const { principais, historico } = useMemo(() => separarMetricas(metricas), [metricas]);
   const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
+  const desempenho = useMemo(() => desempenhoPorCanal(entrada), [entrada]);
+  const aprendizados = useMemo(() => aprendizadosCampanha(entrada), [entrada]);
 
   return (
     <SaasShell
@@ -274,15 +282,63 @@ function Marketing() {
               {VAZIOS_MARKETING.investimento}
             </p>
           )}
+          {desempenho.length > 0 && (
+            <div data-marketing="desempenho-canal" className="mt-4 overflow-x-auto">
+              <h3 className="font-serif text-base text-navy">Desempenho por canal</h3>
+              <table className="mt-2 w-full text-left text-[13px]">
+                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="py-2 pr-3">Canal</th>
+                    <th className="py-2 pr-3">Investimento</th>
+                    <th className="py-2 pr-3">Pagamentos atribuídos</th>
+                    <th className="py-2 pr-3">CAC</th>
+                    <th className="py-2">ROI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/10">
+                  {desempenho.map((d) => (
+                    <tr key={d.canal}>
+                      <td className="py-2 pr-3 text-navy">{d.canal}</td>
+                      <td className="py-2 pr-3">{formatarIndicador(d.investimento)}</td>
+                      <td className="py-2 pr-3">{d.pagamentosAtribuidos}</td>
+                      <td className="py-2 pr-3">{formatarIndicador(d.cac)}</td>
+                      <td className="py-2">{formatarIndicador(d.roi)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-1 text-[11px] text-navy/50">
+                Pagamento atribuído exige caso com pagamento inicial confirmado — nunca lead ou proposta.
+              </p>
+            </div>
+          )}
           <p className="mt-3 text-[12px] text-navy/55">
             Nenhuma campanha, anúncio ou conexão de mídia é criada, alterada ou conectada por esta tela.
           </p>
         </Bloco>
 
         <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING[2].descricao}>
-          <p data-marketing-vazio="captura">{VAZIOS_MARKETING.captura}</p>
-          <p className="mt-2 text-[12px] text-navy/55">
-            Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna fica declarada, sem estimativa.
+          {/*
+            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
+            editorial_content_items já é consultado de verdade em
+            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
+            foi, apesar do mapa técnico desta página dizer "parcial/real".
+            Vira ponte, não duplicata.
+          */}
+          <p>
+            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
+            dos modelos de WhatsApp, e-mail e portal — não aqui.
+          </p>
+          <Link
+            to="/biblioteca-mensagens"
+            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
+            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
+          >
+            Abrir Biblioteca de Mensagens e Conteúdos
+          </Link>
+          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
+            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
+            fica declarada, sem estimativa.
           </p>
         </Bloco>
 
@@ -422,14 +478,14 @@ function Marketing() {
           </details>
         </Bloco>
 
-        <Bloco id="aprendizados" titulo="Aprendizados" descricao={SECOES_MARKETING[6].descricao}>
+        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING[6].descricao}>
           <p>
-            Leitura de canal é insumo interno de decisão humana. Nenhum aprendizado registrado aqui aciona campanha,
-            verba, link ou mensagem.
+            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
+            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
           </p>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/60">
-            {ACOES_EXTERNAS_BLOQUEADAS.map((a) => (
-              <li key={a}>{a} — não executado por esta superfície.</li>
+          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
+            {aprendizados.map((a) => (
+              <li key={a}>{a}</li>
             ))}
           </ul>
         </Bloco>

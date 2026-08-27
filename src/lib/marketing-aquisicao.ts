@@ -7,6 +7,14 @@
  * WhatsApp e não altera dado. Todo cálculo aqui é derivação de leitura.
  */
 
+import {
+  cac as calcularCac,
+  roi as calcularRoi,
+  formatarIndicador,
+  type EntradaFinanceira,
+  type ValorIndicador,
+} from "@/lib/indicadores-marketing";
+
 export type EstadoItem = "implementado" | "parcial" | "ausente" | "a_confirmar";
 export type Confianca = "alta" | "media" | "baixa" | "sem_dados";
 
@@ -68,7 +76,7 @@ export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   },
   {
     hash: "aprendizados",
-    titulo: "Aprendizados",
+    titulo: "Aprendizados das campanhas",
     descricao: "Registro interno de leitura de canal. Nenhuma conclusão vira ação automática.",
   },
   {
@@ -414,13 +422,24 @@ export const CANAIS_HANDOFF: readonly {
 /* Derivações de leitura                                               */
 /* ------------------------------------------------------------------ */
 
+export type LinhaInvestimentoCanal = { canal?: string | null; valor?: number | null };
+export type LinhaAtribuicaoCanal = {
+  canal?: string | null;
+  case_id?: string | null;
+  lead_id?: string | null;
+  valor_convertido?: number | null;
+};
+export type LinhaCasoPagamento = { id?: string | null; pagamento_confirmado?: boolean | null };
+
 export type EntradaAquisicao = {
   leads: readonly { origem?: string | null; canal?: string | null }[];
   eventos: readonly { origem?: string | null; canal?: string | null }[];
-  investimentos: readonly unknown[];
+  investimentos: readonly LinhaInvestimentoCanal[];
   campanhas: readonly unknown[];
   fontes: readonly unknown[];
-  atribuicoes: readonly unknown[];
+  atribuicoes: readonly LinhaAtribuicaoCanal[];
+  /** Só para checar pagamento confirmado por atribuição — opcional para não quebrar fixture de teste. */
+  casos?: readonly LinhaCasoPagamento[];
 };
 
 export type ResumoOrigem = { rotulo: string; leads: number; eventos: number };
@@ -484,14 +503,17 @@ export function leituraMetricas(entrada: EntradaAquisicao): LeituraMetrica[] {
           nota: m.observacao,
         };
       case "cac":
-      case "roi":
+      case "roi": {
+        const agregado = desempenhoAgregado(entrada);
+        const v = m.chave === "cac" ? agregado.cac : agregado.roi;
         return {
           chave: m.chave,
           nome: m.nome,
-          valor: temInvestimento && temAtribuicao ? "Calculável — revisar classificação" : SEM_DADOS,
-          confianca: temInvestimento && temAtribuicao ? "baixa" : "sem_dados",
+          valor: formatarIndicador(v),
+          confianca: v.estado === "ok" ? "media" : "sem_dados",
           nota: m.observacao,
         };
+      }
       default:
         return { chave: m.chave, nome: m.nome, valor: SEM_DADOS, confianca: m.confianca, nota: m.observacao };
     }
@@ -585,6 +607,112 @@ export function distribuicaoOrigens(
     mapa.set(c.canonico, atual);
   }
   return [...mapa.values()].sort((a, b) => b.total - a.total);
+}
+
+const CANAL_SEM_ATRIBUICAO_LOCAL = "sem_atribuicao";
+const canalDe = (v?: string | null) => (v ?? "").trim() || CANAL_SEM_ATRIBUICAO_LOCAL;
+
+export type DesempenhoCanal = {
+  canal: string;
+  investimento: ValorIndicador;
+  pagamentosAtribuidos: number;
+  cac: ValorIndicador;
+  roi: ValorIndicador;
+};
+
+/**
+ * 27/08/2026 — CAC e ROI por canal, de verdade, não a leitura fixa
+ * "Calculável — revisar classificação" que existia antes. Investimento vem
+ * de `marketing_investments.valor`; pagamento atribuído só conta quando o
+ * caso ligado à atribuição tem `pagamento_confirmado = true` — nunca conta
+ * lead ou proposta como venda. Sem investimento nem atribuição no canal,
+ * devolve "Sem dados suficientes" (nunca estimativa).
+ */
+function agregarPorCanal(entrada: EntradaAquisicao): Map<string, EntradaFinanceira & { pagamentos: number }> {
+  const pagosPorCasoId = new Map<string, boolean>();
+  for (const c of entrada.casos ?? []) {
+    if (c.id) pagosPorCasoId.set(String(c.id), Boolean(c.pagamento_confirmado));
+  }
+
+  const porCanal = new Map<string, EntradaFinanceira & { pagamentos: number }>();
+  const linha = (canal: string) => {
+    const atual = porCanal.get(canal) ?? {
+      investimento_midia: 0,
+      pagamentos_atribuiveis: 0,
+      receita_atribuivel: 0,
+      pagamentos: 0,
+    };
+    porCanal.set(canal, atual);
+    return atual;
+  };
+
+  for (const inv of entrada.investimentos) {
+    const l = linha(canalDe(inv.canal));
+    l.investimento_midia = (l.investimento_midia ?? 0) + (typeof inv.valor === "number" ? inv.valor : 0);
+  }
+
+  for (const atr of entrada.atribuicoes) {
+    const pago = atr.case_id ? (pagosPorCasoId.get(String(atr.case_id)) ?? false) : false;
+    if (!pago) continue;
+    const l = linha(canalDe(atr.canal));
+    l.pagamentos = (l.pagamentos ?? 0) + 1;
+    l.pagamentos_atribuiveis = l.pagamentos;
+    l.receita_atribuivel = (l.receita_atribuivel ?? 0) + (typeof atr.valor_convertido === "number" ? atr.valor_convertido : 0);
+  }
+
+  return porCanal;
+}
+
+/** Desempenho por canal — a mesma leitura que alimenta CAC/ROI, agora por linha, não só o total. */
+export function desempenhoPorCanal(entrada: EntradaAquisicao): DesempenhoCanal[] {
+  const porCanal = agregarPorCanal(entrada);
+  return [...porCanal.entries()]
+    .map(([canal, f]) => ({
+      canal,
+      investimento: f.investimento_midia ? { estado: "ok" as const, valor: f.investimento_midia, unidade: "moeda" as const } : { estado: "sem_dados" as const, motivo: "Sem lançamento de investimento neste canal." },
+      pagamentosAtribuidos: f.pagamentos,
+      cac: calcularCac(f),
+      roi: calcularRoi(f),
+    }))
+    .sort((a, b) => (b.investimento.estado === "ok" ? b.investimento.valor : 0) - (a.investimento.estado === "ok" ? a.investimento.valor : 0));
+}
+
+/** CAC/ROI agregados — todo canal somado, para o card único em "5 principais". */
+export function desempenhoAgregado(entrada: EntradaAquisicao): { cac: ValorIndicador; roi: ValorIndicador } {
+  const porCanal = agregarPorCanal(entrada);
+  const total: EntradaFinanceira = { investimento_midia: 0, pagamentos_atribuiveis: 0, receita_atribuivel: 0 };
+  for (const f of porCanal.values()) {
+    total.investimento_midia = (total.investimento_midia ?? 0) + (f.investimento_midia ?? 0);
+    total.pagamentos_atribuiveis = (total.pagamentos_atribuiveis ?? 0) + (f.pagamentos_atribuiveis ?? 0);
+    total.receita_atribuivel = (total.receita_atribuivel ?? 0) + (f.receita_atribuivel ?? 0);
+  }
+  return { cac: calcularCac(total), roi: calcularRoi(total) };
+}
+
+export { formatarIndicador };
+
+/**
+ * Aprendizados derivados do desempenho por canal — nunca uma lista fixa.
+ * Sem canal com CAC calculável, devolve leitura honesta de lacuna, não uma
+ * frase genérica de "aprendizado".
+ */
+export function aprendizadosCampanha(entrada: EntradaAquisicao): string[] {
+  const linhas = desempenhoPorCanal(entrada);
+  const comCac = linhas.filter((l) => l.cac.estado === "ok");
+  const semRetorno = linhas.filter((l) => l.investimento.estado === "ok" && l.pagamentosAtribuidos === 0);
+
+  if (!linhas.length) return ["Sem investimento ou atribuição registrada — nenhum aprendizado de canal ainda é derivável."];
+
+  const out: string[] = [];
+  if (comCac.length) {
+    const melhor = [...comCac].sort((a, b) => (a.cac as { valor: number }).valor - (b.cac as { valor: number }).valor)[0];
+    out.push(`Melhor CAC apurado: ${melhor.canal} (${formatarIndicador(melhor.cac)}).`);
+  }
+  for (const l of semRetorno) {
+    out.push(`${l.canal} teve investimento lançado sem nenhum pagamento atribuído até agora — revisar antes de repetir aporte.`);
+  }
+  if (!out.length) out.push("Investimento e atribuição existem, mas nenhum canal tem pagamento confirmado atribuído ainda.");
+  return out;
 }
 
 /* ------------------------------------------------------------------ */

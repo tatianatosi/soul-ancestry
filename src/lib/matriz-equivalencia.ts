@@ -164,7 +164,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
     linhas: [
       { mockup: "Visão geral de aquisição", rota: "/marketing", dado: "leads.origem, conversion_events", estado: "parcial", nota: "Origem em texto livre, sem taxonomia fechada." },
       { mockup: "Canais e campanhas", rota: "/marketing#canais-campanhas", dado: "marketing_campaigns, lead_sources", estado: "ausente", nota: "Tabelas existem sem registros; nenhuma campanha é criada aqui." },
-      { mockup: "Conteúdo e CTAs", rota: "/marketing#conteudo-ctas", dado: "editorial_content_items", estado: "parcial", nota: "Sem página pública nem CTA rastreável." },
+      { mockup: "Conteúdo e CTAs", rota: "/marketing#conteudo-ctas", dado: "editorial_content_items", estado: "ausente", nota: "27/08/2026 — /marketing nunca consultava editorial_content_items apesar do rótulo. Conteúdo real mora em /biblioteca-mensagens (message-library.functions.ts); /marketing agora só aponta pra lá." },
       { mockup: "Atribuição e origem", rota: "/marketing#atribuicao", dado: "attribution_records", estado: "ausente", nota: "UTM não é capturada: lacuna declarada, nunca estimada." },
       { mockup: "Funil de aquisição", rota: "/marketing#funil-aquisicao", dado: "conversion_events", estado: "parcial", nota: "Leitura por canal incompleta; lead segue sendo de Comercial." },
       { mockup: "Métricas por canal (CAC/ROI)", rota: "/marketing#metricas-canal", dado: "marketing_investments + payments", estado: "parcial", nota: "Fórmula definida, dado ausente: exibe “Sem dados suficientes”." },
