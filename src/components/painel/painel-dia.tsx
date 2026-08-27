@@ -23,6 +23,7 @@ import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
+import { FilaSlaOperacional } from "@/components/ops/fila-sla-operacional";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
@@ -767,6 +768,7 @@ export function PainelDia() {
         <div className="mt-4 border-t border-navy/10 pt-4">
           <FilaRevisaoJuridica compacto />
         </div>
+        <FilaSlaOperacional />
       </section>
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
