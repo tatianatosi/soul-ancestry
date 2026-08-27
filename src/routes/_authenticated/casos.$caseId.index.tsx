@@ -273,11 +273,9 @@ function Secao({
  */
 const SECOES = [
   { id: "visao", rotulo: "Indicadores" },
-  { id: "caso", rotulo: "Caso" },
-  { id: "comercial", rotulo: "Comercial e formalização" },
+  { id: "comercial", rotulo: "Jurídico" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoa e família" },
-  { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "jornada", rotulo: "Jornada" },
   { id: "log", rotulo: "Registro de alterações" },
 ] as const;
@@ -617,10 +615,13 @@ function FichaCaso() {
               set={set}
             />
           </div>
-        </SecaoAncora>
 
-        <SecaoAncora id="caso" titulo="Caso">
-          <div className="grid gap-5 lg:grid-cols-2">
+          {/*
+            27/08/2026 — decisão da Proprietária: "Caso" (identidade, aliases,
+            responsabilidade, brief interno) é a mesma leitura de Indicadores
+            — o que este caso É — não uma seção à parte.
+          */}
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="Identificação"
               descricao="Registro de caso — distinto de família e de pessoa."
@@ -794,7 +795,16 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="comercial" titulo="Comercial e formalização">
+        <SecaoAncora id="comercial" titulo="Jurídico">
+          {/*
+            27/08/2026 — decisão da Proprietária, com cautela deliberada: o
+            motor e a matriz de contrato já moram em /contratos e
+            /matriz-juridica (grupo Contratos dos 8 grupos). Aqui dentro do
+            caso fica só o CONTRATO desta pessoa — estado e ponte, nunca
+            formulário duplicado. Proposta e escopo (referência de lead) se
+            mudaram para "Pessoa e família", porque compõem a pessoa, não o
+            contrato.
+          */}
           <div className="grid gap-5 lg:grid-cols-2">
             <Secao titulo="Eixo comercial">
               <div className="grid gap-4">
@@ -862,57 +872,10 @@ function FichaCaso() {
             </Secao>
 
             <Secao
-              titulo="Proposta (referência interna)"
-              descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada."
+              titulo="Motor e matriz de contrato"
+              descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
             >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Texto
-                  label="Referência interna da proposta"
-                  valor={v("proposta_referencia_interna")}
-                  onChange={(x) => set("proposta_referencia_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Data da proposta"
-                  tipo="date"
-                  valor={v("data_proposta")}
-                  onChange={(x) => set("data_proposta", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Link interno da proposta"
-                  valor={v("proposta_url_interna")}
-                  onChange={(x) => set("proposta_url_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Selecao
-                  label="Condição comercial interna"
-                  valor={String(
-                    v("condicao_comercial_interna_pendente") === "false" ? "false" : "true",
-                  )}
-                  opcoes={[
-                    { valor: "true", rotulo: "Pendente de homologação" },
-                    { valor: "false", rotulo: "Homologada" },
-                  ]}
-                  onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Escopo incluído (resumo)"
-                  valor={v("escopo_incluido_resumido")}
-                  onChange={(x) => set("escopo_incluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-                <Texto
-                  label="Escopo excluído (resumo)"
-                  valor={v("escopo_excluido_resumido")}
-                  onChange={(x) => set("escopo_excluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs">
+              <div className="flex flex-wrap gap-3 text-xs">
                 <Link
                   to="/casos/$caseId/contrato/preparar"
                   params={{ caseId: id }}
@@ -921,22 +884,22 @@ function FichaCaso() {
                   Preparar contrato
                 </Link>
                 <Link
-                  to="/propostas"
+                  to="/contratos"
                   className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
                 >
-                  Propostas
+                  Contratos, versões e anexos
+                </Link>
+                <Link
+                  to="/matriz-juridica"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Validação jurídica (bloqueios)
                 </Link>
                 <Link
                   to="/ordens-servico"
                   className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
                 >
                   Ordens de serviço
-                </Link>
-                <Link
-                  to="/nucleos"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Núcleos familiares e dossiê-mãe
                 </Link>
               </div>
             </Secao>
@@ -1057,17 +1020,90 @@ function FichaCaso() {
               criar={criar}
             />
             <AbaCadastro caseId={id} bloqueado={bloqueado} />
-          </div>
-        </SecaoAncora>
 
-        <SecaoAncora id="etiquetas" titulo="Etiquetas">
-          <AbaEtiquetas
-            caseId={id}
-            taxonomia={qc2.data?.taxonomia ?? []}
-            aplicadas={qc2.data?.etiquetas ?? []}
-            bloqueado={bloqueado}
-            onMudou={recarregar}
-          />
+            {/*
+              27/08/2026 — decisão da Proprietária: "o que é lead e faz parte
+              da pessoa, como contrato, proposta, roteiro discovery, etc,
+              tudo que compõe ela". Referência de proposta era formulário
+              dentro de "Comercial" (agora "Jurídico", enxuto); mudou de
+              lugar, não de forma — histórico comercial compõe a pessoa.
+            */}
+            <Secao
+              titulo="Proposta (referência interna)"
+              descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Texto
+                  label="Referência interna da proposta"
+                  valor={v("proposta_referencia_interna")}
+                  onChange={(x) => set("proposta_referencia_interna", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Data da proposta"
+                  tipo="date"
+                  valor={v("data_proposta")}
+                  onChange={(x) => set("data_proposta", x)}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Link interno da proposta"
+                  valor={v("proposta_url_interna")}
+                  onChange={(x) => set("proposta_url_interna", x)}
+                  desabilitado={bloqueado}
+                />
+                <Selecao
+                  label="Condição comercial interna"
+                  valor={String(
+                    v("condicao_comercial_interna_pendente") === "false" ? "false" : "true",
+                  )}
+                  opcoes={[
+                    { valor: "true", rotulo: "Pendente de homologação" },
+                    { valor: "false", rotulo: "Homologada" },
+                  ]}
+                  onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
+                  desabilitado={bloqueado}
+                />
+                <Texto
+                  label="Escopo incluído (resumo)"
+                  valor={v("escopo_incluido_resumido")}
+                  onChange={(x) => set("escopo_incluido_resumido", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+                <Texto
+                  label="Escopo excluído (resumo)"
+                  valor={v("escopo_excluido_resumido")}
+                  onChange={(x) => set("escopo_excluido_resumido", x)}
+                  desabilitado={bloqueado}
+                  area
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                <Link
+                  to="/propostas"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Propostas
+                </Link>
+                <Link
+                  to="/nucleos"
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                >
+                  Núcleos familiares e dossiê-mãe
+                </Link>
+              </div>
+            </Secao>
+
+            {/* Etiquetas é metadado leve do caso — junto de quem está nele, não seção própria. */}
+            <AbaEtiquetas
+              caseId={id}
+              taxonomia={qc2.data?.taxonomia ?? []}
+              aplicadas={qc2.data?.etiquetas ?? []}
+              bloqueado={bloqueado}
+              onMudou={recarregar}
+            />
+          </div>
         </SecaoAncora>
 
         <SecaoAncora id="jornada" titulo="Jornada">
