@@ -27,6 +27,8 @@ import {
   STATUS_TAREFA,
   TIPOS_TAREFA,
 } from "@/lib/ops.server";
+import { FASES_JORNADA } from "@/lib/onboarding-jornada";
+import { rotuloFase } from "@/lib/fase-rotulo";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -420,7 +422,7 @@ export function DeskOperacional() {
                 <div className="flex flex-wrap items-center gap-2">
                   <strong className="text-sm">{m["titulo"]}</strong>
                   <Selo texto={ROTULO_MICRO[m["status"]] ?? m["status"]} />
-                  <Selo texto={String(m["fase"])} />
+                  <Selo texto={rotuloFase(m["fase"])} />
                   <Selo texto={ROTULO_SLA[m["prazo_status"]] ?? m["prazo_status"]} tom={tomSla(m["prazo_status"])} />
                 </div>
                 <p className="mt-1 text-xs text-navy/60">
@@ -678,8 +680,23 @@ export function DeskOperacional() {
                 ))}
               </select>
             </Campo>
-            <Campo rotulo="Fase">
-              <input name="fase" defaultValue={editarMicro?.["fase"] ?? "fase_01"} className={inputCls} />
+            <Campo rotulo="Fase da jornada">
+              <select
+                name="fase"
+                required
+                defaultValue={editarMicro?.["fase"] ?? FASES_JORNADA[0].id}
+                className={inputCls}
+              >
+                {FASES_JORNADA.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.rotulo}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-navy/50">
+                A microentrega nasce ligada à jornada — não é item solto. Mesma fase que o caso usa em{" "}
+                <code>case_plans.fase_jornada</code>.
+              </p>
             </Campo>
             <Campo rotulo="Status">
               <select name="status" defaultValue={editarMicro?.["status"] ?? "pendente"} className={inputCls}>
