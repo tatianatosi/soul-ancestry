@@ -32,14 +32,18 @@ describe("Marketing e aquisição — CA-UX-04", () => {
     expect(FRONTEIRA_MARKETING_COMERCIAL.regra).toMatch(/nunca duplica/i);
   });
 
-  it("tem as 7 seções canônicas da aba mais o handoff", () => {
+  it("tem Indicadores no topo, as 6 seções canônicas e o handoff", () => {
+    // 27/08/2026 — "o que é indicador vira realidade no topo... indicadores
+    // que ficam embaixo desaparecem" (Proprietária). "metricas-canal" deixou
+    // de ser seção própria: fundida em "indicadores", que sobe pro topo,
+    // junto de prontidão de atribuição e desempenho por canal.
     expect(SECOES_MARKETING.map((s) => s.hash)).toEqual([
+      "indicadores",
       "visao-geral",
       "canais-campanhas",
       "conteudo-ctas",
       "atribuicao",
       "funil-aquisicao",
-      "metricas-canal",
       "aprendizados",
       "links-comercial",
     ]);

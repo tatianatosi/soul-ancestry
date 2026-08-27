@@ -45,6 +45,15 @@ export type SecaoMarketing = {
 
 export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
+    // 27/08/2026 — "o que é indicador vira realidade no topo" (Proprietária),
+    // mesma lógica já aplicada em Casos 360. Prontidão de atribuição, os 5
+    // principais (CAC/ROI incluídos) e desempenho por canal — tudo que já é
+    // sinal, não lista — sai do meio da página e vira o primeiro bloco.
+    hash: "indicadores",
+    titulo: "Indicadores",
+    descricao: "Prontidão de atribuição, CAC, ROI e desempenho por canal — tudo que já é sinal, no topo.",
+  },
+  {
     hash: "visao-geral",
     titulo: "Visão geral de aquisição",
     descricao: "Leitura única do que entrou por aquisição no recorte atual.",
@@ -67,12 +76,7 @@ export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
     hash: "funil-aquisicao",
     titulo: "Funil de aquisição",
-    descricao: "Da origem até o handoff para Comercial (diagnóstico e proposta ficam em Comercial).",
-  },
-  {
-    hash: "metricas-canal",
-    titulo: "Métricas por canal",
-    descricao: "CAC, ROI e conversão por canal, sempre com fonte e confiança explícitas.",
+    descricao: "Da origem até o handoff para Comercial, com contagem real de leads sobreposta à referência de risco.",
   },
   {
     hash: "aprendizados",
