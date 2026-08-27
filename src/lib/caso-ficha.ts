@@ -289,12 +289,9 @@ export const SINAL_ADERENCIA: Opcao[] = [
   { valor: "em_investigacao", rotulo: "Em investigação" },
 ];
 
-export const CONFIANCA_TRIAGEM: Opcao[] = [
-  { valor: "alta", rotulo: "Alta" },
-  { valor: "media", rotulo: "Média" },
-  { valor: "baixa", rotulo: "Baixa" },
-  { valor: "a_definir", rotulo: "A definir" },
-];
+// 27/08/2026 — reexporta de crm-desk.ts em vez de duplicar (mesmos códigos,
+// "a_definir" já incorporado lá).
+export { CONFIANCA_TRIAGEM } from "@/lib/crm-desk";
 
 export const STATUS_CASE_SERVICE: Opcao[] = [
   { valor: "draft", rotulo: "Rascunho" },

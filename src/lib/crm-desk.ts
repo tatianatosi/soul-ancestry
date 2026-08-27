@@ -173,10 +173,14 @@ export const ELEGIBILIDADE_PRELIMINAR: Opcao[] = [
   { valor: "sem_aderencia_atual", rotulo: "Sem aderência atual" },
 ];
 
+// 27/08/2026 — unificado com caso-ficha.ts, que reexporta esta lista em vez
+// de manter a própria (tinha valores idênticos, rótulos mais curtos, e
+// "a_definir" a mais — incorporado aqui).
 export const CONFIANCA_TRIAGEM: Opcao[] = [
   { valor: "alta", rotulo: "Alta — documentos-chave vistos" },
   { valor: "media", rotulo: "Média — narrativa + parte documental" },
   { valor: "baixa", rotulo: "Baixa — apenas relato inicial" },
+  { valor: "a_definir", rotulo: "A definir" },
 ];
 
 export const GERACOES_ASCENDENTE: Opcao[] = [

@@ -61,12 +61,12 @@ export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
     hash: "canais-campanhas",
     titulo: "Canais e campanhas",
-    descricao: "Catálogo de origens e campanhas registradas. Nenhuma campanha é criada ou alterada aqui.",
+    descricao: "Campanhas, fontes e investimentos registrados. O catálogo de origem em si mora em Atribuição e origem; desempenho por canal mora em Indicadores.",
   },
   {
     hash: "conteudo-ctas",
     titulo: "Conteúdo e CTAs",
-    descricao: "Conteúdo editorial e chamadas associadas à aquisição, somente leitura.",
+    descricao: "Ponte para a Biblioteca de Mensagens e Conteúdos, onde o conteúdo editorial é governado de verdade.",
   },
   {
     hash: "atribuicao",
@@ -181,16 +181,21 @@ export const MAPA_MARKETING: readonly LinhaMapaMarketing[] = [
     destino: "Marketing → Funil de aquisição (leitura) + link para Comercial",
   },
   {
+    // 27/08/2026 — corrigido: esta linha dizia integração "real" com
+    // editorial_content_items, mas /marketing nunca consultava essa tabela.
+    // Quem consulta de verdade é message-library.functions.ts, em
+    // /biblioteca-mensagens. Marketing agora só aponta pra lá (ponte, não
+    // consulta própria) — "destino" reflete isso.
     item: "Conteúdo editorial e CTAs",
     rota: "/marketing#conteudo-ctas",
     fonte: "editorial_content_items",
-    estado: "parcial",
-    integracao: "real",
+    estado: "ausente",
+    integracao: "inexistente",
     permissao: "admin, operações",
     dependencia: "—",
     riscoDuplicacao: "baixo",
-    lacuna: "Conteúdo existe sem eixo de aquisição nem CTA rastreável.",
-    destino: "Marketing → Conteúdo e CTAs",
+    lacuna: "Conteúdo é governado em /biblioteca-mensagens, não em Marketing. Sem CTA rastreável, também não gera origem atribuível.",
+    destino: "Biblioteca de Mensagens e Conteúdos (/biblioteca-mensagens) — Marketing só linka",
   },
   {
     item: "Site, landing page e formulário público",
