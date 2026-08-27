@@ -53,6 +53,15 @@ export function PortalShell({
     }
   }, [previa, isSuccess, data, navigate]);
 
+  /*
+    Sete abas existem desde que o cliente chega — Início, Jornada, Radar,
+    Árvore, Documentos, Legado e Conta. Entrega, Fase 01 e Fase 02 só entram
+    quando o onboarding do caso de fato começou (`onboarding_iniciado_em`):
+    antes disso são promessa de trabalho que ainda não existe, e mostrá-las
+    cedo é o cliente ler "Fase 02" e achar que já devia ter alguma coisa lá.
+  */
+  const onboardingIniciado = previa ? true : Boolean(data?.onboardingIniciado);
+
   const nav =
     previa || data?.nivel === "client_workspace"
       ? [
@@ -61,13 +70,15 @@ export function PortalShell({
           { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
           { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
           { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-          { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
-          { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
-          { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
           { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
           { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-          { to: "/portal/faturas", label: COPY_TELAS.faturas.navegacao, icon: Receipt },
-          { to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt },
+          ...(onboardingIniciado
+            ? [
+                { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
+                { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
+                { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
+              ]
+            : []),
         ]
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 

@@ -154,14 +154,14 @@ export const portalContexto = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (!acesso.data || acesso.data.access_status !== "active") {
-      return { autorizado: false as const, cliente: null, casos: [], nivel: null };
+      return { autorizado: false as const, cliente: null, casos: [], nivel: null, onboardingIniciado: false };
     }
 
     const [cliente, casos] = await Promise.all([
       supabase.from("portal_meu_cadastro").select("id, nome, pais_interesse").maybeSingle(),
       supabase
         .from("portal_casos")
-        .select("id, codigo, titulo, pais, via, status, ativo, updated_at")
+        .select("id, codigo, titulo, pais, via, status, ativo, onboarding_iniciado_em, updated_at")
         .order("created_at", { ascending: false }),
     ]);
 
@@ -170,6 +170,13 @@ export const portalContexto = createServerFn({ method: "GET" })
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",
       cliente: (cliente.data ?? null) as { id: string; nome: string; pais_interesse: string | null } | null,
       casos: (casos.data ?? []) as any[],
+      /*
+        Onboarding formalmente iniciado em ao menos um caso: é o que decide,
+        no App Cliente, se as abas de Entrega/Fase 01/Fase 02 aparecem. Antes
+        disso o cliente vê só as 7 abas base — Entrega/Fase 01/Fase 02 são
+        promessa de trabalho que ainda não começou.
+      */
+      onboardingIniciado: (casos.data ?? []).some((c: any) => Boolean(c.onboarding_iniciado_em)),
     };
   });
 
