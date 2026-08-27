@@ -532,14 +532,26 @@ export const ORIGEM_A_CONFIRMAR = "origem_a_confirmar";
  * Catálogo interno de origens. Valores históricos em texto livre continuam
  * gravados: quando não pertencem ao catálogo, a leitura mostra
  * `origem_a_confirmar` sem converter o dado e sem bloquear o Comercial.
+ *
+ * 27/08/2026 — unificado com `ORIGENS_LEAD` (`crm-desk.ts`, a lista que
+ * `/leads` grava de verdade). Antes deste ajuste, um lead com
+ * `origem="instagram"` (valor válido em `/leads` e `/metricas`) caía em
+ * "origem a confirmar" aqui — mesma pessoa, dois catálogos. Os seis valores
+ * que faltavam entraram; nenhum valor existente saiu.
  */
 export const CATALOGO_ORIGENS: readonly { valor: string; rotulo: string; observacao: string }[] = [
   { valor: "formulario", rotulo: "Formulário", observacao: "Captura pública não conectada." },
   { valor: "indicacao", rotulo: "Indicação", observacao: "Sem registro de quem indicou." },
   { valor: "manual", rotulo: "Manual (equipe)", observacao: "Entrada operada pela equipe." },
   { valor: "whatsapp", rotulo: "WhatsApp", observacao: "Só vale como origem se o valor canônico for gravado." },
+  { valor: "instagram", rotulo: "Instagram", observacao: "Sem investimento/campanha vinculado nesta leitura." },
+  { valor: "meta_ads", rotulo: "Meta Ads", observacao: "Atribuição de mídia depende de investimento lançado no período." },
+  { valor: "google", rotulo: "Google", observacao: "Atribuição de mídia depende de investimento lançado no período." },
+  { valor: "site", rotulo: "Site", observacao: "Captura pública não conectada." },
   { valor: "evento", rotulo: "Evento / encontro", observacao: "Registro manual." },
   { valor: "parceria", rotulo: "Parceria", observacao: "Registro manual." },
+  { valor: "base_legada", rotulo: "Base legada/importação", observacao: "Origem histórica migrada, sem atribuição de mídia." },
+  { valor: "outra_origem", rotulo: "Outra origem declarada", observacao: "Fora do catálogo padrão; registrada como está." },
 ] as const;
 
 export type LeituraOrigem = {
