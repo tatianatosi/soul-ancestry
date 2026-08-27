@@ -277,11 +277,8 @@ const SECOES = [
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoa e família" },
-  { id: "produto", rotulo: "Produto e trilha" },
   { id: "etiquetas", rotulo: "Etiquetas" },
-  { id: "onboarding", rotulo: "Onboarding" },
-  { id: "fechamento", rotulo: "Fechamento" },
-  { id: "jornada", rotulo: "Jornada do cliente" },
+  { id: "jornada", rotulo: "Jornada" },
   { id: "log", rotulo: "Registro de alterações" },
 ] as const;
 
@@ -1063,20 +1060,6 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="produto" titulo="Produto e trilha">
-          <div className="space-y-5">
-            <AbaProdutoTrilha
-              caseId={id}
-              produtos={qc2.data?.produtos ?? []}
-              trilhas={qc2.data?.trilhas ?? []}
-              servicos={qc2.data?.servicos ?? []}
-              bloqueado={bloqueado}
-              onMudou={recarregar}
-            />
-            <ConsolidacaoCaseService caseId={id} />
-          </div>
-        </SecaoAncora>
-
         <SecaoAncora id="etiquetas" titulo="Etiquetas">
           <AbaEtiquetas
             caseId={id}
@@ -1087,24 +1070,42 @@ function FichaCaso() {
           />
         </SecaoAncora>
 
-        <SecaoAncora id="onboarding" titulo="Onboarding">
-          <AbaOnboarding
-            caso={caso}
-            itens={qc2.data?.onboarding ?? []}
-            nucleos={qc2.data?.nucleos ?? []}
-            membrosNucleo={qc2.data?.membrosNucleo ?? []}
-            planoInicialOk={Boolean(q.data?.planoInicialOk)}
-            bloqueado={bloqueado}
-            onMudou={recarregar}
-          />
-        </SecaoAncora>
+        <SecaoAncora id="jornada" titulo="Jornada">
+          {/*
+            27/08/2026 — decisão da Proprietária: o ciclo de vida e o produto
+            fazem parte da jornada do cliente, não são algo à parte. Um fio
+            só, do que foi contratado até onde o percurso está hoje: produto
+            e trilha (o que foi combinado) → onboarding (a cadência D0–D30
+            em curso) → fechamento (o estado final) → a jornada do cliente
+            propriamente dita, como moldura de tudo isso.
+          */}
+          <div className="space-y-8">
+            <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 
-        <SecaoAncora id="fechamento" titulo="Fechamento">
-          <AbaFechamento casoId={id} bloqueado={bloqueado} />
-        </SecaoAncora>
+            <div className="space-y-5">
+              <AbaProdutoTrilha
+                caseId={id}
+                produtos={qc2.data?.produtos ?? []}
+                trilhas={qc2.data?.trilhas ?? []}
+                servicos={qc2.data?.servicos ?? []}
+                bloqueado={bloqueado}
+                onMudou={recarregar}
+              />
+              <ConsolidacaoCaseService caseId={id} />
+            </div>
 
-        <SecaoAncora id="jornada" titulo="Jornada do cliente">
-          <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
+            <AbaOnboarding
+              caso={caso}
+              itens={qc2.data?.onboarding ?? []}
+              nucleos={qc2.data?.nucleos ?? []}
+              membrosNucleo={qc2.data?.membrosNucleo ?? []}
+              planoInicialOk={Boolean(q.data?.planoInicialOk)}
+              bloqueado={bloqueado}
+              onMudou={recarregar}
+            />
+
+            <AbaFechamento casoId={id} bloqueado={bloqueado} />
+          </div>
         </SecaoAncora>
 
         <SecaoAncora id="log" titulo="Registro de alterações">

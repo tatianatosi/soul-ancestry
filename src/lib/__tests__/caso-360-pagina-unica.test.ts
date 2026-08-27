@@ -20,32 +20,32 @@ describe("Caso 360 como página única", () => {
     //
     // Fundidas até aqui:
     //  - "acao" (Próxima ação e alertas, é sinal) → dentro de "visao";
-    //  - "cadastro" → dentro de "pessoas" (mesma pergunta: quem está no caso).
+    //  - "cadastro" → dentro de "pessoas" (mesma pergunta: quem está no caso);
+    //  - "produto", "onboarding" e "fechamento" → dentro de "jornada", porque
+    //    produto e ciclo de vida são parte do processo do cliente, não algo
+    //    à parte (decisão explícita da Proprietária).
     const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"/g)].map((m) => m[1]);
-    expect(secoes).toHaveLength(11);
-    for (const fundida of ["acao", "cadastro"]) {
+    expect(secoes).toHaveLength(8);
+    for (const fundida of ["acao", "cadastro", "produto", "onboarding", "fechamento"]) {
       expect(secoes, `"${fundida}" deveria ter se fundido, não sumido nem sobrado solto`).not.toContain(fundida);
     }
-    for (const s of [
-      "visao",
-      "caso",
-      "pessoas",
-      "produto",
-      "etiquetas",
-      "onboarding",
-      "fechamento",
-      "jornada",
-      "comercial",
-      "tecnico",
-      "log",
-    ]) {
+    for (const s of ["visao", "caso", "pessoas", "etiquetas", "jornada", "comercial", "tecnico", "log"]) {
       expect(secoes, `seção "${s}" sumiu`).toContain(s);
     }
   });
 
-  it("AbaProximaAcao e AbaCadastro continuam renderizados — fundir seção não é apagar funcionalidade", () => {
-    expect(pagina).toContain("<AbaProximaAcao");
-    expect(pagina).toContain("<AbaCadastro");
+  it("todos os componentes fundidos continuam renderizados — fundir seção não é apagar funcionalidade", () => {
+    for (const componente of [
+      "<AbaProximaAcao",
+      "<AbaCadastro",
+      "<AbaProdutoTrilha",
+      "<AbaOnboarding",
+      "<AbaFechamento",
+      "<AbaJornadaCliente",
+      "<ConsolidacaoCaseService",
+    ]) {
+      expect(pagina, `${componente} sumiu — devia ter só mudado de lugar`).toContain(componente);
+    }
   });
 
   it("o índice segue a mesma ordem em que a página rola", () => {
