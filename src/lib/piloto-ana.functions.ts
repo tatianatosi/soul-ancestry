@@ -147,5 +147,23 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
       .eq("id", data.caseId)
       .eq("organization_id", organizationId);
     if (error) throw new Error(error.message);
+
+    /*
+      A decisão do ID canônico e o bloqueio "id_canonico_pendente" em
+      piloto_bloqueios contavam o mesmo fato em duas tabelas que nunca se
+      falavam: esta função decidia o ID, mas o bloqueio ficava aberto para
+      sempre, e o piloto continuava lido como NO_GO por uma pendência já
+      resolvida. Resolver os dois juntos é a mesma transação de decisão.
+    */
+    await supabase
+      .from("piloto_bloqueios")
+      .update({
+        status: "resolvido",
+        justificativa: `ID canônico decidido: ${data.idCanonico} (por ${data.decididoPor}).`,
+      })
+      .eq("case_id", data.caseId)
+      .eq("chave", "id_canonico_pendente")
+      .eq("status", "aberto");
+
     return { ok: true };
   });
