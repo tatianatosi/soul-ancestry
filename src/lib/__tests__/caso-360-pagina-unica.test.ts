@@ -11,16 +11,24 @@ describe("Caso 360 como página única", () => {
     expect(pagina).not.toMatch(/setAba\(/);
   });
 
-  it("as treze seções continuam existindo — nenhuma foi removida ou fundida", () => {
+  it("Indicadores e Próxima ação se fundiram — decisão da Proprietária, não regressão", () => {
+    // 27/08/2026 — a página única resolveu "abas que disputam a mesma
+    // informação", mas por dentro cada seção continuava sendo o componente
+    // isolado de antes, só empilhado. A Proprietária pediu o passo seguinte:
+    // separar indicador de contexto e reduzir quantas seções existem, uma de
+    // cada vez, sem apagar campo nenhum — só mudar onde cada coisa mora.
+    // "acao" (Próxima ação e alertas) foi a primeira a se fundir: é sinal,
+    // não formulário, e agora vive dentro de "visao" junto com o sinal de
+    // prioridade.
     const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"/g)].map((m) => m[1]);
-    expect(secoes).toHaveLength(13);
+    expect(secoes).toHaveLength(12);
+    expect(secoes, "acao deveria ter se fundido em visao, não sumido nem sobrado solto").not.toContain("acao");
     for (const s of [
       "visao",
       "caso",
       "pessoas",
       "cadastro",
       "produto",
-      "acao",
       "etiquetas",
       "onboarding",
       "fechamento",
@@ -31,6 +39,10 @@ describe("Caso 360 como página única", () => {
     ]) {
       expect(secoes, `seção "${s}" sumiu`).toContain(s);
     }
+  });
+
+  it("AbaProximaAcao continua renderizada — fundir seção não é apagar funcionalidade", () => {
+    expect(pagina).toContain("<AbaProximaAcao");
   });
 
   it("o índice segue a mesma ordem em que a página rola", () => {

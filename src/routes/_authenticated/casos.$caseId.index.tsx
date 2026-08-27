@@ -272,14 +272,13 @@ function Secao({
  * um clique que faz o resto sumir.
  */
 const SECOES = [
-  { id: "visao", rotulo: "Visão geral" },
+  { id: "visao", rotulo: "Indicadores" },
   { id: "caso", rotulo: "Caso" },
   { id: "comercial", rotulo: "Comercial e formalização" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoas" },
   { id: "cadastro", rotulo: "Cadastro e núcleo" },
   { id: "produto", rotulo: "Produto e trilha" },
-  { id: "acao", rotulo: "Próxima ação e alertas" },
   { id: "etiquetas", rotulo: "Etiquetas" },
   { id: "onboarding", rotulo: "Onboarding" },
   { id: "fechamento", rotulo: "Fechamento" },
@@ -603,13 +602,25 @@ function FichaCaso() {
       </nav>
 
       <div className="space-y-8">
-        <SecaoAncora id="visao" titulo="Visão geral">
+        <SecaoAncora id="visao" titulo="Indicadores">
           <AbaVisaoGeral
             caso={caso}
             timeline={q.data?.timeline ?? []}
             blueprint={q.data?.blueprint ?? []}
             filaDrive={q.data?.filaDrive ?? []}
           />
+          <div className="mt-5">
+            <AbaProximaAcao
+              caseId={id}
+              caso={caso}
+              alertas={qc2.data?.alertas ?? []}
+              comunicacoes={qc2.data?.comunicacoes ?? []}
+              bloqueado={bloqueado}
+              onMudou={recarregar}
+              v={v}
+              set={set}
+            />
+          </div>
         </SecaoAncora>
 
         <SecaoAncora id="caso" titulo="Caso">
@@ -1066,19 +1077,6 @@ function FichaCaso() {
             />
             <ConsolidacaoCaseService caseId={id} />
           </div>
-        </SecaoAncora>
-
-        <SecaoAncora id="acao" titulo="Próxima ação e alertas">
-          <AbaProximaAcao
-            caseId={id}
-            caso={caso}
-            alertas={qc2.data?.alertas ?? []}
-            comunicacoes={qc2.data?.comunicacoes ?? []}
-            bloqueado={bloqueado}
-            onMudou={recarregar}
-            v={v}
-            set={set}
-          />
         </SecaoAncora>
 
         <SecaoAncora id="etiquetas" titulo="Etiquetas">
