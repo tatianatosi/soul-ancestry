@@ -178,17 +178,59 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
       return { ok: false, pendencias: lista };
     }
 
-    const { error } = await supabase
+    // A máquina de estados (estados.ts, espelhada no banco) não permite pular
+    // direto de "rascunho" para "ativo" — exige passar por um estado
+    // intermediário e por "pronto_para_ativar". Os 14 requisitos acima já
+    // validaram tudo que essas etapas exigiriam; este caminho só formaliza a
+    // transição passo a passo para não ser recusado pela trava do banco.
+    const caminhoAteAtivo: Record<string, string> = {
+      rascunho: "aguardando_documentos",
+      aguardando_documentos: "pronto_para_ativar",
+      aguardando_pagamento: "pronto_para_ativar",
+      pronto_para_ativar: "ativo",
+    };
+
+    const { data: casoAtual, error: erroLeitura } = await supabase
       .from("crm_casos")
-      .update({ status: "ativo", ativo: true })
+      .select("status")
       .eq("id", data.casoId)
-      .eq("organization_id", organizationId);
-    if (error) {
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (erroLeitura || !casoAtual) {
+      const motivo = erroLeitura?.message ?? "Caso não encontrado nesta organização.";
       await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
-        resumo: "Ativação recusada pelo banco",
-        pendencias: [error.message],
+        resumo: "Ativação recusada: caso não localizado",
+        pendencias: [motivo],
       });
-      return { ok: false, pendencias: [error.message] };
+      return { ok: false, pendencias: [motivo] };
+    }
+
+    let statusAtual = casoAtual["status"] as string;
+    let saltos = 0;
+    while (statusAtual !== "ativo") {
+      const proximo = caminhoAteAtivo[statusAtual];
+      if (!proximo || saltos > 5) {
+        const motivo = `Transição de caso não permitida: ${statusAtual} → ativo.`;
+        await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+          resumo: "Ativação recusada: sem caminho válido até ativo",
+          pendencias: [motivo],
+        });
+        return { ok: false, pendencias: [motivo] };
+      }
+      const { error } = await supabase
+        .from("crm_casos")
+        .update(proximo === "ativo" ? { status: proximo, ativo: true } : { status: proximo })
+        .eq("id", data.casoId)
+        .eq("organization_id", organizationId);
+      if (error) {
+        await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
+          resumo: `Ativação recusada pelo banco na transição ${statusAtual} → ${proximo}`,
+          pendencias: [error.message],
+        });
+        return { ok: false, pendencias: [error.message] };
+      }
+      statusAtual = proximo;
+      saltos += 1;
     }
 
     await registrar(supabase, organizationId, "caso_ativado", data.casoId, {

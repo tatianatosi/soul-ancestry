@@ -18,6 +18,7 @@ import {
   PERFIL_INSTITUCIONAL_VERSAO,
   PREAMBULO_CONTRATO_BASE,
   SECOES_DOCUMENTO_PUBLICADO,
+  contratoBaseAssinavel,
 } from "@/lib/contrato-base-consolidado";
 import { CLAUSULAS_MATRIZ } from "@/lib/matriz-clausulas";
 import { rotuloEstadoPerfilInstitucional } from "@/lib/perfil-institucional";
@@ -32,6 +33,13 @@ export const SELO_TEXTO_FIXO = "Texto fixo · não editável por caso";
 
 export const AVISO_UNDER_LEGAL_REVIEW =
   "Fonte interna em revisão. Não habilita assinatura, cobrança, pesquisa externa ou automação.";
+
+export const AVISO_VIGENTE =
+  "Revisão jurídica concluída — 28/08/2026. Modelo vigente: habilita assinatura via aceite digital gov.br, dentro dos demais gates do caso (dados, SKU, Asaas).";
+
+function avisoDoEstado(status: string): string {
+  return status === "vigente" ? AVISO_VIGENTE : AVISO_UNDER_LEGAL_REVIEW;
+}
 
 export const CONTRATO_BASE_TITULO_CABECALHO = "Contrato-Base Consolidado v1.0";
 
@@ -203,7 +211,7 @@ export function lerContratoBase(): LeituraContratoBase {
     versao: CONTRATO_BASE_VERSAO,
     status: CONTRATO_BASE_STATUS,
     data: CONTRATO_BASE_DATA,
-    aviso: AVISO_UNDER_LEGAL_REVIEW,
+    aviso: avisoDoEstado(CONTRATO_BASE_STATUS),
     perfilVersao: PERFIL_INSTITUCIONAL_VERSAO,
     perfilRotuloEstado: rotuloEstadoPerfilInstitucional(),
     perfil: PERFIL_INSTITUCIONAL,
@@ -214,9 +222,9 @@ export function lerContratoBase(): LeituraContratoBase {
   };
 }
 
-/** Sob `under_legal_review` nenhuma ação externa é habilitada. */
+/** Ação externa (assinatura) só habilita quando o contrato-base está `vigente`. */
 export function acoesExternasHabilitadas(): boolean {
-  return false;
+  return contratoBaseAssinavel(CONTRATO_BASE_STATUS);
 }
 
 /** Letras A–P sem seção publicada correspondente (alerta de órfã). */

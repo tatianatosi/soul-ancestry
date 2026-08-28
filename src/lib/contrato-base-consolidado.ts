@@ -27,7 +27,7 @@ export const ESTADOS_VIGENCIA_CONTRATO_BASE = [
 export type EstadoVigenciaContratoBase = (typeof ESTADOS_VIGENCIA_CONTRATO_BASE)[number];
 
 /** Status desta versão. Só muda por decisão humana registrada após revisão jurídica. */
-export const CONTRATO_BASE_STATUS: EstadoVigenciaContratoBase = "under_legal_review";
+export const CONTRATO_BASE_STATUS: EstadoVigenciaContratoBase = "vigente";
 
 export const CONTRATO_BASE_AVISO =
   "Artefato interno de recuperação. Não substitui revisão jurídica independente e não autoriza cobrança, assinatura, pesquisa externa, portal ou automação.";
