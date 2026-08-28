@@ -24,7 +24,7 @@ import {
   rotulo,
   type LeadDesk,
 } from "@/lib/crm-desk";
-import { ROTEIRO_DISCOVERY } from "@/lib/discovery-roteiro";
+import { ROTEIRO_DISCOVERY, progressoRoteiro } from "@/lib/discovery-roteiro";
 import {
   ROTULO_ESTADO_CALL,
   avaliarHandoffCall,
@@ -441,21 +441,38 @@ export function PainelCalls() {
 
               <Secao
                 titulo="Roteiro vivo de Discovery"
-                descricao="Guia contextual de perguntas. Não é formulário obrigatório e não conclui rota jurídica, prazo ou preço."
+                descricao="Guia contextual de perguntas. Progresso calculado do que já foi respondido no registro acima — não é formulário obrigatório e não conclui rota jurídica, prazo ou preço."
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  {ROTEIRO_DISCOVERY.map((b) => (
-                    <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-navy/60">
-                        {b.titulo}
-                      </p>
-                      <ul className="mt-1 space-y-1 text-xs text-navy/70">
-                        {b.perguntas.map((p) => (
-                          <li key={p}>• {p}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  {ROTEIRO_DISCOVERY.map((b) => {
+                    const p = progressoRoteiro(lead).find((x) => x.chave === b.chave)!;
+                    return (
+                      <div
+                        key={b.chave}
+                        className={`rounded-lg border p-3 ${
+                          p.completo ? "border-sage/50 bg-sage/10" : "border-navy/10 bg-cream/40"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-navy/60">
+                            {b.titulo}
+                          </p>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                              p.completo ? "bg-sage/30 text-navy" : "bg-navy/10 text-navy/60"
+                            }`}
+                          >
+                            {p.preenchidos}/{p.total}
+                          </span>
+                        </div>
+                        <ul className="mt-1 space-y-1 text-xs text-navy/70">
+                          {b.perguntas.map((q) => (
+                            <li key={q}>• {q}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </div>
               </Secao>
             </>

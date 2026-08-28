@@ -112,6 +112,25 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
   },
 ];
 
+export type ProgressoBlocoRoteiro = { chave: string; titulo: string; preenchidos: number; total: number; completo: boolean };
+
+/**
+ * 28/08/2026 — "o roteiro, o Painel de Calls... por que é tão difícil algo
+ * que foi pedido mais de 3 vezes... o que se tem agora é só forms que não
+ * me ajuda em nada" (Proprietária). O roteiro vivo era só uma lista estática
+ * de perguntas impressa do lado do formulário, sem nenhuma ligação com o que
+ * já foi preenchido. Esta função computa, por bloco, quantos campos do lead
+ * já têm resposta — transforma lista em indicador real de progresso da call.
+ */
+export function progressoRoteiro(l: LeadDesk, roteiro: BlocoRoteiro[] = ROTEIRO_DISCOVERY): ProgressoBlocoRoteiro[] {
+  const vazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
+  return roteiro.map((b) => {
+    const total = b.campos.length;
+    const preenchidos = b.campos.filter((c) => !vazio((l as unknown as Record<string, unknown>)[c])).length;
+    return { chave: b.chave, titulo: b.titulo, preenchidos, total, completo: total > 0 && preenchidos === total };
+  });
+}
+
 export type SinalQualidade = { chave: string; rotulo: string; motivo: string };
 
 export type ContextoTrilha = {

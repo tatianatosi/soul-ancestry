@@ -4,6 +4,7 @@ import {
   ROTEIRO_DISCOVERY,
   marcoUsavelExternamente,
   pesquisaExternaPermitida,
+  progressoRoteiro,
   sinaisQualidadeLead,
 } from "@/lib/discovery-roteiro";
 import { validarLead, type LeadDesk } from "@/lib/crm-desk";
@@ -17,6 +18,29 @@ describe("Roteiro vivo de Discovery", () => {
       expect(b.perguntas.length).toBeGreaterThan(2);
       expect(b.campos.length).toBeGreaterThan(2);
     }
+  });
+
+  it("progressoRoteiro: lead vazio começa 0/total em todos os blocos", () => {
+    const progresso = progressoRoteiro(base);
+    expect(progresso).toHaveLength(5);
+    for (const p of progresso) {
+      expect(p.preenchidos).toBe(0);
+      expect(p.completo).toBe(false);
+    }
+  });
+
+  it("progressoRoteiro: conta só os campos do próprio bloco preenchidos, não os outros", () => {
+    const abertura = ROTEIRO_DISCOVERY.find((b) => b.chave === "abertura")!;
+    const parcial: LeadDesk = { ...base } as LeadDesk;
+    for (const c of abertura.campos) (parcial as unknown as Record<string, unknown>)[c] = "preenchido";
+
+    const progresso = progressoRoteiro(parcial);
+    const bloco = progresso.find((p) => p.chave === "abertura")!;
+    expect(bloco.preenchidos).toBe(abertura.campos.length);
+    expect(bloco.completo).toBe(true);
+
+    // "documentos" não compartilha nenhum campo com "abertura" — permanece 0.
+    expect(progresso.find((p) => p.chave === "documentos")!.preenchidos).toBe(0);
   });
 
   it("bloqueia gravação sem consentimento concedido", () => {
