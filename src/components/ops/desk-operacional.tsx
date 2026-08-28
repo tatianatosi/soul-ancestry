@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ import {
   STATUS_TAREFA,
   TIPOS_TAREFA,
 } from "@/lib/ops.server";
-import { FASES_JORNADA } from "@/lib/onboarding-jornada";
+import { FASES_JORNADA, sugerirProximaMicroentrega } from "@/lib/onboarding-jornada";
 import { rotuloFase } from "@/lib/fase-rotulo";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +62,7 @@ export function DeskOperacional() {
   const [novaTarefa, setNovaTarefa] = useState(false);
   const [novaMicro, setNovaMicro] = useState(false);
   const [editarMicro, setEditarMicro] = useState<Linha | null>(null);
+  const [microCasoId, setMicroCasoId] = useState("");
 
   const qc = useQueryClient();
   const fnFila = useServerFn(listarFilaOps);
@@ -98,6 +99,18 @@ export function DeskOperacional() {
 
   const equipe = (refs.data?.equipe ?? []) as Linha[];
   const casos = (refs.data?.casos ?? []) as Linha[];
+
+  useEffect(() => {
+    if (novaMicro || editarMicro) setMicroCasoId(editarMicro?.["caso_id"] ?? "");
+  }, [novaMicro, editarMicro]);
+
+  const casoDaMicro = casos.find((c) => c["id"] === microCasoId);
+  const sugestaoMicro = editarMicro
+    ? null
+    : sugerirProximaMicroentrega({
+        eixoComercial: casoDaMicro?.["eixo_comercial"],
+        eixoFormalizacao: casoDaMicro?.["eixo_formalizacao"],
+      });
   const podeEscrever = refs.data?.podeEscrever ?? false;
   const tarefas = (fila.data?.tarefas ?? []) as Linha[];
   const microentregas = (micro.data?.microentregas ?? []) as Linha[];
@@ -627,6 +640,7 @@ export function DeskOperacional() {
           aoFechar={() => {
             setNovaMicro(false);
             setEditarMicro(null);
+            setMicroCasoId("");
           }}
         >
           <form
@@ -667,11 +681,14 @@ export function DeskOperacional() {
               Conclusão exige critério de aceite preenchido e evidência registrada ou justificativa. Caso pausado só
               recebe nova micro-entrega com exceção autorizada pela administração.
             </p>
-            <Campo rotulo="Título">
-              <input name="titulo" required defaultValue={editarMicro?.["titulo"] ?? ""} className={inputCls} />
-            </Campo>
             <Campo rotulo="Caso">
-              <select name="caso_id" required defaultValue={editarMicro?.["caso_id"] ?? ""} className={inputCls}>
+              <select
+                name="caso_id"
+                required
+                value={microCasoId}
+                onChange={(ev) => setMicroCasoId(ev.target.value)}
+                className={inputCls}
+              >
                 <option value="">Selecione…</option>
                 {casos.map((c) => (
                   <option key={c["id"]} value={c["id"]}>
@@ -680,11 +697,29 @@ export function DeskOperacional() {
                 ))}
               </select>
             </Campo>
+            {sugestaoMicro && (
+              <div className="rounded-lg border border-navy/20 bg-navy/5 p-3 text-xs text-navy/80">
+                <p className="font-semibold">
+                  Sugestão pela jornada do caso: {sugestaoMicro.titulo}
+                </p>
+                <p className="mt-1 text-navy/60">{sugestaoMicro.motivo}</p>
+              </div>
+            )}
+            <Campo rotulo="Título">
+              <input
+                key={`titulo-${editarMicro?.["id"] ?? microCasoId}`}
+                name="titulo"
+                required
+                defaultValue={editarMicro?.["titulo"] ?? sugestaoMicro?.titulo ?? ""}
+                className={inputCls}
+              />
+            </Campo>
             <Campo rotulo="Fase da jornada">
               <select
+                key={`fase-${editarMicro?.["id"] ?? microCasoId}`}
                 name="fase"
                 required
-                defaultValue={editarMicro?.["fase"] ?? FASES_JORNADA[0].id}
+                defaultValue={editarMicro?.["fase"] ?? sugestaoMicro?.fase ?? FASES_JORNADA[0].id}
                 className={inputCls}
               >
                 {FASES_JORNADA.map((f) => (

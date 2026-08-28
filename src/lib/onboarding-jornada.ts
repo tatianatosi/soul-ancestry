@@ -7,6 +7,8 @@
  * gate, persistência e auditoria.
  */
 
+import { EIXO_FORMALIZACAO } from "@/lib/crm-desk";
+
 /* ---------------------------------------------------------------- estados */
 
 export const EIXO_OPERACAO = [
@@ -444,3 +446,79 @@ export const TEXTO_JORNADA_PRE_ONBOARDING =
 
 export const TEXTO_BLOQUEIO_SEGURO =
   "Esta área ainda não está disponível no seu acompanhamento.";
+
+/* ------------------------------------------------- sugestão de microentrega */
+
+/**
+ * 28/08/2026 — "a ana fechou, deu o seu aceite verbal, deu o aceite escrito,
+ * qual será a primeira microentrega no app" (Proprietária). A biblioteca de
+ * micro-entregas era só formulário em branco: nada dizia qual é a próxima
+ * entrega dado o estágio real do caso. Esta função deriva isso do mesmo par
+ * de eixos já unificado em `crm-desk.ts` (EIXO_COMERCIAL + EIXO_FORMALIZACAO)
+ * — sem catálogo paralelo. Sugere, não decide: quem cria a micro-entrega
+ * confirma ou troca. Sem aceite comercial registrado, não sugere nada —
+ * nunca inventa estágio.
+ */
+export type EstadoParaSugestaoMicroentrega = {
+  eixoComercial?: string | null;
+  eixoFormalizacao?: string | null;
+};
+
+export type SugestaoMicroentrega = {
+  tipo: TipoEntrega;
+  fase: FaseJornada;
+  titulo: string;
+  motivo: string;
+};
+
+const ORDEM_FORMALIZACAO = EIXO_FORMALIZACAO.map((o) => o.valor);
+const idxFormalizacao = (v?: string | null) => {
+  const i = ORDEM_FORMALIZACAO.indexOf(String(v ?? ""));
+  return i === -1 ? 0 : i;
+};
+const antes = (idx: number, marco: string) => idx < ORDEM_FORMALIZACAO.indexOf(marco);
+
+const EIXO_COMERCIAL_ACEITO = ["aceite_verbal", "confirmacao_formal_recebida"];
+
+export function sugerirProximaMicroentrega(
+  estado: EstadoParaSugestaoMicroentrega,
+): SugestaoMicroentrega | null {
+  if (!estado.eixoComercial || !EIXO_COMERCIAL_ACEITO.includes(estado.eixoComercial)) return null;
+
+  const formalIdx = idxFormalizacao(estado.eixoFormalizacao);
+
+  if (antes(formalIdx, "contrato_assinado")) {
+    return {
+      tipo: "boas_vindas",
+      fase: "aceite_e_formalizacao",
+      titulo: "Boas-vindas — contrato em preparação",
+      motivo:
+        "Aceite verbal e confirmação formal já recebidos; contrato ainda não assinado. Primeira microentrega é boas-vindas, para não deixar o cliente em silêncio enquanto o contrato é formalizado.",
+    };
+  }
+  if (antes(formalIdx, "pagamento_inicial_confirmado")) {
+    return {
+      tipo: "plano_de_acao",
+      fase: "aceite_e_formalizacao",
+      titulo: "Plano de ação inicial",
+      motivo: "Contrato assinado. Próxima microentrega é o plano de ação, base do onboarding.",
+    };
+  }
+  if (antes(formalIdx, "onboarding_iniciado")) {
+    return {
+      tipo: "checklist_documental",
+      fase: "onboarding",
+      titulo: "Checklist documental inicial",
+      motivo: "Pagamento inicial confirmado. Próxima microentrega é o checklist documental, preparando o onboarding.",
+    };
+  }
+  if (antes(formalIdx, "caso_ativo")) {
+    return {
+      tipo: "arvore_inicial",
+      fase: "pesquisa_inicial",
+      titulo: "Árvore inicial",
+      motivo: "Onboarding iniciado. Próxima microentrega é a árvore inicial, abrindo a pesquisa.",
+    };
+  }
+  return null;
+}

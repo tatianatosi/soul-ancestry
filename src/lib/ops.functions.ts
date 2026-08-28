@@ -90,7 +90,7 @@ export const referenciasOps = createServerFn({ method: "GET" })
     const [casos, equipe, regras] = await Promise.all([
       supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,status")
+        .select("id,codigo,titulo,status,eixo_comercial,eixo_formalizacao")
         .eq("organization_id", ctx.organizationId)
         .is("archived_at", null)
         .order("codigo"),
