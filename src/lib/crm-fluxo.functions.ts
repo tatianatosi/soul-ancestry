@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -62,6 +63,7 @@ async function registrarEvento(
 export const painelCrmFluxo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const [contatos, oportunidades, interacoes, discovery, eventos] = await Promise.all([
       supabase

@@ -6,6 +6,7 @@
  * `commercial_conditions` já existentes. Não cria tabela, catálogo, preço,
  * condição, cobrança, link Asaas, comunicação ou integração.
  */
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -49,6 +50,7 @@ function paraSku(row: any): SkuPrecoSugerido {
 export const lerPrecoSugeridoCanonico = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS.has(papel)) throw new Error("Referência de preço sugerido restrita a perfis Desk autorizados.");

@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -78,6 +79,7 @@ export const painelPlanoAcao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa o plano de ação de pesquisa.");
@@ -193,6 +195,7 @@ export const arquivarRegistroG07 = createServerFn({ method: "POST" })
 export const pendenciasCriticasPainel = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) return { itens: [] as Record<string, any>[], casos: [] as Record<string, any>[] };

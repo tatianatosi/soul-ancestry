@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -70,6 +71,7 @@ export const listarVinculosFonte = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string; sourceDocumentId?: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDoCaso(supabase, context.userId as string, data.caseId);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa os vínculos de pesquisa do caso.");

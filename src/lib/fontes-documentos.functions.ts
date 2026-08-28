@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -103,6 +104,7 @@ export const listarFontesDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string; incluirArquivados?: boolean }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa as fontes e documentos do caso.");

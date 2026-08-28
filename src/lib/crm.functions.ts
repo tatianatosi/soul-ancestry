@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { sanitizarRotuloCliente } from "@/lib/canvas-sanitize";
 
@@ -67,6 +68,7 @@ async function db() {
 }
 
 export const listCrmCasos = createServerFn({ method: "GET" }).handler(async () => {
+    semCache();
   const supabase = await db();
   const [casos, tarefas, entregas, tps, slas] = await Promise.all([
     supabase.from("casos").select("*").order("cliente_nome"),
@@ -104,6 +106,7 @@ export const listCrmCasos = createServerFn({ method: "GET" }).handler(async () =
 export const getCrmCaso = createServerFn({ method: "GET" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data }) => {
+    semCache();
     const supabase = await db();
     const caso = await supabase.from("casos").select("*").eq("case_id", data.caseId).maybeSingle();
     if (caso.error) throw new Error(caso.error.message);
@@ -194,6 +197,7 @@ export const publicarCanvas = createServerFn({ method: "POST" })
 export const getCanvasPorToken = createServerFn({ method: "GET" })
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
+    semCache();
     if (!data.token || data.token.length < 16) return null;
     const supabase = await db();
     const caso = await supabase

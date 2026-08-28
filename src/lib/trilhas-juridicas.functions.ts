@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -47,6 +48,7 @@ export type MarcoJuridico = {
 export const listarTrilhasJuridicas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const [trilhas, marcos] = await Promise.all([
       supabase

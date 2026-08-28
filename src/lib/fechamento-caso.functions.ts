@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -15,6 +16,7 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
 
@@ -164,6 +166,7 @@ export const abrirTarefaGate = createServerFn({ method: "POST" })
 export const metricasJornada = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     const org = ctx.organizationId;

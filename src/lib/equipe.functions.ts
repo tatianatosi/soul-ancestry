@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -207,6 +208,7 @@ export const concluirRedefinicaoSenha = createServerFn({ method: "POST" })
 export const listarEquipe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const h = await import("./equipe.server");
     const supabase = context.supabase as any;
     const staff = await h.staffPorUsuario(context.userId as string);
@@ -496,6 +498,7 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
 
 /** Indica se o provisionamento inicial ainda está disponível (bloqueio definitivo após o primeiro admin). */
 export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(async () => {
+    semCache();
   const h = await import("./equipe.server");
   const { data, error } = await h.adminClient.rpc("bootstrap_permitido");
   if (error) return { pendente: false };
@@ -512,6 +515,7 @@ export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { email?: string } | undefined) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./equipe.server");
     await h.exigirAdminEquipe(context.userId as string);
 

@@ -1,7 +1,31 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const ler = (p: string) => readFileSync(p, "utf8");
+
+/**
+ * Varredura completa: toda rota GET autenticada (createServerFn com
+ * requireSupabaseAuth) precisa invalidar cache. 28/08/2026 — a Proprietária
+ * pediu pra verificar os ~70 arquivos de uma vez, não um a um. Esta trava
+ * cobre todo `src/lib/*.functions.ts` daqui pra frente: um handler GET novo
+ * sem `semCache()` quebra o teste antes de virar o mesmo bug de novo.
+ */
+function handlersGetSemCache(caminho: string): string[] {
+  const src = ler(caminho);
+  const semCacheImportado = src.includes('from "@/lib/no-store"');
+  const handlerRe = /\.handler\(async \([^)]*\)\s*=>\s*\{/g;
+  const faltando: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = handlerRe.exec(src))) {
+    const antes = src.slice(Math.max(0, m.index - 600), m.index);
+    const criaMatches = [...antes.matchAll(/createServerFn\(\{\s*method:\s*["'](GET|POST)["']\s*\}\)/g)];
+    const ultimaCriacao = criaMatches[criaMatches.length - 1];
+    if (!ultimaCriacao || ultimaCriacao[1] !== "GET") continue;
+    if (!src.slice(m.index, m.index + 300).includes("semCache()")) faltando.push(caminho);
+  }
+  if (faltando.length && !semCacheImportado) faltando.push(caminho);
+  return faltando;
+}
 
 /**
  * 28/08/2026 — a Proprietária reportou "Usuário sem organização ativa" em
@@ -44,5 +68,11 @@ describe("Cache de rotas autenticadas — GET nunca serve resposta antiga pra se
       src.indexOf("export const registrarDecisaoProprietaria"),
     );
     expect(estado).toContain("semCache();");
+  });
+
+  it("varredura: nenhum handler GET em src/lib/*.functions.ts fica sem semCache()", () => {
+    const arquivos = readdirSync("src/lib").filter((f) => f.endsWith(".functions.ts") || f.endsWith(".server.ts"));
+    const comFalta = arquivos.flatMap((f) => handlersGetSemCache(`src/lib/${f}`));
+    expect(comFalta).toEqual([]);
   });
 });

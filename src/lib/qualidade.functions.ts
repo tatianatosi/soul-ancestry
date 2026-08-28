@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -33,6 +34,7 @@ export const listarInconsistencias = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: FiltroIssues) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
 
@@ -111,6 +113,7 @@ export const relatorioSemanal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { inicio?: string }) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
     const { data: json, error } = await supabase.rpc("quality_relatorio_semanal", {
@@ -126,6 +129,7 @@ export const listarChecklists = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId?: string }) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
 
@@ -214,6 +218,7 @@ export const previewExportacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { conjunto: string }) => data ?? { conjunto: "inconsistencias" })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
     const conjunto = CONJUNTOS_CSV[data.conjunto];
@@ -277,6 +282,7 @@ export const exportarCsv = createServerFn({ method: "POST" })
 export const listarExportacoes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
     const { data, error } = await supabase

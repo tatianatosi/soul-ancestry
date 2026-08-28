@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -33,6 +34,7 @@ export const carregarPessoa = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clienteId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
 

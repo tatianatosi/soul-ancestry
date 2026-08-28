@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
 import type { AcaoGateada } from "@/lib/gates-formalizacao";
@@ -365,6 +366,7 @@ async function resolverOrganizacao(supabase: SupabaseCliente, userId?: string) {
 export const getContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
 
     // Autorização interna vem sempre de staff_access (nunca do front-end).
@@ -433,6 +435,7 @@ export const listarRegistros = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     let q = supabase
@@ -668,6 +671,7 @@ export const listarAcessosEvidencia = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { evidenciaId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { data: linhas } = await supabase
@@ -683,6 +687,7 @@ export const listarAcessosEvidencia = createServerFn({ method: "GET" })
 export const listarAuditoria = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const { data, error } = await supabase
@@ -698,6 +703,7 @@ export const listarAuditoria = createServerFn({ method: "GET" })
 export const listarUsuarios = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const [membros, papeis, perfis] = await Promise.all([

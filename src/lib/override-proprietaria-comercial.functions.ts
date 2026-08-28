@@ -9,6 +9,7 @@
  * (trg_caso_ativacao_gates_guard). Nenhuma função aqui envia mensagem,
  * cria cobrança, assina, publica ou executa pesquisa externa.
  */
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -139,6 +140,7 @@ export const listarOverridesComerciais = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { casoId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
 

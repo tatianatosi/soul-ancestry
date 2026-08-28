@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -145,6 +146,7 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
 export const portalContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const acesso = await supabase
       .from("client_portal_access")
@@ -184,6 +186,7 @@ export const portalCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [caso, evidencias] = await Promise.all([
       supabase
@@ -224,6 +227,7 @@ export const portalCaso = createServerFn({ method: "GET" })
 export const portalDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { data } = await supabase
       .from("evidencias")
@@ -235,6 +239,7 @@ export const portalDocumentos = createServerFn({ method: "GET" })
 export const portalProposta = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [casos, faturas] = await Promise.all([
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
@@ -251,6 +256,7 @@ export const portalProposta = createServerFn({ method: "GET" })
 export const listarAcessosPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [acessos, casosAcesso, clientes, casos, autorizacoes, propostas] = await Promise.all([
       supabase
@@ -406,6 +412,7 @@ export const listarEventosAcesso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { acessoId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { data: eventos } = await supabase
       .from("client_access_events")

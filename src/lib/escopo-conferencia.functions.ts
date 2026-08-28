@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -44,6 +45,7 @@ export const painelPreparacaoContratual = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { resultado, saneamento, dados } = await montarConferencia(supabase, { caseId: data.caseId });
     return {

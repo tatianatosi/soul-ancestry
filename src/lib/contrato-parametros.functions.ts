@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -66,6 +67,7 @@ function exigirTexto(v: unknown, campo: string, max = 4000) {
 export const listarParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
 
@@ -152,6 +154,7 @@ export const painelParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
 
     const { data: registro } = await supabase
@@ -1039,6 +1042,7 @@ export const lerPrevia = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { previaId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const { data: previa } = await supabase
       .from("contract_parameter_previews")
@@ -1255,6 +1259,7 @@ export const destinosParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const { data: registro } = await supabase
       .from("contract_case_parameters")

@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
@@ -23,6 +24,7 @@ async function contexto(supabase: any) {
 export const carregarMigracao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { organizationId } = await contexto(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);

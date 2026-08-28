@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { semFixtures, ehFixtureLinha } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -22,6 +23,7 @@ export const carregarConversao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data?: { incluirDemo?: boolean }) => ({ incluirDemo: data?.incluirDemo === true }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
@@ -223,6 +225,7 @@ export const avancarEstadoAceite = createServerFn({ method: "POST" })
 export const painelHoje = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);

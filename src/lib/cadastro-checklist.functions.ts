@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -33,6 +34,7 @@ export const carregarChecklistCadastral = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => ({ caseId: exigirUuid(data?.caseId, "caseId") }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const caso = await contexto(supabase, data.caseId);
 

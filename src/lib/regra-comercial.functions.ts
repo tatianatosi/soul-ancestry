@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -35,6 +36,7 @@ export const conferirRegraComercial = createServerFn({ method: "GET" })
     return { caseId: data.caseId };
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase as Sb;
     const userId = (context as any).userId as string;
     const org = await orgDoUsuario(supabase, userId);

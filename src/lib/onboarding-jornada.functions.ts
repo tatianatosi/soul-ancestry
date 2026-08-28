@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -143,6 +144,7 @@ export const obterJornadaCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase);
     const ctx = await carregarContexto(supabase, org, data.caseId);
@@ -152,6 +154,7 @@ export const obterJornadaCaso = createServerFn({ method: "GET" })
 export const obterPainelJornada = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase);
 
@@ -570,6 +573,7 @@ export const listarEntregasPublicadas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase);
     const r = await supabase
