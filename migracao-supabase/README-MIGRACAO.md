@@ -8,6 +8,10 @@ Este pacote contém tudo que você precisa para replicar a estrutura e os dados 
 |---------|----------|
 | `01-schema-public.sql` | Schema `public` completo: tabelas, tipos, índices, funções, triggers, políticas RLS e grants. |
 | `02-dados-public.sql` | Dados das tabelas do schema `public` (INSERTs). |
+| `03-usuarios-e-acessos.md` | Usuários de equipe a recriar e SQL de vínculo de papel/organização. |
+| `04-buckets-storage.md` | Buckets de Storage a criar e regra de privacidade. |
+| `05-CHECKLIST.md` | Checklist ordenado da migração, com verificações de contagem. |
+| `06-reconfigurar-app.md` | Onde trocar o projeto no código e nas variáveis do deploy. |
 
 ## O que NÃO está incluso (e precisa ser recriado no novo projeto)
 
