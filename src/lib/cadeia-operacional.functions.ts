@@ -26,7 +26,26 @@ export const salvarPlanejadorOperacional = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = context.userId as string;
     const org = await orgDoUsuario(supabase, userId);
-    return sincronizarPlanejador(supabase, { org, userId, entrada: data.entrada });
+    // Responsável nominal é sempre quem preenche, resolvido pela sessão — nunca aceito do cliente.
+    const entrada: EntradaPlanejador = { ...data.entrada, responsavelUserId: userId };
+    return sincronizarPlanejador(supabase, { org, userId, entrada });
+  });
+
+/** SKUs do catálogo homologado elegíveis para o Planejador selecionar. */
+export const listarSkusPlanejador = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+    const { data, error } = await supabase
+      .from("product_catalog")
+      .select("id,code,nome_comercial")
+      .is("archived_at", null)
+      .neq("elegivel_para_proposta", false)
+      .order("code", { ascending: true })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    return { skus: (data ?? []) as { id: string; code: string; nome_comercial: string | null }[] };
   });
 
 /** Materializa a proposta estruturada a partir do planejador + SKU do catálogo. */
