@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calcularMetricasCrm,
+  errosBloqueantesAlteracao,
   montarFilasHoje,
   resultadoComercialDerivado,
   validarLead,
@@ -33,6 +34,23 @@ describe("CRM desk — listas controladas e travas", () => {
   it("recusa valor fora da lista controlada", () => {
     const erros = validarLead({ ...base, origem: "tiktok_livre" });
     expect(erros.some((e) => e.campo === "origem")).toBe(true);
+  });
+
+  it("permite editar outro campo quando a ficha contém classificação legada", () => {
+    const legado = { ...base, origem: "manual", proxima_acao: "completar_cadastro_lead" };
+    const candidato = { ...legado, responsavel_nome: "Proprietária Administradora" };
+    expect(errosBloqueantesAlteracao(legado, candidato, ["responsavel_nome"])).toEqual([]);
+  });
+
+  it("bloqueia valor inválido inserido no campo alterado", () => {
+    const candidato = { ...base, origem: "canal_novo_nao_homologado" };
+    expect(errosBloqueantesAlteracao(base, candidato, ["origem"]).map((e) => e.campo)).toContain("origem");
+  });
+
+  it("mantém bloqueio quando a alteração cria uma nova violação de gate", () => {
+    const candidato = { ...base, eixo_comercial: "proposta_enviada" };
+    const erros = errosBloqueantesAlteracao(base, candidato, ["eixo_comercial"]);
+    expect(erros.map((e) => e.campo)).toEqual(expect.arrayContaining(["discovery_resultado", "resumo_validado", "proposta_link_interno"]));
   });
 
   it("exige responsável e próxima ação em lead ativo", () => {

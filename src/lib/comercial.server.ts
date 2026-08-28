@@ -89,7 +89,8 @@ export async function contextoInterno(supabase: Sb, userId: string) {
   const papeis = await supabase
     .from("user_roles")
     .select("role")
-    .eq("organization_id", membro.data.organization_id);
+    .eq("organization_id", membro.data.organization_id)
+    .eq("user_id", userId);
   const lista = ((papeis.data ?? []) as { role: string }[]).map((p) => p.role);
   return {
     organizationId: membro.data.organization_id as string,
