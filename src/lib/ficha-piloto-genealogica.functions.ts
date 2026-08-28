@@ -14,7 +14,7 @@ export const carregarFichaPiloto = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const [pesquisa, caso] = await Promise.all([
       supabase

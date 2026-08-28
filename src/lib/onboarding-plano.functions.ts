@@ -14,7 +14,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const [plano, caso, comunicacoes] = await Promise.all([
       supabase
@@ -59,7 +59,7 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const caso = await supabase
       .from("crm_casos")

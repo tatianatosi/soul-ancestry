@@ -5,10 +5,11 @@ import { semCache } from "@/lib/no-store";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
 
-async function organizacaoDo(supabase: any) {
+async function organizacaoDo(supabase: any, userId: string) {
   const { data } = await supabase
     .from("organization_members")
     .select("organization_id")
+    .eq("user_id", userId)
     .is("archived_at", null)
     .maybeSingle();
   if (!data?.organization_id) throw new Error("Usuário sem organização ativa.");
@@ -23,7 +24,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const caso = await supabase
       .from("crm_casos")
@@ -95,7 +96,7 @@ export const listarCasosFicha = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const { data, error } = await supabase
       .from("crm_casos")
       .select("*")

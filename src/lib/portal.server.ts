@@ -84,6 +84,7 @@ export async function exigirGestor(supabase: any, userId: string) {
   const membro = await supabase
     .from("organization_members")
     .select("organization_id")
+    .eq("user_id", userId)
     .is("archived_at", null)
     .maybeSingle();
   const organizationId = membro.data?.organization_id as string | undefined;
