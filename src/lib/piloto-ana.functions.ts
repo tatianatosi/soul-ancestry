@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
+import { semCache } from "@/lib/no-store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -22,6 +23,7 @@ async function localizar(supabase: any, organizationId: string) {
 export const carregarPilotoAna = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase);
     const caso = await localizar(supabase, organizationId);
