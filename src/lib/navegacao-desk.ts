@@ -85,9 +85,20 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição (aba 2)" },
 
+      { grupo: "CRM Vivo" },
+      // 28/08/2026 — CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1
+      // (substitui a v1.0, que propunha tabelas contacts/opportunities novas):
+      // "não basta haver funções, tabelas ou componentes isolados: o CRM Vivo
+      // precisa aparecer e operar na interface autenticada... use apenas
+      // rotas e telas existentes". O CRM Vivo sempre foi isto — Leads,
+      // Contatos/eventos de funil, Propostas, Conversão/handoff — só nunca
+      // apareceu com esse nome no menu. Nenhuma tabela nova, nenhum dado
+      // movido; só o rótulo que faltava.
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Calls Discovery" },
-      { grupo: "CRM" },
+      { to: "/propostas", label: "Propostas" },
+      { to: "/conversao", label: "Conversão, follow-up e handoff" },
+      { grupo: "Referência do CRM" },
       // 27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). O
       // modelo de contatos/oportunidades (0 registros desde 21/08) saiu do
       // menu, seguindo o mesmo padrão dos painéis históricos: link direto
@@ -99,9 +110,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
         label: "Dicionário de validações (Calls → CRM)",
       },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
-
-      { to: "/propostas", label: "Propostas" },
-      { to: "/conversao", label: "Conversão, follow-up e handoff" },
       { grupo: "Relacionamento" },
       { to: "/clientes", label: "Clientes e núcleos comerciais" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
