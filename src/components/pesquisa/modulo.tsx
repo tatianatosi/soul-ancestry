@@ -338,9 +338,9 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
           <Painel titulo="Situação da pesquisa">
             <ul className="space-y-1 text-sm text-navy/70">
               <li>Pessoas mapeadas: {d.pessoas.length}</li>
-              <li>Relações: {d.relacoes.length} (confirmadas: {d.relacoes.filter((r) => r["status"] === "confirmed").length})</li>
+              <li>Relações: {d.relacoes.length} (validadas: {d.relacoes.filter((r) => r["status"] === "validated").length})</li>
               <li>Evidências: {d.evidencias.length} (validadas: {d.evidencias.filter((e) => e["evidence_status"] === "validated").length})</li>
-              <li>Hipóteses abertas: {d.hipoteses.filter((h) => ["open", "testing"].includes(h["status"])).length}</li>
+              <li>Hipóteses abertas: {d.hipoteses.filter((h) => ["open", "under_review"].includes(h["status"])).length}</li>
               <li>Pendências em aberto: {pendAbertas.length}</li>
             </ul>
             <Aviso tom="info">
@@ -562,7 +562,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                 <>
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-sm">{String(h["title"])}</strong>
-                    <Selo texto={rotulo(h["status"])} tom={h["status"] === "refuted" ? "erro" : "neutro"} />
+                    <Selo texto={rotulo(h["status"])} tom={h["status"] === "not_supported" ? "erro" : "neutro"} />
                     <Selo texto={`Confiança ${rotulo(h["confidence_level"])}`} />
                   </div>
                   <p className="text-xs text-navy/60">{String(h["statement"] ?? "")}</p>
@@ -708,7 +708,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                 <>
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-sm">{String(r["title_client_facing"])}</strong>
-                    <Selo texto={rotulo(r["status"])} tom={r["status"] === "released_to_client" ? "ok" : "neutro"} />
+                    <Selo texto={rotulo(r["status"])} tom={r["status"] === "released" ? "ok" : "neutro"} />
                   </div>
                   <p className="text-sm text-navy/70">{String(r["summary_client_facing"] ?? "")}</p>
                   {linhaAcoes("resumos", r)}
