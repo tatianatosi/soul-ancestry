@@ -203,6 +203,11 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       // componentes do próprio App Cliente. O espelho de caso real (mesma
       // camada, outra fonte de dado) entra como passo seguinte.
       { to: "/app-cliente-demo", label: "Sessão demo do App Cliente" },
+      // 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente
+      // como pessoa" (Proprietária). É o "passo seguinte" citado acima: mesma
+      // camada de componentes, dado real de um caso escolhido, autorizado por
+      // papel de Proprietária Administradora.
+      { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
     ],
   },
   {

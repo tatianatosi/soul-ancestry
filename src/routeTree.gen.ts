@@ -17,6 +17,7 @@ import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
 import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
@@ -164,6 +165,12 @@ const AuthenticatedAcessosPortalRoute =
   AuthenticatedAcessosPortalRouteImport.update({
     id: '/acessos-portal',
     path: '/acessos-portal',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppClienteComoPessoaRoute =
+  AuthenticatedAppClienteComoPessoaRouteImport.update({
+    id: '/app-cliente-como-pessoa',
+    path: '/app-cliente-como-pessoa',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAppClienteDemoRoute =
@@ -773,6 +780,7 @@ export interface FileRoutesByFullPath {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
@@ -889,6 +897,7 @@ export interface FileRoutesByTo {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
@@ -1008,6 +1017,7 @@ export interface FileRoutesById {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
@@ -1127,6 +1137,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
@@ -1243,6 +1254,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
@@ -1361,6 +1373,7 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/app-cliente-como-pessoa'
     | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
     | '/_authenticated/auditoria'
@@ -1547,6 +1560,13 @@ declare module '@tanstack/react-router' {
       path: '/acessos-portal'
       fullPath: '/acessos-portal'
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app-cliente-como-pessoa': {
+      id: '/_authenticated/app-cliente-como-pessoa'
+      path: '/app-cliente-como-pessoa'
+      fullPath: '/app-cliente-como-pessoa'
+      preLoaderRoute: typeof AuthenticatedAppClienteComoPessoaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app-cliente-demo': {
@@ -2310,6 +2330,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAppClienteComoPessoaRoute: typeof AuthenticatedAppClienteComoPessoaRoute
   AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
@@ -2396,6 +2417,8 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAppClienteComoPessoaRoute:
+    AuthenticatedAppClienteComoPessoaRoute,
   AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
