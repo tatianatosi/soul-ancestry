@@ -34,4 +34,15 @@ describe("Cache de rotas autenticadas — GET nunca serve resposta antiga pra se
     const carregar = src.slice(src.indexOf("export const carregarPilotoAna"), src.indexOf("export const materializarPilotoAna"));
     expect(carregar).toContain("semCache();");
   });
+
+  it("modo-proprietaria.functions.ts: estadoModoProprietaria (o que decide sua autoridade máxima) chama semCache()", () => {
+    const src = ler("src/lib/modo-proprietaria.functions.ts");
+    expect(src).toContain('from "@/lib/no-store"');
+
+    const estado = src.slice(
+      src.indexOf("export const estadoModoProprietaria"),
+      src.indexOf("export const registrarDecisaoProprietaria"),
+    );
+    expect(estado).toContain("semCache();");
+  });
 });
