@@ -26,9 +26,7 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
 
   const cadeia = useMemo(
     () =>
-      evento
-        ? executarCadeiaJornada({ hoje: dia, evento, caso_id: "contexto-biblioteca" })
-        : null,
+      evento ? executarCadeiaJornada({ hoje: dia, evento, caso_id: "contexto-biblioteca" }) : null,
     [dia, evento],
   );
   const fiacao = useMemo(
@@ -96,7 +94,9 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
           <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">Etapa da jornada</dt>
-              <dd className="text-foreground">{template?.etapa_jornada ?? "Sem etapa associada"}</dd>
+              <dd className="text-foreground">
+                {template?.etapa_jornada ?? "Sem etapa associada"}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Tarefa canônica sugerida</dt>
@@ -212,7 +212,8 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
               {fiacao.resolucoes.map((r) => (
                 <li key={`${r.origem}-${r.evento}`} className="rounded-lg border border-border p-3">
                   <p className="text-foreground">
-                    {ROTULO_EVENTO[r.evento]} · {r.origem === "derivado" ? "derivado da cadência" : "evento base"}
+                    {ROTULO_EVENTO[r.evento]} ·{" "}
+                    {r.origem === "derivado" ? "derivado da cadência" : "evento base"}
                   </p>
                   <p className="text-muted-foreground">
                     {r.template.template
@@ -220,7 +221,8 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
                       : r.template.motivo}
                   </p>
                   <p className="text-muted-foreground">
-                    Tarefa canônica: {r.tarefaSugerida ?? "nenhuma tarefa nova"} · Objeto: {r.destino}
+                    Tarefa canônica: {r.tarefaSugerida ?? "nenhuma tarefa nova"} · Objeto:{" "}
+                    {r.destino}
                   </p>
                 </li>
               ))}
@@ -240,4 +242,3 @@ export function OrquestracaoContextual({ hoje }: { hoje?: string }) {
     </section>
   );
 }
-

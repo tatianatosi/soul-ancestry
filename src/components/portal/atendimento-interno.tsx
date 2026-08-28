@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Eye, EyeOff, Lock, Plus, Send, X } from "lucide-react";
 
+import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   atualizarStatusTicket,
   cancelarSolicitacaoDocumento,
@@ -219,6 +220,19 @@ export function AtendimentoInterno() {
     !form.responsavelId ||
     !form.prazo;
 
+  const envios = (data?.envios ?? []) as any[];
+  const solicitacoes = (data?.solicitacoes ?? []) as any[];
+  const tickets = (data?.tickets ?? []) as any[];
+  const faturas = (data?.faturas ?? []) as any[];
+  const enviosPendentes = data ? envios.filter((e) => e.status === "pendente_de_revisao").length : null;
+  const solicitacoesAbertas = data
+    ? solicitacoes.filter((s) => s.status === "pendente" || s.status === "enviado").length
+    : null;
+  const ticketsAbertos = data
+    ? tickets.filter((t) => !["resolvido", "fechado"].includes(t.status)).length
+    : null;
+  const faturasAguardandoLiberacao = data ? faturas.filter((f) => !f.liberada_cliente).length : null;
+
   return (
     <div className="space-y-5">
       {erro ? (
@@ -226,6 +240,29 @@ export function AtendimentoInterno() {
           {erro}
         </p>
       ) : null}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardIndicador
+          rotulo="Envios pendentes de revisão"
+          valor={enviosPendentes}
+          tom={enviosPendentes ? "atencao" : "sucesso"}
+        />
+        <CardIndicador
+          rotulo="Solicitações abertas"
+          valor={solicitacoesAbertas}
+          tom={solicitacoesAbertas ? "atencao" : "sucesso"}
+        />
+        <CardIndicador
+          rotulo="Tickets abertos"
+          valor={ticketsAbertos}
+          tom={ticketsAbertos ? "atencao" : "sucesso"}
+        />
+        <CardIndicador
+          rotulo="Faturas aguardando liberação"
+          valor={faturasAguardandoLiberacao}
+          tom="neutro"
+        />
+      </div>
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">

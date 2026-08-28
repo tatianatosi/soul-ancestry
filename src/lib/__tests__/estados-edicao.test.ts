@@ -42,12 +42,22 @@ describe("estados de edição × avanço", () => {
   });
 
   it("usuário sem permissão não edita", () => {
-    const d = decidirEdicao({ estado: "rascunho_editavel", operacao: "corrigir_campo", papel: "leitura", pendencias: [] });
+    const d = decidirEdicao({
+      estado: "rascunho_editavel",
+      operacao: "corrigir_campo",
+      papel: "leitura",
+      pendencias: [],
+    });
     expect(d).toMatchObject({ permitido: false, motivo: "sem_permissao" });
   });
 
   it("edição de versão congelada cria derivada e preserva histórico", () => {
-    const d = decidirEdicao({ estado: "aprovado_para_formalizacao", operacao: "salvar_escopo_rascunho", papel: "admin", pendencias: [] });
+    const d = decidirEdicao({
+      estado: "aprovado_para_formalizacao",
+      operacao: "salvar_escopo_rascunho",
+      papel: "admin",
+      pendencias: [],
+    });
     expect(d).toMatchObject({ permitido: true, efeito: "criar_versao_derivada" });
   });
 
@@ -65,16 +75,31 @@ describe("estados de edição × avanço", () => {
 
   it("parcela/vencimento ausentes ficam como pendência e não são inferidos", () => {
     const p = pendencia("converter_condicao_comercial_final", "vencimentos");
-    const d = decidirEdicao({ estado: "em_revisao", operacao: "converter_condicao_comercial_final", papel: "admin", pendencias: [p] });
+    const d = decidirEdicao({
+      estado: "em_revisao",
+      operacao: "converter_condicao_comercial_final",
+      papel: "admin",
+      pendencias: [p],
+    });
     expect(d.permitido).toBe(false);
     if (!d.permitido) expect(d.pendencias[0]?.campo).toBe("vencimentos");
   });
 
   it("nenhum ato externo é liberado por operação de rascunho", () => {
-    const externos = ["solicitar_assinatura", "liberar_financeiro", "liberar_pesquisa_externa", "publicar_app_cliente"] as const;
+    const externos = [
+      "solicitar_assinatura",
+      "liberar_financeiro",
+      "liberar_pesquisa_externa",
+      "publicar_app_cliente",
+    ] as const;
     for (const op of externos) {
       expect(ehOperacaoAvanco(op)).toBe(true);
-      const d = decidirEdicao({ estado: "bloqueado_por_pendencia", operacao: op, papel: "admin", pendencias: [] });
+      const d = decidirEdicao({
+        estado: "bloqueado_por_pendencia",
+        operacao: op,
+        papel: "admin",
+        pendencias: [],
+      });
       expect(d.permitido).toBe(false);
     }
   });

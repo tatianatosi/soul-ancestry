@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -29,6 +30,7 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d?: { incluirTeste?: boolean }) => ({ incluirTeste: d?.incluirTeste === true }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_CATALOGO.has(papel)) {
@@ -151,6 +153,7 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
 export const lerAuditoriaCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_CATALOGO.has(papel)) throw new Error("Auditoria de catálogo restrita a perfis autorizados.");

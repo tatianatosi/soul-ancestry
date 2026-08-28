@@ -45,7 +45,11 @@ describe("cadeia da pesquisa genealógica", () => {
   it("relatório só é visível ao cliente quando publicado e aprovado", () => {
     expect(relatorioVisivelAoCliente({ status: "rascunho_interno" })).toBe(false);
     expect(
-      relatorioVisivelAoCliente({ status: "publicado_cliente", approved_summary_client: "", approved_at: null }),
+      relatorioVisivelAoCliente({
+        status: "publicado_cliente",
+        approved_summary_client: "",
+        approved_at: null,
+      }),
     ).toBe(false);
     expect(
       relatorioVisivelAoCliente({
@@ -57,11 +61,21 @@ describe("cadeia da pesquisa genealógica", () => {
   });
 
   it("achado só é projetável após validação e autorização de projeção", () => {
-    expect(achadoProjetavel({ validation_status: "em_revisao", client_projection_status: "autorizado" })).toBe(false);
-    expect(achadoProjetavel({ validation_status: "validado", client_projection_status: "nao_projetado" })).toBe(false);
-    expect(achadoProjetavel({ validation_status: "validado", client_projection_status: "publicado_cliente" })).toBe(
-      true,
-    );
+    expect(
+      achadoProjetavel({ validation_status: "em_revisao", client_projection_status: "autorizado" }),
+    ).toBe(false);
+    expect(
+      achadoProjetavel({
+        validation_status: "validado",
+        client_projection_status: "nao_projetado",
+      }),
+    ).toBe(false);
+    expect(
+      achadoProjetavel({
+        validation_status: "validado",
+        client_projection_status: "publicado_cliente",
+      }),
+    ).toBe(true);
   });
 
   it("bloqueia campos internos na projeção ao cliente", () => {

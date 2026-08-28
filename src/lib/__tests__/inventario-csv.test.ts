@@ -80,7 +80,9 @@ describe("pré-visualização do CSV filtrado", () => {
     const filtro = { dominio: "todos" as const, status: "todos" as const };
     const p = previaCsvInventario(filtro);
     expect(p.nomeArquivo).toBe(nomeArquivoCsv(filtro));
-    expect(p.tamanhoAproximadoBytes).toBe(new TextEncoder().encode(gerarCsvInventario(filtro)).length);
+    expect(p.tamanhoAproximadoBytes).toBe(
+      new TextEncoder().encode(gerarCsvInventario(filtro)).length,
+    );
     expect(tamanhoLegivel(2048)).toBe("2.0 KB");
     expect(tamanhoLegivel(512)).toBe("512 B");
   });

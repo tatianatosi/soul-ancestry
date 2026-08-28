@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ORDEM_BLOCOS_PAINEL,
+  PAR_OBRIGATORIO,
   duplicidadesDeRegistro,
   validarOrdemPainel,
   validarPainelHoje,
@@ -15,29 +16,32 @@ describe("ordem dos blocos do Painel Hoje", () => {
   });
 
   it("aceita tela parcial preservando a ordem relativa", () => {
-    expect(validarOrdemPainel(["fila_priorizada", "excecoes", "sinais"])).toEqual([]);
+    expect(validarOrdemPainel(["fila_priorizada", "excecoes", "comercial"])).toEqual([]);
   });
 
-  it("acusa quando algo é inserido entre exceções e sinais", () => {
-    const problemas = validarOrdemPainel(["fila_priorizada", "excecoes", "comercial", "sinais"]);
-    expect(problemas.some((p) => p.chave === "adjacencia")).toBe(true);
-  });
-
-  it("acusa sinais antes das exceções", () => {
-    const problemas = validarOrdemPainel(["sinais", "excecoes"]);
+  it("acusa ordem trocada", () => {
+    const problemas = validarOrdemPainel(["comercial", "excecoes"]);
     expect(problemas.map((p) => p.chave)).toContain("ordem");
-    expect(problemas.some((p) => p.chave === "adjacencia")).toBe(true);
-  });
-
-  it("acusa exceções sem sinais logo depois", () => {
-    const problemas = validarOrdemPainel(["fila_priorizada", "excecoes"]);
-    expect(problemas.some((p) => p.mensagem.includes("Sinais de atenção"))).toBe(true);
   });
 
   it("acusa bloco duplicado e bloco desconhecido", () => {
-    const problemas = validarOrdemPainel(["excecoes", "sinais", "sinais", "catalogo"]);
+    const problemas = validarOrdemPainel(["excecoes", "comercial", "comercial", "catalogo"]);
     expect(problemas.some((p) => p.mensagem.includes("mais de uma vez"))).toBe(true);
     expect(problemas.some((p) => p.mensagem.includes("não faz parte"))).toBe(true);
+  });
+
+  it("“sinais” deixou de ser bloco: foi fundido em Encontrar no Desk", () => {
+    expect(ordemCompleta).not.toContain("sinais");
+    // Bloco desconhecido é acusado, o que impede que ele volte por descuido.
+    expect(validarOrdemPainel(["sinais"]).some((p) => p.mensagem.includes("não faz parte"))).toBe(
+      true,
+    );
+  });
+
+  it("sem par obrigatório, nenhuma adjacência é cobrada", () => {
+    expect(PAR_OBRIGATORIO).toBeNull();
+    const problemas = validarOrdemPainel(ordemCompleta);
+    expect(problemas.some((p) => p.chave === "adjacencia")).toBe(false);
   });
 });
 

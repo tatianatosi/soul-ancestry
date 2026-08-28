@@ -17,6 +17,8 @@ import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
+import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
@@ -60,6 +62,7 @@ import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
 import { Route as ApiPesquisaAssistenteRouteImport } from './routes/api/pesquisa-assistente'
 import { Route as CanvasTokenRouteImport } from './routes/canvas.$token'
+import { Route as EquipeDiagnosticoConexaoRouteImport } from './routes/equipe.diagnostico-conexao'
 import { Route as EquipeDiagnosticoRotasRouteImport } from './routes/equipe.diagnostico-rotas'
 import { Route as EquipeEntrarRouteImport } from './routes/equipe.entrar'
 import { Route as EquipeEsqueciMinhaSenhaRouteImport } from './routes/equipe.esqueci-minha-senha'
@@ -102,6 +105,7 @@ import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from '.
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
 import { Route as AuthenticatedGovernancaVarreduraAdministracaoRouteImport } from './routes/_authenticated/governanca.varredura-administracao'
 import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
+import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
 import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
 import { Route as AuthenticatedHistoricoPainelHojeRouteImport } from './routes/_authenticated/historico.painel-hoje'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
@@ -111,6 +115,7 @@ import { Route as AuthenticatedPesquisaModuloIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedPesquisaIndexRouteImport } from './routes/_authenticated/pesquisa.index'
 import { Route as AuthenticatedPesquisaIdRouteImport } from './routes/_authenticated/pesquisa.$id'
 import { Route as AuthenticatedPessoasLinhagensCaseIdRouteImport } from './routes/_authenticated/pessoas-linhagens.$caseId'
+import { Route as AuthenticatedPessoasClienteIdRouteImport } from './routes/_authenticated/pessoas.$clienteId'
 import { Route as AuthenticatedPlanoAcaoCaseIdRouteImport } from './routes/_authenticated/plano-acao.$caseId'
 import { Route as AuthenticatedPrivacidadeIndexRouteImport } from './routes/_authenticated/privacidade.index'
 import { Route as AuthenticatedPrivacidadeIdRouteImport } from './routes/_authenticated/privacidade.$id'
@@ -160,6 +165,18 @@ const AuthenticatedAcessosPortalRoute =
   AuthenticatedAcessosPortalRouteImport.update({
     id: '/acessos-portal',
     path: '/acessos-portal',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppClienteComoPessoaRoute =
+  AuthenticatedAppClienteComoPessoaRouteImport.update({
+    id: '/app-cliente-como-pessoa',
+    path: '/app-cliente-como-pessoa',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppClienteDemoRoute =
+  AuthenticatedAppClienteDemoRouteImport.update({
+    id: '/app-cliente-demo',
+    path: '/app-cliente-demo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAtendimentoRoute =
@@ -393,6 +410,12 @@ const CanvasTokenRoute = CanvasTokenRouteImport.update({
   path: '/canvas/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EquipeDiagnosticoConexaoRoute =
+  EquipeDiagnosticoConexaoRouteImport.update({
+    id: '/equipe/diagnostico-conexao',
+    path: '/equipe/diagnostico-conexao',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EquipeDiagnosticoRotasRoute = EquipeDiagnosticoRotasRouteImport.update({
   id: '/equipe/diagnostico-rotas',
   path: '/equipe/diagnostico-rotas',
@@ -627,6 +650,12 @@ const AuthenticatedGovernancaVarreduraCompletudeRoute =
     path: '/governanca/varredura-completude',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHistoricoFluxoComercialCanonicoRoute =
+  AuthenticatedHistoricoFluxoComercialCanonicoRouteImport.update({
+    id: '/historico/fluxo-comercial-canonico',
+    path: '/historico/fluxo-comercial-canonico',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHistoricoPainelDeskHojeRoute =
   AuthenticatedHistoricoPainelDeskHojeRouteImport.update({
     id: '/historico/painel-desk-hoje',
@@ -678,6 +707,12 @@ const AuthenticatedPessoasLinhagensCaseIdRoute =
   AuthenticatedPessoasLinhagensCaseIdRouteImport.update({
     id: '/pessoas-linhagens/$caseId',
     path: '/pessoas-linhagens/$caseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPessoasClienteIdRoute =
+  AuthenticatedPessoasClienteIdRouteImport.update({
+    id: '/pessoas/$clienteId',
+    path: '/pessoas/$clienteId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlanoAcaoCaseIdRoute =
@@ -745,6 +780,8 @@ export interface FileRoutesByFullPath {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
+  '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -788,6 +825,7 @@ export interface FileRoutesByFullPath {
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
@@ -827,6 +865,7 @@ export interface FileRoutesByFullPath {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -834,6 +873,7 @@ export interface FileRoutesByFullPath {
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
+  '/pessoas/$clienteId': typeof AuthenticatedPessoasClienteIdRoute
   '/plano-acao/$caseId': typeof AuthenticatedPlanoAcaoCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
@@ -857,6 +897,8 @@ export interface FileRoutesByTo {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
+  '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -900,6 +942,7 @@ export interface FileRoutesByTo {
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
@@ -939,6 +982,7 @@ export interface FileRoutesByTo {
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -946,6 +990,7 @@ export interface FileRoutesByTo {
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
+  '/pessoas/$clienteId': typeof AuthenticatedPessoasClienteIdRoute
   '/plano-acao/$caseId': typeof AuthenticatedPlanoAcaoCaseIdRoute
   '/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
@@ -972,6 +1017,8 @@ export interface FileRoutesById {
   '/devolutiva': typeof DevolutivaRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
+  '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -1015,6 +1062,7 @@ export interface FileRoutesById {
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
   '/api/pesquisa-assistente': typeof ApiPesquisaAssistenteRoute
   '/canvas/$token': typeof CanvasTokenRoute
+  '/equipe/diagnostico-conexao': typeof EquipeDiagnosticoConexaoRoute
   '/equipe/diagnostico-rotas': typeof EquipeDiagnosticoRotasRoute
   '/equipe/entrar': typeof EquipeEntrarRoute
   '/equipe/esqueci-minha-senha': typeof EquipeEsqueciMinhaSenhaRoute
@@ -1054,6 +1102,7 @@ export interface FileRoutesById {
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
   '/_authenticated/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/_authenticated/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
@@ -1061,6 +1110,7 @@ export interface FileRoutesById {
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
   '/_authenticated/pesquisa/$id': typeof AuthenticatedPesquisaIdRoute
   '/_authenticated/pessoas-linhagens/$caseId': typeof AuthenticatedPessoasLinhagensCaseIdRoute
+  '/_authenticated/pessoas/$clienteId': typeof AuthenticatedPessoasClienteIdRoute
   '/_authenticated/plano-acao/$caseId': typeof AuthenticatedPlanoAcaoCaseIdRoute
   '/_authenticated/privacidade/$id': typeof AuthenticatedPrivacidadeIdRoute
   '/_authenticated/relatorios-fase/$caseId': typeof AuthenticatedRelatoriosFaseCaseIdRoute
@@ -1087,6 +1137,8 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-como-pessoa'
+    | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
     | '/biblioteca'
@@ -1130,6 +1182,7 @@ export interface FileRouteTypes {
     | '/acesso/sem-permissao'
     | '/api/pesquisa-assistente'
     | '/canvas/$token'
+    | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
     | '/equipe/esqueci-minha-senha'
@@ -1169,6 +1222,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
     | '/onboarding/$id'
@@ -1176,6 +1230,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
+    | '/pessoas/$clienteId'
     | '/plano-acao/$caseId'
     | '/privacidade/$id'
     | '/relatorios-fase/$caseId'
@@ -1199,6 +1254,8 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/app-cliente-como-pessoa'
+    | '/app-cliente-demo'
     | '/atendimento'
     | '/auditoria'
     | '/biblioteca'
@@ -1242,6 +1299,7 @@ export interface FileRouteTypes {
     | '/acesso/sem-permissao'
     | '/api/pesquisa-assistente'
     | '/canvas/$token'
+    | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
     | '/equipe/esqueci-minha-senha'
@@ -1281,6 +1339,7 @@ export interface FileRouteTypes {
     | '/governanca/modulos-contextuais'
     | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
+    | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
     | '/onboarding/$id'
@@ -1288,6 +1347,7 @@ export interface FileRouteTypes {
     | '/pesquisa-modulo/$id'
     | '/pesquisa/$id'
     | '/pessoas-linhagens/$caseId'
+    | '/pessoas/$clienteId'
     | '/plano-acao/$caseId'
     | '/privacidade/$id'
     | '/relatorios-fase/$caseId'
@@ -1313,6 +1373,8 @@ export interface FileRouteTypes {
     | '/devolutiva'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/app-cliente-como-pessoa'
+    | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
     | '/_authenticated/auditoria'
     | '/_authenticated/biblioteca'
@@ -1356,6 +1418,7 @@ export interface FileRouteTypes {
     | '/acesso/sem-permissao'
     | '/api/pesquisa-assistente'
     | '/canvas/$token'
+    | '/equipe/diagnostico-conexao'
     | '/equipe/diagnostico-rotas'
     | '/equipe/entrar'
     | '/equipe/esqueci-minha-senha'
@@ -1395,6 +1458,7 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/modulos-contextuais'
     | '/_authenticated/governanca/varredura-administracao'
     | '/_authenticated/governanca/varredura-completude'
+    | '/_authenticated/historico/fluxo-comercial-canonico'
     | '/_authenticated/historico/painel-desk-hoje'
     | '/_authenticated/historico/painel-hoje'
     | '/_authenticated/onboarding/$id'
@@ -1402,6 +1466,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pesquisa-modulo/$id'
     | '/_authenticated/pesquisa/$id'
     | '/_authenticated/pessoas-linhagens/$caseId'
+    | '/_authenticated/pessoas/$clienteId'
     | '/_authenticated/plano-acao/$caseId'
     | '/_authenticated/privacidade/$id'
     | '/_authenticated/relatorios-fase/$caseId'
@@ -1429,6 +1494,7 @@ export interface RootRouteChildren {
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
+  EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
   EquipeDiagnosticoRotasRoute: typeof EquipeDiagnosticoRotasRoute
   EquipeEntrarRoute: typeof EquipeEntrarRoute
   EquipeEsqueciMinhaSenhaRoute: typeof EquipeEsqueciMinhaSenhaRoute
@@ -1494,6 +1560,20 @@ declare module '@tanstack/react-router' {
       path: '/acessos-portal'
       fullPath: '/acessos-portal'
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app-cliente-como-pessoa': {
+      id: '/_authenticated/app-cliente-como-pessoa'
+      path: '/app-cliente-como-pessoa'
+      fullPath: '/app-cliente-como-pessoa'
+      preLoaderRoute: typeof AuthenticatedAppClienteComoPessoaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app-cliente-demo': {
+      id: '/_authenticated/app-cliente-demo'
+      path: '/app-cliente-demo'
+      fullPath: '/app-cliente-demo'
+      preLoaderRoute: typeof AuthenticatedAppClienteDemoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/atendimento': {
@@ -1797,6 +1877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CanvasTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/equipe/diagnostico-conexao': {
+      id: '/equipe/diagnostico-conexao'
+      path: '/equipe/diagnostico-conexao'
+      fullPath: '/equipe/diagnostico-conexao'
+      preLoaderRoute: typeof EquipeDiagnosticoConexaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/equipe/diagnostico-rotas': {
       id: '/equipe/diagnostico-rotas'
       path: '/equipe/diagnostico-rotas'
@@ -2091,6 +2178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/historico/fluxo-comercial-canonico': {
+      id: '/_authenticated/historico/fluxo-comercial-canonico'
+      path: '/historico/fluxo-comercial-canonico'
+      fullPath: '/historico/fluxo-comercial-canonico'
+      preLoaderRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/historico/painel-desk-hoje': {
       id: '/_authenticated/historico/painel-desk-hoje'
       path: '/historico/painel-desk-hoje'
@@ -2152,6 +2246,13 @@ declare module '@tanstack/react-router' {
       path: '/pessoas-linhagens/$caseId'
       fullPath: '/pessoas-linhagens/$caseId'
       preLoaderRoute: typeof AuthenticatedPessoasLinhagensCaseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pessoas/$clienteId': {
+      id: '/_authenticated/pessoas/$clienteId'
+      path: '/pessoas/$clienteId'
+      fullPath: '/pessoas/$clienteId'
+      preLoaderRoute: typeof AuthenticatedPessoasClienteIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/plano-acao/$caseId': {
@@ -2229,6 +2330,8 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAppClienteComoPessoaRoute: typeof AuthenticatedAppClienteComoPessoaRoute
+  AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
@@ -2290,6 +2393,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
   AuthenticatedGovernancaVarreduraAdministracaoRoute: typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
+  AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
   AuthenticatedHistoricoPainelHojeRoute: typeof AuthenticatedHistoricoPainelHojeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
@@ -2297,6 +2401,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
   AuthenticatedPesquisaIdRoute: typeof AuthenticatedPesquisaIdRoute
   AuthenticatedPessoasLinhagensCaseIdRoute: typeof AuthenticatedPessoasLinhagensCaseIdRoute
+  AuthenticatedPessoasClienteIdRoute: typeof AuthenticatedPessoasClienteIdRoute
   AuthenticatedPlanoAcaoCaseIdRoute: typeof AuthenticatedPlanoAcaoCaseIdRoute
   AuthenticatedPrivacidadeIdRoute: typeof AuthenticatedPrivacidadeIdRoute
   AuthenticatedRelatoriosFaseCaseIdRoute: typeof AuthenticatedRelatoriosFaseCaseIdRoute
@@ -2312,6 +2417,9 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAppClienteComoPessoaRoute:
+    AuthenticatedAppClienteComoPessoaRoute,
+  AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
@@ -2394,6 +2502,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaVarreduraAdministracaoRoute,
   AuthenticatedGovernancaVarreduraCompletudeRoute:
     AuthenticatedGovernancaVarreduraCompletudeRoute,
+  AuthenticatedHistoricoFluxoComercialCanonicoRoute:
+    AuthenticatedHistoricoFluxoComercialCanonicoRoute,
   AuthenticatedHistoricoPainelDeskHojeRoute:
     AuthenticatedHistoricoPainelDeskHojeRoute,
   AuthenticatedHistoricoPainelHojeRoute: AuthenticatedHistoricoPainelHojeRoute,
@@ -2404,6 +2514,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPesquisaIdRoute: AuthenticatedPesquisaIdRoute,
   AuthenticatedPessoasLinhagensCaseIdRoute:
     AuthenticatedPessoasLinhagensCaseIdRoute,
+  AuthenticatedPessoasClienteIdRoute: AuthenticatedPessoasClienteIdRoute,
   AuthenticatedPlanoAcaoCaseIdRoute: AuthenticatedPlanoAcaoCaseIdRoute,
   AuthenticatedPrivacidadeIdRoute: AuthenticatedPrivacidadeIdRoute,
   AuthenticatedRelatoriosFaseCaseIdRoute:
@@ -2484,6 +2595,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
+  EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,
   EquipeDiagnosticoRotasRoute: EquipeDiagnosticoRotasRoute,
   EquipeEntrarRoute: EquipeEntrarRoute,
   EquipeEsqueciMinhaSenhaRoute: EquipeEsqueciMinhaSenhaRoute,

@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { itemElegivelParaProposta, regraAplicavelACaso, validarArquivamento } from "@/lib/biblioteca-mestre";
@@ -523,6 +524,7 @@ export const historicoVigenciaItem = createServerFn({ method: "GET" })
     return { id: data.id };
   })
   .handler(async ({ context, data }) => {
+    semCache();
     const supabase = context.supabase as unknown as Cliente;
     const { data: eventos } = await supabase
       .from("master_library_state_events")

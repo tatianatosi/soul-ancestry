@@ -6,6 +6,7 @@ import { useState } from "react";
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { listarEstadoAtivacao } from "@/lib/casos-ativacao.functions";
+import { rotuloFase } from "@/lib/fase-rotulo";
 import { resolverCasoPorCodigo } from "@/lib/caso-busca.functions";
 import { mensagemResolucao, type ResultadoBuscaCaso } from "@/lib/caso-busca";
 import { ESTADOS, PRIORIDADES } from "@/lib/estados";
@@ -25,13 +26,27 @@ import { ehFixture, ROTULO_FIXTURE } from "@/lib/identificadores-norma";
 import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
-import { AlertaDesk, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
+import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
+  /**
+   * `fase` chega da Jornada dos casos no Painel. Sem isto, o cartão da etapa
+   * seria um link decorativo — levaria à lista inteira, não à etapa clicada.
+   * Valor desconhecido vira `undefined`: filtro inválido mostra tudo, nunca
+   * uma lista vazia sem explicação.
+   */
+  validateSearch: (busca: Record<string, unknown>): { fase?: string } => {
+    const f = typeof busca.fase === "string" ? busca.fase.trim() : "";
+    return f ? { fase: f } : {};
+  },
   head: () => ({
     meta: [
       { title: "Casos — Clube Ancestral" },
-      { name: "description", content: "Casos de cidadania com hipótese de elegibilidade e ativação condicionada." },
+      {
+        name: "description",
+        content: "Casos de cidadania com hipótese de elegibilidade e ativação condicionada.",
+      },
       { property: "og:title", content: "Casos — Clube Ancestral" },
       { property: "og:description", content: "Gestão de casos de cidadania no Clube Ancestral." },
       { property: "og:type", content: "website" },
@@ -42,7 +57,25 @@ export const Route = createFileRoute("/_authenticated/casos/")({
   component: CasosPage,
 });
 
-function Badge({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "gold" | "alerta" | "ok" }) {
+/**
+ * Compara a fase da linha com a etapa pedida, tolerando as duas grafias que
+ * convivem no banco ("aceite_e_formalizacao" e "aceite_formalizacao").
+ * Sem filtro pedido, tudo passa.
+ */
+function casaComFase(linha: Record<string, unknown>, fase?: string): boolean {
+  if (!fase) return true;
+  const norm = (v: string) => v.trim().toLowerCase().replace(/_e_/g, "_");
+  const daLinha = typeof linha.fase === "string" ? linha.fase : "";
+  return !!daLinha && norm(daLinha) === norm(fase);
+}
+
+function Badge({
+  texto,
+  tom = "neutro",
+}: {
+  texto: string;
+  tom?: "neutro" | "gold" | "alerta" | "ok";
+}) {
   const classes =
     tom === "alerta"
       ? "border-terracotta/40 bg-terracotta/10 text-terracotta"
@@ -52,7 +85,11 @@ function Badge({ texto, tom = "neutro" }: { texto: string; tom?: "neutro" | "gol
           ? "border-gold/50 bg-gold/10 text-navy"
           : "border-navy/15 bg-navy/5 text-navy/75";
   return (
-    <span className={`inline-block rounded-full border px-2 py-0.5 text-[11px] leading-tight ${classes}`}>{texto}</span>
+    <span
+      className={`inline-block rounded-full border px-2 py-0.5 text-[11px] leading-tight ${classes}`}
+    >
+      {texto}
+    </span>
   );
 }
 
@@ -98,7 +135,11 @@ function BuscaPorCodigo() {
       {resultado ? (
         <p className="text-sm text-navy/80">
           {mensagemResolucao(resultado)}{" "}
-          <Link to="/casos/$caseId" params={{ caseId: resultado.caseId }} className="font-medium text-navy underline">
+          <Link
+            to="/casos/$caseId"
+            params={{ caseId: resultado.caseId }}
+            className="font-medium text-navy underline"
+          >
             Abrir {resultado.codigoCanonico}
             {resultado.titulo ? ` — ${resultado.titulo}` : ""}
           </Link>
@@ -117,12 +158,29 @@ function CasosPage() {
   const { podeEscrever } = useSaas();
   const carregarAtivacao = useServerFn(listarEstadoAtivacao);
   const [mostrarDemo, setMostrarDemo] = useState(false);
+  const { fase: faseFiltro } = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   const qAtivacao = useQuery({
     queryKey: ["casos", "estado-ativacao"],
     queryFn: () => carregarAtivacao({}),
   });
   const estados = new Map((qAtivacao.data ?? []).map((e) => [e.caseId, e]));
+
+  // Cartões de decisão do grupo Casos — só contam o que já está carregado
+  // por listarEstadoAtivacao; sem fonte real, o cartão mostra "Sem dados
+  // suficientes" (nunca zero ou estimativa).
+  const listaAtivacao = qAtivacao.data ?? [];
+  const casosAtivos = qAtivacao.data ? listaAtivacao.filter((e) => e.ativo).length : null;
+  const aguardandoAtivacao = qAtivacao.data ? listaAtivacao.filter((e) => !e.ativo).length : null;
+  const semResponsavelInterno = qAtivacao.data
+    ? listaAtivacao.filter(
+        (e) => !e.ativo && e.motivos.some((m) => m.includes("Responsável interno")),
+      ).length
+    : null;
+  const bloqueiosMultiplos = qAtivacao.data
+    ? listaAtivacao.filter((e) => !e.ativo && e.pendentes >= 3).length
+    : null;
 
   return (
     <SaasShell
@@ -134,14 +192,51 @@ function CasosPage() {
         subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
       />
 
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <CardIndicador
+          rotulo="Casos ativos"
+          valor={casosAtivos}
+          apoio="14 requisitos validados no servidor"
+        />
+        <CardIndicador
+          rotulo="Aguardando ativação"
+          valor={aguardandoAtivacao}
+          apoio="Ao menos um requisito obrigatório pendente"
+          tom="atencao"
+        />
+        <CardIndicador
+          rotulo="Sem responsável interno"
+          valor={semResponsavelInterno}
+          apoio="Requisito de responsável designado pendente"
+          tom="critico"
+        />
+        <CardIndicador
+          rotulo="Bloqueio de ativação múltiplo"
+          valor={bloqueiosMultiplos}
+          apoio="3 ou mais requisitos pendentes"
+          tom="critico"
+        />
+      </div>
+
       {qAtivacao.isLoading ? (
         <CarregandoDesk linhas={2} rotulo="Verificando requisitos de ativação no servidor" />
       ) : null}
       {qAtivacao.error ? (
         <AlertaDesk tom="critico" titulo="Não foi possível ler o estado de ativação">
-          A lista continua visível, mas o estado de ativação não pôde ser verificado agora. Nenhum caso foi ativado.
+          A lista continua visível, mas o estado de ativação não pôde ser verificado agora. Nenhum
+          caso foi ativado.
         </AlertaDesk>
       ) : null}
+
+      {/*
+        27/08/2026 — morava só no Radar Interno (/qualidade). A Proprietária
+        pediu que viesse para cá: "aqui sabemos as emergências" — é em Casos
+        360 que o dia a dia acontece, não num radar à parte. Mesmo motor,
+        mesmo componente, novo endereço.
+      */}
+      <div className="mb-6">
+        <MatrizPrioridadesConectada />
+      </div>
 
       <EntidadeCrud
         entidade="crm_casos"
@@ -149,18 +244,41 @@ function CasosPage() {
         podeEscrever={podeEscrever}
         dominio="caso"
         larguraMinima={2100}
-        filtrarLinhas={(l) => mostrarDemo || papelDoRegistro(l).valor !== "demo"}
+        filtrarLinhas={(l) =>
+          (mostrarDemo || papelDoRegistro(l).valor !== "demo") && casaComFase(l, faseFiltro)
+        }
         classeLinha={(l) => (papelDoRegistro(l).valor === "demo" ? "bg-terracotta/5" : undefined)}
         topo={
           <div className="space-y-3">
+            {/* Lista filtrada nunca fica filtrada em silêncio: quem chegou da
+                Jornada precisa ver por que está vendo menos casos. */}
+            {faseFiltro ? (
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gold/40 bg-gold/5 px-3 py-2 text-sm">
+                <span className="text-navy/75">
+                  Mostrando a etapa{" "}
+                  <span className="font-medium text-navy">{rotuloFase(faseFiltro)}</span> da
+                  jornada.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navigate({ search: {} })}
+                  className="rounded border border-navy/20 px-2 py-0.5 text-xs text-navy/75 hover:bg-navy/5"
+                >
+                  Ver todos os casos
+                </button>
+              </div>
+            ) : null}
             <BuscaPorCodigo />
             <label className="flex items-center gap-2 text-sm text-navy/70">
-              <input type="checkbox" checked={mostrarDemo} onChange={(e) => setMostrarDemo(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={mostrarDemo}
+                onChange={(e) => setMostrarDemo(e.target.checked)}
+              />
               Mostrar casos demonstrativos (fora de relatórios e métricas reais)
             </label>
           </div>
         }
-
 
         colunas={[
           {
@@ -169,7 +287,9 @@ function CasosPage() {
             render: (l) => (
               <span className="flex flex-wrap items-center gap-1">
                 <span>{(l["codigo"] as string) || "—"}</span>
-                {ehFixture(l["codigo"] as string | null) ? <Badge texto={ROTULO_FIXTURE} tom="alerta" /> : null}
+                {ehFixture(l["codigo"] as string | null) ? (
+                  <Badge texto={ROTULO_FIXTURE} tom="alerta" />
+                ) : null}
               </span>
             ),
           },
@@ -179,7 +299,12 @@ function CasosPage() {
             rotulo: "Papel do registro",
             render: (l) => {
               const p = papelDoRegistro(l);
-              return <Badge texto={p.rotulo} tom={p.valor === "demo" ? "alerta" : p.valor === "referencia" ? "gold" : "neutro"} />;
+              return (
+                <Badge
+                  texto={p.rotulo}
+                  tom={p.valor === "demo" ? "alerta" : p.valor === "referencia" ? "gold" : "neutro"}
+                />
+              );
             },
           },
           { chave: "tipo_servico", rotulo: "Tipo de serviço" },
@@ -197,7 +322,9 @@ function CasosPage() {
                 {(() => {
                   const d = qualificarData(l["data_prevista_contrato"]);
                   return d.condicional ? (
-                    <span className="block text-[11px] text-navy/55">Contrato {d.texto} · previsão condicional</span>
+                    <span className="block text-[11px] text-navy/55">
+                      Contrato {d.texto} · previsão condicional
+                    </span>
                   ) : null;
                 })()}
               </span>
@@ -212,7 +339,9 @@ function CasosPage() {
                 {(() => {
                   const d = qualificarData(l["data_prevista_pagamento"]);
                   return d.condicional ? (
-                    <span className="block text-[11px] text-navy/55">Pagamento {d.texto} · previsão condicional</span>
+                    <span className="block text-[11px] text-navy/55">
+                      Pagamento {d.texto} · previsão condicional
+                    </span>
                   ) : null;
                 })()}
               </span>
@@ -227,7 +356,9 @@ function CasosPage() {
                 {(() => {
                   const d = qualificarData(l["data_prevista_onboarding"]);
                   return d.condicional ? (
-                    <span className="block text-[11px] text-navy/55">Onboarding {d.texto} · previsão condicional</span>
+                    <span className="block text-[11px] text-navy/55">
+                      Onboarding {d.texto} · previsão condicional
+                    </span>
                   ) : null;
                 })()}
               </span>
@@ -248,7 +379,10 @@ function CasosPage() {
                 id: String(l["id"]),
                 elegibilidade: (l["hipotese_elegibilidade"] as string) ?? null,
                 prazo: (l["prazo_proxima_acao"] as string) ?? null,
-                bloqueios: e && e.pendentes > 0 ? [`${e.pendentes} requisito(s) de ativação pendente(s)`] : [],
+                bloqueios:
+                  e && e.pendentes > 0
+                    ? [`${e.pendentes} requisito(s) de ativação pendente(s)`]
+                    : [],
                 responsavel: (l["proxima_acao_responsavel"] as string) ?? null,
                 origem: papelDoRegistro(l).valor === "demo" ? "demo" : "real",
               });
@@ -256,7 +390,9 @@ function CasosPage() {
                 <span className="block space-y-1">
                   <Badge
                     texto={r.rotulo}
-                    tom={r.sinal === "critica" ? "alerta" : r.sinal === "atencao" ? "gold" : "neutro"}
+                    tom={
+                      r.sinal === "critica" ? "alerta" : r.sinal === "atencao" ? "gold" : "neutro"
+                    }
                   />
                   <span className="block text-[11px] text-navy/60">
                     {r.regra} — {r.explicacao}
@@ -272,7 +408,8 @@ function CasosPage() {
                     </span>
                   ) : null}
                   <span className="block text-[11px] text-navy/45">
-                    Sinal de leitura interna. Não altera status, ativação, contrato, cobrança ou App Cliente.
+                    Sinal de leitura interna. Não altera status, ativação, contrato, cobrança ou App
+                    Cliente.
                   </span>
                 </span>
               );
@@ -283,8 +420,16 @@ function CasosPage() {
             rotulo: "Hipótese de elegibilidade",
             render: (l) => (
               <span className="block space-y-1">
-                <Badge texto={rotulo(HIPOTESE_ELEGIBILIDADE, l["hipotese_elegibilidade"] || "nao_avaliada")} tom="gold" />
-                <span className="block text-[11px] text-navy/55">Hipótese — não é elegibilidade definitiva</span>
+                <Badge
+                  texto={rotulo(
+                    HIPOTESE_ELEGIBILIDADE,
+                    l["hipotese_elegibilidade"] || "nao_avaliada",
+                  )}
+                  tom="gold"
+                />
+                <span className="block text-[11px] text-navy/55">
+                  Hipótese — não é elegibilidade definitiva
+                </span>
               </span>
             ),
           },
@@ -296,17 +441,25 @@ function CasosPage() {
               const prazo = qualificarData(l["prazo_proxima_acao"]);
               return (
                 <span className="block space-y-1 text-xs text-navy/75">
-                  <span className="block text-sm text-navy">{rotulo(PROXIMAS_ACOES, l["proxima_acao"])}</span>
-                  <span className="block">Responsável: {(l["proxima_acao_responsavel"] as string) || "—"}</span>
+                  <span className="block text-sm text-navy">
+                    {rotulo(PROXIMAS_ACOES, l["proxima_acao"])}
+                  </span>
+                  <span className="block">
+                    Responsável: {(l["proxima_acao_responsavel"] as string) || "—"}
+                  </span>
                   <span className="block">
                     Prazo: {prazo.texto}
                     {prazo.condicional ? " · previsão condicional" : ""}
                   </span>
-                  <span className="block">Depende de: {(l["proxima_acao_dependencia"] as string) || "—"}</span>
+                  <span className="block">
+                    Depende de: {(l["proxima_acao_dependencia"] as string) || "—"}
+                  </span>
                   <span className="block">
                     Conclui quando: {(l["proxima_acao_criterio_conclusao"] as string) || "—"}
                   </span>
-                  {falta.length ? <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" /> : null}
+                  {falta.length ? (
+                    <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" />
+                  ) : null}
                 </span>
               );
             },
@@ -329,15 +482,18 @@ function CasosPage() {
                       {e.motivos.slice(0, 3).map((m) => (
                         <li key={m}>{m}</li>
                       ))}
-                      {e.motivos.length > 3 ? <li>+{e.motivos.length - 3} outros requisitos pendentes</li> : null}
+                      {e.motivos.length > 3 ? (
+                        <li>+{e.motivos.length - 3} outros requisitos pendentes</li>
+                      ) : null}
                     </ul>
                   </span>
                 );
               }
-              return <Badge texto="Requisitos completos — ativação disponível no painel" tom="gold" />;
+              return (
+                <Badge texto="Requisitos completos — ativação disponível no painel" tom="gold" />
+              );
             },
           },
-
         ]}
         campos={[
           { chave: "titulo", rotulo: "Título", obrigatorio: true },
@@ -365,9 +521,24 @@ function CasosPage() {
               { valor: "consultoria", rotulo: "Consultoria" },
             ],
           },
-          { chave: "eixo_comercial", rotulo: "Fase comercial", tipo: "select", opcoes: EIXO_COMERCIAL },
-          { chave: "eixo_formalizacao", rotulo: "Fase de formalização", tipo: "select", opcoes: EIXO_FORMALIZACAO },
-          { chave: "situacao_financeira", rotulo: "Situação financeira", tipo: "select", opcoes: SITUACAO_FINANCEIRA },
+          {
+            chave: "eixo_comercial",
+            rotulo: "Fase comercial",
+            tipo: "select",
+            opcoes: EIXO_COMERCIAL,
+          },
+          {
+            chave: "eixo_formalizacao",
+            rotulo: "Fase de formalização",
+            tipo: "select",
+            opcoes: EIXO_FORMALIZACAO,
+          },
+          {
+            chave: "situacao_financeira",
+            rotulo: "Situação financeira",
+            tipo: "select",
+            opcoes: SITUACAO_FINANCEIRA,
+          },
           {
             chave: "situacao_operacional",
             rotulo: "Situação operacional",
@@ -377,9 +548,21 @@ function CasosPage() {
           { chave: "responsavel_principal", rotulo: "Responsável interno" },
           { chave: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: PRIORIDADES },
           { chave: "data_entrada", rotulo: "Data de entrada", tipo: "data" },
-          { chave: "data_prevista_contrato", rotulo: "Contrato — previsão condicional", tipo: "data" },
-          { chave: "data_prevista_pagamento", rotulo: "Pagamento — previsão condicional", tipo: "data" },
-          { chave: "data_prevista_onboarding", rotulo: "Onboarding — previsão condicional", tipo: "data" },
+          {
+            chave: "data_prevista_contrato",
+            rotulo: "Contrato — previsão condicional",
+            tipo: "data",
+          },
+          {
+            chave: "data_prevista_pagamento",
+            rotulo: "Pagamento — previsão condicional",
+            tipo: "data",
+          },
+          {
+            chave: "data_prevista_onboarding",
+            rotulo: "Onboarding — previsão condicional",
+            tipo: "data",
+          },
           { chave: "pais", rotulo: "País" },
           {
             chave: "via",
@@ -399,11 +582,20 @@ function CasosPage() {
           },
           { chave: "resumo", rotulo: "Resumo interno", tipo: "area" },
           { chave: "risco", rotulo: "Risco identificado", tipo: "area" },
-          { chave: "proxima_acao", rotulo: "Próxima ação — título", tipo: "select", opcoes: PROXIMAS_ACOES },
+          {
+            chave: "proxima_acao",
+            rotulo: "Próxima ação — título",
+            tipo: "select",
+            opcoes: PROXIMAS_ACOES,
+          },
           { chave: "proxima_acao_responsavel", rotulo: "Próxima ação — responsável" },
           { chave: "prazo_proxima_acao", rotulo: "Próxima ação — prazo", tipo: "data" },
           { chave: "proxima_acao_dependencia", rotulo: "Próxima ação — dependência", tipo: "area" },
-          { chave: "proxima_acao_criterio_conclusao", rotulo: "Próxima ação — critério de conclusão", tipo: "area" },
+          {
+            chave: "proxima_acao_criterio_conclusao",
+            rotulo: "Próxima ação — critério de conclusão",
+            tipo: "area",
+          },
         ]}
         extra={(linha) => (
           <div className="flex flex-wrap justify-end gap-2">

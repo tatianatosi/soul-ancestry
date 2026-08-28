@@ -18,7 +18,11 @@ import {
   representacaoPrevista,
   validarComposicaoNucleo,
 } from "@/lib/modelo-nucleo-familiar";
-import { validarComposicaoIndividual, criarRequerentePrincipal, criarAcompanhante } from "@/lib/modelo-individual-acompanhante";
+import {
+  validarComposicaoIndividual,
+  criarRequerentePrincipal,
+  criarAcompanhante,
+} from "@/lib/modelo-individual-acompanhante";
 
 const CHAVES = ["individual", "casal", "nucleo_familiar"] as const;
 
@@ -40,24 +44,36 @@ describe("matriz de modelos contratuais", () => {
     expect(rascunhoHabilitaAcao()).toBe(false);
   });
 
-  it.each(CHAVES)("rascunho %s contém perfil, 14 cláusulas, matriz, anexos e pendências", (chave) => {
-    const r = montarRascunhoModelo(chave, "2026-08-22");
-    expect(r.aviso).toBe(AVISO_RASCUNHO_TESTE);
-    expect(r.capa.status).toBe("under_legal_review");
-    expect(r.clausulas).toHaveLength(14);
-    expect(r.matriz).toHaveLength(16);
-    expect(r.perfil.qualificacao.paragrafos).toEqual(QUALIFICACAO_INSTITUCIONAL_PARAGRAFOS);
-    expect(r.anexos.length).toBeGreaterThanOrEqual(10);
-    expect(r.pendencias.length).toBeGreaterThanOrEqual(6);
-    for (const p of r.pendencias) expect(p.gateBloqueado).toBeTruthy();
-    expect(r.perfil.placeholders.map((p) => p.valor)).toContain("[CNPJ INSTITUCIONAL]");
-  });
+  it.each(CHAVES)(
+    "rascunho %s contém perfil, 14 cláusulas, matriz, anexos e pendências",
+    (chave) => {
+      const r = montarRascunhoModelo(chave, "2026-08-22");
+      expect(r.aviso).toBe(AVISO_RASCUNHO_TESTE);
+      expect(r.capa.status).toBe("under_legal_review");
+      expect(r.clausulas).toHaveLength(14);
+      expect(r.matriz).toHaveLength(16);
+      expect(r.perfil.qualificacao.paragrafos).toEqual(QUALIFICACAO_INSTITUCIONAL_PARAGRAFOS);
+      expect(r.anexos.length).toBeGreaterThanOrEqual(10);
+      expect(r.pendencias.length).toBeGreaterThanOrEqual(6);
+      for (const p of r.pendencias) expect(p.gateBloqueado).toBeTruthy();
+      expect(r.perfil.placeholders.map((p) => p.valor)).toContain("[CNPJ INSTITUCIONAL]");
+    },
+  );
 
   it.each(CHAVES)("rascunho %s usa apenas placeholders neutros no bloco de partes", (chave) => {
     const r = montarRascunhoModelo(chave, "2026-08-22");
     for (const p of r.partes) expect(p).toMatch(/^\[.+\]$/);
     const texto = JSON.stringify(r);
-    for (const proibido of ["Ana Luiza", "Adair", "Alice", "Felipe", "João", "Melani", "9.600", "1.290"]) {
+    for (const proibido of [
+      "Ana Luiza",
+      "Adair",
+      "Alice",
+      "Felipe",
+      "João",
+      "Melani",
+      "9.600",
+      "1.290",
+    ]) {
       expect(texto).not.toContain(proibido);
     }
   });
@@ -81,7 +97,9 @@ describe("qualificação institucional", () => {
   });
 
   it("detecta declarações proibidas", () => {
-    expect(violacoesQualificacao("Somos exclusivos e garantia de cidadania").length).toBeGreaterThan(0);
+    expect(
+      violacoesQualificacao("Somos exclusivos e garantia de cidadania").length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -104,7 +122,11 @@ describe("modelo núcleo familiar", () => {
     });
 
   it("exige ao menos um adulto requerente", () => {
-    const r = validarComposicaoNucleo({ pessoas: [], propostaAprovadaNoCaso: false, escopoFamiliarCentral: false });
+    const r = validarComposicaoNucleo({
+      pessoas: [],
+      propostaAprovadaNoCaso: false,
+      escopoFamiliarCentral: false,
+    });
     expect(r.valido).toBe(false);
     expect(r.bloqueios.some((b) => b.codigo === "MN-G01")).toBe(true);
   });
@@ -139,7 +161,14 @@ describe("modelo núcleo familiar", () => {
 
   it("gera um anexo individual por adulto confirmado e nenhum para dependente", () => {
     const composicao = {
-      pessoas: [adulto(), adulto(), criarPessoaNucleo("dependente", { identificado: "confirmado_humano", relevanteAoEscopo: true })],
+      pessoas: [
+        adulto(),
+        adulto(),
+        criarPessoaNucleo("dependente", {
+          identificado: "confirmado_humano",
+          relevanteAoEscopo: true,
+        }),
+      ],
       propostaAprovadaNoCaso: true,
       escopoFamiliarCentral: true,
     };

@@ -36,7 +36,7 @@ export type ProdutoMestre = {
 /** Subconjunto da Planilha Mestre usado nas propostas (status Ativo). */
 export const PORTFOLIO_MESTRE: ProdutoMestre[] = [
   // --- Pacotes principais ---
-  { sku: "CA-CID-023", nome: "Assessoria Completa de Cidadania Italiana", categoria: "Cidadania Italiana", familia: "F1 – Consultoria / Decisão", papel: "pacote", precoAtual: 4500, precoSugerido: 4500, gatilho: "Caso italiano com linha confirmada (referência premium)" },
+  { sku: "CA-CID-023", nome: "Assessoria Completa de Cidadania Italiana", categoria: "Cidadania Italiana", familia: "F1 – Consultoria / Decisão", papel: "pacote", precoAtual: 4800, precoSugerido: 4800, gatilho: "Caso italiano com linha confirmada (referência premium)" },
   { sku: "PACOTE-PT-01", nome: "Pacote Cidadania Portuguesa", categoria: "Cidadania Portuguesa", familia: "F1 – Consultoria / Decisão", papel: "pacote", precoAtual: 3800, precoSugerido: 3800, gatilho: "Descendência direta (Lei nº 37/1981)" },
   { sku: "PACOTE-CROACIA-01", nome: "Pacote Cidadania Croata por Descendência", categoria: "Cidadania Croata", familia: "F1 – Consultoria / Decisão", papel: "pacote", precoAtual: 4000, precoSugerido: 4000, gatilho: "Descendência croata / Consulado SP" },
   { sku: "PACOTE-DE-01", nome: "Pacote Cidadania Alemã", categoria: "Cidadania Alemã", familia: "F1 – Consultoria / Decisão", papel: "pacote", precoAtual: 4200, precoSugerido: 4200, gatilho: "Feststellung ou § 13 StAG" },

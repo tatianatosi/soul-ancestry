@@ -1,18 +1,61 @@
 import { describe, expect, it } from "vitest";
 
-import { avaliarPreparacaoInstrumentos, type EntradaPreparacao } from "@/lib/instrumentos-preparacao";
+import {
+  avaliarPreparacaoInstrumentos,
+  type EntradaPreparacao,
+} from "@/lib/instrumentos-preparacao";
 
 const TEMAS = [
-  { tema_codigo: "foro", tema: "Foro", status: "aprovado", bloqueia_assinatura: true, versao_juridica_aplicavel: "v2026.1" },
-  { tema_codigo: "parcelamento", tema: "Parcelamento", status: "pendente_revisao_juridica", bloqueia_assinatura: false, versao_juridica_aplicavel: null },
+  {
+    tema_codigo: "foro",
+    tema: "Foro",
+    status: "aprovado",
+    bloqueia_assinatura: true,
+    versao_juridica_aplicavel: "v2026.1",
+  },
+  {
+    tema_codigo: "parcelamento",
+    tema: "Parcelamento",
+    status: "pendente_revisao_juridica",
+    bloqueia_assinatura: false,
+    versao_juridica_aplicavel: null,
+  },
 ];
 
 const base = (): EntradaPreparacao => ({
-  proposta: { existe: true, validade_estado: "vigente", paginas_extraidas: 7, campos_nao_localizados: [] },
-  cadastro: { itens_obrigatorios: 10, itens_completos: 10, pessoas_sem_referencia: [], nucleo_criterios_pendentes: [] },
-  dependentes: [{ nome: "Felipe", participa_do_contrato: true, status_representacao: "documentada", anexo_individual_aplicavel: true }],
-  caseService: { existe: true, status: "approved", escopo_aprovado: true, preco_fonte_homologada: true },
-  condicao: { existe: true, status: "homologada", homologado_por: "u1", homologado_em: "2026-08-01", campos_faltantes: [] },
+  proposta: {
+    existe: true,
+    validade_estado: "vigente",
+    paginas_extraidas: 7,
+    campos_nao_localizados: [],
+  },
+  cadastro: {
+    itens_obrigatorios: 10,
+    itens_completos: 10,
+    pessoas_sem_referencia: [],
+    nucleo_criterios_pendentes: [],
+  },
+  dependentes: [
+    {
+      nome: "Felipe",
+      participa_do_contrato: true,
+      status_representacao: "documentada",
+      anexo_individual_aplicavel: true,
+    },
+  ],
+  caseService: {
+    existe: true,
+    status: "approved",
+    escopo_aprovado: true,
+    preco_fonte_homologada: true,
+  },
+  condicao: {
+    existe: true,
+    status: "homologada",
+    homologado_por: "u1",
+    homologado_em: "2026-08-01",
+    campos_faltantes: [],
+  },
   criterios: [{ criterio_codigo: "c1", status: "aceito", obrigatorio: true }],
   matriz: [...TEMAS],
   despesas: [],
@@ -39,7 +82,9 @@ describe("ANA-D-01 — preparação interna de instrumentos", () => {
   it("3. case service em draft bloqueia", () => {
     const e = base();
     e.caseService.status = "draft";
-    expect(avaliarPreparacaoInstrumentos(e).codigos_bloqueio).toContain("CASE_SERVICE_NAO_CONSOLIDADO");
+    expect(avaliarPreparacaoInstrumentos(e).codigos_bloqueio).toContain(
+      "CASE_SERVICE_NAO_CONSOLIDADO",
+    );
   });
 
   it("4. condição sem homologação bloqueia", () => {
@@ -57,13 +102,30 @@ describe("ANA-D-01 — preparação interna de instrumentos", () => {
 
   it("6. tema jurídico bloqueante pendente bloqueia", () => {
     const e = base();
-    e.matriz = [{ tema_codigo: "foro", tema: "Foro", status: "pendente_revisao_juridica", bloqueia_assinatura: true, versao_juridica_aplicavel: null }];
-    expect(avaliarPreparacaoInstrumentos(e).codigos_bloqueio).toContain("TEMA_JURIDICO_BLOQUEANTE_PENDENTE");
+    e.matriz = [
+      {
+        tema_codigo: "foro",
+        tema: "Foro",
+        status: "pendente_revisao_juridica",
+        bloqueia_assinatura: true,
+        versao_juridica_aplicavel: null,
+      },
+    ];
+    expect(avaliarPreparacaoInstrumentos(e).codigos_bloqueio).toContain(
+      "TEMA_JURIDICO_BLOQUEANTE_PENDENTE",
+    );
   });
 
   it("7. dependente participante sem representação bloqueia", () => {
     const e = base();
-    e.dependentes = [{ nome: "Felipe", participa_do_contrato: true, status_representacao: "pendente", anexo_individual_aplicavel: true }];
+    e.dependentes = [
+      {
+        nome: "Felipe",
+        participa_do_contrato: true,
+        status_representacao: "pendente",
+        anexo_individual_aplicavel: true,
+      },
+    ];
     const r = avaliarPreparacaoInstrumentos(e);
     expect(r.status).toBe("bloqueado");
     expect(r.codigos_bloqueio).toContain("DEPENDENTE_SEM_REPRESENTACAO");

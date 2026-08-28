@@ -30,9 +30,9 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
   });
 
   it("1b. aparece para papel autorizado e some para papel não autorizado no grupo", () => {
-    expect(
-      assistenteVisivel({ superficieInterna: true, papeis: ["admin"], rota: "/equipe" }),
-    ).toBe(true);
+    expect(assistenteVisivel({ superficieInterna: true, papeis: ["admin"], rota: "/equipe" })).toBe(
+      true,
+    );
     expect(
       assistenteVisivel({ superficieInterna: true, papeis: ["comercial"], rota: "/equipe" }),
     ).toBe(false);

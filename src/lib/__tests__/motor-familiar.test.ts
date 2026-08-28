@@ -62,13 +62,17 @@ describe("família, contrato-base e anexos individuais", () => {
   });
 
   it("marca anexo comercial como pendente enquanto faltarem parcelas", () => {
-    const com = dicionarioAnexos({ ...CASO, parcelas: "" }).find((a) => a.codigo === "ANX-COMERCIAL")!;
+    const com = dicionarioAnexos({ ...CASO, parcelas: "" }).find(
+      (a) => a.codigo === "ANX-COMERCIAL",
+    )!;
     expect(com.estado).toBe("pendente");
     expect(com.pendencias.join(" ")).toMatch(/Parcelas/);
   });
 
   it("respeita estado registrado de revisão/arquivamento", () => {
-    const com = dicionarioAnexos({ ...CASO, estados: { "ANX-COMERCIAL": "aprovado" } }).find((a) => a.codigo === "ANX-COMERCIAL")!;
+    const com = dicionarioAnexos({ ...CASO, estados: { "ANX-COMERCIAL": "aprovado" } }).find(
+      (a) => a.codigo === "ANX-COMERCIAL",
+    )!;
     expect(com.estado).toBe("aprovado");
   });
 
@@ -78,14 +82,19 @@ describe("família, contrato-base e anexos individuais", () => {
 });
 
 describe("versionamento de prévia", () => {
-  const conteudo = { caso: "CA-CID-AT-FAM-2026-001", valores: [{ campo: "valor_total", valor: "9600" }] };
+  const conteudo = {
+    caso: "CA-CID-AT-FAM-2026-001",
+    valores: [{ campo: "valor_total", valor: "9600" }],
+  };
 
   it("conteúdo idêntico produz a mesma impressão digital (salvar não vira versão nova)", () => {
     expect(hashConteudo(conteudo)).toBe(hashConteudo({ ...conteudo }));
   });
 
   it("mudança real muda a impressão digital", () => {
-    expect(hashConteudo(conteudo)).not.toBe(hashConteudo({ ...conteudo, valores: [{ campo: "valor_total", valor: "9601" }] }));
+    expect(hashConteudo(conteudo)).not.toBe(
+      hashConteudo({ ...conteudo, valores: [{ campo: "valor_total", valor: "9601" }] }),
+    );
   });
 
   it("só eventos de governança congelam versão — salvar não é evento", () => {
@@ -102,17 +111,30 @@ describe("versionamento de prévia", () => {
 
 describe("campos parametrizáveis e propostas", () => {
   it("rejeita valor fora da lista em campo classificatório", () => {
-    expect(validarValorCampo({ campo: "forma_pagamento", valor: "combinado no zap", origem: "proposta" }).ok).toBe(false);
+    expect(
+      validarValorCampo({ campo: "forma_pagamento", valor: "combinado no zap", origem: "proposta" })
+        .ok,
+    ).toBe(false);
   });
 
   it("bloqueia salvamento sem justificativa quando a regra exige", () => {
-    const r = validarValorCampo({ campo: "despesas_externas", valor: "estimada", origem: "proposta" });
+    const r = validarValorCampo({
+      campo: "despesas_externas",
+      valor: "estimada",
+      origem: "proposta",
+    });
     expect(r.ok).toBe(false);
     expect(r.ok === false ? r.erro : "").toMatch(/justificativa/i);
   });
 
   it("mantém nome civil como texto livre", () => {
-    expect(validarValorCampo({ campo: "contratante_nome", valor: "Ana Luiza Gomes Silveira Rodrigues", origem: "crm" }).ok).toBe(true);
+    expect(
+      validarValorCampo({
+        campo: "contratante_nome",
+        valor: "Ana Luiza Gomes Silveira Rodrigues",
+        origem: "crm",
+      }).ok,
+    ).toBe(true);
   });
 
   it("proposta arquivada/substituída não volta a valer para contrato", () => {
@@ -123,8 +145,22 @@ describe("campos parametrizáveis e propostas", () => {
 
 describe("bloqueios resolutivos", () => {
   const valores = [
-    { id: "v1", campo: "parcelas", label: "Parcelas", obrigatorio: true, valor: null, status: "vazio" },
-    { id: "v2", campo: "partes_signatarias", label: "Partes signatárias", obrigatorio: true, valor: "Ana", status: "importado_a_confirmar" },
+    {
+      id: "v1",
+      campo: "parcelas",
+      label: "Parcelas",
+      obrigatorio: true,
+      valor: null,
+      status: "vazio",
+    },
+    {
+      id: "v2",
+      campo: "partes_signatarias",
+      label: "Partes signatárias",
+      obrigatorio: true,
+      valor: "Ana",
+      status: "importado_a_confirmar",
+    },
   ];
 
   it("aponta campo e entidade de cada bloqueio, sem duplicar", () => {
@@ -141,7 +177,15 @@ describe("bloqueios resolutivos", () => {
   });
 
   it("mantém revisão humana indisponível enquanto houver bloqueio impeditivo", () => {
-    expect(temBloqueioImpeditivo(bloqueiosResolutivos([{ chave: "signatario", motivo: "x" }], valores as never))).toBe(true);
-    expect(temBloqueioImpeditivo(bloqueiosResolutivos([{ chave: "revisao_humana", motivo: "x" }], valores as never))).toBe(false);
+    expect(
+      temBloqueioImpeditivo(
+        bloqueiosResolutivos([{ chave: "signatario", motivo: "x" }], valores as never),
+      ),
+    ).toBe(true);
+    expect(
+      temBloqueioImpeditivo(
+        bloqueiosResolutivos([{ chave: "revisao_humana", motivo: "x" }], valores as never),
+      ),
+    ).toBe(false);
   });
 });

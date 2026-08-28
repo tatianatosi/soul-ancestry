@@ -10,7 +10,10 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CadeiaJornada } from "@/components/desk/cadeia-jornada";
-import { htmlImpressaoPainelContextual, resumoTextoPainelContextual } from "@/lib/cadeia-jornada-pdf";
+import {
+  htmlImpressaoPainelContextual,
+  resumoTextoPainelContextual,
+} from "@/lib/cadeia-jornada-pdf";
 import { descreverCadeia, proximaAcaoDoPainel } from "@/lib/cadeia-jornada-visao";
 import { executarCadeiaJornada } from "@/lib/orquestracao-jornada";
 

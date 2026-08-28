@@ -49,7 +49,9 @@ describe("inventário patrimonial", () => {
   });
 
   it("declara camada ausente para todo item placeholder ou sem instância", () => {
-    for (const item of INVENTARIO.filter((i) => ["PLACEHOLDER", "SEM_INSTANCIA", "SEM_HOMOLOGACAO"].includes(i.status))) {
+    for (const item of INVENTARIO.filter((i) =>
+      ["PLACEHOLDER", "SEM_INSTANCIA", "SEM_HOMOLOGACAO"].includes(i.status),
+    )) {
       expect(camadasFaltantes(item).length).toBeGreaterThan(0);
     }
   });
@@ -88,7 +90,9 @@ describe("inventário patrimonial", () => {
   });
 
   it("mantém a confirmação literal", () => {
-    expect(CONFIRMACAO_LITERAL).toContain("Nenhum item foi declarado completo apenas por existir virtualmente");
+    expect(CONFIRMACAO_LITERAL).toContain(
+      "Nenhum item foi declarado completo apenas por existir virtualmente",
+    );
   });
 
   it("contagem por status soma o total do inventário", () => {

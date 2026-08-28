@@ -2,8 +2,7 @@
  * Painel Hoje — contrato de leitura da tela.
  *
  * Duas regras de UI viram verificação executável, não convenção de código:
- *  1. Ordem canônica dos blocos, com "Sinais de atenção" imediatamente após
- *     "Exceções que exigem dono".
+ *  1. Ordem canônica dos blocos, de cima para baixo.
  *  2. Fila de trabalho sem duplicidade: um registro (lead ou caso) aparece uma
  *     única vez nos blocos que geram linha de ação.
  *
@@ -19,22 +18,34 @@ export type BlocoPainel = {
 
 /** Ordem canônica dos blocos do Painel Hoje, de cima para baixo. */
 export const ORDEM_BLOCOS_PAINEL: readonly BlocoPainel[] = [
-  { chave: "cards", titulo: "Cards do dia", fila: false },
+  { chave: "cards", titulo: "Métricas de decisão do dia", fila: false },
+  { chave: "destaque", titulo: "Caso em destaque", fila: false },
+  // 26/08/2026 — a jornada entra logo depois do destaque: primeiro o caso que
+  // pede o olho, depois onde a carteira inteira está. Não é fila (não gera
+  // linha de trabalho por registro), é leitura de posição.
+  { chave: "jornada", titulo: "Jornada dos casos", fila: false },
   { chave: "fila_priorizada", titulo: "Minha fila priorizada", fila: true },
   { chave: "excecoes", titulo: "Exceções que exigem dono", fila: true },
-  { chave: "sinais", titulo: "Sinais de atenção", fila: false },
   { chave: "comercial", titulo: "Comercial hoje", fila: false },
-  { chave: "prazos", titulo: "Casos com prazo em atenção", fila: false },
-  { chave: "atalhos", titulo: "Atalhos", fila: false },
+  { chave: "prazos", titulo: "Cadência — quem precisa de um toque", fila: true },
   { chave: "descoberta", titulo: "Encontrar no Desk", fila: false },
 ] as const;
 
-/** Par cuja adjacência é obrigatória: sinais logo depois das exceções. */
-export const PAR_OBRIGATORIO = { antes: "excecoes", depois: "sinais" } as const;
+/**
+ * Par cuja adjacência é obrigatória.
+ *
+ * 25/08/2026 — deixou de existir. A regra nasceu para impedir que algo se
+ * inserisse entre "Exceções que exigem dono" e "Sinais de atenção". Com a
+ * fusão de Sinais em "Encontrar no Desk" (decisão da Proprietária), não há
+ * mais par a preservar. Fica `null` em vez de sumir, para que a ausência seja
+ * uma decisão registrada e não pareça esquecimento.
+ */
+export const PAR_OBRIGATORIO: { antes: string; depois: string } | null = null;
 
 export type ProblemaPainel = { chave: string; mensagem: string };
 
-const titulo = (chave: string) => ORDEM_BLOCOS_PAINEL.find((b) => b.chave === chave)?.titulo ?? chave;
+const titulo = (chave: string) =>
+  ORDEM_BLOCOS_PAINEL.find((b) => b.chave === chave)?.titulo ?? chave;
 
 /**
  * Confere a ordem dos blocos efetivamente renderizados.
@@ -48,11 +59,17 @@ export function validarOrdemPainel(chavesRenderizadas: readonly string[]): Probl
 
   for (const chave of chavesRenderizadas) {
     if (!conhecidas.has(chave)) {
-      problemas.push({ chave, mensagem: `Bloco “${chave}” não faz parte da ordem canônica do painel.` });
+      problemas.push({
+        chave,
+        mensagem: `Bloco “${chave}” não faz parte da ordem canônica do painel.`,
+      });
       continue;
     }
     if (vistas.has(chave)) {
-      problemas.push({ chave, mensagem: `Bloco “${titulo(chave)}” aparece mais de uma vez na tela.` });
+      problemas.push({
+        chave,
+        mensagem: `Bloco “${titulo(chave)}” aparece mais de uma vez na tela.`,
+      });
     }
     vistas.add(chave);
   }
@@ -67,23 +84,25 @@ export function validarOrdemPainel(chavesRenderizadas: readonly string[]): Probl
     });
   }
 
-  const iAntes = canonicas.indexOf(PAR_OBRIGATORIO.antes);
-  const iDepois = canonicas.indexOf(PAR_OBRIGATORIO.depois);
-  if (iAntes >= 0 && iDepois >= 0 && iDepois !== iAntes + 1) {
-    problemas.push({
-      chave: "adjacencia",
-      mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” precisa vir imediatamente após “${titulo(
-        PAR_OBRIGATORIO.antes,
-      )}”.`,
-    });
-  }
-  if (iAntes >= 0 && iDepois < 0) {
-    problemas.push({
-      chave: "adjacencia",
-      mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” não foi renderizado depois de “${titulo(
-        PAR_OBRIGATORIO.antes,
-      )}”.`,
-    });
+  if (PAR_OBRIGATORIO) {
+    const iAntes = canonicas.indexOf(PAR_OBRIGATORIO.antes);
+    const iDepois = canonicas.indexOf(PAR_OBRIGATORIO.depois);
+    if (iAntes >= 0 && iDepois >= 0 && iDepois !== iAntes + 1) {
+      problemas.push({
+        chave: "adjacencia",
+        mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” precisa vir imediatamente após “${titulo(
+          PAR_OBRIGATORIO.antes,
+        )}”.`,
+      });
+    }
+    if (iAntes >= 0 && iDepois < 0) {
+      problemas.push({
+        chave: "adjacencia",
+        mensagem: `“${titulo(PAR_OBRIGATORIO.depois)}” não foi renderizado depois de “${titulo(
+          PAR_OBRIGATORIO.antes,
+        )}”.`,
+      });
+    }
   }
 
   return problemas;
@@ -96,7 +115,9 @@ export type RegistroRenderizado = { bloco: string; tipo: string; id: string };
  * Um mesmo lead/caso listado duas vezes é defeito: a ação principal fica na
  * fila priorizada e os demais bloqueios ficam na ficha do registro.
  */
-export function duplicidadesDeRegistro(registros: readonly RegistroRenderizado[]): ProblemaPainel[] {
+export function duplicidadesDeRegistro(
+  registros: readonly RegistroRenderizado[],
+): ProblemaPainel[] {
   const blocosFila = new Set(ORDEM_BLOCOS_PAINEL.filter((b) => b.fila).map((b) => b.chave));
   const ondeApareceu = new Map<string, string[]>();
   for (const r of registros) {

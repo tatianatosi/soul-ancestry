@@ -49,7 +49,9 @@ describe("corpo contratual versionado", () => {
   });
 
   it("texto livre de cláusula por caso é recusado", () => {
-    expect(violacoesCorpoPorCaso({ clausulaId: "G", textoLivre: "Garantimos a cidadania." })).toHaveLength(1);
+    expect(
+      violacoesCorpoPorCaso({ clausulaId: "G", textoLivre: "Garantimos a cidadania." }),
+    ).toHaveLength(1);
     expect(violacoesCorpoPorCaso({ clausulaId: "G", textoLivre: "" })).toEqual([]);
     expect(violacoesCorpoPorCaso({ clausulaId: "G" })).toEqual([]);
   });

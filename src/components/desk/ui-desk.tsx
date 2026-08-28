@@ -5,7 +5,7 @@
  * - Somente apresentação. Nenhum componente aqui lê, escreve ou deriva dado.
  * - Cores sempre por token semântico (`bg-navy`, `text-critico`, …); nunca hex.
  * - Títulos e navegação em Cormorant (`font-serif`); tabelas e dados densos
- *   em Inter (`font-sans`), com tabular-nums para números.
+ *   em Montserrat (`font-sans`), com tabular-nums para números.
  */
 import type { ReactNode } from "react";
 
@@ -68,7 +68,9 @@ export function SectionHeader({
     <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
       <div className="min-w-0">
         {etiqueta ? (
-          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">{etiqueta}</p>
+          <p className="text-[11px] font-medium uppercase tracking-widest text-navy/55">
+            {etiqueta}
+          </p>
         ) : null}
         <h3 className="font-serif text-lg leading-snug text-navy">{titulo}</h3>
         {descricao ? <p className="text-xs text-navy/60">{descricao}</p> : null}
@@ -102,7 +104,9 @@ export function CardIndicador({
       >
         {temValor ? valor : "—"}
       </p>
-      <p className="mt-1 text-xs text-navy/55">{temValor ? (apoio ?? "") : "Sem dados suficientes"}</p>
+      <p className="mt-1 text-xs text-navy/55">
+        {temValor ? (apoio ?? "") : "Sem dados suficientes"}
+      </p>
     </div>
   );
 }
@@ -153,7 +157,7 @@ export function BarraFiltros({ children, className }: { children: ReactNode; cla
   );
 }
 
-/** Moldura de tabela densa: Inter, números tabulares e rolagem horizontal segura. */
+/** Moldura de tabela densa: Montserrat, números tabulares e rolagem horizontal segura. */
 export function TabelaDesk({
   cabecalho,
   children,
@@ -170,7 +174,11 @@ export function TabelaDesk({
         <thead>
           <tr className="border-b border-navy/10 bg-cream/50 text-left">
             {cabecalho.map((c) => (
-              <th key={c} scope="col" className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-navy/60">
+              <th
+                key={c}
+                scope="col"
+                className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-navy/60"
+              >
                 {c}
               </th>
             ))}
@@ -183,7 +191,15 @@ export function TabelaDesk({
 }
 
 /** Estado vazio padrão do Desk. */
-export function VazioDesk({ titulo, descricao, acao }: { titulo: string; descricao?: string; acao?: ReactNode }) {
+export function VazioDesk({
+  titulo,
+  descricao,
+  acao,
+}: {
+  titulo: string;
+  descricao?: string;
+  acao?: ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-8 text-center">
       <p className="font-serif text-lg text-navy">{titulo}</p>
@@ -194,7 +210,13 @@ export function VazioDesk({ titulo, descricao, acao }: { titulo: string; descric
 }
 
 /** Estado de carregamento com skeleton — sem texto que sugira dado existente. */
-export function CarregandoDesk({ linhas = 3, rotulo = "Carregando" }: { linhas?: number; rotulo?: string }) {
+export function CarregandoDesk({
+  linhas = 3,
+  rotulo = "Carregando",
+}: {
+  linhas?: number;
+  rotulo?: string;
+}) {
   return (
     <div className="space-y-2" role="status" aria-live="polite" aria-busy="true">
       <span className="sr-only">{rotulo}</span>

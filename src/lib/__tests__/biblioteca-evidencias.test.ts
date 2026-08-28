@@ -24,17 +24,33 @@ const evidenciaBase = {
 
 describe("G-03 — evidências", () => {
   it("1. evidência interna não aparece no App sem projeção aprovada", () => {
-    const visivel = itensVisiveisNoApp([evidenciaBase], [
-      { id: "p1", approval_status: "approved", destination: "app", content_sanitized: "Marco de pesquisa concluído." },
-    ]);
+    const visivel = itensVisiveisNoApp(
+      [evidenciaBase],
+      [
+        {
+          id: "p1",
+          approval_status: "approved",
+          destination: "app",
+          content_sanitized: "Marco de pesquisa concluído.",
+        },
+      ],
+    );
     expect(visivel.evidencias).toHaveLength(0);
     expect(visivel.projecoes).toHaveLength(0);
   });
 
   it("1b. só projeção publicada e sanitizada chega ao App", () => {
-    const visivel = itensVisiveisNoApp([evidenciaBase], [
-      { id: "p1", approval_status: "published", destination: "app", content_sanitized: "Marco de pesquisa concluído." },
-    ]);
+    const visivel = itensVisiveisNoApp(
+      [evidenciaBase],
+      [
+        {
+          id: "p1",
+          approval_status: "published",
+          destination: "app",
+          content_sanitized: "Marco de pesquisa concluído.",
+        },
+      ],
+    );
     expect(visivel.projecoes).toHaveLength(1);
     expect(visivel.projecoes[0]?.disclaimer).toContain("Não constitui parecer jurídico");
   });
@@ -76,7 +92,9 @@ describe("G-03 — evidências", () => {
   it("4. conteúdo com URL interna ou nota interna não pode compor projeção", () => {
     expect(conteudoProjetavel("Veja https://drive.google.com/arquivo").ok).toBe(false);
     expect(conteudoProjetavel("Hipótese de vínculo com a linha materna.").ok).toBe(false);
-    expect(conteudoProjetavel("Registro de nascimento localizado no arquivo paroquial.").ok).toBe(true);
+    expect(conteudoProjetavel("Registro de nascimento localizado no arquivo paroquial.").ok).toBe(
+      true,
+    );
   });
 
   it("5. evidência restrita não é projetável", () => {
@@ -92,13 +110,22 @@ describe("G-03 — evidências", () => {
       epistemic_validation_status: "VALIDADO_POR_DOCUMENTO",
     };
     expect(validarEvidencia(colaborativa).ok).toBe(false);
-    expect(validarEvidencia({ ...colaborativa, evidence_nature: "colaborativa_familiar", epistemic_validation_status: "INFORMACAO_COMPARTILHADA_FAMILIA", confidence_level: "ALTO" }).ok).toBe(false);
+    expect(
+      validarEvidencia({
+        ...colaborativa,
+        evidence_nature: "colaborativa_familiar",
+        epistemic_validation_status: "INFORMACAO_COMPARTILHADA_FAMILIA",
+        confidence_level: "ALTO",
+      }).ok,
+    ).toBe(false);
   });
 
   it("7. validação por documento exige responsável e data", () => {
     const semRevisor = { ...evidenciaBase, epistemic_validation_status: "VALIDADO_POR_DOCUMENTO" };
     expect(validarEvidencia(semRevisor).ok).toBe(false);
-    expect(validarEvidencia({ ...semRevisor, reviewed_by: "u1", reviewed_at: "2026-08-20" }).ok).toBe(true);
+    expect(
+      validarEvidencia({ ...semRevisor, reviewed_by: "u1", reviewed_at: "2026-08-20" }).ok,
+    ).toBe(true);
   });
 
   it("8. projeção aprovada exige aprovador, data e evidência elegível", () => {
@@ -113,7 +140,10 @@ describe("G-03 — evidências", () => {
       validarProjecao({ ...p, approved_by: "u1", approved_at: "2026-08-20" }, evidenciaBase).ok,
     ).toBe(true);
     expect(
-      validarProjecao({ ...p, approved_by: "u1", approved_at: "2026-08-20" }, { ...evidenciaBase, access_level: "restrito" }).ok,
+      validarProjecao(
+        { ...p, approved_by: "u1", approved_at: "2026-08-20" },
+        { ...evidenciaBase, access_level: "restrito" },
+      ).ok,
     ).toBe(false);
   });
 
@@ -125,7 +155,15 @@ describe("G-03 — evidências", () => {
         { id: "v1", evidence_id: "ev-1", revisado_em: "2026-08-10", confianca_nova: "BAIXO" },
         { id: "v3", evidence_id: "outra", revisado_em: "2026-08-11", confianca_nova: "BAIXO" },
       ],
-      [{ id: "p1", source_entity_type: "evidence", source_entity_id: "ev-1", approval_status: "published", destination: "app" }],
+      [
+        {
+          id: "p1",
+          source_entity_type: "evidence",
+          source_entity_id: "ev-1",
+          approval_status: "published",
+          destination: "app",
+        },
+      ],
     );
     expect(c.validacoes.map((v) => v["id"])).toEqual(["v1", "v2"]);
     expect(c.publicadaNoApp).toBe(true);

@@ -22,7 +22,10 @@ describe("leitor do contrato-base", () => {
   it("cada seção tem texto não vazio, selo, versão e vínculo A–P", () => {
     for (const s of doc.secoes) {
       expect(s.paragrafos.length).toBeGreaterThan(0);
-      const texto = s.paragrafos.flatMap((p) => p.itens).join(" ").trim();
+      const texto = s.paragrafos
+        .flatMap((p) => p.itens)
+        .join(" ")
+        .trim();
       expect(texto.length).toBeGreaterThan(40);
       expect(s.selo).toBe(SELO_TEXTO_FIXO);
       expect(s.versao).toBe("v1.0");

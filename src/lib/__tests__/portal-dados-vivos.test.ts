@@ -70,7 +70,11 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
 
   it("conteúdo com termo interno não atravessa para o cliente", () => {
     const j = jornadaSanitizada([
-      { id: "1", projection_type: "marco", content_sanitized: "Hipótese confirmada pela evidência." },
+      {
+        id: "1",
+        projection_type: "marco",
+        content_sanitized: "Hipótese confirmada pela evidência.",
+      },
     ]);
     expect(j.linha).toEqual([]);
   });

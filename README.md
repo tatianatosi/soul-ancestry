@@ -2,6 +2,15 @@
 
 Create a VISUAL-ONLY navigable mockup prototype (no backend, no auth, no real data) for 'Clube Ancestral' — a genealogy and European citizenship consulting service. Brand: navy blue (#1B2B4B), gold (#C9A84C), cream (#F5F0E8), terracotta (#8B4513). Logo: circular seal with a golden tree with visible roots on navy background, script text 'Clube Ancestral' beside it.
 
+> **Nota de 24/08/2026:** o parágrafo acima é o prompt original do projeto,
+> preservado como registro histórico — não é mais a paleta vigente. A
+> paleta oficial foi atualizada em 23/08/2026 (aceite expresso da
+> Proprietária, confirmado contra o PDF `CA - MARCA - Guia de Marca
+> Apresentação`): navy `#2F4B6E`, dourado `#FCB73A`, creme `#ECDFCD`,
+> terracota `#9A3A2F`, preto `#101010`. Fonte de verdade em código:
+> `src/lib/marca.ts` e `src/styles.css`. Detalhe da migração em
+> `docs/portal/CA-PORTAL-01_Aplicacao_Guia_de_Marca.md`.
+
 BUILD TWO SEPARATE APPS in one project with a toggle switcher at the top to switch between them:
 
 == APP 1: CLIENTE APP (mobile-first, also works on web) ==

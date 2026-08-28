@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -50,13 +51,37 @@ export const confirmarSessaoEquipe = createServerFn({ method: "POST" })
     const userId = context.userId as string;
     const email = h.normalizarEmail((context as any).claims?.email ?? "");
 
-    let staff = await h.staffPorUsuario(userId);
+    /*
+      26/08/2026 — a autorização tinha uma única fonte: a chave secreta. Com a
+      chave do ambiente apontando para outro projeto, o resultado era
+      "sem_vinculo" para uma conta ativa, e ninguém entrava.
+
+      Agora há duas fontes para o MESMO fato, nesta ordem:
+        1. o cliente administrativo, que também resolve vínculo por e-mail;
+        2. a própria linha, lida com o token de quem está entrando, sob a
+           política `staff_select_self`.
+
+      A segunda não exige segredo nenhum e não vê nada além da linha da própria
+      pessoa. Quem decide continua sendo o banco.
+    */
+    let staff = await h
+      .staffPorUsuario(userId)
+      .catch(() => null as Awaited<ReturnType<typeof h.staffPorUsuario>> | null);
+
     if (!staff && email) {
-      const porEmail = await h.staffPorEmail(email);
+      const porEmail = await h.staffPorEmail(email).catch(() => null);
       if (porEmail && (porEmail.auth_user_id === null || porEmail.auth_user_id === userId)) {
-        await h.adminClient.from("staff_access").update({ auth_user_id: userId }).eq("id", porEmail.id);
-        staff = { ...porEmail, auth_user_id: userId };
+        const vinculou = await h.efeitoAdministrativo("vincular auth_user_id", () =>
+          h.adminClient.from("staff_access").update({ auth_user_id: userId }).eq("id", porEmail.id),
+        );
+        if (vinculou) staff = { ...porEmail, auth_user_id: userId };
       }
+    }
+
+    if (!staff) {
+      staff = await h
+        .staffPorUsuarioComRls((context as any).supabase, userId)
+        .catch(() => null);
     }
 
     if (!staff) return { autorizado: false as const, motivo: "sem_vinculo" };
@@ -64,43 +89,59 @@ export const confirmarSessaoEquipe = createServerFn({ method: "POST" })
     if (staff.status !== "active") {
       if (staff.status === "invited") {
         // primeiro acesso após definir a senha pelo link de convite
-        await h.adminClient
-          .from("staff_access")
-          .update({ status: "active", activated_at: new Date().toISOString(), auth_user_id: userId })
-          .eq("id", staff.id);
-        await h.registrarAuditoria({
-          organizationId: staff.organization_id,
-          userId,
-          acao: "equipe_conta_ativada",
-          entidadeId: staff.id,
-        });
+        await h.efeitoAdministrativo("ativar conta convidada", () =>
+          h.adminClient
+            .from("staff_access")
+            .update({ status: "active", activated_at: new Date().toISOString(), auth_user_id: userId })
+            .eq("id", staff.id),
+        );
+        await h.efeitoAdministrativo("auditar ativação", () =>
+          h.registrarAuditoria({
+            organizationId: staff.organization_id,
+            userId,
+            acao: "equipe_conta_ativada",
+            entidadeId: staff.id,
+          }),
+        );
         staff = { ...staff, status: "active" };
       } else {
-        await h.registrarAuditoria({
-          organizationId: staff.organization_id,
-          userId,
-          acao: "equipe_falha_autorizacao",
-          entidadeId: staff.id,
-          metadados: { status: staff.status },
-        });
+        await h.efeitoAdministrativo("auditar recusa", () =>
+          h.registrarAuditoria({
+            organizationId: staff.organization_id,
+            userId,
+            acao: "equipe_falha_autorizacao",
+            entidadeId: staff.id,
+            metadados: { status: staff.status },
+          }),
+        );
         return { autorizado: false as const, motivo: staff.status };
       }
     }
 
-    await h.sincronizarVinculo(staff, userId);
-    if (email) await h.limparTentativas("staff_login", email);
-
-    await h.adminClient
-      .from("staff_access")
-      .update({ last_login_at: new Date().toISOString() })
-      .eq("id", staff.id);
-    await h.registrarAuditoria({
-      organizationId: staff.organization_id,
-      userId,
-      acao: "equipe_login",
-      entidadeId: staff.id,
-      metadados: { papel: staff.role },
-    });
+    /*
+      Daqui para baixo são CONSEQUÊNCIAS de entrar, não condições. Antes,
+      qualquer uma delas lançando derrubava um login já autorizado — e foi
+      assim que uma falha de configuração virou "não foi possível entrar".
+    */
+    await h.efeitoAdministrativo("sincronizar vínculo", () => h.sincronizarVinculo(staff, userId));
+    if (email) {
+      await h.efeitoAdministrativo("limpar tentativas", () => h.limparTentativas("staff_login", email));
+    }
+    await h.efeitoAdministrativo("carimbar last_login_at", () =>
+      h.adminClient
+        .from("staff_access")
+        .update({ last_login_at: new Date().toISOString() })
+        .eq("id", staff.id),
+    );
+    await h.efeitoAdministrativo("auditar login", () =>
+      h.registrarAuditoria({
+        organizationId: staff.organization_id,
+        userId,
+        acao: "equipe_login",
+        entidadeId: staff.id,
+        metadados: { papel: staff.role },
+      }),
+    );
 
     return { autorizado: true as const, papel: staff.role as string, organizationId: staff.organization_id as string };
   });
@@ -167,6 +208,7 @@ export const concluirRedefinicaoSenha = createServerFn({ method: "POST" })
 export const listarEquipe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const h = await import("./equipe.server");
     const supabase = context.supabase as any;
     const staff = await h.staffPorUsuario(context.userId as string);
@@ -456,6 +498,7 @@ export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
 
 /** Indica se o provisionamento inicial ainda está disponível (bloqueio definitivo após o primeiro admin). */
 export const precisaProvisionamento = createServerFn({ method: "GET" }).handler(async () => {
+    semCache();
   const h = await import("./equipe.server");
   const { data, error } = await h.adminClient.rpc("bootstrap_permitido");
   if (error) return { pendente: false };
@@ -472,6 +515,7 @@ export const statusEnvioRecuperacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { email?: string } | undefined) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const h = await import("./equipe.server");
     await h.exigirAdminEquipe(context.userId as string);
 

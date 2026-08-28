@@ -5,7 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import { garantirEixosCanonicos } from "@/lib/radar-eixos";
-import { usePortalVivo } from "@/routes/portal/jornada";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -28,7 +28,7 @@ const TEXTO_ESTADO: Record<string, string> = {
   in_preparation: COPY_ESTADO_TEXTO.in_preparation,
 };
 
-function PortalRadar() {
+export function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
   const { data, isLoading } = usePortalVivo();
   // Cards de pontuação e textos seguem exatamente o conjunto e a ordem canônicos.

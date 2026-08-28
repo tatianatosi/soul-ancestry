@@ -3,14 +3,23 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { pendenciasCriticasPainel } from "@/lib/plano-acao-pesquisa.functions";
-import { pendenciasCriticasPesquisa, PRIORIDADES, rotuloDe, type ItemPainel } from "@/lib/plano-acao-pesquisa";
+import {
+  pendenciasCriticasPesquisa,
+  PRIORIDADES,
+  rotuloDe,
+  type ItemPainel,
+} from "@/lib/plano-acao-pesquisa";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /** Painel Hoje: pendências críticas de pesquisa (leitura). Sem ação externa. */
 export function PendenciasCriticasPesquisa() {
   const carregar = useServerFn(pendenciasCriticasPainel);
-  const q = useQuery({ queryKey: ["painel-pendencias-criticas-pesquisa"], queryFn: () => carregar(), retry: false });
+  const q = useQuery({
+    queryKey: ["painel-pendencias-criticas-pesquisa"],
+    queryFn: () => carregar(),
+    retry: false,
+  });
 
   if (q.isLoading || q.isError || !q.data) return null;
 
@@ -21,7 +30,9 @@ export function PendenciasCriticasPesquisa() {
     <section className="mt-6">
       <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
         <div className="flex items-baseline justify-between">
-          <p className="text-xs uppercase tracking-wide text-navy/60">Pendências críticas de pesquisa</p>
+          <p className="text-xs uppercase tracking-wide text-navy/60">
+            Pendências críticas de pesquisa
+          </p>
           <span className="font-serif text-2xl text-navy">{itens.length}</span>
         </div>
         <ul className="mt-2 space-y-1 text-xs text-navy/70">
@@ -41,7 +52,8 @@ export function PendenciasCriticasPesquisa() {
           {itens.length === 0 && <li>Nenhuma pendência crítica de pesquisa hoje.</li>}
         </ul>
         <p className="mt-2 text-[11px] text-navy/50">
-          Somente prioridade crítica com prazo hoje ou vencido, em aberto. Dados de demonstração não entram nesta lista.
+          Somente prioridade crítica com prazo hoje ou vencido, em aberto. Dados de demonstração não
+          entram nesta lista.
         </p>
       </div>
     </section>

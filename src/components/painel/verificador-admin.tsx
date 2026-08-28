@@ -33,8 +33,8 @@ export function VerificadorAdminProprietaria() {
         <div className="min-w-0">
           <h2 className="font-serif text-lg text-navy">Verificação de acesso administrativo</h2>
           <p className="mt-0.5 break-words text-xs text-navy/60">
-            Confirma se <span className="font-medium">{EMAIL_PROPRIETARIA}</span> continua como admin máximo da
-            organização Clube Ancestral. Somente leitura — nada é alterado.
+            Confirma se <span className="font-medium">{EMAIL_PROPRIETARIA}</span> continua como
+            admin máximo da organização Clube Ancestral. Somente leitura — nada é alterado.
           </p>
         </div>
         <button
@@ -69,7 +69,9 @@ export function VerificadorAdminProprietaria() {
           <ul className="space-y-1 text-xs">
             {d.itens.map((i) => (
               <li key={i.chave} className="flex min-w-0 items-baseline gap-2">
-                <span className={i.aprovado ? "text-navy" : "text-terracotta"}>{i.aprovado ? "OK" : "!"}</span>
+                <span className={i.aprovado ? "text-navy" : "text-terracotta"}>
+                  {i.aprovado ? "OK" : "!"}
+                </span>
                 <span className="min-w-0 break-words text-navy/75">
                   {i.titulo} — <span className="text-navy/55">{i.detalhe}</span>
                 </span>
@@ -84,7 +86,10 @@ export function VerificadorAdminProprietaria() {
           </p>
 
           {!d.aprovado && d.elegivel ? (
-            <Link to="/modo-proprietaria" className="inline-block text-xs text-navy underline underline-offset-2">
+            <Link
+              to="/modo-proprietaria"
+              className="inline-block text-xs text-navy underline underline-offset-2"
+            >
               Abrir Modo Proprietária para reconfirmar a propriedade
             </Link>
           ) : null}

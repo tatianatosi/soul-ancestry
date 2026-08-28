@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -66,6 +67,7 @@ function exigirTexto(v: unknown, campo: string, max = 4000) {
 export const listarParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
 
@@ -152,6 +154,7 @@ export const painelParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
 
     const { data: registro } = await supabase
@@ -722,8 +725,95 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
     return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
   });
 
+/**
+ * Auto-cura (D-02): re-sincroniza as instâncias de TODOS os anexos —
+ * incluindo o Anexo I, Ordem de Serviço — a partir da ficha atual do caso,
+ * sem exigir uma nova prévia e sem inventar dado. Corrige o caso em que
+ * `contract_annexes` ficou vazio porque a última prévia do caso é anterior
+ * à entrada em operação da camada de persistência (`sincronizarAnexosPersistidos`
+ * só é chamada, no caminho normal, a partir de `gerarPrevia`/`congelarPrevia`).
+ * Idempotente: só grava quando o hash do conteúdo muda; instância já
+ * congelada (assinada/anexada/arquivada) nunca é sobrescrita, porque
+ * `sincronizarAnexosPersistidos` sempre cria versão nova, nunca edita a atual.
+ */
+export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; confirmar?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const { registro, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
 
+    const instancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
 
+    const { data: existentes } = await supabase
+      .from("contract_annexes")
+      .select("annex_code,annex_version,file_hash")
+      .eq("organization_id", registro.organization_id)
+      .eq("case_id", registro.case_id)
+      .is("archived_at", null);
+
+    const vigentePorCodigo = new Map<string, any>();
+    for (const l of (existentes ?? []) as any[]) {
+      const atual = vigentePorCodigo.get(l.annex_code);
+      if (!atual || l.annex_version > atual.annex_version) vigentePorCodigo.set(l.annex_code, l);
+    }
+
+    const plano = instancias.map((i) => {
+      const hash = hashConteudo({ d: i.structured_data, s: i.status, m: i.model_version });
+      const vigente = vigentePorCodigo.get(i.annex_code);
+      return {
+        codigo: i.annex_code,
+        titulo: i.title,
+        acao: (vigente && vigente.file_hash === hash ? "ja_canonica" : "materializar") as
+          | "ja_canonica"
+          | "materializar",
+        versaoAtual: (vigente?.annex_version as number | undefined) ?? null,
+      };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano, materializados: 0 };
+
+    const { data: previa } = await supabase
+      .from("contract_parameter_previews")
+      .select("id")
+      .eq("parameters_id", registro.id)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const resultado = await sincronizarAnexosPersistidos(
+      supabase,
+      {
+        organizationId: registro.organization_id,
+        caseId: registro.case_id,
+        parametersId: registro.id,
+        previaId: (previa?.id as string) ?? null,
+        contractId: registro.contract_id ?? null,
+        userId,
+      },
+      instancias,
+    );
+
+    await supabase.from("audit_logs").insert({
+      organization_id: registro.organization_id,
+      entidade: "contract_annexes",
+      entidade_id: registro.case_id,
+      acao: "anexos_ressincronizados_da_ficha_atual",
+      user_id: userId,
+      metadados: {
+        parameters_id: registro.id,
+        case_id: registro.case_id,
+        motivo: "D-02: ultima previa anterior a entrada em operacao da camada de persistencia",
+        plano,
+        versoes_novas: resultado.novas,
+        mantidas: resultado.mantidas,
+      },
+    });
+
+    return { simulado: false, plano, materializados: resultado.novas, mantidas: resultado.mantidas };
+  });
 
 /**
  * Rascunho de trabalho: UM por case_id + modelo ativo. Salvar atualiza o mesmo
@@ -952,6 +1042,7 @@ export const lerPrevia = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { previaId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const { data: previa } = await supabase
       .from("contract_parameter_previews")
@@ -1168,6 +1259,7 @@ export const destinosParametros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const { data: registro } = await supabase
       .from("contract_case_parameters")

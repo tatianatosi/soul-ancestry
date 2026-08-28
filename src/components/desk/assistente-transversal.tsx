@@ -3,11 +3,7 @@ import { Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AssistentePesquisa } from "@/components/pesquisa/assistente";
-import {
-  assistenteVisivel,
-  atalhosDoGrupo,
-  estadoAssistente,
-} from "@/lib/assistente-transversal";
+import { assistenteVisivel, atalhosDoGrupo, estadoAssistente } from "@/lib/assistente-transversal";
 import { cn } from "@/lib/utils";
 
 /**

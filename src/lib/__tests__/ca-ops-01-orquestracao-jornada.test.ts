@@ -111,8 +111,18 @@ describe("C. Onboarding condicionado a gate", () => {
 describe("D. Microentregas", () => {
   it("microentrega não publicada não chega ao cliente", () => {
     const projetadas = projetarAoCliente([
-      { id: "1", approval_status: "aprovado", title_client: "Árvore inicial", summary_approved: "Resumo" },
-      { id: "2", approval_status: "publicado", title_client: "Árvore inicial", summary_approved: "Resumo" },
+      {
+        id: "1",
+        approval_status: "aprovado",
+        title_client: "Árvore inicial",
+        summary_approved: "Resumo",
+      },
+      {
+        id: "2",
+        approval_status: "publicado",
+        title_client: "Árvore inicial",
+        summary_approved: "Resumo",
+      },
     ]);
     expect(projetadas.map((p) => p.id)).toEqual(["2"]);
   });
@@ -124,7 +134,13 @@ describe("D. Microentregas", () => {
   });
 
   it("exige vínculo com caso, fase, responsável, prazo e origem", () => {
-    const r = vinculoCompleto({ caso_id: "c1", fase: "onboarding", responsavel_id: null, prazo: null, objeto_origem: null });
+    const r = vinculoCompleto({
+      caso_id: "c1",
+      fase: "onboarding",
+      responsavel_id: null,
+      prazo: null,
+      objeto_origem: null,
+    });
     expect(r.valido).toBe(false);
     expect(r.faltando).toEqual(["responsável", "prazo", "objeto de origem", "resumo interno"]);
   });
@@ -153,11 +169,13 @@ describe("D. Microentregas", () => {
     expect(r.permitido).toBe(false);
     expect(r.alerta?.destino).toBe("/ops?microentrega=9");
     expect(r.alerta?.criaRegistro).toBe(false);
-    expect(avaliarTentativaSemCondicao({
-      acao: "comunicar",
-      objeto: { entidade: "crm_casos", id: "1", destino: "/casos/1" },
-      condicoesFaltantes: [],
-    })).toEqual({ permitido: true, alerta: null });
+    expect(
+      avaliarTentativaSemCondicao({
+        acao: "comunicar",
+        objeto: { entidade: "crm_casos", id: "1", destino: "/casos/1" },
+        condicoesFaltantes: [],
+      }),
+    ).toEqual({ permitido: true, alerta: null });
   });
 
   it("publicação atualiza cadência internamente sem enviar mensagem", () => {
@@ -214,7 +232,12 @@ describe("F. Painel Hoje", () => {
     const fila = filaPainelHoje([
       { chave: "crm_casos:1", categoria: "cadencia", rotulo: "Cadência", destino: "/casos/1" },
       { chave: "crm_casos:1", categoria: "vencidos", rotulo: "Prazo vencido", destino: "/casos/1" },
-      { chave: "ops_microentregas:9", categoria: "microentrega_aguardando", rotulo: "Revisão", destino: "/ops" },
+      {
+        chave: "ops_microentregas:9",
+        categoria: "microentrega_aguardando",
+        rotulo: "Revisão",
+        destino: "/ops",
+      },
     ]);
     expect(fila).toHaveLength(2);
     expect(fila[0]!.categoria).toBe("vencidos");
@@ -224,7 +247,14 @@ describe("F. Painel Hoje", () => {
 describe("G. Assistente", () => {
   it("explica, mas não executa ação", () => {
     expect(assistentePodeExecutar("explicar_bloqueio")).toBe(true);
-    for (const proibida of ["enviar", "publicar", "cobrar", "assinar", "alterar_gate", "pesquisar_externamente"]) {
+    for (const proibida of [
+      "enviar",
+      "publicar",
+      "cobrar",
+      "assinar",
+      "alterar_gate",
+      "pesquisar_externamente",
+    ]) {
       expect(assistentePodeExecutar(proibida)).toBe(false);
     }
   });
@@ -282,16 +312,27 @@ describe("H. Cadeia completa e artefatos", () => {
   });
 
   it("matriz CSV existe, tem as 16 colunas exigidas e uma linha por evento canônico", () => {
-    const csv = readFileSync(
-      "docs/operacao/CA-OPS-01_Matriz_Eventos_Acoes_Templates.csv",
-      "utf8",
-    ).trim().split("\n");
+    const csv = readFileSync("docs/operacao/CA-OPS-01_Matriz_Eventos_Acoes_Templates.csv", "utf8")
+      .trim()
+      .split("\n");
     const colunas = csv[0]!.split(";");
     expect(colunas).toEqual([
-      "evento_canonico", "origem", "etapa_jornada", "condicao_entrada", "tarefa_canonica",
-      "responsavel", "prazo_regra", "template_sugerido", "canal_previsto", "microentrega",
-      "estado_microentrega", "gatilho_cadencia", "alerta_derivado", "rota_acao",
-      "acao_externa_permitida", "observacao",
+      "evento_canonico",
+      "origem",
+      "etapa_jornada",
+      "condicao_entrada",
+      "tarefa_canonica",
+      "responsavel",
+      "prazo_regra",
+      "template_sugerido",
+      "canal_previsto",
+      "microentrega",
+      "estado_microentrega",
+      "gatilho_cadencia",
+      "alerta_derivado",
+      "rota_acao",
+      "acao_externa_permitida",
+      "observacao",
     ]);
     const linhas = csv.slice(1).map((l) => l.split(";"));
     expect(linhas.map((l) => l[0])).toEqual([...EVENTOS_INTERNOS]);

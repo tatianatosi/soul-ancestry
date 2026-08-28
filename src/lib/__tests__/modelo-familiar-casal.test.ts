@@ -215,7 +215,10 @@ describe("FAMILIAR — CASAL DOIS ADULTOS v1.0", () => {
 
   it("prévia TESTE usa apenas placeholders neutros, sem dados reais ou DEMO", () => {
     const previa = previaTesteModeloFamiliarCasal();
-    const conteudos = previa.blocos.map((b) => b.conteudo).join(" ").toLowerCase();
+    const conteudos = previa.blocos
+      .map((b) => b.conteudo)
+      .join(" ")
+      .toLowerCase();
     expect(previa.marca).toContain("PRÉVIA TESTE");
     for (const bloco of previa.blocos) {
       expect(bloco.conteudo.startsWith("[")).toBe(true);

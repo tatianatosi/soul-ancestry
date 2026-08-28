@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -23,6 +24,7 @@ export const listarDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId?: string; clienteId?: string; incluirArquivados?: boolean }) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
     let q = supabase
@@ -213,6 +215,7 @@ export const listarConsentimentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId?: string; clienteId?: string }) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     let q = supabase
@@ -332,6 +335,7 @@ export const painelPrivacidade = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
 
@@ -426,6 +430,7 @@ export const resolverAlertaPrivacidade = createServerFn({ method: "POST" })
 export const listarClientesECasos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     const [clientes, casos] = await Promise.all([

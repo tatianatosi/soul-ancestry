@@ -55,7 +55,9 @@ describe("eventos de funil", () => {
       responsavel_user_id: "u1",
       evidencia_referencia_interna: "",
     });
-    expect(erros.map((e) => e.campo)).toEqual(expect.arrayContaining(["evidencia_referencia_interna", "confirmado"]));
+    expect(erros.map((e) => e.campo)).toEqual(
+      expect.arrayContaining(["evidencia_referencia_interna", "confirmado"]),
+    );
   });
 
   it("aceite verbal só gera registro interno e pedido de confirmação formal", () => {
@@ -67,7 +69,9 @@ describe("eventos de funil", () => {
   });
 
   it("confirmação formal libera apenas preparação interna", () => {
-    expect(efeitosLiberados("confirmacao_formal_recebida")).toEqual(["preparacao_interna_formalizacao"]);
+    expect(efeitosLiberados("confirmacao_formal_recebida")).toEqual([
+      "preparacao_interna_formalizacao",
+    ]);
   });
 });
 
@@ -75,7 +79,15 @@ describe("conversas", () => {
   it("exige tipo, data, resumo, responsável, ação, prazo e vínculo", () => {
     const erros = validarConversa({});
     expect(erros.map((e) => e.campo)).toEqual(
-      expect.arrayContaining(["tipo", "ocorreu_em", "resumo_validado", "responsavel_user_id", "proxima_acao", "prazo_proxima_acao", "vinculo"]),
+      expect.arrayContaining([
+        "tipo",
+        "ocorreu_em",
+        "resumo_validado",
+        "responsavel_user_id",
+        "proxima_acao",
+        "prazo_proxima_acao",
+        "vinculo",
+      ]),
     );
   });
 
@@ -97,7 +109,10 @@ describe("conversas", () => {
 
 describe("gates de onboarding", () => {
   it("contrato e pagamento não bastam", () => {
-    const r = avaliarGatesOnboarding({ contrato_assinado: true, pagamento_inicial_confirmado: true });
+    const r = avaliarGatesOnboarding({
+      contrato_assinado: true,
+      pagamento_inicial_confirmado: true,
+    });
     expect(r.liberado).toBe(false);
     expect(r.pendencias.length).toBeGreaterThan(0);
   });
@@ -123,7 +138,11 @@ describe("estado derivado do caso", () => {
   it("confirmação formal com bloqueios mantém pré-onboarding bloqueado (caso Ana)", () => {
     expect(
       derivarStatusCaso({
-        eventos: ["aceite_verbal_confirmado", "confirmacao_formal_recebida", "formalizacao_em_preparacao"],
+        eventos: [
+          "aceite_verbal_confirmado",
+          "confirmacao_formal_recebida",
+          "formalizacao_em_preparacao",
+        ],
         gates: { contrato_assinado: false, pagamento_inicial_confirmado: false },
       }),
     ).toBe("pre_onboarding_bloqueado");
@@ -150,7 +169,9 @@ describe("cadência e sanitização", () => {
   it("somente entrega publicada aparece no App Cliente", () => {
     expect(visivelNoAppCliente({ approval_status: "approved" })).toBe(false);
     expect(visivelNoAppCliente({ approval_status: "published" })).toBe(true);
-    expect(visivelNoAppCliente({ approval_status: "published", archived_at: "2026-01-01" })).toBe(false);
+    expect(visivelNoAppCliente({ approval_status: "published", archived_at: "2026-01-01" })).toBe(
+      false,
+    );
   });
 });
 
@@ -161,7 +182,9 @@ describe("deduplicação de contatos", () => {
 
   it("encontra duplicado por telefone e por e-mail", () => {
     const existentes = [{ id: "c1", telefone: "11999998888", email: "ana@example.com" }];
-    expect(encontrarDuplicado({ telefone: "+55 11 99999-8888" }, existentes).motivo).toBe("telefone_normalizado");
+    expect(encontrarDuplicado({ telefone: "+55 11 99999-8888" }, existentes).motivo).toBe(
+      "telefone_normalizado",
+    );
     expect(encontrarDuplicado({ email: "ANA@example.com " }, existentes).motivo).toBe("email");
     expect(encontrarDuplicado({ nome: "Outro" }, existentes).duplicado).toBeNull();
   });

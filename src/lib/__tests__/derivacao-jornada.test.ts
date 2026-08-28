@@ -65,7 +65,9 @@ describe("derivação operacional da jornada", () => {
 
   it("não recomenda produto quando não há escopo aprovado", () => {
     const r = derivarJornada(completo);
-    expect(r.bloqueios.find((b) => b.codigo === "B3")?.motivo).toContain("Nenhum produto é sugerido");
+    expect(r.bloqueios.find((b) => b.codigo === "B3")?.motivo).toContain(
+      "Nenhum produto é sugerido",
+    );
   });
 
   it("avança para pesquisa autorizada apenas com onboarding iniciado e autorização registrada", () => {

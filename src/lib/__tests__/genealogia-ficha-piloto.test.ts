@@ -11,7 +11,13 @@ import {
   validarRegistroModulo,
   type RegistroModulo,
 } from "@/lib/genealogia-modulos";
-import { montarArvore, montarTimeline, type Evento, type Perfil, type Relacao } from "@/lib/pessoas-linhagens";
+import {
+  montarArvore,
+  montarTimeline,
+  type Evento,
+  type Perfil,
+  type Relacao,
+} from "@/lib/pessoas-linhagens";
 
 const perfil = (id: string, nome: string, extra: Partial<Perfil> = {}): Perfil => ({
   id: `perf-${id}`,
@@ -95,11 +101,15 @@ describe("Ficha piloto genealógica", () => {
     expect(validarRegistroModulo(registro({ status_verificacao: "confirmado" }))).toContain(
       "Registro confirmado exige evidência ou fonte vinculada.",
     );
-    expect(validarRegistroModulo(registro({ status_verificacao: "confirmado", source_id: "f1" }))).toHaveLength(0);
+    expect(
+      validarRegistroModulo(registro({ status_verificacao: "confirmado", source_id: "f1" })),
+    ).toHaveLength(0);
   });
 
   it("3. recusa período final anterior ao inicial e título vazio", () => {
-    const erros = validarRegistroModulo(registro({ titulo: " ", periodo_inicio: "1920-01-01", periodo_fim: "1910-01-01" }));
+    const erros = validarRegistroModulo(
+      registro({ titulo: " ", periodo_inicio: "1920-01-01", periodo_fim: "1910-01-01" }),
+    );
     expect(erros).toContain("Título do registro é obrigatório.");
     expect(erros).toContain("Período final não pode ser anterior ao inicial.");
   });
@@ -133,7 +143,10 @@ describe("Ficha piloto genealógica", () => {
       perfil("p2", "Giovanni", { client_visibility: "aprovada" } as Partial<Perfil>),
       perfil("p3", "Hipótese interna"),
     ];
-    const relacoes = [relacao("p2", "p1", { client_visibility: "aprovada" } as Partial<Relacao>), relacao("p2", "p3")];
+    const relacoes = [
+      relacao("p2", "p1", { client_visibility: "aprovada" } as Partial<Relacao>),
+      relacao("p2", "p3"),
+    ];
     const eventos = [
       evento("e1", "p1", { client_visibility: "aprovada" } as Partial<Evento>),
       evento("e2", "p3", { description_internal: "nota interna sensível" }),

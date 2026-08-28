@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -145,6 +146,7 @@ export const confirmarAcessoPortal = createServerFn({ method: "POST" })
 export const portalContexto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const acesso = await supabase
       .from("client_portal_access")
@@ -154,14 +156,14 @@ export const portalContexto = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (!acesso.data || acesso.data.access_status !== "active") {
-      return { autorizado: false as const, cliente: null, casos: [], nivel: null };
+      return { autorizado: false as const, cliente: null, casos: [], nivel: null, onboardingIniciado: false };
     }
 
     const [cliente, casos] = await Promise.all([
       supabase.from("portal_meu_cadastro").select("id, nome, pais_interesse").maybeSingle(),
       supabase
         .from("portal_casos")
-        .select("id, codigo, titulo, pais, via, status, ativo, updated_at")
+        .select("id, codigo, titulo, pais, via, status, ativo, onboarding_iniciado_em, updated_at")
         .order("created_at", { ascending: false }),
     ]);
 
@@ -170,6 +172,13 @@ export const portalContexto = createServerFn({ method: "GET" })
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",
       cliente: (cliente.data ?? null) as { id: string; nome: string; pais_interesse: string | null } | null,
       casos: (casos.data ?? []) as any[],
+      /*
+        Onboarding formalmente iniciado em ao menos um caso: é o que decide,
+        no App Cliente, se as abas de Entrega/Fase 01/Fase 02 aparecem. Antes
+        disso o cliente vê só as 7 abas base — Entrega/Fase 01/Fase 02 são
+        promessa de trabalho que ainda não começou.
+      */
+      onboardingIniciado: (casos.data ?? []).some((c: any) => Boolean(c.onboarding_iniciado_em)),
     };
   });
 
@@ -177,6 +186,7 @@ export const portalCaso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [caso, evidencias] = await Promise.all([
       supabase
@@ -217,6 +227,7 @@ export const portalCaso = createServerFn({ method: "GET" })
 export const portalDocumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { data } = await supabase
       .from("evidencias")
@@ -228,6 +239,7 @@ export const portalDocumentos = createServerFn({ method: "GET" })
 export const portalProposta = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [casos, faturas] = await Promise.all([
       supabase.from("portal_casos").select("id, codigo, titulo, pais, via, status"),
@@ -244,6 +256,7 @@ export const portalProposta = createServerFn({ method: "GET" })
 export const listarAcessosPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const [acessos, casosAcesso, clientes, casos, autorizacoes, propostas] = await Promise.all([
       supabase
@@ -399,6 +412,7 @@ export const listarEventosAcesso = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { acessoId: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as any;
     const { data: eventos } = await supabase
       .from("client_access_events")

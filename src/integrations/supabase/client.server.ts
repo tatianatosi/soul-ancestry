@@ -4,6 +4,7 @@
 // For user-authenticated queries (with RLS), use the auth middleware instead.
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { chaveSecretaDoServidor, urlDoServidor } from '@/lib/config-servidor';
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
@@ -30,15 +31,14 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseAdminClient() {
-  const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // A URL segue a regra do repositório; o segredo só pode vir do ambiente.
+  const SUPABASE_URL = urlDoServidor();
+  const SUPABASE_SERVICE_ROLE_KEY = chaveSecretaDoServidor();
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY'] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    const message =
+      'Falta a chave secreta do Supabase no servidor (SUPABASE_SERVICE_ROLE_KEY). ' +
+      'Ela nunca mora no repositório: precisa estar na variável de ambiente do servidor.';
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }

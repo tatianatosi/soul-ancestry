@@ -67,6 +67,15 @@ export const STATUS_VIA: Opcao[] = [
   { valor: "inviavel_preliminar", rotulo: "Inviável em triagem preliminar" },
 ];
 
+/**
+ * 27/08/2026 — unificação dos três lugares que definiam este eixo
+ * separadamente (aqui, `caso-ficha.ts` e a leitura do documento CA-04).
+ * "Aceite verbal" e "Confirmação formal recebida" entram aqui porque o
+ * funil canônico já fechado em `desk-canonico.ts` (EVENTOS_FUNIL, "lista
+ * fechada... nada fora daqui é aceito") os trata como etapa comercial —
+ * é o que o caso-piloto da Ana já usa em produção. `caso-ficha.ts`
+ * reexporta esta lista em vez de manter a própria.
+ */
 export const EIXO_COMERCIAL: Opcao[] = [
   { valor: "novo_lead", rotulo: "Novo lead" },
   { valor: "triagem", rotulo: "Triagem" },
@@ -75,14 +84,22 @@ export const EIXO_COMERCIAL: Opcao[] = [
   { valor: "diagnostico_em_elaboracao", rotulo: "Diagnóstico em elaboração" },
   { valor: "proposta_enviada", rotulo: "Proposta enviada" },
   { valor: "negociacao", rotulo: "Negociação" },
+  { valor: "aceite_verbal", rotulo: "Aceite verbal" },
+  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
   { valor: "nutricao", rotulo: "Nutrição" },
   { valor: "perdido", rotulo: "Perdido" },
   { valor: "encerrado_sem_aderencia", rotulo: "Encerrado sem aderência" },
 ];
 
+/**
+ * Unificado com `caso-ficha.ts` pelo mesmo motivo do eixo acima.
+ * "Confirmação formal recebida" NÃO mora aqui — é evento comercial (ver
+ * `EIXO_COMERCIAL`); o que fica pendente na formalização até o contrato é a
+ * preparação em si.
+ */
 export const EIXO_FORMALIZACAO: Opcao[] = [
   { valor: "nao_iniciado", rotulo: "Não iniciado" },
-  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
+  { valor: "formalizacao_em_preparacao", rotulo: "Formalização em preparação" },
   { valor: "contrato_enviado", rotulo: "Contrato enviado" },
   { valor: "contrato_assinado", rotulo: "Contrato assinado" },
   { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
@@ -156,10 +173,14 @@ export const ELEGIBILIDADE_PRELIMINAR: Opcao[] = [
   { valor: "sem_aderencia_atual", rotulo: "Sem aderência atual" },
 ];
 
+// 27/08/2026 — unificado com caso-ficha.ts, que reexporta esta lista em vez
+// de manter a própria (tinha valores idênticos, rótulos mais curtos, e
+// "a_definir" a mais — incorporado aqui).
 export const CONFIANCA_TRIAGEM: Opcao[] = [
   { valor: "alta", rotulo: "Alta — documentos-chave vistos" },
   { valor: "media", rotulo: "Média — narrativa + parte documental" },
   { valor: "baixa", rotulo: "Baixa — apenas relato inicial" },
+  { valor: "a_definir", rotulo: "A definir" },
 ];
 
 export const GERACOES_ASCENDENTE: Opcao[] = [
@@ -559,7 +580,9 @@ export function resultadoComercialDerivado(l: LeadDesk): string {
   if (l.eixo_formalizacao === "pagamento_inicial_confirmado") return "Ganho — pagamento confirmado";
   if (l.eixo_formalizacao === "contrato_assinado") return "Ganho — contrato assinado";
   if (l.eixo_formalizacao === "contrato_enviado") return "Em formalização";
-  if (l.eixo_formalizacao === "confirmacao_formal_recebida") return "Aceite confirmado — formalização pendente";
+  if (l.eixo_comercial === "confirmacao_formal_recebida" || l.eixo_formalizacao === "formalizacao_em_preparacao")
+    return "Aceite confirmado — formalização pendente";
+  if (l.eixo_comercial === "aceite_verbal") return "Aceite verbal — aguardando confirmação formal";
   if (l.eixo_comercial === "nutricao") return "Em nutrição";
   return "Em andamento comercial";
 }
@@ -926,9 +949,12 @@ export function escadaConversao(l: LeadDesk): DegrauEscada[] {
   const idx = (v: string) => ordemFormal.indexOf(v);
   const atingiu = (v: string) => idx(f) >= 0 && idx(v) >= 0 && idx(f) >= idx(v);
 
-  const aceiteVerbal = c === "negociacao" || c === "proposta_enviada" || idx(f) > 0;
-  /** Confirmação formal registrada no eixo de formalização (não antecipa contrato nem cobrança). */
-  const confirmacao = atingiu("confirmacao_formal_recebida");
+  // "Confirmação formal recebida" é evento comercial (unificado 27/08/2026):
+  // não faz mais parte de EIXO_FORMALIZACAO, então não entra em `atingiu`.
+  const aceiteVerbal =
+    ["negociacao", "proposta_enviada", "aceite_verbal", "confirmacao_formal_recebida"].includes(c) || idx(f) > 0;
+  /** Confirmação formal: sinal comercial, ou formalização já em preparação (não antecipa contrato nem cobrança). */
+  const confirmacao = c === "confirmacao_formal_recebida" || idx(f) > 0;
   const contratoOk = atingiu("contrato_assinado");
   const pagamentoOk = atingiu("pagamento_inicial_confirmado");
   const onboardingOk = atingiu("onboarding_iniciado");

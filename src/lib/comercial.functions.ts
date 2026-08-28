@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -33,6 +34,7 @@ export const listarComercial = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     if (data.recurso === "invoices" || data.recurso === "payments") {
@@ -104,6 +106,7 @@ export const listarComercial = createServerFn({ method: "GET" })
 export const listarVinculos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
     const [clientes, casos, contratos, faturas, propostas] = await Promise.all([
@@ -139,6 +142,7 @@ export const historicoRegistro = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { entidade: string; id: string }) => data)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
     const { data: linhas, error } = await supabase
@@ -474,6 +478,7 @@ export const registrarAjusteFatura = createServerFn({ method: "POST" })
 export const listarAjustes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoInterno(supabase, context.userId as string);
     const { data, error } = await supabase

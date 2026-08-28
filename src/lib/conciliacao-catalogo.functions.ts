@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -8,6 +9,7 @@ export const conciliarCatalogoProposta = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { proposalId: string }) => ({ proposalId: String(d.proposalId) }))
   .handler(async ({ data, context }) => {
+    semCache();
     const { conciliarPropostaComCatalogo } = await import("@/lib/conciliacao-catalogo.server");
     const { orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
@@ -54,6 +56,7 @@ export const historicoConciliacaoCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { proposalId: string }) => ({ proposalId: String(d.proposalId) }))
   .handler(async ({ data, context }) => {
+    semCache();
     const { historicoConciliacao } = await import("@/lib/conciliacao-catalogo.server");
     const { orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
@@ -65,6 +68,7 @@ export const historicoConciliacaoCatalogo = createServerFn({ method: "GET" })
 export const varreduraConciliacaoCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const { varrerConciliacao } = await import("@/lib/conciliacao-catalogo.server");
     const { orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;

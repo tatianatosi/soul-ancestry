@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   alterarStatusAcessoPortal,
   criarConvitePortal,
@@ -151,6 +152,17 @@ function AcessosPortalPage() {
   const acessosVisiveis = (q.data?.acessos ?? []).filter((a) => incluirDemo || !a.is_demo);
   const acessosDemoOcultos = (q.data?.acessos ?? []).filter((a) => a.is_demo).length;
 
+  // Cartões de decisão do grupo Cliente — contam só o que já está carregado
+  // por listarAcessosPortal; sem fonte real, "Sem dados suficientes".
+  const acessosAtivos = q.data ? acessosVisiveis.filter((a) => a.access_status === "active").length : null;
+  const convitesPendentes = q.data
+    ? acessosVisiveis.filter((a) => a.access_status === "invited" || a.access_status === "pending").length
+    : null;
+  const emailsAguardandoValidacao = q.data ? autorizacoes.filter((a) => a.status === "pendente").length : null;
+  const acessosSuspensos = q.data
+    ? acessosVisiveis.filter((a) => ["suspended", "revoked", "expired"].includes(a.access_status)).length
+    : null;
+
   return (
     <SaasShell
       titulo="Acessos ao portal"
@@ -160,6 +172,18 @@ function AcessosPortalPage() {
         <EstadoVazio mensagem="Apenas admin e operações podem gerenciar acessos ao portal." />
       ) : (
         <div className="space-y-8">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <CardIndicador rotulo="Acessos ativos ao portal" valor={acessosAtivos} apoio="Link válido e não revogado" />
+            <CardIndicador rotulo="Convites pendentes" valor={convitesPendentes} apoio="Aguardando primeiro acesso" tom="atencao" />
+            <CardIndicador
+              rotulo="E-mails aguardando validação"
+              valor={emailsAguardandoValidacao}
+              apoio="Autorização registrada, falta validação humana"
+              tom="atencao"
+            />
+            <CardIndicador rotulo="Acessos suspensos ou revogados" valor={acessosSuspensos} apoio="Sem acesso ativo" tom="critico" />
+          </div>
+
           <section className="grid gap-3 md:grid-cols-2">
             {(["proposal_portal", "client_workspace"] as NivelPortal[]).map((n) => (
               <div key={n} className="rounded-xl border border-navy/10 bg-cream/40 p-4">

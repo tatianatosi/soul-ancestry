@@ -88,7 +88,8 @@ describe("modelo e fontes", () => {
     const a = anexoIOrdemServico({ ...BASE, proposta: { ...PROPOSTA, fontePreco: "whatsapp" } });
     expect(a.pendencias.join(" ")).toMatch(/fonte comercial homologada/);
     expect(a.campos.find((c) => c.rotulo.includes("Valor contratado"))?.valor).toBeNull();
-    for (const f of ["whatsapp", "transcricao", "reuniao", "relato"]) expect(fonteValidaParametro(f)).toBe(false);
+    for (const f of ["whatsapp", "transcricao", "reuniao", "relato"])
+      expect(fonteValidaParametro(f)).toBe(false);
     expect(precedencia("planejador_homologado")).toBeLessThan(precedencia("importado_a_confirmar"));
   });
 
@@ -153,7 +154,11 @@ describe("rascunho único e snapshots", () => {
       perfilInstitucional: "v1.0",
     });
     expect(e.snapshots).toHaveLength(1);
-    expect(e.snapshots[0]).toMatchObject({ evento: "aprovacao", autor: "op", versaoModelo: "MODELO-ESTUDO" });
+    expect(e.snapshots[0]).toMatchObject({
+      evento: "aprovacao",
+      autor: "op",
+      versaoModelo: "MODELO-ESTUDO",
+    });
   });
 });
 
@@ -181,7 +186,10 @@ describe("Anexo I — Ordem de Serviço", () => {
   });
 
   it("12. vencimentos não são inferidos pelo número de parcelas", () => {
-    const a = anexoIOrdemServico({ ...BASE, proposta: { ...PROPOSTA, primeiroVencimento: null, proximoVencimento: null } });
+    const a = anexoIOrdemServico({
+      ...BASE,
+      proposta: { ...PROPOSTA, primeiroVencimento: null, proximoVencimento: null },
+    });
     expect(a.campos.find((c) => c.rotulo.includes("Primeiro vencimento"))?.valor).toBeNull();
     expect(a.campos.find((c) => c.rotulo.includes("Próximo vencimento"))?.valor).toBeNull();
     expect(a.pendencias.join(" ")).toMatch(/não inferido pelo número de parcelas/);
@@ -199,7 +207,9 @@ describe("Anexo II — despesas externas", () => {
   });
 
   it("8. despesa externa não entra como receita/custo/reembolso padrão do Clube", () => {
-    expect(classificacaoFinanceiraDespesa()).toBe("nao_contabilizavel_como_receita_ou_custo_do_clube");
+    expect(classificacaoFinanceiraDespesa()).toBe(
+      "nao_contabilizavel_como_receita_ou_custo_do_clube",
+    );
     const a = anexoIIDespesas({
       ...BASE,
       despesas: [
@@ -343,7 +353,14 @@ describe("caso familiar e prévia TESTE", () => {
 
   it("17. nenhuma ação de terceiro é disparada pelo motor", () => {
     const serializado = JSON.stringify(anexosIaV(BASE));
-    for (const proibido of ["sendMessage", "fetch(", "asaas", "checkout", "whatsapp.send", "assinar()"]) {
+    for (const proibido of [
+      "sendMessage",
+      "fetch(",
+      "asaas",
+      "checkout",
+      "whatsapp.send",
+      "assinar()",
+    ]) {
       expect(serializado.toLowerCase()).not.toContain(proibido.toLowerCase());
     }
   });

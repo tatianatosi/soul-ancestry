@@ -28,19 +28,32 @@ describe("camadas de registro de clientes", () => {
     expect(camadaDoRegistro({ ...base, casosVinculados: 0 })).toBe("pessoa");
     expect(camadaDoRegistro({ ...base, classificacao: "cliente_ativo" })).toBe("client_profile");
     expect(camadaDoRegistro(base)).toBe("case_member");
-    expect(camadaDoRegistro({ ...base, classificacao: "participante_familiar" })).toBe("family_nucleus");
-    expect(camadaDoRegistro({ ...base, participacoes: [{ nucleo: "n", papel: "filho" }] })).toBe("family_nucleus");
+    expect(camadaDoRegistro({ ...base, classificacao: "participante_familiar" })).toBe(
+      "family_nucleus",
+    );
+    expect(camadaDoRegistro({ ...base, participacoes: [{ nucleo: "n", papel: "filho" }] })).toBe(
+      "family_nucleus",
+    );
   });
 
   it("bloqueia promoção em formalização e nos estágios de pré-cliente", () => {
-    for (const s of ["lead", "oportunidade", "proposta_enviada", "aceite_verbal", "proposta_aprovada", "em_formalizacao"]) {
+    for (const s of [
+      "lead",
+      "oportunidade",
+      "proposta_enviada",
+      "aceite_verbal",
+      "proposta_aprovada",
+      "em_formalizacao",
+    ]) {
       const r = elegibilidadeAtivacao({ ...base, status_comercial: s });
       expect(r.apto).toBe(false);
     }
   });
 
   it("bloqueia membro de núcleo e cadastro sem caso", () => {
-    expect(elegibilidadeAtivacao({ ...base, classificacao: "participante_familiar" }).apto).toBe(false);
+    expect(elegibilidadeAtivacao({ ...base, classificacao: "participante_familiar" }).apto).toBe(
+      false,
+    );
     expect(elegibilidadeAtivacao({ ...base, casosVinculados: 0 }).apto).toBe(false);
   });
 

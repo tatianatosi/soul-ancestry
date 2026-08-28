@@ -1,0 +1,10 @@
+{
+  "secoes_obrigatorias_presentes": true,
+  "skus_fonte": 91,
+  "skus_cobertos_na_matriz": 91,
+  "top10_count": 10,
+  "top30_total_count": 30,
+  "rotulos_fora_do_padrao": [],
+  "ressalva_advisor": "CA-CURSO-001 tem status oficial 'Arquivado' no SANEAMENTO mas é CANDIDATO TOP 30; documento agora explicita a pendência e adiciona item 9 na Fila de validação humana",
+  "resultado": "APROVADO COM RESSALVA CORRIGIDA"
+}

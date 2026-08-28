@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -45,6 +46,7 @@ async function orgDoUsuario(supabase: any, userId: string) {
 export const listarContatosCanonicos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data, error } = await supabase
       .from("contacts")
@@ -61,6 +63,7 @@ export const listarContatosCanonicos = createServerFn({ method: "GET" })
 export const listarOportunidadesCanonicas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data, error } = await supabase
       .from("opportunities")
@@ -80,6 +83,7 @@ export const listarConversasCanonicas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { contactId?: string | null; opportunityId?: string | null; caseId?: string | null } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     let q = supabase
       .from("crm_interactions")
@@ -160,6 +164,7 @@ export const listarEventosFunil = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { contactId?: string | null; opportunityId?: string | null; caseId?: string | null } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     let q = supabase
       .from("conversion_events")

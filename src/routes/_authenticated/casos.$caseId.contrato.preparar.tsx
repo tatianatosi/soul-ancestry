@@ -49,10 +49,12 @@ import {
   gerarPrevia,
   lerPrevia,
   materializarAnexosRevisados,
+  ressincronizarAnexosDoCaso,
   preencherDeOrigens,
   registrarAssinatura,
 } from "@/lib/contrato-parametros.functions";
 import { MaterializarRevisados } from "@/components/contrato/materializar-revisados";
+import { RessincronizarAnexos } from "@/components/contrato/ressincronizar-anexos";
 import type { ItemPlanoMaterializacao } from "@/lib/anexos-materializacao";
 
 import { abrirPreparacaoContrato, auditoriaPreparacao, solicitarRevisaoHumana } from "@/lib/contrato-preparar.functions";
@@ -126,6 +128,28 @@ function Pagina() {
         r.materializados
           ? `${r.materializados} anexo(s) revisado(s) materializado(s) como documento oficial do caso. Conteúdo aprovado preservado.`
           : "Nada a materializar: os anexos revisados já estão salvos ou preservados.",
+      );
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const ressincronizar = useServerFn(ressincronizarAnexosDoCaso);
+  const [planoRessincronizacao, setPlanoRessincronizacao] = useState<
+    { codigo: string; titulo: string; acao: "materializar" | "ja_canonica"; versaoAtual: number | null }[] | null
+  >(null);
+  const mRessincronizar = useMutation({
+    mutationFn: (confirmar: boolean) => ressincronizar({ data: { id: registroId as string, confirmar } }),
+    onSuccess: (r: any) => {
+      setPlanoRessincronizacao((r.plano ?? []) as any);
+      if (r.simulado) {
+        toast.info("Prévia da sincronização: nada foi gravado ainda.");
+        return;
+      }
+      toast.success(
+        r.materializados
+          ? `${r.materializados} anexo(s) sincronizado(s) a partir da ficha atual.`
+          : "Nada a sincronizar: os anexos já refletem a ficha atual.",
       );
       invalidar();
     },
@@ -516,6 +540,14 @@ function Pagina() {
                   ocupado={mMaterializar.isPending || !registroId}
                   onVerificar={() => mMaterializar.mutate(false)}
                   onMaterializar={() => mMaterializar.mutate(true)}
+                />
+              </div>
+              <div className="mt-2">
+                <RessincronizarAnexos
+                  plano={planoRessincronizacao}
+                  ocupado={mRessincronizar.isPending || !registroId}
+                  onVerificar={() => mRessincronizar.mutate(false)}
+                  onSincronizar={() => mRessincronizar.mutate(true)}
                 />
               </div>
             </div>

@@ -29,7 +29,9 @@ describe("CA-OPS-02 — matriz de capacidades da jornada", () => {
 
   it("resolve capacidade por id e por elo", () => {
     expect(capacidade("whatsapp").rotaCanonica).toBe("/integracoes");
-    expect(capacidadesDoElo("template_sugerido").map((l) => l.capacidade)).toContain("biblioteca_mensagens");
+    expect(capacidadesDoElo("template_sugerido").map((l) => l.capacidade)).toContain(
+      "biblioteca_mensagens",
+    );
   });
 
   it("WhatsApp mantém envio externo desligado", () => {

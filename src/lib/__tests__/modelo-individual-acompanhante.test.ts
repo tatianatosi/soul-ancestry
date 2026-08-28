@@ -81,9 +81,9 @@ describe("modelo individual — requerente único com acompanhante", () => {
       ["ANEXO-I", "ANEXO-III", "ANEXO-IV", "ANEXO-V"].includes(a.codigo),
     );
     expect(condicionais.every((a) => a.classe === "condicional")).toBe(true);
-    expect(
-      ANEXOS_MODELO_INDIVIDUAL.find((a) => a.codigo === "ANX-REPRESENTACAO")?.classe,
-    ).toBe("nao_aplicavel_por_padrao");
+    expect(ANEXOS_MODELO_INDIVIDUAL.find((a) => a.codigo === "ANX-REPRESENTACAO")?.classe).toBe(
+      "nao_aplicavel_por_padrao",
+    );
   });
 
   it("prévia TESTE usa apenas placeholders neutros", () => {

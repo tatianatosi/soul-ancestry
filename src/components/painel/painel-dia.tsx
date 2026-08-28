@@ -8,13 +8,22 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
+import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
+import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
+import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
+import { FilaCadencia } from "@/components/painel/fila-cadencia";
+import { CasoEmDestaque } from "@/components/painel/caso-destaque";
+import { JornadaCasos } from "@/components/painel/jornada-casos";
+import { AncoraApp } from "@/components/painel/ancora-app";
+import { AberturaPainel } from "@/components/painel/abertura";
+import { SinaisPorGrupo } from "@/components/painel/sinais-por-grupo";
 import { AcoesRapidasProprietaria } from "@/components/painel/acoes-rapidas";
-import { VerificadorAdminProprietaria } from "@/components/painel/verificador-admin";
 import { casosBloqueadosPorCatalogo } from "@/lib/catalogo-referencia.functions";
 import { EXCECAO_CONDICAO_COMERCIAL } from "@/lib/catalogo-referencia";
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
+import { FilaSlaOperacional } from "@/components/ops/fila-sla-operacional";
 import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
@@ -29,9 +38,7 @@ import {
   excecoesQueExigemDono,
   filaPriorizada,
   hojeISO,
-  itensNaoExibidos,
   opcoesFiltroDia,
-  textoDiasSemTouchpoint,
   textoPrazo,
   agruparLinhasIndicadores,
   type FiltrosDia,
@@ -41,14 +48,21 @@ import {
 import { itensDerivadosDoPainel } from "@/lib/painel-derivados";
 import { ItensDerivados } from "@/components/painel/itens-derivados";
 import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
-import { validarPainelHoje, type ProblemaPainel, type RegistroRenderizado } from "@/lib/painel-ordem";
+import {
+  validarPainelHoje,
+  type ProblemaPainel,
+  type RegistroRenderizado,
+} from "@/lib/painel-ordem";
 
 /**
  * Verificação de leitura da tela: confere, no que foi de fato renderizado, a
  * ordem canônica dos blocos (Sinais de atenção logo após Exceções que exigem
  * dono) e a ausência de registro repetido na fila. Só observa o DOM.
  */
-function useVerificacaoLeituraPainel(raiz: React.RefObject<HTMLDivElement | null>, dependencias: unknown[]) {
+function useVerificacaoLeituraPainel(
+  raiz: React.RefObject<HTMLDivElement | null>,
+  dependencias: unknown[],
+) {
   const [problemas, setProblemas] = useState<ProblemaPainel[]>([]);
   useEffect(() => {
     const no = raiz.current;
@@ -87,12 +101,20 @@ function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
   );
 }
 
-
-
-function LinkItem({ item, children }: { item: { id: string; tipo: "lead" | "caso" }; children: React.ReactNode }) {
+function LinkItem({
+  item,
+  children,
+}: {
+  item: { id: string; tipo: "lead" | "caso" };
+  children: React.ReactNode;
+}) {
   if (item.tipo === "caso") {
     return (
-      <Link to="/casos/$caseId" params={{ caseId: item.id }} className="text-navy underline underline-offset-2">
+      <Link
+        to="/casos/$caseId"
+        params={{ caseId: item.id }}
+        className="text-navy underline underline-offset-2"
+      >
         {children}
       </Link>
     );
@@ -146,31 +168,35 @@ function Linha({
   bloqueioComercial?: boolean;
 }) {
   return (
-    <li data-registro={`${item.tipo}:${item.id}`} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
+    <li
+      data-registro={`${item.tipo}:${item.id}`}
+      className="min-w-0 rounded-lg border border-navy/10 px-3 py-2"
+    >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
         <span className="min-w-0 break-words">
           <LinkItem item={item}>{item.rotulo}</LinkItem>
         </span>
         <span className="shrink-0 text-xs text-navy/60">{textoPrazo(item.data)}</span>
       </div>
-      <p className="mt-0.5"><EtiquetaPrioridade item={item} /></p>
+      <p className="mt-0.5">
+        <EtiquetaPrioridade item={item} />
+      </p>
       <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
-
 
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
           <span className="text-navy/60">Responsável: {item.responsavel}</span>
         ) : (
           <span className="rounded bg-terracotta/10 px-1.5 py-0.5 text-terracotta">
-            Falha de qualidade: sem responsável definido · proprietário atual: Não definido · ação exigida: Atribuição humana
-            necessária
+            Falha de qualidade: sem responsável definido · proprietário atual: Não definido · ação
+            exigida: Atribuição humana necessária
           </span>
         )}
       </p>
       {item.bloqueios.length > 0 ? (
         <p className="mt-1 text-[11px] text-navy/50">
-          +{item.bloqueios.length} bloqueio{item.bloqueios.length === 1 ? "" : "s"} no mesmo registro — abrir a ficha para a lista
-          completa.
+          +{item.bloqueios.length} bloqueio{item.bloqueios.length === 1 ? "" : "s"} no mesmo
+          registro — abrir a ficha para a lista completa.
         </p>
       ) : null}
       {proprietaria ? (
@@ -185,6 +211,17 @@ function Linha({
   );
 }
 
+/**
+ * Tom de cada métrica de decisão do topo. Só se aplica quando há valor maior
+ * que zero: um contador zerado é boa notícia e não deve aparecer em vermelho.
+ */
+const TOM_DO_CARD: Record<string, TomEstado> = {
+  acoes_vencidas: "critico",
+  acoes_hoje: "atencao",
+  sem_responsavel: "atencao",
+  excecoes_criticas: "critico",
+  sla_em_risco: "atencao",
+};
 
 const GRUPOS_INDICADOR = [
   {
@@ -197,7 +234,8 @@ const GRUPOS_INDICADOR = [
   {
     chave: "formalizacao" as const,
     titulo: "Formalização e comercial",
-    resumo: "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
+    resumo:
+      "Proposta incompleta, condição comercial bloqueada, revisão pendente e contrato sem avanço.",
     rota: "/conversao" as const,
     acao: "Abrir conversão e funil",
   },
@@ -211,7 +249,8 @@ const GRUPOS_INDICADOR = [
   {
     chave: "financeiro" as const,
     titulo: "Financeiro",
-    resumo: "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
+    resumo:
+      "Cobrança vencida, pagamento aguardado, pagamento sem onboarding e previsão sem condição comercial.",
     rota: "/financeiro" as const,
     acao: "Abrir financeiro",
   },
@@ -232,16 +271,23 @@ export function PainelDia() {
   const [ajuda, setAjuda] = useState(false);
   const [filtros, setFiltros] = useState<FiltrosDia>({ responsavel: "", area: "", etapa: "" });
 
-
   const qDesk = useQuery({
     queryKey: ["painel-desk-hoje", incluirDemo],
     queryFn: () => carregarDesk({ data: { incluirDemo } }),
     retry: false,
   });
   const carregarModo = useServerFn(estadoModoProprietaria);
-  const qModo = useQuery({ queryKey: ["painel-modo-proprietaria"], queryFn: () => carregarModo(), retry: false });
+  const qModo = useQuery({
+    queryKey: ["painel-modo-proprietaria"],
+    queryFn: () => carregarModo(),
+    retry: false,
+  });
   const proprietaria = podeExibirAcoesRapidas(qModo.data);
-  const qCad = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregarCadencia(), retry: false });
+  const qCad = useQuery({
+    queryKey: ["painel-cadencia"],
+    queryFn: () => carregarCadencia(),
+    retry: false,
+  });
   const carregarBloqueios = useServerFn(casosBloqueadosPorCatalogo);
   const qCatalogo = useQuery({
     queryKey: ["painel-bloqueios-catalogo", incluirDemo],
@@ -256,7 +302,9 @@ export function PainelDia() {
   });
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
   const instrumentosComBloqueio = instrumentosJuridico.filter((i) => i.bloqueios > 0);
-  const instrumentosComPendencia = instrumentosJuridico.filter((i) => i.bloqueios === 0 && i.pendentes > 0);
+  const instrumentosComPendencia = instrumentosJuridico.filter(
+    (i) => i.bloqueios === 0 && i.pendentes > 0,
+  );
 
   const bloqueadosCatalogo = qCatalogo.data?.itens ?? [];
   const idsBloqueadosCatalogo = new Set(
@@ -274,31 +322,43 @@ export function PainelDia() {
   ]);
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
-  if (qDesk.isError || !qDesk.data) return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
+  if (qDesk.isError || !qDesk.data)
+    return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
 
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
   const itens = consolidarDia(filas, { incluirDemo });
   // Precedência exclusiva: fila priorizada → exceções → comercial. Um registro só aparece uma vez.
   const priorizada = filaPriorizada(itens, hoje);
-  const cards = cardsHoje(filas, { incluirDemo });
+  const cards = cardsHoje(filas, { incluirDemo, itens });
+  const casoDestaque = escolherCasoDestaque(itens, { incluirDemo });
   const opcoes = opcoesFiltroDia(itens);
-  const priorizadaVisivel = priorizada.map((f) => ({ ...f, itens: aplicarFiltrosDia(f.itens, filtros) }));
+  const priorizadaVisivel = priorizada.map((f) => ({
+    ...f,
+    itens: aplicarFiltrosDia(f.itens, filtros),
+  }));
   const usados = chavesExibidas(priorizada);
   const excecoes = excecoesQueExigemDono(itens, filas, hoje, usados);
 
   for (const e of excecoes) for (const i of e.itens) usados.add(`${i.tipo}:${i.id}`);
   const comercial = comercialHoje(filas, { incluirDemo, hoje, jaExibidos: usados });
-  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina]) usados.add(`${i.tipo}:${i.id}`);
+  for (const i of [...comercial.calls, ...comercial.propostas, ...comercial.semDisciplina])
+    usados.add(`${i.tipo}:${i.id}`);
+  // Cadência: motivo, evidência e o toque que faz avançar. Deriva das filas e
+  // dos casos já carregados, respeitando a precedência — registro exibido em
+  // bloco anterior não reaparece aqui. Calculada antes de `usados` receber os
+  // casos de cadência, senão excluiria exatamente o que precisa mostrar.
+  const cadenciaFollowUp = derivarCadenciaDoPainel({
+    filas: filas as any[],
+    casosCadencia: (qCad.data?.casos ?? []) as Record<string, unknown>[],
+    jaExibidos: usados,
+    incluirDemo,
+  });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
-  const qtd = (chave: string) => (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
-  // Somente leitura das filas já carregadas: resumo comercial conta sem repetir item já presente na fila.
-  const itensFila = (chave: string) =>
-    itensNaoExibidos(((filas.find((f: any) => f.chave === chave)?.itens ?? []) as any[]), usados, {
-      incluirDemo,
-      tipoPadrao: "lead",
-    });
+  for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
+  const qtd = (chave: string) =>
+    (filas.find((f: any) => f.chave === chave)?.itens.length ?? 0) as number;
 
   const sinais = sinaisMarketing({
     leads_sem_origem: qtd("leads_sem_origem"),
@@ -331,7 +391,6 @@ export function PainelDia() {
     { total: 0, criticos: 0, hoje: 0 },
   );
 
-
   // Linhas por indicador: motivo, responsável, prazo/idade e severidade, deduplicadas por registro.
   const linhasIndicadores: LinhaIndicadorDia[] = [];
   const addLinha = (
@@ -344,7 +403,8 @@ export function PainelDia() {
     responsavel: string | null,
     prazo: string,
   ) => {
-    if (total > 0) linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
+    if (total > 0)
+      linhasIndicadores.push({ chave, grupo, codigo, motivo, responsavel, prazo, severidade });
   };
 
   addLinha(
@@ -529,43 +589,91 @@ export function PainelDia() {
   const agrupado = agruparLinhasIndicadores(linhasIndicadores);
   const PESO = { P0: 3, P1: 2, P2: 1 } as const;
   const maiorGravidade = (ls: LinhaIndicadorDia[]) =>
-    ls.reduce<LinhaIndicadorDia["severidade"] | null>((m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m), null);
-
-
+    ls.reduce<LinhaIndicadorDia["severidade"] | null>(
+      (m, l) => (!m || PESO[l.severidade] > PESO[m] ? l.severidade : m),
+      null,
+    );
 
   return (
     <div ref={raizRef} className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
         <p className="min-w-0 text-sm text-navy/60">
-          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e planejamento ficam nas áreas
-          proprietárias.
+          O que precisa de ação hoje, por quem e até quando. Governança, catálogo, métricas e
+          planejamento ficam nas áreas proprietárias.
         </p>
         <label className="flex shrink-0 items-center gap-2 text-xs text-navy/60">
-          <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={incluirDemo}
+            onChange={(e) => setIncluirDemo(e.target.checked)}
+          />
           Incluir demonstrações
         </label>
-
       </div>
 
-      {proprietaria ? <VerificadorAdminProprietaria /> : null}
+      {/*
+        26/08/2026 — o verificador de acesso administrativo saiu daqui.
 
+        Ele foi pedido pela Proprietária em 25/08, no meio da crise de acesso,
+        quando não estava claro se ela ainda era admin. Era instrumento de
+        emergência, e a emergência acabou: o vínculo está confirmado no banco.
+
+        Ficar no Painel custava duas coisas. Era o mesmo diagnóstico que a
+        Governança já oferece — e lá acompanhado da reconfirmação, que é a
+        parte que de fato conserta; aqui o botão só sabia mandar a pessoa
+        para outra tela. E ocupava, todo dia, um espaço no Painel Hoje, que
+        existe para o que pede ação hoje.
+
+        A ferramenta completa continua em Modo Proprietária / Governança.
+      */}
       <AvisoLeituraPainel problemas={problemasLeitura} />
 
-      {/* 0 — Cards do dia */}
-      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/*
+        Abertura: a frase antes do número. O Painel abria com cinco métricas, e
+        quem chega de manhã lia cinco números sem saber o que fazer com eles.
+        Nada de novo é calculado aqui — é leitura do que já foi derivado.
+      */}
+      <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
+
+      {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
+      <AncoraApp bloco="cards" />
+      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => (
-          <div key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-navy/50">{c.rotulo}</p>
-            <p className="mt-1 font-serif text-2xl text-navy">{c.total}</p>
-            <p className="mt-1 text-[11px] text-navy/55">{c.leitura}</p>
-          </div>
+          <CardIndicador
+            key={c.chave}
+            rotulo={c.rotulo}
+            valor={c.total}
+            apoio={c.leitura}
+            tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
+          />
         ))}
       </section>
 
-      {/* 1 — Minha fila priorizada */}
-      <section data-painel-bloco="fila_priorizada" className="rounded-xl border border-navy/10 bg-white p-5">
+      {/*
+        1 — Caso em destaque (mockup Fase 01). O que olhar primeiro, com a
+        regra que o colocou no topo. Reusa `calcularPrioridade`, a mesma
+        função da fila e de Casos 360 — nenhum cálculo paralelo.
+      */}
+      <CasoEmDestaque dados={casoDestaque} />
+
+      {/*
+        2 — Jornada dos casos. A fase como percurso, com a saúde de contato
+        dentro de cada etapa. Não repete a fila: a fila diz o que fazer hoje,
+        a jornada diz onde a carteira está. Vem da mesma consulta de cadência
+        que o Painel já fazia — só passou a trazer o campo `fase`.
+      */}
+      <section data-painel-bloco="jornada">
+        <JornadaCasos casos={(qCad.data?.casos ?? []) as never} />
+      </section>
+
+      {/* 3 — Minha fila priorizada */}
+      <section
+        data-painel-bloco="fila_priorizada"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <h2 className="min-w-0 font-serif text-lg text-navy">Minha fila priorizada</h2>
+          <AncoraApp bloco="fila_priorizada" />
           <div className="grid grid-cols-1 gap-2 text-xs sm:flex sm:flex-wrap">
             {(
               [
@@ -592,11 +700,12 @@ export function PainelDia() {
             ))}
           </div>
         </div>
-        <p className="mt-1 text-xs text-navy/50">Ordenada pela data da próxima ação, nunca pela data de criação.</p>
+        <p className="mt-1 text-xs text-navy/50">
+          Ordenada pela data da próxima ação, nunca pela data de criação.
+        </p>
         <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {priorizadaVisivel.map((f) => (
             <div key={f.chave} className="min-w-0">
-
               <p className="text-xs uppercase tracking-wide text-navy/50">
                 {f.rotulo} · {f.itens.length}
               </p>
@@ -610,24 +719,28 @@ export function PainelDia() {
                     aoSalvar={() => void qDesk.refetch()}
                   />
                 ))}
-                {f.itens.length === 0 ? <li className="text-xs text-navy/50">Nada nesta faixa.</li> : null}
+                {f.itens.length === 0 ? (
+                  <li className="text-xs text-navy/50">Nada nesta faixa.</li>
+                ) : null}
               </ul>
             </div>
           ))}
         </div>
       </section>
 
-
       {/* 2 — Exceções que exigem dono */}
-      <section data-painel-bloco="excecoes" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="excecoes"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <h2 className="font-serif text-lg text-navy">Exceções que exigem dono</h2>
+        <AncoraApp bloco="excecoes" />
         {excecoes.length === 0 ? (
           <p className="mt-2 text-sm text-navy/55">Nenhuma exceção acionável no momento.</p>
         ) : (
           <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {excecoes.map((e) => (
               <div key={e.chave} className="min-w-0">
-
                 <p className="text-xs uppercase tracking-wide text-navy/50">
                   {e.rotulo} · {e.itens.length}
                 </p>
@@ -646,95 +759,29 @@ export function PainelDia() {
             ))}
           </div>
         )}
+
+        {/*
+          Decisão da Proprietária (25/08): a fila de revisão jurídica é uma
+          exceção que exige dono, e passa a morar dentro deste bloco em vez de
+          ocupar superfície própria entre Sinais e Comercial.
+        */}
+        <div className="mt-4 border-t border-navy/10 pt-4">
+          <FilaRevisaoJuridica compacto />
+        </div>
+        <FilaSlaOperacional />
       </section>
 
       {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
 
-      <section data-painel-bloco="sinais" className="rounded-xl border border-navy/10 bg-white p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">Sinais de atenção</h2>
-          <span className="flex flex-wrap items-baseline gap-3">
-            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
-            <Link to="/ops" className="text-[11px] font-medium text-navy underline underline-offset-2">
-              Ver cadência e onboarding em risco
-            </Link>
-            <Link to="/governanca/indicadores" className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60">
-              registro canônico dos indicadores
-            </Link>
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-navy/50">
-          Apenas contagem, gravidade e origem. Itens já presentes na fila ou nas exceções não geram nova linha de ação.
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {GRUPOS_INDICADOR.map((g) => {
-            const linhas = agrupado[g.chave];
-            const grave = maiorGravidade(linhas);
-            return (
-              <div key={g.chave} className="min-w-0 rounded-lg border border-navy/10 px-3 py-2">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
-                  <span className="min-w-0 break-words text-sm font-medium text-navy">{g.titulo}</span>
-                  <span className="flex shrink-0 items-center gap-1.5">
-
-                    <span className="font-serif text-lg text-navy">{linhas.length}</span>
-                    {grave ? (
-                      <span
-                        className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                          grave === "P0"
-                            ? "border-terracotta/50 bg-terracotta/5 text-terracotta"
-                            : grave === "P1"
-                              ? "border-gold/50 bg-gold/10 text-navy"
-                              : "border-navy/20 text-navy/60"
-                        }`}
-                      >
-                        {grave}
-                      </span>
-                    ) : null}
-                  </span>
-                </div>
-                <p className="mt-0.5 break-words text-[11px] text-navy/55">{linhas[0]?.motivo ?? g.resumo}</p>
-                <div className="mt-1 flex flex-wrap gap-3">
-                  <Link to={g.rota} className="text-[11px] text-navy underline underline-offset-2">
-                    {g.acao}
-                  </Link>
-                  {g.chave === "formalizacao" && bloqueadosCatalogo.length > 0 ? (
-                    <Link to="/catalogo" className="text-[11px] text-navy underline underline-offset-2">
-                      Governança de Catálogo ({bloqueadosCatalogo.length}) — {EXCECAO_CONDICAO_COMERCIAL}
-                    </Link>
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="mt-4 border-t border-navy/10 pt-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
-            <span className="text-[11px] text-navy/45">Cadência e onboarding · somente leitura</span>
-          </div>
-          <p className="mt-1 text-[11px] text-navy/50">
-            Derivados das fontes canônicas (cadência, responsável e gates). Não criam tarefa, prazo nem comunicação.
-          </p>
-          <div className="mt-2">
-            <ItensDerivados itens={derivados} />
-          </div>
-          <Link
-            to="/ops"
-            className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
-          >
-            Ver cadência completa
-          </Link>
-
-        </div>
-      </section>
-
-      <FilaRevisaoJuridica compacto />
-
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
-      <section data-painel-bloco="comercial" className="rounded-xl border border-navy/10 bg-white p-5">
+      <section
+        data-painel-bloco="comercial"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="min-w-0 font-serif text-lg text-navy">Comercial hoje</h2>
+          <AncoraApp bloco="comercial" />
           <Link to="/conversao" className="shrink-0 text-xs text-navy/60 underline">
             Conversão e saúde comercial
           </Link>
@@ -751,51 +798,86 @@ export function PainelDia() {
           </Link>
         </p>
         <p className="mt-1 text-xs text-navy/50">
-          Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já presente nas filas acima.
+          Calls de hoje, propostas sem follow-up e leads sem próxima ação, sem repetir registro já
+          presente nas filas acima.
         </p>
+        {/*
+          CA-UX-02 §7, regra de não duplicação: contrato enviado e pagamento
+          aguardado já são contados no cartão "Exceções críticas". Aqui vale
+          rótulo e link para a página canônica, nunca uma segunda contagem —
+          que, por deduplicar contra as filas acima, daria outro número sob o
+          mesmo nome.
+        */}
         <p data-painel-resumo="financeiro" className="mt-3 text-sm text-navy">
           <Link to="/financeiro" className="text-navy underline underline-offset-2">
-            Financeiro hoje: {itensFila("contratos_enviados_pendentes").length} contrato(s) enviado(s) ·{" "}
-            {itensFila("pagamentos_aguardados").length} pagamento(s) aguardado(s)
+            Financeiro hoje: contratos enviados e pagamentos aguardados
           </Link>
         </p>
       </section>
 
-
       {/* 5 — Casos com prazo em atenção. Catálogo e condição comercial ficam nos sinais e na área proprietária. */}
       <section data-painel-bloco="prazos" className="rounded-xl border border-navy/10 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="min-w-0 font-serif text-lg text-navy">Casos com prazo em atenção</h2>
+          <h2 className="min-w-0 font-serif text-lg text-navy">
+            Cadência — quem precisa de um toque
+          </h2>
+          <AncoraApp bloco="prazos" />
           <Link to="/casos" className="shrink-0 text-xs text-navy/60 underline">
             Casos 360
           </Link>
         </div>
 
         <p className="mt-1 text-xs text-navy/50">
-          Somente situações com ação necessária. Ausência de prazo é exibida como “Sem prazo definido”, nunca como número. Os
-          prazos do dia já estão na fila priorizada.
+          Quem parou, há quanto tempo, por quê e qual toque faz avançar. Ausência de prazo é exibida
+          como “Sem prazo definido”, nunca como número. Registro já exibido nos blocos acima não
+          reaparece aqui.
         </p>
-        {cadencia.length > 0 ? (
-          <ul className="mt-3 space-y-1 text-xs text-navy/65">
-            {cadencia.map((c: any) => (
-              <li key={String(c["id"])}>
-                <Link to="/casos/$caseId" params={{ caseId: String(c["id"]) }} className="text-navy underline underline-offset-2">
-                  {String(c["codigo"] ?? c["titulo"] ?? "Caso")}
-                </Link>{" "}
-                · {textoDiasSemTouchpoint(c.cadencia?.diasSemTouchpoint)} · {c.cadencia?.status} ·{" "}
-                {textoPrazo(c["prazo_proxima_acao"] ? String(c["prazo_proxima_acao"]).slice(0, 10) : null)}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-xs text-navy/50">Nenhum caso em cadência de atenção ou crítica.</p>
-        )}
+
+        <FilaCadencia itens={cadenciaFollowUp} carregando={qCad.isLoading} erro={qCad.isError} />
+
+        {/*
+          Itens derivados moraram dentro de "Sinais de atenção" até 25/08. Com
+          a fusão daquele bloco, vieram para cá: são cadência e onboarding, o
+          mesmo assunto desta seção. Continuam somente leitura — não criam
+          tarefa, prazo nem comunicação.
+        */}
+        <div className="mt-4 border-t border-navy/10 pt-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-sm font-medium text-navy">Itens derivados</h3>
+            <span className="text-[11px] text-navy/45">
+              Cadência e onboarding · somente leitura
+            </span>
+          </div>
+          <div className="mt-2">
+            <ItensDerivados itens={derivados} />
+          </div>
+          <Link
+            to="/ops"
+            className="mt-2 inline-block text-[11px] text-navy underline underline-offset-2"
+          >
+            Ver cadência completa
+          </Link>
+        </div>
       </section>
 
       {/* 6 — Atalhos: cada atalho apenas abre a entidade canônica; nada é executado ao abrir. */}
-      <section data-painel-bloco="atalhos" className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Atalhos</h2>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+      {/*
+        6 — Encontrar no Desk. Decisão da Proprietária (25/08): o bloco
+        "Atalhos" foi fundido aqui — eram dois blocos de links para rotas
+        existentes, um em cima do outro. Continua sendo descoberta pura:
+        abrir um link não cria nem altera nada.
+      */}
+      <section
+        data-painel-bloco="descoberta"
+        className="rounded-xl border border-navy/10 bg-white p-5"
+      >
+        <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
+        <AncoraApp bloco="descoberta" />
+
+        <p className="mt-3 text-[11px] uppercase tracking-wide text-navy/50">
+          Começar alguma coisa
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
             { to: "/leads" as const, rotulo: "Novo lead" },
             { to: "/propostas" as const, rotulo: "Abrir proposta" },
@@ -805,20 +887,20 @@ export function PainelDia() {
             { to: "/financeiro" as const, rotulo: "Registrar pagamento" },
             { to: "/acessos-portal" as const, rotulo: "Publicar entrega no App Cliente" },
           ].map((a) => (
-            <Link key={a.to} to={a.to} className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5">
+            <Link
+              key={a.to}
+              to={a.to}
+              className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
+            >
               {a.rotulo}
             </Link>
           ))}
         </div>
-      </section>
 
-      {/* 7 — Encontrar no Desk: apenas descoberta de módulos existentes. Nenhum dado é criado ou alterado. */}
-      <section data-painel-bloco="descoberta" className="rounded-xl border border-navy/10 bg-white p-5">
-        <h2 className="font-serif text-lg text-navy">Encontrar no Desk</h2>
-        <p className="mt-1 text-xs text-navy/55">
-          Onde vivem os módulos que mudaram de nome. Abrir um link não executa nada.
+        <p className="mt-4 text-[11px] uppercase tracking-wide text-navy/50">
+          Módulos que mudaram de nome
         </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {ATALHOS_DESCOBERTA.map((a) => (
             <Link
               key={a.rota}
@@ -830,24 +912,94 @@ export function PainelDia() {
             </Link>
           ))}
         </div>
+
+        {/*
+          Sinais de atenção, fundidos aqui em 25/08. Cada grupo já era contagem,
+          gravidade e link para a página canônica — a mesma natureza deste
+          bloco, com severidade por cima. Só conta e linka.
+        */}
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3 border-t border-navy/10 pt-3">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">
+            Onde há sinal de atenção
+          </p>
+          <span className="flex flex-wrap items-baseline gap-3">
+            {/* CA-OPS-02: cadência não é recalculada aqui; só atalho para a fonte canônica em /ops. */}
+            <Link
+              to="/ops"
+              className="text-[11px] font-medium text-navy underline underline-offset-2"
+            >
+              Ver cadência e onboarding em risco
+            </Link>
+            <Link
+              to="/governanca/indicadores"
+              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
+            >
+              registro canônico dos indicadores
+            </Link>
+          </span>
+        </div>
+        <SinaisPorGrupo
+          grupos={GRUPOS_INDICADOR}
+          agrupado={agrupado}
+          maiorGravidade={maiorGravidade}
+          bloqueadosCatalogo={bloqueadosCatalogo}
+        />
       </section>
 
+      {/*
+        27/08/2026 — CA-04 pedia métricas diárias visíveis no Painel Hoje.
+        Tentativa inicial reproduzia números aqui, mas todos já existem em
+        algum lugar: Discovery e leads por origem em /metricas, funil em
+        /conversao, e "leads sem próxima ação" já é uma das filas acima
+        nesta mesma página. A Proprietária pediu explicitamente: "tudo que
+        for sobreposição vai embora". Fica só o link — sem duplicar número.
+      */}
+      <Link
+        to="/metricas"
+        data-painel-bloco="metricas-dia"
+        className="block rounded-xl border border-navy/10 bg-cream/40 p-4 text-xs text-navy/60 underline-offset-2 hover:underline"
+      >
+        Ver métricas do dia (origem, Discovery, funil, pendência documental) →
+      </Link>
 
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
-        <button onClick={() => setAjuda((v) => !v)} className="text-xs uppercase tracking-wide text-navy/55">
+        <button
+          onClick={() => setAjuda((v) => !v)}
+          className="text-xs uppercase tracking-wide text-navy/55"
+        >
           {ajuda ? "Ocultar ajuda" : "Como ler estas informações"}
         </button>
         {ajuda ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-xs">
-            <li>Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na maior urgência aplicável.</li>
-            <li>Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios na ficha do caso.</li>
+            <li>
+              Prioridade: vencidas → hoje → próximos 7 dias. Um registro aparece uma única vez, na
+              maior urgência aplicável.
+            </li>
+            <li>
+              Cada registro aparece uma única vez: a ação principal fica aqui, os demais bloqueios
+              na ficha do caso.
+            </li>
 
-            <li>Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na ficha do registro.</li>
-            <li>Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em número.</li>
-            <li>Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir demonstrações”.</li>
-            <li>Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários — aqui só priorização.</li>
-            <li>Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até confirmação documental.</li>
-
+            <li>
+              Itens sem responsável são falha de qualidade, viram exceção e têm rota de correção na
+              ficha do registro.
+            </li>
+            <li>
+              Sem prazo é exibido como “Sem prazo definido”; nunca convertemos ausência de data em
+              número.
+            </li>
+            <li>
+              Demonstrações são excluídas na consulta e só entram com o filtro explícito “Incluir
+              demonstrações”.
+            </li>
+            <li>
+              Catálogo, formalização, pesquisa, conversão e jornada ficam nos módulos proprietários
+              — aqui só priorização.
+            </li>
+            <li>
+              Nada aqui é conclusão: dados jurídicos e genealógicos seguem como hipótese até
+              confirmação documental.
+            </li>
           </ul>
         ) : null}
       </div>

@@ -32,7 +32,16 @@ describe("varredura de administração e contingência", () => {
 
   it("cada bloqueio informa módulo, rota, entidade, arquivo, risco e teste", () => {
     for (const b of BLOQUEIOS_REMANESCENTES) {
-      for (const campo of [b.modulo, b.rota, b.entidade, b.acao, b.regra, b.arquivo, b.risco, b.teste]) {
+      for (const campo of [
+        b.modulo,
+        b.rota,
+        b.entidade,
+        b.acao,
+        b.regra,
+        b.arquivo,
+        b.risco,
+        b.teste,
+      ]) {
         expect(campo.trim().length).toBeGreaterThan(0);
       }
     }
@@ -45,7 +54,9 @@ describe("varredura de administração e contingência", () => {
   it("nenhuma administradora proposta pode remover a principal", () => {
     expect(MAPA_ADMINISTRADORAS).toHaveLength(3);
     expect(MAPA_ADMINISTRADORAS.every((a) => a.podeRemoverPrincipal === false)).toBe(true);
-    expect(MAPA_ADMINISTRADORAS.find((a) => a.tipo === "recuperacao")?.estado).toBe("pendente_de_email");
+    expect(MAPA_ADMINISTRADORAS.find((a) => a.tipo === "recuperacao")?.estado).toBe(
+      "pendente_de_email",
+    );
   });
 
   it("bloqueia alteração crítica com uma única proprietária ativa", () => {

@@ -7,6 +7,14 @@
  * WhatsApp e não altera dado. Todo cálculo aqui é derivação de leitura.
  */
 
+import {
+  cac as calcularCac,
+  roi as calcularRoi,
+  formatarIndicador,
+  type EntradaFinanceira,
+  type ValorIndicador,
+} from "@/lib/indicadores-marketing";
+
 export type EstadoItem = "implementado" | "parcial" | "ausente" | "a_confirmar";
 export type Confianca = "alta" | "media" | "baixa" | "sem_dados";
 
@@ -37,6 +45,15 @@ export type SecaoMarketing = {
 
 export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
+    // 27/08/2026 — "o que é indicador vira realidade no topo" (Proprietária),
+    // mesma lógica já aplicada em Casos 360. Prontidão de atribuição, os 5
+    // principais (CAC/ROI incluídos) e desempenho por canal — tudo que já é
+    // sinal, não lista — sai do meio da página e vira o primeiro bloco.
+    hash: "indicadores",
+    titulo: "Indicadores",
+    descricao: "Prontidão de atribuição, CAC, ROI e desempenho por canal — tudo que já é sinal, no topo.",
+  },
+  {
     hash: "visao-geral",
     titulo: "Visão geral de aquisição",
     descricao: "Leitura única do que entrou por aquisição no recorte atual.",
@@ -44,12 +61,12 @@ export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
     hash: "canais-campanhas",
     titulo: "Canais e campanhas",
-    descricao: "Catálogo de origens e campanhas registradas. Nenhuma campanha é criada ou alterada aqui.",
+    descricao: "Campanhas, fontes e investimentos registrados. O catálogo de origem em si mora em Atribuição e origem; desempenho por canal mora em Indicadores.",
   },
   {
     hash: "conteudo-ctas",
     titulo: "Conteúdo e CTAs",
-    descricao: "Conteúdo editorial e chamadas associadas à aquisição, somente leitura.",
+    descricao: "Ponte para a Biblioteca de Mensagens e Conteúdos, onde o conteúdo editorial é governado de verdade.",
   },
   {
     hash: "atribuicao",
@@ -59,16 +76,11 @@ export const SECOES_MARKETING: readonly SecaoMarketing[] = [
   {
     hash: "funil-aquisicao",
     titulo: "Funil de aquisição",
-    descricao: "Da origem até o handoff para Comercial (diagnóstico e proposta ficam em Comercial).",
-  },
-  {
-    hash: "metricas-canal",
-    titulo: "Métricas por canal",
-    descricao: "CAC, ROI e conversão por canal, sempre com fonte e confiança explícitas.",
+    descricao: "Da origem até o handoff para Comercial, com contagem real de leads sobreposta à referência de risco.",
   },
   {
     hash: "aprendizados",
-    titulo: "Aprendizados",
+    titulo: "Aprendizados das campanhas",
     descricao: "Registro interno de leitura de canal. Nenhuma conclusão vira ação automática.",
   },
   {
@@ -169,16 +181,21 @@ export const MAPA_MARKETING: readonly LinhaMapaMarketing[] = [
     destino: "Marketing → Funil de aquisição (leitura) + link para Comercial",
   },
   {
+    // 27/08/2026 — corrigido: esta linha dizia integração "real" com
+    // editorial_content_items, mas /marketing nunca consultava essa tabela.
+    // Quem consulta de verdade é message-library.functions.ts, em
+    // /biblioteca-mensagens. Marketing agora só aponta pra lá (ponte, não
+    // consulta própria) — "destino" reflete isso.
     item: "Conteúdo editorial e CTAs",
     rota: "/marketing#conteudo-ctas",
     fonte: "editorial_content_items",
-    estado: "parcial",
-    integracao: "real",
+    estado: "ausente",
+    integracao: "inexistente",
     permissao: "admin, operações",
     dependencia: "—",
     riscoDuplicacao: "baixo",
-    lacuna: "Conteúdo existe sem eixo de aquisição nem CTA rastreável.",
-    destino: "Marketing → Conteúdo e CTAs",
+    lacuna: "Conteúdo é governado em /biblioteca-mensagens, não em Marketing. Sem CTA rastreável, também não gera origem atribuível.",
+    destino: "Biblioteca de Mensagens e Conteúdos (/biblioteca-mensagens) — Marketing só linka",
   },
   {
     item: "Site, landing page e formulário público",
@@ -414,13 +431,24 @@ export const CANAIS_HANDOFF: readonly {
 /* Derivações de leitura                                               */
 /* ------------------------------------------------------------------ */
 
+export type LinhaInvestimentoCanal = { canal?: string | null; valor?: number | null };
+export type LinhaAtribuicaoCanal = {
+  canal?: string | null;
+  case_id?: string | null;
+  lead_id?: string | null;
+  valor_convertido?: number | null;
+};
+export type LinhaCasoPagamento = { id?: string | null; pagamento_confirmado?: boolean | null };
+
 export type EntradaAquisicao = {
   leads: readonly { origem?: string | null; canal?: string | null }[];
   eventos: readonly { origem?: string | null; canal?: string | null }[];
-  investimentos: readonly unknown[];
+  investimentos: readonly LinhaInvestimentoCanal[];
   campanhas: readonly unknown[];
   fontes: readonly unknown[];
-  atribuicoes: readonly unknown[];
+  atribuicoes: readonly LinhaAtribuicaoCanal[];
+  /** Só para checar pagamento confirmado por atribuição — opcional para não quebrar fixture de teste. */
+  casos?: readonly LinhaCasoPagamento[];
 };
 
 export type ResumoOrigem = { rotulo: string; leads: number; eventos: number };
@@ -484,14 +512,17 @@ export function leituraMetricas(entrada: EntradaAquisicao): LeituraMetrica[] {
           nota: m.observacao,
         };
       case "cac":
-      case "roi":
+      case "roi": {
+        const agregado = desempenhoAgregado(entrada);
+        const v = m.chave === "cac" ? agregado.cac : agregado.roi;
         return {
           chave: m.chave,
           nome: m.nome,
-          valor: temInvestimento && temAtribuicao ? "Calculável — revisar classificação" : SEM_DADOS,
-          confianca: temInvestimento && temAtribuicao ? "baixa" : "sem_dados",
+          valor: formatarIndicador(v),
+          confianca: v.estado === "ok" ? "media" : "sem_dados",
           nota: m.observacao,
         };
+      }
       default:
         return { chave: m.chave, nome: m.nome, valor: SEM_DADOS, confianca: m.confianca, nota: m.observacao };
     }
@@ -532,14 +563,26 @@ export const ORIGEM_A_CONFIRMAR = "origem_a_confirmar";
  * Catálogo interno de origens. Valores históricos em texto livre continuam
  * gravados: quando não pertencem ao catálogo, a leitura mostra
  * `origem_a_confirmar` sem converter o dado e sem bloquear o Comercial.
+ *
+ * 27/08/2026 — unificado com `ORIGENS_LEAD` (`crm-desk.ts`, a lista que
+ * `/leads` grava de verdade). Antes deste ajuste, um lead com
+ * `origem="instagram"` (valor válido em `/leads` e `/metricas`) caía em
+ * "origem a confirmar" aqui — mesma pessoa, dois catálogos. Os seis valores
+ * que faltavam entraram; nenhum valor existente saiu.
  */
 export const CATALOGO_ORIGENS: readonly { valor: string; rotulo: string; observacao: string }[] = [
   { valor: "formulario", rotulo: "Formulário", observacao: "Captura pública não conectada." },
   { valor: "indicacao", rotulo: "Indicação", observacao: "Sem registro de quem indicou." },
   { valor: "manual", rotulo: "Manual (equipe)", observacao: "Entrada operada pela equipe." },
   { valor: "whatsapp", rotulo: "WhatsApp", observacao: "Só vale como origem se o valor canônico for gravado." },
+  { valor: "instagram", rotulo: "Instagram", observacao: "Sem investimento/campanha vinculado nesta leitura." },
+  { valor: "meta_ads", rotulo: "Meta Ads", observacao: "Atribuição de mídia depende de investimento lançado no período." },
+  { valor: "google", rotulo: "Google", observacao: "Atribuição de mídia depende de investimento lançado no período." },
+  { valor: "site", rotulo: "Site", observacao: "Captura pública não conectada." },
   { valor: "evento", rotulo: "Evento / encontro", observacao: "Registro manual." },
   { valor: "parceria", rotulo: "Parceria", observacao: "Registro manual." },
+  { valor: "base_legada", rotulo: "Base legada/importação", observacao: "Origem histórica migrada, sem atribuição de mídia." },
+  { valor: "outra_origem", rotulo: "Outra origem declarada", observacao: "Fora do catálogo padrão; registrada como está." },
 ] as const;
 
 export type LeituraOrigem = {
@@ -573,6 +616,112 @@ export function distribuicaoOrigens(
     mapa.set(c.canonico, atual);
   }
   return [...mapa.values()].sort((a, b) => b.total - a.total);
+}
+
+const CANAL_SEM_ATRIBUICAO_LOCAL = "sem_atribuicao";
+const canalDe = (v?: string | null) => (v ?? "").trim() || CANAL_SEM_ATRIBUICAO_LOCAL;
+
+export type DesempenhoCanal = {
+  canal: string;
+  investimento: ValorIndicador;
+  pagamentosAtribuidos: number;
+  cac: ValorIndicador;
+  roi: ValorIndicador;
+};
+
+/**
+ * 27/08/2026 — CAC e ROI por canal, de verdade, não a leitura fixa
+ * "Calculável — revisar classificação" que existia antes. Investimento vem
+ * de `marketing_investments.valor`; pagamento atribuído só conta quando o
+ * caso ligado à atribuição tem `pagamento_confirmado = true` — nunca conta
+ * lead ou proposta como venda. Sem investimento nem atribuição no canal,
+ * devolve "Sem dados suficientes" (nunca estimativa).
+ */
+function agregarPorCanal(entrada: EntradaAquisicao): Map<string, EntradaFinanceira & { pagamentos: number }> {
+  const pagosPorCasoId = new Map<string, boolean>();
+  for (const c of entrada.casos ?? []) {
+    if (c.id) pagosPorCasoId.set(String(c.id), Boolean(c.pagamento_confirmado));
+  }
+
+  const porCanal = new Map<string, EntradaFinanceira & { pagamentos: number }>();
+  const linha = (canal: string) => {
+    const atual = porCanal.get(canal) ?? {
+      investimento_midia: 0,
+      pagamentos_atribuiveis: 0,
+      receita_atribuivel: 0,
+      pagamentos: 0,
+    };
+    porCanal.set(canal, atual);
+    return atual;
+  };
+
+  for (const inv of entrada.investimentos) {
+    const l = linha(canalDe(inv.canal));
+    l.investimento_midia = (l.investimento_midia ?? 0) + (typeof inv.valor === "number" ? inv.valor : 0);
+  }
+
+  for (const atr of entrada.atribuicoes) {
+    const pago = atr.case_id ? (pagosPorCasoId.get(String(atr.case_id)) ?? false) : false;
+    if (!pago) continue;
+    const l = linha(canalDe(atr.canal));
+    l.pagamentos = (l.pagamentos ?? 0) + 1;
+    l.pagamentos_atribuiveis = l.pagamentos;
+    l.receita_atribuivel = (l.receita_atribuivel ?? 0) + (typeof atr.valor_convertido === "number" ? atr.valor_convertido : 0);
+  }
+
+  return porCanal;
+}
+
+/** Desempenho por canal — a mesma leitura que alimenta CAC/ROI, agora por linha, não só o total. */
+export function desempenhoPorCanal(entrada: EntradaAquisicao): DesempenhoCanal[] {
+  const porCanal = agregarPorCanal(entrada);
+  return [...porCanal.entries()]
+    .map(([canal, f]) => ({
+      canal,
+      investimento: f.investimento_midia ? { estado: "ok" as const, valor: f.investimento_midia, unidade: "moeda" as const } : { estado: "sem_dados" as const, motivo: "Sem lançamento de investimento neste canal." },
+      pagamentosAtribuidos: f.pagamentos,
+      cac: calcularCac(f),
+      roi: calcularRoi(f),
+    }))
+    .sort((a, b) => (b.investimento.estado === "ok" ? b.investimento.valor : 0) - (a.investimento.estado === "ok" ? a.investimento.valor : 0));
+}
+
+/** CAC/ROI agregados — todo canal somado, para o card único em "5 principais". */
+export function desempenhoAgregado(entrada: EntradaAquisicao): { cac: ValorIndicador; roi: ValorIndicador } {
+  const porCanal = agregarPorCanal(entrada);
+  const total: EntradaFinanceira = { investimento_midia: 0, pagamentos_atribuiveis: 0, receita_atribuivel: 0 };
+  for (const f of porCanal.values()) {
+    total.investimento_midia = (total.investimento_midia ?? 0) + (f.investimento_midia ?? 0);
+    total.pagamentos_atribuiveis = (total.pagamentos_atribuiveis ?? 0) + (f.pagamentos_atribuiveis ?? 0);
+    total.receita_atribuivel = (total.receita_atribuivel ?? 0) + (f.receita_atribuivel ?? 0);
+  }
+  return { cac: calcularCac(total), roi: calcularRoi(total) };
+}
+
+export { formatarIndicador };
+
+/**
+ * Aprendizados derivados do desempenho por canal — nunca uma lista fixa.
+ * Sem canal com CAC calculável, devolve leitura honesta de lacuna, não uma
+ * frase genérica de "aprendizado".
+ */
+export function aprendizadosCampanha(entrada: EntradaAquisicao): string[] {
+  const linhas = desempenhoPorCanal(entrada);
+  const comCac = linhas.filter((l) => l.cac.estado === "ok");
+  const semRetorno = linhas.filter((l) => l.investimento.estado === "ok" && l.pagamentosAtribuidos === 0);
+
+  if (!linhas.length) return ["Sem investimento ou atribuição registrada — nenhum aprendizado de canal ainda é derivável."];
+
+  const out: string[] = [];
+  if (comCac.length) {
+    const melhor = [...comCac].sort((a, b) => (a.cac as { valor: number }).valor - (b.cac as { valor: number }).valor)[0];
+    out.push(`Melhor CAC apurado: ${melhor.canal} (${formatarIndicador(melhor.cac)}).`);
+  }
+  for (const l of semRetorno) {
+    out.push(`${l.canal} teve investimento lançado sem nenhum pagamento atribuído até agora — revisar antes de repetir aporte.`);
+  }
+  if (!out.length) out.push("Investimento e atribuição existem, mas nenhum canal tem pagamento confirmado atribuído ainda.");
+  return out;
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,15 +1,61 @@
 import { describe, expect, it } from "vitest";
 
-import { csvOrigemEscopo, montarOrigemEscopo, propostaDeclarada, resumirOrigem, type EntradaOrigem } from "@/lib/escopo-origem";
+import {
+  csvOrigemEscopo,
+  montarOrigemEscopo,
+  propostaDeclarada,
+  resumirOrigem,
+  type EntradaOrigem,
+} from "@/lib/escopo-origem";
 
 const base: EntradaOrigem = {
   itens: [],
-  contratos: [{ id: "c1", contract_number: "CT-1", case_id: "k1", proposal_id: "p1", status: "signed", demo: false }],
-  propostas: [{ id: "p1", versao: 2, status: "aprovada", case_id: "k1", product_catalog_id: "s1", dados_teste: false }],
-  condicoes: [{ id: "cc1", codigo: "CC-1", status: "aprovada", case_id: "k1", proposal_id: "p1", product_catalog_id: "s1", dados_teste: false }],
-  ordens: [{ id: "o1", service_order_number: "OS-1", status: "ativa", case_id: "k1", contract_id: "c1", commercial_condition_id: "cc1", dados_teste: false }],
+  contratos: [
+    {
+      id: "c1",
+      contract_number: "CT-1",
+      case_id: "k1",
+      proposal_id: "p1",
+      status: "signed",
+      demo: false,
+    },
+  ],
+  propostas: [
+    {
+      id: "p1",
+      versao: 2,
+      status: "aprovada",
+      case_id: "k1",
+      product_catalog_id: "s1",
+      dados_teste: false,
+    },
+  ],
+  condicoes: [
+    {
+      id: "cc1",
+      codigo: "CC-1",
+      status: "aprovada",
+      case_id: "k1",
+      proposal_id: "p1",
+      product_catalog_id: "s1",
+      dados_teste: false,
+    },
+  ],
+  ordens: [
+    {
+      id: "o1",
+      service_order_number: "OS-1",
+      status: "ativa",
+      case_id: "k1",
+      contract_id: "c1",
+      commercial_condition_id: "cc1",
+      dados_teste: false,
+    },
+  ],
   produtos: [{ id: "s1", code: "SKU-001", nome_comercial: "Estudo genealógico" }],
-  casos: [{ id: "k1", codigo: "CA-CID-AT-FAM-2026-001", titulo: "Ana", demo: false, dados_teste: false }],
+  casos: [
+    { id: "k1", codigo: "CA-CID-AT-FAM-2026-001", titulo: "Ana", demo: false, dados_teste: false },
+  ],
 };
 
 const item = (over: Partial<EntradaOrigem["itens"][number]> = {}) => ({
@@ -53,7 +99,16 @@ describe("montarOrigemEscopo", () => {
   it("mostra proposta apenas declarada e vínculos ausentes", () => {
     const [l] = montarOrigemEscopo({
       ...base,
-      contratos: [{ id: "c1", contract_number: "CT-1", case_id: null, proposal_id: null, status: "draft", demo: false }],
+      contratos: [
+        {
+          id: "c1",
+          contract_number: "CT-1",
+          case_id: null,
+          proposal_id: null,
+          status: "draft",
+          demo: false,
+        },
+      ],
       condicoes: [],
       ordens: [],
       itens: [item()],
@@ -79,7 +134,10 @@ describe("resumo e CSV", () => {
   it("conta cadeias completas e lacunas", () => {
     const linhas = montarOrigemEscopo({
       ...base,
-      itens: [item({ proposal_id: "p1", commercial_condition_id: "cc1", service_order_id: "o1" }), item({ id: "i2" })],
+      itens: [
+        item({ proposal_id: "p1", commercial_condition_id: "cc1", service_order_id: "o1" }),
+        item({ id: "i2" }),
+      ],
     });
     const r = resumirOrigem(linhas);
     expect(r.total).toBe(2);

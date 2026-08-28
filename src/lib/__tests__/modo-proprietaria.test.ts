@@ -73,7 +73,11 @@ describe("modo proprietária administradora", () => {
       }),
     ).toContain("Valor anterior obrigatório quando um campo é corrigido.");
     expect(
-      validarDecisao("operacoes", { acao: "x", entidade: "y", motivo: "Motivo suficiente auditado" }),
+      validarDecisao("operacoes", {
+        acao: "x",
+        entidade: "y",
+        motivo: "Motivo suficiente auditado",
+      }),
     ).toContain("Somente a proprietária administradora pode assumir esta decisão.");
   });
 
@@ -104,7 +108,9 @@ describe("modo proprietária administradora", () => {
     };
 
     // Sem motivo suficiente ou sem checkbox manual, a janela recusa a ação.
-    expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "curto" }).pronta).toBe(false);
+    expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "curto" }).pronta).toBe(
+      false,
+    );
     expect(montarConfirmacao({ ...base, motivo: "Cobrança acordada em call" }).faltantes).toContain(
       "confirmacao_manual",
     );
@@ -135,4 +141,3 @@ describe("modo proprietária administradora", () => {
     ]);
   });
 });
-

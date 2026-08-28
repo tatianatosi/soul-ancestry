@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ENTRADA_TESTE_ANEXOS, anexosIaVTeste } from "@/lib/contrato-base-previa";
-import { documentoDoAnexo, documentosDosAnexos, efeitosExternosDoDocumento } from "@/lib/anexos-documento";
+import {
+  documentoDoAnexo,
+  documentosDosAnexos,
+  efeitosExternosDoDocumento,
+} from "@/lib/anexos-documento";
 import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
 import { MARCA_RASCUNHO, REGRAS_MOTOR_ANEXO_I, anexosIaV } from "@/lib/anexos-i-v";
 
@@ -36,7 +40,9 @@ describe("instâncias documentais dos anexos I–V", () => {
   it("Anexo II traz a política institucional sem criar despesa, pagamento ou cobrança", () => {
     const t = textoDe("ANEXO_II_DESPESAS_EXTERNAS");
     expect(t).toContain(CLAUSULA_DESPESAS_TERCEIROS);
-    expect(t).toContain("não é receita, custo próprio, desembolso, reembolso, caixa nem cobrança padrão");
+    expect(t).toContain(
+      "não é receita, custo próprio, desembolso, reembolso, caixa nem cobrança padrão",
+    );
     expect(t).not.toMatch(/asaas|pix|checkout|cobrança criada/i);
   });
 
@@ -66,7 +72,9 @@ describe("instâncias documentais dos anexos I–V", () => {
   it("proposta de outro caso não alimenta o documento do Anexo I", () => {
     const entrada = {
       ...ENTRADA_TESTE_ANEXOS,
-      proposta: ENTRADA_TESTE_ANEXOS.proposta ? { ...ENTRADA_TESTE_ANEXOS.proposta, caseId: "CA-OUTRO-CASO" } : null,
+      proposta: ENTRADA_TESTE_ANEXOS.proposta
+        ? { ...ENTRADA_TESTE_ANEXOS.proposta, caseId: "CA-OUTRO-CASO" }
+        : null,
     };
     const d = documentoDoAnexo(anexosIaV(entrada)[0]!, entrada)!;
     expect(JSON.stringify(d)).not.toContain("CA-OUTRO-CASO");
@@ -84,11 +92,20 @@ describe("regras do motor do Anexo I", () => {
 
   it("bloqueia SKU não homologado e não verificado", () => {
     const base = ENTRADA_TESTE_ANEXOS.proposta!;
-    const naoVerificado = anexosIaV({ ...ENTRADA_TESTE_ANEXOS, proposta: { ...base, skuAtivoHomologado: null } })[0]!;
+    const naoVerificado = anexosIaV({
+      ...ENTRADA_TESTE_ANEXOS,
+      proposta: { ...base, skuAtivoHomologado: null },
+    })[0]!;
     expect(naoVerificado.pendencias.join(" ")).toContain("Situação do SKU não verificada");
-    const inativo = anexosIaV({ ...ENTRADA_TESTE_ANEXOS, proposta: { ...base, skuAtivoHomologado: false } })[0]!;
+    const inativo = anexosIaV({
+      ...ENTRADA_TESTE_ANEXOS,
+      proposta: { ...base, skuAtivoHomologado: false },
+    })[0]!;
     expect(inativo.pendencias.join(" ")).toContain("não está ativo e homologado");
-    const ok = anexosIaV({ ...ENTRADA_TESTE_ANEXOS, proposta: { ...base, skuAtivoHomologado: true } })[0]!;
+    const ok = anexosIaV({
+      ...ENTRADA_TESTE_ANEXOS,
+      proposta: { ...base, skuAtivoHomologado: true },
+    })[0]!;
     expect(ok.pendencias.join(" ")).not.toContain("SKU");
   });
 });

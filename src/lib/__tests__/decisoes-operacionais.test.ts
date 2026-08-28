@@ -52,7 +52,9 @@ describe("CA-DEC-2026-08-17-01 — estrutura familiar", () => {
 
 describe("CA-DEC-2026-08-17-03 — propostas e limites", () => {
   it("só reconhece a proposta aceita como satisfatória para o gate", () => {
-    const satisfazem = ESTADOS_PROPOSTA.filter((e) => /satisfaz o gate/i.test(e.efeito)).map((e) => e.estado);
+    const satisfazem = ESTADOS_PROPOSTA.filter((e) => /satisfaz o gate/i.test(e.efeito)).map(
+      (e) => e.estado,
+    );
     expect(satisfazem).toEqual(["aceita"]);
     const arquivada = ESTADOS_PROPOSTA.find((e) => e.estado === "arquivada")!;
     expect(arquivada.efeito).toMatch(/não satisfaz gate/i);

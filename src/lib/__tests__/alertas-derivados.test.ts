@@ -22,7 +22,13 @@ const base: EntradaAlertas = {
     },
   ],
   tarefas: [
-    { id: "t-1", titulo: "Revisar dossiê", sla_status: "atrasada", responsavel_id: "user-1", status: "em_andamento" },
+    {
+      id: "t-1",
+      titulo: "Revisar dossiê",
+      sla_status: "atrasada",
+      responsavel_id: "user-1",
+      status: "em_andamento",
+    },
   ],
 };
 
@@ -44,7 +50,10 @@ describe("alertas derivados", () => {
     };
     expect(recalcularApos(resolvido, "cadencia:caso-1")).toBe("resolvido");
 
-    const tarefaOk: EntradaAlertas = { ...base, tarefas: [{ ...base.tarefas![0]!, status: "concluida" }] };
+    const tarefaOk: EntradaAlertas = {
+      ...base,
+      tarefas: [{ ...base.tarefas![0]!, status: "concluida" }],
+    };
     expect(recalcularApos(tarefaOk, "sla-tarefa:t-1")).toBe("resolvido");
   });
 
@@ -56,8 +65,16 @@ describe("alertas derivados", () => {
   });
 
   it("4. D10/D14 não duplicam como dois sinais", () => {
-    const dez = derivarAlertas({ casos: [{ id: "c", dias_sem_touchpoint: 10, responsavel_id: "u", classificacao_origem: "real" }] });
-    const catorze = derivarAlertas({ casos: [{ id: "c", dias_sem_touchpoint: 14, responsavel_id: "u", classificacao_origem: "real" }] });
+    const dez = derivarAlertas({
+      casos: [
+        { id: "c", dias_sem_touchpoint: 10, responsavel_id: "u", classificacao_origem: "real" },
+      ],
+    });
+    const catorze = derivarAlertas({
+      casos: [
+        { id: "c", dias_sem_touchpoint: 14, responsavel_id: "u", classificacao_origem: "real" },
+      ],
+    });
     expect(dez.filter((a) => a.chave === "cadencia:c")).toHaveLength(1);
     expect(catorze.filter((a) => a.chave === "cadencia:c")).toHaveLength(1);
     expect(dez[0]!.criticidade).toBe("alta");
@@ -83,14 +100,24 @@ describe("alertas derivados", () => {
 
   it("classificação não-real projetada vira risco de exposição", () => {
     const alertas = derivarAlertas({
-      casos: [{ id: "d", responsavel_id: "u", classificacao_origem: "demo", projetado_ao_cliente: true }],
+      casos: [
+        { id: "d", responsavel_id: "u", classificacao_origem: "demo", projetado_ao_cliente: true },
+      ],
     });
     expect(alertas.map((a) => a.motivo)).toContain("risco_exposicao_interna");
   });
 
   it("espera externa ativa suspende o sinal de cadência", () => {
     const alertas = derivarAlertas({
-      casos: [{ id: "e", responsavel_id: "u", classificacao_origem: "real", dias_sem_touchpoint: 30, espera_externa_ativa: true }],
+      casos: [
+        {
+          id: "e",
+          responsavel_id: "u",
+          classificacao_origem: "real",
+          dias_sem_touchpoint: 30,
+          espera_externa_ativa: true,
+        },
+      ],
     });
     expect(alertas).toHaveLength(0);
   });

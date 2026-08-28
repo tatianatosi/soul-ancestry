@@ -15,11 +15,18 @@ const conteudo: ConteudoOS = {
   condicao_id: "cc-1",
 };
 
-const ref = { propostaVersao: 2, skuCodigo: "SKU-CID-AT-FAM", condicaoCodigo: "CC-001", osVersao: 1 };
+const ref = {
+  propostaVersao: 2,
+  skuCodigo: "SKU-CID-AT-FAM",
+  condicaoCodigo: "CC-001",
+  osVersao: 1,
+};
 
 describe("origem dos itens de escopo contratual", () => {
   it("monta a referência completa da cadeia", () => {
-    expect(referenciaOrigemEscopo(ref)).toBe("proposta v2 · SKU SKU-CID-AT-FAM · condição CC-001 · OS v1");
+    expect(referenciaOrigemEscopo(ref)).toBe(
+      "proposta v2 · SKU SKU-CID-AT-FAM · condição CC-001 · OS v1",
+    );
   });
 
   it("herda source_type proposal e a mesma referência em todos os itens", () => {

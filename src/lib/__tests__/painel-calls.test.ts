@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { LeadDesk } from "@/lib/crm-desk";
-import { avaliarHandoffCall, bloqueiosQualificacao, bloqueiosRegistroCall, estadoCall, filasCalls, resumoCalls } from "@/lib/painel-calls";
+import {
+  avaliarHandoffCall,
+  bloqueiosQualificacao,
+  bloqueiosRegistroCall,
+  estadoCall,
+  filasCalls,
+  resumoCalls,
+} from "@/lib/painel-calls";
 
 const base: LeadDesk = { id: "1", nome: "Lead teste" };
 
@@ -42,7 +49,13 @@ describe("bloqueiosRegistroCall", () => {
   it("bloqueia call realizada sem resumo validado e resultado", () => {
     const p = bloqueiosRegistroCall({ ...base, status_call: "realizada" });
     expect(p.map((x) => x.campo)).toEqual(
-      expect.arrayContaining(["call_realizada_em", "resumo_call", "resumo_validado", "discovery_resultado", "proxima_acao"]),
+      expect.arrayContaining([
+        "call_realizada_em",
+        "resumo_call",
+        "resumo_validado",
+        "discovery_resultado",
+        "proxima_acao",
+      ]),
     );
   });
   it("bloqueia gravação sem consentimento concedido", () => {
@@ -56,13 +69,27 @@ describe("bloqueiosRegistroCall", () => {
 
 describe("bloqueiosQualificacao", () => {
   it("exige call realizada antes de qualificar", () => {
-    const p = bloqueiosQualificacao({ ...base, status_call: "agendada", call_agendada_em: "2026-08-20T10:00" });
+    const p = bloqueiosQualificacao({
+      ...base,
+      status_call: "agendada",
+      call_agendada_em: "2026-08-20T10:00",
+    });
     expect(p).toHaveLength(1);
     expect(p[0]?.campo).toBe("status_call");
   });
   it("exige via, geração e linha quando o sinal é forte", () => {
-    const p = bloqueiosQualificacao({ ...completo, elegibilidade_preliminar: "forte", via_juridica_preliminar: null });
-    expect(p.map((x) => x.campo)).toEqual(expect.arrayContaining(["via_juridica_preliminar", "geracao_ascendente", "linha_transmissao"]));
+    const p = bloqueiosQualificacao({
+      ...completo,
+      elegibilidade_preliminar: "forte",
+      via_juridica_preliminar: null,
+    });
+    expect(p.map((x) => x.campo)).toEqual(
+      expect.arrayContaining([
+        "via_juridica_preliminar",
+        "geracao_ascendente",
+        "linha_transmissao",
+      ]),
+    );
   });
   it("aceita qualificação completa", () => {
     expect(bloqueiosQualificacao(completo)).toEqual([]);
@@ -81,7 +108,9 @@ describe("avaliarHandoffCall", () => {
     expect(a.bloqueios.length).toBeGreaterThan(0);
   });
   it("deriva destino de nutrição em reagendamento", () => {
-    expect(avaliarHandoffCall({ ...completo, discovery_resultado: "reagendar" }).destino).toBe("nutricao");
+    expect(avaliarHandoffCall({ ...completo, discovery_resultado: "reagendar" }).destino).toBe(
+      "nutricao",
+    );
   });
 });
 

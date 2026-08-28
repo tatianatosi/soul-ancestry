@@ -21,6 +21,17 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      // Esta vitrine repete o conteúdo de clubeancestral.com.br, que é o site
+      // canônico e o único que deve ranquear. Duas cópias do mesmo texto em
+      // domínios diferentes competem entre si e diluem o resultado. O noindex
+      // protege o SEO do domínio principal em vez de disputá-lo.
+      //
+      // Deliberadamente NÃO existe robots.txt com Disallow: bloquear a
+      // varredura impediria o Google de ler este noindex, e a URL poderia
+      // acabar indexada mesmo assim, sem conteúdo. Para tirar do índice de
+      // verdade é preciso deixar rastrear e declarar noindex — é o que se faz
+      // aqui. Com isso, todas as 81 rotas deste host passam a ter noindex.
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: Home,
@@ -62,7 +73,12 @@ function Home() {
     <div className="min-h-screen bg-cream text-navy">
       <header className="border-b border-navy/10 bg-cream">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-5">
-          <BrandLogo size={40} showText />
+          {/*
+            O cabeçalho tem fundo creme, então o wordmark precisa da variante
+            clara (navy). O padrão do componente é "client-dark", que pinta o
+            texto de creme — creme sobre creme, ilegível.
+          */}
+          <BrandLogo size={40} showText variant="client-light" />
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/acesso" className="text-navy/70 underline-offset-4 hover:text-navy hover:underline">
               Acesso do cliente

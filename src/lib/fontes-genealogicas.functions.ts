@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -57,6 +58,7 @@ function filtrar(campos: string[], entrada: Record<string, unknown>) {
 export const painelFontes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa o catálogo de fontes genealógicas.");

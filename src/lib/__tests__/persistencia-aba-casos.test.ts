@@ -8,7 +8,6 @@ import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
 import { MAPA_PERSISTENCIA, campoMapeado } from "@/lib/persistencia-caso";
 import { limparCamposDeControle } from "@/lib/persistencia.server";
 
-
 describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
   it("1. campo alterado e salvo é confirmado pela releitura", () => {
     const r = compararPersistencia({ titulo: "Caso Ana" }, { titulo: "Caso Ana", pais: "AT" });
@@ -88,4 +87,3 @@ describe("ANA-SAVE-SEC-01B — persistência da Aba Casos", () => {
     expect(limpo).toEqual({ titulo: "Caso Ana" });
   });
 });
-

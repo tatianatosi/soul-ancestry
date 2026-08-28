@@ -25,7 +25,9 @@ describe("itens derivados do Painel Hoje", () => {
 
   it("ignora espera externa comunicada", () => {
     const itens = itensDerivadosDoPainel({
-      casosCadencia: [linha("a", 30, { aguardando_instituicao_externa: true, motivo_espera_externa: "cartório" })],
+      casosCadencia: [
+        linha("a", 30, { aguardando_instituicao_externa: true, motivo_espera_externa: "cartório" }),
+      ],
     });
     expect(itens.filter((i) => i.chave.startsWith("cadencia:"))).toHaveLength(0);
   });

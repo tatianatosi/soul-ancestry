@@ -17,7 +17,17 @@ describe("perfil institucional persistido", () => {
     expect(payload.versao).toBe(PERFIL_INSTITUCIONAL_VERSAO);
     expect(payload.status).toBe("under_legal_review");
     expect(violacoesDoPayload(payload)).toEqual([]);
-    for (const campo of ["razao_empresarial", "nome_operacao", "cnpj", "endereco_institucional", "email_oficial", "site", "whatsapp", "titulo", "subtitulo"]) {
+    for (const campo of [
+      "razao_empresarial",
+      "nome_operacao",
+      "cnpj",
+      "endereco_institucional",
+      "email_oficial",
+      "site",
+      "whatsapp",
+      "titulo",
+      "subtitulo",
+    ]) {
       expect(payload.campos.some((c) => c.campo === campo && c.valor.trim())).toBe(true);
     }
   });
@@ -43,7 +53,10 @@ describe("perfil institucional persistido", () => {
   });
 
   it("adendos textuais não ativam assinatura nem citam contato pessoal", () => {
-    expect(ADENDOS_TEXTUAIS.map((a) => a.id)).toEqual(["ADENDO-CANCELAMENTO-v1.0", "ADENDO-CANAIS-OFICIAIS-v1.0"]);
+    expect(ADENDOS_TEXTUAIS.map((a) => a.id)).toEqual([
+      "ADENDO-CANCELAMENTO-v1.0",
+      "ADENDO-CANAIS-OFICIAIS-v1.0",
+    ]);
     for (const adendo of ADENDOS_TEXTUAIS) {
       expect(adendo.status).toBe("under_legal_review");
       const texto = adendo.itens.join(" ");

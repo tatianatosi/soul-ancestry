@@ -4,7 +4,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
-import { usePortalVivo } from "@/routes/portal/jornada";
+import { usePortalVivo } from "@/components/portal/fonte-portal";
 
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/portal/arvore")({
   component: PortalArvore,
 });
 
-function PortalArvore() {
+export function PortalArvore() {
   const { visibilidade, carregando } = useVisibilidade("arvore");
   const { data, isLoading } = usePortalVivo();
   const itens = arvoreSanitizada(data?.projecoes ?? []);
@@ -39,7 +39,10 @@ function PortalArvore() {
           ) : (
             <ul className="space-y-3">
               {itens.map((item) => (
-                <li key={item.id} className="rounded-lg border border-navy/10 bg-white p-3 text-sm text-navy/70">
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-navy/10 bg-white p-3 text-sm text-navy/70"
+                >
                   {item.conteudo}
                 </li>
               ))}

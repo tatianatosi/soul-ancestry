@@ -22,7 +22,11 @@ describe("testes de aceite — cadeia operacional", () => {
       contact_id: "c1",
       etapa_comercial: "proposta_enviada",
     } as never);
-    expect(pend.map((p) => p.campo).sort()).toEqual(["prazo_proxima_acao", "proxima_acao", "responsavel"]);
+    expect(pend.map((p) => p.campo).sort()).toEqual([
+      "prazo_proxima_acao",
+      "proxima_acao",
+      "responsavel",
+    ]);
   });
 
   it("nenhum aceite concede cliente ativo nem operação externa", () => {
@@ -45,14 +49,41 @@ describe("testes de aceite — cadeia operacional", () => {
   });
 
   it("estados de evidência só avançam por transições permitidas, com autor, justificativa e origem", () => {
-    const base = { autor: "u1", justificativa: "Conferido com certidão original", origem: "documental_oficial" };
-    expect(validarTransicaoEvidencia({ de: "em_revisao", para: "validada_internamente", ...base }).ok).toBe(true);
-    expect(validarTransicaoEvidencia({ de: "recebida", para: "publicada_ao_cliente", ...base }).ok).toBe(false);
-    expect(validarTransicaoEvidencia({ de: "em_revisao", para: "validada_internamente", ...base, autor: null }).ok).toBe(false);
+    const base = {
+      autor: "u1",
+      justificativa: "Conferido com certidão original",
+      origem: "documental_oficial",
+    };
     expect(
-      validarTransicaoEvidencia({ de: "em_revisao", para: "validada_internamente", ...base, justificativa: "ok" }).ok,
+      validarTransicaoEvidencia({ de: "em_revisao", para: "validada_internamente", ...base }).ok,
+    ).toBe(true);
+    expect(
+      validarTransicaoEvidencia({ de: "recebida", para: "publicada_ao_cliente", ...base }).ok,
     ).toBe(false);
-    expect(validarTransicaoEvidencia({ de: "em_revisao", para: "validada_internamente", ...base, origem: "" }).ok).toBe(false);
+    expect(
+      validarTransicaoEvidencia({
+        de: "em_revisao",
+        para: "validada_internamente",
+        ...base,
+        autor: null,
+      }).ok,
+    ).toBe(false);
+    expect(
+      validarTransicaoEvidencia({
+        de: "em_revisao",
+        para: "validada_internamente",
+        ...base,
+        justificativa: "ok",
+      }).ok,
+    ).toBe(false);
+    expect(
+      validarTransicaoEvidencia({
+        de: "em_revisao",
+        para: "validada_internamente",
+        ...base,
+        origem: "",
+      }).ok,
+    ).toBe(false);
   });
 
   it("evidência divergente não é sobrescrita silenciosamente por validação ou publicação", () => {
@@ -69,10 +100,39 @@ describe("testes de aceite — cadeia operacional", () => {
   });
 
   it("relatório F1/F2 não aparece no App Cliente sem publicação explícita", () => {
-    expect(relatorioVisivelAoCliente({ status: "aprovado_interno", approved_summary_client: "Resumo", approved_at: "2026-08-01" })).toBe(false);
-    expect(relatorioVisivelAoCliente({ status: "publicado_cliente", approved_summary_client: "", approved_at: "2026-08-01" })).toBe(false);
-    expect(relatorioVisivelAoCliente({ status: "publicado_cliente", approved_summary_client: "Resumo", approved_at: null })).toBe(false);
-    expect(relatorioVisivelAoCliente({ status: "publicado_cliente", approved_summary_client: "Resumo", approved_at: "2026-08-01" })).toBe(true);
-    expect(achadoProjetavel({ validation_status: "validado", client_projection_status: "aprovado_interno" })).toBe(false);
+    expect(
+      relatorioVisivelAoCliente({
+        status: "aprovado_interno",
+        approved_summary_client: "Resumo",
+        approved_at: "2026-08-01",
+      }),
+    ).toBe(false);
+    expect(
+      relatorioVisivelAoCliente({
+        status: "publicado_cliente",
+        approved_summary_client: "",
+        approved_at: "2026-08-01",
+      }),
+    ).toBe(false);
+    expect(
+      relatorioVisivelAoCliente({
+        status: "publicado_cliente",
+        approved_summary_client: "Resumo",
+        approved_at: null,
+      }),
+    ).toBe(false);
+    expect(
+      relatorioVisivelAoCliente({
+        status: "publicado_cliente",
+        approved_summary_client: "Resumo",
+        approved_at: "2026-08-01",
+      }),
+    ).toBe(true);
+    expect(
+      achadoProjetavel({
+        validation_status: "validado",
+        client_projection_status: "aprovado_interno",
+      }),
+    ).toBe(false);
   });
 });

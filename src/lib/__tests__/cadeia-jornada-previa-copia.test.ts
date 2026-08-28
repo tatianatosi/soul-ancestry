@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { htmlImpressaoPainelContextual, resumoTextoPainelContextual } from "@/lib/cadeia-jornada-pdf";
+import {
+  htmlImpressaoPainelContextual,
+  resumoTextoPainelContextual,
+} from "@/lib/cadeia-jornada-pdf";
 import { descreverCadeia, proximaAcaoDoPainel } from "@/lib/cadeia-jornada-visao";
 import { executarCadeiaJornada } from "@/lib/orquestracao-jornada";
 

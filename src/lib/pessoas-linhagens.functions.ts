@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -164,6 +165,7 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => d)
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, podeEditar } = await autorizarLeitura(supabase, context.userId as string);
     const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);

@@ -14,7 +14,11 @@ import {
   resumoTextoPainelContextual,
   type DadosImpressaoPainel,
 } from "@/lib/cadeia-jornada-pdf";
-import { ROTULO_EVENTO, type EventoInterno, type ResultadoCadeia } from "@/lib/orquestracao-jornada";
+import {
+  ROTULO_EVENTO,
+  type EventoInterno,
+  type ResultadoCadeia,
+} from "@/lib/orquestracao-jornada";
 
 const ROTULO_ESTADO: Record<EstadoElo, string> = {
   concluido: "cumprido",

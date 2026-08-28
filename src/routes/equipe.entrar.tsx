@@ -13,8 +13,8 @@ import {
 } from "@/lib/equipe.functions";
 
 import { EquipeMoldura } from "@/components/equipe/moldura";
+import { AvisoConfiguracao } from "@/components/equipe/aviso-configuracao";
 import { useHydrated } from "@/hooks/use-hydrated";
-
 
 export const Route = createFileRoute("/equipe/entrar")({
   head: () => ({
@@ -84,6 +84,8 @@ function EntrarEquipe() {
     if (carregando || espera > 0) return;
     setErro(null);
     setCarregando(true);
+    // Fora do `try` de propósito: o `catch` precisa saber onde parou.
+    let etapa: "limite" | "senha" | "confirmacao" = "limite";
     try {
       const limite = await preparar({ data: { email } });
       if (limite.bloqueado) {
@@ -91,7 +93,11 @@ function EntrarEquipe() {
         setErro("Muitas tentativas. Aguarde o tempo indicado antes de tentar novamente.");
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha });
+      etapa = "senha";
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: senha,
+      });
       if (error) {
         // Só a falha consome o limite de tentativas.
         try {
@@ -120,6 +126,7 @@ function EntrarEquipe() {
       // Desk abre como "Sem papel atribuído" mesmo para a admin.
       await queryClient.cancelQueries();
       queryClient.clear();
+      etapa = "confirmacao";
       const r = await confirmar({});
       if (!r.autorizado) {
         setErro("Autenticação válida, mas esta conta não tem acesso interno ativo.");
@@ -129,8 +136,27 @@ function EntrarEquipe() {
       await queryClient.invalidateQueries();
       navigate({ to: "/painel", replace: true });
     } catch {
-      setErro(ERRO_NEUTRO);
+      /*
+        26/08/2026 — este `catch` dizia só a frase neutra, para qualquer falha.
+        Custou um dia inteiro de diagnóstico: a senha estava certa, o signIn
+        tinha funcionado, e o que quebrava era o passo SEGUINTE, no servidor.
+        A tela não tinha como distinguir "senha errada" de "servidor falando
+        com o banco errado" — e quem estava na frente dela também não.
 
+        A mensagem continua sem revelar se a conta existe. O que ela passa a
+        revelar é em que etapa parou, que é informação sobre o SISTEMA, não
+        sobre a pessoa.
+      */
+      if (etapa === "confirmacao") {
+        setErro(
+          "Sua senha foi aceita, mas o servidor não conseguiu confirmar a sessão. " +
+            "Isso é falha de configuração do servidor, não da sua senha.",
+        );
+      } else if (etapa === "senha") {
+        setErro("Não foi possível falar com o serviço de autenticação. Tente novamente em instantes.");
+      } else {
+        setErro(ERRO_NEUTRO);
+      }
     } finally {
       setCarregando(false);
     }
@@ -138,7 +164,6 @@ function EntrarEquipe() {
 
   const bloqueado = espera > 0;
   const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
-
 
   return (
     <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
@@ -193,11 +218,15 @@ function EntrarEquipe() {
                 ? "Entrando…"
                 : "Entrar"}
         </button>
-
       </form>
 
+      <AvisoConfiguracao />
+
       <div className="mt-5 space-y-2 text-sm">
-        <Link to="/equipe/esqueci-minha-senha" className="block text-navy/70 underline underline-offset-4">
+        <Link
+          to="/equipe/esqueci-minha-senha"
+          className="block text-navy/70 underline underline-offset-4"
+        >
           Esqueci minha senha
         </Link>
         <Link to="/acesso" className="block text-navy/50 underline underline-offset-4">
@@ -217,7 +246,11 @@ function PrimeiroAcesso() {
   const verificar = useServerFn(precisaProvisionamento);
   const criar = useServerFn(criarPrimeiroAdmin);
   const navigate = useNavigate();
-  const q = useQuery({ queryKey: ["provisionamento-equipe"], queryFn: () => verificar({}), retry: false });
+  const q = useQuery({
+    queryKey: ["provisionamento-equipe"],
+    queryFn: () => verificar({}),
+    retry: false,
+  });
   const [form, setForm] = useState({ organizacao: "", nome: "", email: "", senha: "" });
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
@@ -247,11 +280,16 @@ function PrimeiroAcesso() {
   }
 
   return (
-    <form onSubmit={criarConta} method="post" action="?" className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4">
+    <form
+      onSubmit={criarConta}
+      method="post"
+      action="?"
+      className="mt-6 space-y-3 rounded-xl border border-gold/40 bg-cream/60 p-4"
+    >
       <p className="text-sm font-medium text-navy">Primeiro acesso da organização</p>
       <p className="text-xs text-navy/60">
-        Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador. Depois disso, novos
-        membros só entram por convite.
+        Ainda não existe nenhum acesso interno. Crie a organização e o administrador fundador.
+        Depois disso, novos membros só entram por convite.
       </p>
       {(
         [
@@ -283,4 +321,3 @@ function PrimeiroAcesso() {
     </form>
   );
 }
-

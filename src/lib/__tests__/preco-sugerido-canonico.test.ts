@@ -54,17 +54,23 @@ describe("estados derivados de preço sugerido", () => {
   });
 
   it("bloqueia sem valor, sem moeda, sem origem, fora de vigência, arquivado ou crítico", () => {
-    expect(resolverPrecoSugerido({ ...base, preco_sugerido: null }).estado).toBe("PRECO_SUGERIDO_BLOQUEADO");
+    expect(resolverPrecoSugerido({ ...base, preco_sugerido: null }).estado).toBe(
+      "PRECO_SUGERIDO_BLOQUEADO",
+    );
     expect(resolverPrecoSugerido({ ...base, moeda: null }).estado).toBe("PRECO_SUGERIDO_BLOQUEADO");
-    expect(resolverPrecoSugerido({ ...base, fonte_versao: null, fonte_referencia: null }).estado).toBe(
+    expect(
+      resolverPrecoSugerido({ ...base, fonte_versao: null, fonte_referencia: null }).estado,
+    ).toBe("PRECO_SUGERIDO_BLOQUEADO");
+    expect(
+      resolverPrecoSugerido({ ...base, vigencia_fim: "2026-01-31" }, [], new Date("2026-08-23"))
+        .estado,
+    ).toBe("PRECO_SUGERIDO_BLOQUEADO");
+    expect(resolverPrecoSugerido({ ...base, status_produto: "suspenso" }).estado).toBe(
       "PRECO_SUGERIDO_BLOQUEADO",
     );
     expect(
-      resolverPrecoSugerido({ ...base, vigencia_fim: "2026-01-31" }, [], new Date("2026-08-23")).estado,
-    ).toBe("PRECO_SUGERIDO_BLOQUEADO");
-    expect(resolverPrecoSugerido({ ...base, status_produto: "suspenso" }).estado).toBe("PRECO_SUGERIDO_BLOQUEADO");
-    expect(
-      resolverPrecoSugerido(base, [{ tipo: "divergencia_moeda", detalhe: "Moeda conflitante." }]).estado,
+      resolverPrecoSugerido(base, [{ tipo: "divergencia_moeda", detalhe: "Moeda conflitante." }])
+        .estado,
     ).toBe("PRECO_SUGERIDO_BLOQUEADO");
     expect(resolverPrecoSugerido(null).estado).toBe("PRECO_SUGERIDO_BLOQUEADO");
   });
@@ -118,7 +124,9 @@ describe("matriz de precedência", () => {
   });
 
   it("sem preço utilizável resulta em sem_preco", () => {
-    const v = resolverValorOperacional({ precoSugerido: resolverPrecoSugerido({ ...base, preco_sugerido: null }) });
+    const v = resolverValorOperacional({
+      precoSugerido: resolverPrecoSugerido({ ...base, preco_sugerido: null }),
+    });
     expect(v.origem).toBe("sem_preco");
     expect(v.valor).toBeNull();
   });
@@ -127,7 +135,14 @@ describe("matriz de precedência", () => {
     const v = resolverValorOperacional({ precoSugerido: resolverPrecoSugerido(base) });
     expect(autorizaCobranca(v)).toBe(false);
     expect(previsaoFinanceira(v).caixa).toBe(false);
-    for (const a of ["cobranca", "link_asaas", "assinatura", "pagamento", "comunicacao", "publicacao"])
+    for (const a of [
+      "cobranca",
+      "link_asaas",
+      "assinatura",
+      "pagamento",
+      "comunicacao",
+      "publicacao",
+    ])
       expect(exigeConfirmacaoExterna(a)).toBe(true);
   });
 });
@@ -192,8 +207,20 @@ describe("override da Proprietária e sinais do Painel", () => {
   it("Painel mostra apenas sinais relevantes, nunca o catálogo", () => {
     const sinais = sinaisPrecoPainel({
       casos: [
-        { caseId: "c1", codigo: "CA-1", sku: null, resolucao: resolverPrecoSugerido(null), condicaoAprovada: false },
-        { caseId: "c2", codigo: "CA-2", sku: "S", resolucao: resolverPrecoSugerido(base), condicaoAprovada: true },
+        {
+          caseId: "c1",
+          codigo: "CA-1",
+          sku: null,
+          resolucao: resolverPrecoSugerido(null),
+          condicaoAprovada: false,
+        },
+        {
+          caseId: "c2",
+          codigo: "CA-2",
+          sku: "S",
+          resolucao: resolverPrecoSugerido(base),
+          condicaoAprovada: true,
+        },
         {
           caseId: "c3",
           codigo: "CA-3",
@@ -204,7 +231,10 @@ describe("override da Proprietária e sinais do Painel", () => {
         },
       ],
     });
-    expect(sinais.map((s) => s.codigo)).toEqual(["PAINEL_PRECO_SUGERIDO_BLOQUEADO", "PAINEL_CONDICAO_VENCIDA"]);
+    expect(sinais.map((s) => s.codigo)).toEqual([
+      "PAINEL_PRECO_SUGERIDO_BLOQUEADO",
+      "PAINEL_CONDICAO_VENCIDA",
+    ]);
     expect(sinais[0].destino).toBe("/casos/c1");
   });
 });

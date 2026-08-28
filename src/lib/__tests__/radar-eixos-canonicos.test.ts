@@ -49,7 +49,9 @@ describe("Eixos canônicos do Radar (Cliente e Ops)", () => {
   });
 
   it("a guarda não inventa eixo ausente", () => {
-    expect(garantirEixosCanonicos([{ id: "historia" as const }]).map((e) => e.id)).toEqual(["historia"]);
+    expect(garantirEixosCanonicos([{ id: "historia" as const }]).map((e) => e.id)).toEqual([
+      "historia",
+    ]);
     expect(garantirEixosCanonicos([]).length).toBe(0);
   });
 });

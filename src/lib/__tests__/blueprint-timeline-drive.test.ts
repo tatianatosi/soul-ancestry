@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { COMPLEMENTOS_TOP30, acionaComunicacaoAutomatica, efeitosEstruturaisAutomaticos } from "@/lib/catalogo-desk";
-import { precoDoServico, validarBlueprint, type Blueprint, type ProdutoBlueprint } from "@/lib/blueprint";
+import {
+  COMPLEMENTOS_TOP30,
+  acionaComunicacaoAutomatica,
+  efeitosEstruturaisAutomaticos,
+} from "@/lib/catalogo-desk";
+import {
+  precoDoServico,
+  validarBlueprint,
+  type Blueprint,
+  type ProdutoBlueprint,
+} from "@/lib/blueprint";
 import { montarLinhaDoTempo, TIPOS_EVENTO, type EventoTimeline } from "@/lib/timeline-caso";
 import { avaliarFilaDrive, podeTransicionar } from "@/lib/drive-provisioning";
 
@@ -20,7 +29,10 @@ const bpBase: Blueprint = {
 
 describe("Catálogo e Blueprint", () => {
   it("1. produto contextual sem case_service não entra no Blueprint", () => {
-    const b = validarBlueprint({ ...bpBase, case_service_id: null }, { produto: { ...item("CA-FAM-001") } });
+    const b = validarBlueprint(
+      { ...bpBase, case_service_id: null },
+      { produto: { ...item("CA-FAM-001") } },
+    );
     expect(b.some((x) => x.codigo === "SEM_CASE_SERVICE")).toBe(true);
   });
 
@@ -38,14 +50,23 @@ describe("Catálogo e Blueprint", () => {
   });
 
   it("4. preço manual é bloqueado", () => {
-    const b = validarBlueprint({ ...bpBase, preco_comercial_vigente: 999 }, { produto: produtoHomologado });
+    const b = validarBlueprint(
+      { ...bpBase, preco_comercial_vigente: 999 },
+      { produto: produtoHomologado },
+    );
     expect(b.some((x) => x.codigo === "PRECO_MANUAL_BLOQUEADO")).toBe(true);
-    const ok = validarBlueprint({ ...bpBase, preco_comercial_vigente: 1200 }, { produto: produtoHomologado });
+    const ok = validarBlueprint(
+      { ...bpBase, preco_comercial_vigente: 1200 },
+      { produto: produtoHomologado },
+    );
     expect(ok).toEqual([]);
   });
 
   it("5. Blueprint com preço sem catálogo homologado é bloqueado", () => {
-    const b = validarBlueprint({ ...bpBase, preco_comercial_vigente: 500 }, { produto: { ...item("CA-ASS-001") } });
+    const b = validarBlueprint(
+      { ...bpBase, preco_comercial_vigente: 500 },
+      { produto: { ...item("CA-ASS-001") } },
+    );
     expect(b.some((x) => x.codigo === "PRODUTO_EM_REVISAO")).toBe(true);
     expect(b.some((x) => x.codigo === "PRECO_SEM_CATALOGO_HOMOLOGADO")).toBe(true);
   });
@@ -60,7 +81,12 @@ describe("Catálogo e Blueprint", () => {
 describe("Linha do tempo operacional", () => {
   it("7. evento aparece no caso sem duplicar o Roteiro Master", () => {
     const eventos: EventoTimeline[] = [
-      { event_type: "discovery", title: "Discovery realizada", status: "registrado", occurred_at: "2026-08-10T12:00:00Z" },
+      {
+        event_type: "discovery",
+        title: "Discovery realizada",
+        status: "registrado",
+        occurred_at: "2026-08-10T12:00:00Z",
+      },
       {
         event_type: "contrato",
         title: "Contrato em preparação",
@@ -69,7 +95,13 @@ describe("Linha do tempo operacional", () => {
         next_action: "Conferir páginas 1–7 da proposta",
         responsavel_nome: "Tatiana Tosi",
       },
-      { event_type: "pagamento", title: "Pagamento inicial", status: "bloqueado", bloqueio: true, alerta: "Contrato não assinado" },
+      {
+        event_type: "pagamento",
+        title: "Pagamento inicial",
+        status: "bloqueado",
+        bloqueio: true,
+        alerta: "Contrato não assinado",
+      },
     ];
     const t = montarLinhaDoTempo(eventos, new Date("2026-08-20T00:00:00Z"));
     expect(t.passado).toHaveLength(1);
@@ -84,7 +116,11 @@ describe("Linha do tempo operacional", () => {
 
 describe("Fila de provisionamento Drive", () => {
   it("8. fila fica bloqueada em Oportunidade", () => {
-    const r = avaliarFilaDrive("oportunidade", { contrato_assinado: true, pagamento_confirmado: true, onboarding_aprovado: true });
+    const r = avaliarFilaDrive("oportunidade", {
+      contrato_assinado: true,
+      pagamento_confirmado: true,
+      onboarding_aprovado: true,
+    });
     expect(r.status).toBe("blocked");
     expect(r.executaDrive).toBe(false);
   });
@@ -102,12 +138,21 @@ describe("Fila de provisionamento Drive", () => {
     expect(pronta.executaDrive).toBe(false);
 
     expect(podeTransicionar("ready_for_review", "approved", {}).ok).toBe(false);
-    expect(podeTransicionar("ready_for_review", "approved", { aprovadoPor: "Tatiana Tosi" }).ok).toBe(true);
+    expect(
+      podeTransicionar("ready_for_review", "approved", { aprovadoPor: "Tatiana Tosi" }).ok,
+    ).toBe(true);
     expect(podeTransicionar("approved", "executed", { resultadoExterno: "" }).ok).toBe(false);
-    expect(podeTransicionar("approved", "executed", { resultadoExterno: "drive://ref" }).ok).toBe(true);
+    expect(podeTransicionar("approved", "executed", { resultadoExterno: "drive://ref" }).ok).toBe(
+      true,
+    );
   });
 
   it("confirmação formal só cria item bloqueado", () => {
-    expect(avaliarFilaDrive("confirmacao_formal", { contrato_assinado: true, pagamento_confirmado: true }).status).toBe("blocked");
+    expect(
+      avaliarFilaDrive("confirmacao_formal", {
+        contrato_assinado: true,
+        pagamento_confirmado: true,
+      }).status,
+    ).toBe("blocked");
   });
 });

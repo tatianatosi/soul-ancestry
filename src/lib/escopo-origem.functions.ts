@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -12,6 +13,7 @@ import { montarOrigemEscopo, resumirOrigem } from "@/lib/escopo-origem";
 export const origemEscopoContratual = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as any;
 
     const [itens, contratos, propostas, condicoes, ordens, produtos, casos] = await Promise.all([

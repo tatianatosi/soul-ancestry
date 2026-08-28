@@ -54,7 +54,10 @@ describe("domínio persistido dos anexos", () => {
     const instancias = instanciasDeAnexos({
       anexos: [
         anexo("ANEXO_I_ORDEM_SERVICO", { pendencias: ["Falta escopo"] }),
-        anexo("ANEXO_III_AUTORIZACAO_PESQUISA", { aplicavel: false, motivo: "Sem pesquisa externa" }),
+        anexo("ANEXO_III_AUTORIZACAO_PESQUISA", {
+          aplicavel: false,
+          motivo: "Sem pesquisa externa",
+        }),
         anexo("ANEXO_V_ALTERACAO_ESCOPO", { estado: "aprovado" }),
       ],
       internos: [

@@ -19,13 +19,21 @@ describe("CA-OPS-02 — painel contextual da Biblioteca de Mensagens", () => {
     expect(COMPONENTE).toContain("export function OrquestracaoContextual");
     for (const ev of EVENTOS_INTERNOS) {
       expect(ROTULO_EVENTO[ev as EventoInterno]).toBeTruthy();
-      const cadeia = executarCadeiaJornada({ hoje: HOJE, evento: ev, caso_id: "contexto-biblioteca" });
+      const cadeia = executarCadeiaJornada({
+        hoje: HOJE,
+        evento: ev,
+        caso_id: "contexto-biblioteca",
+      });
       expect(cadeia.contemAcaoExterna).toBe(false);
     }
   });
 
   it("2. template vigente vem apenas da regra existente", () => {
-    const cadeia = executarCadeiaJornada({ hoje: HOJE, evento: "lead_novo", caso_id: "contexto-biblioteca" });
+    const cadeia = executarCadeiaJornada({
+      hoje: HOJE,
+      evento: "lead_novo",
+      caso_id: "contexto-biblioteca",
+    });
     const vigentes = templatesVigentesPorEtapaCanal(HOJE);
     if (cadeia.template.template) {
       expect(vigentes.some((t) => t.chave === cadeia.template.template!.chave)).toBe(true);
@@ -38,13 +46,26 @@ describe("CA-OPS-02 — painel contextual da Biblioteca de Mensagens", () => {
   });
 
   it("4. painel não possui handler ou chamada de envio", () => {
-    for (const proibido of ["fetch(", "supabase", "sendMessage", "enviar", "whatsapp.send", "mailto:"]) {
+    for (const proibido of [
+      "fetch(",
+      "supabase",
+      "sendMessage",
+      "enviar",
+      "whatsapp.send",
+      "mailto:",
+    ]) {
       expect(COMPONENTE.toLowerCase()).not.toContain(proibido.toLowerCase());
     }
   });
 
   it("5. painel não cria fila, touchpoint, rascunho persistido, log ou dado", () => {
-    for (const proibido of ["useMutation", "registrarUsoTemplate", "insert(", "update(", "localStorage"]) {
+    for (const proibido of [
+      "useMutation",
+      "registrarUsoTemplate",
+      "insert(",
+      "update(",
+      "localStorage",
+    ]) {
       expect(COMPONENTE).not.toContain(proibido);
     }
   });
@@ -109,4 +130,3 @@ describe("CA-OPS-02 — painel contextual da Biblioteca de Mensagens", () => {
     expect(new Set(chaves).size).toBe(chaves.length);
   });
 });
-

@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -62,6 +63,7 @@ export const listarContratos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tipo?: string; status?: string; busca?: string; incluirArquivados?: boolean } = {}) => data)
   .handler(async ({ context, data }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contexto(supabase, context.userId as string);
 
@@ -87,6 +89,7 @@ export const obterContrato = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ context, data }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contexto(supabase, context.userId as string);
 
@@ -152,6 +155,7 @@ export const obterContrato = createServerFn({ method: "GET" })
 export const painelContratual = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contexto(supabase, context.userId as string);
     const org = { organization_id: organizationId };
@@ -870,6 +874,7 @@ export const visualizarVersaoInterna = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { contract_id: string; version_id: string }) => data)
   .handler(async ({ context, data }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contexto(supabase, context.userId as string);
 
@@ -1009,6 +1014,7 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { incluirDemo?: boolean } = {}) => data)
   .handler(async ({ context, data }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contexto(supabase, context.userId as string);
     const { montarChecklistJuridico } = await import("@/lib/checklist-juridico");

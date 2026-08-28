@@ -6,19 +6,40 @@ import {
   validarPropostaCanva,
   type PropostaCanva,
 } from "@/lib/escopo-proposta";
-import { bloqueiosDependentes, resumoParametroDependentes, type Dependente } from "@/lib/dependentes";
-import { TEMAS_JURIDICOS, podeGerarClausula, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
+import {
+  bloqueiosDependentes,
+  resumoParametroDependentes,
+  type Dependente,
+} from "@/lib/dependentes";
+import {
+  TEMAS_JURIDICOS,
+  podeGerarClausula,
+  temasBloqueantesPendentes,
+  type LinhaMatriz,
+} from "@/lib/matriz-juridica";
 
 const CASE_ID = "00000000-0000-4000-8000-000000000001";
 const HOJE = new Date("2026-08-19T00:00:00Z");
 
 const conteudoCompleto = {
-  "1": { proposta_referencia: "Proposta v3 — referência interna", caso_contexto: "Caso familiar — país de referência" },
+  "1": {
+    proposta_referencia: "Proposta v3 — referência interna",
+    caso_contexto: "Caso familiar — país de referência",
+  },
   "2": { processos_participantes: "3 processos", escopo_macro: "Estudo genealógico" },
   "3": { servicos_incluidos: "Pesquisa e dossiê", servicos_excluidos: "Tradução juramentada" },
-  "4": { escopos_individuais: "Recorte por participante", composicao_familiar: "Titular e beneficiários", responsabilidades: "Divisão declarada" },
+  "4": {
+    escopos_individuais: "Recorte por participante",
+    composicao_familiar: "Titular e beneficiários",
+    responsabilidades: "Divisão declarada",
+  },
   "5": { entregas_jornada: "Fases 1 a 4" },
-  "6": { valor_total: "Valor declarado", forma_pagamento: "Parcelado", parcelas: "12", responsaveis_financeiros: "Titular" },
+  "6": {
+    valor_total: "Valor declarado",
+    forma_pagamento: "Parcelado",
+    parcelas: "12",
+    responsaveis_financeiros: "Titular",
+  },
   "7": { despesas_externas: "Despesas de terceiros por conta do contratante" },
 };
 
@@ -136,6 +157,9 @@ describe("D. Matriz de temas jurídicos", () => {
   it("8. cláusula sem versão jurídica aprovada é recusada", () => {
     expect(podeGerarClausula(linhas[0]).permitido).toBe(false);
     expect(podeGerarClausula({ ...linhas[0], status: "aprovado" }).permitido).toBe(false);
-    expect(podeGerarClausula({ ...linhas[0], status: "aprovado", versao_juridica_aplicavel: "v1" }).permitido).toBe(true);
+    expect(
+      podeGerarClausula({ ...linhas[0], status: "aprovado", versao_juridica_aplicavel: "v1" })
+        .permitido,
+    ).toBe(true);
   });
 });

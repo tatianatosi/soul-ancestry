@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { avaliarFechamento, DEFINICOES_FECHAMENTO, type EstadoFechamento } from "@/lib/fechamento-caso";
+import {
+  avaliarFechamento,
+  DEFINICOES_FECHAMENTO,
+  type EstadoFechamento,
+} from "@/lib/fechamento-caso";
 
 const base: EstadoFechamento = {
   aceiteComercial: true,
@@ -38,9 +42,9 @@ describe("fechamento do caso", () => {
   it("bloqueia cobrança, onboarding e caso ativo enquanto o contrato não for assinado", () => {
     const r = avaliarFechamento(base);
     const por = Object.fromEntries(r.gates.map((g) => [g.chave, g.situacao]));
-    expect(por['cobranca']).toBe("bloqueado");
-    expect(por['onboarding']).toBe("bloqueado");
-    expect(por['caso_ativo']).toBe("bloqueado");
+    expect(por["cobranca"]).toBe("bloqueado");
+    expect(por["onboarding"]).toBe("bloqueado");
+    expect(por["caso_ativo"]).toBe("bloqueado");
     expect(r.permite.onboarding).toBe(false);
     expect(r.permite.casoAtivo).toBe(false);
   });

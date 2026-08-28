@@ -11,6 +11,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { semCache } from "@/lib/no-store";
 import { contextoInterno } from "@/lib/comercial.server";
 import {
   capacidadesDe,
@@ -53,6 +54,7 @@ const COLUNAS =
 export const estadoModoProprietaria = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     const ativo = ehProprietariaAdministradora(papel);

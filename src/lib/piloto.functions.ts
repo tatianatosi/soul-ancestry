@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -32,6 +33,7 @@ async function orgDoUsuario(supabase: Sb, userId: string) {
 export const painelPiloto = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
 

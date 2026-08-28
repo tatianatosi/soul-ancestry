@@ -7,31 +7,13 @@
 
 export type Opcao = { valor: string; rotulo: string };
 
-export const EIXO_COMERCIAL: Opcao[] = [
-  { valor: "novo_lead", rotulo: "Novo lead" },
-  { valor: "triagem", rotulo: "Triagem" },
-  { valor: "discovery_agendada", rotulo: "Discovery agendada" },
-  { valor: "discovery_realizada", rotulo: "Discovery realizada" },
-  { valor: "diagnostico_em_elaboracao", rotulo: "Diagnóstico em elaboração" },
-  { valor: "proposta_enviada", rotulo: "Proposta enviada" },
-  { valor: "negociacao", rotulo: "Negociação" },
-  { valor: "aceite_verbal", rotulo: "Aceite verbal" },
-  { valor: "confirmacao_formal_recebida", rotulo: "Confirmação formal recebida" },
-  { valor: "nutricao", rotulo: "Nutrição" },
-  { valor: "perdido", rotulo: "Perdido" },
-  { valor: "encerrado_sem_aderencia", rotulo: "Encerrado sem aderência" },
-];
-
-export const EIXO_FORMALIZACAO: Opcao[] = [
-  { valor: "nao_iniciado", rotulo: "Não iniciado" },
-  { valor: "formalizacao_em_preparacao", rotulo: "Formalização em preparação" },
-  { valor: "contrato_enviado", rotulo: "Contrato enviado" },
-  { valor: "contrato_assinado", rotulo: "Contrato assinado" },
-  { valor: "pagamento_inicial_confirmado", rotulo: "Pagamento inicial confirmado" },
-  { valor: "onboarding_iniciado", rotulo: "Onboarding iniciado" },
-  { valor: "caso_ativo", rotulo: "Caso ativo" },
-  { valor: "arquivado", rotulo: "Arquivado" },
-];
+/**
+ * 27/08/2026 — unificação pedida pela Proprietária: lead e caso são a mesma
+ * pessoa, então os dois eixos não podem ter definições próprias que
+ * divergem. `crm-desk.ts` (o que roda em `/leads`) passa a ser a fonte
+ * única; este módulo reexporta em vez de duplicar.
+ */
+export { EIXO_COMERCIAL, EIXO_FORMALIZACAO } from "@/lib/crm-desk";
 
 /** Papel do registro: separa caso operacional, piloto real e dado de demonstração. */
 export const PAPEL_REGISTRO: Opcao[] = [
@@ -307,12 +289,9 @@ export const SINAL_ADERENCIA: Opcao[] = [
   { valor: "em_investigacao", rotulo: "Em investigação" },
 ];
 
-export const CONFIANCA_TRIAGEM: Opcao[] = [
-  { valor: "alta", rotulo: "Alta" },
-  { valor: "media", rotulo: "Média" },
-  { valor: "baixa", rotulo: "Baixa" },
-  { valor: "a_definir", rotulo: "A definir" },
-];
+// 27/08/2026 — reexporta de crm-desk.ts em vez de duplicar (mesmos códigos,
+// "a_definir" já incorporado lá).
+export { CONFIANCA_TRIAGEM } from "@/lib/crm-desk";
 
 export const STATUS_CASE_SERVICE: Opcao[] = [
   { valor: "draft", rotulo: "Rascunho" },

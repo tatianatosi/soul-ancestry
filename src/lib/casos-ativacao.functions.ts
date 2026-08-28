@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolverOrganizacao, type SupabaseCliente } from "@/lib/onboarding-regras";
@@ -39,6 +40,7 @@ const REQUISITOS_OBRIGATORIOS: { chave: string; label: string }[] = [
 export const listarEstadoAtivacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
 

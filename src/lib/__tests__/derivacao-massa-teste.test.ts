@@ -76,7 +76,9 @@ describe("derivação — massa TESTE completa e incompleta", () => {
 
   it("bloqueios estruturais permanecem ativos nas duas massas", () => {
     for (const lead of [massaCompleta, massaIncompleta]) {
-      const ativos = derivarJornada(lead).bloqueios.filter((b) => b.ativo).map((b) => b.codigo);
+      const ativos = derivarJornada(lead)
+        .bloqueios.filter((b) => b.ativo)
+        .map((b) => b.codigo);
       expect(ativos).toEqual(expect.arrayContaining(["B1", "B2", "B3", "B4", "B6"]));
     }
   });

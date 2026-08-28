@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { CLAUSULAS_FIXAS, MATRIZ_RENDERIZACAO, PERFIL_INSTITUCIONAL } from "@/lib/contrato-base-consolidado";
+import {
+  CLAUSULAS_FIXAS,
+  MATRIZ_RENDERIZACAO,
+  PERFIL_INSTITUCIONAL,
+} from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual, MODELO_VERSAO_ANEXO } from "@/lib/contrato-corpo.server";
 import { instanciasDeAnexos } from "@/lib/anexos-persistidos.server";
 import { montarPrevia } from "@/lib/contrato-parametros.server";
@@ -18,7 +22,9 @@ const entrada = {
   clienteNome: "Cliente TESTE",
   responsavel: "Operações",
   valores,
-  anexosInternos: [{ codigo: "ANX-ESCOPO", titulo: "Anexo de escopo", motivo: "Obrigatório no MODELO ESTUDO" }],
+  anexosInternos: [
+    { codigo: "ANX-ESCOPO", titulo: "Anexo de escopo", motivo: "Obrigatório no MODELO ESTUDO" },
+  ],
 };
 
 describe("corpo contratual persistido", () => {
@@ -63,7 +69,9 @@ describe("instâncias persistíveis dos anexos", () => {
   });
 
   it("carrega dados estruturados e regra de aplicabilidade", () => {
-    expect(instancias.every((i) => Boolean(i.applicability_rule) && Boolean(i.model_version))).toBe(true);
+    expect(instancias.every((i) => Boolean(i.applicability_rule) && Boolean(i.model_version))).toBe(
+      true,
+    );
   });
 });
 

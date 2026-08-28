@@ -38,7 +38,9 @@ export function ItensDerivados({
         >
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="min-w-0 font-medium text-navy">{i.titulo}</p>
-            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${TOM[i.criticidade]}`}>
+            <span
+              className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${TOM[i.criticidade]}`}
+            >
               {ROTULO[i.criticidade]}
             </span>
           </div>

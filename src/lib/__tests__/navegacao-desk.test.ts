@@ -69,7 +69,9 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
 
   it("mantém Validação Jurídica em Governança com link contextual em Comercial e Casos", () => {
     const temJuridica = (id: string) =>
-      GRUPOS_DESK.find((g) => g.id === id)!.sub.some((s) => "to" in s && s.to === "/matriz-juridica");
+      GRUPOS_DESK.find((g) => g.id === id)!.sub.some(
+        (s) => "to" in s && s.to === "/matriz-juridica",
+      );
     expect(temJuridica("governanca")).toBe(true);
     expect(temJuridica("comercial")).toBe(true);
     expect(temJuridica("casos")).toBe(true);
@@ -80,10 +82,16 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
       to: string;
       label: string;
     }[];
-    expect(todos.some((s) => s.to === "/qualidade" && s.label === "Radar Interno e Qualidade")).toBe(true);
-    expect(todos.some((s) => s.to === "/matriz-juridica" && s.label === "Validação Jurídica")).toBe(true);
     expect(
-      todos.some((s) => s.to === "/pesquisa-modulo" && s.label === "Pesquisa Genealógica e Evidências"),
+      todos.some((s) => s.to === "/qualidade" && s.label === "Radar Interno e Qualidade"),
+    ).toBe(true);
+    expect(todos.some((s) => s.to === "/matriz-juridica" && s.label === "Validação Jurídica")).toBe(
+      true,
+    );
+    expect(
+      todos.some(
+        (s) => s.to === "/pesquisa-modulo" && s.label === "Pesquisa Genealógica e Evidências",
+      ),
     ).toBe(true);
   });
 
@@ -119,5 +127,29 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
       expect(g.grupoNovo).toBeDefined();
       expect(labels.has(g.grupoNovo!) || g.grupoNovo === MENU_CONTA.label).toBe(true);
     }
+  });
+
+  /**
+   * 28/08/2026 — CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1
+   * (substitui a v1.0, que propunha tabelas contacts/opportunities novas):
+   * "a seção Comercial deve conter e tornar visível o CRM Vivo... não basta
+   * haver funções, tabelas ou componentes isolados". Trava aqui pra não
+   * regredir pro rótulo genérico "CRM" de novo.
+   */
+  it("Comercial exibe explicitamente o agrupamento CRM Vivo, com Leads/Propostas/Conversão", () => {
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    const chaves = comercial.sub.map((s) => ("grupo" in s ? s.grupo : s.to));
+    const idxCrmVivo = chaves.indexOf("CRM Vivo");
+    expect(idxCrmVivo).toBeGreaterThan(-1);
+
+    const proximoGrupo = chaves.findIndex((c, i) => i > idxCrmVivo && comercial.sub[i] && "grupo" in comercial.sub[i]);
+    const rotasDoCrmVivo = comercial.sub
+      .slice(idxCrmVivo + 1, proximoGrupo === -1 ? undefined : proximoGrupo)
+      .map((s) => ("to" in s ? s.to : null))
+      .filter(Boolean);
+
+    expect(rotasDoCrmVivo).toContain("/leads");
+    expect(rotasDoCrmVivo).toContain("/propostas");
+    expect(rotasDoCrmVivo).toContain("/conversao");
   });
 });

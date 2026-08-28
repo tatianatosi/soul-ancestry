@@ -1,0 +1,1036 @@
+CA-RESET-01 — DEVOLUTIVA PADRONIZADA (v3)
+Projeto: Clube Ancestral
+Data: 15/08/2026
+Responsável: Tatiana Tosi
+Natureza: Auditoria de decisão + plano de implementação fechado
+
+====================================================================
+ESTADO DE PRODUÇÃO: NAO_PRONTO
+====================================================================
+
+Não falta nova arquitetura; falta executar uma sequência curta de estabilização.
+A fundação (modelos, fontes de verdade, fluxos, governança) está definida e documentada.
+O que impede produção é a cadeia comercial-jurídica-financeira não reconciliada.
+
+A publicação do app é um FLUXO INDEPENDENTE que pode avançar em paralelo,
+sem depender de contrato, SKU, Asaas ou revisão jurídica.
+
+PUBLICAR A EXPERIÊNCIA E A OPERAÇÃO APROVADAS
+≠
+ASSINAR CONTRATO, GERAR COBRANÇA OU PROMETER CONDIÇÃO COMERCIAL
+
+====================================================================
+BLOQUEADORES REAIS — CADEIA COMERCIAL-JURÍDICA-FINANCEIRA (6)
+====================================================================
+
+1. Aprovar operação transitória sem CRM OU eleger CRM oficial mínimo.
+2. Criar e aprovar especificação comercial única para Áustria/§58c/PACOTE-AT-01 na Planilha Mestre.
+3. Reconciliar representação de valor: R$ 9.600 total = 10×R$960 familiar = 3×R$320×10 operacional.
+4. Compor Contrato + Anexo I/OS a partir do MODELO ESTUDO e submeter à revisão jurídica.
+5. Coletar dados obrigatórios das partes: Ana, Alice (nome completo), Adair, Felipe (representação legal) e dados oficiais da contratada (CNPJ, razão social, endereço).
+6. Definir gatilho de ativação financeira: contrato/OS assinado + SKU aprovado + Asaas refletindo exatamente a condição contratada.
+
+====================================================================
+FLUXO INDEPENDENTE — PUBLICAÇÃO DO APP
+====================================================================
+
+(não bloqueia nem é bloqueado pela cadeia comercial)
+
+- Eleger 1 app existente, congelar escopo, publicar com dados sanitizados.
+- Não depende de contrato assinado, SKU aprovado, Asaas ativo ou revisão jurídica.
+- Pode e deve avançar em paralelo.
+- Publicar a experiência e a operação aprovadas ≠ assinar contrato, gerar cobrança ou prometer condição comercial.
+
+====================================================================
+NÃO BLOQUEIA PRODUÇÃO (lista fechada)
+====================================================================
+
+- App: protótipos existentes podem ser eleitos e publicados sem novo redesign; fluxo independente da cadeia comercial.
+- Planejador: IDs duplicados e #ERROR! são corrigíveis cirurgicamente sem rearquitetura.
+- Anexos II, IV: pendem verificação direta no Drive, mas não bloqueiam a composição do contrato (Anexo I + MODELO ESTUDO são suficientes para primeira versão).
+- Integrações de CRM, webhooks, sincronizações Calendar/Tasks: backlog pós-produção.
+- Dashboards, analytics, copy refinement: backlog pós-produção.
+- Novas nacionalidades além de Áustria/§58c: backlog pós-produção.
+
+====================================================================
+DECISÕES TOMADAS (lista fechada)
+====================================================================
+
+1. MODELO ESTUDO GENEALÓGICO é o único contrato-base vigente. Modelo Simples = descontinuado. Modelo 2024 = referência histórica.
+2. Planilha Mestre prevalece sobre preço, SKU, escopo e condição comercial.
+3. Asaas é exclusivamente receptor financeiro — não define produto, preço ou elegibilidade.
+4. Desk/Dossiê é a fonte de verdade para caso, evidências e histórico durante a operação transitória sem CRM.
+5. Case_ID canônico de Ana Luiza: CA-CID-AT-FAM-2026-001 (CA-AUT-ANALUIZA-FAM-2026-001 é alias histórico).
+6. Aceite comercial de Ana Luiza confirmado em 14/08/2026; risco de expiração resolvido.
+7. CRM Mestre e OPS/Pipeline classificados como NAO_VALIDADO_COMO_FONTE_OPERACIONAL; D09 = BLOQUEADO_POR_DECISAO_DE_GOVERNANCA.
+8. Nenhum sistema externo foi alterado em CA-EVO-02 a CA-EVO-05A.
+9. Publicação do app classificada como FLUXO INDEPENDENTE da cadeia comercial-jurídica-financeira.
+
+====================================================================
+DECISÕES HUMANAS NECESSÁRIAS
+====================================================================
+
+D1 — Eleger e publicar app oficial (fluxo independente)
+    Decisor: Tatiana
+    Prazo: 3 dias úteis
+    Impacto: Sem app publicado, não há entrega cliente visível — mas não bloqueia a cadeia comercial
+
+D2 — Aprovar operação transitória sem CRM (formalizar)
+    Decisor: Tatiana
+    Prazo: 3 dias úteis
+    Impacto: Sem decisão, dados ficam espalhados sem fonte canônica
+
+D3 — Aprovar especificação comercial do PACOTE-AT-01
+    (nome, escopo, preço R$9.600, parcelamento, regra Asaas)
+    Decisor: Tatiana
+    Prazo: 5 dias úteis
+    Impacto: Sem SKU comercial, contrato e Asaas não podem ser compostos
+
+D4 — Revisão jurídica do Contrato + Anexo I/OS composto
+    Decisor: Advogado
+    Prazo: 10 dias úteis após composição
+    Impacto: Sem revisão jurídica, não há segurança para assinatura e cobrança
+
+D5 — Confirmar nome completo de Alice Gomes Silveira
+    Decisor: Tatiana/Ana Luiza
+    Prazo: 5 dias úteis
+    Impacto: Sem nome completo, contrato não pode ser preenchido
+
+D6 — Documentar representação legal de Felipe (se menor)
+    Decisor: Tatiana/Ana Luiza
+    Prazo: 5 dias úteis
+    Impacto: Sem representação documentada, Felipe não pode figurar no contrato
+
+D7 — Confirmar dados oficiais da contratada (CNPJ, razão social, endereço)
+    Decisor: Tatiana
+    Prazo: 3 dias úteis
+    Impacto: Sem dados oficiais, contrato não pode ser emitido
+
+====================================================================
+PRIMEIRA ENTREGA DE PRODUÇÃO
+====================================================================
+
+Duas trilhas paralelas:
+
+TRILHA A — PUBLICAÇÃO DO APP (fluxo independente):
+    App eleito, escopo congelado e publicado com conteúdo sanitizado.
+    Pode avançar imediatamente. Não depende de nenhuma decisão da
+    cadeia comercial.
+
+TRILHA B — CADEIA COMERCIAL-JURÍDICA-FINANCEIRA:
+    Contrato + Anexo I/OS compostos, revisados juridicamente e
+    assinados para o caso CA-CID-AT-FAM-2026-001, com SKU comercial
+    austríaco aprovado na Planilha Mestre e Asaas configurado
+    refletindo exatamente a condição contratada (3 assinaturas de
+    R$320/mês × 10 meses, primeiro vencimento 01/10/2026).
+
+====================================================================
+DATA ESTIMADA DE PRONTIDÃO
+====================================================================
+
+Trilha A (publicação do app): 3 dias úteis (decisão + publicação)
+
+Trilha B (primeira cobrança ativa): 25-30 dias úteis
+    Trabalho interno de consolidação: 10 dias úteis
+    Dependência de resposta da cliente (dados de Alice, Felipe): 5 dias úteis
+    Dependência do advogado (revisão jurídica): 10 dias úteis
+    Dependência de decisão da gestora (D2, D3): 5 dias úteis
+
+Cenário completo (operação escalável): 45-60 dias úteis
+
+Premissas: disponibilidade de Tatiana para decisões em 3 dias úteis;
+advogado disponível em 5 dias úteis após recebimento;
+Ana Luiza responde em 3 dias úteis.
+
+====================================================================
+DECISÕES FORÇADAS POR TEMA
+====================================================================
+
+3.1 APP — FLUXO INDEPENDENTE
+
+- Classificação: Fluxo independente. Publicar a experiência e a operação
+  aprovadas ≠ assinar contrato, gerar cobrança ou prometer condição
+  comercial.
+- Sistema oficial: Nenhum eleito ainda. Candidato-base: App Lovable
+  existente (mobile-first, protótipo funcional).
+- Funcionalidades verificáveis: Protótipo ativo e acessível, cards de
+  jornada, status e entrega visível. Não há verificação de dados vivos.
+- Defeitos bloqueadores técnicos reais: Nenhum. O bloqueio é decisório.
+- Congelar para evitar redesign: Escopo de telas, fluxo de navegação e
+  tipos de card.
+- Dados seguros: Apenas conteúdo aprovado e sanitizado — status genérico
+  de etapa, marcos de progresso, mensagens de acompanhamento. Nunca CPF,
+  RG, documentos integrais, dados sensíveis familiares, cobrança ou
+  detalhes de contrato.
+- Dependência da cadeia comercial: Nenhuma. A publicação do app não
+  depende de contrato assinado, SKU aprovado, Asaas ativo ou revisão
+  jurídica. Pode e deve avançar em paralelo.
+- Dependência do app pela cadeia comercial: Nenhuma. A cadeia comercial
+  não depende do app publicado para avançar.
+
+3.2 CRM
+
+- Decisão provisória: Operação transitória SEM CRM. CRM Mestre e
+  OPS/Pipeline = NAO_VALIDADO_COMO_FONTE_OPERACIONAL.
+- Operação transitória oficial: Desk/Dossiê (caso e evidências);
+  Planilha Mestre (SKU/preço/escopo); Canva (proposta aceita); Asaas
+  (pagamento); Planejador (cronograma após correção).
+- Campos mínimos obrigatórios: Nome completo, CPF, RG, profissão, estado
+  civil, endereço completo, email, telefone/WhatsApp, canal de comunicação
+  formal autorizado.
+- Data e critério para decisão definitiva: Após Sprint 4. Critério: 2+
+  casos ativos em operação transitória sem CRM.
+
+3.3 PLANEJADOR
+
+- Função única: Cronograma, marcos, responsáveis e etapas por caso.
+  Nunca fonte-mãe de produto, preço ou cobrança.
+- Bloqueadores: IDs duplicados e #ERROR! no resumo. Corrigíveis
+  cirurgicamente.
+- Limpeza de backlog: Padronização de formatação, revisão de fórmulas
+  secundárias.
+- Procedimento universal de entrada de caso: Case_ID no Desk → inserção
+  no Planejador com ID canônico → marcos e responsáveis → cronograma.
+
+3.4 CATÁLOGO E SKU
+
+- Relação obrigatória: SKU operacional do Planejador → SKU comercial da
+  Planilha Mestre → produto/assinatura Asaas. Fluxo unidirecional.
+- PACOTE-AT-01: NÃO tem correspondência comercial válida. Existe apenas
+  no Planejador (tab PARAMETROS). Não existe na Planilha Mestre.
+- Especificação a ser aprovada: Ficha de Decisão de SKU (seção abaixo).
+- Quem aprova: Tatiana Tosi.
+
+3.5 JURÍDICO
+
+- Conjunto mínimo obrigatório antes de contratar e cobrar: MODELO ESTUDO
+  GENEALÓGICO + Anexo I (OS) com escopo, preço e responsável preenchidos.
+  Revisados juridicamente.
+- Exigem advogado: Assinatura eletrônica/logs; foro; composição para
+  múltiplos signatários; prevalência da OS; cancelamento/rescisão;
+  procurações; formas de pagamento.
+- Pacote documental universal: Contrato (MODELO ESTUDO) + Anexo I (OS).
+- Anexos condicionais (não exigir por padrão): II (despesas externas);
+  III (pesquisa externa); IV (procuração); V (alteração de escopo).
+
+3.6 FINANCEIRO
+
+- Condição única que entra no Asaas: Contrato + Anexo I/OS assinados +
+  SKU aprovado na Planilha Mestre + valor reconciliado.
+- Tradução sem divergência: Contrato e OS registram R$ 9.600 em
+  10×R$960. Asaas opera com 3 assinaturas de R$ 320/mês × 10. OS
+  explicita que o total familiar = soma das 3 assinaturas.
+- Ativação financeira válida: (a) Contrato assinado; (b) SKU criado na
+  Planilha; (c) 3 assinaturas no Asaas; (d) IDs arquivados no Desk;
+  (e) Link enviado ao cliente após (a)-(d).
+
+3.7 DADOS E DOCUMENTOS
+
+- Cliente (cadastro): Desk/Dossiê
+- Caso (evidências, histórico, decisões): Desk/Dossiê
+- Proposta (versão aceita): Canva
+- Escopo contratado: Contrato + Anexo I/OS (Drive)
+- Contrato (relação jurídica): Drive (MODELO ESTUDO preenchido)
+- Cobrança (pagamento, assinatura): Asaas
+- Cronograma (marcos, etapas): Planejador
+- Documento (armazenamento): Drive
+- Evidência (comprovação): Desk/Dossiê
+- Fontes oficiais: Desk/Dossiê, Planilha Mestre, Asaas, Drive, Canva,
+  MODELO ESTUDO
+- Histórico/backup apenas: Dropbox, CRM Pipeline (DADOS TESTE), versões
+  arquivadas/inativas da Planilha Mestre
+
+====================================================================
+CLASSIFICAÇÃO CA-RESET
+====================================================================
+
+A — BLOQUEADOR_DE_PRODUCAO (cadeia comercial-jurídica-financeira)
+    1. CRM não validado (operação transitória não formalizada)
+    2. SKU austríaco inexistente na Planilha Mestre
+    3. Divergência de representação de valor (R$9.600)
+    4. Contrato/OS não composto
+    5. Revisão jurídica pendente
+    6. Gatilho de ativação financeira não definido
+
+FLUXO_INDEPENDENTE (pode avançar em paralelo; não bloqueia nem é
+bloqueado pela cadeia comercial)
+    - Publicação do app: eleger, congelar escopo, publicar com dados
+      sanitizados. Publicar a experiência e a operação aprovadas ≠
+      assinar contrato, gerar cobrança ou prometer condição comercial.
+
+B — NECESSARIO_PARA_GO_LIVE_DO_CASO
+    - Dados cadastrais de Ana/Adair
+    - Nome completo de Alice
+    - Representação legal de Felipe
+    - Dados oficiais da contratada
+    - Assinatura do contrato
+
+C — NECESSARIO_PARA_ESCALA
+    - Decisão definitiva de CRM
+    - Logs de auditoria
+    - Rotina de status
+    - Schema mínimo de CRM
+    - Correção estrutural do Planejador
+
+D — BACKLOG_POS_PRODUCAO
+    - Integrações CRM/Asaas/Calendar/Tasks
+    - Dashboards
+    - Micro-entregas no app
+    - Novas nacionalidades
+    - Redesign
+    - Analytics
+
+E — HISTORICO_OU_DESCARTADO
+    - Modelo Simples (descontinuado)
+    - Modelo 2024 (referência histórica)
+    - CRM Pipeline DADOS TESTE
+    - Protótipos de app não eleitos
+    - Versões arquivadas da Planilha Mestre
+
+====================================================================
+ARQUITETURA ÚNICA DE PRODUÇÃO
+====================================================================
+
+Camada: App
+    Sistema oficial: App Lovable existente (a eleger)
+    Finalidade: Jornada do cliente, entrega visível, acompanhamento
+    Fonte de verdade para: Conteúdo aprovado e sanitizado para o cliente
+    Entrada: Dados aprovados do Desk/Dossiê
+    Saída: Visualização do cliente
+    Não pode definir: Preço, SKU, condição comercial, elegibilidade
+    Estado: Protótipo existe, nenhum eleito como oficial
+    Bloqueia produção: NÃO (fluxo independente)
+    Dono: Tatiana
+    Próxima ação: Eleger 1 app, congelar escopo, publicar com dados
+                 não-sensíveis — pode avançar em paralelo
+
+Camada: CRM
+    Sistema oficial: Nenhum validado (operação transitória sem CRM)
+    Finalidade: Entrada de lead, status comercial, aceite, handoff
+    Fonte de verdade para: Nada (temporariamente)
+    Estado: BLOQUEADO_POR_DECISAO_DE_GOVERNANCA
+    Bloqueia produção: NÃO (operação transitória sem CRM é viável)
+    Dono: Tatiana
+    Próxima ação: Formalizar decisão de operação transitória; usar
+                 Desk/Dossiê como fonte temporária
+
+Camada: Dossiê/Desk
+    Sistema oficial: Desk Intelligence / Dossiê Consolidado
+    Finalidade: Caso, evidências, documentos, pendências, decisões,
+                histórico
+    Fonte de verdade para: Fatos do caso, evidência escrita de aceite,
+                          histórico
+    Estado: ATIVO como fonte temporária de caso
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Manter como fonte canônica de caso durante operação
+                 transitória
+
+Camada: Drive
+    Sistema oficial: Google Drive
+    Finalidade: Documentos operacionais, contratos, anexos, pastas do caso
+    Fonte de verdade para: Armazenamento documental
+    Estado: ATIVO; pasta Ana Luiza criada mas não validada
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Validar pasta 02_Ana Luiza e Filho como pasta
+                 operacional
+
+Camada: Planejador
+    Sistema oficial: Planejador Universal (Google Sheets)
+    Finalidade: Cronograma, marcos, responsáveis, etapas por caso
+    Fonte de verdade para: Cronologia do caso
+    Estado: Estruturalmente aproveitável; IDs duplicados e #ERROR!
+    Bloqueia produção: NÃO (corrigível cirurgicamente)
+    Dono: Tatiana
+    Próxima ação: Corrigir IDs duplicados e #ERROR! antes de uso em
+                 dados vivos
+
+Camada: Planilha Mestre
+    Sistema oficial: CA · FIN · Planilha Mestre de Produtos OFICIAL
+    Finalidade: Catálogo, SKU, preço, escopo, condição, status, link Asaas
+    Fonte de verdade para: SKU comercial, preço, escopo, condição comercial
+    Estado: ATIVO; 40+ SKUs italianos/memória; nenhum SKU austríaco
+    Bloqueia produção: SIM (D3)
+    Dono: Tatiana
+    Próxima ação: Criar e aprovar SKU comercial para Áustria/§58c
+
+Camada: Asaas
+    Sistema oficial: Asaas
+    Finalidade: Cobrança, pagamento, assinatura, conciliação financeira
+    Fonte de verdade para: Pagamento efetivamente conciliado
+    Estado: Configurado (documentado), não ativado
+    Bloqueia produção: SIM (cadeia comercial)
+    Dono: Tatiana
+    Próxima ação: Ativar após contrato assinado e SKU aprovado
+
+Camada: Canva
+    Sistema oficial: Canva (proposta DAHSB6nbt_M)
+    Finalidade: Proposta-mestre e aceite comercial visual
+    Fonte de verdade para: Versão-mestre da proposta aceita
+    Estado: ATIVO; proposta Ana Luiza aceita em 14/08
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Preservar como evidência; usar como insumo para OS
+
+Camada: Dropbox
+    Sistema oficial: Dropbox
+    Finalidade: Backup e histórico apenas
+    Estado: ATIVO como backup
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Manter como backup; não usar como fonte operacional
+
+Camada: Contrato/OS/Anexos
+    Sistema oficial: MODELO ESTUDO GENEALÓGICO + Anexos I-V
+    Finalidade: Contrato, Ordem de Serviço, autorizações
+    Fonte de verdade para: Relação jurídica, escopo contratado, obrigações
+    Estado: MODELO ativo; Contrato-Mãe Ana Luiza = placeholder 55 bytes
+    Bloqueia produção: SIM (D4-D5)
+    Dono: Tatiana + Advogado
+    Próxima ação: Compor contrato a partir do MODELO ESTUDO; submeter à
+                 revisão jurídica
+
+Camada: Logs/Automações
+    Sistema oficial: Especificados (CA-EVO-04), não ativados
+    Estado: DOCUMENTADO_SEM_IMPLEMENTACAO
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Backlog pós-produção
+
+Camada: Tarefas/Calendário
+    Sistema oficial: Google Tasks / Google Calendar
+    Estado: Não integrados
+    Bloqueia produção: NÃO
+    Dono: Tatiana
+    Próxima ação: Backlog pós-produção
+
+====================================================================
+MATRIZ UNIVERSAL DE PRODUTO — LINHA AUSTRÍACA
+====================================================================
+
+Linha operacional: Cidadania Austríaca §58c
+SKU operacional: PACOTE-AT-01 (existe apenas no Planejador)
+SKU comercial: INEXISTENTE na Planilha Mestre
+Produto comercial: A definir
+Escopo padrão: Processo §58c familiar (3 adultos) — proposto para aprovação
+Preço: R$ 9.600,00
+Parcelamento: 10× R$960 (familiar) ou 3× R$320×10 (Asaas)
+Regra Asaas: A criar após aprovação
+Contrato/OS: MODELO ESTUDO + Anexo I
+Estado: SKU_COMERCIAL_PENDENTE_DE_CADASTRO_E_RECONCILIACAO
+Lacuna: SKU comercial não existe na Planilha Mestre; divergência de
+        representação de valor
+Decisor: Tatiana
+Ação: Aprovar ficha de decisão abaixo e criar SKU na Planilha Mestre
+
+====================================================================
+FICHA DE DECISÃO DE SKU — PACOTE-AT-01
+====================================================================
+
+CÓDIGO PROPOSTO: CA-CID-AT-001 (ou manter PACOTE-AT-01 como alias
+operacional)
+
+NOME COMERCIAL: Pacote Cidadania Austríaca §58c — Família
+
+LINHA/NACIONALIDADE: Cidadania Austríaca / §58c StbG
+
+PÚBLICO/PARTICIPANTES: Família de 3 adultos (Ana Luiza, Adair, Alice)
++ 1 menor (Felipe)
+Condição: pacote familiar; cada adulto recebe processo individual
+integrado
+
+ESCOPO INCLUÍDO (PROPOSTO PARA APROVAÇÃO — validar contra proposta
+Canva aceita e OS):
+- Análise de elegibilidade §58c StbG
+- Pesquisa genealógica de linha austríaca
+- Coleta e organização documental
+- Traduções juramentadas necessárias
+- Apostilamento
+- Protocolo junto à autoridade austríaca competente
+- Acompanhamento até reconhecimento
+
+NOTA: O escopo acima é uma proposta baseada na proposta Canva aceita
+e na configuração Asaas documentada. Deve ser validado contra a
+proposta aceita e a OS antes de ser considerado definitivo.
+
+EXCLUSÕES:
+- Despesas externas (embaixada, cartórios, traduções adicionais)
+- Passaporte e registro pós-reconhecimento
+- Pesquisa de linha não-austríaca
+
+ENTREGAS:
+- Relatório de elegibilidade
+- Pasta documental completa por adulto
+- Protocolo submetido
+- Acompanhamento de status
+
+PREÇO TOTAL: R$ 9.600,00
+
+PARCELAMENTO: 10 mensalidades de R$ 960,00 (visão familiar)
+Primeiro vencimento: 01/10/2026
+
+MODELAGEM ASAAS: 3 assinaturas mensais de R$ 320,00 × 10 meses
+- Assinatura 1: Ana Luiza — R$ 320 × 10
+- Assinatura 2: Adair — R$ 320 × 10
+- Assinatura 3: Alice — R$ 320 × 10
+- Total: R$ 9.600,00
+- Primeiro vencimento: 01/10/2026
+- Encerramento automático após 10ª cobrança
+- Não enviar link de pagamento até contrato assinado
+
+CRITÉRIO DE ACEITE: Contrato assinado pelos 3 adultos + SKU criado
+na Planilha Mestre + Asaas configurado
+
+CONDIÇÃO DE USO: Exclusivo para casos §58c austríaco; não aplicar a
+outras nacionalidades sem aprovação específica
+
+RESPONSÁVEL PELA APROVAÇÃO: Tatiana Tosi
+
+SISTEMAS QUE RECEBERÃO A CRIAÇÃO QUANDO APROVADA:
+1. Planilha Mestre (Catalogo Produtos) — novo SKU
+2. Asaas — 3 assinaturas conforme modelagem acima
+3. Contrato/OS — referência ao SKU e condição
+4. Desk/Dossiê — registro do SKU no caso
+5. Planejador — atualização do PACOTE-AT-01 para SKU comercial validado
+
+====================================================================
+PACOTE UNIVERSAL DE CASO (10 PASSOS)
+====================================================================
+
+Passo 1 — Discovery e aceite
+    Entrada: Lead/contato inicial
+    Saída: Necessidade identificada + aceite de prosseguir
+    Fonte de verdade: Canva (proposta) ou WhatsApp
+    Bloqueador: Nenhum
+    Responsável: Tatiana
+    Evidência: Registro no Desk/Dossiê
+    Ação externa: Nenhuma
+    Exige confirmação: Sim (aceite do cliente)
+
+Passo 2 — Case_ID e responsável
+    Entrada: Cliente aceitou prosseguir
+    Saída: Case_ID atribuído + responsável definido
+    Fonte de verdade: Desk/Dossiê
+    Bloqueador: Nenhum
+    Responsável: Tatiana
+    Evidência: Registro no Desk
+    Ação externa: Nenhuma
+    Exige confirmação: Não
+
+Passo 3 — Dados cadastrais e familiares
+    Entrada: Formulário ou entrevista
+    Saída: Cadastro completo (nome, CPF, RG, profissão, estado civil,
+           endereço, email, telefone + dados familiares)
+    Fonte de verdade: Desk/Dossiê
+    Bloqueador: Dados faltantes
+    Responsável: Tatiana + Cliente
+    Evidência: Ficha cadastral no Dossiê
+    Ação externa: Nenhuma
+    Exige confirmação: Sim (dados do cliente)
+
+Passo 4 — SKU e condição comercial validados
+    Entrada: Necessidade + catálogo
+    Saída: SKU comercial selecionado + preço + parcelamento + regra Asaas
+    Fonte de verdade: Planilha Mestre
+    Bloqueador: SKU inexistente no catálogo
+    Responsável: Tatiana
+    Evidência: Registro na Planilha Mestre
+    Ação externa: Criar SKU se inexistente (requer aprovação)
+    Exige confirmação: Sim (se criar novo SKU)
+
+Passo 5 — Contrato + Anexo I
+    Entrada: Dados das partes + SKU + escopo
+    Saída: Contrato composto + OS
+    Fonte de verdade: MODELO ESTUDO + Anexo I
+    Bloqueador: Dados faltantes; SKU não aprovado
+    Responsável: Tatiana
+    Evidência: Documento no Drive
+    Ação externa: Nenhuma
+    Exige confirmação: Não
+
+Passo 6 — Assinatura
+    Entrada: Contrato composto + revisado
+    Saída: Contrato assinado por todas as partes
+    Fonte de verdade: Drive
+    Bloqueador: Revisão jurídica pendente
+    Responsável: Advogado + Tatiana + Cliente
+    Evidência: Contrato assinado no Drive
+    Ação externa: Assinatura eletrônica (a definir juridicamente)
+    Exige confirmação: Sim (assinatura de todas as partes)
+
+Passo 7 — Asaas
+    Entrada: Contrato assinado + SKU aprovado
+    Saída: Assinaturas/cobranças criadas no Asaas
+    Fonte de verdade: Asaas
+    Bloqueador: Contrato não assinado; SKU não aprovado
+    Responsável: Tatiana
+    Evidência: IDs das assinaturas no Desk
+    Ação externa: Criação manual no painel Asaas
+    Exige confirmação: Sim (envio de link após configuração)
+
+Passo 8 — Dossiê/Drive/Planejador
+    Entrada: Contrato assinado + Asaas ativo
+    Saída: Pasta do caso organizada + cronograma + marcos
+    Fonte de verdade: Drive + Desk/Dossiê + Planejador
+    Bloqueador: Passo 7 não concluído
+    Responsável: Tatiana
+    Evidência: Estrutura no Drive + Planejador
+    Ação externa: Nenhuma
+    Exige confirmação: Não
+
+Passo 9 — Pesquisa e autorizações condicionais
+    Entrada: Dossiê pronto + pagamento iniciado
+    Saída: Pesquisa autorizada + autorizações assinadas se aplicável
+    Fonte de verdade: Anexo III (Autorização de Pesquisa)
+    Bloqueador: Passo 8 não concluído; Anexo III não classificado
+    Responsável: Tatiana
+    Evidência: Autorização no Drive
+    Ação externa: Nenhuma (se Anexo III já existir)
+    Exige confirmação: Sim (autorização do cliente)
+
+Passo 10 — App e acompanhamento
+    Entrada: Dados aprovados + escopo sanitizado
+    Saída: Cliente tem acesso ao app com acompanhamento
+    Fonte de verdade: App (conteúdo aprovado)
+    Bloqueador: App não publicado (fluxo independente, pode avançar
+                em paralelo)
+    Responsável: Tatiana
+    Evidência: Acesso do cliente ao app
+    Ação externa: Publicação do app (fluxo independente)
+    Exige confirmação: Sim (autorização do cliente para acesso)
+
+====================================================================
+PLANO DE RECUPERAÇÃO — TABELA-RESUMO DE SPRINTS
+====================================================================
+
+SPRINT 1 — Decisões fundacionais fechadas (cadeia comercial)
+    Entregas: Operação sem CRM formalizada; Ficha de SKU aprovada
+    Dependências: Nenhuma
+    Responsável: Tatiana
+    Estimativa interna: 2 dias úteis
+    Dependência externa: Nenhuma
+    Critério de aceite: 2 decisões documentadas e assinadas
+
+SPRINT 2 — Jurídico e comercial
+    Entregas: SKU criado na Planilha; Dados das partes coletados;
+              Contrato composto e enviado à revisão jurídica
+    Dependências: Sprint 1
+    Responsável: Tatiana + Advogado + Ana Luiza
+    Estimativa interna: 5 dias úteis
+    Dependência externa: Advogado 10 dias úteis; Ana Luiza 3 dias úteis
+    Critério de aceite: Contrato no Drive com campos preenchidos
+                       + envio ao advogado confirmado
+
+SPRINT 3 — Financeiro e operacional
+    Entregas: Contrato assinado; Asaas ativado;
+              Dossiê/Drive/Planejador prontos
+    Dependências: Sprint 2 (revisão jurídica concluída)
+    Responsável: Tatiana + Cliente
+    Estimativa interna: 4-6 dias úteis
+    Dependência externa: Cliente assina em 3 dias úteis
+    Critério de aceite: 3 assinaturas Asaas ativas + pasta validada
+
+SPRINT 4 — Escala controlada
+    Entregas: Rotina de status; Logs mínimos; Decisão de CRM definida;
+              Backlog priorizado; Link de pagamento enviado
+    Dependências: Sprint 3
+    Responsável: Tatiana
+    Estimativa interna: 3-5 dias úteis
+    Dependência externa: Aproximação de setembro (link)
+    Critério de aceite: Rotina documentada + 1ª cobrança verificada
+                       em 01/10
+
+====================================================================
+TRILHA PARALELA — PUBLICAÇÃO DO APP (FLUXO INDEPENDENTE)
+====================================================================
+
+Entrega 1: App eleito e escopo congelado (sem redesign)
+    Dependência: Nenhuma
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Documento nomeando o app oficial + escopo congelado
+
+Entrega 2: Dados não-sensíveis aprovados para publicação
+    Dependência: Nenhuma
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Lista de conteúdo sanitizado aprovado
+
+Entrega 3: App publicado e acessível
+    Dependência: Entregas 1 e 2
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: URL ativa com conteúdo sanitizado
+
+Duração estimada: 3 dias úteis.
+Não depende de nenhum sprint da cadeia comercial.
+
+====================================================================
+SPRINT 1 — DETALHAMENTO (CADEIA COMERCIAL)
+====================================================================
+
+1.1 — Decisão formal de operação transitória sem CRM
+    Dependência: D2
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Dependência externa: Nenhuma
+    Critério de aceite: Registro no Desk formalizando a decisão e a
+                       fonte temporária (Desk/Dossiê)
+
+1.2 — Ficha de SKU austríaco aprovada
+    Dependência: Ficha acima aprovada
+    Responsável: Tatiana
+    Estimativa: 2 dias úteis
+    Dependência externa: Nenhuma
+    Critério de aceite: Ficha assinada/aprovada com nome, escopo, preço
+                       R$9.600, parcelamento e regra Asaas definidos
+
+Duração estimada: 2 dias úteis (se Tatiana disponível)
+
+Nota: A publicação do app não faz parte deste sprint. É um fluxo
+independente que avança em paralelo (ver Trilha Paralela acima).
+
+====================================================================
+SPRINT 2 — DETALHAMENTO
+====================================================================
+
+2.1 — SKU austríaco criado na Planilha Mestre
+    Dependência: Sprint 1 concluído
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Nova linha na Planilha Mestre com SKU, preço,
+                       status Ativo
+
+2.2 — Dados cadastrais coletados (Ana, Adair, Alice)
+    Dependência: Resposta de Ana Luiza
+    Responsável: Tatiana + Ana Luiza
+    Estimativa: 2 dias úteis
+    Dependência externa: Ana Luiza responde em 3 dias úteis
+    Critério de aceite: Ficha cadastral completa no Dossiê
+
+2.3 — Representação legal de Felipe documentada
+    Dependência: Resposta de Ana Luiza
+    Responsável: Tatiana + Ana Luiza
+    Estimativa: 1 dia útil
+    Dependência externa: Ana Luiza responde
+    Critério de aceite: Documento de representação no Dossiê
+
+2.4 — Dados oficiais da contratada confirmados
+    Dependência: Nenhum
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Dados verificados contra documento oficial
+
+2.5 — Contrato + Anexo I/OS compostos
+    Dependência: 2.1, 2.2, 2.3, 2.4
+    Responsável: Tatiana
+    Estimativa: 2 dias úteis
+    Critério de aceite: Documento no Drive com todos os campos preenchidos
+
+2.6 — Contrato submetido à revisão jurídica
+    Dependência: 2.5
+    Responsável: Advogado
+    Estimativa: 1 dia útil (envio)
+    Dependência externa: Advogado revisa em 10 dias úteis
+    Critério de aceite: Confirmação de envio ao advogado
+
+Duração estimada: 5 dias úteis internos + 10 dias úteis de advogado
+
+====================================================================
+SPRINT 3 — DETALHAMENTO
+====================================================================
+
+3.1 — Contrato assinado por todas as partes
+    Dependência: Revisão jurídica concluída (Sprint 2)
+    Responsável: Tatiana + Cliente
+    Estimativa: 3 dias úteis
+    Dependência externa: Cliente assina
+    Critério de aceite: Contrato assinado no Drive
+
+3.2 — 3 assinaturas criadas no Asaas
+    Dependência: 3.1 + SKU aprovado (Sprint 1)
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: 3 IDs ativos; nextDueDate = 01/10/2026
+
+3.3 — IDs das assinaturas Asaas arquivados no Desk/Dossiê
+    Dependência: 3.2
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Registro no Dossiê com os 3 IDs
+
+3.4 — Pasta do caso validada no Drive
+    Dependência: 3.1
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Pasta com subpastas operacionais confirmada
+
+3.5 — Planejador corrigido
+    Dependência: Nenhum
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Planejador sem #ERROR! e com ID canônico
+
+Duração estimada: 4-6 dias úteis (após revisão jurídica)
+
+Nota: A publicação do app já foi entregue na Trilha Paralela,
+independente deste sprint.
+
+====================================================================
+SPRINT 4 — DETALHAMENTO
+====================================================================
+
+4.1 — Rotina de status do caso definida
+    Dependência: Sprint 3
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Documento de rotina no Desk
+
+4.2 — Logs mínimos de auditoria definidos
+    Dependência: Sprint 3
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Lista de campos de auditoria por caso
+
+4.3 — Critério de decisão definitiva de CRM definido
+    Dependência: Sprint 3
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Documento com critério e prazo
+
+4.4 — Backlog pós-produção consolidado e priorizado
+    Dependência: Sprint 3
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Critério de aceite: Lista priorizada no Desk
+
+4.5 — Envio do link de pagamento Asaas ao cliente (em setembro)
+    Dependência: 3.1 + 3.2
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Dependência externa: Aproximação de setembro
+    Critério de aceite: Link enviado ao cliente após contrato assinado
+
+4.6 — Verificação da 1ª cobrança em 01/10/2026
+    Dependência: 4.5
+    Responsável: Tatiana
+    Estimativa: 1 dia útil
+    Dependência externa: Data chegar a 01/10
+    Critério de aceite: Confirmação das 3 cobranças geradas
+
+Duração estimada: 3-5 dias úteis
+
+====================================================================
+BACKLOG CONGELADO
+====================================================================
+
+INTEGRAÇÕES E AUTOMAÇÕES
+- Integração CRM → Desk/Dossiê
+- Sincronização Planilha Mestre → Proposta/OS/Asaas/App
+- Webhook Lovable → CRM Mestre/Sheets
+- Sincronização Asaas → CRM/Painel/Planejador/Desk
+- Sincronização Desk → Planejador
+- Sincronização OPS Tarefas → Google Tasks
+- Sincronização Planejador → Google Calendar
+- Formulário de diagnóstico → CRM
+- Apps Script para Asaas (ativação)
+
+CRM
+- Decisão definitiva de CRM
+- Saneamento e validação de CRM Mestre
+- Saneamento e validação de OPS/Pipeline
+- População de CRM com dados reais
+- Definição de schema mínimo de CRM
+- Teste de captura de leads
+
+APP
+- Redesign de app
+- Novos MVPs
+- Novas features no app
+- Micro-entregas no app (cross-sell/up-sell por etapa)
+- Dashboard no app
+
+CATÁLOGO
+- Catalogação ampla de fontes genealógicas
+- Novas nacionalidades (Portugal, Espanha, Alemanha, Hungria, Croácia)
+- Reconciliação de SKUs inativos/arquivados
+- Novos bundles/combos
+- Precificação incremental por micro-entrega
+
+OPERACIONAL
+- Dashboards e analytics
+- SLA/KPI e reconciliação mensal (CA-EVO-06)
+- Governança de bases genealógicas (CA-EVO-07)
+- Ativação por lotes (CA-EVO-08)
+- Melhorias de copy, estética
+- Sincronização de etiquetas WhatsApp
+- Parametrização de lista de países por fonte canônica
+
+DOCUMENTOS
+- Recuperação/substituição do Anexo V
+- Verificação direta do Anexo II e Anexo IV no Drive
+- Validação da pasta jurídica 01_Modelos-e-Jurídico
+- Auditoria da criação antecipada das pastas da Ana Luiza
+
+====================================================================
+ANA LUIZA — CASO-PILOTO
+====================================================================
+
+Item: Dados cadastrais/familiares (Ana, Adair, Alice, Felipe)
+    Estado: Pendentes — cadastro completo de Ana e Adair;
+            nome completo de Alice; representação legal de Felipe
+    Global ou do caso: Do caso
+    Bloqueia o caso: SIM
+    Próximo responsável: Tatiana + Ana Luiza
+    Próxima ação: Coletar ficha cadastral completa de cada adulto;
+                 confirmar nome de Alice; documentar representação de Felipe
+
+Item: SKU comercial austríaco
+    Estado: INEXISTENTE na Planilha Mestre;
+            PACOTE-AT-01 existe apenas no Planejador
+    Global ou do caso: Global
+    Bloqueia o caso: SIM
+    Próximo responsável: Tatiana
+    Próxima ação: Aprovar ficha de SKU e criar na Planilha Mestre
+                 (Sprint 1→2)
+
+Item: Condição comercial reconciliada
+    Estado: R$ 9.600 = 10×R$960 (familiar) = 3×R$320×10 (Asaas)
+            — divergência de representação pendente
+    Global ou do caso: Global
+    Bloqueia o caso: SIM
+    Próximo responsável: Tatiana
+    Próxima ação: Definir representação canônica no contrato/OS
+
+Item: Contrato/OS e revisão jurídica
+    Estado: Contrato-Mãe = placeholder 55 bytes;
+            precisa ser composto a partir do MODELO ESTUDO e revisado
+    Global ou do caso: Do caso + Global
+    Bloqueia o caso: SIM
+    Próximo responsável: Tatiana (compor) + Advogado (revisar)
+    Próxima ação: Compor contrato após dados e SKU;
+                 submeter à revisão jurídica
+
+Item: Assinatura
+    Estado: Pendente
+    Global ou do caso: Do caso
+    Bloqueia o caso: SIM
+    Próximo responsável: Tatiana + Cliente
+    Próxima ação: Assinatura eletrônica após revisão jurídica
+                 (método a definir juridicamente)
+
+Item: Asaas
+    Estado: Configurado (documentado), não ativado
+            3× R$320/mês × 10, 1º venc. 01/10/2026
+    Global ou do caso: Do caso
+    Bloqueia o caso: SIM (não ativado)
+    Próximo responsável: Tatiana
+    Próxima ação: Criar 3 assinaturas após contrato assinado
+
+Item: Pesquisa/autorização
+    Estado: Anexo III existente globalmente; não classificado para o caso
+    Global ou do caso: Do caso
+    Bloqueia o caso: NÃO (condicional)
+    Próximo responsável: Tatiana
+    Próxima ação: Classificar e aplicar Anexo III quando houver
+                 pesquisa externa autorizada
+
+====================================================================
+CRITÉRIO DE SUCESSO
+====================================================================
+
+O CA-RESET-01 é bem-sucedido quando:
+
+1. As 7 decisões humanas (D1-D7) estão tomadas ou em execução.
+2. A Trilha Paralela (publicação do app) está concluída ou em curso.
+3. O Sprint 1 está concluído (decisões fundacionais fechadas).
+4. O Sprint 2 está em andamento (contrato sendo composto ou em
+   revisão jurídica).
+5. Não há novos prompts de auditoria fragmentada abertos.
+6. A próxima ação de cada bloqueador tem responsável e prazo definidos.
+7. O backlog congelado está registrado e não está sendo executado
+   em paralelo.
+
+====================================================================
+FONTES E EVIDÊNCIAS USADAS
+====================================================================
+
+CA-EVO-02 (Mapa de Automações, Templates, Gatilhos e Sobreposições)
+    Localização: Sessão 6be3da76, linhas 58-820
+    Uso: Automações, sobreposições, anexos, modelos contratuais
+
+CA-EVO-03 (Motor Contratual Modular)
+    Localização: Sessão 6be3da76, linhas 593-820
+    Uso: MODELO ESTUDO como contrato-base, classificação de modelos
+
+CA-EVO-04 (Dados Vivos e Integrações)
+    Localização: Sessão 6be3da76, linhas 820-1060
+    Uso: Fontes oficiais, entidades, fluxos, ondas
+
+CA-EVO-05A (Preparação Go-Live Ana Luiza)
+    Localização: Sessão 6be3da76, linhas 1060-1760
+    Uso: Matrizes de prontidão, bloqueios, Gate A
+
+CA-EVO-05B (Ativação Controlada)
+    Localização: Sessão 6be3da76, linhas 1760-3219
+    Uso: Decisão de CRM, SKU, frustrações, próximos passos
+
+Planilha Mestre de Produtos
+    Localização: Google Drive ID 1zrLQlQzCBevPufddwiOeVEAex523G9xIaYQJ6XxBvdk
+    Uso: Catálogo de SKUs, preços, links Asaas;
+         confirmação de ausência de SKU austríaco
+
+MODELO - CONTRATO ESTUDO GENEALÓGICO
+    Localização: Google Drive ID 17TW-mdc8Mw_7XHzHTnJHYaWHCwlLlZQW6YpYhjfNn7E
+    Uso: Cláusulas, obrigações, LGPD, preço, prazo
+
+Configuração Asaas — Ana Luiza
+    Localização: Google Drive ID 1RNZNhWYr0ZkITmtJT_6vliNPFEpWQGPmJIIlqNl6X-s
+    Uso: 3 assinaturas, R$ 320×10, nextDueDate 01/10/2026
+
+Contrato-Mãe Familiar — Ana Luiza
+    Localização: Google Drive ID 1h_GqWpZ7KH1chlw43YGa51h0nnfyudgxZpNWvJCgQV8
+    Uso: Confirmado como placeholder de 55 bytes
+
+Dossiê Consolidado — Ana Luiza
+    Localização: Google Drive ID 1oqPughlb244LKcOugj8tXqJvB9D8TBcz3UuYNtfM1Wk
+    Uso: Identificado; não reaberto para auditoria
+
+Checklist §58c — Ana Luiza
+    Localização: Google Drive ID 1XzWWjdmBMLfIGsb80zi3jjEs2ZxHnwAnFtgA1pIE8JU
+    Uso: Identificado; não reaberto para auditoria
+
+Proposta Canva (Ana Luiza)
+    Localização: Canva design ID DAHSB6nbt_M
+    Uso: R$ 9.600, 7 páginas, aceite 14/08/2026
+
+Anexos I-V
+    Localização: IDs documentados em CA-EVO-02 (sessão 6be3da76,
+                 linhas 69-80)
+    Uso: Estados classificados via CA-EVO-02; não reabertos
+         individualmente
+
+Notas de memória do projeto
+    Localização: memory/notes/projects/citizenship_lineage_app/
+    Uso: Governance status, timeline Ana Luiza, aceite familiar,
+         auditoria Drive
+
+Auditoria-Mãe
+    Localização: Referenciada em CA-EVO-02 e consolidações
+    Uso: Não reaberta diretamente; usada via consolidações CA-EVO
+         e memória
+
+CA-10A1
+    Localização: Referenciado em memória como pre-onboarding de
+                 Ana Luiza
+    Uso: Não reaberto diretamente; usado via consolidações CA-EVO
+         e memória
+
+====================================================================
+FIM DO DOCUMENTO
+====================================================================
+
+Documento produzido em 15/08/2026 — versão 3.
+Não cria, edita, ativa, envia, cobra ou publica nenhum recurso externo.
+É exclusivamente um documento de decisão e planejamento.

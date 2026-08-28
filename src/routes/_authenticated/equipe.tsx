@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
+import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   alterarPapelMembro,
   alterarStatusMembro,
@@ -81,6 +82,18 @@ function EquipePage() {
     }
   }
 
+  // Cartões de decisão do grupo Administração — contam só o que já está
+  // carregado por listarEquipe; sem fonte real, "Sem dados suficientes".
+  const membros = q.data?.membros ?? [];
+  const usuariosAtivos = q.data ? membros.filter((m) => m.status === "active").length : null;
+  const convitesPendentes = q.data ? membros.filter((m) => m.status === "invited").length : null;
+  const suspensosOuRevogados = q.data
+    ? membros.filter((m) => m.status === "suspended" || m.status === "revoked").length
+    : null;
+  const papeisNaoReconhecidos = q.data
+    ? membros.filter((m) => m.status === "active" && !(PAPEIS as readonly string[]).includes(m.role)).length
+    : null;
+
   return (
     <SaasShell
       titulo="Usuários e papéis"
@@ -90,6 +103,18 @@ function EquipePage() {
         <EstadoVazio mensagem="Apenas administradores podem gerenciar usuários e papéis." />
       ) : (
         <div className="space-y-8">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <CardIndicador rotulo="Usuários ativos" valor={usuariosAtivos} apoio="Status ativo" />
+            <CardIndicador rotulo="Convites pendentes" valor={convitesPendentes} apoio="Aguardando definição de senha" tom="atencao" />
+            <CardIndicador rotulo="Suspensos ou revogados" valor={suspensosOuRevogados} apoio="Sem acesso ativo" tom="critico" />
+            <CardIndicador
+              rotulo="Papéis não reconhecidos"
+              valor={papeisNaoReconhecidos}
+              apoio="Ativo com papel fora da lista padrão"
+              tom="critico"
+            />
+          </div>
+
           <StatusEnvioRecuperacao />
 
           <section className="rounded-xl border border-navy/10 bg-white p-5">

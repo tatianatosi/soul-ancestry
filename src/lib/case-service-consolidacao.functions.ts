@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -44,6 +45,7 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => ({ caseId: exigirUuid(data?.caseId, "caseId") }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const c = await caso(supabase, data.caseId);
 

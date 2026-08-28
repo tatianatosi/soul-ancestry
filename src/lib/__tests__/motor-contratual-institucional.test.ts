@@ -54,7 +54,10 @@ describe("Motor contratual institucional", () => {
 
   it("2. dados institucionais não são editáveis dentro do caso", () => {
     expect(edicaoInstitucionalPermitida("caso").permitido).toBe(false);
-    expect(edicaoInstitucionalPermitida("administrativo", { perfilAutorizado: true, motivo: "x" }).permitido).toBe(false);
+    expect(
+      edicaoInstitucionalPermitida("administrativo", { perfilAutorizado: true, motivo: "x" })
+        .permitido,
+    ).toBe(false);
     expect(
       edicaoInstitucionalPermitida("administrativo", {
         perfilAutorizado: true,
@@ -81,7 +84,24 @@ describe("Motor contratual institucional", () => {
   });
 
   it("5. matriz contém todas as cláusulas A–P", () => {
-    expect(IDS_CLAUSULAS).toEqual(["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"]);
+    expect(IDS_CLAUSULAS).toEqual([
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+    ]);
     expect(matrizClausulasTeste()).toHaveLength(16);
   });
 
@@ -102,26 +122,66 @@ describe("Motor contratual institucional", () => {
         ...ENTRADA_TESTE_ANEXOS,
         proposta: { ...ENTRADA_TESTE_ANEXOS.proposta!, ...cenario },
       };
-      const linhas = avaliarMatrizClausulas({ ...base, modelo: "MODELO-ESTUDO", entradaAnexos: entrada, anexos: anexosIaV(entrada) });
+      const linhas = avaliarMatrizClausulas({
+        ...base,
+        modelo: "MODELO-ESTUDO",
+        entradaAnexos: entrada,
+        anexos: anexosIaV(entrada),
+      });
       expect(linhas.find((l) => l.id === "C")!.status).toBe("bloqueante");
       expect(linhas.find((l) => l.id === "D")!.status).toBe("bloqueante");
     }
   });
 
   it("8. preço de template/WhatsApp/transcrição não é aceito", () => {
-    for (const f of ["template", "whatsapp", "transcricao", "preenchimento_humano_confirmado", null]) {
+    for (const f of [
+      "template",
+      "whatsapp",
+      "transcricao",
+      "preenchimento_humano_confirmado",
+      null,
+    ]) {
       expect(precoDeFonteHomologada(f)).toBe(false);
     }
     expect(precoDeFonteHomologada("planilha_mestre")).toBe(true);
-    const entrada = { ...ENTRADA_TESTE_ANEXOS, proposta: { ...ENTRADA_TESTE_ANEXOS.proposta!, fontePreco: "whatsapp" } };
-    const linhas = avaliarMatrizClausulas({ ...base, modelo: "MODELO-ESTUDO", entradaAnexos: entrada, anexos: anexosIaV(entrada) });
+    const entrada = {
+      ...ENTRADA_TESTE_ANEXOS,
+      proposta: { ...ENTRADA_TESTE_ANEXOS.proposta!, fontePreco: "whatsapp" },
+    };
+    const linhas = avaliarMatrizClausulas({
+      ...base,
+      modelo: "MODELO-ESTUDO",
+      entradaAnexos: entrada,
+      anexos: anexosIaV(entrada),
+    });
     expect(linhas.find((l) => l.id === "I")!.status).toBe("bloqueante");
   });
 
   it("9. SKU sem preço/condição homologados não gera valor", () => {
-    expect(skuPodeGerarValor({ sku: "SKU-1", precoHomologado: null, condicaoHomologada: "à vista", fonte: "planilha_mestre" }).ok).toBe(false);
-    expect(skuPodeGerarValor({ sku: "SKU-1", precoHomologado: "R$ 1", condicaoHomologada: null, fonte: "planilha_mestre" }).ok).toBe(false);
-    expect(skuPodeGerarValor({ sku: "SKU-1", precoHomologado: "R$ 1", condicaoHomologada: "à vista", fonte: "planilha_mestre" }).ok).toBe(true);
+    expect(
+      skuPodeGerarValor({
+        sku: "SKU-1",
+        precoHomologado: null,
+        condicaoHomologada: "à vista",
+        fonte: "planilha_mestre",
+      }).ok,
+    ).toBe(false);
+    expect(
+      skuPodeGerarValor({
+        sku: "SKU-1",
+        precoHomologado: "R$ 1",
+        condicaoHomologada: null,
+        fonte: "planilha_mestre",
+      }).ok,
+    ).toBe(false);
+    expect(
+      skuPodeGerarValor({
+        sku: "SKU-1",
+        precoHomologado: "R$ 1",
+        condicaoHomologada: "à vista",
+        fonte: "planilha_mestre",
+      }).ok,
+    ).toBe(true);
   });
 
   it("10. despesa de terceiro é segregada de caixa e cobrança do Clube", () => {
@@ -135,15 +195,28 @@ describe("Motor contratual institucional", () => {
     expect(vencimentoInferido()).toBeNull();
     const entrada = {
       ...ENTRADA_TESTE_ANEXOS,
-      proposta: { ...ENTRADA_TESTE_ANEXOS.proposta!, primeiroVencimento: null, parcelas: "3 etapas" },
+      proposta: {
+        ...ENTRADA_TESTE_ANEXOS.proposta!,
+        primeiroVencimento: null,
+        parcelas: "3 etapas",
+      },
     };
-    const i = avaliarMatrizClausulas({ ...base, modelo: "MODELO-ESTUDO", entradaAnexos: entrada, anexos: anexosIaV(entrada) }).find((l) => l.id === "I")!;
+    const i = avaliarMatrizClausulas({
+      ...base,
+      modelo: "MODELO-ESTUDO",
+      entradaAnexos: entrada,
+      anexos: anexosIaV(entrada),
+    }).find((l) => l.id === "I")!;
     expect(i.status).toBe("pendente");
     expect(i.motivo).toContain("não inferido");
   });
 
   it("12. conflito Planejador x proposta bloqueia avanço e não sobrescreve", () => {
-    const c = conflitoPlanejadorProposta({ campo: "valor_total", planejador: "R$ 1.290", proposta: "R$ 990" });
+    const c = conflitoPlanejadorProposta({
+      campo: "valor_total",
+      planejador: "R$ 1.290",
+      proposta: "R$ 990",
+    });
     expect(c.conflito).toBe(true);
     expect(c.motivo).toContain("nenhum valor é sobrescrito");
     const entrada = ENTRADA_TESTE_ANEXOS;
@@ -168,12 +241,27 @@ describe("Motor contratual institucional", () => {
 
   it("13. proposta só complementa campos permitidos quando o Planejador não tem valor", () => {
     expect(CAMPOS_COMPLEMENTAVEIS_PELA_PROPOSTA).toHaveLength(7);
-    expect(complementoPropostaPermitido({ campo: "valor_total_aprovado", planejadorTemValor: false }).permitido).toBe(true);
-    expect(complementoPropostaPermitido({ campo: "valor_total_aprovado", planejadorTemValor: true }).permitido).toBe(false);
-    expect(complementoPropostaPermitido({ campo: "escopo_resumo", planejadorTemValor: false }).permitido).toBe(false);
-    expect(complementoPropostaPermitido({ campo: "regra_despesas_externas", planejadorTemValor: false }).permitido).toBe(false);
     expect(
-      complementoPropostaPermitido({ campo: "regra_despesas_externas", planejadorTemValor: false, declaradoExpressamente: true }).permitido,
+      complementoPropostaPermitido({ campo: "valor_total_aprovado", planejadorTemValor: false })
+        .permitido,
+    ).toBe(true);
+    expect(
+      complementoPropostaPermitido({ campo: "valor_total_aprovado", planejadorTemValor: true })
+        .permitido,
+    ).toBe(false);
+    expect(
+      complementoPropostaPermitido({ campo: "escopo_resumo", planejadorTemValor: false }).permitido,
+    ).toBe(false);
+    expect(
+      complementoPropostaPermitido({ campo: "regra_despesas_externas", planejadorTemValor: false })
+        .permitido,
+    ).toBe(false);
+    expect(
+      complementoPropostaPermitido({
+        campo: "regra_despesas_externas",
+        planejadorTemValor: false,
+        declaradoExpressamente: true,
+      }).permitido,
     ).toBe(true);
   });
 
@@ -183,8 +271,20 @@ describe("Motor contratual institucional", () => {
     expect(r.motivos.length).toBeGreaterThan(0);
     expect(gatesTeste().some((g) => g.gate === "assinatura")).toBe(true);
     expect(financeiroLiberado(null)).toBe(false);
-    expect(financeiroLiberado({ assinadoEm: "2026-08-22", origem: "assinatura_externa", referencia: null })).toBe(false);
-    expect(financeiroLiberado({ assinadoEm: "2026-08-22", origem: "assinatura_externa", referencia: "REF-1" })).toBe(true);
+    expect(
+      financeiroLiberado({
+        assinadoEm: "2026-08-22",
+        origem: "assinatura_externa",
+        referencia: null,
+      }),
+    ).toBe(false);
+    expect(
+      financeiroLiberado({
+        assinadoEm: "2026-08-22",
+        origem: "assinatura_externa",
+        referencia: "REF-1",
+      }),
+    ).toBe(true);
   });
 
   it("15. caso familiar: adultos signatários, menor não signatário, representação condicional", () => {

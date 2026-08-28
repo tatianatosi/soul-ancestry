@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -28,6 +29,7 @@ export const listarFilaOps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: Filtro) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
 
@@ -60,6 +62,7 @@ export const listarMicroentregas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: Filtro) => data ?? {})
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
 
@@ -84,13 +87,14 @@ export const listarMicroentregas = createServerFn({ method: "GET" })
 export const referenciasOps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
 
     const [casos, equipe, regras] = await Promise.all([
       supabase
         .from("crm_casos")
-        .select("id,codigo,titulo,status")
+        .select("id,codigo,titulo,status,eixo_comercial,eixo_formalizacao")
         .eq("organization_id", ctx.organizationId)
         .is("archived_at", null)
         .order("codigo"),
@@ -123,6 +127,7 @@ export const referenciasOps = createServerFn({ method: "GET" })
 export const painelOps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     const { data, error } = await supabase.rpc("ops_painel", { _org: ctx.organizationId });
@@ -134,6 +139,7 @@ export const painelOps = createServerFn({ method: "GET" })
 export const alertasOps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
 
@@ -364,6 +370,7 @@ export const salvarRegraSla = createServerFn({ method: "POST" })
 export const listarExcecoes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     const { data, error } = await supabase

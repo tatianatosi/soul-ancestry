@@ -63,7 +63,11 @@ describe("G-08B — vínculos entre fontes e o resto da pesquisa", () => {
     expect(outraOrg.ok === false && outraOrg.erros).toContain("ALVO_DE_OUTRA_ORGANIZACAO");
 
     // Pessoa da pesquisa é da organização, não do caso.
-    expect(validarVinculo(entrada({ tipoAlvo: "pessoa", tipoVinculo: "refere_pessoa", alvoCaseId: null })).ok).toBe(true);
+    expect(
+      validarVinculo(
+        entrada({ tipoAlvo: "pessoa", tipoVinculo: "refere_pessoa", alvoCaseId: null }),
+      ).ok,
+    ).toBe(true);
   });
 
   it("3. evidência criada a partir do documento nasce em rascunho e confiança mínima", () => {
@@ -108,15 +112,24 @@ describe("G-08B — vínculos entre fontes e o resto da pesquisa", () => {
 
   it("8. payload do vínculo não carrega mérito, CPF, preço ou condição comercial", () => {
     expect(payloadLimpo({ tipo_vinculo: "comprova", observacao_interna: "ok" }).ok).toBe(true);
-    const sujo = payloadLimpo({ tipo_vinculo: "comprova", cpf: "000", preco: 10, chance_de_exito: "alta" });
+    const sujo = payloadLimpo({
+      tipo_vinculo: "comprova",
+      cpf: "000",
+      preco: 10,
+      chance_de_exito: "alta",
+    });
     expect(sujo.ok).toBe(false);
     for (const c of ["cpf", "preco", "chance"]) expect(CAMPOS_PROIBIDOS_NO_VINCULO).toContain(c);
   });
 
   it("9. tipo de vínculo precisa corresponder ao tipo de alvo", () => {
-    const errado = validarVinculo(entrada({ tipoAlvo: "solicitacao", tipoVinculo: "comprova", alvoCaseId: CASO }));
+    const errado = validarVinculo(
+      entrada({ tipoAlvo: "solicitacao", tipoVinculo: "comprova", alvoCaseId: CASO }),
+    );
     expect(errado.ok === false && errado.erros).toContain("TIPO_VINCULO_NAO_CORRESPONDE_AO_ALVO");
-    expect(validarVinculo(entrada({ tipoAlvo: "solicitacao", tipoVinculo: "atende_solicitacao" })).ok).toBe(true);
+    expect(
+      validarVinculo(entrada({ tipoAlvo: "solicitacao", tipoVinculo: "atende_solicitacao" })).ok,
+    ).toBe(true);
     expect(validarVinculo(entrada({ tipoVinculo: "inventado" })).ok).toBe(false);
   });
 });

@@ -200,6 +200,16 @@ export const LISTAS_BASE_CA04 = {
     "Sem dados suficientes",
   ],
   "Exige idioma/entrevista": ["Não", "Sim — idioma", "Sim — entrevista", "Sim — ambos", "A confirmar"],
+  // 27/08/2026 — sincronizado com o que /leads grava de verdade
+  // (crm-desk.ts EIXO_COMERCIAL/EIXO_FORMALIZACAO, já unificado com
+  // caso-ficha.ts). Este registro se declara "canônico executável", não
+  // espelho histórico — por isso é atualizado junto do motor, não deixado
+  // pra trás. "Aceite verbal" e "Confirmação formal recebida" entraram no
+  // Eixo Comercial; "Formalização em preparação" entrou no Eixo
+  // Formalização. As transições correspondentes em EIXO_COMERCIAL_TRANSICOES
+  // e EIXO_FORMALIZACAO_TRANSICOES abaixo ainda não cobrem esses estados —
+  // gatilho, responsável e bloqueio exatos dependem de decisão da
+  // Proprietária, não foram inventados aqui.
   "Eixo Comercial": [
     "Novo lead",
     "Triagem",
@@ -208,12 +218,15 @@ export const LISTAS_BASE_CA04 = {
     "Diagnóstico em elaboração",
     "Proposta enviada",
     "Negociação",
+    "Aceite verbal",
+    "Confirmação formal recebida",
     "Nutrição",
     "Perdido",
     "Encerrado sem aderência",
   ],
   "Eixo Formalização/Operação": [
     "Não iniciado",
+    "Formalização em preparação",
     "Contrato enviado",
     "Contrato assinado",
     "Pagamento inicial confirmado",

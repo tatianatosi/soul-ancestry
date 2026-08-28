@@ -15,9 +15,9 @@ import {
   UserRound,
 } from "lucide-react";
 
-
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
+import { usePreviaPortal } from "@/components/portal/fonte-portal";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
@@ -42,33 +42,54 @@ export function PortalShell({
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const { data, isSuccess } = usePortal();
+  const previa = usePreviaPortal();
 
   useEffect(() => {
+    // Em prévia (demo e espelho, dentro do Desk) ninguém é cliente autorizado
+    // — a redireção expulsaria a Proprietária da própria tela que ela abriu.
+    if (previa) return;
     if (isSuccess && data && !data.autorizado) {
       navigate({ to: "/acesso/sem-permissao", replace: true });
     }
-  }, [isSuccess, data, navigate]);
+  }, [previa, isSuccess, data, navigate]);
+
+  /*
+    Sete abas existem desde que o cliente chega — Início, Jornada, Radar,
+    Árvore, Documentos, Legado e Conta. Entrega, Fase 01 e Fase 02 só entram
+    quando o onboarding do caso de fato começou (`onboarding_iniciado_em`):
+    antes disso são promessa de trabalho que ainda não existe, e mostrá-las
+    cedo é o cliente ler "Fase 02" e achar que já devia ter alguma coisa lá.
+  */
+  const onboardingIniciado = previa ? true : Boolean(data?.onboardingIniciado);
 
   const nav =
-    data?.nivel === "client_workspace"
+    previa || data?.nivel === "client_workspace"
       ? [
           { to: "/portal", label: COPY_TELAS.casos.navegacao, icon: FolderOpen },
           { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
           { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
           { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
           { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
-          { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
-          { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
-          { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
           { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
           { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-          { to: "/portal/faturas", label: COPY_TELAS.faturas.navegacao, icon: Receipt },
-          { to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt },
+          ...(onboardingIniciado
+            ? [
+                { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
+                { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
+                { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
+              ]
+            : []),
         ]
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 
-
   async function sair() {
+    // Em prévia quem está logado é a equipe, no Desk. Encerrar a sessão aqui
+    // deslogaria a Proprietária do próprio Desk — o botão apenas fecha a
+    // prévia e volta para a superfície interna.
+    if (previa) {
+      navigate({ to: "/acessos-portal", replace: true });
+      return;
+    }
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
@@ -85,7 +106,7 @@ export function PortalShell({
             <div className="min-w-0">
               <p className="font-serif text-lg leading-tight text-gold">Clube Ancestral</p>
               <p className="truncate text-[11px] uppercase tracking-widest text-cream/70">
-                {data?.cliente?.nome ?? "Aplicativo do cliente"}
+                {previa ? previa.titulo : (data?.cliente?.nome ?? "Aplicativo do cliente")}
               </p>
             </div>
           </div>
@@ -98,6 +119,16 @@ export function PortalShell({
           </button>
         </div>
       </header>
+
+      {previa ? (
+        <p
+          data-previa-portal
+          role="status"
+          className="border-b border-gold/40 bg-gold/15 px-4 py-2 text-center text-[11px] font-medium uppercase tracking-widest text-navy lg:px-8"
+        >
+          {previa.selo}
+        </p>
+      ) : null}
 
       <nav className="border-b border-navy/10 bg-white px-4 lg:px-8">
         <div className="mx-auto flex max-w-4xl gap-1 overflow-x-auto">

@@ -18,7 +18,12 @@ import {
   type Variante,
 } from "@/lib/pessoas-linhagens";
 
-const perfil = (id: string, personId: string, nome: string, extra: Partial<Perfil> = {}): Perfil => ({
+const perfil = (
+  id: string,
+  personId: string,
+  nome: string,
+  extra: Partial<Perfil> = {},
+): Perfil => ({
   id,
   research_person_id: personId,
   case_id: "caso-1",
@@ -142,13 +147,15 @@ describe("G-02 — pessoas, relações e linhagens", () => {
         archived_at: null,
       },
     ];
-    expect(validarVariante({ person_id: "", variante: "João", tipo: "grafia" }, existentes)).toContain(
-      "Variante precisa estar vinculada a uma pessoa já cadastrada.",
-    );
-    expect(validarVariante({ person_id: "p1", variante: " giovanni ", tipo: "grafia" }, existentes)).toContain(
-      "Esta variante já está registrada para a pessoa — variante não cria pessoa nova.",
-    );
-    expect(validarVariante({ person_id: "p1", variante: "Joam", tipo: "grafia" }, existentes)).toEqual([]);
+    expect(
+      validarVariante({ person_id: "", variante: "João", tipo: "grafia" }, existentes),
+    ).toContain("Variante precisa estar vinculada a uma pessoa já cadastrada.");
+    expect(
+      validarVariante({ person_id: "p1", variante: " giovanni ", tipo: "grafia" }, existentes),
+    ).toContain("Esta variante já está registrada para a pessoa — variante não cria pessoa nova.");
+    expect(
+      validarVariante({ person_id: "p1", variante: "Joam", tipo: "grafia" }, existentes),
+    ).toEqual([]);
     // a variante não gera nova pessoa na árvore
     const arvore = montarArvore([perfil("a", "p1", "João")], []);
     expect(contarNos(arvore)).toBe(1);
@@ -156,9 +163,14 @@ describe("G-02 — pessoas, relações e linhagens", () => {
 
   /* Teste 4 — relação sem evidência permanece a confirmar */
   it("4. relação sem evidência ou fonte não pode ser confirmada", () => {
-    expect(validarRelacao({ person_from_id: "p1", person_to_id: "p2", relation_type: "pai_mae", status_pesquisa: "confirmado" })).toContain(
-      "Relação só sai de “a confirmar” com evidência ou fonte vinculada.",
-    );
+    expect(
+      validarRelacao({
+        person_from_id: "p1",
+        person_to_id: "p2",
+        relation_type: "pai_mae",
+        status_pesquisa: "confirmado",
+      }),
+    ).toContain("Relação só sai de “a confirmar” com evidência ou fonte vinculada.");
     expect(
       validarRelacao({
         person_from_id: "p1",
@@ -168,23 +180,28 @@ describe("G-02 — pessoas, relações e linhagens", () => {
         evidence_id: "ev-1",
       }),
     ).toEqual([]);
-    const arvore = montarArvore([perfil("a", "p1", "A"), perfil("b", "p2", "B")], [relacao("r", "p1", "p2")]);
+    const arvore = montarArvore(
+      [perfil("a", "p1", "A"), perfil("b", "p2", "B")],
+      [relacao("r", "p1", "p2")],
+    );
     expect(arvore[0]!.filhos[0]!.relacaoComPai?.status).toBe("a_confirmar");
   });
 
   it("4b. pessoa não pode ter relação consigo mesma", () => {
-    expect(validarRelacao({ person_from_id: "p1", person_to_id: "p1", relation_type: "irmao" })).toContain(
-      "Uma pessoa não pode ter relação consigo mesma.",
-    );
+    expect(
+      validarRelacao({ person_from_id: "p1", person_to_id: "p1", relation_type: "irmao" }),
+    ).toContain("Uma pessoa não pode ter relação consigo mesma.");
   });
 
   /* Teste 5 — linha dupla: duas linhas no mesmo caso */
   it("5. o mesmo caso aceita duas linhagens distintas (linha dupla)", () => {
     const existentes = [linhagem("l1", "Linha paterna", { tipo_da_linha: "paterna" })];
-    expect(validarLinhagem({ case_id: "caso-1", nome_da_linha: "Linha materna" }, existentes)).toEqual([]);
-    expect(validarLinhagem({ case_id: "caso-1", nome_da_linha: "linha paterna" }, existentes)).toContain(
-      "Já existe uma linha com este nome neste caso.",
-    );
+    expect(
+      validarLinhagem({ case_id: "caso-1", nome_da_linha: "Linha materna" }, existentes),
+    ).toEqual([]);
+    expect(
+      validarLinhagem({ case_id: "caso-1", nome_da_linha: "linha paterna" }, existentes),
+    ).toContain("Já existe uma linha com este nome neste caso.");
   });
 
   /* Teste 6 — App Cliente não lê perfis nem relações internas */
@@ -199,16 +216,23 @@ describe("G-02 — pessoas, relações e linhagens", () => {
     expect(validarPerfil({ nome_completo: "Ana", status_verificacao: "confirmado" })).toContain(
       "Perfil confirmado exige evidência de suporte vinculada.",
     );
-    expect(validarPerfil({ nome_completo: "Ana", status_verificacao: "confirmado", evidence_id: "ev" })).toEqual([]);
+    expect(
+      validarPerfil({ nome_completo: "Ana", status_verificacao: "confirmado", evidence_id: "ev" }),
+    ).toEqual([]);
     expect(validarPerfil({ nome_completo: "" })).toContain("Nome completo é obrigatório.");
   });
 
   it("8. evento confirmado exige evidência ou fonte e datas coerentes", () => {
-    expect(validarEvento({ person_id: "p1", event_type: "morte", validation_status: "confirmado" })).toContain(
-      "Evento confirmado exige evidência ou fonte vinculada.",
-    );
     expect(
-      validarEvento({ person_id: "p1", event_type: "residencia", start_date: "1900-01-02", end_date: "1899-01-01" }),
+      validarEvento({ person_id: "p1", event_type: "morte", validation_status: "confirmado" }),
+    ).toContain("Evento confirmado exige evidência ou fonte vinculada.");
+    expect(
+      validarEvento({
+        person_id: "p1",
+        event_type: "residencia",
+        start_date: "1900-01-02",
+        end_date: "1899-01-01",
+      }),
     ).toContain("Data final não pode ser anterior à data inicial.");
   });
 
@@ -229,7 +253,12 @@ describe("G-02 — pessoas, relações e linhagens", () => {
   /* Lacunas — nada é inferido */
   it("10. lacunas apontam o que falta sem preencher dado ausente", () => {
     const perfis = [perfil("a", "p1", "Ana")];
-    const lacunas = calcularLacunas(perfis, [relacao("r", "p1", "p2")], [evento("e", "p1")], [linhagem("l", "Linha")]);
+    const lacunas = calcularLacunas(
+      perfis,
+      [relacao("r", "p1", "p2")],
+      [evento("e", "p1")],
+      [linhagem("l", "Linha")],
+    );
     expect(lacunas.some((l) => l.descricao.includes("Data de nascimento ausente"))).toBe(true);
     expect(lacunas.some((l) => l.descricao.includes("sem pessoa âncora"))).toBe(true);
     expect(perfis[0]!.nascimento_data).toBeNull();

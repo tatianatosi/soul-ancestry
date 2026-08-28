@@ -6,14 +6,16 @@ import { useMemo, useState } from "react";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
-  ACOES_EXTERNAS_BLOQUEADAS,
   CAMADAS_WHATSAPP,
   CANAIS_HANDOFF,
   FRONTEIRA_MARKETING_COMERCIAL,
   MAPA_MARKETING,
   SECOES_MARKETING,
   VAZIOS_MARKETING,
+  aprendizadosCampanha,
+  desempenhoPorCanal,
   distribuicaoOrigens,
+  formatarIndicador,
   leituraMetricas,
   resumoPorOrigem,
   separarMetricas,
@@ -109,6 +111,10 @@ function Marketing() {
       campanhas: q.data?.campanhas ?? [],
       fontes: q.data?.fontes ?? [],
       atribuicoes: q.data?.atribuicoes ?? [],
+      // Só para checar pagamento confirmado por atribuição — CAC/ROI reais,
+      // nunca contam lead ou proposta como venda, só caso com pagamento
+      // confirmado.
+      casos: (q.data?.casos ?? []) as { id?: string | null; pagamento_confirmado?: boolean | null }[],
     }),
     [q.data],
   );
@@ -126,6 +132,8 @@ function Marketing() {
   const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
   const { principais, historico } = useMemo(() => separarMetricas(metricas), [metricas]);
   const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
+  const desempenho = useMemo(() => desempenhoPorCanal(entrada), [entrada]);
+  const aprendizados = useMemo(() => aprendizadosCampanha(entrada), [entrada]);
 
   return (
     <SaasShell
@@ -144,12 +152,6 @@ function Marketing() {
         </div>
 
         <nav className="flex flex-wrap gap-2">
-          <a
-            href="#prontidao-atribuicao"
-            className="rounded-full border border-navy/15 px-3 py-1 text-[12px] text-navy/70 hover:border-gold hover:text-navy"
-          >
-            Prontidão de atribuição
-          </a>
           {SECOES_MARKETING.map((s) => (
             <a
               key={s.hash}
@@ -208,34 +210,143 @@ function Marketing() {
           </p>
         </section>
 
+        {/*
+          27/08/2026 — "o que é indicador vira realidade no topo... indicadores
+          que ficam embaixo desaparecem" (Proprietária), mesma lógica de
+          Casos 360. Prontidão, os 5 principais (CAC/ROI reais) e desempenho
+          por canal eram 3 blocos espalhados pela página — viram um só, cards,
+          primeiro bloco depois dos filtros. Nada duplicado mais abaixo.
+        */}
         <Bloco
-          id="prontidao-atribuicao"
-          titulo="Prontidão de atribuição"
-          descricao="O que precisa existir — investimento, atribuição e captura — antes de qualquer cálculo de CAC, ROI ou ROAS."
+          id="indicadores"
+          titulo="Indicadores"
+          descricao={SECOES_MARKETING.find((s) => s.hash === "indicadores")!.descricao}
         >
-          <p data-marketing="prontidao-resumo" className="mb-3 text-[13px] text-navy/70">
+          <p data-marketing="prontidao-resumo" className="text-[13px] text-navy/70">
             {prontidao.resumo}
           </p>
-          <ul data-marketing="prontidao-checklist" className="space-y-2">
-            {prontidao.itens.map((i) => (
-              <li key={i.chave} className="rounded-lg border border-navy/10 p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span aria-hidden className={i.atendido ? "text-navy" : "text-terracotta"}>
-                    {i.atendido ? "✓" : "•"}
-                  </span>
-                  <span className="text-navy">{i.titulo}</span>
-                  <Selo texto={ROTULO_GRUPO_PRONTIDAO[i.grupo]} />
-                  <Selo texto={i.atendido ? "atendido" : "pendente"} />
+
+          <div data-marketing="metricas-principais" className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {principais.map((m) => (
+              <div key={m.chave} className="rounded-xl border border-navy/10 bg-cream/30 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] uppercase tracking-wide text-navy/50">{m.nome}</span>
+                  <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
                 </div>
-                <p className="mt-1 text-[12px] text-navy/60">{i.exigencia}</p>
-                <p className="mt-1 text-[12px] text-navy/55">{i.detalhe}</p>
-                {!i.atendido && <p className="mt-1 text-[12px] text-navy/70">Como resolver: {i.comoResolver}</p>}
-              </li>
+                <p className="mt-1 font-serif text-lg text-navy">{m.valor}</p>
+                <p className="mt-1 text-[11px] text-navy/55">{m.nota}</p>
+                {m.valor === SEM_DADOS && (m.chave === "cac" || m.chave === "roi") && (
+                  <div data-marketing-explicacao={m.chave} className="mt-2 rounded-lg border border-navy/10 bg-white p-2">
+                    {(m.chave === "cac" ? ["cac"] : ["roi", "roas"]).map((k) => {
+                      const e = explicacoes[k as "cac" | "roi" | "roas"];
+                      return (
+                        <div key={k} className="mt-1 first:mt-0">
+                          <p className="text-[11px] text-navy" title={e.tooltip}>
+                            <abbr title={e.tooltip} className="no-underline">
+                              {e.nome}
+                            </abbr>{" "}
+                            = {e.formula}
+                          </p>
+                          <ul className="mt-1 list-disc pl-4 text-[10px] text-navy/60">
+                            {e.faltantes.map((f) => (
+                              <li key={f.campo}>
+                                Falta <strong className="text-navy">{f.campo}</strong> em {f.onde} — {f.porque}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             ))}
-          </ul>
+          </div>
+          <p data-marketing-vazio="cac-roi" className="mt-2 text-[12px] text-navy/55">
+            {VAZIOS_MARKETING.cacRoi}
+          </p>
+
+          {desempenho.length > 0 && (
+            <div data-marketing="desempenho-canal" className="mt-4 overflow-x-auto">
+              <h3 className="font-serif text-base text-navy">Desempenho por canal</h3>
+              <table className="mt-2 w-full text-left text-[13px]">
+                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="py-2 pr-3">Canal</th>
+                    <th className="py-2 pr-3">Investimento</th>
+                    <th className="py-2 pr-3">Pagamentos atribuídos</th>
+                    <th className="py-2 pr-3">CAC</th>
+                    <th className="py-2">ROI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/10">
+                  {desempenho.map((d) => (
+                    <tr key={d.canal}>
+                      <td className="py-2 pr-3 text-navy">{d.canal}</td>
+                      <td className="py-2 pr-3">{formatarIndicador(d.investimento)}</td>
+                      <td className="py-2 pr-3">{d.pagamentosAtribuidos}</td>
+                      <td className="py-2 pr-3">{formatarIndicador(d.cac)}</td>
+                      <td className="py-2">{formatarIndicador(d.roi)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-1 text-[11px] text-navy/50">
+                Pagamento atribuído exige caso com pagamento inicial confirmado — nunca lead ou proposta.
+              </p>
+            </div>
+          )}
+
+          <details data-marketing="prontidao-checklist" className="mt-4 rounded-lg border border-navy/10 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-navy">
+              Prontidão de atribuição — checklist completo
+            </summary>
+            <ul className="mt-3 space-y-2">
+              {prontidao.itens.map((i) => (
+                <li key={i.chave} className="rounded-lg border border-navy/10 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span aria-hidden className={i.atendido ? "text-navy" : "text-terracotta"}>
+                      {i.atendido ? "✓" : "•"}
+                    </span>
+                    <span className="text-navy">{i.titulo}</span>
+                    <Selo texto={ROTULO_GRUPO_PRONTIDAO[i.grupo]} />
+                    <Selo texto={i.atendido ? "atendido" : "pendente"} />
+                  </div>
+                  <p className="mt-1 text-[12px] text-navy/60">{i.exigencia}</p>
+                  <p className="mt-1 text-[12px] text-navy/55">{i.detalhe}</p>
+                  {!i.atendido && <p className="mt-1 text-[12px] text-navy/70">Como resolver: {i.comoResolver}</p>}
+                </li>
+              ))}
+            </ul>
+          </details>
+
+          <details data-marketing="historico" className="mt-3 rounded-lg border border-navy/10 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
+            <ul className="mt-3 space-y-2">
+              {historico.map((m) => (
+                <li key={m.chave} className="rounded-lg border border-navy/10 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-navy">{m.nome}</span>
+                    <span className="flex items-center gap-2">
+                      <strong className="text-[13px] text-navy">{m.valor}</strong>
+                      <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12px] text-navy/55">{m.nota}</p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[11px] text-navy/50">
+              Leitura analítica: não cria tarefa, alerta, fila, status ou dado.
+            </p>
+          </details>
         </Bloco>
 
-        <Bloco id="visao-geral" titulo="Visão geral de aquisição" descricao={SECOES_MARKETING[0].descricao}>
+        <Bloco
+          id="visao-geral"
+          titulo="Visão geral de aquisição"
+          descricao={SECOES_MARKETING.find((s) => s.hash === "visao-geral")!.descricao}
+        >
           <label className="mb-3 flex items-center gap-2 text-[12px] text-navy/60">
             <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
             Incluir registros de demonstração (fora das métricas reais)
@@ -258,7 +369,11 @@ function Marketing() {
           )}
         </Bloco>
 
-        <Bloco id="canais-campanhas" titulo="Canais e campanhas" descricao={SECOES_MARKETING[1].descricao}>
+        <Bloco
+          id="canais-campanhas"
+          titulo="Canais e campanhas"
+          descricao={SECOES_MARKETING.find((s) => s.hash === "canais-campanhas")!.descricao}
+        >
           <div className="flex flex-wrap gap-2">
             <Selo texto={`${entrada.campanhas.length} campanha(s) registrada(s)`} />
             <Selo texto={`${entrada.fontes.length} origem(ns) catalogada(s)`} />
@@ -275,18 +390,37 @@ function Marketing() {
             </p>
           )}
           <p className="mt-3 text-[12px] text-navy/55">
-            Nenhuma campanha, anúncio ou conexão de mídia é criada, alterada ou conectada por esta tela.
+            Nenhuma campanha, anúncio ou conexão de mídia é criada, alterada ou conectada por esta tela. Desempenho
+            por canal (investimento, CAC, ROI) está no bloco Indicadores, no topo.
           </p>
         </Bloco>
 
-        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING[2].descricao}>
-          <p data-marketing-vazio="captura">{VAZIOS_MARKETING.captura}</p>
-          <p className="mt-2 text-[12px] text-navy/55">
-            Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna fica declarada, sem estimativa.
+        <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
+          {/*
+            27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
+            editorial_content_items já é consultado de verdade em
+            /biblioteca-mensagens (message-library.functions.ts) — aqui nunca
+            foi, apesar do mapa técnico desta página dizer "parcial/real".
+            Vira ponte, não duplicata.
+          */}
+          <p>
+            Conteúdo editorial (posts, CTAs, temas por etapa de funil) é governado na Biblioteca de Mensagens, junto
+            dos modelos de WhatsApp, e-mail e portal — não aqui.
+          </p>
+          <Link
+            to="/biblioteca-mensagens"
+            search={{ alerta: undefined, caso: undefined, codigo: undefined }}
+            className="mt-3 inline-block rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold"
+          >
+            Abrir Biblioteca de Mensagens e Conteúdos
+          </Link>
+          <p data-marketing-vazio="captura" className="mt-2 text-[12px] text-navy/55">
+            {VAZIOS_MARKETING.captura} Sem CTA com link rastreável, conteúdo não gera origem atribuível: a lacuna
+            fica declarada, sem estimativa.
           </p>
         </Bloco>
 
-        <Bloco id="atribuicao" titulo="Atribuição e origem" descricao={SECOES_MARKETING[3].descricao}>
+        <Bloco id="atribuicao" titulo="Atribuição e origem" descricao={SECOES_MARKETING.find((s) => s.hash === "atribuicao")!.descricao}>
           <p data-marketing-vazio="atribuicao" className="mb-3">
             {entrada.atribuicoes.length === 0
               ? VAZIOS_MARKETING.atribuicao
@@ -330,26 +464,40 @@ function Marketing() {
           </ul>
         </Bloco>
 
-        <Bloco id="funil-aquisicao" titulo="Funil de aquisição" descricao={SECOES_MARKETING[4].descricao}>
+        <Bloco id="funil-aquisicao" titulo="Funil de aquisição" descricao={SECOES_MARKETING.find((s) => s.hash === "funil-aquisicao")!.descricao}>
+          {/*
+            27/08/2026 — era referência 100% estática, nunca lia banco. Ganha
+            uma coluna real: quantos leads do recorte atual têm essa origem
+            gravada — cruza CANAIS_HANDOFF (taxonomia fixa de risco) com
+            distribuicaoOrigens (contagem viva). A taxonomia continua fixa —
+            só passou a mostrar se está vazia ou não, de verdade.
+          */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px]">
               <thead className="text-[11px] uppercase tracking-wide text-navy/50">
                 <tr>
                   <th className="py-2 pr-3">Canal</th>
                   <th className="py-2 pr-3">Origem gravada</th>
+                  <th className="py-2 pr-3">Leads no recorte</th>
                   <th className="py-2 pr-3">Handoff</th>
                   <th className="py-2">Risco</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-navy/10">
-                {CANAIS_HANDOFF.map((c) => (
-                  <tr key={c.canal}>
-                    <td className="py-2 pr-3 text-navy">{c.canal}</td>
-                    <td className="py-2 pr-3">{c.origemGravada}</td>
-                    <td className="py-2 pr-3">{c.handoff}</td>
-                    <td className="py-2 text-navy/60">{c.risco}</td>
-                  </tr>
-                ))}
+                {CANAIS_HANDOFF.map((c) => {
+                  const contagem = origensCatalogo.find((o) => o.canonico === c.origemGravada)?.total ?? 0;
+                  return (
+                    <tr key={c.canal}>
+                      <td className="py-2 pr-3 text-navy">{c.canal}</td>
+                      <td className="py-2 pr-3">{c.origemGravada}</td>
+                      <td className="py-2 pr-3">
+                        {contagem > 0 ? <strong className="text-navy">{contagem}</strong> : <span className="text-navy/40">0</span>}
+                      </td>
+                      <td className="py-2 pr-3">{c.handoff}</td>
+                      <td className="py-2 text-navy/60">{c.risco}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -358,83 +506,19 @@ function Marketing() {
           </p>
         </Bloco>
 
-        <Bloco id="metricas-canal" titulo="Métricas por canal" descricao={SECOES_MARKETING[5].descricao}>
-          <p data-marketing-vazio="cac-roi" className="mb-3 text-[13px] text-navy/70">
-            {VAZIOS_MARKETING.cacRoi}
-          </p>
-          <ul data-marketing="metricas-principais" className="space-y-2">
-            {principais.map((m) => (
-              <li key={m.chave} className="rounded-lg border border-navy/10 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-navy">{m.nome}</span>
-                  <span className="flex items-center gap-2">
-                    <strong className="text-[13px] text-navy">{m.valor}</strong>
-                    <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
-                  </span>
-                </div>
-                <p className="mt-1 text-[12px] text-navy/55">{m.nota}</p>
-                {m.valor === SEM_DADOS && (m.chave === "cac" || m.chave === "roi") && (
-                  <div data-marketing-explicacao={m.chave} className="mt-2 rounded-lg border border-navy/10 bg-cream/40 p-2">
-                    {(m.chave === "cac" ? ["cac"] : ["roi", "roas"]).map((k) => {
-                      const e = explicacoes[k as "cac" | "roi" | "roas"];
-                      return (
-                        <div key={k} className="mt-1 first:mt-0">
-                          <p className="text-[12px] text-navy" title={e.tooltip}>
-                            <abbr title={e.tooltip} className="no-underline">
-                              {e.nome}
-                            </abbr>{" "}
-                            = {e.formula}
-                          </p>
-                          <ul className="mt-1 list-disc pl-5 text-[11px] text-navy/60">
-                            {e.faltantes.map((f) => (
-                              <li key={f.campo}>
-                                Falta <strong className="text-navy">{f.campo}</strong> em {f.onde} — {f.porque}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-          <details data-marketing="historico" className="mt-4 rounded-lg border border-navy/10 p-3">
-            <summary className="cursor-pointer text-sm font-semibold text-navy">Histórico e análise</summary>
-            <ul className="mt-3 space-y-2">
-              {historico.map((m) => (
-                <li key={m.chave} className="rounded-lg border border-navy/10 p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-navy">{m.nome}</span>
-                    <span className="flex items-center gap-2">
-                      <strong className="text-[13px] text-navy">{m.valor}</strong>
-                      <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[12px] text-navy/55">{m.nota}</p>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[11px] text-navy/50">
-              Leitura analítica: não cria tarefa, alerta, fila, status ou dado.
-            </p>
-          </details>
-        </Bloco>
-
-        <Bloco id="aprendizados" titulo="Aprendizados" descricao={SECOES_MARKETING[6].descricao}>
+        <Bloco id="aprendizados" titulo="Aprendizados das campanhas" descricao={SECOES_MARKETING.find((s) => s.hash === "aprendizados")!.descricao}>
           <p>
-            Leitura de canal é insumo interno de decisão humana. Nenhum aprendizado registrado aqui aciona campanha,
-            verba, link ou mensagem.
+            Derivado do desempenho por canal acima — nunca uma lista fixa. Leitura de canal é insumo interno de
+            decisão humana; nenhum aprendizado registrado aqui aciona campanha, verba, link ou mensagem.
           </p>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/60">
-            {ACOES_EXTERNAS_BLOQUEADAS.map((a) => (
-              <li key={a}>{a} — não executado por esta superfície.</li>
+          <ul data-marketing="aprendizados-campanha" className="mt-3 list-disc space-y-1 pl-5 text-[12px] text-navy/70">
+            {aprendizados.map((a) => (
+              <li key={a}>{a}</li>
             ))}
           </ul>
         </Bloco>
 
-        <Bloco id="links-comercial" titulo="Links contextuais para Comercial" descricao={SECOES_MARKETING[7].descricao}>
+        <Bloco id="links-comercial" titulo="Links contextuais para Comercial" descricao={SECOES_MARKETING.find((s) => s.hash === "links-comercial")!.descricao}>
           <div className="flex flex-wrap gap-2">
             <Link to="/leads" className="rounded-lg border border-navy/15 px-3 py-1.5 text-[13px] text-navy hover:border-gold">
               Leads e triagem

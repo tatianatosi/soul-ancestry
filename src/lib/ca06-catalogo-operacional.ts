@@ -859,14 +859,14 @@ export const DECISOES_BLOQUEADORAS: readonly DecisaoBloqueadora[] = [
   },
   {
     decisao:
-      "Preço/escopo de CA-CID-023 (Assessoria Completa) divergente entre propostas/casos reais",
+      "Escopo de CA-CID-023 (Assessoria Completa) a confirmar entre propostas/casos reais — preço já homologado",
     origem_do_conflito:
-      "Auditoria-Mãe: proposta/assessoria no caso Giovanna com escopos e preços que ainda conflitam.",
+      "Auditoria-Mãe: proposta/assessoria no caso Giovanna com escopos que ainda podem conflitar. Preço resolvido em 24/08/2026: R$ 4.800,00 homologado (regra de preço sugerido), registrado em output/catalogo/precos-a-homologar.csv.",
     impacto:
-      "Bloqueia contrato e cobrança da entrega de execução principal — item central da jornada de assessoria.",
+      "Escopo em aberto pode gerar entrega divergente da proposta; preço não bloqueia mais contrato/cobrança.",
     opcoes_ja_existentes:
-      "Homologar escopo e preço único; ou segmentar em variantes formais com preços distintos.",
-    responsavel_sugerido: "Tatiana (homologação de escopo/preço)",
+      "Confirmar se o escopo do caso Giovanna corresponde ao escopo padrão do SKU, ou segmentar em variante formal.",
+    responsavel_sugerido: "Tatiana (confirmação de escopo)",
   },
 ];
 

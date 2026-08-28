@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { metricasJornada } from "@/lib/fechamento-caso.functions";
-import { ROTULO_FASE } from "@/lib/jornada-cliente";
+import { rotuloFase } from "@/lib/fase-rotulo";
 
 function Kpi({ rotulo, valor, nota }: { rotulo: string; valor: string | number; nota?: string }) {
   return (
@@ -34,13 +34,21 @@ export function MetricasJornada() {
         <>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Kpi rotulo="Casos acompanhados" valor={m.casos} />
-            <Kpi rotulo="Clientes ativados no App" valor={m.ativadosNoApp} nota="Acesso liberado e confirmado" />
+            <Kpi
+              rotulo="Clientes ativados no App"
+              valor={m.ativadosNoApp}
+              nota="Acesso liberado e confirmado"
+            />
             <Kpi
               rotulo="Ativação → 1ª entrega vista"
               valor={m.mediaDiasAtivacaoAteEntregaVisualizada ?? "—"}
               nota="Média em dias"
             />
-            <Kpi rotulo="Dias sem touchpoint" valor={m.mediaDiasSemTouchpoint ?? "—"} nota="Média por caso" />
+            <Kpi
+              rotulo="Dias sem touchpoint"
+              valor={m.mediaDiasSemTouchpoint ?? "—"}
+              nota="Média por caso"
+            />
             <Kpi rotulo="Acima de 14 dias sem atualização" valor={m.casosAcimaDe14Dias} />
             <Kpi
               rotulo="Entregas"
@@ -57,25 +65,39 @@ export function MetricasJornada() {
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-navy/60">Casos por fase</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-navy/60">
+                Casos por fase do CRM
+              </p>
+              <p className="mt-0.5 text-[11px] text-navy/45">
+                Conta a fase registrada no caso (<code>crm_casos.fase</code>). O planejador em
+                Contratos conta a fase do plano operacional — são campos diferentes e podem
+                divergir.
+              </p>
               <ul className="mt-2 space-y-1 text-sm text-navy/70">
                 {Object.entries(m.casosPorFase as Record<string, number>).map(([fase, total]) => (
                   <li key={fase} className="flex justify-between gap-3 border-b border-navy/5 py-1">
-                    <span>{(ROTULO_FASE as Record<string, string>)[fase] ?? fase}</span>
+                    <span>{rotuloFase(fase)}</span>
                     <span className="text-navy">{total}</span>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-navy/60">Pendências por responsável</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-navy/60">
+                Pendências por responsável
+              </p>
               <ul className="mt-2 space-y-1 text-sm text-navy/70">
                 {Object.entries(m.pendenciasPorResponsavel as Record<string, number>)
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 8)
                   .map(([resp, total]) => (
-                    <li key={resp} className="flex justify-between gap-3 border-b border-navy/5 py-1">
-                      <span className="truncate">{resp === "sem_responsavel" ? "Sem responsável" : resp}</span>
+                    <li
+                      key={resp}
+                      className="flex justify-between gap-3 border-b border-navy/5 py-1"
+                    >
+                      <span className="truncate">
+                        {resp === "sem_responsavel" ? "Sem responsável" : resp}
+                      </span>
                       <span className="text-navy">{total}</span>
                     </li>
                   ))}
@@ -84,8 +106,9 @@ export function MetricasJornada() {
           </div>
 
           <p className="mt-4 text-[11px] text-navy/45">
-            NPS (D30, fim de etapa e conclusão), indicações e renovação dependem de coleta registrada — ainda não há fonte
-            homologada, por isso não são exibidos como número estimado.
+            NPS (D30, fim de etapa e conclusão), indicações e renovação dependem de coleta
+            registrada — ainda não há fonte homologada, por isso não são exibidos como número
+            estimado.
           </p>
         </>
       )}

@@ -64,7 +64,13 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
     rotaBase: "/leads",
     linhas: [
       { mockup: "CRM Vivo — leads", rota: "/leads", dado: "leads, lead_sources, discovery_assessments", estado: "implementado" },
-      { mockup: "Calls e interações", rota: "/calls · /leads#crm-contatos", dado: "crm_interactions, touchpoints", estado: "implementado", nota: "Interações imutáveis." },
+      // 27/08/2026 — linha misturava duas tabelas com destinos diferentes.
+      // touchpoints é real (crm.functions.ts, onboarding-jornada.functions.ts,
+      // 8 registros). crm_interactions nunca teve registro (0 linhas) — vivia
+      // em PainelCanonicoCrm, dentro do modelo contacts/opportunities que a
+      // Proprietária confirmou nunca ter usado; relocado para
+      // /historico/fluxo-comercial-canonico.
+      { mockup: "Calls e interações", rota: "/calls · /leads", dado: "touchpoints", estado: "implementado", nota: "Cadência e onboarding leem touchpoints. crm_interactions (histórico, 0 registros) mora em /historico/fluxo-comercial-canonico." },
       { mockup: "Próximas ações", rota: "/proximas-acoes", dado: "derivado: tarefas + leads", estado: "implementado" },
       { mockup: "Planejador", rota: "/casos#planejador", dado: "planner_tarefas", estado: "parcial" },
       { mockup: "Propostas (páginas 1–7)", rota: "/propostas", dado: "proposals, proposal_canva_pages", estado: "implementado" },
@@ -164,7 +170,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
     linhas: [
       { mockup: "Visão geral de aquisição", rota: "/marketing", dado: "leads.origem, conversion_events", estado: "parcial", nota: "Origem em texto livre, sem taxonomia fechada." },
       { mockup: "Canais e campanhas", rota: "/marketing#canais-campanhas", dado: "marketing_campaigns, lead_sources", estado: "ausente", nota: "Tabelas existem sem registros; nenhuma campanha é criada aqui." },
-      { mockup: "Conteúdo e CTAs", rota: "/marketing#conteudo-ctas", dado: "editorial_content_items", estado: "parcial", nota: "Sem página pública nem CTA rastreável." },
+      { mockup: "Conteúdo e CTAs", rota: "/marketing#conteudo-ctas", dado: "editorial_content_items", estado: "ausente", nota: "27/08/2026 — /marketing nunca consultava editorial_content_items apesar do rótulo. Conteúdo real mora em /biblioteca-mensagens (message-library.functions.ts); /marketing agora só aponta pra lá." },
       { mockup: "Atribuição e origem", rota: "/marketing#atribuicao", dado: "attribution_records", estado: "ausente", nota: "UTM não é capturada: lacuna declarada, nunca estimada." },
       { mockup: "Funil de aquisição", rota: "/marketing#funil-aquisicao", dado: "conversion_events", estado: "parcial", nota: "Leitura por canal incompleta; lead segue sendo de Comercial." },
       { mockup: "Métricas por canal (CAC/ROI)", rota: "/marketing#metricas-canal", dado: "marketing_investments + payments", estado: "parcial", nota: "Fórmula definida, dado ausente: exibe “Sem dados suficientes”." },

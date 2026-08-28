@@ -31,21 +31,32 @@ describe("G-05 relatórios de fase", () => {
   });
 
   it("relatório não publicado não aparece no App", () => {
-    const base = { report_status: "aprovado_internamente", publicado_no_app: false, resumo_aprovado_cliente: "Resumo." };
+    const base = {
+      report_status: "aprovado_internamente",
+      publicado_no_app: false,
+      resumo_aprovado_cliente: "Resumo.",
+    };
     expect(visivelNoApp(base)).toBe(false);
     expect(projetarParaApp(base)).toBeNull();
     expect(visivelNoApp({ ...base, report_status: "entregue", publicado_no_app: true })).toBe(true);
   });
 
   it("micro-entrega vinculada não cria novo relatório", () => {
-    const relatorios = [{ id: "r1", report_type: "REPORT_F2_PESQUISA", fase_jornada: "fase_2_pesquisa" }];
-    expect(resolverRelatorioDaMicroentrega(relatorios, { fase: "fase_2_pesquisa" })).toEqual({ ok: true, reportId: "r1" });
+    const relatorios = [
+      { id: "r1", report_type: "REPORT_F2_PESQUISA", fase_jornada: "fase_2_pesquisa" },
+    ];
+    expect(resolverRelatorioDaMicroentrega(relatorios, { fase: "fase_2_pesquisa" })).toEqual({
+      ok: true,
+      reportId: "r1",
+    });
     const semRelatorio = resolverRelatorioDaMicroentrega(relatorios, { fase: "fase_3_prontidao" });
     expect(semRelatorio.ok).toBe(false);
   });
 
   it("entrega e publicação exigem projeção aprovada", () => {
-    expect(validarRelatorio({ report_type: "REPORT_F1_DIAGNOSTICO", report_status: "entregue" }).length).toBeGreaterThan(0);
+    expect(
+      validarRelatorio({ report_type: "REPORT_F1_DIAGNOSTICO", report_status: "entregue" }).length,
+    ).toBeGreaterThan(0);
     expect(
       validarRelatorio({
         report_type: "REPORT_F1_DIAGNOSTICO",

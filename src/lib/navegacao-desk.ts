@@ -15,10 +15,8 @@
  * - Rótulos de interface mudam; URLs permanecem idênticas.
  */
 
-
 export type ItemNav =
-  | { grupo: string }
-  | { to: string; label: string; hash?: string; adminOnly?: boolean };
+  { grupo: string } | { to: string; label: string; hash?: string; adminOnly?: boolean };
 
 export type GrupoDesk = {
   id: string;
@@ -87,19 +85,31 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Marketing e aquisição (aba 2)" },
 
+      { grupo: "CRM Vivo" },
+      // 28/08/2026 — CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1
+      // (substitui a v1.0, que propunha tabelas contacts/opportunities novas):
+      // "não basta haver funções, tabelas ou componentes isolados: o CRM Vivo
+      // precisa aparecer e operar na interface autenticada... use apenas
+      // rotas e telas existentes". O CRM Vivo sempre foi isto — Leads,
+      // Contatos/eventos de funil, Propostas, Conversão/handoff — só nunca
+      // apareceu com esse nome no menu. Nenhuma tabela nova, nenhum dado
+      // movido; só o rótulo que faltava.
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Calls Discovery" },
-      { grupo: "CRM" },
-      { to: "/leads", hash: "crm-contatos", label: "CRM, contatos e interações" },
+      { to: "/propostas", label: "Propostas" },
+      { to: "/conversao", label: "Conversão, follow-up e handoff" },
+      { grupo: "Referência do CRM" },
+      // 27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). O
+      // modelo de contatos/oportunidades (0 registros desde 21/08) saiu do
+      // menu, seguindo o mesmo padrão dos painéis históricos: link direto
+      // em /leads (id="crm-contatos"), sem entrada em nav/atalhos/descoberta.
+      // Preservado em /historico/fluxo-comercial-canonico.
       { to: "/crm-mestre", label: "CRM Mestre, Discovery e handoff" },
       {
         to: "/governanca/dicionario-calls-crm",
         label: "Dicionário de validações (Calls → CRM)",
       },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
-
-      { to: "/propostas", label: "Propostas" },
-      { to: "/conversao", label: "Conversão, follow-up e handoff" },
       { grupo: "Relacionamento" },
       { to: "/clientes", label: "Clientes e núcleos comerciais" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
@@ -187,7 +197,17 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      { to: "/acessos-portal", hash: "espelho", label: "Espelho read-only da projeção" },
+      // 25/08/2026 — o item apontava para `/acessos-portal#espelho`, âncora que
+      // nunca existiu naquela página: o link levava a uma tela de convites, sem
+      // espelho nenhum. Passa a apontar para a sessão demo, que é real e usa os
+      // componentes do próprio App Cliente. O espelho de caso real (mesma
+      // camada, outra fonte de dado) entra como passo seguinte.
+      { to: "/app-cliente-demo", label: "Sessão demo do App Cliente" },
+      // 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente
+      // como pessoa" (Proprietária). É o "passo seguinte" citado acima: mesma
+      // camada de componentes, dado real de um caso escolhido, autorizado por
+      // papel de Proprietária Administradora.
+      { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
     ],
   },
   {
@@ -219,7 +239,10 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
       { to: "/governanca/varredura-completude", label: "Completude" },
       { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      { to: "/governanca/matriz-equivalencia", label: "Matriz de equivalência — rota → dado → estado" },
+      {
+        to: "/governanca/matriz-equivalencia",
+        label: "Matriz de equivalência — rota → dado → estado",
+      },
       { to: "/governanca/identificadores", label: "Identificadores" },
       { grupo: "Integrações" },
       { to: "/integracoes", label: "Integrações" },
@@ -252,7 +275,6 @@ export const MENU_CONTA: {
     { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
   ],
 } as const;
-
 
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
@@ -335,7 +357,6 @@ export function rotasDoMenuConta(): string[] {
   return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
 }
 
-
 /** Rotas preservadas que perderam link de menu (devem ser zero). */
 export function rotasSemLink(): string[] {
   const menu = new Set(rotasDoMenu());
@@ -370,6 +391,59 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
 
+/**
+ * O grupo onde a rota mora, quando ela está sendo citada de fora dele.
+ *
+ * 26/08/2026 — a Proprietária leu o menu como tendo "muitas sobreposições".
+ * As repetições são deliberadas (`LINKS_CONTEXTUAIS`), mas eram indistinguíveis
+ * da entrada canônica: `/matriz-juridica` aparecia com o MESMO rótulo em três
+ * grupos, sem nada dizendo que mora em Governança. Repetição sem marca lê-se
+ * como duplicação.
+ *
+ * Devolve o grupo de origem quando o item é atalho, e null quando é a entrada
+ * canônica — aí não há nada a marcar.
+ */
+export function origemDoAtalho(grupoLabel: string, rota: string): string | null {
+  const registro = LINKS_CONTEXTUAIS.find((l) => l.rota === rota);
+  if (!registro) return null;
+  if (registro.origem === grupoLabel) return null;
+  return registro.tambemEm.includes(grupoLabel) ? registro.origem : null;
+}
+
+/**
+ * Natureza de cada biblioteca do Desk.
+ *
+ * 26/08/2026 — princípio da Proprietária: "temos muitas bibliotecas que são e
+ * podem ser chamadas por motores, outras são descritivas… muita info significa
+ * nenhuma info".
+ *
+ * `motor`      — algo no sistema chama esta biblioteca e ela muda o que sai
+ *                (template versionado, evidência vinculada a caso).
+ * `descritiva` — referência para leitura humana; nada a consome para agir.
+ *
+ * A distinção é medida, não opinada: `motor` só vale para biblioteca com
+ * função de servidor própria ou consumida por caminho que produz saída.
+ */
+export const NATUREZA_BIBLIOTECA: readonly {
+  rota: string;
+  natureza: "motor" | "descritiva";
+  nota: string;
+}[] = [
+  {
+    rota: "/biblioteca-mensagens",
+    natureza: "motor",
+    nota: "Template versionado que a fila de comunicação consome; muda o texto que sai.",
+  },
+  {
+    rota: "/biblioteca",
+    natureza: "descritiva",
+    nota: "Curadoria e conhecimento. Nada a consome para produzir saída.",
+  },
+] as const;
+
+export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)[number] | null {
+  return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
+}
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [

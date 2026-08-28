@@ -4,7 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
-import { AREAS_RESPONSAVEIS, EIXO_COMERCIAL, classificarPrazo, listaPrioritaria, rotulo } from "@/lib/crm-desk";
+import {
+  AREAS_RESPONSAVEIS,
+  EIXO_COMERCIAL,
+  classificarPrazo,
+  listaPrioritaria,
+  rotulo,
+} from "@/lib/crm-desk";
 
 /**
  * Painel Hoje do Desk comercial: filas ordenadas por criticidade e leitura
@@ -31,7 +37,10 @@ export function PainelDeskHoje() {
       acc[classificarPrazo(i.data, hoje).chave] += 1;
       return acc;
     },
-    { atrasado: 0, hoje: 0, futuro: 0, sem_data: 0 } as Record<"atrasado" | "hoje" | "futuro" | "sem_data", number>,
+    { atrasado: 0, hoje: 0, futuro: 0, sem_data: 0 } as Record<
+      "atrasado" | "hoje" | "futuro" | "sem_data",
+      number
+    >,
   );
 
   return (
@@ -92,11 +101,13 @@ export function PainelDeskHoje() {
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">
-        <Link to="/nucleos" className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5">
+        <Link
+          to="/nucleos"
+          className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+        >
           Núcleos familiares e dossiê-mãe
         </Link>
       </div>
-
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filas.map((f) => (
@@ -133,7 +144,8 @@ export function PainelDeskHoje() {
             Lista priorizada por prazo da próxima ação ({priorizada.length})
           </p>
           <p className="text-[11px] text-navy/45">
-            {contagem.atrasado} em atraso · {contagem.hoje} para hoje · {contagem.futuro} futuras · {contagem.sem_data} sem prazo
+            {contagem.atrasado} em atraso · {contagem.hoje} para hoje · {contagem.futuro} futuras ·{" "}
+            {contagem.sem_data} sem prazo
           </p>
         </div>
         <ul className="mt-2 divide-y divide-navy/5 text-xs text-navy/70">
@@ -154,7 +166,9 @@ export function PainelDeskHoje() {
                 <span className={`font-medium ${cor}`}>{d ?? "sem prazo"}</span>
                 <span
                   className={`rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
-                    p.chave === "atrasado" ? "border-terracotta/40 text-terracotta" : "border-navy/15 text-navy/55"
+                    p.chave === "atrasado"
+                      ? "border-terracotta/40 text-terracotta"
+                      : "border-navy/15 text-navy/55"
                   }`}
                 >
                   {p.rotulo}
@@ -163,17 +177,18 @@ export function PainelDeskHoje() {
                 <span className="text-navy/50">· motivo: {i.fila}</span>
                 <span className="text-navy/45">· {i.detalhe}</span>
                 <span className="text-navy/45">
-                  · {i.responsavel ?? "sem responsável"} / {i.area ? rotulo("area_responsavel", i.area) : "sem área"}
+                  · {i.responsavel ?? "sem responsável"} /{" "}
+                  {i.area ? rotulo("area_responsavel", i.area) : "sem área"}
                   {i.etapa ? ` / ${rotulo("eixo_comercial", i.etapa)}` : ""}
                 </span>
               </li>
             );
           })}
-          {!priorizada.length ? <li className="py-1.5">Nada priorizado nos filtros atuais.</li> : null}
+          {!priorizada.length ? (
+            <li className="py-1.5">Nada priorizado nos filtros atuais.</li>
+          ) : null}
         </ul>
       </div>
-
-
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-navy/10 bg-white p-4">
@@ -193,7 +208,10 @@ export function PainelDeskHoje() {
             <li>Agendadas: {metricas.calls.agendadas}</li>
             <li>Realizadas: {metricas.calls.realizadas}</li>
             <li>No-show: {metricas.calls.noShow}</li>
-            <li>Conversão agendada → realizada: {metricas.calls.conversao === null ? "—" : `${metricas.calls.conversao}%`}</li>
+            <li>
+              Conversão agendada → realizada:{" "}
+              {metricas.calls.conversao === null ? "—" : `${metricas.calls.conversao}%`}
+            </li>
           </ul>
         </div>
 
@@ -223,14 +241,18 @@ export function PainelDeskHoje() {
         </div>
 
         <div className="rounded-xl border border-navy/10 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-navy/50">Casos por nacionalidade e via</p>
+          <p className="text-xs uppercase tracking-wide text-navy/50">
+            Casos por nacionalidade e via
+          </p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
             {metricas.casosPorNacionalidadeVia.slice(0, 6).map((c) => (
               <li key={c.chave}>
                 {c.chave}: {c.total}
               </li>
             ))}
-            {!metricas.casosPorNacionalidadeVia.length ? <li>Sem casos ativos classificados.</li> : null}
+            {!metricas.casosPorNacionalidadeVia.length ? (
+              <li>Sem casos ativos classificados.</li>
+            ) : null}
           </ul>
         </div>
 

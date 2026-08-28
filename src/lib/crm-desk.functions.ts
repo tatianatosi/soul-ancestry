@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { semFixtures } from "@/lib/fixtures";
@@ -119,6 +120,7 @@ async function orgDoUsuario(supabase: any, userId: string) {
 export const listarLeadsDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data, error } = await supabase
       .from("leads")
@@ -199,6 +201,7 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d?: { incluirDemo?: boolean }) => ({ incluirDemo: d?.incluirDemo === true }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const [{ data: leads }, { data: casos }] = await Promise.all([
       supabase.from("leads").select("*").limit(1000),
@@ -231,6 +234,7 @@ export const listarDependentes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => ({ caseId: exigirUuid(d?.caseId, "caseId") }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data: rows, error } = await supabase
       .from("case_dependents")
@@ -292,6 +296,7 @@ export const salvarDependente = createServerFn({ method: "POST" })
 export const listarMatrizJuridica = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data: rows } = await supabase.from("legal_clause_matrix").select("*").is("archived_at", null);
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
@@ -373,6 +378,7 @@ export const listarPaginasCanva = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { proposalId: string }) => ({ proposalId: exigirUuid(d?.proposalId, "proposalId") }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const { data: rows } = await supabase
       .from("proposal_canva_pages")
@@ -462,6 +468,7 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => ({ caseId: exigirUuid(d?.caseId, "caseId") }))
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
 
     const [matrizRes, depRes, checkRes, servRes, critRes, confRes] = await Promise.all([

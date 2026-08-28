@@ -23,7 +23,10 @@ describe("checklist jurídico", () => {
   });
 
   it("bloqueia quando faltam anexos, partes e versão", () => {
-    const r = montarChecklistJuridico({ contrato: { title: "" }, anexos: [{ annex_code: "I", status: "draft" }] });
+    const r = montarChecklistJuridico({
+      contrato: { title: "" },
+      anexos: [{ annex_code: "I", status: "draft" }],
+    });
     expect(r.aptoParaRevisaoHumana).toBe(false);
     expect(r.itens.find((i) => i.chave === "anexos_obrigatorios")?.detalhe).toContain("II");
     expect(r.itens.find((i) => i.chave === "versao_gerada")?.estado).toBe("bloqueio");
@@ -32,7 +35,10 @@ describe("checklist jurídico", () => {
   it("ignora registros arquivados", () => {
     const r = montarChecklistJuridico({
       ...completo,
-      partes: [...completo.partes, { party_role: "contratante", document_number: "", archived_at: "2026-01-01" }],
+      partes: [
+        ...completo.partes,
+        { party_role: "contratante", document_number: "", archived_at: "2026-01-01" },
+      ],
     });
     expect(r.itens.find((i) => i.chave === "partes_documento")?.estado).toBe("ok");
   });

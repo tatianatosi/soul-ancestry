@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { avaliarSugestao, montarFilaHumana, ENVIO_AUTOMATICO_HABILITADO, textoSuspeito, type Contexto } from "@/lib/fila-comunicacao";
-import { cac, cpl, formatarIndicador, montarFunil, previsoesControladas, resultadoCaixa, roi } from "@/lib/indicadores-marketing";
+import {
+  avaliarSugestao,
+  montarFilaHumana,
+  ENVIO_AUTOMATICO_HABILITADO,
+  textoSuspeito,
+  type Contexto,
+} from "@/lib/fila-comunicacao";
+import {
+  cac,
+  cpl,
+  formatarIndicador,
+  montarFunil,
+  previsoesControladas,
+  resultadoCaixa,
+  roi,
+} from "@/lib/indicadores-marketing";
 import { calcularRadar, validarAlteracaoManual } from "@/lib/radar-elegibilidade";
 import type { LeadDesk } from "@/lib/crm-desk";
 
@@ -43,7 +57,12 @@ describe("Radar de elegibilidade preliminar", () => {
   it("alteração manual exige justificativa, responsável e versão", () => {
     expect(validarAlteracaoManual({ faixa: "baixa" })).toHaveLength(3);
     expect(
-      validarAlteracaoManual({ faixa: "baixa", justificativa: "documento contradiz relato", responsavel: "Tatiana", versao_matriz: "v1" }),
+      validarAlteracaoManual({
+        faixa: "baixa",
+        justificativa: "documento contradiz relato",
+        responsavel: "Tatiana",
+        versao_matriz: "v1",
+      }),
     ).toEqual([]);
   });
 });
@@ -56,26 +75,42 @@ describe("Indicadores de marketing e financeiro", () => {
   });
 
   it("calcula CPL/CAC/ROI com base completa", () => {
-    const base = { investimento_midia: 1000, leads_atribuiveis: 10, pagamentos_atribuiveis: 2, receita_atribuivel: 3000 };
+    const base = {
+      investimento_midia: 1000,
+      leads_atribuiveis: 10,
+      pagamentos_atribuiveis: 2,
+      receita_atribuivel: 3000,
+    };
     expect(cpl(base)).toMatchObject({ valor: 100 });
     expect(cac(base)).toMatchObject({ valor: 500 });
     expect(roi(base)).toMatchObject({ valor: 200 });
   });
 
   it("caixa usa receita recebida e nunca a contratada", () => {
-    const r = resultadoCaixa({ receita_recebida: 5000, receita_contratada: 50000, despesas_operacionais: 1000, investimento_midia: 500 });
+    const r = resultadoCaixa({
+      receita_recebida: 5000,
+      receita_contratada: 50000,
+      despesas_operacionais: 1000,
+      investimento_midia: 500,
+    });
     expect(r).toMatchObject({ valor: 3500 });
   });
 
   it("previsão nunca conta como receita", () => {
-    expect(previsoesControladas({ contratada_nao_recebida: 900 }).every((p) => p.conta_como_receita === false)).toBe(true);
+    expect(
+      previsoesControladas({ contratada_nao_recebida: 900 }).every(
+        (p) => p.conta_como_receita === false,
+      ),
+    ).toBe(true);
   });
 
   it("funil não compara etapa sem evento registrado", () => {
     const f = montarFunil({ lead_captado: 20, discovery_realizada: 5 });
     expect(f[0]?.volume).toMatchObject({ valor: 20 });
     expect(f.find((l) => l.chave === "discovery_agendada")?.volume.estado).toBe("sem_dados");
-    expect(f.find((l) => l.chave === "discovery_realizada")?.taxa_etapa_anterior).toMatchObject({ valor: 25 });
+    expect(f.find((l) => l.chave === "discovery_realizada")?.taxa_etapa_anterior).toMatchObject({
+      valor: 25,
+    });
   });
 });
 
@@ -92,30 +127,45 @@ describe("Fila humana de comunicação", () => {
   });
 
   it("sugestão nasce em rascunho e não enviada", () => {
-    expect(avaliarSugestao(base)).toMatchObject({ approval_status: "rascunho", delivery_status: "nao_enviado", priority: 1 });
+    expect(avaliarSugestao(base)).toMatchObject({
+      approval_status: "rascunho",
+      delivery_status: "nao_enviado",
+      priority: 1,
+    });
   });
 
   it("bloqueia sem consentimento e sem canal", () => {
-    expect(avaliarSugestao({ ...base, consentimento: "pendente" })).toMatchObject({ bloqueado: true });
+    expect(avaliarSugestao({ ...base, consentimento: "pendente" })).toMatchObject({
+      bloqueado: true,
+    });
     expect(avaliarSugestao({ ...base, canal: null })).toMatchObject({ bloqueado: true });
   });
 
   it("cobrança exige referência financeira autorizada", () => {
-    expect(avaliarSugestao({ ...base, gatilho: "pagamento_inicial_aguardado" })).toMatchObject({ bloqueado: true });
+    expect(avaliarSugestao({ ...base, gatilho: "pagamento_inicial_aguardado" })).toMatchObject({
+      bloqueado: true,
+    });
   });
 
   it("boas-vindas exige contrato assinado e pagamento confirmado", () => {
-    expect(avaliarSugestao({ ...base, gatilho: "boas_vindas_onboarding", contrato_assinado: true })).toMatchObject({ bloqueado: true });
+    expect(
+      avaliarSugestao({ ...base, gatilho: "boas_vindas_onboarding", contrato_assinado: true }),
+    ).toMatchObject({ bloqueado: true });
   });
 
   it("demonstração fica fora da fila real", () => {
-    const { sugestoes, bloqueadas } = montarFilaHumana([{ ...base, is_demo: true }, { ...base, consentimento: "recusado" }]);
+    const { sugestoes, bloqueadas } = montarFilaHumana([
+      { ...base, is_demo: true },
+      { ...base, consentimento: "recusado" },
+    ]);
     expect(sugestoes).toHaveLength(0);
     expect(bloqueadas).toHaveLength(1);
   });
 
   it("detecta termos internos proibidos no texto", () => {
-    expect(textoSuspeito("veja o link https://drive interno com a hipótese").length).toBeGreaterThan(0);
+    expect(
+      textoSuspeito("veja o link https://drive interno com a hipótese").length,
+    ).toBeGreaterThan(0);
     expect(textoSuspeito("Olá João, seguimos com o próximo passo do seu processo.")).toEqual([]);
   });
 });

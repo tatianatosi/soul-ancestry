@@ -57,7 +57,13 @@ const base = {
 };
 
 const linhas = [
-  { ...base, id: "p1", case_id: CASO, projection_type: "linha_tempo", content_sanitized: "Registro civil localizado." },
+  {
+    ...base,
+    id: "p1",
+    case_id: CASO,
+    projection_type: "linha_tempo",
+    content_sanitized: "Registro civil localizado.",
+  },
   {
     ...base,
     id: "p2",
@@ -66,11 +72,41 @@ const linhas = [
     content_sanitized: "Nova geração mapeada.",
     effective_from: anteontem,
   },
-  { ...base, id: "d1", case_id: CASO, approval_status: "draft", content_sanitized: "Rascunho interno." },
-  { ...base, id: "e1", case_id: CASO, destination: "equipe_interna", content_sanitized: "Nota interna." },
-  { ...base, id: "x1", case_id: CASO, effective_to: anteontem, content_sanitized: "Publicação expirada." },
-  { ...base, id: "a1", case_id: CASO, archived_at: ontem, content_sanitized: "Publicação arquivada." },
-  { ...base, id: "f1", case_id: CASO, effective_from: amanha, content_sanitized: "Ainda não vigente." },
+  {
+    ...base,
+    id: "d1",
+    case_id: CASO,
+    approval_status: "draft",
+    content_sanitized: "Rascunho interno.",
+  },
+  {
+    ...base,
+    id: "e1",
+    case_id: CASO,
+    destination: "equipe_interna",
+    content_sanitized: "Nota interna.",
+  },
+  {
+    ...base,
+    id: "x1",
+    case_id: CASO,
+    effective_to: anteontem,
+    content_sanitized: "Publicação expirada.",
+  },
+  {
+    ...base,
+    id: "a1",
+    case_id: CASO,
+    archived_at: ontem,
+    content_sanitized: "Publicação arquivada.",
+  },
+  {
+    ...base,
+    id: "f1",
+    case_id: CASO,
+    effective_from: amanha,
+    content_sanitized: "Ainda não vigente.",
+  },
   { ...base, id: "o1", case_id: OUTRO, content_sanitized: "Conteúdo de outro cliente." },
 ];
 
@@ -100,14 +136,26 @@ describe("publicações do Desk no App Cliente", () => {
   it("não carrega campos internos para a tela", () => {
     const out = publicacoesParaCliente(viewPortalProjecoes(linhas, CASO));
     for (const p of out) {
-      expect(Object.keys(p).sort()).toEqual(["conteudo", "id", "publicadoEm", "tipo", "tipoRotulo"]);
-      expect(JSON.stringify(p)).not.toMatch(/motivo_interno|autor|approval_status|destination|archived/i);
+      expect(Object.keys(p).sort()).toEqual([
+        "conteudo",
+        "id",
+        "publicadoEm",
+        "tipo",
+        "tipoRotulo",
+      ]);
+      expect(JSON.stringify(p)).not.toMatch(
+        /motivo_interno|autor|approval_status|destination|archived/i,
+      );
     }
   });
 
   it("sanitiza juízo de mérito no conteúdo publicado", () => {
     const [p] = publicacoesParaCliente([
-      { id: "s1", projection_type: "resumo", content_sanitized: "Hipótese forte de reconhecimento." },
+      {
+        id: "s1",
+        projection_type: "resumo",
+        content_sanitized: "Hipótese forte de reconhecimento.",
+      },
     ]);
     expect(p.conteudo).not.toMatch(/hipótese forte/i);
   });

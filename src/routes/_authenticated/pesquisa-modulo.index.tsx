@@ -9,6 +9,7 @@ import { SaasShell } from "@/components/saas/shell";
 import { Painel, Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
+import { CardIndicador } from "@/components/desk/ui-desk";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
   head: () => ({
@@ -72,6 +73,33 @@ function Index() {
 
       {d && (
         <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <CardIndicador rotulo="Casos em pesquisa" valor={d.pesquisas.length} apoio="Pesquisas ativas no Desk" />
+            <CardIndicador
+              rotulo="Pendências críticas"
+              valor={d.pesquisas.reduce((s: number, p: any) => s + (p.pendencias_criticas ?? 0), 0)}
+              apoio="Soma por pesquisa"
+              tom="critico"
+            />
+            <CardIndicador
+              rotulo="Pendências vencidas"
+              valor={d.pesquisas.reduce((s: number, p: any) => s + (p.pendencias_vencidas ?? 0), 0)}
+              apoio="Soma por pesquisa"
+              tom="atencao"
+            />
+            <CardIndicador
+              rotulo="Evidências em revisão"
+              valor={d.pesquisas.reduce((s: number, p: any) => s + (p.evidencias_revisao ?? 0), 0)}
+              apoio="Aguardando validação humana"
+              tom="atencao"
+            />
+            <CardIndicador
+              rotulo="Casos sem pesquisa iniciada"
+              valor={d.casosSemPesquisa.length}
+              apoio="Elegíveis, ainda não abertos"
+            />
+          </div>
+
           <Painel titulo="Pesquisas em andamento">
             <button
               className="mb-3 rounded-lg border border-navy/20 px-3 py-1.5 text-xs"

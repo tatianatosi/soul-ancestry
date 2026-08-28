@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -24,6 +25,7 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoPesquisa(supabase, userId);
@@ -78,6 +80,7 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
 export const listarCasosPesquisa = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    semCache();
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoPesquisa(supabase, context.userId as string);
     const { data, error } = await supabase

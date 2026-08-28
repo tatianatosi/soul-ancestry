@@ -10,7 +10,10 @@ import { Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { corrigirFilaCanonica, registrarOverrideProprietaria } from "@/lib/modo-proprietaria.functions";
+import {
+  corrigirFilaCanonica,
+  registrarOverrideProprietaria,
+} from "@/lib/modo-proprietaria.functions";
 
 type Tipo = "lead" | "oportunidade" | "caso" | "tarefa";
 
@@ -36,7 +39,13 @@ export function AcoesRapidasProprietaria({
   const corrigir = useServerFn(corrigirFilaCanonica);
   const assumir = useServerFn(registrarOverrideProprietaria);
   const [aberto, setAberto] = useState(false);
-  const [form, setForm] = useState({ responsavel: "", prazo: "", proxima: "", motivo: "", fonte: "" });
+  const [form, setForm] = useState({
+    responsavel: "",
+    prazo: "",
+    proxima: "",
+    motivo: "",
+    fonte: "",
+  });
   const [erros, setErros] = useState<string[]>([]);
   const [ok, setOk] = useState(false);
 
@@ -85,7 +94,6 @@ export function AcoesRapidasProprietaria({
     onError: (e: any) => setErros([String(e?.message ?? "Não foi possível registrar a decisão.")]),
   });
 
-
   if (!aberto) {
     return (
       <button
@@ -100,7 +108,8 @@ export function AcoesRapidasProprietaria({
   return (
     <div className="mt-2 rounded-lg border border-gold/40 bg-cream/40 p-2 text-[11px]">
       <p className="mb-1 text-navy/70">
-        Correção interna auditada. Nenhuma cobrança, assinatura, comunicação, publicação ou integração é executada aqui.
+        Correção interna auditada. Nenhuma cobrança, assinatura, comunicação, publicação ou
+        integração é executada aqui.
       </p>
       <div className="grid gap-1.5 sm:grid-cols-2">
         <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
@@ -168,15 +177,24 @@ export function AcoesRapidasProprietaria({
         >
           {mAssumir.isPending ? "Registrando…" : "Assumir pendência e avançar"}
         </button>
-        <button onClick={() => setAberto(false)} className="rounded-md border border-navy/20 px-2.5 py-1 text-navy/70">
+        <button
+          onClick={() => setAberto(false)}
+          className="rounded-md border border-navy/20 px-2.5 py-1 text-navy/70"
+        >
           Fechar
         </button>
-        {ok ? <span className="text-navy/70">Correção salva na entidade canônica, com auditoria.</span> : null}
+        {ok ? (
+          <span className="text-navy/70">Correção salva na entidade canônica, com auditoria.</span>
+        ) : null}
       </div>
       <div className="mt-2 flex flex-wrap gap-3 border-t border-gold/30 pt-2 text-[11px]">
         <span className="text-navy/50">Abrir origem:</span>
         {tipo === "caso" ? (
-          <Link to="/casos/$caseId" params={{ caseId: id }} className="text-navy underline underline-offset-2">
+          <Link
+            to="/casos/$caseId"
+            params={{ caseId: id }}
+            className="text-navy underline underline-offset-2"
+          >
             Caso
           </Link>
         ) : (

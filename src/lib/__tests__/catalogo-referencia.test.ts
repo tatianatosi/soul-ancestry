@@ -29,8 +29,12 @@ const linha = (over: Record<string, unknown> = {}) =>
 describe("camada de referência de catálogo", () => {
   it("só permite proposta com produto ativo e homologado", () => {
     expect(bloqueiosDeSelecao(linha())).toEqual([]);
-    expect(bloqueiosDeSelecao(linha({ status_homologacao: "em_revisao" })).length).toBeGreaterThan(0);
-    expect(bloqueiosDeSelecao(linha({ status_homologacao: "bloqueado" })).length).toBeGreaterThan(0);
+    expect(bloqueiosDeSelecao(linha({ status_homologacao: "em_revisao" })).length).toBeGreaterThan(
+      0,
+    );
+    expect(bloqueiosDeSelecao(linha({ status_homologacao: "bloqueado" })).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("mantém SKU não comercializável fora do seletor de oferta nova", () => {
@@ -58,6 +62,8 @@ describe("camada de referência de catálogo", () => {
     expect(f.link_pendente_ou_desatualizado.map((i) => i.sku)).toContain("B");
     expect(f.bloqueados.map((i) => i.sku)).toContain("C");
     expect(f.bloqueados.map((i) => i.sku)).not.toContain("D");
-    expect(filasDeReferencia(refs, { incluirTeste: true }).bloqueados.map((i) => i.sku)).toContain("D");
+    expect(filasDeReferencia(refs, { incluirTeste: true }).bloqueados.map((i) => i.sku)).toContain(
+      "D",
+    );
   });
 });

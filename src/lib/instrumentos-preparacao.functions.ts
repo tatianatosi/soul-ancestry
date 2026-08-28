@@ -1,3 +1,4 @@
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -20,6 +21,7 @@ export const lerPreparacaoInstrumentos = createServerFn({ method: "GET" })
     return { caseId: String(d.caseId) };
   })
   .handler(async ({ data, context }) => {
+    semCache();
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
     const caseId = data.caseId;

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { conferirEscopo, contextoGatesDaConferencia, auditoriaSanitizada, type EntradaConferencia } from "@/lib/escopo-conferencia";
+import {
+  conferirEscopo,
+  contextoGatesDaConferencia,
+  auditoriaSanitizada,
+  type EntradaConferencia,
+} from "@/lib/escopo-conferencia";
 import { CAMPOS_ESCOPO_PROPOSTA, type PropostaCanva } from "@/lib/escopo-proposta";
 import { bloqueiosDaAcao, podeExecutar } from "@/lib/gates-formalizacao";
 import { conferirPrecoCanonico, type ProdutoCanonico } from "@/lib/preco-canonico";
@@ -48,9 +53,19 @@ function entrada(over: Partial<EntradaConferencia> = {}): EntradaConferencia {
     caseId: CASE,
     proposta,
     valores: [],
-    caseService: { id: "cs-1", product_catalog_id: produto.id, status: "ativo", preco_acordado: 30000 },
+    caseService: {
+      id: "cs-1",
+      product_catalog_id: produto.id,
+      status: "ativo",
+      preco_acordado: 30000,
+    },
     preco,
-    nucleo: { validado: true, menorEnvolvido: false, representacaoRegistrada: true, cadastroCompleto: true },
+    nucleo: {
+      validado: true,
+      menorEnvolvido: false,
+      representacaoRegistrada: true,
+      cadastroCompleto: true,
+    },
     checklist: {
       revisaoJuridicaOk: true,
       contratoOsProntos: true,
@@ -92,7 +107,9 @@ describe("governança contratual — conferência, preço e gates", () => {
   });
 
   it("4. página fora do intervalo 1–7 é rejeitada", () => {
-    const r = conferirEscopo(entrada({ proposta: { ...proposta, paginas_registradas: [1, 2, 3, 4, 5, 6, 7, 9] } }));
+    const r = conferirEscopo(
+      entrada({ proposta: { ...proposta, paginas_registradas: [1, 2, 3, 4, 5, 6, 7, 9] } }),
+    );
     expect(r.bloqueios.some((b) => b.codigo === "PROPOSTA_PAGINA_FORA_DO_INTERVALO")).toBe(true);
   });
 
@@ -125,15 +142,31 @@ describe("governança contratual — conferência, preço e gates", () => {
   it("7. exceção comercial só vale aprovada e dentro da validade", () => {
     const semAprovacao = conferirPrecoCanonico({
       produto,
-      excecao: { id: "e1", aprovada: false, valor: 25000, condicao: "6x", valida_ate: "2026-12-31", motivo: "negociação" },
+      excecao: {
+        id: "e1",
+        aprovada: false,
+        valor: 25000,
+        condicao: "6x",
+        valida_ate: "2026-12-31",
+        motivo: "negociação",
+      },
       observados: [],
       hoje: HOJE,
     });
-    expect(semAprovacao.bloqueios.some((b) => b.codigo === "EXCECAO_COMERCIAL_INVALIDA")).toBe(true);
+    expect(semAprovacao.bloqueios.some((b) => b.codigo === "EXCECAO_COMERCIAL_INVALIDA")).toBe(
+      true,
+    );
 
     const vigente = conferirPrecoCanonico({
       produto,
-      excecao: { id: "e2", aprovada: true, valor: 25000, condicao: "6x", valida_ate: "2026-12-31", motivo: "negociação" },
+      excecao: {
+        id: "e2",
+        aprovada: true,
+        valor: 25000,
+        condicao: "6x",
+        valida_ate: "2026-12-31",
+        motivo: "negociação",
+      },
       observados: [],
       hoje: HOJE,
     });
@@ -145,7 +178,12 @@ describe("governança contratual — conferência, preço e gates", () => {
   it("8. menor sem representação e despesa pendente travam assinatura e onboarding", () => {
     const r = conferirEscopo(
       entrada({
-        nucleo: { validado: true, menorEnvolvido: true, representacaoRegistrada: false, cadastroCompleto: true },
+        nucleo: {
+          validado: true,
+          menorEnvolvido: true,
+          representacaoRegistrada: false,
+          cadastroCompleto: true,
+        },
         despesas: [
           {
             id: "d1",
@@ -173,7 +211,12 @@ describe("governança contratual — conferência, preço e gates", () => {
 
   it("9. auditoria só expõe códigos e nomes de campo, sem conteúdo sensível", () => {
     const r = conferirEscopo(entrada());
-    const payload = auditoriaSanitizada({ caseId: CASE, resultado: r, actorId: "user-1", approverId: null });
+    const payload = auditoriaSanitizada({
+      caseId: CASE,
+      resultado: r,
+      actorId: "user-1",
+      approverId: null,
+    });
     const texto = JSON.stringify(payload);
     expect(texto).not.toContain("Conteúdo declarado");
     expect(payload.origin).toBe("Canva");

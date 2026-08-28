@@ -25,14 +25,19 @@ export function PainelCadencia() {
     <section className="rounded-xl border border-navy/10 bg-white p-5">
       <h2 className="font-serif text-lg text-navy">Cadência dos casos</h2>
       <p className="mt-1 text-xs text-navy/55">
-        Dias sem atualização contextualizada ao cliente. Espera institucional comunicada não conta como atraso.
+        Dias sem atualização contextualizada ao cliente. Espera institucional comunicada não conta
+        como atraso.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {(["regular", "atencao", "critico"] as const).map((s) => (
           <div key={s} className={"rounded-lg border p-4 " + CORES[s]}>
-            <p className="text-[11px] uppercase tracking-wide opacity-70">{s === "atencao" ? "Atenção" : s === "critico" ? "Crítico" : "Regular"}</p>
-            <p className="mt-1 font-serif text-2xl">{q.isLoading ? "…" : (q.data?.resumo[s] ?? 0)}</p>
+            <p className="text-[11px] uppercase tracking-wide opacity-70">
+              {s === "atencao" ? "Atenção" : s === "critico" ? "Crítico" : "Regular"}
+            </p>
+            <p className="mt-1 font-serif text-2xl">
+              {q.isLoading ? "…" : (q.data?.resumo[s] ?? 0)}
+            </p>
           </div>
         ))}
       </div>
@@ -45,14 +50,12 @@ export function PainelCadencia() {
         ) : (
           criticos.map((c: any) => (
             <Link
-              key={String(c['id'])}
+              key={String(c["id"])}
               to="/casos/$caseId"
-              params={{ caseId: String(c['id']) }}
+              params={{ caseId: String(c["id"]) }}
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm hover:bg-navy/5"
             >
-              <span className="text-navy">
-                {String(c['codigo'] ?? c['titulo'] ?? "Caso")}
-              </span>
+              <span className="text-navy">{String(c["codigo"] ?? c["titulo"] ?? "Caso")}</span>
               <span className="text-xs text-navy/60">
                 {c.cadencia.diasSemTouchpoint} dias · {c.cadencia.status}
               </span>

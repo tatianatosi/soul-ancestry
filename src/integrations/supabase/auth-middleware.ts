@@ -3,6 +3,7 @@ import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
+import { chavePublicavelDoServidor, urlDoServidor } from '@/lib/config-servidor'
 
 
 
@@ -33,18 +34,16 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      const missing = [
-        ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-        ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
-      ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-      console.error(`[Supabase] ${message}`);
-      throw new Error(message);
-    }
+    /*
+      26/08/2026 — este bloco lia `process.env` cru. O navegador já resolvia o
+      projeto pela regra do repositório (`config-publica.ts`), mas aqui não:
+      o servidor validava, contra OUTRO projeto, um token emitido pelo projeto
+      certo. O token era legítimo e mesmo assim recusado, e a tela só sabia
+      dizer a mensagem neutra do `catch`. Agora os dois lados usam a mesma
+      regra e não há como divergirem de novo.
+    */
+    const SUPABASE_URL = urlDoServidor();
+    const SUPABASE_PUBLISHABLE_KEY = chavePublicavelDoServidor();
     
     const request = getRequest();
 

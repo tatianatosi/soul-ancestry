@@ -53,7 +53,11 @@ describe("matriz elegibilidade × urgência", () => {
   it("3. a matriz não altera o status de um caso", () => {
     const registro = { id: "ficticio-1", status: "em_andamento", ativo: false };
     const r = calcularPrioridade(casoFicticio, HOJE);
-    expect(aplicarSinal(registro, r)).toEqual({ id: "ficticio-1", status: "em_andamento", ativo: false });
+    expect(aplicarSinal(registro, r)).toEqual({
+      id: "ficticio-1",
+      status: "em_andamento",
+      ativo: false,
+    });
     expect(EFEITOS_COLATERAIS_AUTORIZADOS).toEqual([]);
   });
 
@@ -91,12 +95,25 @@ describe("matriz elegibilidade × urgência", () => {
   });
 
   it("cadência D10/D14 e janela de 7 dias seguem a regra declarada", () => {
-    const d10 = calcularPrioridade({ tipo: "caso", id: "f3", diasSemTouchpoint: 10, responsavel: "T" }, HOJE);
+    const d10 = calcularPrioridade(
+      { tipo: "caso", id: "f3", diasSemTouchpoint: 10, responsavel: "T" },
+      HOJE,
+    );
     expect([d10.sinal, d10.regra]).toEqual(["atencao", "R3_janela_proxima"]);
-    const d14 = calcularPrioridade({ tipo: "caso", id: "f4", diasSemTouchpoint: 14, responsavel: "T" }, HOJE);
+    const d14 = calcularPrioridade(
+      { tipo: "caso", id: "f4", diasSemTouchpoint: 14, responsavel: "T" },
+      HOJE,
+    );
     expect([d14.sinal, d14.regra]).toEqual(["critica", "R1_urgencia_vencida"]);
     const espera = calcularPrioridade(
-      { tipo: "caso", id: "f5", diasSemTouchpoint: 20, esperaExternaAtiva: true, responsavel: "T", prazo: "2026-12-01" },
+      {
+        tipo: "caso",
+        id: "f5",
+        diasSemTouchpoint: 20,
+        esperaExternaAtiva: true,
+        responsavel: "T",
+        prazo: "2026-12-01",
+      },
       HOJE,
     );
     expect(espera.sinal).toBe("acompanhada");

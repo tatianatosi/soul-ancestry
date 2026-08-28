@@ -17,7 +17,13 @@ import { MODULOS_DESK } from "@/lib/desk-modulos";
 const modelos: ModeloCatalogo[] = [
   { id: "t1", key: "reengajamento_10d", nome: "Reengajamento", status: "vigente", versao: 2 },
   { id: "t2", key: "atualizacao_andamento", nome: "Atualização de andamento", status: "rascunho" },
-  { id: "t3", key: "reengajamento_antigo", nome: "Reengajamento antigo", status: "arquivado", arquivado: true },
+  {
+    id: "t3",
+    key: "reengajamento_antigo",
+    nome: "Reengajamento antigo",
+    status: "arquivado",
+    arquivado: true,
+  },
 ];
 
 describe("CA-OPS-02 — resolução de modelo por alerta", () => {
@@ -55,8 +61,12 @@ describe("CA-OPS-02 — resolução de modelo por alerta", () => {
 
   it("títulos internos de cadência mapeiam para o tipo canônico", () => {
     expect(tipoAlertaDeTexto("10 dias sem touchpoint registrado")).toBe("sem_touchpoint_10d");
-    expect(tipoAlertaDeTexto("14 dias sem atualização contextualizada")).toBe("sem_atualizacao_14d");
-    expect(tipoAlertaDeTexto("Primeira microentrega não planejada até D7")).toBe("sem_microentrega_planejada");
+    expect(tipoAlertaDeTexto("14 dias sem atualização contextualizada")).toBe(
+      "sem_atualizacao_14d",
+    );
+    expect(tipoAlertaDeTexto("Primeira microentrega não planejada até D7")).toBe(
+      "sem_microentrega_planejada",
+    );
     expect(tipoAlertaDeTexto("texto sem correspondência")).toBeNull();
   });
 
@@ -82,8 +92,14 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
   });
 
   it("6. sinais não duplicam GATILHOS existentes", () => {
-    expect(painel).toContain('import { GATILHOS');
-    expect(painel.match(/GRUPOS_INDICADOR\.map/g)?.length ?? 0).toBe(1);
+    expect(painel).toContain("import { GATILHOS");
+    // Desde 25/08 os grupos são renderizados por <SinaisPorGrupo />, dentro de
+    // "Encontrar no Desk". O que a regra protege continua valendo: os grupos
+    // são percorridos uma única vez, em um único lugar.
+    expect(painel.match(/<SinaisPorGrupo/g)?.length ?? 0).toBe(1);
+    expect(painel.match(/GRUPOS_INDICADOR\.map/g)?.length ?? 0).toBe(0);
+    const comp = readFileSync("src/components/painel/sinais-por-grupo.tsx", "utf8");
+    expect(comp.match(/grupos\.map/g)?.length ?? 0).toBe(1);
   });
 
   it("7. atalho abre o objeto canônico com case_id real", () => {
@@ -93,7 +109,10 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
   });
 
   it("3/4. abrir o modelo não registra uso nem cria rascunho", () => {
-    const bloco = biblioteca.slice(biblioteca.indexOf('data-fiacao="alerta-cadencia"'), biblioteca.indexOf("<OrquestracaoContextual"));
+    const bloco = biblioteca.slice(
+      biblioteca.indexOf('data-fiacao="alerta-cadencia"'),
+      biblioteca.indexOf("<OrquestracaoContextual"),
+    );
     expect(bloco).not.toMatch(/registrarUso|mutate|insert/);
     expect(bloco).toContain("Nenhuma");
   });
@@ -102,12 +121,22 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
     expect(DUPLICIDADE_CATALOGOS_TEMPLATE.mesmaFonte).toBe(false);
     // CA-OPS-03 resolveu a duplicidade: precedência fixada, sem pendência humana.
     expect(DUPLICIDADE_CATALOGOS_TEMPLATE.decisaoHumanaPendente).toBe(false);
-    const doc = readFileSync("docs/operacao/CA-OPS-02_Fiacao_Cadencia_Mensagens_Alertas.md", "utf8");
+    const doc = readFileSync(
+      "docs/operacao/CA-OPS-02_Fiacao_Cadencia_Mensagens_Alertas.md",
+      "utf8",
+    );
     expect(doc).toContain("Duplicidade de catálogos");
   });
 
   it("9. desk-modulos não declara rota inexistente", () => {
-    const rotas = ["/achados/$caseId", "/ops", "/evidencias", "/tarefas", "/matriz-juridica", "/biblioteca-mensagens"];
+    const rotas = [
+      "/achados/$caseId",
+      "/ops",
+      "/evidencias",
+      "/tarefas",
+      "/matriz-juridica",
+      "/biblioteca-mensagens",
+    ];
     for (const m of MODULOS_DESK) {
       if (m.estadoReal === "conectado") {
         expect(rotas.some((r) => m.destino.includes(r))).toBe(true);
@@ -129,7 +158,11 @@ describe("CA-OPS-02 — Painel Hoje e catálogo", () => {
 
   it("10. superfícies de alerta e preview são internas (rota autenticada)", () => {
     expect(biblioteca).toContain('createFileRoute("/_authenticated/biblioteca-mensagens")');
-    for (const arquivo of ["src/routes/portal/route.tsx", "src/routes/portal/index.tsx", "src/routes/portal/mensagens.$id.tsx"]) {
+    for (const arquivo of [
+      "src/routes/portal/route.tsx",
+      "src/routes/portal/index.tsx",
+      "src/routes/portal/mensagens.$id.tsx",
+    ]) {
       const portal = readFileSync(arquivo, "utf8");
       expect(portal).not.toContain("fiacao-cadencia-catalogo");
       expect(portal).not.toContain("biblioteca-mensagens");

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -9,6 +10,7 @@ export const lerCadeiaOperacional = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { caseId: string }) => ({ caseId: String(d.caseId) }))
   .handler(async ({ data, context }) => {
+    semCache();
     const { estadoCadeiaOperacional, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
     const org = await orgDoUsuario(supabase, context.userId as string);

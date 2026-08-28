@@ -145,7 +145,7 @@ export const SKUS_TOP_PARETO: readonly SkuFonteMestre[] = [
     "canalFechamento": "WhatsApp Direto",
     "linkAsaas": "https://www.asaas.com/c/s6gn74dkizo1p2jk",
     "statusLinkAsaas": "link_criado",
-    "observacoes": "FLAG CRITICO: NAO CONFUNDIR CA-CID-003 COM CA-CID-023. CA-CID-003 = AIRE + Agendamento Passaporte (R$530, servico avulso operacional, pos-reconhecimento). CA-CID-023 = Assessoria Completa de Cidadania (R$4.500, processo ponta a ponta). Sao jornadas DIFERENTES: CA-CID-003 serve quem JA TEM cidadania; CA-CID-023 serve quem ainda NAO TEM. LP Certidoes exibe Agendamento de Passaporte como servico avulso separado de AIRE.",
+    "observacoes": "FLAG CRITICO: NAO CONFUNDIR CA-CID-003 COM CA-CID-023. CA-CID-003 = AIRE + Agendamento Passaporte (R$530, servico avulso operacional, pos-reconhecimento). CA-CID-023 = Assessoria Completa de Cidadania (R$4.800, processo ponta a ponta). Sao jornadas DIFERENTES: CA-CID-003 serve quem JA TEM cidadania; CA-CID-023 serve quem ainda NAO TEM. LP Certidoes exibe Agendamento de Passaporte como servico avulso separado de AIRE.",
     "decisaoFonte": null
   },
   {
@@ -578,8 +578,8 @@ export const SKUS_TOP_PARETO: readonly SkuFonteMestre[] = [
     "vitrine": "Top 10",
     "tipo": "Sob Consulta",
     "descricaoCurta": "Condução completa do processo de cidadania do início ao fim: pesquisa genealógica, coleta e organização de documentos, retificações, traduções juramentadas, apostilamento, protocolo consular e acompanhamento até o reconhecimento.",
-    "precoAtual": 4500.0,
-    "precoSugerido": 4500.0,
+    "precoAtual": 4800.0,
+    "precoSugerido": 4800.0,
     "moeda": "BRL",
     "status": "Ativo",
     "pareto": "TOP_PARETO",

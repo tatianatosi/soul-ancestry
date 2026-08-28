@@ -13,7 +13,9 @@ export function PainelHoje() {
 
   const metricas = useMemo(() => {
     if (!q.data) return null;
-    const nomes = new Map((q.data.campanhas ?? []).map((c: Record<string, unknown>) => [String(c.id), String(c.nome)]));
+    const nomes = new Map(
+      (q.data.campanhas ?? []).map((c: Record<string, unknown>) => [String(c.id), String(c.nome)]),
+    );
     return calcularMetricas(
       (q.data.eventos ?? []) as never,
       (q.data.investimentos ?? []) as never,
@@ -26,7 +28,10 @@ export function PainelHoje() {
 
   const f = q.data.filas;
   const filas: { rotulo: string; itens: { id: string; codigo: string; titulo: string }[] }[] = [
-    { rotulo: "Aceites verbais aguardando confirmação formal", itens: f.aceite_verbal_aguardando_formal },
+    {
+      rotulo: "Aceites verbais aguardando confirmação formal",
+      itens: f.aceite_verbal_aguardando_formal,
+    },
     { rotulo: "Confirmações formais aguardando contrato", itens: f.formal_aguardando_contrato },
     { rotulo: "Contratos aguardando assinatura", itens: f.contratos_aguardando_assinatura },
     { rotulo: "Pagamentos aguardados", itens: f.pagamentos_aguardados },
@@ -87,7 +92,10 @@ export function PainelHoje() {
             <li>Investimento registrado: {moeda(metricas?.investimentoTotal ?? 0)}</li>
             <li>Leads criados: {metricas?.contagem["lead_criado"] ?? 0}</li>
             <li>Leads qualificados: {metricas?.contagem["lead_qualificado"] ?? 0}</li>
-            <li>Pagamentos iniciais confirmados: {metricas?.contagem["pagamento_inicial_confirmado"] ?? 0}</li>
+            <li>
+              Pagamentos iniciais confirmados:{" "}
+              {metricas?.contagem["pagamento_inicial_confirmado"] ?? 0}
+            </li>
             <li>CAC: {moeda(metricas?.cac ?? null)}</li>
           </ul>
         </div>
