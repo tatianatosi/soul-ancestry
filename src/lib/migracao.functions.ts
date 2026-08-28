@@ -16,8 +16,8 @@ import {
 
 /** Camada de migração: leitura de lotes, prévia e execução da importação Placego. */
 
-async function contexto(supabase: any) {
-  const organizationId = await organizacaoDo(supabase);
+async function contexto(supabase: any, userId: string) {
+  const organizationId = await organizacaoDo(supabase, userId);
   return { organizationId };
 }
 
@@ -26,7 +26,7 @@ export const carregarMigracao = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const { organizationId } = await contexto(supabase);
+    const { organizationId } = await contexto(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
     const [lotes, excecoes, vinculos] = await Promise.all([
       eq("import_batches").order("started_at", { ascending: false }).limit(50),
@@ -71,7 +71,7 @@ export const previewImportacaoPlacego = createServerFn({ method: "POST" })
   .inputValidator((data: EntradaImportacao) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const { organizationId } = await contexto(supabase);
+    const { organizationId } = await contexto(supabase, context.userId as string);
     return planejar(supabase, organizationId, data);
   });
 
@@ -80,7 +80,7 @@ export const executarImportacaoPlacego = createServerFn({ method: "POST" })
   .inputValidator((data: EntradaImportacao) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const { organizationId } = await contexto(supabase);
+    const { organizationId } = await contexto(supabase, context.userId as string);
     const plano = await planejar(supabase, organizationId, data);
 
     const { data: lote, error: erroLote } = await supabase
@@ -221,7 +221,7 @@ export const atualizarExcecaoMigracao = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; status: string; proposed_resolution?: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const { organizationId } = await contexto(supabase);
+    const { organizationId } = await contexto(supabase, context.userId as string);
     const { error } = await supabase
       .from("migration_exceptions")
       .update({

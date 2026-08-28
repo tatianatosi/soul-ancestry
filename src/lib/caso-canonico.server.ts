@@ -6,10 +6,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type Linha = Record<string, any>;
 
-export async function organizacaoDo(supabase: any) {
+export async function organizacaoDo(supabase: any, userId: string) {
   const { data } = await supabase
     .from("organization_members")
     .select("organization_id")
+    .eq("user_id", userId)
     .is("archived_at", null)
     .maybeSingle();
   if (!data?.organization_id) throw new Error("Usuário sem organização ativa.");

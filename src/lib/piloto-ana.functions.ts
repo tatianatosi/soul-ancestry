@@ -25,7 +25,7 @@ export const carregarPilotoAna = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const caso = await localizar(supabase, organizationId);
     if (!caso) return { caso: null, nucleos: [], membros: [], eventos: [] };
     const [nucleos, eventos] = await Promise.all([
@@ -49,7 +49,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     let caso = await localizar(supabase, organizationId);
 
     if (!caso) {
@@ -135,7 +135,7 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string; idCanonico: string; decididoPor: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     if (!PILOTO_ANA.ids_historicos.includes(data.idCanonico)) {
       throw new Error("O ID canônico deve ser um dos identificadores históricos preservados. Nenhum terceiro ID é criado automaticamente.");
     }

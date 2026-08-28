@@ -141,10 +141,11 @@ export function validarConteudoTemplate(corpo: string, publico: string): string[
   return problemas;
 }
 
-async function resolverOrg(supabase: Cliente): Promise<string> {
+async function resolverOrg(supabase: Cliente, userId: string): Promise<string> {
   const { data } = await supabase
     .from("organization_members")
     .select("organization_id")
+    .eq("user_id", userId)
     .is("archived_at", null)
     .maybeSingle();
   if (!data?.organization_id) throw new Error("Acesso não autorizado.");
@@ -174,7 +175,7 @@ export const listarBibliotecaMensagens = createServerFn({ method: "GET" })
     }> => {
       semCache();
       const supabase = context.supabase as unknown as Cliente;
-      const org = await resolverOrg(supabase);
+      const org = await resolverOrg(supabase, context.userId as string);
       const meus = await papeis(supabase, org);
 
       const [cats, tpls, edit] = await Promise.all([
@@ -260,7 +261,7 @@ export const listarVersoesTemplate = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ versoes: VersaoTemplate[] }> => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const { data: linhas } = await supabase
       .from("message_template_versions")
       .select("id,version,body_snapshot,subject_snapshot,status_snapshot,change_reason,created_at")
@@ -321,7 +322,7 @@ export const salvarTemplate = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
 
     const linha = {
       organization_id: org,
@@ -374,7 +375,7 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const meus = await papeis(supabase, org);
     if (ESTADOS_ADMIN.includes(data.status) && !meus.includes("admin")) {
       throw new Error("Somente administrador pode tornar o modelo vigente, suspenso, substituído ou arquivado.");
@@ -447,7 +448,7 @@ export const registrarUsoTemplate = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
 
     const { data: validacao, error: erroValidacao } = await supabase.rpc("fn_validar_uso_template", {
       _template_id: data.templateId,
@@ -497,7 +498,7 @@ export const listarUsosTemplate = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ usos: UsoTemplate[] }> => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const { data: linhas } = await supabase
       .from("message_template_usage")
       .select("id,template_version,channel,purpose,external_send_status,used_at")

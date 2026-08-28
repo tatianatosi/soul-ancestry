@@ -77,6 +77,7 @@ export async function contextoDocumentos(supabase: Sb, userId: string) {
   const membro = await supabase
     .from("organization_members")
     .select("organization_id")
+    .eq("user_id", userId)
     .is("archived_at", null)
     .maybeSingle();
   if (!membro.data?.organization_id) throw new Error("Acesso interno não autorizado.");

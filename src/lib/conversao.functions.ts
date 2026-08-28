@@ -25,7 +25,7 @@ export const carregarConversao = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
     const [eventosBrutos, investimentos, campanhas, fontes, atribuicoes, leads, casos] = await Promise.all([
       seguro(eq("conversion_events").order("occurred_at", { ascending: false }).limit(2000)),
@@ -123,7 +123,7 @@ export const registrarEventoConversao = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     // Máquina de estados no servidor: nenhuma chamada direta salta etapa obrigatória.
     if (!data.lead_id && !data.case_id) throw new Error("Evento exige vínculo com lead ou caso.");
@@ -162,7 +162,7 @@ export const avancarEstadoAceite = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string; destino: EstadoAceite; observacao?: string; evidencia?: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const { data: caso, error: erroCaso } = await supabase
       .from("crm_casos")
@@ -227,7 +227,7 @@ export const painelHoje = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
     const [casos, entregas, nucleos, lotes, excecoes, eventos, investimentos, campanhas] = await Promise.all([
@@ -302,7 +302,7 @@ export const garantirTemplateOnboarding = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { CHECKLIST_ONBOARDING, TEMPLATE_ONBOARDING_CODIGO, TEMPLATE_ONBOARDING_VERSAO } = await import("@/lib/onboarding-padrao");
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const { data: existente } = await supabase
       .from("onboarding_templates")

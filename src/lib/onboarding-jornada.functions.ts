@@ -19,8 +19,8 @@ type Cliente = {
   from: (t: string) => any;
 };
 
-async function resolverOrg(supabase: Cliente): Promise<string> {
-  const r = await supabase.from("organization_members").select("organization_id").limit(1).maybeSingle();
+async function resolverOrg(supabase: Cliente, userId: string): Promise<string> {
+  const r = await supabase.from("organization_members").select("organization_id").eq("user_id", userId).limit(1).maybeSingle();
   if (!r.data?.organization_id) throw new Error("Usuário sem organização.");
   return r.data.organization_id as string;
 }
@@ -146,7 +146,7 @@ export const obterJornadaCaso = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const ctx = await carregarContexto(supabase, org, data.caseId);
     return montarDiagnostico(ctx);
   });
@@ -156,7 +156,7 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
 
     const [casos, planos, checklist, entregas, esperas] = await Promise.all([
       supabase.from("crm_casos").select("*").eq("organization_id", org).is("archived_at", null),
@@ -250,7 +250,7 @@ export const criarChecklistOnboarding = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const ctx = await carregarContexto(supabase, org, data.caseId);
 
     const existentes = new Set(ctx.checklist.map((c) => c["item_code"]));
@@ -286,7 +286,7 @@ export const atualizarItemChecklist = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     if (data.status === "bloqueado" && !data.bloqueioCodigo?.trim()) {
       throw new Error("Item bloqueado exige código de bloqueio.");
     }
@@ -331,7 +331,7 @@ export const salvarPlanoCaso = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     if (!data.responsavelUserId || !data.proximaAcao?.trim() || !data.prazoProximaAcao) {
       throw new Error("Plano exige responsável, próxima ação e prazo.");
     }
@@ -385,7 +385,7 @@ export const iniciarOnboarding = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const ctx = await carregarContexto(supabase, org, data.caseId);
     const resumo = montarDiagnostico(ctx);
     const permitido = podeIniciarOnboarding(resumo.diagnostico);
@@ -415,7 +415,7 @@ export const ativarCaso = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const ctx = await carregarContexto(supabase, org, data.caseId);
     const resumo = montarDiagnostico(ctx);
     const permitido = podeAtivarCaso(ctx.caso as never, resumo.diagnostico);
@@ -447,7 +447,7 @@ export const registrarEsperaExterna = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     if (!data.motivo?.trim() || !data.responsavelUserId || !data.prazoRechecagem) {
       throw new Error("Espera externa exige motivo, responsável e prazo de rechecagem.");
     }
@@ -489,7 +489,7 @@ export const salvarEntregaCliente = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     if (contemConteudoInterno(data.tituloCliente) || contemConteudoInterno(data.resumoAprovado)) {
       throw new Error("Texto contém conteúdo interno (preço, fonte, hipótese, evidência ou contrato).");
     }
@@ -524,7 +524,7 @@ export const aprovarEntregaCliente = createServerFn({ method: "POST" })
   .inputValidator((data: { deliverableId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const r = await supabase
       .from("client_deliverables")
       .update({ approval_status: "approved", approved_by: context.userId, approved_at: new Date().toISOString() })
@@ -543,7 +543,7 @@ export const publicarEntregaCliente = createServerFn({ method: "POST" })
   .inputValidator((data: { deliverableId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const atual = await supabase
       .from("client_deliverables")
       .select("*")
@@ -575,7 +575,7 @@ export const listarEntregasPublicadas = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as unknown as Cliente;
-    const org = await resolverOrg(supabase);
+    const org = await resolverOrg(supabase, context.userId as string);
     const r = await supabase
       .from("client_deliverables")
       .select("*")

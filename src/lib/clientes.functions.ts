@@ -22,7 +22,7 @@ export const listarPessoasCliente = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<PessoaLista[]> => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
     const [pessoas, casos, membros, nucleos] = await Promise.all([
@@ -74,7 +74,7 @@ export const ativarCliente = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     // Trava de servidor: recalcula a camada e as condições objetivas antes de promover.
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
@@ -125,7 +125,7 @@ export const reclassificarPessoa = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const { error } = await supabase
       .from("clientes")
       .update({

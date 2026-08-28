@@ -18,7 +18,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
     const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases] =
@@ -66,7 +66,7 @@ export const salvarCaseService = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string; id?: string; dados: Record<string, unknown> }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const payload = payloadServico(data.dados);
 
     // Preço vem sempre do catálogo homologado, nunca da tela.
@@ -110,7 +110,7 @@ export const aplicarEtiqueta = createServerFn({ method: "POST" })
   .inputValidator((data: { entityType: string; entityId: string; labelId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const existe = await supabase
       .from("label_taxonomy")
       .select("id")
@@ -139,7 +139,7 @@ export const removerEtiqueta = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const removidoEm = new Date().toISOString();
     const r = await gravarComVerificacao({
       supabase,
@@ -163,7 +163,7 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
   .inputValidator((data: { caseId: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const caso = await supabase
       .from("crm_casos")
       .select("*")
@@ -236,7 +236,7 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; status: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const patch: Record<string, unknown> = { status: data.status };
     if (data.status === "acknowledged") {
       patch["acknowledged_at"] = new Date().toISOString();
@@ -261,7 +261,7 @@ export const aprovarRascunho = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; corpo?: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const r = await gravarComVerificacao({
       supabase,
       tabela: "communication_queue",
@@ -279,7 +279,7 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; status: string; observacao?: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const { data: item } = await supabase
       .from("onboarding_checklist")
       .select("id,case_id,item_code")
@@ -318,7 +318,7 @@ export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = context.supabase as any;
-    const organizationId = await organizacaoDo(supabase);
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
     const [taxonomia, aplicadas] = await Promise.all([
       supabase.from("label_taxonomy").select("*").eq("organization_id", organizationId).order("sort_order"),
       supabase.from("entity_labels").select("label_id").eq("organization_id", organizationId).is("removed_at", null),
