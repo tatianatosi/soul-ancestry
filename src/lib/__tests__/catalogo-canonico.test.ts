@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   bloqueiosDeUso,
+  catalogoPorFaseJornada,
   checkoutHabilitado,
   linkConsistente,
   pendenciasDeHomologacao,
@@ -11,6 +12,7 @@ import {
   type LinkCobrancaRef,
   type SkuCanonico,
 } from "@/lib/catalogo-canonico";
+import { traduzirFase } from "@/lib/jornada-de-para";
 
 function sku(over: Partial<SkuCanonico> = {}): SkuCanonico {
   return {
@@ -49,6 +51,7 @@ function sku(over: Partial<SkuCanonico> = {}): SkuCanonico {
     substituido_por: null,
     dados_teste: false,
     atualizado_em: "2026-01-05",
+    jornada_fase: null,
     links: [],
     usos_pendentes: 2,
     ...over,
@@ -173,5 +176,69 @@ describe("catálogo canônico — filas do Painel Hoje", () => {
       },
     );
     expect(filas.bloqueia_proposta.map((i) => i.sku_codigo)).toContain("T");
+  });
+});
+
+describe("catálogo por fase da jornada", () => {
+  it("agrupa por fase canônica traduzida do jornada_fase da fonte", () => {
+    const grupos = catalogoPorFaseJornada(
+      [
+        sku({ sku_codigo: "A", jornada_fase: "onboarding" }),
+        sku({ sku_codigo: "B", jornada_fase: "onboarding" }),
+        sku({ sku_codigo: "C", jornada_fase: "pos_reconhecimento" }),
+      ],
+      traduzirFase,
+    );
+    const onboarding = grupos.find((g) => g.fase === "onboarding")!;
+    expect(onboarding.total).toBe(2);
+    expect(onboarding.itens.map((i) => i.sku_codigo).sort()).toEqual(["A", "B"]);
+    expect(onboarding.temAproximacao).toBe(false);
+
+    const pos = grupos.find((g) => g.fase === "pos_reconhecimento")!;
+    expect(pos.total).toBe(1);
+  });
+
+  it("marca aproximação quando a tradução não é exata, sem inventar fase", () => {
+    const grupos = catalogoPorFaseJornada([sku({ jornada_fase: "execucao" })], traduzirFase);
+    const grupo = grupos.find((g) => g.fase === "preparacao_documental")!;
+    expect(grupo.temAproximacao).toBe(true);
+  });
+
+  it("SKU sem jornada_fase reconhecida cai em fase nula, nunca é descartado", () => {
+    const grupos = catalogoPorFaseJornada(
+      [sku({ jornada_fase: null }), sku({ sku_codigo: "X", jornada_fase: "vocabulario_desconhecido" })],
+      traduzirFase,
+    );
+    const semFase = grupos.filter((g) => g.fase === null);
+    const total = semFase.reduce((t, g) => t + g.total, 0);
+    expect(total).toBe(2);
+  });
+
+  it("conta bloqueados e homologados por fase a partir das mesmas regras de bloqueiosDeUso", () => {
+    const grupos = catalogoPorFaseJornada(
+      [
+        sku({ sku_codigo: "OK", jornada_fase: "onboarding", estado_catalogo: "homologado_ativo" }),
+        sku({ sku_codigo: "BLOQ", jornada_fase: "onboarding", estado_catalogo: "em_revisao", entregaveis: [], inclusoes: [] }),
+      ],
+      traduzirFase,
+    );
+    const onboarding = grupos.find((g) => g.fase === "onboarding")!;
+    expect(onboarding.homologados).toBe(1);
+    expect(onboarding.bloqueados).toBeGreaterThanOrEqual(1);
+  });
+
+  it("respeita incluirTeste como as demais leituras de catálogo", () => {
+    const grupos = catalogoPorFaseJornada(
+      [sku({ sku_codigo: "T", jornada_fase: "onboarding", dados_teste: true })],
+      traduzirFase,
+    );
+    expect(grupos.find((g) => g.fase === "onboarding")).toBeUndefined();
+
+    const comTeste = catalogoPorFaseJornada(
+      [sku({ sku_codigo: "T", jornada_fase: "onboarding", dados_teste: true })],
+      traduzirFase,
+      { incluirTeste: true },
+    );
+    expect(comTeste.find((g) => g.fase === "onboarding")?.total).toBe(1);
   });
 });

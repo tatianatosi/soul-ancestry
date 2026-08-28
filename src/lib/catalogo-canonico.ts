@@ -120,6 +120,8 @@ export type SkuCanonico = {
   substituido_por: string | null;
   dados_teste: boolean;
   atualizado_em: string | null;
+  /** Fase da jornada na fonte (`product_catalog.jornada_fase`), vocabulário próprio — traduzir com `jornada-de-para.ts` antes de exibir. */
+  jornada_fase: string | null;
   links: LinkCobrancaRef[];
   /** Quantidade de propostas/casos pendentes que já referenciam este SKU. */
   usos_pendentes: number;
@@ -403,4 +405,88 @@ export function saneamentoDeCatalogo(
       prontos_para_homologacao: filasDedup.pronto_homologacao.length,
     },
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Motor: catálogo por fase da jornada                                 */
+/* ------------------------------------------------------------------ */
+
+export type ItemCatalogoPorFase = {
+  sku_codigo: string;
+  produto: string;
+  estado_catalogo: EstadoCatalogo;
+  prioridade_portfolio: PrioridadePortfolio;
+  bloqueado: boolean;
+  pendencia_principal: string | null;
+};
+
+export type FaseComCatalogo = {
+  fase: string | null;
+  rotulo: string;
+  /** Verdadeiro quando pelo menos um SKU da fase chegou por correspondência aproximada. */
+  temAproximacao: boolean;
+  itens: ItemCatalogoPorFase[];
+  homologados: number;
+  bloqueados: number;
+  total: number;
+};
+
+/**
+ * Agrupa o catálogo real por fase canônica da jornada, traduzindo
+ * `jornada_fase` pelo dicionário `produto_catalogo` (`jornada-de-para.ts`).
+ * SKU sem `jornada_fase` reconhecido cai em `fase: null` ("sem fase
+ * reconhecida") em vez de ser descartado ou de ganhar fase inventada — é
+ * motor de leitura, não reclassifica nada na fonte.
+ */
+export function catalogoPorFaseJornada(
+  skus: ReadonlyArray<SkuCanonico>,
+  traduzir: (dicionario: "produto_catalogo", valor: string) => { canonico: string | null; rotuloCanonico: string; precisao: "exata" | "aproximada" } | null,
+  opcoes?: { incluirTeste?: boolean },
+): FaseComCatalogo[] {
+  const lista = skus.filter((s) => (opcoes?.incluirTeste ? true : !s.dados_teste));
+  const grupos = new Map<string | null, FaseComCatalogo>();
+
+  for (const s of lista) {
+    const correspondencia = s.jornada_fase ? traduzir("produto_catalogo", s.jornada_fase) : null;
+    const fase = correspondencia?.canonico ?? null;
+    const rotuloFase = correspondencia?.rotuloCanonico ?? (s.jornada_fase ? `Sem correspondência canônica (${s.jornada_fase})` : "Sem fase informada na fonte");
+    const aproximada = correspondencia?.precisao === "aproximada";
+
+    if (!grupos.has(fase)) {
+      grupos.set(fase, { fase, rotulo: rotuloFase, temAproximacao: false, itens: [], homologados: 0, bloqueados: 0, total: 0 });
+    }
+    const grupo = grupos.get(fase)!;
+    const bloqueios = bloqueiosDeUso(s);
+    grupo.itens.push({
+      sku_codigo: s.sku_codigo,
+      produto: s.produto,
+      estado_catalogo: s.estado_catalogo,
+      prioridade_portfolio: s.prioridade_portfolio,
+      bloqueado: bloqueios.length > 0,
+      pendencia_principal: bloqueios[0] ?? null,
+    });
+    grupo.total += 1;
+    if (s.estado_catalogo === "homologado_ativo") grupo.homologados += 1;
+    if (bloqueios.length > 0) grupo.bloqueados += 1;
+    if (aproximada) grupo.temAproximacao = true;
+  }
+
+  const ORDEM_FASES = [
+    "aceite_e_formalizacao",
+    "onboarding",
+    "pesquisa_inicial",
+    "pesquisa_e_validacao",
+    "preparacao_documental",
+    "protocolo_e_acompanhamento",
+    "reconhecimento",
+    "pos_reconhecimento",
+  ];
+  return [...grupos.values()].sort((a, b) => {
+    const ia = a.fase ? ORDEM_FASES.indexOf(a.fase) : -1;
+    const ib = b.fase ? ORDEM_FASES.indexOf(b.fase) : -1;
+    if (ia === -1 && ib === -1) return a.rotulo.localeCompare(b.rotulo);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
 }

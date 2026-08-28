@@ -41,6 +41,19 @@ describe("jornada-de-para", () => {
     expect(c?.precisao).toBe("exata");
   });
 
+  it("traduz produto_catalogo (product_catalog.jornada_fase) para o canônico", () => {
+    expect(traduzirFase("produto_catalogo", "onboarding")).toMatchObject({ canonico: "onboarding", precisao: "exata" });
+    expect(traduzirFase("produto_catalogo", "pos_reconhecimento")).toMatchObject({
+      canonico: "pos_reconhecimento",
+      precisao: "exata",
+    });
+    const diagnostico = traduzirFase("produto_catalogo", "diagnostico");
+    expect(diagnostico?.canonico).toBeNull();
+    expect(diagnostico?.precisao).toBe("aproximada");
+    expect(traduzirFase("produto_catalogo", "acompanhamento")?.canonico).toBe("protocolo_e_acompanhamento");
+    expect(traduzirFase("produto_catalogo", "fase_inexistente")).toBeNull();
+  });
+
   it("rotuloComPrecisao avisa quando a correspondência é aproximada", () => {
     const aproximado = traduzirFase("relatorios_fase", "fase_1_diagnostico")!;
     expect(rotuloComPrecisao(aproximado)).toMatch(/\(aproximado\)$/);

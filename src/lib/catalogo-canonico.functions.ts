@@ -41,7 +41,7 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
       supabase
         .from("product_catalog")
         .select(
-          "id,code,nome_comercial,categoria_fonte,subcategoria_fonte,estado_catalogo,prioridade_portfolio,responsavel_comercial,responsavel_operacional,versao_catalogo,vigencia_inicio,vigencia_fim,preco_comercial_vigente,preco_sugerido_fonte,moeda,preco_fonte,preco_estado_homologacao,tipo_cobranca,entregaveis,inclusoes,exclusoes,pre_requisitos,dependencias_externas,prazo_fonte_formal,escopo_aplicavel,regras_anexos,regra_uso,planilha_mestre_versao,planilha_mestre_identificador,responsavel_validacao_fonte,estado_reconciliacao,homologado_por,homologado_em,substituido_por,dados_teste,updated_at",
+          "id,code,nome_comercial,categoria_fonte,subcategoria_fonte,estado_catalogo,prioridade_portfolio,responsavel_comercial,responsavel_operacional,versao_catalogo,vigencia_inicio,vigencia_fim,preco_comercial_vigente,preco_sugerido_fonte,moeda,preco_fonte,preco_estado_homologacao,tipo_cobranca,entregaveis,inclusoes,exclusoes,pre_requisitos,dependencias_externas,prazo_fonte_formal,escopo_aplicavel,regras_anexos,regra_uso,planilha_mestre_versao,planilha_mestre_identificador,responsavel_validacao_fonte,estado_reconciliacao,homologado_por,homologado_em,substituido_por,dados_teste,updated_at,jornada_fase",
         )
         .eq("organization_id", organizationId)
         .is("archived_at", null)
@@ -133,6 +133,7 @@ export const lerSaneamentoCatalogo = createServerFn({ method: "GET" })
       substituido_por: r.substituido_por ?? null,
       dados_teste: r.dados_teste === true,
       atualizado_em: r.updated_at ?? null,
+      jornada_fase: r.jornada_fase ?? null,
       links: porProduto.get(r.id) ?? [],
       usos_pendentes: usosPorProduto.get(r.id) ?? 0,
     }));
