@@ -83,6 +83,7 @@ export const ACOES_EXTERNAS = [
   "excluir_registro_ou_versao",
   "aplicar_migration_producao",
   "restaurar_backup",
+  "confirmar_acao_externa_pacote",
 ] as const;
 
 export type AcaoExterna = (typeof ACOES_EXTERNAS)[number];
@@ -105,6 +106,7 @@ export const ROTULO_ACAO_EXTERNA: Record<AcaoExterna, string> = {
   excluir_registro_ou_versao: "Excluir registro ou versão",
   aplicar_migration_producao: "Aplicar migration em produção",
   restaurar_backup: "Restaurar backup sobrescrevendo dados",
+  confirmar_acao_externa_pacote: "Confirmar aprovação externa do pacote de governança",
 };
 
 

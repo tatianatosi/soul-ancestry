@@ -13,6 +13,7 @@ import {
   resumoConfirmacaoPacote,
   validarAlteracaoAcesso,
 } from "@/lib/varredura-administracao";
+import { exigeConfirmacaoFinal, montarConfirmacao } from "@/lib/modo-proprietaria";
 
 describe("varredura de administração e contingência", () => {
   it("todo bloqueio externo declara confirmação e nunca é superável por decisão interna", () => {
@@ -131,5 +132,31 @@ describe("varredura de administração e contingência", () => {
     expect(resumo.dados_enviados.reversibilidade).toBe("irreversivel");
     expect(resumo.irreversivel).toBe(true);
     expect(ROTULO_REVERSIBILIDADE[linha.reversibilidade]).toBe("Irreversível");
+  });
+
+  /**
+   * 28/08/2026 — a Proprietária tentou aprovar APR-03 (conceder-se o papel
+   * admin) e recebeu "Ação informada não é externa; use o registro de
+   * decisão interna." Causa dupla: (1) `derivarAcaoPacote` gera a ação
+   * "confirmar_acao_externa_pacote", que nunca foi cadastrada em
+   * ACOES_EXTERNAS — `exigeConfirmacaoFinal` sempre devolvia false; (2)
+   * `resumoConfirmacaoPacote` mandava `caso: null`, e a janela final de
+   * confirmação exige o campo "caso" preenchido para qualquer ação externa,
+   * então mesmo corrigindo (1) a confirmação nunca ficaria "pronta". Todo
+   * item externo/irreversível do pacote de aprovações (migration, backup,
+   * atribuição de administradora etc.) estava, na prática, inconfirmável.
+   */
+  it("toda linha externa/irreversível do pacote é de fato confirmável de ponta a ponta", () => {
+    for (const linha of PACOTE_APROVACOES.filter((l) => confirmacaoExternaObrigatoria(l))) {
+      const resumo = resumoConfirmacaoPacote(linha, "Motivo de teste com mais de dez caracteres.");
+      expect(exigeConfirmacaoFinal(resumo.acao), `"${resumo.acao}" não é reconhecida como ação externa`).toBe(true);
+      const confirmacao = montarConfirmacao({
+        ...resumo,
+        organizacao: "org-teste",
+        motivo: "Motivo de teste com mais de dez caracteres.",
+        confirmacao_manual: true,
+      });
+      expect(confirmacao.pronta, `${linha.id} incompleta: ${confirmacao.faltantes.join(", ")}`).toBe(true);
+    }
   });
 });

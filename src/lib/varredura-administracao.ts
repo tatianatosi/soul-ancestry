@@ -536,7 +536,7 @@ export function resumoConfirmacaoPacote(linha: LinhaAprovacao, motivo: string) {
     impacto: linha.impacto,
     destinatario: linha.alvo,
     conteudo: `${linha.previa}. Motivo canônico: ${linha.motivo}`,
-    caso: null,
+    caso: "Pacote de governança — não vinculado a um caso individual",
     anexos: [] as string[],
     dados_enviados: {
       grupo: linha.grupo,

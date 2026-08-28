@@ -236,9 +236,23 @@ export function PainelModoProprietaria() {
   const estado = q.data;
   if (!estado?.ativo) {
     return (
-      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-        Este modo é exclusivo da proprietária administradora da própria organização. Seu acesso atual não
-        habilita as decisões de override.
+      <div className="space-y-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-foreground">
+          Este modo é exclusivo de quem tem papel <code>admin</code> na própria organização — seu vínculo
+          atual não está reconhecido como esse papel.
+        </p>
+        <p className="text-muted-foreground">
+          Papel efetivo lido agora: <code>{estado?.papel ?? "nenhum"}</code>. Se você é a proprietária e
+          isso não deveria estar assim, o vínculo (organização, papel admin e cadastro de equipe) pode
+          estar desalinhado entre tabelas — a próxima ação é conferir e restaurar, não tentar de novo às
+          cegas.
+        </p>
+        <Link
+          to="/reconfirmar-propriedade"
+          className="inline-block rounded-md border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/20"
+        >
+          Verificar e reconfirmar propriedade
+        </Link>
       </div>
     );
   }
