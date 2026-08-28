@@ -24,6 +24,7 @@ import {
   type RetratoAcesso,
   type ResultadoVerificacao,
 } from "@/lib/verificacao-acesso-proprietaria";
+import { diagnosticoDoServidor, type DiagnosticoServidor } from "@/lib/config-servidor";
 
 export const MOTIVO_MINIMO_RECONFIRMACAO = 12;
 
@@ -78,14 +79,29 @@ export type DiagnosticoAcesso = ResultadoVerificacao & {
   email: string;
   elegivel: boolean;
   organizacao: { id: string; slug: string } | null;
+  servidor: DiagnosticoServidor;
 };
 
-/** Leitura do estado real de propriedade e acesso administrativo. */
+/**
+ * Leitura do estado real de propriedade e acesso administrativo.
+ *
+ * 28/08/2026 — o checklist abaixo lê tudo via `supabaseAdmin` (chave de
+ * serviço). Se essa chave for de um projeto diferente da URL em uso, toda
+ * consulta aqui volta vazia — não porque o vínculo, o papel ou a
+ * organização não existam, mas porque a chave de serviço não autentica
+ * contra o projeto certo. `diagnosticoDoServidor()` (config-servidor.ts) já
+ * existia para exatamente esse cenário — documentado desde a rodada
+ * anterior de "servidor falando com dois bancos ao mesmo tempo" — mas nunca
+ * tinha sido conectado a nenhuma tela. Incluído aqui para que "tudo
+ * inexistente" nunca seja lido como "o dado sumiu" sem antes descartar "a
+ * chave de serviço não serve para este projeto".
+ */
 export const diagnosticoAcessoProprietaria = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DiagnosticoAcesso> => {
     const email = await emailAutenticado(context);
     const elegivel = email === EMAIL_PROPRIETARIA;
+    const servidor = diagnosticoDoServidor();
     if (!elegivel) {
       return {
         email,
@@ -101,6 +117,7 @@ export const diagnosticoAcessoProprietaria = createServerFn({ method: "GET" })
           },
         ],
         organizacao: null,
+        servidor,
       };
     }
 
@@ -114,6 +131,7 @@ export const diagnosticoAcessoProprietaria = createServerFn({ method: "GET" })
       organizacao: retrato.organizacao
         ? { id: retrato.organizacao.id, slug: retrato.organizacao.slug }
         : null,
+      servidor,
     };
   });
 

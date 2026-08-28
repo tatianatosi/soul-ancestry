@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AVISO_IRREVERSIVEL } from "@/lib/modo-proprietaria";
 import { LoteAprovacoesS01aS05 } from "@/components/governanca/lote-aprovacoes-s01-s05";
+import { Link } from "@tanstack/react-router";
 
 
 export function VarreduraAdministracao() {
@@ -340,6 +341,15 @@ function TabelaAprovacoesPendentes() {
                 <div className="rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-terracotta">
                   <p className="font-medium">Ação externa ou irreversível</p>
                   <p className="mt-1">{AVISO_IRREVERSIVEL}</p>
+                  <p className="mt-2">
+                    Confirmar aqui só registra a decisão no histórico de auditoria — não altera vínculo,
+                    papel ou acesso de ninguém. Para efetivamente conceder ou restaurar acesso
+                    administrativo, use{" "}
+                    <Link to="/reconfirmar-propriedade" className="font-medium underline">
+                      Reconfirmar propriedade
+                    </Link>
+                    .
+                  </p>
                 </div>
               ) : null}
               <label className="block space-y-1">

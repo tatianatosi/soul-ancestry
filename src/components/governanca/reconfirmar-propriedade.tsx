@@ -77,6 +77,31 @@ export function ReconfirmarPropriedade() {
         )}
       </div>
 
+      {dados?.servidor ? (
+        <div
+          className={`mt-6 rounded-md border p-3 text-sm ${
+            dados.servidor.segredoPodeServir === "nao"
+              ? "border-destructive/40 bg-destructive/5 text-destructive"
+              : "border-border/60 bg-muted/30 text-muted-foreground"
+          }`}
+        >
+          <p className="font-medium text-foreground">Chave de serviço do servidor</p>
+          {dados.servidor.segredoPodeServir === "nao" ? (
+            <p className="mt-1">
+              A chave de serviço do ambiente é de um projeto diferente da URL em uso ({dados.servidor.refDoAmbiente}{" "}
+              ≠ {dados.servidor.refEmUso}). Por isso todo item acima pode aparecer como inexistente mesmo existindo
+              de verdade: quem lê é essa chave, e ela não autentica contra o projeto certo. Isto só se corrige
+              trocando a variável de ambiente no servidor — nenhuma tela consegue consertar sozinha.
+            </p>
+          ) : (
+            <p className="mt-1">
+              Projeto em uso: {dados.servidor.refEmUso ?? "—"} · chave de serviço:{" "}
+              {dados.servidor.formatoChaveSecreta} · pode servir: {dados.servidor.segredoPodeServir}.
+            </p>
+          )}
+        </div>
+      ) : null}
+
       {dados && !dados.elegivel ? (
         <p className="mt-6 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden />
