@@ -29,7 +29,7 @@ describe("corpo contratual versionado", () => {
     const corpo = montarCorpoContratual();
     expect(corpo.versao).toBe(CORPO_CONTRATUAL_VERSAO);
     expect(corpo.preambulo).toContain("Perfil Institucional vigente");
-    expect(corpo.status).toBe("under_legal_review");
+    expect(corpo.status).toBe("vigente");
   });
 
   it("a ficha só preenche os sete grupos autorizados", () => {

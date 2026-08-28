@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  AVISO_UNDER_LEGAL_REVIEW,
+  AVISO_VIGENTE,
   SELO_TEXTO_FIXO,
   acoesExternasHabilitadas,
   idSecaoContratoBase,
@@ -30,13 +30,13 @@ describe("leitor do contrato-base", () => {
       expect(s.selo).toBe(SELO_TEXTO_FIXO);
       expect(s.versao).toBe("v1.0");
       expect(s.equivalenciaMatriz.length).toBeGreaterThan(0);
-      expect(s.estadoVigencia).toBe("under_legal_review");
+      expect(s.estadoVigencia).toBe("vigente");
     }
   });
 
-  it("cabeçalho traz status under_legal_review e aviso explícito", () => {
-    expect(doc.status).toBe("under_legal_review");
-    expect(doc.aviso).toBe(AVISO_UNDER_LEGAL_REVIEW);
+  it("28/08/2026 — cabeçalho traz status vigente e aviso explícito, revisão jurídica concluída", () => {
+    expect(doc.status).toBe("vigente");
+    expect(doc.aviso).toBe(AVISO_VIGENTE);
     expect(doc.titulo).toContain("Contrato-Base Consolidado v1.0");
   });
 
@@ -51,7 +51,7 @@ describe("leitor do contrato-base", () => {
     expect(doc.erros).toEqual([]);
   });
 
-  it("under_legal_review não habilita ações externas", () => {
-    expect(acoesExternasHabilitadas()).toBe(false);
+  it("vigente habilita ações externas (assinatura), dentro dos demais gates do caso", () => {
+    expect(acoesExternasHabilitadas()).toBe(true);
   });
 });

@@ -33,9 +33,9 @@ describe("matriz de modelos contratuais", () => {
     for (const m of MODELOS_CONTRATUAIS) expect(m.versao).toBe("v1.0");
   });
 
-  it("todos nascem em under_legal_review sobre a mesma base", () => {
+  it("28/08/2026 — todos nascem vigentes sobre a mesma base (revisão jurídica concluída)", () => {
     for (const m of MODELOS_CONTRATUAIS) {
-      expect(m.status).toBe("under_legal_review");
+      expect(m.status).toBe("vigente");
       expect(m.base).toBe("MODELO-ESTUDO + BASE-GEN-V2");
     }
   });
@@ -49,7 +49,7 @@ describe("matriz de modelos contratuais", () => {
     (chave) => {
       const r = montarRascunhoModelo(chave, "2026-08-22");
       expect(r.aviso).toBe(AVISO_RASCUNHO_TESTE);
-      expect(r.capa.status).toBe("under_legal_review");
+      expect(r.capa.status).toBe("vigente");
       expect(r.clausulas).toHaveLength(14);
       expect(r.matriz).toHaveLength(16);
       expect(r.perfil.qualificacao.paragrafos).toEqual(QUALIFICACAO_INSTITUCIONAL_PARAGRAFOS);
@@ -88,12 +88,12 @@ describe("matriz de modelos contratuais", () => {
 });
 
 describe("qualificação institucional", () => {
-  it("nasce em revisão jurídica e sem declarações vedadas", () => {
+  it("28/08/2026 — vigente, sem declarações vedadas e sem pendência de revisão jurídica", () => {
     const q = qualificacaoInstitucionalRenderizada();
-    expect(q.status).toBe("under_legal_review");
-    expect(q.vigente).toBe(false);
+    expect(q.status).toBe("vigente");
+    expect(q.vigente).toBe(true);
     expect(q.violacoes).toEqual([]);
-    expect(q.pendencias.length).toBeGreaterThan(0);
+    expect(q.pendencias).toEqual([]);
   });
 
   it("detecta declarações proibidas", () => {

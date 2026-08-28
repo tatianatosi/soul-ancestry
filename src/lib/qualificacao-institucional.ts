@@ -10,7 +10,7 @@ import type { EstadoVigenciaContratoBase } from "@/lib/contrato-base-consolidado
 
 export const QUALIFICACAO_INSTITUCIONAL_ID = "PERFIL-INST-QUALIFICACAO";
 export const QUALIFICACAO_INSTITUCIONAL_VERSAO = "v1.0";
-export const QUALIFICACAO_INSTITUCIONAL_STATUS: EstadoVigenciaContratoBase = "under_legal_review";
+export const QUALIFICACAO_INSTITUCIONAL_STATUS: EstadoVigenciaContratoBase = "vigente";
 export const QUALIFICACAO_INSTITUCIONAL_TITULO = "Qualificação profissional e natureza da atuação";
 
 export const QUALIFICACAO_INSTITUCIONAL_PARAGRAFOS: string[] = [

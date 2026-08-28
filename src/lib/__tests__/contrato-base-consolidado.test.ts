@@ -32,8 +32,8 @@ describe("contrato-base consolidado v1.0", () => {
     }
   });
 
-  it("permanece em revisão jurídica — não vigente, não assinável", () => {
-    expect(CONTRATO_BASE_STATUS).toBe("under_legal_review");
+  it("28/08/2026 — revisão jurídica concluída (Proprietária): modelo vigente; prévia TESTE segue sempre não assinável (dado fictício)", () => {
+    expect(CONTRATO_BASE_STATUS).toBe("vigente");
     expect(previaTesteAssinavel()).toBe(false);
   });
 

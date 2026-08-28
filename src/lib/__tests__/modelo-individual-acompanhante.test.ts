@@ -17,9 +17,9 @@ import {
 } from "@/lib/modelo-individual-acompanhante";
 
 describe("modelo individual — requerente único com acompanhante", () => {
-  it("nasce como v1.0 e under_legal_review, complementar ao modelo-base", () => {
+  it("28/08/2026 — nasce como v1.0 e vigente, complementar ao modelo-base", () => {
     expect(MODELO_INDIVIDUAL_VERSAO).toBe("v1.0");
-    expect(MODELO_INDIVIDUAL_STATUS).toBe("under_legal_review");
+    expect(MODELO_INDIVIDUAL_STATUS).toBe("vigente");
     expect(MODELO_INDIVIDUAL_BASE).toBe("MODELO-ESTUDO + BASE-GEN-V2");
   });
 

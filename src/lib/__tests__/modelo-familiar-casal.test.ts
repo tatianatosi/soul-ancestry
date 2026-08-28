@@ -31,9 +31,9 @@ const casalValido: ComposicaoFamiliarCasal = {
 };
 
 describe("FAMILIAR — CASAL DOIS ADULTOS v1.0", () => {
-  it("nasce com versão v1.0 e status under_legal_review", () => {
+  it("28/08/2026 — nasce com versão v1.0 e status vigente (revisão jurídica concluída)", () => {
     expect(MODELO_FAMILIAR_CASAL_VERSAO).toBe("v1.0");
-    expect(MODELO_FAMILIAR_CASAL_STATUS).toBe("under_legal_review");
+    expect(MODELO_FAMILIAR_CASAL_STATUS).toBe("vigente");
     expect(MODELO_FAMILIAR_CASAL_BASE).toBe("MODELO-ESTUDO + BASE-GEN-V2");
   });
 

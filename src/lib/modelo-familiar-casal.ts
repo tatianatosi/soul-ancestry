@@ -16,7 +16,7 @@ export const MODELO_FAMILIAR_CASAL_ID = "MODELO-COMPOSICAO-FAMILIAR-CASAL-DOIS-A
 export const MODELO_FAMILIAR_CASAL_NOME = "FAMILIAR — CASAL DOIS ADULTOS";
 export const MODELO_FAMILIAR_CASAL_VERSAO = "v1.0";
 export const MODELO_FAMILIAR_CASAL_DATA = "2026-08-22";
-export const MODELO_FAMILIAR_CASAL_STATUS = "under_legal_review" as const;
+export const MODELO_FAMILIAR_CASAL_STATUS = "vigente" as const;
 export const MODELO_FAMILIAR_CASAL_AUTOR = "Governança contratual (interno)";
 export const MODELO_FAMILIAR_CASAL_FONTE =
   "docs/contratos/CA-CONTRATO-BASE-ESTUDO-GENEALOGICO-v2.md";

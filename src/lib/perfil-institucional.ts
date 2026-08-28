@@ -20,7 +20,7 @@ import { CLAUSULA_DESPESAS_TERCEIROS } from "@/lib/despesas-terceiros";
 export { PERFIL_INSTITUCIONAL_VERSAO };
 
 /** Status desta versão do perfil. Só muda por decisão humana registrada. */
-export const PERFIL_INSTITUCIONAL_STATUS: EstadoVigenciaContratoBase = "under_legal_review";
+export const PERFIL_INSTITUCIONAL_STATUS: EstadoVigenciaContratoBase = "vigente";
 
 export const CAMPOS_INSTITUCIONAIS_OBRIGATORIOS = [
   "razao_empresarial",

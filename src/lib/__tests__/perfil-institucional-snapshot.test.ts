@@ -9,10 +9,10 @@ import {
 } from "@/lib/perfil-institucional-persistido";
 
 describe("snapshot institucional persistido", () => {
-  it("nasce em under_legal_review e não habilita assinatura", () => {
+  it("28/08/2026 — nasce vigente e habilita assinatura", () => {
     const payload = montarPayloadInstitucional(false);
-    expect(payload.status).toBe("under_legal_review");
-    expect(perfilHabilitaAssinatura(payload)).toBe(false);
+    expect(payload.status).toBe("vigente");
+    expect(perfilHabilitaAssinatura(payload)).toBe(true);
     expect(violacoesDoPayload(payload)).toEqual([]);
   });
 

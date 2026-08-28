@@ -15,7 +15,7 @@ describe("perfil institucional persistido", () => {
   it("persiste a versão institucional existente sem dado pessoal", () => {
     const payload = montarPayloadInstitucional(true);
     expect(payload.versao).toBe(PERFIL_INSTITUCIONAL_VERSAO);
-    expect(payload.status).toBe("under_legal_review");
+    expect(payload.status).toBe("vigente");
     expect(violacoesDoPayload(payload)).toEqual([]);
     for (const campo of [
       "razao_empresarial",
@@ -32,9 +32,9 @@ describe("perfil institucional persistido", () => {
     }
   });
 
-  it("nunca é editável pelo caso e não habilita assinatura", () => {
+  it("28/08/2026 — nunca é editável pelo caso; vigente habilita assinatura", () => {
     expect(edicaoPeloCasoPermitida().permitido).toBe(false);
-    expect(perfilHabilitaAssinatura(montarPayloadInstitucional(true))).toBe(false);
+    expect(perfilHabilitaAssinatura(montarPayloadInstitucional(true))).toBe(true);
   });
 
   it("WhatsApp ausente gera pendência de configuração não bloqueante para rascunho", () => {
