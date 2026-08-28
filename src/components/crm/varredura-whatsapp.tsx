@@ -16,6 +16,27 @@ import { ROTULO_CAMPO, varrerConversa, type CampoVarrido } from "@/lib/varredura
 export function VarreduraWhatsApp() {
   const [bruto, setBruto] = useState("");
   const [casa, setCasa] = useState("");
+  const [avisoArquivo, setAvisoArquivo] = useState<string | null>(null);
+
+  const carregarArquivo = (arquivo: File | undefined) => {
+    if (!arquivo) return;
+    setAvisoArquivo(null);
+    const nome = arquivo.name.toLowerCase();
+    if (nome.endsWith(".zip")) {
+      setAvisoArquivo(
+        "Arquivo .zip ainda não é lido direto aqui — é o export \"com mídia\" do WhatsApp. Exporte a conversa de novo escolhendo \"sem mídia\" (vira um .txt direto) ou abra o .zip e envie só o arquivo _chat.txt de dentro dele.",
+      );
+      return;
+    }
+    if (!nome.endsWith(".txt")) {
+      setAvisoArquivo("Formato não reconhecido — envie o .txt exportado do WhatsApp.");
+      return;
+    }
+    const leitor = new FileReader();
+    leitor.onload = () => setBruto(String(leitor.result ?? ""));
+    leitor.onerror = () => setAvisoArquivo("Não consegui ler o arquivo. Tenta colar o texto direto abaixo.");
+    leitor.readAsText(arquivo);
+  };
 
   const resultado = useMemo(() => {
     if (!bruto.trim()) return null;
@@ -62,7 +83,26 @@ export function VarreduraWhatsApp() {
 
         <label className="block">
           <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
-            Conversa
+            Arquivo exportado do WhatsApp (.txt)
+          </span>
+          <input
+            type="file"
+            accept=".txt,.zip,text/plain,application/zip"
+            onChange={(e) => carregarArquivo(e.target.files?.[0])}
+            className="mt-1 block w-full text-xs text-navy/70 file:mr-3 file:rounded-lg file:border file:border-navy/20 file:bg-white file:px-3 file:py-1.5 file:text-xs file:text-navy"
+          />
+          {avisoArquivo ? (
+            <span className="mt-1 block text-[11px] text-terracotta">{avisoArquivo}</span>
+          ) : (
+            <span className="mt-1 block text-[11px] text-navy/45">
+              Nada é enviado — o arquivo é lido só no seu navegador e some ao sair da tela.
+            </span>
+          )}
+        </label>
+
+        <label className="block">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+            Ou cole a conversa direto
           </span>
           <textarea
             value={bruto}
