@@ -3,7 +3,13 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { semFixtures } from "@/lib/fixtures";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { calcularMetricasCrm, montarFilasHoje, validarLead, type LeadDesk } from "@/lib/crm-desk";
+import {
+  calcularMetricasCrm,
+  errosBloqueantesAlteracao,
+  montarFilasHoje,
+  validarLead,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
@@ -151,7 +157,7 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     }
 
     const candidato = { ...(atual ?? { nome: "" }), ...patch } as LeadDesk;
-    const erros = validarLead(candidato);
+    const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch));
     if (erros.length) {
       return { ok: false as const, erros, lead: atual };
     }

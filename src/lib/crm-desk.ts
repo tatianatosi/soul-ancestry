@@ -589,6 +589,29 @@ export function resultadoComercialDerivado(l: LeadDesk): string {
 
 export type ErroValidacao = { campo: string; motivo: string };
 
+const chaveErroValidacao = (erro: ErroValidacao) => `${erro.campo}\u0000${erro.motivo}`;
+
+/**
+ * Em uma edição, pendências antigas continuam visíveis, mas não tornam a ficha
+ * inteira somente leitura. Bloqueiam apenas erros novos ou erros ligados a um
+ * campo que a pessoa efetivamente tentou alterar. Na criação, toda pendência
+ * continua bloqueante.
+ */
+export function errosBloqueantesAlteracao(
+  atual: LeadDesk | null,
+  candidato: LeadDesk,
+  camposAlterados: Iterable<string>,
+): ErroValidacao[] {
+  const errosCandidato = validarLead(candidato);
+  if (!atual) return errosCandidato;
+
+  const campos = new Set(camposAlterados);
+  const errosAnteriores = new Set(validarLead(atual).map(chaveErroValidacao));
+  return errosCandidato.filter(
+    (erro) => campos.has(erro.campo) || !errosAnteriores.has(chaveErroValidacao(erro)),
+  );
+}
+
 /** Espelha as travas do banco para dar feedback imediato antes de gravar. */
 export function validarLead(l: LeadDesk): ErroValidacao[] {
   const erros: ErroValidacao[] = [];

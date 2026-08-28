@@ -52,6 +52,7 @@ import {
   DOCUMENTOS_CHAVE,
   resultadoComercialDerivado,
   rotulo,
+  errosBloqueantesAlteracao,
   validarLead,
   type ErroValidacao,
   type LeadDesk,
@@ -131,6 +132,10 @@ function LeadsPage() {
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
   const editado = useMemo(() => ({ ...(atual ?? { nome: "" }), ...rascunho }) as LeadDesk, [atual, rascunho]);
   const erros = useMemo(() => (atual || Object.keys(rascunho).length ? validarLead(editado) : []), [editado, atual, rascunho]);
+  const errosBloqueantes = useMemo(
+    () => errosBloqueantesAlteracao(atual, editado, Object.keys(rascunho)),
+    [atual, editado, rascunho],
+  );
 
   const carregarTrilhas = useServerFn(listarTrilhasJuridicas);
   const qTrilhas = useQuery({ queryKey: ["trilhas-juridicas"], queryFn: () => carregarTrilhas(), retry: false });
@@ -387,7 +392,14 @@ function LeadsPage() {
 
           {erros.length ? (
             <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
-              <p className="text-sm font-medium text-terracotta">Pendências que impedem a gravação</p>
+              <p className="text-sm font-medium text-terracotta">
+                {errosBloqueantes.length ? "Pendências que impedem esta gravação" : "Pendências anteriores da ficha"}
+              </p>
+              {!errosBloqueantes.length ? (
+                <p className="mt-1 text-xs text-navy/65">
+                  Você pode salvar os outros campos. Para corrigir uma destas classificações, escolha um valor da lista atual.
+                </p>
+              ) : null}
               <ul className="mt-2 space-y-1 text-xs text-navy/70">
                 {erros.map((e) => (
                   <li key={`${e.campo}-${e.motivo}`}>
@@ -848,7 +860,7 @@ function LeadsPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={mutSalvar.isPending || erros.length > 0 || !Object.keys(rascunho).length}
+                disabled={mutSalvar.isPending || errosBloqueantes.length > 0 || !Object.keys(rascunho).length}
                 onClick={() => mutSalvar.mutate()}
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
               >
