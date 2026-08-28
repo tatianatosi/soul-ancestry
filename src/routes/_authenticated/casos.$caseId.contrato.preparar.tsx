@@ -284,7 +284,7 @@ function Pagina() {
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
-    perfilInstitucionalAtivo: false,
+    perfilInstitucionalAtivo: perfilInstitucional.vigente,
     metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
     revisorHumanoAprovado: Boolean(finalAprovada),
     conflitos: [],
