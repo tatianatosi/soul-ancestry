@@ -18,6 +18,14 @@
  *      nomeadas em português corrido, incluindo "Legado e continuidade" que
  *      nenhuma das outras tem (é pós-jornada, upsell).
  *
+ * 28/08/2026 — um sexto vocabulário apareceu ao construir o motor de fases
+ * sobre o catálogo real: a própria coluna `product_catalog.jornada_fase`
+ * (e o espelho estático em `catalogo-desk.ts`) usa um sétimo conjunto de
+ * valores (`diagnostico`, `formalizacao`, `onboarding`, `pesquisa`,
+ * `execucao`, `acompanhamento`, `pos_reconhecimento`) — nenhum dos cinco
+ * dicionários acima cobria produto/SKU, só fase de caso. Adicionado como
+ * `produto_catalogo` no mesmo espírito: nunca inventar correspondência.
+ *
  * Este módulo NÃO funde, NÃO apaga, NÃO migra dado. Ele só declara, para cada
  * termo de cada dicionário, a QUAL fase canônica ele corresponde e com que
  * PRECISÃO — porque nem toda correspondência é exata. `derivacao-jornada`
@@ -106,17 +114,35 @@ const DE_CATALOGO_OPERACIONAL: Record<string, Correspondencia> = {
   "Legado e continuidade": { canonico: null, rotuloCanonico: rotulo(null), precisao: "aproximada", motivo: "Pós-jornada: upsell de memória/legado depois do reconhecimento, sem fase canônica de caso." },
 };
 
+/**
+ * product_catalog.jornada_fase / catalogo-desk.ts → canônico. `diagnostico` é
+ * produto pré-caso (mesmo raciocínio de `derivacao_jornada`: sem fase
+ * canônica de caso ainda). `execucao` e `acompanhamento` são termos largos do
+ * catálogo, mapeados ao marco canônico mais próximo, nunca inventado.
+ */
+const DE_PRODUTO_CATALOGO: Record<string, Correspondencia> = {
+  diagnostico: { canonico: null, rotuloCanonico: rotulo(null), precisao: "aproximada", motivo: "Produto pré-caso: vendido antes de existir fase canônica de caso." },
+  formalizacao: { canonico: "aceite_e_formalizacao", rotuloCanonico: rotulo("aceite_e_formalizacao"), precisao: "aproximada", motivo: "Nomes diferentes para o mesmo marco: formalização = aceite e formalização." },
+  onboarding: { canonico: "onboarding", rotuloCanonico: rotulo("onboarding"), precisao: "exata", motivo: "" },
+  pesquisa: { canonico: "pesquisa_inicial", rotuloCanonico: rotulo("pesquisa_inicial"), precisao: "aproximada", motivo: "Termo largo do catálogo cobre pesquisa inicial e pesquisa e validação." },
+  execucao: { canonico: "preparacao_documental", rotuloCanonico: rotulo("preparacao_documental"), precisao: "aproximada", motivo: "Termo largo do catálogo: cobre pesquisa e validação e preparação documental." },
+  acompanhamento: { canonico: "protocolo_e_acompanhamento", rotuloCanonico: rotulo("protocolo_e_acompanhamento"), precisao: "aproximada", motivo: "Nome próximo do marco canônico protocolo e acompanhamento." },
+  pos_reconhecimento: { canonico: "pos_reconhecimento", rotuloCanonico: rotulo("pos_reconhecimento"), precisao: "exata", motivo: "" },
+};
+
 export type DicionarioFase =
   | "canonico"
   | "jornada_cliente"
   | "derivacao_jornada"
   | "relatorios_fase"
-  | "catalogo_operacional";
+  | "catalogo_operacional"
+  | "produto_catalogo";
 
 const DICIONARIOS_TABELA: Partial<Record<DicionarioFase, Record<string, Correspondencia>>> = {
   derivacao_jornada: DE_DERIVACAO_JORNADA,
   relatorios_fase: DE_RELATORIOS_FASE,
   catalogo_operacional: DE_CATALOGO_OPERACIONAL,
+  produto_catalogo: DE_PRODUTO_CATALOGO,
 };
 
 /**

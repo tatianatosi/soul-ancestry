@@ -15,9 +15,11 @@ import {
   ROTULO_ESTADO_CATALOGO,
   ROTULO_FILA_CATALOGO,
   ROTULO_PRIORIDADE,
+  catalogoPorFaseJornada,
   type FilaCatalogo,
   type ItemFilaCatalogo,
 } from "@/lib/catalogo-canonico";
+import { traduzirFase } from "@/lib/jornada-de-para";
 
 const ORDEM_FILAS: FilaCatalogo[] = [
   "bloqueia_proposta",
@@ -113,6 +115,30 @@ export function CatalogoSaneamento() {
               <p className="font-serif text-lg text-navy">{c.v}</p>
             </div>
           ))}
+        </div>
+      ) : null}
+
+      {q.data?.skus?.length ? (
+        <div className="mt-4 rounded-lg border border-navy/10 p-3">
+          <p className="text-sm font-medium text-navy">Catálogo por fase da jornada</p>
+          <p className="mt-0.5 text-[11px] text-navy/50">
+            Fase traduzida do <code>jornada_fase</code> da fonte pelo de-para canônico; "aprox." indica
+            correspondência aproximada, não fase inventada.
+          </p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {catalogoPorFaseJornada(q.data.skus, traduzirFase, { incluirTeste }).map((g) => (
+              <div key={g.fase ?? g.rotulo} className="rounded-lg border border-navy/10 bg-cream/40 p-2">
+                <p className="text-[11px] uppercase tracking-wide text-navy/55">
+                  {g.rotulo}
+                  {g.temAproximacao ? " (aprox.)" : ""}
+                </p>
+                <p className="mt-1 font-serif text-lg text-navy">{g.total} SKU(s)</p>
+                <p className="text-[11px] text-navy/60">
+                  {g.homologados} homologado(s) · {g.bloqueados} bloqueado(s)
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
