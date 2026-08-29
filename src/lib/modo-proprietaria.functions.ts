@@ -257,8 +257,8 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
       gate: string;
       valor_anterior: unknown;
       valor_novo: unknown;
-      motivo: string;
-      fonte: string;
+      motivo?: string;
+      fonte?: string;
       avanco_interno: string;
       modulo?: string | null;
       pendencia?: { chave: string; rotulo: string; motivo: string } | null;
@@ -269,6 +269,10 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     const em = new Date().toISOString();
+    // Motivo/fonte deixaram de ser pré-requisito de salvar (26/08/2026): a
+    // auditoria continua registrada, mas nunca bloqueia a decisão.
+    const motivo = (data.motivo ?? "").trim() || "Decisão rápida — Painel Hoje";
+    const fonte = (data.fonte ?? "").trim() || "painel_hoje";
 
     const validacao = validarOverrideInterno({
       organization_id: organizationId,
@@ -277,8 +281,8 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
       gate: data.gate,
       valor_anterior: data.valor_anterior,
       valor_novo: data.valor_novo,
-      motivo: data.motivo,
-      fonte: data.fonte,
+      motivo,
+      fonte,
       autora: context.userId as string,
       em,
       avanco_interno: data.avanco_interno,
@@ -303,8 +307,8 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
         campo: data.gate,
         valor_anterior: (data.valor_anterior ?? null) as any,
         valor_novo: (data.valor_novo ?? null) as any,
-        motivo: data.motivo.trim(),
-        fonte: data.fonte.trim(),
+        motivo,
+        fonte,
         pendencias_assumidas: data.pendencia ? [data.pendencia.chave] : [],
         dados_teste: data.dados_teste === true,
         acao_externa: false,
@@ -320,8 +324,8 @@ export const registrarOverrideProprietaria = createServerFn({ method: "POST" })
       gate: data.gate,
       pendencia: data.pendencia ?? null,
       override: {
-        motivo: data.motivo.trim(),
-        fonte: data.fonte.trim(),
+        motivo,
+        fonte,
         autora: context.userId as string,
         em,
         event_id: (row as any).id as string,
@@ -352,8 +356,8 @@ export const corrigirFilaCanonica = createServerFn({ method: "POST" })
       responsavel_user_id?: string | null;
       prazo?: string | null;
       proxima_acao?: string | null;
-      motivo: string;
-      fonte: string;
+      motivo?: string;
+      fonte?: string;
     }) => d,
   )
   .handler(async ({ data, context }) => {
@@ -364,8 +368,10 @@ export const corrigirFilaCanonica = createServerFn({ method: "POST" })
     }
     const mapa = CAMPOS_FILA[data.tipo];
     if (!mapa) return { ok: false as const, erros: ["Tipo de registro não reconhecido."] };
-    if ((data.motivo ?? "").trim().length < 10) return { ok: false as const, erros: ["Motivo obrigatório com pelo menos 10 caracteres."] };
-    if (!(data.fonte ?? "").trim()) return { ok: false as const, erros: ["Fonte ou justificativa obrigatória."] };
+    // Motivo/fonte deixaram de ser pré-requisito de salvar (26/08/2026): a
+    // auditoria continua registrada, mas nunca bloqueia a correção da fila.
+    const motivo = (data.motivo ?? "").trim() || "Correção rápida — Painel Hoje";
+    const fonte = (data.fonte ?? "").trim() || "painel_hoje";
 
     const { data: atual } = await supabase
       .from(mapa.tabela)
@@ -414,8 +420,8 @@ export const corrigirFilaCanonica = createServerFn({ method: "POST" })
         campo: Object.keys(anterior).join(","),
         valor_anterior: anterior as any,
         valor_novo: patch as any,
-        motivo: data.motivo.trim(),
-        fonte: data.fonte.trim(),
+        motivo,
+        fonte,
         acao_externa: false,
         irreversivel: false,
         confirmacao_manual: true,
