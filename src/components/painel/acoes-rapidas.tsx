@@ -1,9 +1,9 @@
 /**
  * Ações rápidas da Proprietária Administradora no Painel Hoje.
  *
- * Grava responsável, prazo e próxima ação na entidade canônica, com motivo e
- * fonte obrigatórios e auditoria append-only. Não cria registro novo, não
- * duplica item de fila e não executa nenhuma ação externa.
+ * Grava responsável, prazo e próxima ação direto na entidade canônica, com
+ * auditoria append-only automática (nunca pré-requisito de salvar). Não cria
+ * registro novo, não duplica item de fila e não executa nenhuma ação externa.
  */
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -43,8 +43,7 @@ export function AcoesRapidasProprietaria({
     responsavel: "",
     prazo: "",
     proxima: "",
-    motivo: "",
-    fonte: "",
+    observacao: "",
   });
   const [erros, setErros] = useState<string[]>([]);
   const [ok, setOk] = useState(false);
@@ -58,8 +57,7 @@ export function AcoesRapidasProprietaria({
           ...(form.responsavel ? { responsavel_user_id: form.responsavel } : {}),
           ...(form.prazo ? { prazo: form.prazo } : {}),
           ...(form.proxima ? { proxima_acao: form.proxima } : {}),
-          motivo: form.motivo,
-          fonte: form.fonte,
+          ...(form.observacao ? { motivo: form.observacao, fonte: form.observacao } : {}),
         },
       }),
     onSuccess: (r: any) => {
@@ -80,8 +78,7 @@ export function AcoesRapidasProprietaria({
           gate: "pendencia_painel_hoje",
           valor_anterior: "pendente_bloqueante",
           valor_novo: "superado_por_decisao_proprietaria",
-          motivo: form.motivo,
-          fonte: form.fonte,
+          ...(form.observacao ? { motivo: form.observacao, fonte: form.observacao } : {}),
           avanco_interno: "avancar_interno",
           modulo: "painel_hoje",
         },
@@ -137,19 +134,11 @@ export function AcoesRapidasProprietaria({
             className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
-        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
-          Motivo (mínimo 10 caracteres)
+        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60 sm:col-span-2">
+          Observação (opcional)
           <input
-            value={form.motivo}
-            onChange={(e) => setForm((f) => ({ ...f, motivo: e.target.value }))}
-            className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
-          />
-        </label>
-        <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
-          Fonte ou justificativa
-          <input
-            value={form.fonte}
-            onChange={(e) => setForm((f) => ({ ...f, fonte: e.target.value }))}
+            value={form.observacao}
+            onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value }))}
             className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
           />
         </label>
@@ -161,7 +150,7 @@ export function AcoesRapidasProprietaria({
             setErros([]);
             m.mutate();
           }}
-          disabled={m.isPending || form.motivo.trim().length < 10 || !form.fonte.trim()}
+          disabled={m.isPending}
           className="rounded-md bg-navy px-2.5 py-1 text-cream disabled:opacity-50"
         >
           {m.isPending ? "Salvando…" : "Salvar correção auditada"}
@@ -172,7 +161,7 @@ export function AcoesRapidasProprietaria({
             setErros([]);
             mAssumir.mutate();
           }}
-          disabled={mAssumir.isPending || form.motivo.trim().length < 10 || !form.fonte.trim()}
+          disabled={mAssumir.isPending}
           className="rounded-md border border-gold/60 bg-gold/15 px-2.5 py-1 text-navy disabled:opacity-50"
         >
           {mAssumir.isPending ? "Registrando…" : "Assumir pendência e avançar"}
