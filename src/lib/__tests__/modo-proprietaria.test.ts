@@ -48,7 +48,7 @@ describe("modo proprietária administradora", () => {
     expect(a.motivo.length).toBeGreaterThanOrEqual(10);
   });
 
-  it("decisão exige motivo, entidade e par valor anterior/novo", () => {
+  it("decisão exige ação, entidade e par valor anterior/novo; motivo é opcional", () => {
     expect(
       validarDecisao("admin", {
         acao: "homologar_sku",
@@ -60,9 +60,7 @@ describe("modo proprietária administradora", () => {
       }),
     ).toEqual([]);
 
-    expect(validarDecisao("admin", { acao: "x", entidade: "y", motivo: "curto" })).toContain(
-      "Motivo obrigatório com pelo menos 10 caracteres.",
-    );
+    expect(validarDecisao("admin", { acao: "x", entidade: "y", motivo: "curto" })).toEqual([]);
     expect(
       validarDecisao("admin", {
         acao: "x",

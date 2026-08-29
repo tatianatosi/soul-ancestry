@@ -12,7 +12,6 @@ import { DetalhesTecnicos } from "@/components/ui/detalhes-tecnicos";
 import { lerSaneamentoCatalogo } from "@/lib/catalogo-canonico.functions";
 import { confirmarHomologacaoLote } from "@/lib/homologacao-revisao.functions";
 import {
-  MOTIVO_MINIMO_HOMOLOGACAO,
   ROTULO_DECISAO,
   TEXTO_CONFIRMACAO_HOMOLOGACAO,
   itensRevisao,
@@ -251,7 +250,7 @@ function HomologacaoSkusPage() {
           rows={3}
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          placeholder={`Motivo da homologação (mínimo ${MOTIVO_MINIMO_HOMOLOGACAO} caracteres)`}
+          placeholder="Motivo da homologação (opcional)"
         />
 
         <label className="mt-3 flex items-start gap-2 text-xs text-navy/75">

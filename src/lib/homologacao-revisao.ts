@@ -21,8 +21,6 @@ export const ROTULO_DECISAO: Record<DecisaoRevisao, string> = {
   manter_rascunho: "Manter fora da homologação",
 };
 
-export const MOTIVO_MINIMO_HOMOLOGACAO = 10;
-
 export const TEXTO_CONFIRMACAO_HOMOLOGACAO =
   "Confirmo que revisei item a item os SKUs marcados e assumo a homologação como proprietária administradora. Nenhum link de cobrança, envio ou ação externa é executado por esta confirmação.";
 
@@ -148,9 +146,6 @@ export function validarConfirmacaoLote(e: EntradaConfirmacao): string[] {
     erros.push(
       `SKU com pendência bloqueante não pode ser homologado: ${inelegiveis.map((i) => i.sku).join(", ")}.`,
     );
-  }
-  if ((e.motivo ?? "").trim().length < MOTIVO_MINIMO_HOMOLOGACAO) {
-    erros.push(`Motivo obrigatório com pelo menos ${MOTIVO_MINIMO_HOMOLOGACAO} caracteres.`);
   }
   if (e.confirmado !== true) {
     erros.push("Confirmação explícita obrigatória: marque a caixa de confirmação.");

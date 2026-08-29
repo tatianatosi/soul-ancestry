@@ -39,7 +39,7 @@ describe("P0.3 — checklist de lançamento controlado", () => {
     expect(estadoEfetivo(item)).toBe("PENDENTE");
   });
 
-  it("2. o aceite exige ação explícita (decisão, responsável, motivo) e é auditado", () => {
+  it("2. o aceite exige ação explícita e responsável, e é auditado; motivo é opcional", () => {
     expect(
       validarDecisaoLancamento({
         decisao: null,
@@ -47,13 +47,13 @@ describe("P0.3 — checklist de lançamento controlado", () => {
         motivo: "",
         cienteDosPendentes: false,
       }),
-    ).toHaveLength(3);
+    ).toHaveLength(2);
 
     expect(
       validarDecisaoLancamento({
         decisao: "liberar_acesso_controlado",
         responsavel: "Tatiana Tosi",
-        motivo: "Liberação restrita para verificação interna de acesso.",
+        motivo: "",
         cienteDosPendentes: false,
       }),
     ).toHaveLength(1);

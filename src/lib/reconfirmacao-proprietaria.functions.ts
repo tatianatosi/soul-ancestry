@@ -147,13 +147,10 @@ export type ResultadoReconfirmacao = {
  */
 export const reconfirmarPropriedade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { emailConfirmado: string; motivo: string }) => {
+  .inputValidator((input: { emailConfirmado: string; motivo?: string }) => {
     const emailConfirmado = normalizar(input?.emailConfirmado);
-    const motivo = String(input?.motivo ?? "").trim();
+    const motivo = String(input?.motivo ?? "").trim() || "Reconfirmação de propriedade";
     if (!emailConfirmado) throw new Error("Digite o e-mail da proprietária para confirmar.");
-    if (motivo.length < MOTIVO_MINIMO_RECONFIRMACAO) {
-      throw new Error(`Descreva o motivo com pelo menos ${MOTIVO_MINIMO_RECONFIRMACAO} caracteres.`);
-    }
     return { emailConfirmado, motivo };
   })
   .handler(async ({ data, context }): Promise<ResultadoReconfirmacao> => {

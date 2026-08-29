@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  MOTIVO_MINIMO_LOTE,
   decisaoLoteDoItem,
   itensLoteS01aS05,
   montarLote,
@@ -31,13 +30,13 @@ describe("lote de aprovações S-01 a S-05", () => {
     }
   });
 
-  it("exige seleção, motivo mínimo e checkbox", () => {
+  it("exige seleção e checkbox; motivo curto ou ausente não bloqueia", () => {
     expect(validarLote({ selecionados: [], motivo: MOTIVO, checkboxConfirmado: true })).toContain(
       "Selecione ao menos um item de S-01 a S-05.",
     );
     expect(
       validarLote({ selecionados: ["S-01"], motivo: "curto", checkboxConfirmado: true }),
-    ).toContain(`Motivo obrigatório com pelo menos ${MOTIVO_MINIMO_LOTE} caracteres.`);
+    ).toEqual([]);
     expect(
       validarLote({ selecionados: ["S-01"], motivo: MOTIVO, checkboxConfirmado: false }),
     ).toContain("Confirmação explícita obrigatória: marque a caixa de confirmação do lote.");

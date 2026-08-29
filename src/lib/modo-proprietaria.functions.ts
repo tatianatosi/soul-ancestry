@@ -92,7 +92,7 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
       campo?: string | null;
       valor_anterior?: unknown;
       valor_novo?: unknown;
-      motivo: string;
+      motivo?: string;
       fonte?: string | null;
       impacto?: string | null;
       pendencias_assumidas?: string[];
@@ -102,8 +102,9 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    const motivo = (data.motivo ?? "").trim() || "Decisão registrada pela proprietária administradora";
 
-    const erros = validarDecisao(papel, data);
+    const erros = validarDecisao(papel, { ...data, motivo });
     if (erros.length) throw new Error(erros.join(" "));
     if (exigeConfirmacaoFinal(data.acao)) {
       throw new Error(
@@ -134,7 +135,7 @@ export const registrarDecisaoProprietaria = createServerFn({ method: "POST" })
         campo: data.campo ?? null,
         valor_anterior: data.valor_anterior === undefined ? null : (data.valor_anterior as any),
         valor_novo: data.valor_novo === undefined ? null : (data.valor_novo as any),
-        motivo: data.motivo.trim(),
+        motivo,
         fonte: data.fonte ?? null,
         impacto: data.impacto ?? null,
         pendencias_assumidas: data.pendencias_assumidas ?? [],
