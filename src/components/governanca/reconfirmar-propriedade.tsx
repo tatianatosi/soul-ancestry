@@ -12,7 +12,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, CheckCircle2, KeyRound, ShieldCheck, XCircle } from "lucide-react";
 
 import {
-  MOTIVO_MINIMO_RECONFIRMACAO,
   diagnosticoAcessoProprietaria,
   reconfirmarPropriedade,
 } from "@/lib/reconfirmacao-proprietaria.functions";
@@ -39,8 +38,7 @@ export function ReconfirmarPropriedade() {
   });
 
   const dados = diagnostico.data;
-  const podeEnviar =
-    !!dados?.elegivel && emailConfirmado.trim().length > 3 && motivo.trim().length >= MOTIVO_MINIMO_RECONFIRMACAO;
+  const podeEnviar = !!dados?.elegivel && emailConfirmado.trim().length > 3;
 
   return (
     <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -133,7 +131,7 @@ export function ReconfirmarPropriedade() {
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground" htmlFor="motivo-reconfirmacao">
-              Motivo da reconfirmação
+              Motivo da reconfirmação (opcional)
             </label>
             <textarea
               id="motivo-reconfirmacao"
@@ -143,9 +141,7 @@ export function ReconfirmarPropriedade() {
               placeholder="Ex.: recuperação de acesso administrativo após bloqueio de vínculo"
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Mínimo de {MOTIVO_MINIMO_RECONFIRMACAO} caracteres. O motivo é gravado na auditoria.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">O motivo é gravado na auditoria.</p>
           </div>
 
           <button

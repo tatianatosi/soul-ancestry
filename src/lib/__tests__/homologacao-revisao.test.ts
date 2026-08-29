@@ -81,14 +81,14 @@ describe("revisão item a item para homologação", () => {
     expect(itens.map((i) => i.sku)).toEqual(["SKU-002", "SKU-009"]);
   });
 
-  it("exige decisão em todos os itens, motivo e confirmação explícita", () => {
+  it("exige decisão em todos os itens e confirmação explícita; motivo curto não bloqueia", () => {
     const itens = itensRevisao([
       base({ id: "a", sku_codigo: "SKU-002" }),
       base({ id: "b", sku_codigo: "SKU-003" }),
     ]);
     const decisoes: Record<string, DecisaoRevisao> = { a: "homologar" };
     const erros = validarConfirmacaoLote({ itens, decisoes, motivo: "curto", confirmado: false });
-    expect(erros).toHaveLength(3);
+    expect(erros).toHaveLength(2);
   });
 
   it("recusa marcar item bloqueado como homologar", () => {

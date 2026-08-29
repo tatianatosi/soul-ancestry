@@ -5,7 +5,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
-  MOTIVO_MINIMO_LOTE,
   ROTULO_ESTADO_INTERNO,
   TEXTO_CHECKBOX_LOTE,
   itensLoteS01aS05,
@@ -146,7 +145,7 @@ export function LoteAprovacoesS01aS05() {
             </ul>
 
             <label className="block space-y-1">
-              <span className="text-navy/80">Motivo da decisão (mínimo {MOTIVO_MINIMO_LOTE} caracteres)</span>
+              <span className="text-navy/80">Motivo da decisão (opcional)</span>
               <Textarea
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
@@ -191,7 +190,7 @@ export function LoteAprovacoesS01aS05() {
             </Button>
             <Button
               onClick={() => m.mutate()}
-              disabled={m.isPending || !confirmado || motivo.trim().length < MOTIVO_MINIMO_LOTE || selecionados.length === 0}
+              disabled={m.isPending || !confirmado || selecionados.length === 0}
             >
               {m.isPending ? "Registrando decisões…" : `Aprovar ${selecionados.length} item(ns) com auditoria`}
             </Button>

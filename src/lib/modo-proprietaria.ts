@@ -235,7 +235,11 @@ export type DecisaoProprietaria = {
   pendencias_assumidas?: string[];
 };
 
-/** Nenhum dado é inferido: cada decisão precisa de autoria, motivo e valores. */
+/**
+ * Nenhum dado é inferido: cada decisão precisa de autoria, ação e entidade.
+ * Motivo deixou de ser pré-requisito de salvar (26/08/2026) — segue gravado
+ * na auditoria, com um valor padrão quando fica em branco.
+ */
 export function validarDecisao(
   papel: PapelInterno | null | undefined,
   d: DecisaoProprietaria,
@@ -246,9 +250,6 @@ export function validarDecisao(
   }
   if (!d.acao?.trim()) erros.push("Ação obrigatória.");
   if (!d.entidade?.trim()) erros.push("Entidade afetada obrigatória.");
-  if ((d.motivo ?? "").trim().length < MOTIVO_MINIMO) {
-    erros.push(`Motivo obrigatório com pelo menos ${MOTIVO_MINIMO} caracteres.`);
-  }
   if (d.campo && d.valor_anterior === undefined) {
     erros.push("Valor anterior obrigatório quando um campo é corrigido.");
   }

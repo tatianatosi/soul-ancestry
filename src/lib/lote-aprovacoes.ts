@@ -16,8 +16,6 @@ import {
   type LinhaAprovacao,
 } from "@/lib/varredura-administracao";
 
-export const MOTIVO_MINIMO_LOTE = 10;
-
 export const TEXTO_CHECKBOX_LOTE =
   "Confirmo que revisei cada item selecionado e assumo a decisão como proprietária administradora. Nenhuma ação externa será executada por esta janela.";
 
@@ -70,9 +68,6 @@ export function validarLote(entrada: EntradaLote): string[] {
   if (entrada.selecionados.some((s) => !validos.has(s))) {
     erros.push("Item fora do lote S-01 a S-05.");
   }
-  if ((entrada.motivo ?? "").trim().length < MOTIVO_MINIMO_LOTE) {
-    erros.push(`Motivo obrigatório com pelo menos ${MOTIVO_MINIMO_LOTE} caracteres.`);
-  }
   if (entrada.checkboxConfirmado !== true) {
     erros.push("Confirmação explícita obrigatória: marque a caixa de confirmação do lote.");
   }
@@ -89,7 +84,7 @@ export function decisaoLoteDoItem(item: ItemLoteAprovacao, motivo: string) {
     campo: "estado_interno",
     valor_anterior: "pendente",
     valor_novo: item.estadoInternoAlvo,
-    motivo: motivo.trim(),
+    motivo: motivo.trim() || "Aprovação em lote S-01 a S-05",
     fonte: "janela_lote_s01_s05",
     impacto: item.linha.impacto,
     pendencias_assumidas: item.exigeConfirmacaoExterna

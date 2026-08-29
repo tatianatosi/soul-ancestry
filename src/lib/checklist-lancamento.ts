@@ -347,9 +347,7 @@ export interface PedidoDecisaoLancamento {
   cienteDosPendentes: boolean;
 }
 
-export const MOTIVO_MINIMO_LANCAMENTO = 20;
-
-/** Valida a decisão humana. Sem ação explícita e motivo, nada é registrado. */
+/** Valida a decisão humana. Sem ação explícita e responsável, nada é registrado. */
 export function validarDecisaoLancamento(
   pedido: PedidoDecisaoLancamento,
   itens: readonly ItemChecklist[] = ITENS_CHECKLIST,
@@ -357,9 +355,6 @@ export function validarDecisaoLancamento(
   const erros: string[] = [];
   if (!pedido.decisao) erros.push("Escolha explicitamente entre liberar acesso controlado ou manter bloqueado.");
   if (!pedido.responsavel.trim()) erros.push("Informe o responsável pela decisão.");
-  if (pedido.motivo.trim().length < MOTIVO_MINIMO_LANCAMENTO) {
-    erros.push(`Descreva o motivo com pelo menos ${MOTIVO_MINIMO_LANCAMENTO} caracteres.`);
-  }
   if (pedido.decisao === "liberar_acesso_controlado") {
     const pendentes = bloqueiosRemanescentes(itens);
     if (pendentes.length > 0 && !pedido.cienteDosPendentes) {
@@ -377,7 +372,7 @@ export function montarRegistroDecisao(pedido: PedidoDecisaoLancamento, itens: re
   return {
     acao: "decisao_lancamento_controlado",
     entidade: "checklist_lancamento_controlado",
-    motivo: pedido.motivo.trim(),
+    motivo: pedido.motivo.trim() || "Decisão de lançamento controlado registrada pela proprietária",
     fonte: "Checklist interno de lançamento controlado (P0.3)",
     impacto: pedido.decisao ? ROTULO_DECISAO[pedido.decisao] : "",
     pendencias_assumidas: bloqueiosRemanescentes(itens).map((i) => i.id),

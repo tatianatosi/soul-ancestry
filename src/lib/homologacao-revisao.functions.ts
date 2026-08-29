@@ -10,9 +10,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  */
 export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { ids: string[]; motivo: string }) => ({
+  .inputValidator((d: { ids: string[]; motivo?: string }) => ({
     ids: Array.from(new Set((d.ids ?? []).map((i) => String(i)))).slice(0, 200),
-    motivo: String(d.motivo ?? "").trim().slice(0, 600),
+    motivo:
+      String(d.motivo ?? "").trim().slice(0, 600) || "Homologação em lote confirmada pela proprietária",
   }))
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
@@ -25,7 +26,6 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
       throw new Error("Homologação de catálogo restrita a admin e operações.");
     }
     if (!data.ids.length) throw new Error("Nenhum SKU selecionado para homologação.");
-    if (data.motivo.length < 10) throw new Error("Motivo obrigatório com pelo menos 10 caracteres.");
 
     const { lerSaneamentoCatalogo } = await import("@/lib/catalogo-canonico.functions");
     const leitura: any = await (lerSaneamentoCatalogo as any)({ data: { incluirTeste: false } });
