@@ -9,7 +9,7 @@ import {
   urlDoServidor,
 } from "../config-servidor";
 
-const OUTRO = "https://zsxpdbhdvbuulwpepemd.supabase.co";
+const OUTRO = "https://outroprojetovazio.supabase.co";
 
 describe("o servidor obedece ao projeto declarado", () => {
   it("usa o declarado quando não há ambiente nenhum", () => {
@@ -89,7 +89,7 @@ describe("o diagnóstico não vaza segredo", () => {
   it("afirma com certeza que o segredo não serve quando o ambiente é de outro projeto", () => {
     const d = diagnosticoDoServidor({ SUPABASE_URL: OUTRO, SUPABASE_SERVICE_ROLE_KEY: "sb_secret_x" });
     expect(d.ambienteConcorda).toBe(false);
-    expect(d.refDoAmbiente).toBe("zsxpdbhdvbuulwpepemd");
+    expect(d.refDoAmbiente).toBe("outroprojetovazio");
     expect(d.refEmUso).toBe(PROJETO_DECLARADO.ref);
     expect(d.segredoPodeServir).toBe("nao");
   });
