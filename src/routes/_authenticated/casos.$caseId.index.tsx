@@ -897,6 +897,7 @@ function FichaCaso() {
                 </Link>
                 <Link
                   to="/ordens-servico"
+                  search={{ caseId: id }}
                   className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
                 >
                   Ordens de serviço
