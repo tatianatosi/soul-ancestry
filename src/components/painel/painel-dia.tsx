@@ -946,22 +946,6 @@ export function PainelDia() {
         />
       </section>
 
-      {/*
-        27/08/2026 — CA-04 pedia métricas diárias visíveis no Painel Hoje.
-        Tentativa inicial reproduzia números aqui, mas todos já existem em
-        algum lugar: Discovery e leads por origem em /metricas, funil em
-        /conversao, e "leads sem próxima ação" já é uma das filas acima
-        nesta mesma página. A Proprietária pediu explicitamente: "tudo que
-        for sobreposição vai embora". Fica só o link — sem duplicar número.
-      */}
-      <Link
-        to="/metricas"
-        data-painel-bloco="metricas-dia"
-        className="block rounded-xl border border-navy/10 bg-cream/40 p-4 text-xs text-navy/60 underline-offset-2 hover:underline"
-      >
-        Ver métricas do dia (origem, Discovery, funil, pendência documental) →
-      </Link>
-
       <div className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy/70">
         <button
           onClick={() => setAjuda((v) => !v)}

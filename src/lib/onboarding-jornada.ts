@@ -25,7 +25,7 @@ export const EIXO_OPERACAO = [
 export type EixoOperacao = (typeof EIXO_OPERACAO)[number]["id"];
 
 export const ESTADO_DERIVADO = [
-  { id: "pre_onboarding_bloqueado", rotulo: "Pré-onboarding bloqueado" },
+  { id: "pre_onboarding_bloqueado", rotulo: "Pendências de pré-onboarding" },
   { id: "formalizacao_pendente", rotulo: "Formalização pendente" },
   { id: "onboarding_pendente", rotulo: "Onboarding pendente" },
   { id: "em_execucao", rotulo: "Em execução" },

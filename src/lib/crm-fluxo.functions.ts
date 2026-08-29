@@ -30,6 +30,52 @@ async function orgDoUsuario(supabase: any, userId: string) {
   return data.organization_id as string;
 }
 
+/**
+ * Abre o caso real de qualquer oportunidade na confirmação formal — não só a piloto.
+ * Idempotente por opportunities.case_id. O código canônico nunca é escolhido aqui:
+ * fica a cargo do gerador transacional já implantado (trigger fn_case_codigo_canonico
+ * + gerar_case_id), a mesma trava que impede duas oportunidades formalizadas em
+ * paralelo de colidirem no mesmo número de sequência.
+ */
+async function materializarCasoDaOportunidade(
+  supabase: any,
+  organizationId: string,
+  userId: string,
+  op: { id: string; contact_id: string; case_id: string | null; objetivo_declarado: string; pais_linha_prioritaria?: string | null; citizenship_track_id?: string | null; via_preliminar?: string | null; responsavel_nome?: string | null; resumo_interno?: string | null },
+): Promise<string> {
+  if (op.case_id) return op.case_id;
+
+  const { data: contato } = await supabase.from("contacts").select("nome").eq("id", op.contact_id).maybeSingle();
+
+  const { data: caso, error } = await supabase
+    .from("crm_casos")
+    .insert({
+      organization_id: organizationId,
+      titulo: `${contato?.nome ?? "Caso sem nome"} — ${op.objetivo_declarado}`,
+      pais: op.pais_linha_prioritaria ?? null,
+      via: op.via_preliminar || "a-definir",
+      citizenship_track_id: op.citizenship_track_id ?? null,
+      responsavel_principal: op.responsavel_nome || "Tatiana Melani Tosi",
+      eixo_comercial: "confirmacao_formal_recebida",
+      eixo_formalizacao: "formalizacao_em_preparacao",
+      data_confirmacao_formal_proposta: new Date().toISOString().slice(0, 10),
+      resumo_interno: op.resumo_interno ?? null,
+      created_by: userId,
+      updated_by: userId,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`Não foi possível abrir o caso a partir da oportunidade: ${error.message}`);
+
+  const { error: erroVinculo } = await supabase
+    .from("opportunities")
+    .update({ case_id: caso.id, updated_by: userId })
+    .eq("id", op.id);
+  if (erroVinculo) throw new Error(erroVinculo.message);
+
+  return caso.id as string;
+}
+
 async function registrarEvento(
   supabase: any,
   userId: string,
@@ -378,6 +424,8 @@ export const registrarConfirmacaoFormal = createServerFn({ method: "POST" })
     const { data: op } = await supabase.from("opportunities").select("*").eq("id", data.opportunityId).maybeSingle();
     if (!op) throw new Error("Oportunidade não encontrada.");
 
+    const caseId = await materializarCasoDaOportunidade(supabase, organization_id, userId, op);
+
     const prazo = new Date();
     prazo.setDate(prazo.getDate() + 5);
     const { error } = await supabase
@@ -395,7 +443,7 @@ export const registrarConfirmacaoFormal = createServerFn({ method: "POST" })
       event_type: "confirmacao_formal_recebida",
       contact_id: op.contact_id,
       opportunity_id: op.id,
-      case_id: op.case_id,
+      case_id: caseId,
       evidencia_referencia: (data.referenciaInterna ?? "").trim() || "Sem referência informada.",
       observacao: data.observacao,
     });
@@ -403,13 +451,14 @@ export const registrarConfirmacaoFormal = createServerFn({ method: "POST" })
       event_type: "formalizacao_em_preparacao",
       contact_id: op.contact_id,
       opportunity_id: op.id,
-      case_id: op.case_id,
-      observacao: "Preparação interna liberada. Nenhum contrato, cobrança, assinatura ou onboarding foi criado.",
+      case_id: caseId,
+      observacao: "Caso aberto internamente. Nenhum contrato, cobrança, assinatura ou onboarding foi criado.",
     });
     return {
       ok: true as const,
+      caseId,
       liberado: ["preparacao_interna_formalizacao"],
-      nota: "Somente a preparação interna foi liberada.",
+      nota: "O caso foi aberto internamente; somente a preparação interna de formalização foi liberada.",
     };
   });
 
