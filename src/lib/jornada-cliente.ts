@@ -292,7 +292,7 @@ export function avaliarSituacaoCaso(e: EstadoCaso): SituacaoCaso {
     rotuloCard: e.aceiteComercial && !e.contratoAssinado ? "Aceite confirmado — formalização pendente" : "Formalização concluída",
     eixoComercial: e.aceiteComercial ? "Proposta aceita / formalização" : "Em negociação",
     eixoFormalizacao: e.contratoAssinado ? (e.pagamentoInicialConfirmado ? "Pagamento confirmado" : "Contrato assinado") : "Contrato pendente",
-    estadoCaso: permiteCasoAtivo ? "Caso ativo" : permiteOnboarding ? "Onboarding" : "Pré-onboarding bloqueado",
+    estadoCaso: permiteCasoAtivo ? "Caso ativo" : permiteOnboarding ? "Onboarding" : "Pendências de pré-onboarding",
     bloqueios,
     permite: { onboarding: permiteOnboarding, casoAtivo: permiteCasoAtivo, dossieAtivo, pesquisaExterna },
     proximaAcao,
