@@ -439,8 +439,8 @@ export function AtendimentoInterno() {
                     {["pendente", "recusado"].includes(s.status) ? (
                       <button
                         onClick={() => {
-                          const motivo = window.prompt("Motivo do cancelamento?") ?? "";
-                          if (motivo.trim()) cancelarSolic.mutate({ solicitacaoId: s.id, motivo });
+                          const motivo = window.prompt("Motivo do cancelamento (opcional):");
+                          if (motivo !== null) cancelarSolic.mutate({ solicitacaoId: s.id, motivo });
                         }}
                         className="rounded-lg border border-navy/20 px-2.5 py-1 text-xs"
                       >

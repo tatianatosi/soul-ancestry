@@ -870,8 +870,8 @@ function LeadsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento:");
-                    if (motivo?.trim()) mutArquivar.mutate(motivo.trim());
+                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                    if (motivo !== null) mutArquivar.mutate(motivo);
                   }}
                   className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
                 >

@@ -45,9 +45,6 @@ export function validarProximaAcao(estado: EstadoProximaAcao): ErroProximaAcao[]
 
   const acao = texto(estado.proxima_acao_codigo);
   if (!acao) add("ACAO_NAO_DEFINIDA", "Defina a próxima ação a partir da lista controlada.");
-  if (acao === "outro_justificar" && texto(estado.proxima_acao_justificativa).length < 5) {
-    add("JUSTIFICATIVA_OBRIGATORIA", "A ação 'Outro' exige justificativa com pelo menos 5 caracteres.");
-  }
   if (!texto(estado.responsavel_principal)) {
     add("RESPONSAVEL_OBRIGATORIO", "Informe o responsável principal pela ação.");
   }

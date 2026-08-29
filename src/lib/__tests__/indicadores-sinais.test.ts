@@ -54,8 +54,15 @@ describe("Radar de elegibilidade preliminar", () => {
     expect(r.bloqueios_externos.length).toBeGreaterThan(0);
   });
 
-  it("alteração manual exige justificativa, responsável e versão", () => {
-    expect(validarAlteracaoManual({ faixa: "baixa" })).toHaveLength(3);
+  it("alteração manual exige responsável e versão; justificativa nunca bloqueia", () => {
+    expect(validarAlteracaoManual({ faixa: "baixa" })).toHaveLength(2);
+    expect(
+      validarAlteracaoManual({
+        faixa: "baixa",
+        responsavel: "Tatiana",
+        versao_matriz: "v1",
+      }),
+    ).toEqual([]);
     expect(
       validarAlteracaoManual({
         faixa: "baixa",

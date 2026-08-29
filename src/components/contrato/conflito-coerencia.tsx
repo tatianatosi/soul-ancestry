@@ -90,11 +90,11 @@ export function ConflitoCoerencia({
             value={justificativa}
             maxLength={500}
             onChange={(e) => setJustificativa(e.target.value)}
-            placeholder="Justificativa da correção (mínimo 10 caracteres)"
+            placeholder="Justificativa da correção (opcional)"
           />
           <button
             onClick={() => m.mutate()}
-            disabled={m.isPending || !novoValor || !versao || justificativa.trim().length < 10}
+            disabled={m.isPending || !novoValor || !versao}
             className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
           >
             Registrar correção homologada

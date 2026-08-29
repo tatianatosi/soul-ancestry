@@ -205,8 +205,8 @@ export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, o
                 type="button"
                 className="mt-2 text-[11px] text-terracotta underline"
                 onClick={() => {
-                  const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                  if (motivo.trim().length >= 5) onArquivar(tabela, r.id, motivo);
+                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                  if (motivo !== null) onArquivar(tabela, r.id, motivo);
                 }}
               >
                 Arquivar (sem exclusão física)

@@ -314,12 +314,7 @@ export const alterarPapelMembro = createServerFn({ method: "POST" })
 
 export const alterarStatusMembro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => {
-    if (data.status !== "active" && (!data.motivo || data.motivo.trim().length < 5)) {
-      throw new Error("Informe um motivo com pelo menos 5 caracteres.");
-    }
-    return data;
-  })
+  .inputValidator((data: { id: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => data)
   .handler(async ({ data, context }) => {
     const h = await import("./equipe.server");
     const gestor = await h.exigirAdminEquipe(context.userId as string);
@@ -336,9 +331,10 @@ export const alterarStatusMembro = createServerFn({ method: "POST" })
     if (!alvo.data) throw new Error("Membro não encontrado.");
 
     const agora = new Date().toISOString();
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const patch: Record<string, unknown> = {
       status: data.status,
-      reason: data.status === "active" ? null : data.motivo?.trim(),
+      reason: data.status === "active" ? null : motivo,
       updated_by: context.userId,
     };
     if (data.status === "suspended") {
@@ -375,17 +371,14 @@ export const alterarStatusMembro = createServerFn({ method: "POST" })
       userId: context.userId as string,
       acao: `equipe_${data.status}`,
       entidadeId: data.id,
-      metadados: { motivo: data.motivo ?? null },
+      metadados: { motivo: data.status === "active" ? null : motivo },
     });
     return { ok: true };
   });
 
 export const arquivarMembroEquipe = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; motivo: string }) => {
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo do arquivamento.");
-    return data;
-  })
+  .inputValidator((data: { id: string; motivo: string }) => data)
   .handler(async ({ data, context }) => {
     const h = await import("./equipe.server");
     const gestor = await h.exigirAdminEquipe(context.userId as string);
@@ -405,7 +398,7 @@ export const arquivarMembroEquipe = createServerFn({ method: "POST" })
         status: "revoked",
         archived_at: new Date().toISOString(),
         archived_by: context.userId,
-        archive_reason: data.motivo.trim(),
+        archive_reason: (data.motivo ?? "").trim() || "Sem motivo informado.",
         updated_by: context.userId,
       })
       .eq("id", data.id)

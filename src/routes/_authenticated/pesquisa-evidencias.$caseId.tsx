@@ -711,8 +711,8 @@ function AreaPesquisaEvidencias() {
                                 type="button"
                                 className="underline decoration-terracotta underline-offset-4"
                                 onClick={() => {
-                                  const motivo = window.prompt("Motivo do arquivamento:") ?? "";
-                                  if (motivo.trim().length >= 5) arquivar.mutate({ id: s.id, motivo });
+                                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                                  if (motivo !== null) arquivar.mutate({ id: s.id, motivo });
                                 }}
                               >
                                 arquivar

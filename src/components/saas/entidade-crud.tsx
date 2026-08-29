@@ -382,7 +382,7 @@ export function EntidadeCrud({
               Não há exclusão neste sistema. O registro fica arquivado, com autor, data e motivo.
             </p>
             <label className="mt-4 block text-sm">
-              <span className="mb-1 block text-navy/70">Motivo do arquivamento * (mínimo 5 caracteres)</span>
+              <span className="mb-1 block text-navy/70">Motivo do arquivamento</span>
               <textarea
                 rows={3}
                 value={arquivando.motivo}
@@ -398,8 +398,10 @@ export function EntidadeCrud({
                 Cancelar
               </button>
               <button
-                disabled={arquivando.motivo.trim().length < 5 || mArquivar.isPending}
-                onClick={() => mArquivar.mutate({ id: arquivando.id, motivo: arquivando.motivo.trim() })}
+                disabled={mArquivar.isPending}
+                onClick={() =>
+                  mArquivar.mutate({ id: arquivando.id, motivo: arquivando.motivo.trim() || "Motivo não informado." })
+                }
                 className="rounded-lg bg-terracotta px-3 py-2 text-sm text-cream disabled:opacity-50"
               >
                 Arquivar

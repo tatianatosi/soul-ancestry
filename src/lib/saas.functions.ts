@@ -579,10 +579,7 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { entidade: Entidade; id: string; motivo: string }) => {
     if (!ENTIDADES.includes(data.entidade)) throw new Error("Entidade inválida.");
-    if (!data.motivo || data.motivo.trim().length < 5) {
-      throw new Error("Informe um motivo de arquivamento com pelo menos 5 caracteres.");
-    }
-    return data;
+    return { ...data, motivo: data.motivo?.trim() || "Motivo não informado." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;

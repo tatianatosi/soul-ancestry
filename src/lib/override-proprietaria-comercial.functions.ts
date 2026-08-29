@@ -102,9 +102,7 @@ export const revogarOverrideComercial = createServerFn({ method: "POST" })
     if (papel !== "admin" && papel !== "proprietaria_administradora") {
       throw new Error("Somente a Proprietária administradora autenticada pode revogar um override.");
     }
-    if (!data.motivo?.trim() || data.motivo.trim().length < 10) {
-      throw new Error("Motivo da revogação obrigatório.");
-    }
+    const motivoRevogacao = data.motivo?.trim() || "Motivo não informado.";
 
     const { data: row, error } = await supabase
       .from("owner_override_events")
@@ -117,7 +115,7 @@ export const revogarOverrideComercial = createServerFn({ method: "POST" })
         entidade: "crm_casos",
         entidade_id: data.casoId,
         campo: data.eventoOriginalId,
-        motivo: data.motivo.trim(),
+        motivo: motivoRevogacao,
         pendencias_assumidas: [],
         acao_externa: false,
         irreversivel: false,

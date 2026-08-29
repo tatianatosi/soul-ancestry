@@ -234,10 +234,7 @@ export const moverTarefa = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = { status: data.status };
 
     if (data.status === "bloqueada") {
-      if (!data.motivoBloqueio || data.motivoBloqueio.trim().length < 5) {
-        throw new Error("Informe o motivo do bloqueio (mínimo 5 caracteres).");
-      }
-      patch["motivo_bloqueio"] = data.motivoBloqueio.trim();
+      patch["motivo_bloqueio"] = (data.motivoBloqueio ?? "").trim() || "Sem motivo informado.";
       patch["bloqueado_em"] = new Date().toISOString();
     }
 
@@ -245,12 +242,9 @@ export const moverTarefa = createServerFn({ method: "POST" })
     const jaEsteveBloqueada = Boolean(atual.data.bloqueado_em);
 
     if (saindoDeBloqueio || (data.status === "concluida" && jaEsteveBloqueada)) {
-      if (!data.desbloqueioJustificativa || data.desbloqueioJustificativa.trim().length < 5) {
-        throw new Error("Registre a justificativa do desbloqueio (mínimo 5 caracteres).");
-      }
       patch["desbloqueado_em"] = new Date().toISOString();
       patch["desbloqueio_por"] = userId;
-      patch["desbloqueio_justificativa"] = data.desbloqueioJustificativa.trim();
+      patch["desbloqueio_justificativa"] = (data.desbloqueioJustificativa ?? "").trim() || "Sem justificativa informada.";
     }
 
     const { error } = await supabase
@@ -301,8 +295,8 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
 export const arquivarOps = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tabela: "tarefas" | "ops_microentregas"; id: string; motivo: string }) => {
-    if (!data?.id || !data?.motivo || data.motivo.trim().length < 5) {
-      throw new Error("Informe o motivo do arquivamento (mínimo 5 caracteres).");
+    if (!data?.id) {
+      throw new Error("Informe o item a arquivar.");
     }
     if (data.tabela !== "tarefas" && data.tabela !== "ops_microentregas") {
       throw new Error("Entidade inválida.");
@@ -318,7 +312,7 @@ export const arquivarOps = createServerFn({ method: "POST" })
       .update({
         archived_at: new Date().toISOString(),
         archived_by: context.userId,
-        archive_motivo: data.motivo.trim(),
+        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
       })
       .eq("id", data.id)
       .eq("organization_id", ctx.organizationId);
@@ -390,9 +384,6 @@ export const registrarExcecao = createServerFn({ method: "POST" })
       if (!data?.tipo || !TIPOS_EXCECAO_ROTULOS[data.tipo]) {
         throw new Error("Tipo de exceção fora do catálogo canônico.");
       }
-      if (!data?.motivo || data.motivo.trim().length < 10) {
-        throw new Error("Descreva o motivo da exceção (mínimo 10 caracteres).");
-      }
       return data;
     },
   )
@@ -405,7 +396,7 @@ export const registrarExcecao = createServerFn({ method: "POST" })
       organization_id: ctx.organizationId,
       caso_id: data.casoId || null,
       tipo: data.tipo,
-      motivo: data.motivo.trim(),
+      motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
       referencia_id: data.referenciaId || null,
       valido_ate: data.validoAte ? new Date(data.validoAte).toISOString() : validadeSugerida(data.tipo),
       autorizado_por: context.userId,

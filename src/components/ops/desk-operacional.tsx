@@ -139,15 +139,15 @@ export function DeskOperacional() {
 
   function pedirStatus(t: Linha, status: string) {
     if (status === "bloqueada") {
-      const motivo = window.prompt("Motivo do bloqueio (mínimo 5 caracteres):") ?? "";
-      if (motivo.trim().length < 5) return;
+      const motivo = window.prompt("Motivo do bloqueio (opcional):");
+      if (motivo === null) return;
       mover.mutate({ id: t["id"], status, motivoBloqueio: motivo });
       return;
     }
     const precisaDesbloqueio = t["status"] === "bloqueada" || (status === "concluida" && t["bloqueado_em"]);
     if (precisaDesbloqueio) {
-      const just = window.prompt("Justificativa do desbloqueio (mínimo 5 caracteres):") ?? "";
-      if (just.trim().length < 5) return;
+      const just = window.prompt("Justificativa do desbloqueio (opcional):");
+      if (just === null) return;
       mover.mutate({ id: t["id"], status, desbloqueioJustificativa: just });
       return;
     }
@@ -349,8 +349,8 @@ export function DeskOperacional() {
                     ))}
                     <button
                       onClick={async () => {
-                        const motivo = window.prompt("Motivo do arquivamento:") ?? "";
-                        if (motivo.trim().length < 5) return;
+                        const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                        if (motivo === null) return;
                         try {
                           await fnArquivar({ data: { tabela: "tarefas", id: t["id"], motivo } });
                           toast.success("Tarefa arquivada.");

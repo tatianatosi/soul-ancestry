@@ -136,15 +136,13 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
 /** Resolve um bloqueio crítico (admin ou operações, com justificativa). */
 export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) => {
-    if (input.justificativa.trim().length < 10) throw new Error("Justificativa mínima de 10 caracteres.");
-    return input;
-  })
+  .inputValidator((input: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
+    const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
     const { error } = await supabase
       .from("piloto_bloqueios")
-      .update({ status: data.status, justificativa: data.justificativa.trim() })
+      .update({ status: data.status, justificativa })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

@@ -113,10 +113,8 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
     }
     if (data.status === "isento") {
       if (!papeis.includes("admin")) return { ok: false, erro: "Somente admin autoriza isenção." };
-      if (!data.isencaoMotivo || data.isencaoMotivo.trim().length < 10) {
-        return { ok: false, erro: "Isenção exige motivo com no mínimo 10 caracteres." };
-      }
     }
+    const isencaoMotivo = (data.isencaoMotivo ?? "").trim() || "Isenção sem motivo informado.";
 
     const patch: Record<string, unknown> = {
       status: data.status,
@@ -124,7 +122,7 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
       origem_validacao: data.status === "isento" ? "isencao_admin" : "validacao_manual",
     };
     if (data.status === "isento") {
-      patch["isencao_motivo"] = data.isencaoMotivo!.trim();
+      patch["isencao_motivo"] = isencaoMotivo;
       patch["isencao_expira_em"] = data.isencaoExpiraEm || null;
     }
 
@@ -143,7 +141,7 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
       {
         resumo: `${check.label}: ${data.status}`,
         check_key: check.check_key,
-        motivo: data.isencaoMotivo ?? null,
+        motivo: data.status === "isento" ? isencaoMotivo : null,
         expira_em: data.isencaoExpiraEm ?? null,
       },
     );
@@ -248,20 +246,18 @@ export const suspenderCaso = createServerFn({ method: "POST" })
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
     if (!podeAtivar(papeis)) return { ok: false, erro: "Somente admin ou operações podem suspender." };
-    if (!data.motivo || data.motivo.trim().length < 10) {
-      return { ok: false, erro: "Suspensão exige motivo com no mínimo 10 caracteres." };
-    }
+    const motivo = (data.motivo ?? "").trim() || "Suspensão sem motivo informado.";
 
     const { error } = await supabase
       .from("crm_casos")
-      .update({ status: "pausado", suspenso_motivo: data.motivo.trim() })
+      .update({ status: "pausado", suspenso_motivo: motivo })
       .eq("id", data.casoId)
       .eq("organization_id", organizationId);
     if (error) return { ok: false, erro: error.message };
 
     await registrar(supabase, organizationId, "caso_suspenso", data.casoId, {
       resumo: "Caso suspenso",
-      motivo: data.motivo.trim(),
+      motivo,
     });
     return { ok: true, erro: null as string | null };
   });

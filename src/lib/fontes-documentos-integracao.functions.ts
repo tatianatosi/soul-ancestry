@@ -254,10 +254,11 @@ export const desvincularFonte = createServerFn({ method: "POST" })
     const check = validarDesvinculo(data.motivo ?? "", papel);
     if (!check.ok) throw new Error(check.erros.join(", "));
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode desvincular documentos.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const r = await supabase
       .from("case_source_document_links")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo.trim() })
+      .update({ archived_at: new Date().toISOString(), archive_motivo: motivo })
       .eq("id", data.vinculoId)
       .eq("organization_id", organizationId)
       .eq("case_id", data.caseId)

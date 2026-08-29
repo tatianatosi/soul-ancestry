@@ -289,8 +289,7 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
-    const motivo = texto(data.motivo, 400);
-    if (!motivo) throw new Error("Informe o motivo do cancelamento.");
+    const motivo = texto(data.motivo, 400) ?? "Sem motivo informado.";
     const r = await supabase
       .from("portal_document_requests")
       .update({ status: "cancelado", motivo_recusa: motivo, updated_by: context.userId })

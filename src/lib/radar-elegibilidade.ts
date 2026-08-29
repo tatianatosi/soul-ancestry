@@ -176,10 +176,9 @@ export type AlteracaoManual = {
   versao_matriz?: string | null;
 };
 
-/** Alteração manual do sinal exige justificativa, responsável e versão da matriz. */
+/** Alteração manual do sinal exige responsável e versão da matriz. Justificativa é registrada como evidência, nunca pré-requisito. */
 export function validarAlteracaoManual(a: AlteracaoManual): string[] {
   const erros: string[] = [];
-  if (!a.justificativa || a.justificativa.trim().length < 10) erros.push("Justificativa obrigatória (mínimo 10 caracteres).");
   if (!a.responsavel || !a.responsavel.trim()) erros.push("Responsável pela alteração é obrigatório.");
   if (!a.versao_matriz || !a.versao_matriz.trim()) erros.push("Versão da matriz do Radar é obrigatória.");
   return erros;

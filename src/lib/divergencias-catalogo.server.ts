@@ -116,8 +116,7 @@ export async function anotarResolucao(
   supabase: Sb,
   input: { org: string; userId: string; id: string; observacao: string },
 ) {
-  const observacao = input.observacao.trim();
-  if (observacao.length < 5) throw new Error("Descreva a resolução com pelo menos 5 caracteres.");
+  const observacao = input.observacao.trim() || "Sem observação informada.";
 
   const { data: atual } = await supabase
     .from("catalog_source_divergences")

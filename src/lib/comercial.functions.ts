@@ -240,16 +240,16 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; validade: string; motivo: string }) => {
     if (!data.validade) throw new Error("Informe a nova validade.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo da renovação (mínimo 5 caracteres).");
     return data;
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin renovam validade.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from("proposals")
-      .update({ validade: data.validade, validade_renovada_motivo: data.motivo.trim() })
+      .update({ validade: data.validade, validade_renovada_motivo: motivo })
       .eq("id", data.id)
       .eq("organization_id", organizationId);
     if (error) throw new Error(error.message);
@@ -263,10 +263,7 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
  */
 export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; motivo: string }) => {
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo do ajuste (mínimo 5 caracteres).");
-    return data;
-  })
+  .inputValidator((data: { id: string; motivo: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
@@ -333,14 +330,12 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
 /** Restaura uma proposta arquivada, com motivo rastreável. */
 export const restaurarProposta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; motivo: string }) => {
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo da restauração (mínimo 5 caracteres).");
-    return data;
-  })
+  .inputValidator((data: { id: string; motivo: string }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin restauram propostas.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from("proposals")
       .update({
@@ -348,7 +343,7 @@ export const restaurarProposta = createServerFn({ method: "POST" })
         archived_by: null,
         restaurado_em: new Date().toISOString(),
         restaurado_por: context.userId,
-        restauracao_motivo: data.motivo.trim(),
+        restauracao_motivo: motivo,
       })
       .eq("id", data.id)
       .eq("organization_id", organizationId);
@@ -456,18 +451,18 @@ export const registrarAjusteFatura = createServerFn({ method: "POST" })
   .inputValidator((data: { invoice_id: string; valor: number; motivo: string; referencia_externa?: string }) => {
     if (!data.invoice_id) throw new Error("Selecione a fatura.");
     if (!Number.isFinite(Number(data.valor)) || Number(data.valor) === 0) throw new Error("Informe o valor do ajuste.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo do ajuste (mínimo 5 caracteres).");
     return data;
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Ajuste de fatura exige papel financeiro ou admin.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase.from("invoice_adjustments").insert({
       organization_id: organizationId,
       invoice_id: data.invoice_id,
       valor: Number(data.valor),
-      motivo: data.motivo.trim(),
+      motivo,
       referencia_externa: data.referencia_externa || null,
       created_by: context.userId,
     });
@@ -556,7 +551,6 @@ export const arquivarComercial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { recurso: Recurso; id: string; motivo: string }) => {
     if (!RECURSOS.includes(data.recurso)) throw new Error("Recurso inválido.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe um motivo com pelo menos 5 caracteres.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -572,7 +566,7 @@ export const arquivarComercial = createServerFn({ method: "POST" })
       archived_at: new Date().toISOString(),
       archived_by: context.userId,
     };
-    payload[usaReason ? "archive_reason" : "archive_motivo"] = data.motivo.trim();
+    payload[usaReason ? "archive_reason" : "archive_motivo"] = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from(data.recurso)
       .update(payload)

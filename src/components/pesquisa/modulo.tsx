@@ -237,8 +237,8 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
         <button
           className="text-terracotta underline"
           onClick={() => {
-            const motivo = window.prompt("Motivo do arquivamento (não há exclusão física):");
-            if (!motivo) return;
+            const motivo = window.prompt("Motivo do arquivamento (opcional, não há exclusão física):");
+            if (motivo === null) return;
             acao.mutate(() => arquivar({ data: { researchCaseId, bloco, id: item["id"], motivo } }));
           }}
         >
@@ -641,8 +641,8 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                       <button
                         className="text-navy/60 underline"
                         onClick={() => {
-                          const nota = window.prompt("Como a pendência foi resolvida?");
-                          if (!nota) return;
+                          const nota = window.prompt("Como a pendência foi resolvida? (opcional)");
+                          if (nota === null) return;
                           acao.mutate(() => resolver({ data: { researchCaseId, id: p["id"], nota } }));
                         }}
                       >

@@ -414,11 +414,10 @@ function PropostasPage() {
                 </button>
                 <button
                   onClick={() => {
-                    const motivo =
-                      window.prompt(
-                        `Motivo do arquivamento (mínimo 5 caracteres). Sugestões: ${CAT_MOTIVO_ARQUIVAMENTO.map((m) => m.rotulo).join(" · ")}`,
-                      ) ?? "";
-                    if (motivo.trim().length >= 5) mArquivar.mutate({ id: String(detalhe["id"]), motivo });
+                    const motivo = window.prompt(
+                      `Motivo do arquivamento (opcional). Sugestões: ${CAT_MOTIVO_ARQUIVAMENTO.map((m) => m.rotulo).join(" · ")}`,
+                    );
+                    if (motivo !== null) mArquivar.mutate({ id: String(detalhe["id"]), motivo });
                   }}
                   className="ml-2 rounded-lg border border-navy/20 px-3 py-2 text-sm"
                 >
@@ -427,8 +426,8 @@ function PropostasPage() {
                 {detalhe["archived_at"] ? (
                   <button
                     onClick={() => {
-                      const motivo = window.prompt("Motivo da restauração (mínimo 5 caracteres)") ?? "";
-                      if (motivo.trim().length >= 5) mRestaurar.mutate({ id: String(detalhe["id"]), motivo });
+                      const motivo = window.prompt("Motivo da restauração (opcional)");
+                      if (motivo !== null) mRestaurar.mutate({ id: String(detalhe["id"]), motivo });
                     }}
                     className="ml-2 rounded-lg border border-gold/60 px-3 py-2 text-sm text-navy"
                   >
@@ -449,8 +448,8 @@ function PropostasPage() {
                   disabled={mVersionar.isPending || String(detalhe["status"]) === "substituida"}
 
                   onClick={() => {
-                    const motivo = window.prompt("Motivo do ajuste (mínimo 5 caracteres)") ?? "";
-                    if (motivo.trim().length >= 5) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
+                    const motivo = window.prompt("Motivo do ajuste (opcional)");
+                    if (motivo !== null) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
                   }}
                   className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
                 >

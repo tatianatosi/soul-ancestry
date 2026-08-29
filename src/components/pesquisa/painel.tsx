@@ -217,8 +217,8 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
   const tituloHipotese = (id: unknown) => hipoteses.find((h) => h.id === id)?.titulo ?? "—";
 
   const pedirArquivar = (bloco: Bloco, id: string) => {
-    const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-    if (motivo.trim().length >= 5) arquivarMut.mutate({ bloco, id, motivo });
+    const motivo = window.prompt("Motivo do arquivamento (opcional):");
+    if (motivo !== null) arquivarMut.mutate({ bloco, id, motivo });
   };
 
   const BotaoNovo = ({ bloco }: { bloco: Bloco }) =>

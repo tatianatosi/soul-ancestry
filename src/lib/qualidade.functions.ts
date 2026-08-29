@@ -78,8 +78,6 @@ export const tratarInconsistencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: Tratamento) => {
     if (!data?.id) throw new Error("Inconsistência não informada.");
-    if (!data.comentario || data.comentario.trim().length < 10)
-      throw new Error("Informe um comentário com ao menos 10 caracteres.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -89,12 +87,13 @@ export const tratarInconsistencia = createServerFn({ method: "POST" })
 
     const status =
       data.acao === "reconhecer" ? "reconhecida" : data.acao === "resolver" ? "resolvida" : "falso_positivo";
+    const comentario = (data.comentario ?? "").trim() || "Sem comentário informado.";
 
     const { data: linha, error } = await supabase
       .from("quality_issues")
       .update({
         status,
-        resolucao_comentario: data.comentario.trim(),
+        resolucao_comentario: comentario,
         resolucao_evidencia: data.evidencia?.trim() || null,
         reconhecida_por: status === "reconhecida" ? context.userId : undefined,
         resolvida_por: status === "reconhecida" ? undefined : context.userId,
@@ -198,12 +197,16 @@ export const marcarItemChecklist = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoQualidade(supabase, context.userId as string);
     if (!ctx.podeTratar) throw new Error("Somente admin e operações atualizam checklists.");
+    const observacao =
+      data.status === "nao_aplicavel"
+        ? (data.observacao ?? "").trim() || "Não aplicável — sem justificativa informada."
+        : data.observacao?.trim() || null;
 
     const { error } = await supabase
       .from("case_checklist_items")
       .update({
         status: data.status,
-        observacao: data.observacao?.trim() || null,
+        observacao,
         evidencia_url: data.evidenciaUrl?.trim() || null,
         concluido_por: data.status === "pendente" ? null : context.userId,
       })

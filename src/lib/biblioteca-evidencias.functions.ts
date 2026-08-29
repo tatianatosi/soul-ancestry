@@ -158,7 +158,7 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
-    if (data.justificativa.trim().length < 10) throw new Error("Justificativa exige pelo menos 10 caracteres.");
+    const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
 
     const atual = await supabase
       .from("evidences")
@@ -176,7 +176,7 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
       estado_novo: data.estadoNovo,
       confianca_anterior: atual.data.confidence_level,
       confianca_nova: data.confiancaNova,
-      justificativa: data.justificativa,
+      justificativa,
       revisado_por: context.userId as string,
       revisado_em: agora,
     });
@@ -249,10 +249,10 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     await autorizarEscrita(supabase, context.userId as string);
-    if (data.motivo.trim().length < 5) throw new Error("Informe o motivo do arquivamento (mínimo 5 caracteres).");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const patch: Record<string, unknown> = {
       archived_at: new Date().toISOString(),
-      archived_reason: data.motivo,
+      archived_reason: motivo,
     };
     if (data.tabela === "app_projections") patch["approval_status"] = "archived";
     const r = await supabase.from(data.tabela).update(patch).eq("id", data.id).select("id").maybeSingle();

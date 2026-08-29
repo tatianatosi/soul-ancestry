@@ -90,10 +90,7 @@ export const criarPesquisaParaCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string; objetivo: string; contexto?: string }) => {
     if (!data.casoId) throw new Error("Informe o caso.");
-    if (!data.objetivo || data.objetivo.trim().length < 10) {
-      throw new Error("Descreva o objetivo da pesquisa (mínimo de 10 caracteres).");
-    }
-    return data;
+    return { ...data, objetivo: data.objetivo?.trim() || "Objetivo não especificado." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
@@ -320,8 +317,7 @@ export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { researchCaseId: string; bloco: BlocoRg; id: string; motivo: string }) => {
     if (!BLOCOS[data.bloco]) throw new Error("Bloco de pesquisa inválido.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe um motivo de arquivamento.");
-    return data;
+    return { ...data, motivo: data.motivo?.trim() || "Motivo não informado." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
@@ -378,8 +374,7 @@ export const vincularEvidencia = createServerFn({ method: "POST" })
 export const resolverPendenciaPesquisa = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { researchCaseId: string; id: string; nota: string }) => {
-    if (!data.nota || data.nota.trim().length < 5) throw new Error("Descreva como a pendência foi resolvida.");
-    return data;
+    return { ...data, nota: data.nota?.trim() || "Pendência resolvida." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
@@ -541,10 +536,7 @@ export const gerarRelatorioInterno = createServerFn({ method: "POST" })
 export const registrarLiberacaoExterna = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { researchCaseId: string; justificativa: string }) => {
-    if (!data.justificativa || data.justificativa.trim().length < 10) {
-      throw new Error("Registre a justificativa da liberação (mínimo de 10 caracteres).");
-    }
-    return data;
+    return { ...data, justificativa: data.justificativa?.trim() || "Liberação registrada sem justificativa adicional." };
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;

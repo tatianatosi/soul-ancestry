@@ -253,7 +253,7 @@ function LinhaArtefato({
   const [sucessor, setSucessor] = useState("");
 
   const naoLocalizado = artefato.status_recuperacao === "NAO_LOCALIZADO";
-  const bloqueioArquivo = naoLocalizado && (!ehAdmin || motivo.trim().length < 15);
+  const bloqueioArquivo = naoLocalizado && !ehAdmin;
 
   return (
     <li className={`rounded-xl border bg-white p-4 ${naoLocalizado ? "border-red-600/30" : "border-navy/10"}`}>
@@ -332,11 +332,11 @@ function LinhaArtefato({
             </div>
             {naoLocalizado ? (
               <p className="mt-2 text-xs text-red-800">
-                Item não localizado permanece visível: só um admin pode arquivá-lo, com justificativa de 15 caracteres ou mais.
+                Item não localizado permanece visível: só um admin pode arquivá-lo.
               </p>
             ) : null}
             <button
-              disabled={(!motivo.trim() && !sucessor) || bloqueioArquivo}
+              disabled={bloqueioArquivo}
               onClick={() => onArquivar(motivo, sucessor || null)}
               className="mt-2 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy disabled:opacity-40"
             >

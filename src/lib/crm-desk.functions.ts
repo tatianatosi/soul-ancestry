@@ -188,15 +188,15 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; motivo: string }) => {
     exigirUuid(d?.id, "id");
-    if (!d?.motivo?.trim()) throw new Error("Motivo do arquivamento é obrigatório.");
     return d;
   })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from("leads")
-      .update({ archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: data.motivo, updated_by: userId })
+      .update({ archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo, updated_by: userId })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

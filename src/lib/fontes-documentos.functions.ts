@@ -265,11 +265,11 @@ export const arquivarFonteDocumento = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode arquivar fontes documentais.");
-    if (data.motivo.trim().length < 5) throw new Error("MOTIVO_ARQUIVAMENTO_OBRIGATORIO");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const r = await supabase
       .from("case_source_documents")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo.trim(), status: "arquivado" })
+      .update({ archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" })
       .eq("id", data.id)
       .eq("organization_id", organizationId)
       .eq("case_id", data.caseId)

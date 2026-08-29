@@ -417,11 +417,8 @@ function AbaChecklists() {
   async function marcar(item: Linha, status: string) {
     let observacao = item["observacao"] ?? "";
     if (status === "nao_aplicavel") {
-      const texto = window.prompt("Justifique por que o item não se aplica (mínimo 10 caracteres):", "");
-      if (!texto || texto.trim().length < 10) {
-        toast.error("Justificativa obrigatória com ao menos 10 caracteres.");
-        return;
-      }
+      const texto = window.prompt("Justifique por que o item não se aplica (opcional):", "");
+      if (texto === null) return;
       observacao = texto;
     }
     try {

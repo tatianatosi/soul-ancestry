@@ -270,7 +270,7 @@ function AcessosPortalPage() {
             </div>
             <button
               onClick={() => mAutorizacao.mutate()}
-              disabled={!aClientId || !aEmail || aFinalidade.trim().length < 5 || mAutorizacao.isPending}
+              disabled={!aClientId || !aEmail || mAutorizacao.isPending}
               className="mt-4 rounded-lg border border-navy/20 px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               {mAutorizacao.isPending ? "Registrando…" : "Registrar e-mail para validação"}
@@ -314,8 +314,8 @@ function AcessosPortalPage() {
                         {a.status !== "recusado" && a.status !== "revogado" ? (
                           <button
                             onClick={async () => {
-                              const motivo = window.prompt("Motivo da recusa/revogação:") ?? "";
-                              if (motivo.trim().length < 5) return;
+                              const motivo = window.prompt("Motivo da recusa/revogação (opcional):");
+                              if (motivo === null) return;
                               try {
                                 await validarEmail({
                                   data: { id: a.id, status: a.status === "aprovado" ? "revogado" : "recusado", motivo },
@@ -553,8 +553,8 @@ function AcessosPortalPage() {
                           {a.access_status !== "suspended" ? (
                             <button
                               onClick={async () => {
-                                const motivo = window.prompt("Motivo da suspensão:") ?? "";
-                                if (motivo.trim().length < 5) return;
+                                const motivo = window.prompt("Motivo da suspensão (opcional):");
+                                if (motivo === null) return;
                                 try {
                                   await alterar({ data: { acessoId: a.id, status: "suspended", motivo } });
                                   invalidar();
@@ -569,8 +569,8 @@ function AcessosPortalPage() {
                           ) : (
                             <button
                               onClick={async () => {
-                                const motivo = window.prompt("Motivo da reativação:") ?? "";
-                                if (motivo.trim().length < 5) return;
+                                const motivo = window.prompt("Motivo da reativação (opcional):");
+                                if (motivo === null) return;
                                 await alterar({ data: { acessoId: a.id, status: "active", motivo } });
                                 invalidar();
                               }}
@@ -582,8 +582,8 @@ function AcessosPortalPage() {
                           )}
                           <button
                             onClick={async () => {
-                              const motivo = window.prompt("Motivo da revogação:") ?? "";
-                              if (motivo.trim().length < 5) return;
+                              const motivo = window.prompt("Motivo da revogação (opcional):");
+                              if (motivo === null) return;
                               try {
                                 await alterar({ data: { acessoId: a.id, status: "revoked", motivo } });
                                 invalidar();
@@ -647,8 +647,8 @@ function AcessosPortalPage() {
                                       {v.access_status === "active" ? (
                                         <button
                                           onClick={async () => {
-                                            const motivo = window.prompt("Motivo da revogação do caso:") ?? "";
-                                            if (motivo.trim().length < 5) return;
+                                            const motivo = window.prompt("Motivo da revogação do caso (opcional):");
+                                            if (motivo === null) return;
                                             try {
                                               await definirCaso({
                                                 data: { acessoId: a.id, casoId: v.case_id, conceder: false, motivo },

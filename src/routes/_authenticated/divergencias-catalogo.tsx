@@ -179,7 +179,7 @@ function DivergenciasCatalogoPage() {
                     <button
                       type="button"
                       className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
-                      disabled={salvar.isPending || (edicao[l.id] ?? "").trim().length < 5}
+                      disabled={salvar.isPending}
                       onClick={() =>
                         salvar.mutate(
                           { id: l.id, observacao: edicao[l.id] ?? "" },

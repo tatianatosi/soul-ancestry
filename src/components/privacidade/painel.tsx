@@ -273,8 +273,8 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                   )}
                   <button
                     onClick={async () => {
-                      const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                      if (motivo.trim().length < 5) return;
+                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                      if (motivo === null) return;
                       try {
                         await arquivar({ data: { id: d["id"], motivo } });
                         toast.success("Documento arquivado; histórico preservado.");
@@ -338,8 +338,8 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                   ) : (
                     <button
                       onClick={() => {
-                        const motivo = window.prompt("Motivo da revogação (mínimo 5 caracteres):") ?? "";
-                        if (motivo.trim().length >= 5) mutRevogar.mutate({ id: c["id"], motivo });
+                        const motivo = window.prompt("Motivo da revogação (opcional):");
+                        if (motivo !== null) mutRevogar.mutate({ id: c["id"], motivo });
                       }}
                       className="mt-2 rounded-lg border border-terracotta/40 px-2 py-1 text-[11px] text-terracotta"
                     >
