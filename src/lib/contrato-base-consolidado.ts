@@ -473,6 +473,22 @@ function valorInstitucional(campo: string): string {
 }
 
 /**
+ * Qualificação completa da contratada, composta a partir do perfil
+ * institucional já homologado (razão empresarial, nome de operação, CNPJ,
+ * endereço) — nunca digitada campo a campo por caso. O parâmetro
+ * `contratada_qualificacao` (parametros-dicionario.ts) usa este texto como
+ * valor de origem `documento`, em vez de exigir preenchimento humano de um
+ * dado que já existe e é o mesmo para todo caso.
+ */
+export function qualificacaoCompletaContratada(): string {
+  const razao = valorInstitucional("razao_empresarial");
+  const operacao = valorInstitucional("nome_operacao");
+  const cnpj = valorInstitucional("cnpj");
+  const endereco = valorInstitucional("endereco_institucional");
+  return `${razao}, operando sob o nome de "${operacao}", CNPJ ${cnpj}, com sede em ${endereco}.`;
+}
+
+/**
  * Acréscimos textuais ao contrato-base. Ficam em `under_legal_review`:
  * não habilitam assinatura e não declaram regra jurídica ainda não aprovada.
  */
