@@ -473,19 +473,28 @@ function valorInstitucional(campo: string): string {
 }
 
 /**
- * Qualificação completa da contratada, composta a partir do perfil
- * institucional já homologado (razão empresarial, nome de operação, CNPJ,
- * endereço) — nunca digitada campo a campo por caso. O parâmetro
- * `contratada_qualificacao` (parametros-dicionario.ts) usa este texto como
- * valor de origem `documento`, em vez de exigir preenchimento humano de um
- * dado que já existe e é o mesmo para todo caso.
+ * Qualificação completa da contratada, composta a partir de TODO o perfil
+ * institucional já homologado — não só razão social, CNPJ e endereço, mas
+ * também os canais oficiais (e-mail, site, WhatsApp institucional) já
+ * cadastrados em PERFIL_INSTITUCIONAL. Título/subtítulo do contrato ficam
+ * de fora por não serem dado de qualificação da parte. Nunca digitada campo
+ * a campo por caso: o parâmetro `contratada_qualificacao`
+ * (parametros-dicionario.ts) usa este texto como valor de origem
+ * `documento`, em vez de exigir preenchimento humano de um dado que já
+ * existe e é o mesmo para todo caso.
  */
 export function qualificacaoCompletaContratada(): string {
   const razao = valorInstitucional("razao_empresarial");
   const operacao = valorInstitucional("nome_operacao");
   const cnpj = valorInstitucional("cnpj");
   const endereco = valorInstitucional("endereco_institucional");
-  return `${razao}, operando sob o nome de "${operacao}", CNPJ ${cnpj}, com sede em ${endereco}.`;
+  const email = valorInstitucional("email_oficial");
+  const site = valorInstitucional("site");
+  const whatsapp = valorInstitucional("whatsapp");
+  return (
+    `${razao}, operando sob o nome de "${operacao}", CNPJ ${cnpj}, com sede em ${endereco}. ` +
+    `Canais oficiais: e-mail ${email}, site ${site}, WhatsApp — ${whatsapp}`
+  );
 }
 
 /**
