@@ -7,15 +7,10 @@ const plano = readFileSync("src/components/caso/onboarding-plano.tsx", "utf8");
 describe("o verificador de admin saiu do Painel Hoje", () => {
   it("não é mais montado no Painel", () => {
     // Foi pedido em 25/08, no meio da crise de acesso, e era instrumento de
-    // emergência. O vínculo está confirmado; a ferramenta completa (com a
-    // reconfirmação, que é a parte que conserta) fica em Modo Proprietária.
+    // emergência. O vínculo está confirmado; a tela de reconfirmação foi
+    // arquivada em 29/08 (docs/arquivados/governanca-removida-2026-08-29) —
+    // sessão + vínculo + papel admin já bastam, sem ritual extra.
     expect(painel).not.toContain("VerificadorAdminProprietaria");
-  });
-
-  it("a ferramenta completa continua existindo fora do Painel", () => {
-    const governanca = readFileSync("src/components/governanca/reconfirmar-propriedade.tsx", "utf8");
-    expect(governanca).toContain("diagnosticoAcessoProprietaria");
-    expect(governanca).toContain("reconfirmarPropriedade");
   });
 });
 

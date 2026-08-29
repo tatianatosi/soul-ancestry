@@ -60,7 +60,7 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
   it("move Configurações, Equipe e Perfis para o menu da conta, sem nona aba", () => {
     expect(GRUPOS_DESK).toHaveLength(8);
     const conta = rotasDoMenuConta();
-    for (const r of ["/configuracoes", "/equipe", "/modo-proprietaria"]) expect(conta).toContain(r);
+    for (const r of ["/configuracoes", "/equipe"]) expect(conta).toContain(r);
     for (const g of GRUPOS_DESK) {
       const rotas = g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
       expect(rotas).not.toContain("/configuracoes");

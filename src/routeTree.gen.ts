@@ -44,7 +44,6 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
-import { Route as AuthenticatedModoProprietariaRouteImport } from './routes/_authenticated/modo-proprietaria'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenticated/ops-excecoes'
@@ -55,7 +54,6 @@ import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authentica
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
-import { Route as AuthenticatedReconfirmarPropriedadeRouteImport } from './routes/_authenticated/reconfirmar-propriedade'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
@@ -103,7 +101,6 @@ import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from '
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
 import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
-import { Route as AuthenticatedGovernancaVarreduraAdministracaoRouteImport } from './routes/_authenticated/governanca.varredura-administracao'
 import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
 import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
 import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
@@ -315,12 +312,6 @@ const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedModoProprietariaRoute =
-  AuthenticatedModoProprietariaRouteImport.update({
-    id: '/modo-proprietaria',
-    path: '/modo-proprietaria',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedNucleosRoute = AuthenticatedNucleosRouteImport.update({
   id: '/nucleos',
   path: '/nucleos',
@@ -374,12 +365,6 @@ const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
   path: '/qualidade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedReconfirmarPropriedadeRoute =
-  AuthenticatedReconfirmarPropriedadeRouteImport.update({
-    id: '/reconfirmar-propriedade',
-    path: '/reconfirmar-propriedade',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
@@ -638,12 +623,6 @@ const AuthenticatedGovernancaModulosContextuaisRoute =
     path: '/governanca/modulos-contextuais',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGovernancaVarreduraAdministracaoRoute =
-  AuthenticatedGovernancaVarreduraAdministracaoRouteImport.update({
-    id: '/governanca/varredura-administracao',
-    path: '/governanca/varredura-administracao',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedGovernancaVarreduraCompletudeRoute =
   AuthenticatedGovernancaVarreduraCompletudeRouteImport.update({
     id: '/governanca/varredura-completude',
@@ -807,7 +786,6 @@ export interface FileRoutesByFullPath {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
-  '/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/ops': typeof AuthenticatedOpsRoute
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
@@ -818,7 +796,6 @@ export interface FileRoutesByFullPath {
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -863,7 +840,6 @@ export interface FileRoutesByFullPath {
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
@@ -924,7 +900,6 @@ export interface FileRoutesByTo {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
-  '/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/ops': typeof AuthenticatedOpsRoute
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
@@ -935,7 +910,6 @@ export interface FileRoutesByTo {
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -980,7 +954,6 @@ export interface FileRoutesByTo {
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
@@ -1044,7 +1017,6 @@ export interface FileRoutesById {
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
-  '/_authenticated/modo-proprietaria': typeof AuthenticatedModoProprietariaRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
   '/_authenticated/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
@@ -1055,7 +1027,6 @@ export interface FileRoutesById {
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
-  '/_authenticated/reconfirmar-propriedade': typeof AuthenticatedReconfirmarPropriedadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
@@ -1100,7 +1071,6 @@ export interface FileRoutesById {
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/_authenticated/governanca/varredura-administracao': typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
@@ -1164,7 +1134,6 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
-    | '/modo-proprietaria'
     | '/nucleos'
     | '/ops'
     | '/ops-excecoes'
@@ -1175,7 +1144,6 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
-    | '/reconfirmar-propriedade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1220,7 +1188,6 @@ export interface FileRouteTypes {
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
     | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
@@ -1281,7 +1248,6 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
-    | '/modo-proprietaria'
     | '/nucleos'
     | '/ops'
     | '/ops-excecoes'
@@ -1292,7 +1258,6 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
-    | '/reconfirmar-propriedade'
     | '/relatorios'
     | '/tarefas'
     | '/acesso/confirmar'
@@ -1337,7 +1302,6 @@ export interface FileRouteTypes {
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
     | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-administracao'
     | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
@@ -1400,7 +1364,6 @@ export interface FileRouteTypes {
     | '/_authenticated/marketing'
     | '/_authenticated/matriz-juridica'
     | '/_authenticated/metricas'
-    | '/_authenticated/modo-proprietaria'
     | '/_authenticated/nucleos'
     | '/_authenticated/ops'
     | '/_authenticated/ops-excecoes'
@@ -1411,7 +1374,6 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas'
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
-    | '/_authenticated/reconfirmar-propriedade'
     | '/_authenticated/relatorios'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
@@ -1456,7 +1418,6 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/modelo-individual'
     | '/_authenticated/governanca/modelos-contratuais'
     | '/_authenticated/governanca/modulos-contextuais'
-    | '/_authenticated/governanca/varredura-administracao'
     | '/_authenticated/governanca/varredura-completude'
     | '/_authenticated/historico/fluxo-comercial-canonico'
     | '/_authenticated/historico/painel-desk-hoje'
@@ -1751,13 +1712,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMetricasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/modo-proprietaria': {
-      id: '/_authenticated/modo-proprietaria'
-      path: '/modo-proprietaria'
-      fullPath: '/modo-proprietaria'
-      preLoaderRoute: typeof AuthenticatedModoProprietariaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/nucleos': {
       id: '/_authenticated/nucleos'
       path: '/nucleos'
@@ -1826,13 +1780,6 @@ declare module '@tanstack/react-router' {
       path: '/qualidade'
       fullPath: '/qualidade'
       preLoaderRoute: typeof AuthenticatedQualidadeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/reconfirmar-propriedade': {
-      id: '/_authenticated/reconfirmar-propriedade'
-      path: '/reconfirmar-propriedade'
-      fullPath: '/reconfirmar-propriedade'
-      preLoaderRoute: typeof AuthenticatedReconfirmarPropriedadeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/relatorios': {
@@ -2164,13 +2111,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaModulosContextuaisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/governanca/varredura-administracao': {
-      id: '/_authenticated/governanca/varredura-administracao'
-      path: '/governanca/varredura-administracao'
-      fullPath: '/governanca/varredura-administracao'
-      preLoaderRoute: typeof AuthenticatedGovernancaVarreduraAdministracaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/governanca/varredura-completude': {
       id: '/_authenticated/governanca/varredura-completude'
       path: '/governanca/varredura-completude'
@@ -2357,7 +2297,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
   AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
-  AuthenticatedModoProprietariaRoute: typeof AuthenticatedModoProprietariaRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
   AuthenticatedOpsExcecoesRoute: typeof AuthenticatedOpsExcecoesRoute
@@ -2368,7 +2307,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
-  AuthenticatedReconfirmarPropriedadeRoute: typeof AuthenticatedReconfirmarPropriedadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
@@ -2391,7 +2329,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
   AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
   AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
-  AuthenticatedGovernancaVarreduraAdministracaoRoute: typeof AuthenticatedGovernancaVarreduraAdministracaoRoute
   AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
@@ -2446,7 +2383,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
   AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
-  AuthenticatedModoProprietariaRoute: AuthenticatedModoProprietariaRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
   AuthenticatedOpsExcecoesRoute: AuthenticatedOpsExcecoesRoute,
@@ -2457,8 +2393,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
-  AuthenticatedReconfirmarPropriedadeRoute:
-    AuthenticatedReconfirmarPropriedadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,
@@ -2498,8 +2432,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaModelosContratuaisRoute,
   AuthenticatedGovernancaModulosContextuaisRoute:
     AuthenticatedGovernancaModulosContextuaisRoute,
-  AuthenticatedGovernancaVarreduraAdministracaoRoute:
-    AuthenticatedGovernancaVarreduraAdministracaoRoute,
   AuthenticatedGovernancaVarreduraCompletudeRoute:
     AuthenticatedGovernancaVarreduraCompletudeRoute,
   AuthenticatedHistoricoFluxoComercialCanonicoRoute:
