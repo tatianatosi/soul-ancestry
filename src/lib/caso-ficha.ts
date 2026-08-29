@@ -23,7 +23,7 @@ export const PAPEL_REGISTRO: Opcao[] = [
 ];
 
 export const STATUS_DERIVADO: Opcao[] = [
-  { valor: "pre_onboarding_bloqueado", rotulo: "Pré-onboarding bloqueado" },
+  { valor: "pre_onboarding_bloqueado", rotulo: "Pendências de pré-onboarding" },
   { valor: "formalizacao_pendente", rotulo: "Formalização pendente" },
   { valor: "onboarding_pendente", rotulo: "Onboarding pendente" },
   { valor: "em_execucao", rotulo: "Em execução" },
