@@ -25,7 +25,7 @@ describe("configuração pública em tempo de execução", () => {
     // A Vercel apontava para um projeto vazio; o login dizia "senha incorreta"
     // para uma conta que existe, só que no projeto declarado.
     const c = configPublicaDoServidor({
-      SUPABASE_URL: "https://zsxpdbhdvbuulwpepemd.supabase.co",
+      SUPABASE_URL: "https://outroprojetovazio.supabase.co",
       SUPABASE_PUBLISHABLE_KEY: "sb_publishable_do_projeto_errado",
     });
     expect(c.url).toBe(PROJETO_DECLARADO.url);
