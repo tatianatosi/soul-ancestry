@@ -21,6 +21,7 @@ import {
   PERFIL_INSTITUCIONAL,
   PERFIL_INSTITUCIONAL_VERSAO,
   PREAMBULO_CONTRATO_BASE,
+  qualificacaoCompletaContratada,
 } from "@/lib/contrato-base-consolidado";
 import { renderCorpoContratual } from "@/lib/contrato-corpo.server";
 import {
@@ -194,18 +195,50 @@ export const painelParametros = createServerFn({ method: "GET" })
       ? (await supabase.from("contracts").select("id,contract_number,status,signed_at,signature_reference,signed_source").eq("id", registro.contract_id).maybeSingle()).data
       : null;
 
+    const valoresLista = await preencherQualificacaoContratada(supabase, data.id, (valores.data ?? []) as any[]);
+
     return {
       registro,
       caso: caso.data ?? null,
       cliente,
       template: (template as any).data ?? null,
       contrato,
-      valores: valores.data ?? [],
+      valores: valoresLista,
       previas: previas.data ?? [],
       completude: completude.data ?? null,
       pendencias: pendencias.data ?? [],
     };
   });
+
+/**
+ * A qualificação completa da contratada é dado institucional fixo (mesma
+ * razão social, CNPJ e endereço em todo caso), não algo que varia por
+ * caso — nunca deveria exigir preenchimento humano repetido. Se o campo
+ * `contratada_qualificacao` ainda está vazio, grava o texto já homologado
+ * em `perfil-institucional` (origem "documento", status
+ * "importado_a_confirmar" — mesma trilha usada para outras pré-cargas
+ * automáticas) em vez de deixar a proprietária digitar o próprio nome de
+ * novo em cada caso.
+ */
+async function preencherQualificacaoContratada(supabase: Sb, parametersId: string, valores: any[]) {
+  const linha = valores.find((v) => v.campo === "contratada_qualificacao");
+  if (!linha || linha.valor?.trim()) return valores;
+
+  const { data: atualizado, error } = await supabase
+    .from("contract_parameter_values")
+    .update({
+      valor: qualificacaoCompletaContratada(),
+      origem: "documento",
+      origem_detalhe: "Perfil institucional homologado do Clube Ancestral.",
+      status: "importado_a_confirmar",
+    })
+    .eq("id", linha.id)
+    .select("*")
+    .maybeSingle();
+  if (error || !atualizado) return valores;
+
+  return valores.map((v) => (v.id === linha.id ? atualizado : v));
+}
 
 /**
  * Pré-preenchimento seguro: importa EXCLUSIVAMENTE os parâmetros homologados do
