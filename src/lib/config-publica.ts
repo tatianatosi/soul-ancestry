@@ -40,9 +40,9 @@
  * Chave secreta e service role NUNCA entram aqui, e há teste para isso.
  */
 export const PROJETO_DECLARADO = {
-  ref: "liiqqibnirnpnvjmjrpj",
-  url: "https://liiqqibnirnpnvjmjrpj.supabase.co",
-  publishableKey: "sb_publishable_ZJlqScMiYsZHudNvBeA1KQ_B4ozV8kh",
+  ref: "zsxpdbhdvbuulwpepemd",
+  url: "https://zsxpdbhdvbuulwpepemd.supabase.co",
+  publishableKey: "sb_publishable_bZYXjDv7I7ypMUCDQpBIeA_oKxbGK8H",
 } as const;
 
 /**
