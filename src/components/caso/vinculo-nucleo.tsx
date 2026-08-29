@@ -59,7 +59,7 @@ export function VinculoNucleo({
         </span>
         {estadoDerivado === "pre_onboarding_bloqueado" ? (
           <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 uppercase tracking-wide text-navy">
-            Pré-onboarding bloqueado
+            Pendências de pré-onboarding
           </span>
         ) : null}
       </div>
