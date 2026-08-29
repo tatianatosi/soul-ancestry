@@ -10,12 +10,25 @@ import { semCache } from "@/lib/no-store";
 
 const CODIGO_BASE = PILOTO_ANA.ids_historicos[0];
 
+/**
+ * Localiza o caso-piloto tanto pelos códigos legados quanto pelo código
+ * canônico já decidido. Sem o canônico aqui, um caso cujo `codigo` já foi
+ * atualizado para CA-CID-AT-FAM-2026-001 nunca era encontrado — a busca só
+ * olhava para os aliases — e materializarPilotoAna tentava inserir de novo
+ * usando um código legado, que o gerador do banco já rejeita por já existir
+ * como alias histórico ("Este identificador já existe como alias histórico").
+ */
+const CODIGOS_BUSCA_PILOTO = [
+  ...PILOTO_ANA.ids_historicos,
+  ...(PILOTO_ANA.id_canonico_decidido ? [PILOTO_ANA.id_canonico_decidido] : []),
+];
+
 async function localizar(supabase: any, organizationId: string) {
   const { data } = await supabase
     .from("crm_casos")
     .select("*")
     .eq("organization_id", organizationId)
-    .or(PILOTO_ANA.ids_historicos.map((c) => `codigo.eq.${c}`).join(","))
+    .or(CODIGOS_BUSCA_PILOTO.map((c) => `codigo.eq.${c}`).join(","))
     .maybeSingle();
   return (data ?? null) as Linha | null;
 }
