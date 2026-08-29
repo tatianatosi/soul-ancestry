@@ -24,6 +24,9 @@ import {
 } from "@/lib/comercial.functions";
 
 export const Route = createFileRoute("/_authenticated/ordens-servico")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    caseId: typeof s.caseId === "string" ? s.caseId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Ordens de serviço — Clube Ancestral" },
@@ -44,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/ordens-servico")({
 type Linha = Record<string, unknown>;
 
 function OrdensPage() {
+  const { caseId } = Route.useSearch();
   const { podeComercial } = useSaas();
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
@@ -53,7 +57,7 @@ function OrdensPage() {
 
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
-  const [form, setForm] = useState<Record<string, string> | null>(null);
+  const [form, setForm] = useState<Record<string, string> | null>(caseId ? { case_id: caseId } : null);
   const [erro, setErro] = useState<string | null>(null);
 
   const q = useQuery({
@@ -61,6 +65,7 @@ function OrdensPage() {
     queryFn: () => listar({ data: { recurso: "service_orders", status: status || undefined } }),
   });
   const qv = useQuery({ queryKey: ["comercial-vinculos"], queryFn: () => vinculos({}) });
+  const linhasDoCase = caseId ? ((q.data ?? []) as Linha[]).filter((l) => l["case_id"] === caseId) : null;
 
   const recarregar = () => {
     void queryClient.invalidateQueries({ queryKey: ["ordens"] });
@@ -88,7 +93,7 @@ function OrdensPage() {
 
   const contratos = qv.data?.contratos ?? [];
   const casos = qv.data?.casos ?? [];
-  const linhas = (q.data ?? []) as Linha[];
+  const linhas = linhasDoCase ?? ((q.data ?? []) as Linha[]);
   const rotuloCaso = (id: unknown) => {
     const c = casos.find((x) => x.id === id);
     return c ? (c.codigo ?? c.titulo) : "—";
@@ -98,13 +103,17 @@ function OrdensPage() {
   return (
     <SaasShell
       titulo="Ordens de serviço"
-      descricao="Execução só começa com caso vinculado e contrato assinado (ou exceção aprovada)."
+      descricao={
+        caseId
+          ? `Mostrando só as ordens do caso ${rotuloCaso(caseId)}.`
+          : "Execução só começa com caso vinculado e contrato assinado (ou exceção aprovada)."
+      }
       acoes={
         podeComercial ? (
           <button
             onClick={() => {
               setErro(null);
-              setForm({});
+              setForm(caseId ? { case_id: caseId } : {});
             }}
             className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
           >
@@ -114,7 +123,7 @@ function OrdensPage() {
       }
     >
       <div className="space-y-4">
-        <FiltroStatus rotulos={ROTULO_ORDEM} valor={status} aoMudar={setStatus} />
+        {!caseId && <FiltroStatus rotulos={ROTULO_ORDEM} valor={status} aoMudar={setStatus} />}
         {erro ? (
           <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
             Ação bloqueada: {erro}
