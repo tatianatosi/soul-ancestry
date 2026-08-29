@@ -267,12 +267,9 @@ export const MENU_CONTA: {
   label: "Conta e administração",
   descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
   itens: [
-    { to: "/modo-proprietaria", label: "Modo Proprietária" },
     { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
     { to: "/configuracoes", label: "Configurações e preferências" },
     { to: "/etiquetas", label: "Etiquetas canônicas" },
-    { to: "/reconfirmar-propriedade", label: "Segurança e reconfirmação de propriedade" },
-    { to: "/governanca/varredura-administracao", label: "Verificação administrativa" },
   ],
 } as const;
 
@@ -309,8 +306,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/homologacao-skus",
   "/contrato-parametros",
   "/financeiro",
-  "/modo-proprietaria",
-  "/reconfirmar-propriedade",
   "/governanca/contrato-base",
   "/governanca/modelo-individual",
   "/governanca/modelo-familiar-casal",
@@ -329,7 +324,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/governanca/modulos-contextuais",
   "/governanca/matriz-equivalencia",
   "/governanca/identificadores",
-  "/governanca/varredura-administracao",
   "/governanca/varredura-completude",
   "/etiquetas",
   "/integracoes",

@@ -47,14 +47,7 @@ describe("CA-UX-04 — navegação", () => {
 
   it("mantém rotas administrativas no menu da conta, com permissão preservada", () => {
     const rotas = rotasDoMenuConta();
-    for (const r of [
-      "/modo-proprietaria",
-      "/equipe",
-      "/configuracoes",
-      "/etiquetas",
-      "/reconfirmar-propriedade",
-      "/governanca/varredura-administracao",
-    ]) {
+    for (const r of ["/equipe", "/configuracoes", "/etiquetas"]) {
       expect(rotas).toContain(r);
     }
     const equipe = MENU_CONTA.itens.find((i) => "to" in i && i.to === "/equipe")!;

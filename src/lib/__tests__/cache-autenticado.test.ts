@@ -59,13 +59,13 @@ describe("Cache de rotas autenticadas — GET nunca serve resposta antiga pra se
     expect(carregar).toContain("semCache();");
   });
 
-  it("modo-proprietaria.functions.ts: estadoModoProprietaria (o que decide sua autoridade máxima) chama semCache()", () => {
-    const src = ler("src/lib/modo-proprietaria.functions.ts");
+  it("painel-hoje-acoes.functions.ts: estadoAcessoPainel (o que decide as ações rápidas) chama semCache()", () => {
+    const src = ler("src/lib/painel-hoje-acoes.functions.ts");
     expect(src).toContain('from "@/lib/no-store"');
 
     const estado = src.slice(
-      src.indexOf("export const estadoModoProprietaria"),
-      src.indexOf("export const registrarDecisaoProprietaria"),
+      src.indexOf("export const estadoAcessoPainel"),
+      src.indexOf("export const corrigirFilaCanonica"),
     );
     expect(estado).toContain("semCache();");
   });

@@ -13,7 +13,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   corrigirFilaCanonica,
   registrarOverrideProprietaria,
-} from "@/lib/modo-proprietaria.functions";
+} from "@/lib/painel-hoje-acoes.functions";
 
 type Tipo = "lead" | "oportunidade" | "caso" | "tarefa";
 

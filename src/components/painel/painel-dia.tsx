@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
-import { estadoModoProprietaria } from "@/lib/modo-proprietaria.functions";
+import { estadoAcessoPainel } from "@/lib/painel-hoje-acoes.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
@@ -276,7 +276,7 @@ export function PainelDia() {
     queryFn: () => carregarDesk({ data: { incluirDemo } }),
     retry: false,
   });
-  const carregarModo = useServerFn(estadoModoProprietaria);
+  const carregarModo = useServerFn(estadoAcessoPainel);
   const qModo = useQuery({
     queryKey: ["painel-modo-proprietaria"],
     queryFn: () => carregarModo(),
