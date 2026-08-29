@@ -193,16 +193,16 @@ export const arquivarDocumento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; motivo: string }) => {
     if (!data?.id) throw new Error("Informe o documento.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe um motivo com pelo menos 5 caracteres.");
     return data;
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
     if (!PAPEIS_UPLOAD.includes(papel)) throw new Error("Seu papel não permite arquivar documentos.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from("documents")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo.trim(), status: "arquivado" })
+      .update({ archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" })
       .eq("id", data.id)
       .eq("organization_id", organizationId);
     if (error) throw new Error(error.message);
@@ -277,7 +277,6 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; motivo: string }) => {
     if (!data?.id) throw new Error("Informe o consentimento.");
-    if (!data.motivo || data.motivo.trim().length < 5) throw new Error("A revogação exige um motivo.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -286,12 +285,13 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
     if (!["admin", "operacoes"].includes(papel)) {
       throw new Error("Somente administração ou operações revogam consentimentos.");
     }
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase
       .from("consent_records")
       .update({
         status: "revogado",
         revogado_em: new Date().toISOString(),
-        revogacao_motivo: data.motivo.trim().slice(0, 1000),
+        revogacao_motivo: motivo.slice(0, 1000),
       })
       .eq("id", data.id)
       .eq("organization_id", organizationId);
@@ -303,9 +303,6 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
 export const registrarExcecaoConsentimento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId?: string; clienteId?: string; motivo: string; validoAte?: string }) => {
-    if (!data?.motivo || data.motivo.trim().length < 10) {
-      throw new Error("Descreva o motivo formal da exceção (mínimo 10 caracteres).");
-    }
     if (!data.casoId && !data.clienteId) throw new Error("Vincule a exceção a um caso ou cliente.");
     return data;
   })
@@ -314,11 +311,12 @@ export const registrarExcecaoConsentimento = createServerFn({ method: "POST" })
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (papel !== "admin") throw new Error("Somente administração registra exceções formais.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const { error } = await supabase.from("consent_exceptions").insert({
       organization_id: organizationId,
       case_id: data.casoId ?? null,
       client_id: data.clienteId ?? null,
-      motivo: data.motivo.trim().slice(0, 1000),
+      motivo: motivo.slice(0, 1000),
       valido_ate: data.validoAte || null,
       aprovado_por: userId,
     });

@@ -151,9 +151,6 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { bloco: Bloco; casoId: string; id: string; motivo: string }) => {
     if (!TABELA[data.bloco]) throw new Error("Bloco de pesquisa inválido.");
-    if (!data.motivo || data.motivo.trim().length < 5) {
-      throw new Error("Informe um motivo com pelo menos 5 caracteres.");
-    }
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -168,7 +165,7 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
       .update({
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        [coluna]: data.motivo.trim(),
+        [coluna]: (data.motivo ?? "").trim() || "Sem motivo informado.",
       })
       .eq("id", data.id)
       .eq("organization_id", organizationId);

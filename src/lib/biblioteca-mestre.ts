@@ -172,9 +172,6 @@ export function itemElegivelParaProposta(item: {
 
 
 /** Arquivamento lógico exige motivo; exclusão física nunca é permitida. */
-export function validarArquivamento(motivo: string): { ok: boolean; erro?: string } {
-  if (!motivo || motivo.trim().length < 5) {
-    return { ok: false, erro: "Informe o motivo do arquivamento (mínimo 5 caracteres)." };
-  }
+export function validarArquivamento(_motivo: string): { ok: boolean; erro?: string } {
   return { ok: true };
 }

@@ -380,11 +380,8 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
                           type="button"
                           className="text-terracotta underline"
                           onClick={() => {
-                            const motivo = window.prompt("Motivo do arquivamento (obrigatório):") ?? "";
-                            if (motivo.trim().length < 5) {
-                              toast.error("Informe um motivo com pelo menos 5 caracteres.");
-                              return;
-                            }
+                            const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                            if (motivo === null) return;
                             arquivar.mutate({ id: l.id, motivo });
                           }}
                         >

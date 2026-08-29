@@ -613,8 +613,8 @@ function Pagina() {
             </span>
             <button
               onClick={() => {
-                const motivo = window.prompt("Motivo do retorno para ajuste (mínimo 5 caracteres)") ?? "";
-                if (motivo.trim().length >= 5) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
+                const motivo = window.prompt("Motivo do retorno para ajuste (opcional)");
+                if (motivo !== null) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
               }}
               disabled={mCongelar.isPending || !rascunhoAtual}
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
@@ -623,8 +623,8 @@ function Pagina() {
             </button>
             <button
               onClick={() => {
-                const motivo = window.prompt("Motivo da versão final (mínimo 5 caracteres)") ?? "";
-                if (motivo.trim().length >= 5) mCongelar.mutate({ evento: "aprovacao", motivo });
+                const motivo = window.prompt("Motivo da versão final (opcional)");
+                if (motivo !== null) mCongelar.mutate({ evento: "aprovacao", motivo });
               }}
               disabled={mCongelar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"

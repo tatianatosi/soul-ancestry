@@ -126,7 +126,6 @@ export function validarElevacaoConfianca(entrada: {
   if (a === 0 && n === 3) erros.push("Salto de confiança INICIAL para ALTO não é permitido: eleve por etapas.");
   if (!entrada.revisadoPor) erros.push("Elevação de confiança exige responsável pela revisão.");
   if (!entrada.revisadoEm) erros.push("Elevação de confiança exige data da revisão.");
-  if ((entrada.justificativa ?? "").trim().length < 10) erros.push("Elevação de confiança exige justificativa registrada.");
   return { ok: erros.length === 0, erros };
 }
 

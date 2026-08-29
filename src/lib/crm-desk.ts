@@ -710,11 +710,6 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
     });
   }
 
-  const spinConcluido = Boolean(l.spin_situacao && l.spin_problema && l.spin_implicacao && l.spin_necessidade);
-  if (spinConcluido && String(l.resumo_call ?? "").trim().length < 30) {
-    erros.push({ campo: "resumo_call", motivo: "SPIN concluído exige resumo correspondente: caixas marcadas não bastam." });
-  }
-
   if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
     if (vazio(l.confianca_triagem)) erros.push({ campo: "confianca_triagem", motivo: "Sinal forte/provável exige confiança da triagem." });
     if (vazio(l.linha_transmissao)) erros.push({ campo: "linha_transmissao", motivo: "Sinal forte/provável exige linha de transmissão." });

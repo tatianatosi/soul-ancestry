@@ -149,15 +149,16 @@ export const arquivarArtefato = createServerFn({ method: "POST" })
     const supabase = context.supabase as any;
     const userId = context.userId as string;
     const { organizationId } = await contexto(supabase, userId);
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const { error } = await supabase
       .from("artifact_register")
       .update({
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        archive_motivo: data.motivo,
+        archive_motivo: motivo,
         sucessor_id: data.sucessor_id ?? null,
-        change_resumo: `Arquivado: ${data.motivo}`,
+        change_resumo: `Arquivado: ${motivo}`,
         updated_by: userId,
       })
       .eq("id", data.id);
@@ -165,7 +166,7 @@ export const arquivarArtefato = createServerFn({ method: "POST" })
 
     await auditar({
       organizationId, userId, acao: "artefato_arquivado", entidade: "artifact_register",
-      entidadeId: data.id, metadados: { motivo: data.motivo, sucessor: data.sucessor_id ?? null },
+      entidadeId: data.id, metadados: { motivo, sucessor: data.sucessor_id ?? null },
     });
     return { ok: true };
   });

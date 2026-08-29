@@ -388,8 +388,8 @@ function ClientesPage() {
                   type="button"
                   disabled={!podeEscrever || somenteLeitura}
                   onClick={() => {
-                    const motivo = window.prompt("Motivo da contratação individual documentada:");
-                    if (motivo && motivo.trim().length >= 5) {
+                    const motivo = window.prompt("Motivo da contratação individual documentada (opcional):");
+                    if (motivo !== null) {
                       void executar(() =>
                         reclassificar({ data: { id: p.id, classificacao: "pre_cliente", motivo } }),
                       );

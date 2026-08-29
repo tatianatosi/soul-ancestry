@@ -72,8 +72,8 @@ describe("Biblioteca Mestre", () => {
     ).toBe(false);
   });
 
-  it("exige motivo no arquivamento lógico", () => {
-    expect(validarArquivamento("").ok).toBe(false);
+  it("não bloqueia o arquivamento lógico por falta de motivo", () => {
+    expect(validarArquivamento("").ok).toBe(true);
     expect(validarArquivamento("Substituído pelo modelo F2 v2").ok).toBe(true);
   });
 });

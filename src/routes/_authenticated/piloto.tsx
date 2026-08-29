@@ -440,20 +440,20 @@ function LinhaBloqueio({
               className={`${inputCls} md:w-2/3`}
               value={justificativa}
               onChange={(e) => setJustificativa(e.target.value)}
-              placeholder="Evidência e justificativa (mín. 10 caracteres)"
+              placeholder="Evidência e justificativa (opcional)"
             />
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => m.mutate("resolvido")}
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-60"
-                disabled={m.isPending || justificativa.trim().length < 10}
+                disabled={m.isPending}
               >
                 Confirmar resolução com evidência
               </button>
               <button
                 onClick={() => m.mutate("nao_aplicavel")}
                 className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-60"
-                disabled={m.isPending || justificativa.trim().length < 10}
+                disabled={m.isPending}
               >
                 Não aplicável
               </button>

@@ -317,10 +317,10 @@ export const arquivarRegistroG02 = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     await autorizarEscrita(supabase, context.userId as string);
     if (!TABELAS[data.tabela]) throw new Error("Entidade não reconhecida na ficha genealógica.");
-    if (data.motivo.trim().length < 5) throw new Error("Informe o motivo do arquivamento (mínimo 5 caracteres).");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const r = await supabase
       .from(data.tabela)
-      .update({ archived_at: new Date().toISOString(), archive_reason: data.motivo })
+      .update({ archived_at: new Date().toISOString(), archive_reason: motivo })
       .eq("id", data.id)
       .select("id")
       .maybeSingle();

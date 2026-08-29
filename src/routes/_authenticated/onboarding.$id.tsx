@@ -288,7 +288,7 @@ function OnboardingPage() {
             <p className="mt-1 text-xs text-navy/60">
               A isenção é registrada com motivo, admin autorizador, data/hora e expiração opcional.
             </p>
-            <label className="mt-3 block text-xs text-navy/70">Motivo (mínimo 10 caracteres)</label>
+            <label className="mt-3 block text-xs text-navy/70">Motivo (opcional)</label>
             <textarea
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
@@ -310,7 +310,7 @@ function OnboardingPage() {
                 Cancelar
               </button>
               <button
-                disabled={motivo.trim().length < 10}
+                disabled={mAtualizar.isPending}
                 onClick={() => {
                   mAtualizar.mutate({
                     checkId: isencaoDe.id,
@@ -350,7 +350,7 @@ function OnboardingPage() {
                 Cancelar
               </button>
               <button
-                disabled={motivoSuspensao.trim().length < 10}
+                disabled={mSuspender.isPending}
                 onClick={() => mSuspender.mutate()}
                 className="rounded-md bg-terracotta px-3 py-1.5 text-xs text-cream disabled:opacity-40"
               >

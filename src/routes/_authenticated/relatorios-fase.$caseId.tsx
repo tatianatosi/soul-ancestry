@@ -348,8 +348,8 @@ function RelatoriosFase() {
                     type="button"
                     className="rounded border border-terracotta/40 px-3 py-1 text-xs text-terracotta"
                     onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                      if (motivo.trim().length >= 5) arquivar.mutate({ id: r.id, motivo });
+                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                      if (motivo !== null) arquivar.mutate({ id: r.id, motivo });
                     }}
                   >
                     Arquivar

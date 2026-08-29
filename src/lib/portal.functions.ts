@@ -307,12 +307,7 @@ export const registrarEmailAutorizado = createServerFn({ method: "POST" })
       finalidade: string;
       nivel: "proposal_portal" | "client_workspace";
       isDemo?: boolean;
-    }) => {
-      if (!data.finalidade || data.finalidade.trim().length < 5) {
-        throw new Error("Descreva a finalidade do acesso (mínimo 5 caracteres).");
-      }
-      return data;
-    },
+    }) => data,
   )
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
@@ -321,6 +316,7 @@ export const registrarEmailAutorizado = createServerFn({ method: "POST" })
 
     const email = helpers.normalizarEmail(data.email);
     if (!helpers.emailValido(email)) throw new Error("E-mail inválido.");
+    const finalidade = (data.finalidade ?? "").trim() || "Finalidade não especificada.";
 
     const cliente = await supabase
       .from("clientes")
@@ -337,7 +333,7 @@ export const registrarEmailAutorizado = createServerFn({ method: "POST" })
         client_id: data.clientId,
         case_id: data.casoId ?? null,
         email,
-        finalidade: data.finalidade.trim(),
+        finalidade,
         nivel_pretendido: data.nivel,
         status: "pendente",
         is_demo: data.isDemo ?? cliente.data.is_demo ?? false,
@@ -352,23 +348,19 @@ export const registrarEmailAutorizado = createServerFn({ method: "POST" })
       userId: context.userId as string,
       acao: "email_portal_autorizado_registrado",
       entidadeId: inserido.data.id,
-      metadados: { email, nivel: data.nivel, finalidade: data.finalidade.trim() },
+      metadados: { email, nivel: data.nivel, finalidade },
     });
     return { id: inserido.data.id as string };
   });
 
 export const validarEmailAutorizado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; status: "aprovado" | "recusado" | "revogado"; motivo?: string }) => {
-    if (data.status !== "aprovado" && (!data.motivo || data.motivo.trim().length < 5)) {
-      throw new Error("Informe o motivo (mínimo 5 caracteres).");
-    }
-    return data;
-  })
+  .inputValidator((data: { id: string; status: "aprovado" | "recusado" | "revogado"; motivo?: string }) => data)
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
     const supabase = context.supabase as any;
     const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
+    const motivo = data.status === "aprovado" ? null : (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const { error } = await supabase
       .from("authorized_portal_emails")
@@ -376,7 +368,7 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
         status: data.status,
         validado_por: context.userId,
         validado_em: new Date().toISOString(),
-        motivo_recusa: data.status === "aprovado" ? null : data.motivo?.trim(),
+        motivo_recusa: motivo,
         updated_by: context.userId,
       })
       .eq("id", data.id)
@@ -391,7 +383,7 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
           access_status: "revoked",
           revoked_at: new Date().toISOString(),
           revoked_by: context.userId,
-          revocation_reason: data.motivo?.trim() ?? "Autorização de e-mail revogada",
+          revocation_reason: motivo ?? "Autorização de e-mail revogada",
         })
         .eq("authorized_email_id", data.id)
         .eq("organization_id", organizationId);
@@ -402,7 +394,7 @@ export const validarEmailAutorizado = createServerFn({ method: "POST" })
       userId: context.userId as string,
       acao: `email_portal_${data.status}`,
       entidadeId: data.id,
-      metadados: { motivo: data.motivo ?? null },
+      metadados: { motivo },
     });
     return { ok: true };
   });
@@ -664,24 +656,20 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
 
 export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { acessoId: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => {
-    if (!data.motivo || data.motivo.trim().length < 5) {
-      throw new Error("Informe um motivo com pelo menos 5 caracteres.");
-    }
-    return data;
-  })
+  .inputValidator((data: { acessoId: string; status: "active" | "suspended" | "revoked"; motivo?: string }) => data)
   .handler(async ({ data, context }) => {
     const helpers = await import("./portal.server");
     const supabase = context.supabase as any;
     const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const patch: Record<string, unknown> = { access_status: data.status, updated_by: context.userId };
     if (data.status === "revoked") {
       patch["revoked_at"] = new Date().toISOString();
       patch["revoked_by"] = context.userId;
-      patch["revocation_reason"] = data.motivo?.trim();
+      patch["revocation_reason"] = motivo;
     }
-    if (data.status === "suspended") patch["revocation_reason"] = data.motivo?.trim();
+    if (data.status === "suspended") patch["revocation_reason"] = motivo;
 
     if (data.status === "active") {
       // Reativação: revalida elegibilidade e nunca reaproveita token anterior.
@@ -737,7 +725,7 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
           access_status: "revoked",
           revoked_at: new Date().toISOString(),
           revoked_by: context.userId,
-          revocation_reason: data.motivo?.trim(),
+          revocation_reason: motivo,
         })
         .eq("client_portal_access_id", data.acessoId)
         .eq("organization_id", organizationId);
@@ -748,14 +736,14 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
       acessoId: data.acessoId,
       actorUserId: context.userId as string,
       tipo: data.status === "revoked" ? "access_revoked" : data.status === "suspended" ? "access_suspended" : "authenticated",
-      metadata: { motivo: data.motivo ?? null },
+      metadata: { motivo },
     });
     await helpers.registrarAuditoria({
       organizationId,
       userId: context.userId as string,
       acao: `acesso_portal_${data.status}`,
       entidadeId: data.acessoId,
-      metadados: { motivo: data.motivo ?? null },
+      metadados: { motivo },
     });
     return { ok: true };
   });
@@ -812,14 +800,14 @@ export const definirCasoDoAcesso = createServerFn({ method: "POST" })
         if (error) throw new Error(error.message);
       }
     } else {
-      if (!data.motivo || data.motivo.trim().length < 5) throw new Error("Informe o motivo da revogação.");
+      const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
       const { error } = await supabase
         .from("client_portal_case_access")
         .update({
           access_status: "revoked",
           revoked_at: new Date().toISOString(),
           revoked_by: context.userId,
-          revocation_reason: data.motivo.trim(),
+          revocation_reason: motivo,
         })
         .eq("client_portal_access_id", data.acessoId)
         .eq("case_id", data.casoId)

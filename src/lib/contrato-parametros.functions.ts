@@ -945,8 +945,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     if (!EVENTOS_SNAPSHOT.includes(data.evento)) throw new Error("Evento inválido para congelar versão.");
-    const motivo = exigirTexto(data.motivo, "Motivo da versão", 500);
-    if (motivo.length < 5) throw new Error("Descreva o motivo da versão (mínimo 5 caracteres).");
+    const motivo = (String(data.motivo ?? "").trim() || "Sem motivo informado.").slice(0, 500);
 
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
@@ -1318,9 +1317,8 @@ export const corrigirParametroPlanejador = createServerFn({ method: "POST" })
     const userId = context.userId as string;
 
     const novoValor = exigirTexto(data.novoValor, "novo valor", 4000);
-    const justificativa = exigirTexto(data.justificativa, "justificativa", 500);
+    const justificativa = (String(data.justificativa ?? "").trim() || "Sem justificativa informada.").slice(0, 500);
     const versao = exigirTexto(data.versaoHomologacao, "nova versão de homologação do Planejador", 120);
-    if (justificativa.length < 10) throw new Error("Justificativa mínima de 10 caracteres.");
     if (PLACEHOLDER_PARAM.test(novoValor)) throw new Error("Placeholder não é aceito como parâmetro contratual.");
 
     const { data: valor } = await supabase

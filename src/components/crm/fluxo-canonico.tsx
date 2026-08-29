@@ -320,7 +320,7 @@ export function FluxoComercialCanonico() {
                     <button
                       type="button"
                       className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                      disabled={!podeEscrever || referencia.trim().length < 5 || mutConfirmacao.isPending}
+                      disabled={!podeEscrever || mutConfirmacao.isPending}
                       onClick={() => mutConfirmacao.mutate()}
                     >
                       Registrar confirmação formal

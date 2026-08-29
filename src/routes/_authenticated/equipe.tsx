@@ -228,8 +228,8 @@ function EquipePage() {
                         ) : (
                           <button
                             onClick={() => {
-                              const motivo = window.prompt("Motivo da suspensão:") ?? "";
-                              if (motivo.trim().length < 5) return;
+                              const motivo = window.prompt("Motivo da suspensão (opcional):");
+                              if (motivo === null) return;
                               executar(() => mudarStatus({ data: { id: m.id, status: "suspended", motivo } }));
                             }}
                             className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"
@@ -239,8 +239,8 @@ function EquipePage() {
                         )}
                         <button
                           onClick={() => {
-                            const motivo = window.prompt("Motivo da revogação:") ?? "";
-                            if (motivo.trim().length < 5) return;
+                            const motivo = window.prompt("Motivo da revogação (opcional):");
+                            if (motivo === null) return;
                             executar(() => mudarStatus({ data: { id: m.id, status: "revoked", motivo } }));
                           }}
                           className="rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs text-terracotta"
@@ -249,8 +249,8 @@ function EquipePage() {
                         </button>
                         <button
                           onClick={() => {
-                            const motivo = window.prompt("Motivo do arquivamento:") ?? "";
-                            if (motivo.trim().length < 5) return;
+                            const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                            if (motivo === null) return;
                             executar(() => arquivar({ data: { id: m.id, motivo } }));
                           }}
                           className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs"

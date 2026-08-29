@@ -396,7 +396,7 @@ export const registrarConfirmacaoFormal = createServerFn({ method: "POST" })
       contact_id: op.contact_id,
       opportunity_id: op.id,
       case_id: op.case_id,
-      evidencia_referencia: data.referenciaInterna,
+      evidencia_referencia: (data.referenciaInterna ?? "").trim() || "Sem referência informada.",
       observacao: data.observacao,
     });
     await registrarEvento(supabase, userId, organization_id, {

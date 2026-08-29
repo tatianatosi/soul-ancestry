@@ -1,7 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { itemElegivelParaProposta, regraAplicavelACaso, validarArquivamento } from "@/lib/biblioteca-mestre";
+import { itemElegivelParaProposta, regraAplicavelACaso } from "@/lib/biblioteca-mestre";
 
 /**
  * Biblioteca Mestre — leitura e escrita auditada das referências internas.
@@ -309,9 +309,7 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; fonte: FonteBiblioteca; motivo: string }) => {
     if (!data?.id) throw new Error("Item inválido.");
     if (!data?.fonte || !(data.fonte in FONTES_BIBLIOTECA)) throw new Error("Origem do item inválida.");
-    const check = validarArquivamento(data?.motivo ?? "");
-    if (!check.ok) throw new Error(check.erro!);
-    return { id: data.id, fonte: data.fonte, motivo: data.motivo.trim() };
+    return { id: data.id, fonte: data.fonte, motivo: data.motivo?.trim() || "Motivo não informado." };
   })
   .handler(async ({ context, data }) => {
     const supabase = context.supabase as unknown as Cliente;
@@ -386,9 +384,6 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       if (data.estado === "substituido") {
         if (!data.sucessorId) throw new Error("Item substituído deve apontar para o item sucessor.");
         if (data.sucessorId === data.id) throw new Error("Um item não pode substituir a si mesmo.");
-      }
-      if (data.estado === "suspenso" && (data.motivoSuspensao ?? "").trim().length < 5) {
-        throw new Error("Suspensão exige motivo registrado (mínimo 5 caracteres).");
       }
       return {
         id: data.id,

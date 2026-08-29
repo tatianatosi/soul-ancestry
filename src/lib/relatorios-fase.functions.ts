@@ -201,11 +201,11 @@ export const arquivarRelatorioFase = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode arquivar relatórios.");
-    if (data.motivo.trim().length < 5) throw new Error("Informe o motivo do arquivamento.");
+    const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
     const r = await supabase
       .from("case_reports")
-      .update({ report_status: "arquivado", archived_at: new Date().toISOString(), archived_reason: data.motivo })
+      .update({ report_status: "arquivado", archived_at: new Date().toISOString(), archived_reason: motivo })
       .eq("id", data.id)
       .select("id")
       .maybeSingle();

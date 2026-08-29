@@ -532,9 +532,8 @@ function AbaPerfis({
                   type="button"
                   className="rounded-lg border border-terracotta/40 px-3 py-2 text-xs font-semibold text-terracotta"
                   onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                    if (motivo.trim().length >= 5) onArquivar(p.id, motivo);
-                    else if (motivo) toast.error("Motivo muito curto.");
+                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                    if (motivo !== null) onArquivar(p.id, motivo);
                   }}
                 >
                   Arquivar
@@ -687,8 +686,8 @@ function AbaRelacoes({
               type="button"
               className="ml-auto text-xs text-terracotta underline"
               onClick={() => {
-                const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                if (motivo.trim().length >= 5) onArquivar(r.id, motivo);
+                const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                if (motivo !== null) onArquivar(r.id, motivo);
               }}
             >
               Arquivar

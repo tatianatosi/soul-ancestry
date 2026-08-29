@@ -138,14 +138,8 @@ export function aceiteVerbalLibera(alvo: string): boolean {
   return !ACEITE_VERBAL_NAO_LIBERA.includes(alvo as (typeof ACEITE_VERBAL_NAO_LIBERA)[number]);
 }
 
-/** Confirmação formal exige referência interna verificável e só libera preparação interna. */
-export function validarConfirmacaoFormal(referenciaInterna?: string | null): { ok: boolean; erro?: string } {
-  if (!referenciaInterna || referenciaInterna.trim().length < 5) {
-    return {
-      ok: false,
-      erro: "Informe a referência interna verificável (WhatsApp, e-mail, print ou registro equivalente).",
-    };
-  }
+/** Confirmação formal só libera preparação interna. Referência interna é registrada como evidência, nunca pré-requisito. */
+export function validarConfirmacaoFormal(_referenciaInterna?: string | null): { ok: boolean; erro?: string } {
   return { ok: true };
 }
 

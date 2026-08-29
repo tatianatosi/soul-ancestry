@@ -212,8 +212,8 @@ function Pagina() {
                   <button
                     className="underline decoration-terracotta text-terracotta"
                     onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                      if (motivo.trim().length >= 5)
+                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                      if (motivo !== null)
                         mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
                     }}
                   >
@@ -265,8 +265,8 @@ function Pagina() {
                   <button
                     className="mt-2 block text-[11px] text-terracotta underline"
                     onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (mínimo 5 caracteres):") ?? "";
-                      if (motivo.trim().length >= 5)
+                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                      if (motivo !== null)
                         mArquivar.mutate({ tabela: "app_projections", id: String(p["id"]), motivo });
                     }}
                   >
@@ -518,7 +518,7 @@ function FormValidacao({
           ))}
         </select>
       </Campo>
-      <Campo label="Justificativa" ajuda="Obrigatória, mínimo 10 caracteres. Fica no histórico com responsável e data.">
+      <Campo label="Justificativa" ajuda="Opcional. Fica no histórico com responsável e data.">
         <textarea className={inputCls} rows={2} value={justificativa} onChange={(e) => setJustificativa(e.target.value)} />
       </Campo>
       <div className="md:col-span-2">

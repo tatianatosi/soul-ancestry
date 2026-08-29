@@ -154,11 +154,11 @@ export const arquivarSolicitacaoDocumental = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode arquivar solicitações.");
-    if (data.motivo.trim().length < 5) throw new Error("Informe o motivo do arquivamento.");
+    const motivo = data.motivo?.trim() || "Motivo não informado.";
 
     const r = await supabase
       .from("document_requests")
-      .update({ archived_at: new Date().toISOString(), archived_reason: data.motivo })
+      .update({ archived_at: new Date().toISOString(), archived_reason: motivo })
       .eq("id", data.id)
       .select("id")
       .maybeSingle();

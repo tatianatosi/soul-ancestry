@@ -133,11 +133,8 @@ export function VinculosDoDocumento({
                     type="button"
                     className="text-terracotta underline"
                     onClick={() => {
-                      const motivo = window.prompt("Motivo do desvínculo (obrigatório):") ?? "";
-                      if (motivo.trim().length < 5) {
-                        toast.error("Informe um motivo com pelo menos 5 caracteres.");
-                        return;
-                      }
+                      const motivo = window.prompt("Motivo do desvínculo (opcional):");
+                      if (motivo === null) return;
                       desvincular.mutate({ vinculoId: String(v["id"]), motivo });
                     }}
                   >

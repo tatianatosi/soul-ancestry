@@ -141,10 +141,9 @@ export function rascunhoEvidenciaDeDocumento(doc: DocumentoFonte) {
   };
 }
 
-export function validarDesvinculo(motivo: string, papel: string): Resultado {
+export function validarDesvinculo(_motivo: string, papel: string): Resultado {
   const erros: string[] = [];
   if (!PAPEIS_VINCULA.includes(papel)) erros.push("PAPEL_SEM_ESCRITA");
-  if (!motivo || motivo.trim().length < 5) erros.push("MOTIVO_OBRIGATORIO");
   return erros.length ? { ok: false, erros } : { ok: true };
 }
 

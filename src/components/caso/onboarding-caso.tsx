@@ -116,9 +116,6 @@ function ItemOnboarding({ item, bloqueado, onMudou }: { item: Linha; bloqueado: 
 
   const m = useMutation({
     mutationFn: () => {
-      if (item.obrigatorio && status === "nao_aplicavel" && obs.trim().length < 5) {
-        throw new Error("Item obrigatório exige observação para ser marcado como não aplicável.");
-      }
       return atualizar({ data: { id: String(item.id), status, observacao: obs } });
     },
     onSuccess: () => {

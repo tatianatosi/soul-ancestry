@@ -90,9 +90,9 @@ describe("G-08B — vínculos entre fontes e o resto da pesquisa", () => {
     expect(EFEITOS_EM_CADEIA_PROIBIDOS).toContain("case_reports");
   });
 
-  it("5. desvínculo exige motivo e exclusão física é negada", () => {
-    expect(validarDesvinculo("", "admin").ok).toBe(false);
-    expect(validarDesvinculo("dup", "admin").ok).toBe(false);
+  it("5. desvínculo nunca exige motivo (fricção removida) e exclusão física é negada", () => {
+    expect(validarDesvinculo("", "admin").ok).toBe(true);
+    expect(validarDesvinculo("dup", "admin").ok).toBe(true);
     expect(validarDesvinculo("documento anexado por engano", "admin").ok).toBe(true);
     expect(podeExcluirVinculoFisicamente()).toBe(false);
   });

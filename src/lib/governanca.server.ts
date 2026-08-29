@@ -114,7 +114,6 @@ export function pendenciasArquivamentoArtefato(entrada: {
   if (!entrada.sucessor_id && !motivo) faltando.push("sucessor ou motivo");
   if (entrada.status_recuperacao === "NAO_LOCALIZADO") {
     if (!entrada.ehAdmin) faltando.push("aprovação de admin");
-    if (motivo.length < 15) faltando.push("justificativa detalhada (mínimo 15 caracteres)");
   }
   return faltando;
 }
