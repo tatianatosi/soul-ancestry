@@ -381,6 +381,30 @@ export const criarOrdemServico = createServerFn({ method: "POST" })
     return { id: linha?.id as string };
   });
 
+/**
+ * Edita observação/escopo de uma ordem de serviço já existente, em qualquer status.
+ * Não é transição de status (isso é `mudarStatusOrdem`) e não exige nenhum gate,
+ * validação ou aprovação — só grava o texto e atualiza `updated_at`.
+ */
+export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; scope_summary?: string; internal_notes?: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
+    exigirPapel(papel, PAPEIS_COMERCIAL, "Somente operações, comercial ou admin editam ordens de serviço.");
+    const patch: Record<string, unknown> = {};
+    if (data.scope_summary !== undefined) patch.scope_summary = data.scope_summary;
+    if (data.internal_notes !== undefined) patch.internal_notes = data.internal_notes;
+    const { error } = await supabase
+      .from("service_orders")
+      .update(patch)
+      .eq("id", data.id)
+      .eq("organization_id", organizationId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const mudarStatusOrdem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; status: string }) => data)
