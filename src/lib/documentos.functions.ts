@@ -14,6 +14,7 @@ import {
   podeVerDocumento,
   type Sb,
 } from "@/lib/documentos.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -118,12 +119,14 @@ export const salvarDocumento = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { error } = await supabase
-        .from("documents")
-        .update(corpo)
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "documents",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: corpo,
+      });
       return { id: data.id };
     }
 
@@ -197,15 +200,18 @@ export const arquivarDocumento = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (!PAPEIS_UPLOAD.includes(papel)) throw new Error("Seu papel não permite arquivar documentos.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from("documents")
-      .update({ archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "documents",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: { archived_at: new Date().toISOString(), archive_motivo: motivo, status: "arquivado" },
+    });
     return { ok: true };
   });
 
@@ -281,21 +287,24 @@ export const revogarConsentimento = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (!["admin", "operacoes"].includes(papel)) {
       throw new Error("Somente administração ou operações revogam consentimentos.");
     }
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from("consent_records")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "consent_records",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         status: "revogado",
         revogado_em: new Date().toISOString(),
         revogacao_motivo: motivo.slice(0, 1000),
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -416,12 +425,15 @@ export const resolverAlertaPrivacidade = createServerFn({ method: "POST" })
     const userId = context.userId as string;
     const { organizationId, papel } = await contextoDocumentos(supabase, userId);
     if (!["admin", "operacoes"].includes(papel)) throw new Error("Sem permissão para tratar alertas.");
-    const { error } = await supabase
+    const { data: linha, error } = await supabase
       .from("privacy_alerts")
       .update({ status: "resolvido", resolvido_em: new Date().toISOString(), resolvido_por: userId })
       .eq("id", data.id)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linha?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do alerta.");
     return { ok: true };
   });
 
