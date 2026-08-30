@@ -12,6 +12,7 @@ import {
   montarPrevia,
   type EventoSnapshot,
 } from "@/lib/contrato-parametros.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   CLAUSULAS_FIXAS,
   CONTRATO_BASE_ID,
@@ -483,7 +484,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
 
     const { data: linha } = await supabase
       .from("contract_parameter_values")
-      .select("id,campo,valor")
+      .select("id,campo,valor,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!linha) throw new Error("Parâmetro não encontrado.");
@@ -497,19 +498,22 @@ export const salvarParametro = createServerFn({ method: "POST" })
     });
     if (!check.ok) throw new Error(check.erro);
 
-    const { error } = await supabase
-      .from("contract_parameter_values")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "contract_parameter_values",
+      id: data.id,
+      organizationId: linha.organization_id,
+      userId: context.userId as string,
+      payload: {
         valor: valor || null,
         origem: valor ? data.origem : null,
         origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : null,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
         status: valor ? "importado_a_confirmar" : "vazio",
         conflito: [],
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 
@@ -544,16 +548,19 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
 
     if (data.status === "bloqueado") exigirTexto(data.justificativa, "justificativa do bloqueio");
 
-    const { error } = await supabase
-      .from("contract_parameter_values")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "contract_parameter_values",
+      id: data.id,
+      organizationId: atual.organization_id,
+      userId: context.userId as string,
+      payload: {
         status: data.status,
         justificativa: (data.justificativa ?? "").slice(0, 500) || atual.justificativa,
         conflito: data.status === "validado" ? [] : atual.conflito,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /** Gera uma prévia imutável versionada a partir dos parâmetros. */
