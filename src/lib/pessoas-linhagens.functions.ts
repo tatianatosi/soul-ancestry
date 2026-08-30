@@ -325,5 +325,6 @@ export const arquivarRegistroG02 = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
+    if (!r.data) throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
     return { ok: true };
   });
