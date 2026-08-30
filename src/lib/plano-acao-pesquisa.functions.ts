@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -121,15 +122,24 @@ export const salvarItemPlano = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ITEM, data.valores);
 
-    const r = data.id
-      ? await supabase.from("research_action_plan_items").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("research_action_plan_items")
-          .insert({ ...valores, organization_id: organizationId, requires_human_approval: true })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "research_action_plan_items",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { id: data.id };
+    }
+    const { data: linha, error } = await supabase
+      .from("research_action_plan_items")
+      .insert({ ...valores, organization_id: organizationId, requires_human_approval: true })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: linha?.id as string };
   });
 
 export const salvarInstituicao = createServerFn({ method: "POST" })
@@ -140,15 +150,24 @@ export const salvarInstituicao = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_INSTITUICAO, data.valores);
 
-    const r = data.id
-      ? await supabase.from("institutions").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("institutions")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "institutions",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { id: data.id };
+    }
+    const { data: linha, error } = await supabase
+      .from("institutions")
+      .insert({ ...valores, organization_id: organizationId })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: linha?.id as string };
   });
 
 export const salvarEstimativa = createServerFn({ method: "POST" })
@@ -159,15 +178,24 @@ export const salvarEstimativa = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ESTIMATIVA, data.valores);
 
-    const r = data.id
-      ? await supabase.from("expense_estimates").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("expense_estimates")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "expense_estimates",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { id: data.id };
+    }
+    const { data: linha, error } = await supabase
+      .from("expense_estimates")
+      .insert({ ...valores, organization_id: organizationId })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: linha?.id as string };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
@@ -178,13 +206,16 @@ export const arquivarRegistroG07 = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!data.motivo.trim()) throw new Error("Informe o motivo do arquivamento.");
-    const r = await supabase
-      .from(data.tabela)
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo })
-      .eq("id", data.id);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { archived_at: new Date().toISOString(), archive_motivo: data.motivo },
+    });
     return { ok: true };
   });
 
