@@ -70,7 +70,7 @@ export async function conciliarPropostaComCatalogo(
 ): Promise<ResultadoConciliacao & { proposalId: string; produtoId: string | null }> {
   const { data: proposta } = await supabase
     .from("proposals")
-    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor_total,forma_pagamento,origem_preco")
+    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor,forma_pagamento,preco_fonte_referencia")
     .eq("id", input.proposalId)
     .maybeSingle();
   if (!proposta || proposta.organization_id !== input.org)
@@ -113,11 +113,11 @@ export async function conciliarPropostaComCatalogo(
     precoObservado:
       condicao?.valor_total_referencia !== undefined && condicao?.valor_total_referencia !== null
         ? Number(condicao.valor_total_referencia)
-        : proposta.valor_total !== null && proposta.valor_total !== undefined
-          ? Number(proposta.valor_total)
+        : proposta.valor !== null && proposta.valor !== undefined
+          ? Number(proposta.valor)
           : null,
     condicaoObservada: condicao?.forma_pagamento ?? proposta.forma_pagamento ?? null,
-    origemPreco: condicao?.origem ?? proposta.origem_preco ?? null,
+    origemPreco: condicao?.origem ?? proposta.preco_fonte_referencia ?? null,
     escopo,
     condicaoComercialPersistida: !!condicao?.id,
     hoje: input.hoje,
