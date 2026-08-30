@@ -565,6 +565,7 @@ export const publicarEntregaCliente = createServerFn({ method: "POST" })
       .select("*")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
+    if (!r.data) throw new Error("Entrega não foi publicada. Verifique permissão de escrita.");
     await auditar(supabase, org, context.userId, "entrega_publicada", "client_deliverables", data.deliverableId, {});
     return r.data;
   });

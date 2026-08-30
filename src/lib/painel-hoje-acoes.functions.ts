@@ -107,13 +107,18 @@ export const corrigirFilaCanonica = createServerFn({ method: "POST" })
     }
     if (Object.keys(patch).length === 1) return { ok: false as const, erros: ["Nada a corrigir neste registro."] };
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from(mapa.tabela)
       .update(patch)
       .eq("id", data.id)
       .eq("organization_id", organizationId)
-      .is("archived_at", null);
+      .is("archived_at", null)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) {
+      return { ok: false as const, erros: ["Nada foi gravado: registro arquivado ou fora da organização."] };
+    }
 
     const { data: evento } = await supabase
       .from("owner_override_events")
