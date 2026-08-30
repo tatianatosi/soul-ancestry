@@ -12,6 +12,7 @@ import {
   NUCLEO_PAPEIS,
   listarNucleos,
   salvarDossieNucleo,
+  salvarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
@@ -44,7 +45,7 @@ const CORES_STATUS: Record<string, string> = {
   arquivado: "bg-navy/5 text-navy/50",
 };
 
-type Membro = { id: string; nome: string; papel: string };
+type Membro = { id: string; nome: string; papel: string; vinculo: string | null; processo: string | null };
 type Nucleo = {
   id: string;
   nome: string;
@@ -72,6 +73,7 @@ function NucleosPage() {
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarNucleos);
   const salvar = useServerFn(salvarDossieNucleo);
+  const salvarMembro = useServerFn(salvarMembroNucleo);
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
@@ -81,6 +83,11 @@ function NucleosPage() {
   const [rascunho, setRascunho] = useState<Rascunho | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [membroEditando, setMembroEditando] = useState<string | null>(null);
+  const [rascunhoMembro, setRascunhoMembro] = useState<{ nome: string; vinculo: string; processo: string } | null>(
+    null,
+  );
+  const [erroMembro, setErroMembro] = useState<string | null>(null);
 
   const nucleos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -134,6 +141,18 @@ function NucleosPage() {
       setOk(null);
       setErro(e.message);
     },
+  });
+
+  const mMembro = useMutation({
+    mutationFn: (data: { membroId: string; nome: string; vinculo: string; processo: string }) =>
+      salvarMembro({ data }),
+    onSuccess: async () => {
+      setErroMembro(null);
+      setMembroEditando(null);
+      setRascunhoMembro(null);
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+    },
+    onError: (e: Error) => setErroMembro(e.message),
   });
 
   return (
@@ -214,25 +233,80 @@ function NucleosPage() {
                   {n.membros.length === 0 ? (
                     <p className="text-xs text-navy/50">Nenhum requerente cadastrado.</p>
                   ) : (
-                    <ul className="mt-1 space-y-1">
-                      {NUCLEO_PAPEIS.filter((p) => n.membros.some((m2: Membro) => m2.papel === p)).map((papel) => (
-                        <li key={papel} className="text-xs text-navy/70">
-                          <span className="font-medium text-navy">{rotulo(papel)}:</span>{" "}
-                          {n.membros
-                            .filter((m2: Membro) => m2.papel === papel)
-                            .map((m2: Membro) => m2.nome)
-                            .join(", ")}
+                    <ul className="mt-1 space-y-2">
+                      {n.membros.map((m2: Membro) => (
+                        <li key={m2.id} className="rounded-lg border border-navy/10 px-2 py-1.5 text-xs text-navy/70">
+                          {membroEditando === m2.id && rascunhoMembro ? (
+                            <div className="space-y-1.5">
+                              <Texto
+                                label="Nome"
+                                valor={rascunhoMembro.nome}
+                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, nome: v })}
+                              />
+                              <Texto
+                                label="Vínculo"
+                                valor={rascunhoMembro.vinculo}
+                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, vinculo: v })}
+                              />
+                              <Texto
+                                label="Processo"
+                                valor={rascunhoMembro.processo}
+                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, processo: v })}
+                              />
+                              {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  disabled={!podeEscrever || mMembro.isPending}
+                                  onClick={() => mMembro.mutate({ membroId: m2.id, ...rascunhoMembro })}
+                                  className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                                >
+                                  {mMembro.isPending ? "Gravando…" : "Salvar"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMembroEditando(null);
+                                    setRascunhoMembro(null);
+                                    setErroMembro(null);
+                                  }}
+                                  className="rounded-md border border-navy/15 px-2 py-1"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <span className="font-medium text-navy">{m2.nome}</span>{" "}
+                                <span className="text-navy/55">
+                                  ({(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel) ? rotulo(m2.papel) : m2.papel})
+                                </span>
+                                {m2.vinculo ? <p className="text-navy/55">{m2.vinculo}</p> : null}
+                                {m2.processo ? <p className="text-navy/45">{m2.processo}</p> : null}
+                              </div>
+                              {podeEscrever ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMembroEditando(m2.id);
+                                    setRascunhoMembro({
+                                      nome: m2.nome,
+                                      vinculo: m2.vinculo ?? "",
+                                      processo: m2.processo ?? "",
+                                    });
+                                    setErroMembro(null);
+                                  }}
+                                  className="shrink-0 rounded-md border border-navy/15 px-2 py-1 text-navy hover:border-gold"
+                                >
+                                  Editar
+                                </button>
+                              ) : null}
+                            </div>
+                          )}
                         </li>
                       ))}
-                      {n.membros.some((m2: Membro) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel)) ? (
-                        <li className="text-xs text-navy/70">
-                          <span className="font-medium text-navy">Outros:</span>{" "}
-                          {n.membros
-                            .filter((m2: Membro) => !(NUCLEO_PAPEIS as readonly string[]).includes(m2.papel))
-                            .map((m2: Membro) => m2.nome)
-                            .join(", ")}
-                        </li>
-                      ) : null}
                     </ul>
                   )}
                 </div>

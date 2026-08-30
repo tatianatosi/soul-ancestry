@@ -122,3 +122,48 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
     }
     return salvo;
   });
+
+/**
+ * Edita os dados de um requerente/membro já cadastrado no núcleo (nome, vínculo, processo).
+ *
+ * Existia leitura (`listarNucleos`) e criação (só via materialização do piloto), mas nenhuma
+ * edição: a ficha do Caso linkava para cá dizendo "Editar em Núcleos e dossiês", e esta tela
+ * só editava o dossiê-mãe — nunca a pessoa em si. Resultado real, confirmado em produção:
+ * dado digitado para editar um requerente não tinha para onde ir.
+ *
+ * O papel não é editável aqui: a constraint do banco só aceita
+ * `contratante_signatario`/`dependente`, mais estreita que a lista usada na tela — mudar de
+ * papel é decisão que merece tela própria, não um campo de texto livre.
+ */
+export const salvarMembroNucleo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { membroId: string; nome: string; vinculo: string; processo: string }) => {
+    if (!UUID.test(data?.membroId ?? "")) throw new Error("Requerente inválido.");
+    if (!data.nome?.trim()) throw new Error("Nome é obrigatório.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+
+    const patch = {
+      nome: data.nome.trim(),
+      vinculo: data.vinculo?.trim() || null,
+      processo: data.processo?.trim() || null,
+    };
+
+    const { data: salvo, error } = await supabase
+      .from("nucleo_membros")
+      .update(patch)
+      .eq("id", data.membroId)
+      .select("id,nome,vinculo,processo")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!salvo) throw new Error("Requerente não encontrado ou sem permissão de escrita.");
+
+    for (const [campo, valor] of Object.entries(patch)) {
+      if ((salvo as any)[campo] !== valor) {
+        throw new Error(`O campo ${campo} não foi persistido. Nenhuma alteração foi confirmada.`);
+      }
+    }
+    return salvo;
+  });
