@@ -47,7 +47,7 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
         continue;
       }
 
-      const { error } = await supabase
+      const atualizado = await supabase
         .from("product_catalog")
         .update({
           estado_catalogo: "homologado_ativo",
@@ -57,10 +57,16 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
         })
         .eq("id", id)
         .eq("organization_id", organizationId)
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .select("id")
+        .maybeSingle();
 
-      if (error) {
-        recusados.push({ id, sku: sku.sku_codigo, motivo: error.message });
+      if (atualizado.error) {
+        recusados.push({ id, sku: sku.sku_codigo, motivo: atualizado.error.message });
+        continue;
+      }
+      if (!atualizado.data?.id) {
+        recusados.push({ id, sku: sku.sku_codigo, motivo: "Nenhuma linha foi gravada (registro arquivado ou fora da organização)." });
         continue;
       }
 
