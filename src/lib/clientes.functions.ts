@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { elegibilidadeAtivacao, type Classificacao, type PessoaLista } from "@/lib/clientes-lista";
 import { semCache } from "@/lib/no-store";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -99,20 +100,21 @@ export const ativarCliente = createServerFn({ method: "POST" })
     const eleg = elegibilidadeAtivacao(pessoa);
     if (!eleg.apto) throw new Error(`Promoção a cliente ativo bloqueada. ${eleg.pendencias.join(" ")}`);
 
-    const { error } = await supabase
-      .from("clientes")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "clientes",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         classificacao: "cliente_ativo",
         status: "ativo",
         ativacao_decidida_em: new Date().toISOString(),
         ativacao_decidida_por: context.userId,
         ativacao_justificativa: data.justificativa.trim(),
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /** Reclassifica a pessoa (pré-cliente ou participante do núcleo), sem exclusão física. */
@@ -126,18 +128,19 @@ export const reclassificarPessoa = createServerFn({ method: "POST" })
     semCache();
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const { error } = await supabase
-      .from("clientes")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "clientes",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         classificacao: data.classificacao,
         status: "pre_onboarding",
         ativacao_decidida_em: null,
         ativacao_decidida_por: null,
         ativacao_justificativa: data.motivo.trim(),
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
