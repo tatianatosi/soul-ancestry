@@ -169,7 +169,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     agrupador: true,
     sub: [
       { grupo: "Formalização" },
-      { to: "/escopo-origem", label: "Propostas aprovadas e origem de escopo" },
       { to: "/contratos", label: "Contratos, versões e anexos" },
       { to: "/contrato-parametros", label: "Parâmetros contratuais" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
@@ -185,6 +184,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Financeiro" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
       { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Bloqueios de cobrança" },
+      { grupo: "Auditoria (referência)" },
+      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
   },
   {

@@ -7,14 +7,10 @@ import { montarLinhaDoTempo, rotuloEvento, faseDoEvento, type EventoTimeline } f
 import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { STATUS_PREPARACAO_BLUEPRINT } from "@/lib/blueprint";
 import {
-  resumoGatesAtivacao,
-  gatesPorCategoria,
-  estadoDerivadoPorGates,
   passosFormalizacao,
   previsoesCondicionais,
   CHECAGEM_REPRESENTACAO,
   ESCOPO_SOLICITACAO_D1,
-  REGRAS_EXCECAO_GATE,
 } from "@/lib/gates-ativacao-ficha";
 import { posicionar } from "@/lib/matriz-posicionamento";
 import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
@@ -110,9 +106,6 @@ export function AbaVisaoGeral({
 }) {
   const eventos = timeline as EventoTimeline[];
   const t = montarLinhaDoTempo(eventos);
-  const gates = resumoGatesAtivacao(caso);
-  const categorias = gatesPorCategoria(caso);
-  const derivado = estadoDerivadoPorGates(caso);
   const passos = passosFormalizacao(caso);
   const previsoes = previsoesCondicionais(caso);
 
@@ -121,97 +114,6 @@ export function AbaVisaoGeral({
       <div className="lg:col-span-2">
         <FaixaPrioridade caso={caso} />
       </div>
-
-      <section className="rounded-xl border border-navy/15 bg-white p-5 lg:col-span-2">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-serif text-lg text-navy">
-            Requisitos de ativação — {gates.concluidos} de {gates.total} com evidência
-          </h2>
-          <Link
-            to={gates.rotaAcao}
-            className={
-              "rounded-lg px-4 py-2 text-sm font-medium " +
-              (gates.elegivel ? "bg-navy text-cream" : "border border-navy/20 bg-navy/5 text-navy/70")
-            }
-          >
-            {gates.rotuloBotao}
-          </Link>
-        </div>
-
-        <div
-          className={
-            "mt-3 rounded-lg border px-3 py-2 " +
-            (derivado.elegivel ? "border-navy/15 bg-navy/5" : "border-terracotta/40 bg-terracotta/10")
-          }
-        >
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado derivado pelos requisitos</p>
-          <p className="text-sm font-medium text-navy">{derivado.rotulo}</p>
-          <p className="mt-1 text-xs text-navy/65">{derivado.explicacao}</p>
-        </div>
-
-        <p className="mt-2 text-xs text-navy/55">
-          {gates.elegivel
-            ? "Elegível para ativação. A decisão continua sendo humana e validada no servidor."
-            : "Ativação bloqueada. Nenhuma data futura autoriza operação, cobrança ou ambiente do cliente."}
-        </p>
-
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          {categorias.map((c) => (
-            <div key={c.categoria} className="rounded-lg border border-navy/10 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-navy">{c.categoria}</p>
-                <span
-                  className={
-                    "rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide " +
-                    (c.estado === "concluida" ? "bg-gold/15 text-navy" : "bg-terracotta/10 text-terracotta")
-                  }
-                >
-                  {c.estado === "concluida" ? "completa" : "pendente"} · {c.concluidos}/{c.total}
-                </span>
-              </div>
-              <ul className="mt-2 space-y-2 text-sm">
-                {c.itens.map((g) => (
-                  <li
-                    key={g.chave}
-                    className={
-                      "rounded-lg border px-3 py-2 " +
-                      (g.ok
-                        ? "border-navy/10 bg-navy/5 text-navy/75"
-                        : "border-terracotta/40 bg-terracotta/10 text-navy")
-                    }
-                  >
-                    <span className="mr-2 font-mono">{g.ok ? "☑" : "◻"}</span>
-                    <span className="font-medium">{g.rotulo}</span>
-                    <span className="ml-2 text-xs text-navy/55">
-                      Responsável: {g.responsavel}
-                      {g.motivo ? ` · ${g.motivo}` : " · concluído"}
-                    </span>
-                    <p className="mt-1 text-xs text-navy/60">
-                      Evidência exigida: {g.evidencia}{" "}
-                      <Link to={g.destino.rota} className="font-medium text-navy underline">
-                        {g.destino.rotulo}
-                      </Link>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-navy/50">
-          Exceção a um gate — condições mínimas
-        </p>
-        <ul className="mt-1 space-y-1 text-xs text-navy/70">
-          {REGRAS_EXCECAO_GATE.map((r) => (
-            <li key={r}>• {r}</li>
-          ))}
-        </ul>
-        <p className="mt-2 text-xs text-navy/55">
-          Alterar a data de uma previsão não muda status, não habilita ação e não recalcula elegibilidade: os gates
-          são revalidados no servidor a cada tentativa, e tentativas bloqueadas ficam auditadas.
-        </p>
-      </section>
 
       <Cartao titulo="Formalização — sequência com critério de conclusão">
         <ol className="space-y-2 text-sm">
