@@ -129,7 +129,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
     for (const m of NUCLEO_PILOTO) {
       ordem += 1;
       if (nomes.has(m.nome)) continue;
-      await supabase.from("nucleo_membros").insert({
+      const { error } = await supabase.from("nucleo_membros").insert({
         organization_id: organizationId,
         nucleo_id: nucleoId,
         nome: m.nome,
@@ -138,6 +138,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
         processo: `${m.situacao}. ${m.observacao}`,
         ordem,
       });
+      if (error) throw new Error(`Requerente do núcleo (${m.nome}): ${error.message}`);
     }
 
     return { caseId: caso.id as string };
