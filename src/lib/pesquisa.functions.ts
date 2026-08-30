@@ -12,6 +12,7 @@ import {
   limparCampos,
   type Sb,
 } from "@/lib/pesquisa.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -123,12 +124,14 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { error } = await supabase
-        .from(alvo.nome)
-        .update({ ...dados, updated_by: userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: alvo.nome,
+        id: data.id,
+        organizationId,
+        userId,
+        payload: dados,
+      });
       return { id: data.id };
     }
 
@@ -159,17 +162,18 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoPesquisa(supabase, userId);
     await exigirPesquisaNoCaso(supabase, organizationId, papel, userId, data.casoId);
     const alvo = TABELA[data.bloco];
-    const coluna = alvo.nome === "tarefas" || alvo.nome === "evidencias" ? "archive_motivo" : "archive_motivo";
-    const { error } = await supabase
-      .from(alvo.nome)
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: alvo.nome,
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        [coluna]: (data.motivo ?? "").trim() || "Sem motivo informado.",
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+      },
+    });
     return { ok: true };
   });
 
