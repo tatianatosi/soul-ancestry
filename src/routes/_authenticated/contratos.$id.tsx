@@ -52,9 +52,18 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
   component: ContratoDetalhe,
 });
 
-const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos", "Versões", "Revisão"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações", "Auditoria"] as const;
-const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
+const ABAS = [
+  "Resumo",
+  "Partes",
+  "Escopo",
+  "Cláusulas",
+  "Anexos",
+  "Fontes",
+  "Validações",
+  "Versões",
+  "Revisão",
+  "Auditoria",
+] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -160,32 +169,16 @@ function ContratoDetalhe() {
         ) : null}
       </div>
 
-      <nav className="mt-6 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-navy/10">
-        {ABAS_PRINCIPAIS.map((a) => (
+      <nav className="mt-6 flex flex-wrap gap-1 border-b border-navy/10">
+        {ABAS.map((a) => (
           <button
             key={a}
             onClick={() => setAba(a)}
-            className={`shrink-0 rounded-t-lg px-3 py-2 text-sm ${aba === a ? "bg-white font-medium text-navy" : "text-navy/60 hover:text-navy"}`}
+            className={`rounded-t-lg px-3 py-2 text-sm ${aba === a ? "bg-white font-medium text-navy" : "text-navy/60 hover:text-navy"}`}
           >
             {a}
           </button>
         ))}
-        <details className="relative ml-auto shrink-0">
-          <summary className="cursor-pointer list-none rounded-t-lg px-3 py-2 text-sm text-navy/50 hover:text-navy/70">
-            Mais opções ▾
-          </summary>
-          <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-white p-1 shadow-lg">
-            {ABAS_AVANCADAS.map((a) => (
-              <button
-                key={a}
-                onClick={() => setAba(a)}
-                className={`rounded-md px-3 py-2 text-left text-sm ${aba === a ? "bg-navy/5 font-medium text-navy" : "text-navy/60 hover:bg-navy/5"}`}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
-        </details>
       </nav>
 
       <div className="rounded-b-xl rounded-tr-xl border border-navy/10 bg-white p-4">
@@ -538,32 +531,26 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
         className="grid gap-2 sm:grid-cols-2"
         onSubmit={(e) => {
           e.preventDefault();
-          salvar({ ...form, clause_code: form.clause_code.trim() || `CL-${Date.now().toString(36).toUpperCase()}` });
+          salvar(form);
         }}
       >
-        <input required placeholder="Título da cláusula" value={form.clause_title} onChange={(e) => set("clause_title", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
-        <textarea placeholder="Texto da cláusula" value={form.clause_text} onChange={(e) => set("clause_text", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
-        <details className="sm:col-span-2">
-          <summary className="cursor-pointer text-xs text-navy/50 hover:text-navy/70">Detalhes avançados (opcional)</summary>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <input placeholder="Código da cláusula (gerado automaticamente se vazio)" value={form.clause_code} onChange={(e) => set("clause_code", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-            <select value={form.action} onChange={(e) => set("action", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
-              <option value="retain">Manter (retain)</option>
-              <option value="specify">Especificar (specify)</option>
-              <option value="replace">Substituir (replace)</option>
-              <option value="add">Acrescentar (add)</option>
-              <option value="remove_not_permitted">Não reproduzida (registro)</option>
-            </select>
-            <input placeholder="Referência da cláusula-base" value={form.base_contract_clause_reference} onChange={(e) => set("base_contract_clause_reference", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-            <input placeholder="Justificativa da alteração" value={form.change_reason} onChange={(e) => set("change_reason", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-            <input placeholder="Declaração de precedência" value={form.precedence_statement} onChange={(e) => set("precedence_statement", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-          </div>
-        </details>
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream sm:col-span-2">Salvar cláusula</button>
+        <input required placeholder="Código da cláusula" value={form.clause_code} onChange={(e) => set("clause_code", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <input required placeholder="Título da cláusula" value={form.clause_title} onChange={(e) => set("clause_title", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <select value={form.action} onChange={(e) => set("action", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
+          <option value="retain">Manter (retain)</option>
+          <option value="specify">Especificar (specify)</option>
+          <option value="replace">Substituir (replace)</option>
+          <option value="add">Acrescentar (add)</option>
+          <option value="remove_not_permitted">Não reproduzida (registro)</option>
+        </select>
+        <input placeholder="Referência da cláusula-base" value={form.base_contract_clause_reference} onChange={(e) => set("base_contract_clause_reference", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <input placeholder="Justificativa da alteração" value={form.change_reason} onChange={(e) => set("change_reason", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <input placeholder="Declaração de precedência" value={form.precedence_statement} onChange={(e) => set("precedence_statement", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+        <textarea placeholder="Texto proposto da cláusula" value={form.clause_text} onChange={(e) => set("clause_text", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
+        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream sm:col-span-2">Registrar cláusula</button>
       </form>
       <p className="text-xs text-navy/60">
-        Só título e texto são obrigatórios para salvar um rascunho. Código, cláusula-base, justificativa e precedência
-        ficam em "Detalhes avançados" e continuam recomendados antes de uma substituição ir para revisão humana.
+        Silêncio nunca altera o contrato-base. Substituição exige cláusula-base, justificativa, precedência e revisão humana.
       </p>
     </div>
   );
@@ -605,13 +592,14 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         ))}
       </Tabela>
       <form
-        className="flex flex-wrap items-end gap-2"
+        className="flex flex-wrap gap-2"
         onSubmit={(e) => {
           e.preventDefault();
-          salvar({ ...form, annex_code: form.annex_code.trim() || `ANEXO-${Date.now().toString(36).toUpperCase()}` });
+          salvar(form);
           setForm({ annex_code: "", title: "", annex_type: "scope", required_for_contract: true });
         }}
       >
+        <input required placeholder="Código" value={form.annex_code} onChange={(e) => setForm({ ...form, annex_code: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
         <input required placeholder="Título do anexo" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
         <select value={form.annex_type} onChange={(e) => setForm({ ...form, annex_type: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {Object.entries(ROTULO_TIPO_ANEXO).map(([v, r]) => (
@@ -620,17 +608,11 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={form.required_for_contract} onChange={(e) => setForm({ ...form, required_for_contract: e.target.checked })} />
+          obrigatório
+        </label>
         <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">Adicionar anexo</button>
-        <details className="w-full">
-          <summary className="cursor-pointer text-xs text-navy/50 hover:text-navy/70">Detalhes avançados (opcional)</summary>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <input placeholder="Código interno (gerado automaticamente se vazio)" value={form.annex_code} onChange={(e) => setForm({ ...form, annex_code: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.required_for_contract} onChange={(e) => setForm({ ...form, required_for_contract: e.target.checked })} />
-              obrigatório
-            </label>
-          </div>
-        </details>
       </form>
     </div>
   );

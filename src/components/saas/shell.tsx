@@ -393,7 +393,7 @@ export function SaasShell({
         {/* Identidade de marca aplicada em escopo isolado: somente a área de
             Pesquisa / Gestão de Pesquisa (inclui /evidencias). Demais telas permanecem congeladas. */}
         <main
-          className="min-w-0 flex-1 p-4 pb-20 lg:p-8"
+          className="min-w-0 flex-1 p-4 lg:p-8"
           data-marca={
             rota.startsWith("/pesquisa") ||
             rota === "/evidencias" ||
