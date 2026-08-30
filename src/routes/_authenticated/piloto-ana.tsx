@@ -80,58 +80,55 @@ function PilotoAna() {
             </dl>
             <p className="mt-3 rounded-lg bg-cream px-3 py-2 text-xs text-navy/70">{PILOTO_ANA.proposta_observacao}</p>
 
+            {caso ? (
+              <div className="mt-3 rounded-lg border border-navy/15 bg-cream px-3 py-2">
+                <p className="text-[11px] uppercase tracking-wide text-navy/40">Status</p>
+                <p className="text-sm text-navy">Formalização em preparação</p>
+                <p className="mt-1 text-xs text-navy/60">
+                  Pendências de formalização: {conferencia.total - conferencia.concluidos}
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {!caso ? (
+              {caso ? (
+                <>
+                  <Link to="/casos/$caseId" params={{ caseId: caso.id }} className="rounded-lg bg-navy px-4 py-2 text-sm text-cream">
+                    Abrir caso
+                  </Link>
+                  <Link to="/casos/$caseId" params={{ caseId: caso.id }} className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy">
+                    Editar caso
+                  </Link>
+                  <Link to="/nucleos" className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy">
+                    Ver núcleo familiar
+                  </Link>
+                  <Link to="/ordens-servico" search={{ caseId: caso.id }} className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy">
+                    Criar Ordem de Serviço
+                  </Link>
+                  <Link to="/onboarding/$id" params={{ id: caso.id }} className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy">
+                    Iniciar onboarding
+                  </Link>
+                </>
+              ) : (
                 <button
                   className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                   disabled={mMaterializar.isPending}
                   onClick={() => mMaterializar.mutate()}
                 >
-                  {mMaterializar.isPending ? "Registrando…" : "Registrar caso-piloto no Desk"}
+                  {mMaterializar.isPending ? "Registrando…" : "Novo caso"}
                 </button>
-              ) : (
-                <>
-                  <Link to="/casos/$caseId" params={{ caseId: caso.id }} className="rounded-lg border border-gold px-4 py-2 text-sm text-navy">
-                    Abrir ficha operacional
-                  </Link>
-                  <button
-                    className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
-                    disabled={mMaterializar.isPending}
-                    onClick={() => mMaterializar.mutate()}
-                  >
-                    Reconferir núcleo e estado
-                  </button>
-                </>
               )}
               {mMaterializar.isError && <span className="text-sm text-terracotta">{(mMaterializar.error as Error).message}</span>}
             </div>
           </Bloco>
 
-          <section
-            className={
-              "rounded-xl border p-5 " +
-              (conferencia.situacao === "NO_GO"
-                ? "border-terracotta/40 bg-terracotta/5"
-                : "border-navy/15 bg-white")
-            }
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-serif text-lg text-navy">
-                Conferência do piloto — gates A a H ({conferencia.concluidos} de {conferencia.total} conferidos)
-              </h2>
-              <span
-                className={
-                  "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide " +
-                  (conferencia.situacao === "NO_GO" ? "bg-terracotta text-white" : "bg-gold/20 text-navy")
-                }
-              >
-                {conferencia.situacao}
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-navy/65">{conferencia.explicacao}</p>
-            <p className="mt-1 text-[11px] text-navy/50">
-              Leitura derivada dos mesmos requisitos da ficha operacional. Não altera estado, não libera cobrança,
-              assinatura, pesquisa externa nem comunicação.
+          <details className="rounded-xl border border-navy/10 bg-white p-5">
+            <summary className="cursor-pointer font-serif text-base text-navy">
+              Dados técnicos — conferência de gates ({conferencia.concluidos} de {conferencia.total})
+            </summary>
+            <p className="mt-2 text-[11px] text-navy/50">
+              Leitura derivada dos mesmos requisitos da ficha operacional. Não altera estado, não bloqueia nenhuma
+              ação acima e não libera cobrança, assinatura, pesquisa externa nem comunicação.
             </p>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -193,7 +190,7 @@ function PilotoAna() {
                 </div>
               ))}
             </div>
-          </section>
+          </details>
 
           <Bloco titulo="Decisão humana do identificador canônico">
             <p className="mb-3 text-xs text-navy/60">
@@ -228,10 +225,10 @@ function PilotoAna() {
             {mId.isError && <p className="mt-2 text-sm text-terracotta">{(mId.error as Error).message}</p>}
           </Bloco>
 
-          <Bloco titulo={`Checklist de bloqueios (${BLOQUEIOS_PILOTO.length}) — situação operacional NO_GO`}>
+          <Bloco titulo={`Pendências de formalização (${BLOQUEIOS_PILOTO.length})`}>
             <ul className="grid gap-2 lg:grid-cols-2">
               {BLOQUEIOS_PILOTO.map((b) => (
-                <li key={b.codigo} className="rounded-lg border border-terracotta/30 bg-terracotta/5 px-3 py-2">
+                <li key={b.codigo} className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
                   <p className="text-sm text-navy">{b.titulo}</p>
                   <p className="text-[11px] uppercase tracking-wide text-navy/40">{b.dominio}</p>
                   <p className="text-xs text-navy/60">{b.detalhe}</p>
