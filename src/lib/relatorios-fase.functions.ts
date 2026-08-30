@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -134,13 +135,14 @@ export const vincularEvidenciaRelatorio = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existente.data?.id) {
-      const r = await supabase
-        .from("report_evidence_links")
-        .update({ relacao: data.relacao, observacao_interna: data.observacao ?? null })
-        .eq("id", existente.data.id)
-        .select("id")
-        .maybeSingle();
-      if (r.error) throw new Error(r.error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "report_evidence_links",
+        id: existente.data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: { relacao: data.relacao, observacao_interna: data.observacao ?? null },
+      });
       return { id: existente.data.id as string, duplicado: false, atualizado: true };
     }
 
@@ -199,16 +201,17 @@ export const arquivarRelatorioFase = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    const { papel } = await contextoRg(supabase, context.userId as string);
+    const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode arquivar relatórios.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
-    const r = await supabase
-      .from("case_reports")
-      .update({ report_status: "arquivado", archived_at: new Date().toISOString(), archived_reason: motivo })
-      .eq("id", data.id)
-      .select("id")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "case_reports",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { report_status: "arquivado", archived_at: new Date().toISOString(), archived_reason: motivo },
+    });
     return { ok: true };
   });
