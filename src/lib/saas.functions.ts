@@ -538,14 +538,37 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       exigirProximaAcaoCompleta(combinado as Record<string, unknown>);
     }
 
-    const gravacao = await gravarComVerificacao({
-      supabase: supabase as never,
-      tabela: data.entidade,
-      id: data.id,
-      organizationId,
-      userId: context.userId as string,
-      payload: alteracoes,
-    });
+    // eventos_financeiros não tem coluna updated_by (confirmado na migration):
+    // gravarComVerificacao sempre grava updated_by, então essa tabela precisa
+    // do mesmo UPDATE verificado manualmente, sem esse campo.
+    let salvoEm: string;
+    if (data.entidade === "eventos_financeiros") {
+      const { data: linhaAtualizada, error: erroAtualizar } = await supabase
+        .from(data.entidade)
+        .update(alteracoes)
+        .eq("id", data.id)
+        .eq("organization_id", organizationId)
+        .select("*")
+        .maybeSingle();
+      if (erroAtualizar) throw new Error(erroAtualizar.message);
+      if (!linhaAtualizada) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
+      for (const campo of diff) {
+        if (JSON.stringify((linhaAtualizada as any)[campo] ?? null) !== JSON.stringify(alteracoes[campo] ?? null)) {
+          throw new Error(`DIVERGENCIA_PERSISTENCIA: o campo "${campo}" não foi gravado como enviado.`);
+        }
+      }
+      salvoEm = new Date().toISOString();
+    } else {
+      const gravacao = await gravarComVerificacao({
+        supabase: supabase as never,
+        tabela: data.entidade,
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: alteracoes,
+      });
+      salvoEm = gravacao.salvoEm;
+    }
 
     // Registro de alterações do caso (quem, quando, o quê) — sensíveis mascarados.
     const caseId =
@@ -569,7 +592,7 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
       );
     }
 
-    return { ok: true, alterados: diff, ignorados, salvoEm: gravacao.salvoEm };
+    return { ok: true, alterados: diff, ignorados, salvoEm };
 
   });
 
@@ -584,16 +607,32 @@ export const arquivarRegistro = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const { error } = await supabase
-      .from(data.entidade)
-      .update({
-        archived_at: new Date().toISOString(),
-        archived_by: context.userId,
-        archive_motivo: data.motivo.trim(),
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    const payload = {
+      archived_at: new Date().toISOString(),
+      archived_by: context.userId,
+      archive_motivo: data.motivo.trim(),
+    };
+    // eventos_financeiros não tem coluna updated_by (ver atualizarRegistro).
+    if (data.entidade === "eventos_financeiros") {
+      const { data: linhaAtualizada, error } = await supabase
+        .from(data.entidade)
+        .update(payload)
+        .eq("id", data.id)
+        .eq("organization_id", organizationId)
+        .select("id")
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: nada foi gravado.");
+    } else {
+      await gravarComVerificacao({
+        supabase: supabase as never,
+        tabela: data.entidade,
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload,
+      });
+    }
     return { ok: true };
   });
 
@@ -604,15 +643,17 @@ export const verificarCondicoesCaso = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase: supabase as never,
+      tabela: "crm_casos",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         condicoes_verificadas_em: new Date().toISOString(),
         condicoes_verificadas_por: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -640,12 +681,18 @@ export const ativarCaso = createServerFn({ method: "POST" })
       return { ok: false, pendencias };
     }
 
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({ ativo: true, status: "ativo" })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) return { ok: false, pendencias: [error.message] };
+    try {
+      await gravarComVerificacao({
+        supabase: supabase as never,
+        tabela: "crm_casos",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: { ativo: true, status: "ativo" },
+      });
+    } catch (erro) {
+      return { ok: false, pendencias: [erro instanceof Error ? erro.message : "Não foi possível ativar o caso."] };
+    }
     return { ok: true, pendencias: [] as string[] };
   });
 

@@ -216,17 +216,19 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       comunicacaoId = (q?.id as string) ?? null;
     }
 
-    await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         alert_status: "alerted",
         alert_triggered_at: new Date().toISOString(),
         communication_status: comunicacaoId ? "awaiting_approval" : "not_applicable",
         communication_queue_id: comunicacaoId,
-        updated_by: context.userId,
-      })
-      .eq("id", data.caseId)
-      .eq("organization_id", organizationId);
+      },
+    });
 
     return { ok: true, comunicacaoId, rascunhoCriado: Boolean(comunicacaoId) };
   });
