@@ -17,7 +17,6 @@ import {
 } from "@/components/comercial/base";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import {
-  atualizarObservacaoOrdem,
   criarOrdemServico,
   listarComercial,
   listarVinculos,
@@ -55,12 +54,9 @@ function OrdensPage() {
   const vinculos = useServerFn(listarVinculos);
   const criar = useServerFn(criarOrdemServico);
   const mudar = useServerFn(mudarStatusOrdem);
-  const atualizarObservacao = useServerFn(atualizarObservacaoOrdem);
 
   const [status, setStatus] = useState("");
   const [detalhe, setDetalhe] = useState<Linha | null>(null);
-  const [observacao, setObservacao] = useState("");
-  const [salvo, setSalvo] = useState(false);
   const [form, setForm] = useState<Record<string, string> | null>(caseId ? { case_id: caseId } : null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -90,15 +86,6 @@ function OrdensPage() {
     onSuccess: () => {
       setErro(null);
       setDetalhe(null);
-      recarregar();
-    },
-    onError: (e: Error) => setErro(e.message),
-  });
-  const mObservacao = useMutation({
-    mutationFn: (v: { id: string; scope_summary: string }) => atualizarObservacao({ data: v }),
-    onSuccess: () => {
-      setErro(null);
-      setSalvo(true);
       recarregar();
     },
     onError: (e: Error) => setErro(e.message),
@@ -177,8 +164,6 @@ function OrdensPage() {
                       <button
                         onClick={() => {
                           setErro(null);
-                          setSalvo(false);
-                          setObservacao(String(l["scope_summary"] ?? ""));
                           setDetalhe(l);
                         }}
                         className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
@@ -207,35 +192,15 @@ function OrdensPage() {
                 <dd>{rotuloContrato(detalhe["contract_id"])}</dd>
               </div>
               <div className="sm:col-span-2">
+                <dt className="text-navy/60">Escopo</dt>
+                <dd className="whitespace-pre-wrap">{String(detalhe["scope_summary"] ?? "—")}</dd>
+              </div>
+              <div className="sm:col-span-2">
                 <dt className="text-navy/60">Condição de início</dt>
                 <dd>{String(detalhe["start_condition_status"] ?? "—")}</dd>
               </div>
             </dl>
           </Painel>
-
-          {podeComercial ? (
-            <Painel titulo="Escopo / observação">
-              <textarea
-                rows={4}
-                className={inputCls}
-                value={observacao}
-                onChange={(e) => {
-                  setObservacao(e.target.value);
-                  setSalvo(false);
-                }}
-              />
-              <div className="mt-2 flex items-center gap-3">
-                <button
-                  disabled={mObservacao.isPending}
-                  onClick={() => mObservacao.mutate({ id: String(detalhe["id"]), scope_summary: observacao })}
-                  className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-                >
-                  Salvar
-                </button>
-                {salvo ? <span className="text-xs text-navy/60">Salvo.</span> : null}
-              </div>
-            </Painel>
-          ) : null}
 
           {podeComercial ? (
             <Painel titulo="Mover status">
