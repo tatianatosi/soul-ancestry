@@ -115,7 +115,7 @@ function PilotoAna() {
                   disabled={mMaterializar.isPending}
                   onClick={() => mMaterializar.mutate()}
                 >
-                  {mMaterializar.isPending ? "Registrando…" : "Novo caso"}
+                  {mMaterializar.isPending ? "Registrando…" : "Localizar ou registrar caso"}
                 </button>
               )}
               {mMaterializar.isError && <span className="text-sm text-terracotta">{(mMaterializar.error as Error).message}</span>}
