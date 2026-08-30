@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
-import { NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
+import { derivarPendenciasPiloto, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
+import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 
@@ -41,20 +42,49 @@ export const carregarPilotoAna = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const caso = await localizar(supabase, organizationId);
-    if (!caso) return { caso: null, nucleos: [], membros: [], eventos: [] };
-    const [nucleos, eventos] = await Promise.all([
+    if (!caso) return { caso: null, nucleos: [], membros: [], eventos: [], pendencias: [] };
+    const [nucleos, eventos, contrato, ordemServico] = await Promise.all([
       supabase.from("nucleos_familiares").select("*").eq("case_id", caso.id).is("archived_at", null),
       supabase.from("conversion_events").select("*").eq("case_id", caso.id).order("occurred_at", { ascending: false }),
+      supabase
+        .from("contracts")
+        .select("id,status")
+        .eq("organization_id", organizationId)
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("service_orders")
+        .select("id,status")
+        .eq("organization_id", organizationId)
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     const ids = ((nucleos.data ?? []) as Linha[]).map((n) => n.id);
     const membros = ids.length
       ? await supabase.from("nucleo_membros").select("*").in("nucleo_id", ids).is("archived_at", null)
       : { data: [] };
+
+    const pendencias = derivarPendenciasPiloto({
+      caseId: caso.id as string,
+      caso: caso as Record<string, unknown>,
+      membros: ((membros as any).data ?? []) as { nome: string; papel: string; processo?: string | null }[],
+      contrato: (contrato.data ?? null) as { status: string } | null,
+      ordemServico: (ordemServico.data ?? null) as { status: string } | null,
+      perfilInstitucionalVigente: perfilInstitucionalRenderizado().vigente,
+    });
+
     return {
       caso,
       nucleos: (nucleos.data ?? []) as Linha[],
       membros: ((membros as any).data ?? []) as Linha[],
       eventos: (eventos.data ?? []) as Linha[],
+      pendencias,
     };
   });
 
