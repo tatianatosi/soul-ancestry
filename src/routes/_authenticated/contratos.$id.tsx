@@ -30,7 +30,6 @@ import {
   salvarItemContrato,
   salvarOrdemServico,
   solicitarRevisaoHumana,
-  tentarEtapaExterna,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
 
@@ -72,7 +71,6 @@ function ContratoDetalhe() {
   const validar = useServerFn(executarValidacoes);
   const solicitar = useServerFn(solicitarRevisaoHumana);
   const arquivar = useServerFn(arquivarContrato);
-  const externa = useServerFn(tentarEtapaExterna);
 
   const mGerar = useMutation({
     mutationFn: (resumo?: string) => gerar({ data: { contract_id: id, change_summary: resumo } }),
@@ -131,20 +129,17 @@ function ContratoDetalhe() {
         <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">{aviso}</p>
       ) : null}
 
+      <p className="mt-3 text-xs text-navy/50">
+        Envio ao cliente, assinatura e cobrança seguem desabilitados nesta fase — não há fluxo de convite/revisão
+        externa configurado ainda. Use "Solicitar revisão humana" para o acompanhamento interno.
+      </p>
+
       <div className="mt-4 flex flex-wrap gap-2">
         <Acao onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}>
           Gerar rascunho interno
         </Acao>
         <Acao onClick={() => mValidar.mutate()}>Executar validações</Acao>
         <Acao onClick={() => mSolicitar.mutate()}>Solicitar revisão humana</Acao>
-        <Acao
-          onClick={async () => {
-            const r = await externa({ data: { contract_id: id, etapa: "envio" } });
-            setAviso(r.mensagem);
-          }}
-        >
-          Enviar ao cliente (desabilitado)
-        </Acao>
         {ehAdmin ? (
           <Acao
             onClick={async () => {
@@ -287,6 +282,9 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
       <Campo rotulo="Confirmo ausência de exclusões" tipo="check" valor={c.no_exclusions_confirmed} onSalvar={(v) => salvar({ no_exclusions_confirmed: v })} />
+      <div className="sm:col-span-2">
+        <Campo rotulo="Observações internas" tipo="textarea" valor={c.internal_notes} onSalvar={(v) => salvar({ internal_notes: v })} />
+      </div>
       <Campo rotulo="Início da vigência" tipo="date" valor={c.effective_start_date} onSalvar={(v) => salvar({ effective_start_date: v || null })} />
       <Campo rotulo="Regra de vigência" valor={c.effective_rule} onSalvar={(v) => salvar({ effective_rule: v })} />
       <Campo
@@ -398,28 +396,67 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const { erro, salvar, arquivar } = useSalvarItem(contratoId, "contract_parties", onSalvo);
   const [nome, setNome] = useState("");
   const [papel, setPapel] = useState("contracting_client");
+  const partes = dados.partes as any[];
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
-        {(dados.partes as any[]).map((p) => (
-          <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
-            <td className="px-3 py-2">{p.person_name}</td>
-            <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
-            <td className="px-3 py-2">{p.legal_capacity_status}</td>
-            <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
-            <td className="px-3 py-2 text-right">
+
+      {/* Mobile: cards empilhados — uma tabela horizontal não é operável no celular. */}
+      <div className="space-y-2 md:hidden">
+        {partes.map((p) => (
+          <div key={p.id} className={`rounded-xl border border-navy/10 bg-cream p-3 text-sm ${p.archived_at ? "opacity-50" : ""}`}>
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium text-navy">{p.person_name}</p>
               {!p.archived_at ? (
-                <button onClick={() => arquivar(p.id)} className="text-xs text-navy/60 underline">
+                <button onClick={() => arquivar(p.id)} className="shrink-0 rounded-lg border border-navy/20 px-2 py-1 text-xs text-navy/70">
                   Arquivar
                 </button>
               ) : (
-                <span className="text-xs text-navy/50">arquivada</span>
+                <span className="shrink-0 text-xs text-navy/50">arquivada</span>
               )}
-            </td>
-          </tr>
+            </div>
+            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-navy/70">
+              <div>
+                <dt className="text-navy/50">Papel</dt>
+                <dd>{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</dd>
+              </div>
+              <div>
+                <dt className="text-navy/50">Capacidade</dt>
+                <dd>{p.legal_capacity_status ?? "—"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-navy/50">Assinatura</dt>
+                <dd>{p.signature_required ? "requerida" : "não requerida"}</dd>
+              </div>
+            </dl>
+          </div>
         ))}
-      </Tabela>
+        {partes.length === 0 ? <p className="text-sm text-navy/60">Nenhuma parte cadastrada.</p> : null}
+      </div>
+
+      {/* Desktop/tablet: tabela com scroll horizontal próprio. */}
+      <div className="hidden md:block">
+        <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
+          {partes.map((p) => (
+            <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
+              <td className="px-3 py-2">{p.person_name}</td>
+              <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
+              <td className="px-3 py-2">{p.legal_capacity_status}</td>
+              <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
+              <td className="px-3 py-2 text-right">
+                {!p.archived_at ? (
+                  <button onClick={() => arquivar(p.id)} className="text-xs text-navy/60 underline">
+                    Arquivar
+                  </button>
+                ) : (
+                  <span className="text-xs text-navy/50">arquivada</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </Tabela>
+      </div>
+
       <form
         className="flex flex-wrap gap-2"
         onSubmit={(e) => {

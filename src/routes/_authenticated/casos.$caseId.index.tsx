@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useBlocker, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useBlocker, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +26,8 @@ import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
+import { abrirContratoDoCaso } from "@/lib/contratos.functions";
+import { TarefasDoCaso } from "@/components/caso/tarefas-do-caso";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -287,7 +289,18 @@ function FichaCaso() {
   const carregarCanon = useServerFn(carregarCanonico);
   const atualizar = useServerFn(atualizarRegistro);
   const criar = useServerFn(criarRegistro);
+  const abrirContrato = useServerFn(abrirContratoDoCaso);
+  const navegar = useNavigate();
   const qc = useQueryClient();
+
+  const mAbrirContrato = useMutation({
+    mutationFn: () => abrirContrato({ data: { caseId: id } }),
+    onSuccess: (r) => {
+      toast.success(r.criado ? "Contrato rascunho criado." : "Contrato existente reaberto — nada duplicado.");
+      void navegar({ to: "/contratos/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const q = useQuery({
     queryKey: ["ficha-caso", id],
@@ -615,6 +628,9 @@ function FichaCaso() {
               set={set}
             />
           </div>
+          <div className="mt-5">
+            <TarefasDoCaso caseId={id} />
+          </div>
 
           {/*
             27/08/2026 — decisão da Proprietária: "Caso" (identidade, aliases,
@@ -876,6 +892,14 @@ function FichaCaso() {
               descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
             >
               <div className="flex flex-wrap gap-3 text-xs">
+                <button
+                  type="button"
+                  onClick={() => mAbrirContrato.mutate()}
+                  disabled={mAbrirContrato.isPending}
+                  className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-navy hover:bg-gold/20 disabled:opacity-50"
+                >
+                  {mAbrirContrato.isPending ? "Abrindo…" : "Abrir contrato (rascunho: partes, escopo, cláusulas, anexos)"}
+                </button>
                 <Link
                   to="/casos/$caseId/contrato/preparar"
                   params={{ caseId: id }}

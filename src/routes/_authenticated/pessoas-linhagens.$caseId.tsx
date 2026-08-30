@@ -43,6 +43,7 @@ import {
   painelPessoasLinhagens,
   salvarRegistroG02,
 } from "@/lib/pessoas-linhagens.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
   component: Pagina,
@@ -142,17 +143,50 @@ function Pagina() {
   const salvarFn = useServerFn(salvarRegistroG02);
   const criarPessoaFn = useServerFn(criarPessoaComPerfil);
   const arquivarFn = useServerFn(arquivarRegistroG02);
+  const criarTarefaFn = useServerFn(salvarTarefa);
 
   const invalidar = () => queryClient.invalidateQueries({ queryKey: chave });
+
+  /**
+   * Confirmação pós-salvamento: só existe quando o servidor releu o registro
+   * e bateu campo a campo com o que foi enviado (ver salvarRegistroG02).
+   * Fica presa à tela até a proprietária decidir a próxima ação — nunca é
+   * só um toast que desaparece.
+   */
+  const [confirmacao, setConfirmacao] = useState<{ personId: string; registro: Record<string, unknown> } | null>(null);
 
   const salvar = useMutation({
     mutationFn: (v: { tabela: string; id?: string; valores: Record<string, unknown> }) =>
       salvarFn({ data: { tabela: v.tabela as never, id: v.id, caseId, valores: v.valores } }),
-    onSuccess: () => {
-      toast.success("Registro gravado e reconferido no servidor.");
+    onSuccess: (resultado, variaveis) => {
+      toast.success("Salvo e confirmado no banco.");
+      if (variaveis.tabela === "genealogical_person_profiles" && variaveis.id) {
+        setConfirmacao({ personId: variaveis.id, registro: resultado.registro as Record<string, unknown> });
+      }
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  const criarTarefa = useMutation({
+    mutationFn: (v: { titulo: string; descricao: string }) =>
+      criarTarefaFn({
+        data: {
+          valores: {
+            caso_id: caseId,
+            titulo: v.titulo,
+            descricao: v.descricao,
+            tipo: "geral",
+            status: "nao_iniciada",
+            prioridade: "media",
+          },
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Tarefa criada e vinculada a este caso — visível em Ops e no Painel Hoje.");
+      setConfirmacao(null);
+    },
+    onError: (e: Error) => toast.error(`O dado foi salvo, mas a tarefa não foi criada: ${e.message}`),
   });
 
   const criarPessoa = useMutation({
@@ -261,6 +295,10 @@ function Pagina() {
           onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
           onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_person_profiles", id, motivo })}
+          confirmacao={confirmacao}
+          onSemNovaAcao={() => setConfirmacao(null)}
+          onCriarTarefa={(titulo, descricao) => criarTarefa.mutate({ titulo, descricao })}
+          criandoTarefa={criarTarefa.isPending}
         />
       ) : null}
 
@@ -378,6 +416,49 @@ function Pagina() {
 
 /* ------------------------------------------------------------------ */
 
+function DecisaoPosSalvamento({
+  registro,
+  nomePessoa,
+  onCriarTarefa,
+  onSemNovaAcao,
+  criando,
+}: {
+  registro: Record<string, unknown>;
+  nomePessoa: string;
+  onCriarTarefa: (titulo: string, descricao: string) => void;
+  onSemNovaAcao: () => void;
+  criando: boolean;
+}) {
+  const [titulo, setTitulo] = useState(`Revisar dado atualizado de ${nomePessoa}`);
+  const localidade = registro["nascimento_localidade"];
+  return (
+    <div className="space-y-2 rounded-lg border border-gold/50 bg-gold/10 p-3">
+      <p className="text-xs font-semibold text-navy">
+        Salvo e confirmado no banco{typeof localidade === "string" && localidade ? ` — Nascimento (localidade): "${localidade}"` : ""}.
+      </p>
+      <p className="text-xs text-navy/60">Decisão operacional: criar tarefa/próxima ação vinculada a este caso, ou marcar que nenhuma ação é necessária.</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input className={inputCls + " sm:w-72"} value={titulo} onChange={(x) => setTitulo(x.target.value)} />
+        <button
+          type="button"
+          className={btnCls}
+          disabled={criando}
+          onClick={() => onCriarTarefa(titulo, `Alteração registrada no perfil genealógico de ${nomePessoa}.`)}
+        >
+          {criando ? "Criando…" : "Criar tarefa / próxima ação"}
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border border-navy/20 px-3 py-2 text-xs font-semibold text-navy/70"
+          onClick={onSemNovaAcao}
+        >
+          Sem nova ação necessária
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AbaPerfis({
   perfis,
   variantes,
@@ -388,6 +469,10 @@ function AbaPerfis({
   onCriar,
   onSalvar,
   onArquivar,
+  confirmacao,
+  onSemNovaAcao,
+  onCriarTarefa,
+  criandoTarefa,
 }: {
   perfis: Perfil[];
   variantes: Variante[];
@@ -398,6 +483,10 @@ function AbaPerfis({
   onCriar: (valores: Record<string, unknown>) => void;
   onSalvar: (id: string, valores: Record<string, unknown>) => void;
   onArquivar: (id: string, motivo: string) => void;
+  confirmacao: { personId: string; registro: Record<string, unknown> } | null;
+  onSemNovaAcao: () => void;
+  onCriarTarefa: (titulo: string, descricao: string) => void;
+  criandoTarefa: boolean;
 }) {
   const [novo, setNovo] = useState({ nome_completo: "", nome_nascimento: "", sexo: "", nascimento_data: "" });
   const [edicao, setEdicao] = useState<Record<string, Partial<Perfil>>>({});
@@ -539,6 +628,16 @@ function AbaPerfis({
                   Arquivar
                 </button>
               </div>
+            ) : null}
+
+            {confirmacao?.personId === p.id ? (
+              <DecisaoPosSalvamento
+                registro={confirmacao.registro}
+                nomePessoa={p.nome_completo}
+                onCriarTarefa={onCriarTarefa}
+                onSemNovaAcao={onSemNovaAcao}
+                criando={criandoTarefa}
+              />
             ) : null}
           </article>
         );
