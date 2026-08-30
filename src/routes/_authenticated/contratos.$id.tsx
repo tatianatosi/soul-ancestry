@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
 });
 
 const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos", "Versões", "Revisão"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações", "Auditoria"] as const;
+const ABAS_AVANCADAS = ["Fontes", "Validações"] as const;
 const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -200,7 +200,6 @@ function ContratoDetalhe() {
         {aba === "Revisão" ? (
           <Revisao dados={d} contratoId={id} versao={versaoAtual} ehAdmin={ehAdmin} onSalvo={recarregar} setAviso={setAviso} />
         ) : null}
-        {aba === "Auditoria" ? <Auditoria dados={d} /> : null}
       </div>
     </SaasShell>
   );
@@ -985,16 +984,3 @@ function Revisao({
   );
 }
 
-function Auditoria({ dados }: { dados: any }) {
-  return (
-    <Tabela cabecalho={["Quando", "Evento", "Metadados mínimos"]}>
-      {(dados.eventos as any[]).map((e) => (
-        <tr key={e.id} className="border-t border-navy/10">
-          <td className="px-3 py-2 text-xs">{new Date(e.occurred_at).toLocaleString("pt-BR")}</td>
-          <td className="px-3 py-2">{e.event_type}</td>
-          <td className="px-3 py-2 text-xs text-navy/60">{JSON.stringify(e.metadata)}</td>
-        </tr>
-      ))}
-    </Tabela>
-  );
-}

@@ -111,7 +111,7 @@ function OnboardingPage() {
   return (
     <SaasShell
       titulo="Onboarding e ativação"
-      descricao="A ativação depende de requisitos verificáveis. A interface explica o bloqueio; o banco impede o desvio."
+      descricao="Requisitos de ativação do caso, com quem valida cada um."
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
