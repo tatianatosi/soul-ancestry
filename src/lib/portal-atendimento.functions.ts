@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   CLASSIFICACAO_ENTREGA,
   PAPEIS_ENTREGA,
@@ -290,12 +291,14 @@ export const cancelarSolicitacaoDocumento = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     const motivo = texto(data.motivo, 400) ?? "Sem motivo informado.";
-    const r = await supabase
-      .from("portal_document_requests")
-      .update({ status: "cancelado", motivo_recusa: motivo, updated_by: context.userId })
-      .eq("id", data.solicitacaoId)
-      .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "portal_document_requests",
+      id: data.solicitacaoId,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "cancelado", motivo_recusa: motivo },
+    });
     await auditar(organizationId, context.userId as string, "solicitacao_documento_cancelada", "portal_document_requests", data.solicitacaoId, {
       motivo,
     });
@@ -325,9 +328,13 @@ export const revisarEnvioCliente = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!doc.data || doc.data.origem !== "cliente") throw new Error("Documento não encontrado.");
 
-    const r = await supabase
-      .from("documents")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "documents",
+      id: data.documentoId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         status: data.decisao === "aceito" ? "aprovado" : "recusado",
         // Aceitar valida o recebimento; a visibilidade permanece restrita.
         visibilidade: "equipe_do_caso",
@@ -336,21 +343,21 @@ export const revisarEnvioCliente = createServerFn({ method: "POST" })
         revisado_em: new Date().toISOString(),
         revisado_por: context.userId,
         revisao_motivo: motivo,
-        updated_by: context.userId,
-      })
-      .eq("id", data.documentoId);
-    if (r.error) throw new Error(r.error.message);
+      },
+    });
 
     if (doc.data.solicitacao_id) {
-      await supabase
-        .from("portal_document_requests")
-        .update({
+      await gravarComVerificacao({
+        supabase,
+        tabela: "portal_document_requests",
+        id: doc.data.solicitacao_id,
+        organizationId,
+        userId: context.userId as string,
+        payload: {
           status: data.decisao === "aceito" ? "aceito" : "recusado",
           motivo_recusa: data.decisao === "recusado" ? motivo : null,
-          updated_by: context.userId,
-        })
-        .eq("id", doc.data.solicitacao_id)
-        .eq("organization_id", organizationId);
+        },
+      });
     }
 
     await auditar(
@@ -467,13 +474,17 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
       };
     }
 
-    const r = await supabase
-      .from("documents")
-      .update({ ...patch, updated_by: userId })
-      .eq("id", data.documentoId)
-      .eq("organization_id", organizationId);
-    if (r.error) {
-      await negar(r.error.message, "bloqueado");
+    try {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "documents",
+        id: data.documentoId,
+        organizationId,
+        userId,
+        payload: patch,
+      });
+    } catch (erro) {
+      await negar(erro instanceof Error ? erro.message : "Não foi possível gravar a entrega.", "bloqueado");
     }
     await auditar(organizationId, userId, "entrega_cliente_publicacao", "documents", data.documentoId, metadados);
     return { ok: true };
@@ -543,12 +554,20 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
       }
     }
 
-    const r = await supabase
-      .from("invoices")
-      .update({ liberada_cliente: data.liberar, updated_by: userId })
-      .eq("id", data.faturaId)
-      .eq("organization_id", organizationId);
-    if (r.error) await negar(r.error.message, "bloqueado", { case_id: fatura.data.case_id });
+    try {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "invoices",
+        id: data.faturaId,
+        organizationId,
+        userId,
+        payload: { liberada_cliente: data.liberar },
+      });
+    } catch (erro) {
+      await negar(erro instanceof Error ? erro.message : "Não foi possível gravar a fatura.", "bloqueado", {
+        case_id: fatura.data.case_id,
+      });
+    }
 
     await auditar(organizationId, userId, "fatura_cliente_publicacao", "invoices", data.faturaId, {
       ...base,
@@ -666,13 +685,15 @@ export const atualizarStatusTicket = createServerFn({ method: "POST" })
     const { organizationId } = await contextoDocumentos(supabase, context.userId as string);
     const permitidos = ["aberto", "em_analise", "respondido", "resolvido", "fechado"];
     if (!permitidos.includes(data.status)) throw new Error("Situação inválida.");
-    const patch: Record<string, unknown> = { status: data.status, updated_by: context.userId };
+    const patch: Record<string, unknown> = { status: data.status };
     if (data.responsavelId !== undefined) patch['responsavel_id'] = data.responsavelId || null;
-    const r = await supabase
-      .from("portal_tickets")
-      .update(patch)
-      .eq("id", data.ticketId)
-      .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "portal_tickets",
+      id: data.ticketId,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });
