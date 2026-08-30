@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -127,15 +128,24 @@ export const salvarAchado = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ACHADO, data.valores);
 
-    const r = data.id
-      ? await supabase.from("genealogical_findings").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("genealogical_findings")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "genealogical_findings",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { id: data.id };
+    }
+    const { data: linha, error } = await supabase
+      .from("genealogical_findings")
+      .insert({ ...valores, organization_id: organizationId })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: linha?.id as string };
   });
 
 export const salvarEncontro = createServerFn({ method: "POST" })
@@ -146,15 +156,24 @@ export const salvarEncontro = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ENCONTRO, data.valores);
 
-    const r = data.id
-      ? await supabase.from("lineage_encounters").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("lineage_encounters")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "lineage_encounters",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { id: data.id };
+    }
+    const { data: linha, error } = await supabase
+      .from("lineage_encounters")
+      .insert({ ...valores, organization_id: organizationId })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return { id: linha?.id as string };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
@@ -163,12 +182,15 @@ export const arquivarRegistroG06 = createServerFn({ method: "POST" })
   .inputValidator((d: { tabela: "genealogical_findings" | "lineage_encounters"; id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!data.motivo.trim()) throw new Error("Informe o motivo do arquivamento.");
-    const r = await supabase
-      .from(data.tabela)
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo })
-      .eq("id", data.id);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { archived_at: new Date().toISOString(), archive_motivo: data.motivo },
+    });
     return { ok: true };
   });
