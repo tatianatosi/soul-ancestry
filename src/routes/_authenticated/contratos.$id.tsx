@@ -32,6 +32,7 @@ import {
   solicitarRevisaoHumana,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({
@@ -93,6 +94,13 @@ function ContratoDetalhe() {
       setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`),
     onError: (e: Error) => setAviso(e.message),
   });
+  const criarTarefaFn = useServerFn(salvarTarefa);
+  const mTarefa = useMutation({
+    mutationFn: (v: { titulo: string; caso_id: string | null }) =>
+      criarTarefaFn({ data: { valores: { titulo: v.titulo, caso_id: v.caso_id, tipo: "contrato", status: "nao_iniciada", prioridade: "media" } } }),
+    onSuccess: () => setAviso("Tarefa criada."),
+    onError: (e: Error) => setAviso(e.message),
+  });
 
   if (q.isLoading) return <SaasShell titulo="Instrumento contratual">Carregando…</SaasShell>;
   if (q.isError || !q.data)
@@ -135,11 +143,26 @@ function ContratoDetalhe() {
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <Acao onClick={() => setAba("Resumo")}>Editar contrato</Acao>
         <Acao onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}>
-          Gerar rascunho interno
+          Salvar rascunho
         </Acao>
-        <Acao onClick={() => mValidar.mutate()}>Executar validações</Acao>
+        <Acao onClick={() => setAba("Cláusulas")}>Adicionar cláusula</Acao>
+        <Acao onClick={() => setAba("Anexos")}>Adicionar anexo</Acao>
+        <Acao
+          onClick={() => {
+            const titulo = prompt("Título da tarefa:");
+            if (!titulo?.trim()) return;
+            mTarefa.mutate({ titulo: titulo.trim(), caso_id: (c.case_id as string | null) ?? null });
+          }}
+        >
+          Criar tarefa
+        </Acao>
         <Acao onClick={() => mSolicitar.mutate()}>Solicitar revisão humana</Acao>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Acao onClick={() => mValidar.mutate()}>Executar validações</Acao>
         {ehAdmin ? (
           <Acao
             onClick={async () => {
