@@ -4,6 +4,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { CODIGOS_PERSISTENCIA } from "@/lib/persistencia-erros";
+import { compararPersistencia, mensagemDivergencia } from "@/lib/verificacao-persistencia";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -286,7 +288,12 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
     return { id: perfil.data.id as string, research_person_id: pessoa.data.id as string };
   });
 
-/** Gravação genérica das entidades G-02, com releitura de conferência. */
+/**
+ * Gravação genérica das entidades G-02, com confirmação de linha afetada,
+ * releitura independente da gravação e comparação campo a campo. O retorno
+ * só é "salvo" quando o valor relido do banco bate com o que foi enviado —
+ * a UPDATE/INSERT devolver a própria linha não é, por si, confirmação.
+ */
 export const salvarRegistroG02 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { tabela: TabelaG02; id?: string; caseId?: string; valores: Record<string, unknown> }) => d)
@@ -297,16 +304,37 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     const valores = filtrar(data.tabela, data.valores);
     if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id")) valores["case_id"] = data.caseId;
 
-    const r = data.id
-      ? await supabase.from(data.tabela).update(valores).eq("id", data.id).select("*").maybeSingle()
-      : await supabase
-          .from(data.tabela)
-          .insert({ ...valores, organization_id: organizationId })
-          .select("*")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data) throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
-    return { registro: r.data as any };
+    let id = data.id;
+    if (id) {
+      const { data: linhas, error } = await supabase
+        .from(data.tabela)
+        .update(valores)
+        .eq("id", id)
+        .eq("organization_id", organizationId)
+        .select("id");
+      if (error) throw new Error(error.message);
+      if (!linhas || linhas.length === 0) {
+        throw new Error(
+          `${CODIGOS_PERSISTENCIA.SEM_LINHA}: nada foi gravado em ${data.tabela}. O registro não existe nesta organização ou seu papel não permite editar.`,
+        );
+      }
+    } else {
+      const { data: novo, error } = await supabase
+        .from(data.tabela)
+        .insert({ ...valores, organization_id: organizationId })
+        .select("id")
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!novo?.id) throw new Error(`${CODIGOS_PERSISTENCIA.SEM_LINHA}: o registro em ${data.tabela} não foi criado.`);
+      id = novo.id as string;
+    }
+
+    const relido = await supabase.from(data.tabela).select("*").eq("id", id).eq("organization_id", organizationId).maybeSingle();
+    const registro = (relido.data ?? null) as Record<string, unknown> | null;
+    const divergencias = compararPersistencia(valores, registro);
+    if (divergencias.length > 0) throw new Error(mensagemDivergencia(divergencias));
+
+    return { registro: (registro ?? {}) as any };
   });
 
 /** Sem exclusão física: somente arquivamento com motivo. */
