@@ -76,12 +76,15 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
     const motivos = motivosBloqueio(gates);
     const estado = motivos.length > 0 ? "bloqueado" : "liberado_preparacao";
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("onboarding_planos")
       .update({ estado, motivos_bloqueio: motivos, updated_by: context.userId })
       .eq("organization_id", organizationId)
-      .eq("case_id", data.caseId);
+      .eq("case_id", data.caseId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: plano de onboarding não encontrado nesta organização.");
 
     return { ok: true, estado, motivos, clienteAtivado: false };
   });
