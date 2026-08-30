@@ -13,6 +13,7 @@ import {
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -163,14 +164,16 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { data: row, error } = await supabase
-        .from("leads")
-        .update({ ...patch, updated_by: userId })
-        .eq("id", data.id)
-        .select("*")
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return { ok: true as const, erros: [], lead: row as LeadDesk };
+      const organizationId = (atual as unknown as { organization_id: string }).organization_id;
+      const resultado = await gravarComVerificacao({
+        supabase,
+        tabela: "leads",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: patch,
+      });
+      return { ok: true as const, erros: [], lead: resultado.registro as LeadDesk };
     }
 
     const organization_id = await orgDoUsuario(supabase, userId);
@@ -194,11 +197,16 @@ export const arquivarLeadDesk = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from("leads")
-      .update({ archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo, updated_by: userId })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    const { data: lead } = await supabase.from("leads").select("organization_id").eq("id", data.id).maybeSingle();
+    if (!lead) throw new Error("Lead não encontrado nesta organização.");
+    await gravarComVerificacao({
+      supabase,
+      tabela: "leads",
+      id: data.id,
+      organizationId: lead.organization_id as string,
+      userId,
+      payload: { archived_at: new Date().toISOString(), archived_by: userId, archive_motivo: motivo },
+    });
     return { ok: true };
   });
 
@@ -276,14 +284,21 @@ export const salvarDependente = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     for (const c of campos) if (c in data.valores) patch[c] = data.valores[c] === "" ? null : data.valores[c];
 
+    const { data: caso } = await supabase.from("crm_casos").select("organization_id").eq("id", data.caseId).maybeSingle();
+    if (!caso) throw new Error("Caso não encontrado nesta organização.");
+
     if (data.id) {
-      const { error } = await supabase.from("case_dependents").update({ ...patch, updated_by: userId }).eq("id", data.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "case_dependents",
+        id: data.id,
+        organizationId: caso.organization_id as string,
+        userId,
+        payload: patch,
+      });
       await sincronizarParametroDependentes(supabase, data.caseId);
       return { ok: true };
     }
-    const { data: caso } = await supabase.from("crm_casos").select("organization_id").eq("id", data.caseId).maybeSingle();
-    if (!caso) throw new Error("Caso não encontrado nesta organização.");
     const { error } = await supabase.from("case_dependents").insert({
       ...patch,
       case_id: data.caseId,
@@ -369,8 +384,14 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .maybeSingle();
     if (existente?.id) {
-      const { error } = await supabase.from("legal_clause_matrix").update(registro).eq("id", existente.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "legal_clause_matrix",
+        id: existente.id,
+        organizationId: organization_id,
+        userId,
+        payload: registro,
+      });
     } else {
       const { error } = await supabase.from("legal_clause_matrix").insert({ ...registro, created_by: userId });
       if (error) throw new Error(error.message);
@@ -442,8 +463,14 @@ export const salvarPaginaCanva = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .maybeSingle();
     if (existente?.id) {
-      const { error } = await supabase.from("proposal_canva_pages").update(registro).eq("id", existente.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "proposal_canva_pages",
+        id: existente.id,
+        organizationId: caso.organization_id as string,
+        userId,
+        payload: registro,
+      });
     } else {
       const { error } = await supabase.from("proposal_canva_pages").insert({ ...registro, created_by: userId });
       if (error) throw new Error(error.message);
