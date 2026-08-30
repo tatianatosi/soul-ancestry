@@ -307,6 +307,13 @@ function ClientesPage() {
                           </span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
+                            <Link
+                              to="/pessoas/$clienteId"
+                              params={{ clienteId: p.id }}
+                              className="inline-flex items-center gap-1 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-xs text-navy hover:bg-gold/20"
+                            >
+                              Ver pessoa 360
+                            </Link>
                             {p.classificacao !== "cliente_ativo" ? (
                               <button
                                 type="button"
