@@ -27,6 +27,7 @@ import {
   gerarRascunhoInterno,
   obterContrato,
   registrarDecisaoRevisao,
+  ressincronizarContratanteDaMatriz,
   salvarItemContrato,
   salvarOrdemServico,
   solicitarRevisaoHumana,
@@ -503,6 +504,17 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   const [criando, setCriando] = useState(false);
   const partes = dados.partes as any[];
 
+  const ressincronizar = useServerFn(ressincronizarContratanteDaMatriz);
+  const [avisoSync, setAvisoSync] = useState<string | null>(null);
+  const mSync = useMutation({
+    mutationFn: () => ressincronizar({ data: { contract_id: contratoId } }),
+    onSuccess: (r) => {
+      setAvisoSync(r.criado ? "Parte contratante criada a partir da matriz de parâmetros." : "Parte contratante atualizada a partir da matriz de parâmetros.");
+      onSalvo();
+    },
+    onError: (e: Error) => setAvisoSync(e.message),
+  });
+
   const rotuloDocumento = (p: any) => {
     const tipo = TIPOS_DOCUMENTO_PARTE.find((t) => t.valor === p.document_type)?.rotulo ?? p.document_type;
     return p.document_number ? `${tipo ? `${tipo}: ` : ""}${p.document_number}` : "—";
@@ -661,10 +673,25 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
           rotuloSalvar="Adicionar parte"
         />
       ) : (
-        <button onClick={() => setCriando(true)} className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">
-          Adicionar parte
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => setCriando(true)} className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">
+            Adicionar parte
+          </button>
+          <button
+            onClick={() => mSync.mutate()}
+            disabled={mSync.isPending}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-50"
+          >
+            {mSync.isPending ? "Ressincronizando…" : "Ressincronizar contratante da matriz"}
+          </button>
+        </div>
       )}
+      {avisoSync ? <p className="text-xs text-navy">{avisoSync}</p> : null}
+      <p className="text-xs text-navy/60">
+        "Ressincronizar contratante da matriz" busca nome, documento e endereço da contratante na tela de Parâmetros do
+        contrato (o motor) e atualiza a parte "Contratante" deste instrumento — a cópia automática só acontece uma vez, na
+        criação do instrumento; edições feitas depois na matriz de parâmetros não chegam aqui sozinhas.
+      </p>
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.
       </p>

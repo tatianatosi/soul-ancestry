@@ -498,6 +498,94 @@ export const arquivarItemContrato = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Ressincroniza a parte contratante a partir da matriz de Parâmetros do
+ * contrato (contract_case_parameters/contract_parameter_values) — a mesma
+ * fonte usada na criação automática do instrumento. A cópia original só
+ * acontece uma vez, no momento de "enviar para assinatura"; edições
+ * posteriores na matriz não chegam ao instrumento sozinhas. Esta função
+ * repete essa cópia sob demanda, sem criar nenhuma entidade nova: atualiza a
+ * parte "contracting_client" já existente do instrumento, ou cria uma se
+ * nenhuma existir ainda.
+ */
+export const ressincronizarContratanteDaMatriz = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { contract_id: string }) => data)
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contexto(supabase, context.userId as string);
+    exigir(papel, PAPEIS_FILHO.contract_parties, "Seu papel não permite alterar partes deste instrumento.");
+
+    const { data: contrato, error: erroContrato } = await supabase
+      .from("contracts")
+      .select("id,case_id,client_id")
+      .eq("id", data.contract_id)
+      .maybeSingle();
+    if (erroContrato) throw new Error(erroContrato.message);
+    if (!contrato) throw new Error("Instrumento não encontrado.");
+    if (!contrato.case_id) throw new Error("Instrumento sem caso vinculado — não há matriz de parâmetros para ressincronizar.");
+
+    const { data: registro, error: erroRegistro } = await supabase
+      .from("contract_case_parameters")
+      .select("id")
+      .eq("case_id", contrato.case_id)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (erroRegistro) throw new Error(erroRegistro.message);
+    if (!registro) throw new Error("Nenhuma matriz de parâmetros encontrada para o caso deste instrumento.");
+
+    const { data: valores, error: erroValores } = await supabase
+      .from("contract_parameter_values")
+      .select("campo,valor")
+      .eq("parameters_id", registro.id)
+      .is("archived_at", null);
+    if (erroValores) throw new Error(erroValores.message);
+    const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
+
+    const nome = pegar("contratante_nome");
+    if (!nome) throw new Error("A matriz de parâmetros ainda não tem o nome da contratante preenchido.");
+
+    const payload = {
+      person_name: nome,
+      document_number: pegar("contratante_documento"),
+      address: pegar("contratante_endereco"),
+      role: "contracting_client",
+      client_id: contrato.client_id ?? null,
+    };
+
+    const { data: existente, error: erroExistente } = await supabase
+      .from("contract_parties")
+      .select("id")
+      .eq("contract_id", data.contract_id)
+      .eq("role", "contracting_client")
+      .is("archived_at", null)
+      .maybeSingle();
+    if (erroExistente) throw new Error(erroExistente.message);
+
+    if (existente) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "contract_parties",
+        id: existente.id,
+        organizationId,
+        userId: context.userId as string,
+        payload,
+      });
+      await evento(supabase, organizationId, data.contract_id, "version_created", { bloco: "contract_parties", operacao: "ressincronizado" });
+      return { ok: true, criado: false };
+    }
+
+    await inserirComVerificacao({
+      supabase,
+      tabela: "contract_parties",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...payload, contract_id: data.contract_id, signature_required: true },
+    });
+    await evento(supabase, organizationId, data.contract_id, "version_created", { bloco: "contract_parties", operacao: "ressincronizado" });
+    return { ok: true, criado: true };
+  });
+
 /* ==================== VERSÕES, VALIDAÇÃO E REVISÃO ==================== */
 
 export const gerarRascunhoInterno = createServerFn({ method: "POST" })
