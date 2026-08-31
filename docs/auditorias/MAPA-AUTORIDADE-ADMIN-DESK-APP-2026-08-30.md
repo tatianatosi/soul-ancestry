@@ -188,15 +188,103 @@ Nenhuma das quatro tem uma coluna `person_id`/`pessoa_canonica_id` comum. Uma pe
 
 ---
 
+## Marketing
+
+Rota: `/marketing` · Componente: `marketing.tsx` · Lê de `carregarConversao` (`conversao.functions.ts`, já documentada na seção Comercial) e processa tudo em funções puras client-side (`marketing-aquisicao.ts`, `marketing-filtros-csv.ts` — confirmado por grep: nenhuma das duas chama `.insert(`, `.update(` ou `createServerFn` de método POST). A própria tela declara: "Somente leitura — nenhuma campanha, link ou envio é executado aqui."
+
+| Aba/área | Entidade | Ler | Criar | Editar | Arquivar | Função | Tabela | Regra de estado | UI existe | Persistência confirmada | Tarefa/próxima ação | Classificação | Próximo passo |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Indicadores / Visão geral / Canais e campanhas / Atribuição / Funil / Aprendizados | `leads`, `crm_casos`, `conversion_events`, `marketing_campaigns`, `marketing_investments`, `lead_sources`, `attribution_records` | ✓ | — | — | — | `carregarConversao` + funções puras de `marketing-aquisicao.ts`/`marketing-filtros-csv.ts` | leitura agregada de 7 tabelas | — | sim | leitura direta; nenhuma gravação em todo o arquivo | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Exportar CSV de indicadores | derivado | ✓ | — | — | — | `baixarCsvMarketing` (gera arquivo local no navegador) | leitura acima | — | sim | não persiste nada — arquivo local | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Biblioteca de Mensagens — Modelos (`message_templates`) | `message_templates` | ✓ | função existe, sem botão na tela | função existe, sem botão na tela | ✓ (via mudança de status) | `salvarTemplate` (`message-library.functions.ts`) — edita corpo/assunto/variáveis, usa `gravarComVerificacao` | `message_templates` | arquivar exige motivo ≥5 caracteres; substituir exige sucessor | `biblioteca-mensagens.tsx` importa `definirStatusTemplate` mas **nunca importa `salvarTemplate`** (confirmado por grep no repositório inteiro) | função pronta, nunca chamada por nenhuma tela | não | `SEM_UI_PARA_FUNCAO_EXISTENTE` (criar/editar texto do modelo) | ligar `salvarTemplate` a um formulário real |
+| Biblioteca de Mensagens — Ciclo de vigência (status) | `message_templates.status` | ✓ | — | ✓ | ✓ | `definirStatusTemplate` | `message_templates` | só admin muda para vigente/suspenso/substituído/arquivado | sim, botões "Marcar como…"/"Arquivar modelo" | usa `gravarComVerificacao` | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Biblioteca de Mensagens — Uso manual (copiar e registrar) | `message_template_usage` | ✓ | ✓ (log de uso, nunca envia) | — | — | `validarUsoTemplate` (RPC) / `registrarUsoTemplate` | `message_template_usage` | gates de etapa validados no banco | sim | insert simples com checagem de erro | não aplicável | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Conteúdos editoriais | `editorial_content_items` | ✓ | — | — | — | `listarBibliotecaMensagens` | `editorial_content_items` | — | sim, só lista | leitura direta; nenhuma função de criar/editar/publicar pauta existe | não | `SEM_UI_PARA_FUNCAO_EXISTENTE` (nem função server, não só UI) | decidir se cabe a este módulo |
+
+### Achado: requisito P8 do Prompt Mestre (edição real de texto na Biblioteca de Mensagens) não está cumprido na tela, apesar de estar pronto na função
+
+`salvarTemplate` já suporta edição real do corpo/assunto/variáveis do modelo, grava com `gravarComVerificacao` e valida contra termos vetados. Mas `biblioteca-mensagens.tsx` nunca a importa — a única ação editorial exposta hoje é o toggle de status. Ou seja: **hoje só é possível mudar o estado do modelo, nunca o texto** — o requisito P8 ("edição real de texto, não apenas toggle de status") não está atendido na interface, mesmo com a capacidade pronta uma camada abaixo.
+
+---
+
+## Configuração
+
+Rotas: `configuracoes.tsx`, `equipe.tsx`, `integracoes.tsx`, `catalogo.tsx`, `divergencias-catalogo.tsx`, `conciliacao-catalogo.tsx`, `governanca.catalogo-operacional-30.tsx`, `contrato-parametros.$id.tsx`/`.index.tsx`.
+
+| Aba/área | Entidade | Ler | Criar | Editar | Arquivar | Função | Tabela | Regra de estado | UI existe | Persistência confirmada | Tarefa/próxima ação | Classificação | Próximo passo |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Perfil institucional (razão social/CNPJ/endereço da contratada) | constante `PERFIL_INSTITUCIONAL` | ✓ | não | não | não | leitura direta da constante (`contrato-base-consolidado.ts`) | nenhuma — hardcoded no código | — | `configuracoes.tsx` **não expõe** este perfil — é a tela "Usuários e papéis" | não aplicável — não há UI | não aplicável | `SEM_FUNCAO_OU_SCHEMA` (para edição via UI) | ver achado abaixo |
+| Usuários e papéis (`/configuracoes`) | `user_roles`, `organization_members` | ✓ | ✓ (concede papel) | — | ✓ (remove papel, soft) | `definirPapel`/`listarUsuarios` (`saas.functions.ts`) | `user_roles` | — | sim | checa `error`, trata duplicata, grava `audit_logs`; não usa `gravarComVerificacao` explicitamente | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Equipe (`/equipe`) | `staff_access` | ✓ | ✓ (convite) | ✓ (papel, status) | ✓ (com motivo) | `convidarMembroEquipe`/`alterarPapelMembro`/`alterarStatusMembro`/`arquivarMembroEquipe` (`equipe.functions.ts`) | `staff_access` | admin não suspende/revoga/arquiva o próprio acesso; toda mudança audita | sim — convite, papel, suspender/reativar, revogar, arquivar, todos com motivo | checa erro e linha manualmente (mesmo princípio de `gravarComVerificacao`, não o helper) | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Catálogo comercial (`/catalogo`) | catálogo importado da planilha mestre | ✓ | — | — | — | `lerCatalogoImportado` | leitura de tabelas do catálogo | — | sim | leitura direta; texto: "Nada é recriado, reprecificado ou homologado novamente aqui" | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Divergências de catálogo (`/divergencias-catalogo`) | `catalog_source_divergences` | ✓ | — | ✓ (só observação de resolução) | — | `anotarResolucaoDivergencia` (`divergencias-catalogo.server.ts`) | `catalog_source_divergences` | não aprova/corrige/desbloqueia — só anota | sim | update checa linha afetada — mesmo padrão do PR #31 já registrado | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Conciliação de catálogo (`/conciliacao-catalogo`) | propostas × catálogo homologado | ✓ | — | — | — | `varreduraConciliacaoCatalogo` | leitura agregada | — | sim | leitura direta; texto: "nada é aprovado, corrigido ou enviado aqui" | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Catálogo Operacional 30 / Governança | dados hardcoded em `ca06-catalogo-operacional.ts` | ✓ | — | — | — | nenhuma — client-side sobre constantes | nenhuma tabela | — | sim | não há chamada a servidor | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Integrações (`/integracoes`) | `integrations`, `integration_runs`, `integration_review_queue` | ✓ | — | ✓ (responsável, mapa de campos, retry) | — (pausa, não arquiva) | `salvarIntegracao`/`alterarSituacaoIntegracao`/`ativarIntegracao`/`resolverRevisaoIntegracao` | `integrations` | ativar exige admin + digitar "ATIVAR" + campos obrigatórios + responsável | sim, painel completo | usa `gravarComVerificacao` em todas as gravações | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | ver achado abaixo |
+| Integrações — teste/execução | `integration_runs`, `leads` (só demo) | ✓ | ✓ (roda demo) | — | — | `testarIntegracao`/`executarDemoFormLead` | `integration_runs` | comentário no código: "Nenhuma função aqui faz chamada externa" | sim | insert simples com checagem de erro | não aplicável | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Parâmetros contratuais por caso (`/contrato-parametros/$id`) | `contract_case_parameters` | ✓ | ✓ (`garantirParametros`) | ✓ | — | `salvarParametro`/`definirStatusParametro` | tabela de parâmetros do contrato | — | sim | usa `gravarComVerificacao` | não | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual — é motor por caso, sobreposto conceitualmente à seção Contratos, não configuração global |
+
+### Achado: perfil institucional segue hardcoded, e agora tem uma camada de "persistência" paralela órfã, nunca chamada por nenhuma tela
+
+Confirma e estende o achado do CNPJ institucional já registrado nesta sessão: `configuracoes.tsx` não é a tela de perfil institucional — é "Usuários e papéis" sobre `user_roles`, sem campo de razão social/CNPJ/endereço. O CNPJ/razão social continua vindo só da constante `PERFIL_INSTITUCIONAL`, sem UI de edição em lugar nenhum.
+
+Esta auditoria encontrou uma camada de persistência versionada que **não existia** no corte anterior do Mapa: `perfil-institucional-persistido.ts`/`.server.ts`/`.functions.ts`, com tabela real `institutional_profiles` (confirmada em produção com 0 linhas na consulta real do Supabase feita nesta sessão) e `institutional_profile_events` para snapshot. Confirmado por grep: nenhuma rota ou componente importa `lerPerfilInstitucionalPersistido`, `registrarPerfilInstitucional` ou `registrarSnapshotInstitucional` — código órfão, nunca invocado. Mesmo se fosse ligado a uma tela, `montarPayloadInstitucional` lê os campos direto da mesma constante hardcoded — versionaria o mesmo texto fixo, não abriria edição real vinda de input do usuário. **Classificação: `SEM_FUNCAO_OU_SCHEMA`** para o objetivo real (deixar a proprietária editar CNPJ/razão social pela interface).
+
+### Achado: dois sistemas paralelos de "Usuários e papéis", mesmo título, tabelas diferentes
+
+`/configuracoes` (`user_roles`) e `/equipe` (`staff_access`) são duas telas distintas, **ambas literalmente tituladas "Usuários e papéis"**, gerenciando conceitos sobrepostos em tabelas diferentes, sem referência cruzada entre si. `/equipe` parece ser a autorização real de login (`confirmarSessaoEquipe` valida contra `staff_access`); `/configuracoes` parece remanescente, só concede/remove `role` em `user_roles`, sem controlar login. Mesmo padrão de fragmentação já visto em onboarding (3 sistemas) e pesquisa (3 sistemas) — não decidido aqui, só registrado.
+
+### Achado: Integrações confirma o esperado pelo Prompt Mestre P10 — nenhuma conexão externa real ainda existe
+
+Comentário no código: "Nenhuma função aqui faz chamada externa. Testes rodam com dados DEMO." A tela tem fluxo completo e funcional, mas "ativar" só grava `status: "ativa"` — não existe client OAuth, chave de API real ou chamada HTTP de saída em nenhuma função lida. Alinhado ao P10: simulação completa e deliberada, não lacuna escondida.
+
+---
+
+## App Cliente
+
+Rotas no Desk: `app-cliente-demo.tsx` (sessão demo), `app-cliente-como-pessoa.tsx` (acesso master), `acessos-portal.tsx` (administração de convites). App real: diretório `src/routes/portal/` — mais telas do que as 7 nomeadas originalmente: `index.tsx` (Home), `jornada.tsx`, `radar.tsx`, `arvore.tsx`, `documentos.tsx`, `legado.tsx`, `conta.tsx` — as 7 pedidas — **mais** `entregas.tsx`, `fase-01.tsx`, `fase-02.tsx`, `faturas.tsx`, `casos.$id.tsx`, `mensagens.$id.tsx`, `proposta.tsx`.
+
+**Achado positivo confirmado por schema:** `portal_casos` é uma **VIEW** direta sobre `crm_casos` (`create view public.portal_casos ... from public.crm_casos c where archived_at is null and portal_caso_permitido(id)`), não tabela duplicada. `portal_document_requests`/`portal_tickets`/`documents` carregam FK para `crm_casos(id)`. A regra de "nunca duplicar dado de caso" está respeitada estruturalmente — é projeção/view da mesma linha canônica.
+
+| Aba/área | Entidade | Ler | Criar | Editar | Arquivar | Função | Tabela | Regra de estado | UI existe | Persistência confirmada | Tarefa/próxima ação | Classificação | Próximo passo |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Home (`/portal/`) | `portal_casos` (view) | ✓ | — | — | — | `meusCasos` | view `portal_casos` + `portal_document_requests` | RLS via `portal_caso_permitido` | sim | leitura direta | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Meu caso (`/portal/casos/$id`) | `crm_casos` + `documents` + `portal_document_requests` + `portal_tickets` | ✓ | ✓ (upload real, abrir ticket) | — | — | `meuCaso`/`prepararEnvioDocumento`+`confirmarEnvioDocumento`/`abrirTicket` | `documents`, `portal_document_requests`, `portal_tickets` | upload exige caso autorizado; documento entra sempre `pendente_de_revisao` | sim — upload real de arquivo | insert em `documents` checa erro; update em `portal_document_requests` checa linha afetada | não aplicável | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Jornada / Radar / Árvore | projeções do caso | ✓ | — | — | — | `usePortalVivo` (mesma fonte do "ver como" do Desk) | `portal_projecoes` | — | sim (3 telas) | leitura direta | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Documentos (`/portal/documentos`) | `documents` | ✓ | — | — | — | `minhasEntregas`/`baixarEntrega` (URL assinada 120s, auditado) | `documents` | download só se `liberado_cliente === true` | sim | leitura direta + `audit_logs` no download | não aplicável | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` (download) | prova manual |
+| Faturas / Proposta | faturas/proposta do cliente | ✓ | — | — | — | `minhasFaturas`/`portalProposta` | `invoices`/`proposals` | nível de acesso `proposal_portal` | sim | leitura direta | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Mensagens/ticket (`/portal/mensagens/$id`) | `portal_tickets`, `portal_ticket_messages` | ✓ | ✓ (responder) | — | — | `meuTicket`/`responderTicketCliente` | `portal_ticket_messages` | — | sim | insert simples checando erro; dispara alerta interno | não aplicável | `HABILITADA_EM_CODIGO_AGUARDANDO_TESTE` | prova manual |
+| Legado / Entregas da Jornada / Fase 01 / Fase 02 | — | — | — | — | — | nenhuma — `useVisibilidade(<tela>)` só checa gate de fase contratada | nenhuma | — | sim, mas texto fixo sempre igual ("Nenhum … publicado") | não há query de conteúdo em nenhum dos 4 arquivos | não aplicável | `SEM_FUNCAO_OU_SCHEMA` (as 4) | ver achado abaixo |
+| Conta (`/portal/conta`) | dados do cliente | ✓ | — | não — sem autoedição | — | `usePortal()` | dados do cliente autenticado | — | sim, só exibe nome + links | leitura direta | não aplicável | `SOMENTE_LEITURA_DELIBERADA` | — |
+| Acessos ao portal (`/acessos-portal`, Desk) | `client_portal_access`, `client_portal_case_access` | ✓ | ✓ (autorizar e-mail, convite) | ✓ (suspender/reativar/revogar, liberar/bloquear caso) | ✓ (revogar) | `registrarEmailAutorizado`/`criarConvitePortal`/`alterarStatusAcessoPortal`/`definirCasoDoAcesso`/`definirLiberacaoCaso` (`portal.functions.ts`) | `client_portal_access`, `client_portal_case_access` | login só por link mágico único (24h, reenvio 20min) | sim, painel completo | mistura `gravarComVerificacao` (3 ocorrências) e updates manuais não uniformemente verificados | não | `PARCIAL` | fechar lacuna de verificação, como já feito em Contratos/Divergências |
+| "Ver como" cliente/família (`/app-cliente-como-pessoa`, Desk) | mesma projeção sanitizada do cliente | ✓ | — | — | — | `dadosVivosDoPortalComoAdmin` | `portal_projecoes.content_sanitized` + `documents` | acesso por papel de staff, não sessão de cliente | sim — **só 3 das 10+ telas reais**: Jornada, Árvore, Radar | leitura direta | comentário no código admite a lacuna | `PARCIAL` | ver achado abaixo |
+
+### Achado: "ver como cliente/família sem logout" está parcialmente implementado, não integralmente
+
+`app-cliente-como-pessoa.tsx` implementa exatamente o mecanismo pedido pela Política Unificada — visão real, autorizada por papel de staff, sem logout, somente leitura por desenho. Mas o próprio comentário no código documenta a lacuna: cobre hoje só Jornada/Árvore/Radar, porque só essas exportam componente reutilizável fora da própria rota. Faltam Documentos, Entregas, Fase 01/02, Legado, Conta e Faturas — a proprietária não consegue hoje abrir o upload de documento, o ticket ou a fatura de um cliente por este mecanismo. **Classificação: `PARCIAL`** — mecanismo correto, cobertura incompleta.
+
+### Achado: 4 telas do App Cliente são stubs estáticos, nunca buscam dado real
+
+`legado.tsx`, `entregas.tsx`, `fase-01.tsx` e `fase-02.tsx` só checam se a tela deveria estar visível (gate de fase contratada), mas nunca buscam conteúdo — nenhum `useQuery`/`useServerFn` de dado nesses 4 arquivos. O texto fixo aparece sempre, mesmo que existisse publicação real em alguma tabela — não há código para lê-la. "Entregas da Jornada" é redundante em conceito com "Documentos" (que já lê entregas reais). Reforça o padrão de telas paralelas/fragmentadas já visto em Configuração e no restante do Mapa.
+
+---
+
+## Mapa completo — cobertura final
+
+Com esta fatia, todas as áreas do pedido original (8 grupos do Desk + App Cliente) têm pelo menos um corte de evidência real: Pessoas & Famílias, Caso 360, Contratos, Piloto Real, Painel Hoje, Comercial, Pesquisa, Marketing, Configuração e App Cliente. Isso não significa auditoria exaustiva de cada função — os itens abaixo em "Ainda não auditado" continuam reais — significa que nenhuma área ficou sem nenhuma linha de evidência.
+
 ## Ainda não auditado nesta rodada
 
-Sem evidência real levantada nesta sessão — não classificar por inferência:
+Sem evidência real levantada — não classificar por inferência:
 
-- **Marketing** (todas as 12 áreas do inventário)
-- **Configuração** (Perfil institucional, Catálogo, Equipe, Integrações, Modelos, Parâmetros, Dados técnicos, Qualidade)
-- **App Cliente**, as 7 telas inteiras (Home, Jornada, Radar, Árvore, Documentos, Legado, Conta)
-- Auditoria linha-a-linha de `pesquisa-cadeia.functions.ts`/`documentos-solicitacoes.functions.ts` (Sistema C de Pesquisa) — confirmada ausência de `gravarComVerificacao`, mas gates/papéis não foram rastreados função a função como nos demais sistemas
+- Auditoria linha-a-linha de `pesquisa-cadeia.functions.ts`/`documentos-solicitacoes.functions.ts` (Sistema C de Pesquisa) — confirmada ausência de `gravarComVerificacao`, gates/papéis não rastreados função a função
 - Handler da rota de API `src/routes/api/pesquisa-assistente.ts` em si (só o componente cliente foi lido)
+- `matriz-modelos-contratuais.ts`/`matriz-clausulas.ts`/`governanca.contrato-base.tsx` (Modelos contratuais) — identificados, conteúdo não lido linha a linha
+- "Dados técnicos" e "Qualidade" nomeados no pedido original de Configuração — nenhuma rota dedicada com esse nome localizada; pode estar disperso em `governanca.*` ou não existir como área própria — não afirmado nenhum dos dois sem checar
+- `portal.functions.ts` — padrão de persistência não contado função a função (mistura confirmada de `gravarComVerificacao` e updates manuais)
+- `usePortalVivo`/função server por trás dela — não lida linha a linha
+- Catálogo completo de conectores de Integrações (`CATEGORIAS_INTEGRACAO`, `CAMPOS_DESTINO`) — confirmado que nenhuma chamada externa existe, mas conectores individuais não enumerados
+- RLS/policies por trás de `portal_caso_permitido`/`portal_minha_org`/`portal_meu_cliente` — só os nomes vistos via grep no SQL de migração, não lidas por completo
 
 ## Próximo passo deste documento
 
