@@ -144,12 +144,9 @@ function ContratoDetalhe() {
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Acao onClick={() => setAba("Resumo")}>Editar contrato</Acao>
         <Acao onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}>
           Salvar rascunho
         </Acao>
-        <Acao onClick={() => setAba("Cláusulas")}>Adicionar cláusula</Acao>
-        <Acao onClick={() => setAba("Anexos")}>Adicionar anexo</Acao>
         <Acao
           onClick={() => {
             const titulo = prompt("Título da tarefa:");
