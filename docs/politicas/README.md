@@ -15,6 +15,27 @@ Cópias verbatim dos documentos de política/prompt enviados pela proprietária,
 | 3 (Cockpit) | `PROMPT-COCKPIT-DESK-INDICADORES-CADENCIAS-ACOES.md` | Não iniciado — indicadores acionáveis por grupo do Desk |
 | 4 (visual, por último) | `TAXONOMIA-CANONICA-MOCKUP-APROVADO.md` | Não implementado — é a fonte de verdade de nomenclatura para quando a revisão visual começar. Os nomes das 7 telas do App Cliente e das 7 telas do Desk Intelligence não podem ser renomeados, fundidos ou substituídos sem aprovação explícita quando esse trabalho começar. |
 
+## Prompt mestre — `PROMPT-MESTRE-MOTORES-A-IMPLANTAR.md` (31/08/2026)
+
+Documento novo, mais recente e mais completo que os anteriores desta lista — organiza os motores do produto em **P0 a P11**, cada um com objetivo, entidades, regras e critério de aceite, e absorve o conteúdo de `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md`, `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` e `PROMPT-COCKPIT-DESK-INDICADORES-CADENCIAS-ACOES.md` numa única sequência. A partir de agora este é o documento de referência para a ordem dos motores — os três anteriores continuam arquivados, mas não devem mais ser tratados como pistas paralelas.
+
+Regra do próprio documento: **"Cada fase precisa ser validada com dados reais antes da próxima"** — não pular fase.
+
+| Fase | O que é | Status real em 31/08/2026 |
+|---|---|---|
+| P0 — Autoridade operacional e persistência | editar → salvar → confirmar linha → reler → refresh → reabrir | Em andamento, maior parte feita — `gravarComVerificacao`/`inserirComVerificacao` já é o padrão em Pessoas (PR #32), Piloto Real, Contratos (PR #35); Comercial/Financeiro ainda com ~12 de 14 funções sem esse padrão (achado do Mapa, não corrigido ainda) |
+| P1 — Caso canônico, núcleo e participantes | um `case_id`, aliases preservados, matriz de reconciliação antes de qualquer merge | Fase 1 (mapear sem modificar) feita com dado real (PR #36) — zero duplicidade real encontrada, nada unido ainda. Fase de motor (`case_participants`) não iniciada — aguardando decisão da proprietária |
+| P2 — Comercial, proposta, contrato e OS | conteúdo jurídico fora de "Dados técnicos", perfil institucional reutilizado automaticamente | Contrato parcialmente feito (PR #35: 6 ações reais, edição de CPF/CNPJ, correção do bug da parte contratante); perfil institucional da contratada **ainda não** reutilizado automaticamente de forma correta — é o achado do CNPJ em 3 lugares sem sincronia, registrado e pausado por decisão da proprietária |
+| P3 — Tarefas, próxima ação e cadência | decisão de tarefa não bloqueia salvamento; idempotência por `case_id + origem + referência` | Parcial — decisão de tarefa existe em Pessoa (PR #32) e Caso 360, mas sem a chave de idempotência descrita aqui; ainda cria nova tarefa a cada clique, não reaproveita |
+| P4 — Onboarding real | um onboarding por `case_id`, motor único parametrizado | Não iniciado — achado dos **3 sistemas de onboarding paralelos** (Mapa de Autoridade Admin) é exatamente o problema que esta fase resolve |
+| P5 — Pesquisa, fontes, documentos e evidências | Não iniciado — achado do **3º sistema paralelo de evidências** (Painel Hoje/Comercial/Pesquisa, PR #34) é o mesmo problema |
+| P6 — Micro-entregas, App Cliente e portal | Não iniciado — App Cliente ainda não auditado no Mapa |
+| P7 — Catálogo, financeiro e comercial | Não iniciado além do que já existe em Comercial (auditado, não corrigido) |
+| P8 — Marketing, conteúdo e conversão | Não iniciado — Marketing ainda não auditado no Mapa |
+| P9 — Cockpit, indicadores e alertas | Não iniciado — é o prompt do Cockpit, explicitamente adiado pela proprietária |
+| P10 — Integrações externas e escala | Não iniciado, nem deve começar antes do fluxo interno estar confiável (regra do próprio documento) |
+| P11 — Revisão visual e marca | Não iniciado — pré-requisito do próprio documento ("Ana operável, onboarding real, dados sobrevivem a refresh") ainda não está completo |
+
 ## Documentos históricos adicionais (arquivados em 30/08/2026, "adicione todos os demais prompts anteriores")
 
 Estes documentos foram enviados em datas anteriores à sequência confirmada acima. Nenhum foi implementado só por estar arquivado aqui — mesma regra do topo desta página. Onde o conteúdo já foi decidido pela sequência confirmada (P0/P1 agora, motor depois, Cockpit/visual por último), essa decisão prevalece sobre qualquer prioridade que o próprio documento reivindique para si.
