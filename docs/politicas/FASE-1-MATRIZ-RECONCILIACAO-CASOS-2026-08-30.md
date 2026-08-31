@@ -1,80 +1,57 @@
 # Fase 1 — Mapear sem modificar (Política Unificada de Casos Familiares)
 
-**Data:** 30 de agosto de 2026
+**Data:** 30 de agosto de 2026 (atualizado após acesso real ao Supabase)
 **Documento de origem:** `docs/politicas/PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md`, seção 14, Fase 1.
 **Branch:** `feat/politica-unificada-casos-familiares`
 
-## Status honesto
+## Resumo — a maior parte do que este documento previa já não se aplica
 
-Esta sessão **não tem acesso de consulta ao Supabase real do projeto** (`zsxpdbhdvbuulwpepemd`) no momento em que este documento foi escrito, apesar da proprietária ter autorizado o conector. As únicas ferramentas de banco disponíveis pertencem a uma plataforma diferente (Lovable), não ao projeto do Clube Ancestral — não foram usadas.
+A primeira versão deste arquivo (antes do acesso ao Supabase real) presumia que a duplicidade de código do caso da Ana Luiza ainda existia e propunha criar uma tabela `case_code_aliases`. As consultas reais abaixo mostram que isso **já estava corrigido antes desta sessão**. A migration `case_code_aliases` foi removida — criaria uma tabela redundante.
 
-Por isso, **nenhum número real de duplicidade foi levantado ainda.** O que segue é o que dá para preparar com segurança sem tocar em dado real: a estrutura pronta para rodar assim que o acesso existir, e o que já se sabe pelo próprio código (não por consulta ao banco).
+## O que as consultas reais confirmaram (30/08, projeto `zsxpdbhdvbuulwpepemd`)
 
-## O que já está pronto para quando o acesso existir
-
-### 1. Tabela de aliases (aditiva, não aplicada ainda)
-
-`supabase/migrations/20260830233000_case_code_aliases.sql` — cria `case_code_aliases` exatamente como especificado na seção 3 do documento de origem. Não insere nenhuma linha, não altera nenhuma tabela existente, RLS por organização usando os mesmos helpers (`is_org_member`/`can_write`) já usados no resto do produto. Esta migration ainda não foi aplicada ao banco — precisa ser revisada e aplicada pela proprietária (ou por esta sessão, quando o acesso ao Supabase existir).
-
-### 2. Consultas prontas para a matriz de reconciliação (só leitura)
-
-Assim que o acesso ao Supabase existir, estas consultas produzem a matriz pedida na seção 14 (Registro antigo | Entidade | Caso de destino | Ação | Confiança | Observação) sem alterar nada:
+### 1. Duplicidade de case_code: zero
 
 ```sql
--- Duplicidade por case_code (ou campo equivalente em crm_casos)
-select codigo, count(*) as casos, array_agg(id) as case_ids
-from public.crm_casos
-where archived_at is null
-group by codigo
-having count(*) > 1;
-
--- Caso conhecido citado no documento de origem (Ana Luiza)
-select id, codigo, titulo, cliente_id, created_at, archived_at
-from public.crm_casos
-where codigo in ('CA-CID-AT-FAM-2026-001', 'CA-AUT-ANALUIZA-FAM-2026-001')
-   or titulo ilike '%ana luiza%';
-
--- Duplicidade de pessoa por telefone/e-mail em clientes
-select telefone, count(*) , array_agg(id) as cliente_ids
-from public.clientes
-where telefone is not null
-group by telefone
-having count(*) > 1;
-
-select email, count(*), array_agg(id) as cliente_ids
-from public.clientes
-where email is not null
-group by email
-having count(*) > 1;
-
--- Entidades órfãs (sem case_id válido) nas tabelas centrais
-select 'proposals' as tabela, count(*) from public.proposals p
-  where not exists (select 1 from public.crm_casos c where c.id = p.case_id)
-union all
-select 'contracts', count(*) from public.contracts k
-  where k.case_id is not null and not exists (select 1 from public.crm_casos c where c.id = k.case_id);
-
--- Nome da mesma pessoa aparecendo em mais de uma das 4 tabelas sem ID comum
--- (achado já registrado no Mapa de Autoridade Admin — aqui é a confirmação
--- por dado real, não por leitura de código)
-select lower(trim(person_name)) as nome, count(distinct contract_id) as contratos
-from public.contract_parties
-group by lower(trim(person_name))
-having count(*) > 1;
+select codigo, count(*) from public.crm_casos where archived_at is null group by codigo having count(*) > 1;
+-- 0 linhas
 ```
 
-### 3. O que o código já confirma, sem precisar de banco (registrado no Mapa de Autoridade Admin)
+### 2. O caso da Ana Luiza já está reconciliado, com aliases preservados
 
-- 4 tabelas guardam nome de pessoa sem `person_id` comum: `clientes`, `nucleo_membros`, `genealogical_person_profiles`, `contract_parties`.
-- A cópia automática de contratante_nome/documento/endereço da matriz de Parâmetros para o contrato só acontecia uma vez, na criação — e falhava silenciosamente por uma constraint de `role` inválida (já corrigido nesta sessão, PR #35).
-- O próprio documento de origem já cita os dois códigos de caso concorrentes da Ana Luiza (`CA-CID-AT-FAM-2026-001` / `CA-AUT-ANALUIZA-FAM-2026-001`) como fato conhecido, não como algo a descobrir.
+Existe **um único** `crm_casos` com código `CA-CID-AT-FAM-2026-001` (id `a11a0000-0000-4000-8000-000000000002`). O código `CA-AUT-ANALUIZA-FAM-2026-001` citado no documento de origem como duplicidade **não existe mais como caso separado** — já é um alias histórico.
 
-## O que não foi feito, e por quê
+A tabela de aliases já existe (não é `case_code_aliases`, é **`case_aliases`** — já no schema, com colunas `case_id`, `alias`, `alias_type`, `source`, `reason`, `superseded_by`) e já tem 3 registros para este caso:
 
-- **Matriz de reconciliação preenchida com dados reais**: bloqueada por acesso ao Supabase.
-- **Correção do caso Ana Luiza (Fase 2)**: não iniciada — depende da matriz acima e, pelo próprio documento, exige apresentação à proprietária antes de qualquer reapontamento de registro.
-- **`case_participants`, motor de caso único, onboarding único (Fase 3)**: não iniciado — depende das fases anteriores; desenhar esse schema sem primeiro confirmar os padrões reais de duplicidade seria adivinhar, não mapear.
+| Alias | Tipo | Origem | Motivo registrado |
+|---|---|---|---|
+| `CA-AUT-ANALUIZA-FAM-2026-001` | histórico | `migracao_g01` | "Referência legada resolvida... Decisão da Proprietária Administradora em 2026-08-22" |
+| `CA-2026-ANA-001` | histórico | `migracao_g01` | idem |
+| `CA-CID-AT-2026-002` | histórico | `saneamento_cadeia_ana` | "Consolidação de cadeia real após auditoria de identidade" |
+
+Conclusão: a Fase 2 do documento de origem ("Corrigir Ana Luiza em branch isolada") **já foi feita**, antes desta sessão, por um processo anterior. Não há reconciliação de caso pendente para ela.
+
+### 3. Zero duplicidade de cliente por telefone ou e-mail
+
+Ambas as consultas (`group by telefone`/`group by email having count(*) > 1`) retornaram vazio.
+
+### 4. Zero nome de parte repetido em mais de um contrato
+
+`contract_parties` agrupado por `person_name` normalizado: vazio.
+
+### 5. A família da Ana está de fato ligada, na prática, apesar do schema não ter FK formal
+
+`nucleo_membros.cliente_id` já aponta para `clientes.id` para os 3 signatários (Ana, Adair, Alice) — só o dependente Felipe (menor) não tem `cliente_id`, o que é esperado. O contrato `2026-CB-0001` já tem `contract_parties` completo e correto: Ana como `contracting_client` com CPF preenchido, Adair e Alice como `co_contractor` com CPF, Felipe como `dependent`, e "Clube Ancestral" como `provider` com CNPJ `10.448.812/0001-58`.
+
+**Correção ao que este documento e o Mapa de Autoridade Admin registraram antes deste acesso real:** a hipótese de que a parte contratante do caso da Ana estava vazia/sem CNPJ **não se confirmou no dado real** — ela já estava corretamente preenchida. O bug de constraint (`role: "contratante"` inválido) corrigido na PR #35 é real e continua correto de corrigir — mas não foi a causa do bloqueio relatado neste caso específico, porque este contrato não passou por aquele caminho quebrado.
+
+## O achado que continua real: identidade de pessoa sem ID comum, estruturalmente
+
+Mesmo com os dados de Ana consistentes na prática, a ausência de uma coluna `person_id` compartilhada entre `clientes`, `nucleo_membros`, `contract_parties`, `case_members`, `research_people` e `genealogical_person_profiles` continua sendo um risco estrutural real — só não está causando dano visível no caso da Ana hoje. Vale registrar dois números adicionais encontrados por consulta real:
+
+- **`genealogical_person_profiles` tem 0 linhas em produção.** Ninguém — nem Ana — tem hoje um perfil G-02 criado. A tela "Pessoas e Linhagens" aparecer com o formulário de criação em branco (print enviado pela proprietária) não é um bug: é o estado real, ninguém preencheu essa ficha ainda.
+- **`institutional_profiles` existe no schema (colunas `versao`, `status`, `campos` jsonb, `whatsapp_configurado`) mas também tem 0 linhas.** Essa tabela parece ter sido desenhada para substituir o perfil institucional hoje hardcoded como constante no código (`PERFIL_INSTITUCIONAL` em `contrato-base-consolidado.ts`, incluindo o CNPJ `10.448.812/0001-58` da própria Clube Ancestral) — mas nunca foi povoada nem conectada. **Esta é a explicação mais provável para "o CNPJ não muda":** se a proprietária estava tentando editar o CNPJ da própria Clube Ancestral (não o de um cliente), não existe UI nenhuma para isso hoje — o valor está escrito direto no código-fonte, só muda com deploy. Precisa de confirmação dela para saber se é isso mesmo antes de qualquer mudança.
 
 ## Próximo passo
 
-Assim que o acesso ao Supabase estiver disponível nesta sessão: rodar as consultas acima, preencher a matriz de reconciliação real, e trazer o resultado à proprietária antes de tocar em qualquer registro do caso da Ana Luiza — exatamente como a Fase 2 do documento de origem exige.
+Não seguir para Fase 3 (motor `case_participants`) sem antes: (1) confirmar com a proprietária se "CNPJ da contratante" se referia à Clube Ancestral (perfil institucional hardcoded) ou a um cliente específico; (2) decidir, com ela, se vale a pena mover `PERFIL_INSTITUCIONAL` para a tabela `institutional_profiles` já existente e torná-lo editável — isso sozinho pode já resolver o bloqueio relatado, sem precisar da unificação completa de `case_participants`.
