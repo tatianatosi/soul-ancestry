@@ -8,9 +8,9 @@ Cópias verbatim dos documentos de política/prompt enviados pela proprietária,
 
 | Ordem | Documento | Status |
 |---|---|---|
-| 1 (agora) | `PENTE-FINO-IMPLANTACAO-PENDENCIAS-2026-08-30.md` | P0/P1 em andamento — Ana operável, persistência, reconciliação de PRs |
-| 1 (agora) | `PROMPT-AUTORIDADE-ADMIN-MAPA-DESK-APP.md` | Em andamento — Mapa de Autoridade Admin, primeiro corte entregue (PR #34) |
-| 2 (depois do motor) | `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` | Não iniciado — política de caso canônico único, participantes, grupo familiar, onboarding único |
+| 1 (agora) | `PENTE-FINO-IMPLANTACAO-PENDENCIAS-2026-08-30.md` | P0/P1 efetivado nesta janela — persistência com verificação (PR #31), decisão pós-salvamento em Pessoa (PR #32), Piloto Real com pendências reais (PR #33), reconciliação Contratos PR#28×PR#32 + edição de partes/CPF-CNPJ (PR #35) |
+| 1 (agora) | `PROMPT-AUTORIDADE-ADMIN-MAPA-DESK-APP.md` | Em andamento — Mapa de Autoridade Admin (PR #34) com Pessoas, Caso 360, Contratos, Piloto Real, Painel Hoje, Comercial e Pesquisa mapeados com evidência real; Marketing/Configuração/App Cliente ainda pendentes |
+| 2 (depois do motor) | `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` | Fase 1 (mapear sem modificar) efetivada com dado real do Supabase (PR #36) — duplicidade de caso da Ana já estava resolvida antes desta sessão; achado real pendente: CNPJ institucional da Clube Ancestral em 3 lugares sem sincronia. Fase 2/3 (motor `case_participants`) aguardando decisão da proprietária — pausado por instrução dela em 30/08 |
 | 2 (depois do motor) | `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` | Não iniciado — CRM vivo, motor contratual, cadências por evento, indicadores reais |
 | 3 (Cockpit) | `PROMPT-COCKPIT-DESK-INDICADORES-CADENCIAS-ACOES.md` | Não iniciado — indicadores acionáveis por grupo do Desk |
 | 4 (visual, por último) | `TAXONOMIA-CANONICA-MOCKUP-APROVADO.md` | Não implementado — é a fonte de verdade de nomenclatura para quando a revisão visual começar. Os nomes das 7 telas do App Cliente e das 7 telas do Desk Intelligence não podem ser renomeados, fundidos ou substituídos sem aprovação explícita quando esse trabalho começar. |
@@ -21,8 +21,8 @@ Estes documentos foram enviados em datas anteriores à sequência confirmada aci
 
 | Documento | Contexto | Status |
 |---|---|---|
-| `P0-AUTORIDADE-OPERACIONAL-PERSISTENCIA-PROXIMA-ACAO.md` | P0 — autoridade operacional, persistência real, continuidade por próxima ação/tarefa | Substancialmente coberto pelo trabalho de persistência-com-verificação e decisão pós-salvamento já entregue nesta janela (PR #31, PR #32); não conferido item a item contra este documento |
-| `PROMPT-REVISAO-MOTORES-E-CASO-360.md` | Pede diagnóstico objetivo (não implementação) dos motores Marketing/Financeiro/Onboarding/Planejador/Pesquisa/Contratos/Caso 360 antes de qualquer feature nova | Parcialmente coberto pelo Mapa de Autoridade Admin (Pessoas, Caso 360, Contratos, Piloto Real já mapeados); Marketing/Financeiro/Planejador ainda não auditados |
+| `P0-AUTORIDADE-OPERACIONAL-PERSISTENCIA-PROXIMA-ACAO.md` | P0 — autoridade operacional, persistência real, continuidade por próxima ação/tarefa | Substancialmente coberto pelo trabalho de persistência-com-verificação e decisão pós-salvamento entregue nesta janela (PR #31, #32, #33, #35); não conferido item a item contra este documento |
+| `PROMPT-REVISAO-MOTORES-E-CASO-360.md` | Pede diagnóstico objetivo (não implementação) dos motores Marketing/Financeiro/Onboarding/Planejador/Pesquisa/Contratos/Caso 360 antes de qualquer feature nova | Parcialmente coberto pelo Mapa de Autoridade Admin — Pessoas, Caso 360, Contratos, Piloto Real, Painel Hoje, Comercial e Pesquisa já mapeados com evidência real; Marketing/Financeiro/Planejador ainda não auditados |
 | `PROMPT-CORRECAO-ADMIN-VISAO-CLIENTE.md` | Correção pontual — admin não conseguia abrir a visão do cliente | Não verificado se o bug ainda existe; precisa reprodução antes de qualquer ação |
 | `PROMPT-VISAO-PRODUTO-ARQUITETURA-MOCKUPS-LANDINGS.md` (28/08/2026) | Visão de produto, arquitetura validada, mockups e landings — documento longo (882 linhas) | Não iniciado; entra na fase visual/Cockpit (item 3/4 da sequência confirmada), não antes |
 | `PROMPT-EIXO-COMUNICACAO-IMPLANTACAO-FUTURA.md` | Eixo de comunicação completo (biblioteca de mensagens, onboarding por cenário, cadências, pós-venda, conteúdo/redes) | Explicitamente marcado pelo próprio documento como "somente após" Cliente→Caso→Proposta→Contrato→Financeiro estarem operáveis com dados persistidos — ainda não iniciado |
