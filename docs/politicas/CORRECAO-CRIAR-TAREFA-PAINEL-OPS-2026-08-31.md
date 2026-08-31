@@ -6,7 +6,9 @@
 > - `casos.$caseId.index.tsx` (mesmo branch) — importa e renderiza `<TarefasDoCaso caseId={id} />` (linha 30/632), componente com botão "Criar tarefa" próprio, embutido dentro da seção "Indicadores" da página.
 > - `contratos.$id.tsx` (branch `fix/reconciliar-contratos-pr28-pr32`, PR #35) — `mTarefa` (linha 99), botão "Criar tarefa" na barra de ações principal (linha 160).
 >
-> Por isso este documento **não foi tratado como correção aceita** e o Mapa de Autoridade Admin não foi alterado por causa dele. Arquivado como registro do relato recebido, não como fato verificado — ver resposta dada em conversa no mesmo momento, pedindo qual URL de preview foi testada e o que exatamente aconteceu ao clicar.
+> Por isso este documento **não foi tratado como correção aceita** e o Mapa de Autoridade Admin não foi alterado por causa dele. Arquivado como registro do relato recebido, não como fato verificado.
+>
+> **Resolvido no mesmo dia:** a proprietária confirmou que o teste foi feito em produção (`main`) ou outro link, não no preview do PR #35 — nenhuma dessas implementações está mesclada em `main`, então realmente não apareceriam lá. Não era bug: era a URL errada, mesmo problema de navegação já visto antes nesta sessão. URL correta para testar as três: `https://soul-ancestry-git-fix-reconciliar-co-14c2c9-tati-6134s-projects.vercel.app`.
 
 ```yaml
 status: em revisão
