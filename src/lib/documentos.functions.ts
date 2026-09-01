@@ -273,7 +273,7 @@ export const registrarConsentimento = createServerFn({ method: "POST" })
       escopo_compartilhamento: limparTexto(data.escopoCompartilhamento),
       evidencia_consentimento: limparTexto(data.evidenciaConsentimento, 500),
       coletado_em: data.coletadoEm ? new Date(data.coletadoEm).toISOString() : new Date().toISOString(),
-      status: "ativo",
+      status: "coletado",
     });
     if (error) throw new Error(error.message);
     return { ok: true };
