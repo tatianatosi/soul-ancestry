@@ -4,17 +4,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
-import { BLOQUEIOS_PILOTO, FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
-import { conferenciaPiloto } from "@/lib/piloto-conferencia";
+import { FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA, ROTULO_ORIGEM_PENDENCIA, type PendenciaPiloto } from "@/lib/piloto-ana";
 import { carregarPilotoAna, definirIdCanonicoPiloto, materializarPilotoAna } from "@/lib/piloto-ana.functions";
 
 export const Route = createFileRoute("/_authenticated/piloto-ana")({
   head: () => ({
     meta: [
       { title: "Caso-piloto Ana Luiza — Clube Ancestral" },
-      { name: "description", content: "Estado interno consolidado do caso-piloto, bloqueios, núcleo familiar e decisão do identificador canônico." },
+      { name: "description", content: "Estado interno consolidado do caso-piloto, pendências reais, núcleo familiar e decisão do identificador canônico." },
       { property: "og:title", content: "Caso-piloto Ana Luiza — Clube Ancestral" },
-      { property: "og:description", content: "Piloto em formalização em preparação, situação operacional NO_GO." },
+      { property: "og:description", content: "Estado operacional derivado do caso real, sem lista fixa de bloqueios." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -29,6 +28,28 @@ const Bloco = ({ titulo, children }: { titulo: string; children: React.ReactNode
     <div className="mt-3 text-sm text-navy/70">{children}</div>
   </section>
 );
+
+function LinhaPendencia({ p }: { p: PendenciaPiloto }) {
+  return (
+    <li className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
+      <p className="text-sm text-navy">{p.descricao}</p>
+      <p className="mt-1 text-[11px] uppercase tracking-wide text-navy/40">
+        {ROTULO_ORIGEM_PENDENCIA[p.origem]} · {p.entidade}
+      </p>
+      <p className="text-xs text-navy/60">Estado atual: {p.estadoAtual}</p>
+      <p className="text-xs text-navy/60">Tarefa vinculada: {p.tarefaVinculada ?? "nenhuma"}</p>
+      {p.acaoRelacionada ? (
+        <Link
+          to={p.acaoRelacionada.to as never}
+          params={(p.acaoRelacionada.params ?? {}) as never}
+          className="mt-1 inline-block text-xs font-medium text-terracotta underline"
+        >
+          {p.acaoRelacionada.rotulo}
+        </Link>
+      ) : null}
+    </li>
+  );
+}
 
 function PilotoAna() {
   const queryClient = useQueryClient();
@@ -49,7 +70,7 @@ function PilotoAna() {
   });
 
   const caso = q.data?.caso ?? null;
-  const conferencia = conferenciaPiloto(caso as Record<string, unknown> | null);
+  const pendencias = (q.data?.pendencias ?? []) as PendenciaPiloto[];
 
   return (
     <SaasShell
@@ -68,7 +89,6 @@ function PilotoAna() {
                 ["Referência jurídica interna", PILOTO_ANA.referencia_juridica_interna],
                 ["Aceite formal", `confirmado em ${new Date(PILOTO_ANA.aceite_formal_confirmado_em).toLocaleDateString("pt-BR")}`],
                 ["Estado atual", "formalizacao_em_preparacao"],
-                ["Estado operacional", PILOTO_ANA.estado_operacional],
                 ["Responsável", PILOTO_ANA.responsavel],
                 ["IDs históricos preservados", PILOTO_ANA.ids_historicos.join(" · ")],
               ].map(([r, v]) => (
@@ -85,7 +105,9 @@ function PilotoAna() {
                 <p className="text-[11px] uppercase tracking-wide text-navy/40">Status</p>
                 <p className="text-sm text-navy">Formalização em preparação</p>
                 <p className="mt-1 text-xs text-navy/60">
-                  Pendências de formalização: {conferencia.total - conferencia.concluidos}
+                  {pendencias.length === 0
+                    ? "Nenhuma pendência real aberta encontrada no banco para este caso."
+                    : `${pendencias.length} pendência(s) real(is) aberta(s) — ver "Dados técnicos e validações" abaixo.`}
                 </p>
               </div>
             ) : null}
@@ -120,77 +142,11 @@ function PilotoAna() {
               )}
               {mMaterializar.isError && <span className="text-sm text-terracotta">{(mMaterializar.error as Error).message}</span>}
             </div>
-          </Bloco>
-
-          <details className="rounded-xl border border-navy/10 bg-white p-5">
-            <summary className="cursor-pointer font-serif text-base text-navy">
-              Dados técnicos — conferência de gates ({conferencia.concluidos} de {conferencia.total})
-            </summary>
-            <p className="mt-2 text-[11px] text-navy/50">
-              Leitura derivada dos mesmos requisitos da ficha operacional. Não altera estado, não bloqueia nenhuma
-              ação acima e não libera cobrança, assinatura, pesquisa externa nem comunicação.
+            <p className="mt-3 text-[11px] text-navy/45">
+              Nenhuma pendência listada abaixo bloqueia editar o caso, a pessoa, a pesquisa, uma tarefa, uma fonte, uma
+              proposta rascunho, um contrato rascunho ou uma OS — todas as ações acima continuam disponíveis.
             </p>
-
-            <div className="mt-4 grid gap-3 lg:grid-cols-2">
-              {conferencia.gates.map((g) => (
-                <div
-                  key={g.letra}
-                  className={
-                    "rounded-lg border p-4 " +
-                    (g.ok ? "border-navy/10 bg-white" : "border-terracotta/30 bg-white")
-                  }
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium text-navy">
-                      Gate {g.letra} — {g.nome}
-                    </p>
-                    <span
-                      className={
-                        "rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide " +
-                        (g.ok ? "bg-gold/15 text-navy" : "bg-terracotta/10 text-terracotta")
-                      }
-                    >
-                      {g.ok ? "conferido" : g.critico ? "crítico pendente" : "pendente"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-navy/60">
-                    {g.categoria} · {g.criterio}
-                  </p>
-
-                  <ul className="mt-3 space-y-2">
-                    {g.campos.map((c) => (
-                      <li key={c.campo} className="rounded border border-navy/10 px-3 py-2">
-                        <p className="text-xs font-medium text-navy">
-                          {c.conferido ? "☑" : "◻"} {c.campo}: <span className="font-normal">{c.valor}</span>
-                        </p>
-                        <p className="text-[11px] text-navy/55">Origem: {c.origem}</p>
-                        <p className="text-[11px] text-navy/55">Evidência exigida: {c.evidencia}</p>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {g.requisitos.length > 0 ? (
-                    <ul className="mt-2 space-y-1 text-[11px] text-navy/60">
-                      {g.requisitos.map((r) => (
-                        <li key={r.chave}>
-                          {r.ok ? "☑" : "◻"} Requisito de ativação: {r.rotulo}
-                          {r.motivo ? ` — ${r.motivo}` : ""}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
-                  {g.bloqueios.length > 0 ? (
-                    <ul className="mt-2 space-y-1 text-[11px] text-terracotta">
-                      {g.bloqueios.map((b) => (
-                        <li key={b.codigo}>• {b.titulo} — {b.detalhe}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </details>
+          </Bloco>
 
           <Bloco titulo="Decisão humana do identificador canônico">
             <p className="mb-3 text-xs text-navy/60">
@@ -223,18 +179,6 @@ function PilotoAna() {
               {caso?.id_canonico_decidido_por ? ` — ${caso.id_canonico_decidido_por}` : ""}
             </p>
             {mId.isError && <p className="mt-2 text-sm text-terracotta">{(mId.error as Error).message}</p>}
-          </Bloco>
-
-          <Bloco titulo={`Pendências de formalização (${BLOQUEIOS_PILOTO.length})`}>
-            <ul className="grid gap-2 lg:grid-cols-2">
-              {BLOQUEIOS_PILOTO.map((b) => (
-                <li key={b.codigo} className="rounded-lg border border-navy/10 bg-cream/60 px-3 py-2">
-                  <p className="text-sm text-navy">{b.titulo}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-navy/40">{b.dominio}</p>
-                  <p className="text-xs text-navy/60">{b.detalhe}</p>
-                </li>
-              ))}
-            </ul>
           </Bloco>
 
           <Bloco titulo="Núcleo familiar">
@@ -283,6 +227,23 @@ function PilotoAna() {
               </ul>
             )}
           </Bloco>
+
+          {pendencias.length > 0 ? (
+            <details className="rounded-xl border border-navy/10 bg-white p-5">
+              <summary className="cursor-pointer font-serif text-base text-navy">
+                Dados técnicos e validações ({pendencias.length} pendência(s) real(is) aberta(s))
+              </summary>
+              <p className="mt-2 text-[11px] text-navy/50">
+                Consultado direto do banco para este caso — nenhum item fixo. Leitura derivada: não altera dado, não
+                bloqueia nenhuma ação e não libera cobrança, assinatura, pesquisa externa nem comunicação.
+              </p>
+              <ul className="mt-4 grid gap-2 lg:grid-cols-2">
+                {pendencias.map((p) => (
+                  <LinhaPendencia key={p.codigo} p={p} />
+                ))}
+              </ul>
+            </details>
+          ) : null}
         </div>
       )}
     </SaasShell>
