@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
+import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
@@ -297,6 +298,14 @@ function FichaCaso() {
   const qc2 = useQuery({
     queryKey: ["caso-canonico", id],
     queryFn: () => carregarCanon({ data: { caseId: id } }),
+    retry: false,
+  });
+  const carregarProposta = useServerFn(obterPropostaCanvaDoCliente);
+  const clienteId = q.data?.caso?.cliente_id as string | null | undefined;
+  const qProposta = useQuery({
+    queryKey: ["proposta-canva-cliente", clienteId],
+    queryFn: () => carregarProposta({ data: { clienteId: clienteId as string } }),
+    enabled: Boolean(clienteId),
     retry: false,
   });
   const recarregar = () => {
@@ -1023,78 +1032,47 @@ function FichaCaso() {
             <AbaCadastro caseId={id} bloqueado={bloqueado} />
 
             {/*
-              27/08/2026 — decisão da Proprietária: "o que é lead e faz parte
-              da pessoa, como contrato, proposta, roteiro discovery, etc,
-              tudo que compõe ela". Referência de proposta era formulário
-              dentro de "Comercial" (agora "Jurídico", enxuto); mudou de
-              lugar, não de forma — histórico comercial compõe a pessoa.
+              01/09/2026 — decisão da Proprietária: aposentado o campo livre de
+              proposta (era texto digitado à mão, nunca ligado à proposta real).
+              Só aparece agora quando a pessoa já tem uma proposta Canva real
+              vinculada (`proposals` + `proposal_canva_pages`) — leitura, não
+              formulário. Sem proposta real, a seção inteira não é exibida.
             */}
-            <Secao
-              titulo="Proposta (referência interna)"
-              descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada."
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Texto
-                  label="Referência interna da proposta"
-                  valor={v("proposta_referencia_interna")}
-                  onChange={(x) => set("proposta_referencia_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Data da proposta"
-                  tipo="date"
-                  valor={v("data_proposta")}
-                  onChange={(x) => set("data_proposta", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Link interno da proposta"
-                  valor={v("proposta_url_interna")}
-                  onChange={(x) => set("proposta_url_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Selecao
-                  label="Condição comercial interna"
-                  valor={String(
-                    v("condicao_comercial_interna_pendente") === "false" ? "false" : "true",
-                  )}
-                  opcoes={[
-                    { valor: "true", rotulo: "Pendente de homologação" },
-                    { valor: "false", rotulo: "Homologada" },
-                  ]}
-                  onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Escopo incluído (resumo)"
-                  valor={v("escopo_incluido_resumido")}
-                  onChange={(x) => set("escopo_incluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-                <Texto
-                  label="Escopo excluído (resumo)"
-                  valor={v("escopo_excluido_resumido")}
-                  onChange={(x) => set("escopo_excluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                <Link
-                  to="/propostas"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Propostas
-                </Link>
-                <Link
-                  to="/nucleos"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Núcleos familiares e dossiê-mãe
-                </Link>
-              </div>
-            </Secao>
+            {qProposta.data?.proposta ? (
+              <Secao
+                titulo="Proposta"
+                descricao="Somente leitura — vem da proposta Canva real vinculada ao cliente."
+              >
+                <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Status</span>
+                    <p className="text-navy">{String(qProposta.data.proposta.status ?? "—")}</p>
+                  </div>
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Versão</span>
+                    <p className="text-navy">{String(qProposta.data.proposta.versao ?? "—")}</p>
+                  </div>
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Completude Canva</span>
+                    <p className="text-navy">{qProposta.data.paginasExtraidas}/7 páginas extraídas</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                  <Link
+                    to="/propostas"
+                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                  >
+                    Ver proposta
+                  </Link>
+                  <Link
+                    to="/nucleos"
+                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                  >
+                    Núcleos familiares e dossiê-mãe
+                  </Link>
+                </div>
+              </Secao>
+            ) : null}
 
             {/* Etiquetas é metadado leve do caso — junto de quem está nele, não seção própria. */}
             <AbaEtiquetas

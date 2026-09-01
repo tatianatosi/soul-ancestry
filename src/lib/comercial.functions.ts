@@ -138,6 +138,44 @@ export const listarVinculos = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * Proposta Canva real do cliente do caso (a mais recente não arquivada), com
+ * completude de extração das páginas 1–7. Substitui o antigo campo livre
+ * "Proposta (referência interna)" — só existe conteúdo aqui quando há
+ * proposta real vinculada; nunca texto digitado à mão.
+ */
+export const obterPropostaCanvaDoCliente = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clienteId: string }) => {
+    if (!data?.clienteId) throw new Error("Informe o cliente.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contextoInterno(supabase, context.userId as string);
+    const { data: proposta } = await supabase
+      .from("proposals")
+      .select("id,versao,status,valor,moeda,validade,enviada_em,aprovada_em,created_at")
+      .eq("organization_id", organizationId)
+      .eq("client_id", data.clienteId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!proposta) return { proposta: null, paginasExtraidas: 0 };
+    const { data: paginas } = await supabase
+      .from("proposal_canva_pages")
+      .select("page_number,extracao_status")
+      .eq("organization_id", organizationId)
+      .eq("proposal_id", proposta.id as string)
+      .is("archived_at", null);
+    const extraidas = ((paginas ?? []) as { extracao_status: string }[]).filter(
+      (p) => p.extracao_status === "extraida",
+    ).length;
+    return { proposta, paginasExtraidas: extraidas };
+  });
+
 /** Histórico de auditoria de um registro. */
 export const historicoRegistro = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
