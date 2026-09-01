@@ -1,6 +1,6 @@
 import type { CaseData } from "@/types/case";
 
-/** Primeiro preenchimento real do modelo — caso piloto. */
+/** Dado demonstrativo do mockup navegável — caso piloto não se realizou, nunca foi cliente real. */
 export const caseDataGiovanna: CaseData = {
   geral: {
     case_id: "CA-CID-IT-2026-001",
