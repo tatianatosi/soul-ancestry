@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   camposDoTipo,
   pendenciasCadastro,
@@ -162,7 +163,18 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
   });
 
 
-/** Atualiza um item: status, fonte, data de verificação, acesso e observação. */
+/**
+ * Atualiza um item: status, fonte, data de verificação, acesso e observação.
+ *
+ * 30/08/2026 — achado real (P0, reportado pela proprietária no preview):
+ * fazia `.update(patch).eq("id", data.id)` e só checava `error`. Um UPDATE
+ * que bate em zero linhas (RLS por organização/permissão, ou id de outra
+ * organização) não é erro no Postgres/PostgREST — é sucesso com zero linhas
+ * afetadas. A tela recebia `{ok:true}` e nada tinha sido gravado. Agora usa
+ * `gravarComVerificacao` (persistencia.server.ts): exige organization_id na
+ * cláusula do UPDATE, confere linha afetada e relê comparando campo a campo
+ * antes de devolver sucesso.
+ */
 export const salvarItemChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -180,7 +192,14 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
 
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString(), updated_by: userId };
+    const { data: linha } = await supabase
+      .from("checklist_cadastral")
+      .select("organization_id,fonte,data_verificacao")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!linha) throw new Error("Item do checklist não encontrado ou sem permissão de leitura.");
+
+    const patch: Record<string, unknown> = {};
     for (const campo of ["status", "fonte", "data_verificacao", "acesso_restrito", "observacao_interna", "obrigatorio"] as const) {
       if (campo in data) {
         const v = (data as any)[campo];
@@ -189,20 +208,21 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
     }
     // Verificado exige fonte declarada e data — nada é inferido.
     if (patch["status"] === "verificado") {
-      const { data: atual } = await supabase
-        .from("checklist_cadastral")
-        .select("fonte,data_verificacao")
-        .eq("id", data.id)
-        .maybeSingle();
-      const fonte = (patch["fonte"] ?? atual?.fonte) as string | null;
-      const dt = (patch["data_verificacao"] ?? atual?.data_verificacao) as string | null;
+      const fonte = (patch["fonte"] ?? linha.fonte) as string | null;
+      const dt = (patch["data_verificacao"] ?? linha.data_verificacao) as string | null;
       if (!fonte || fonte === "nao_declarada" || !dt)
         throw new Error("Para marcar como verificado, declare a fonte e a data de verificação.");
     }
 
-    const { error } = await supabase.from("checklist_cadastral").update(patch).eq("id", data.id);
-    if (error) throw new Error(`Não foi possível salvar: ${error.message}`);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "checklist_cadastral",
+      id: data.id,
+      organizationId: linha.organization_id,
+      userId,
+      payload: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /**

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /**
  * Biblioteca de Mensagens e Conteúdos — camada interna e governada.
@@ -340,8 +341,14 @@ export const salvarTemplate = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase.from("message_templates").update(linha).eq("id", data.id).eq("organization_id", org);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "message_templates",
+        id: data.id,
+        organizationId: org,
+        userId: context.userId as string,
+        payload: linha,
+      });
       return { ok: true, id: data.id };
     }
 
@@ -389,8 +396,14 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
     if (data.status === "substituido") patch["supersedes_template_id"] = data.sucessorId;
     if (data.status === "vigente") patch["effective_from"] = new Date().toISOString();
 
-    const { error } = await supabase.from("message_templates").update(patch).eq("id", data.id).eq("organization_id", org);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "message_templates",
+      id: data.id,
+      organizationId: org,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });
 

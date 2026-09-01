@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
 import { semCache } from "@/lib/no-store";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -88,15 +89,19 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
       if (error) throw new Error(`Não foi possível registrar o caso-piloto: ${error.message}`);
       caso = data as Linha;
     } else {
-      await supabase
-        .from("crm_casos")
-        .update({
+      await gravarComVerificacao({
+        supabase,
+        tabela: "crm_casos",
+        id: caso.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: {
           responsavel_principal: PILOTO_ANA.responsavel,
           eixo_formalizacao: "formalizacao_em_preparacao",
           data_confirmacao_formal_proposta: PILOTO_ANA.aceite_formal_confirmado_em,
           ids_historicos: PILOTO_ANA.ids_historicos,
-        })
-        .eq("id", caso.id);
+        },
+      });
     }
 
     const { data: nucleoExistente } = await supabase
@@ -129,7 +134,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
     for (const m of NUCLEO_PILOTO) {
       ordem += 1;
       if (nomes.has(m.nome)) continue;
-      await supabase.from("nucleo_membros").insert({
+      const { error } = await supabase.from("nucleo_membros").insert({
         organization_id: organizationId,
         nucleo_id: nucleoId,
         nome: m.nome,
@@ -138,6 +143,7 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
         processo: `${m.situacao}. ${m.observacao}`,
         ordem,
       });
+      if (error) throw new Error(`Requerente do núcleo (${m.nome}): ${error.message}`);
     }
 
     return { caseId: caso.id as string };
@@ -152,16 +158,18 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
     if (!PILOTO_ANA.ids_historicos.includes(data.idCanonico)) {
       throw new Error("O ID canônico deve ser um dos identificadores históricos preservados. Nenhum terceiro ID é criado automaticamente.");
     }
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         id_canonico_decidido: data.idCanonico,
         id_canonico_decidido_por: data.decididoPor,
         id_canonico_decidido_em: new Date().toISOString(),
-      })
-      .eq("id", data.caseId)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     /*
       A decisão do ID canônico e o bloqueio "id_canonico_pendente" em
@@ -169,8 +177,10 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
       falavam: esta função decidia o ID, mas o bloqueio ficava aberto para
       sempre, e o piloto continuava lido como NO_GO por uma pendência já
       resolvida. Resolver os dois juntos é a mesma transação de decisão.
+      Zero linhas aqui é um resultado válido (bloqueio já resolvido ou nunca
+      existiu) — só o erro de banco é tratado como falha real.
     */
-    await supabase
+    const { error: erroBloqueio } = await supabase
       .from("piloto_bloqueios")
       .update({
         status: "resolvido",
@@ -179,6 +189,7 @@ export const definirIdCanonicoPiloto = createServerFn({ method: "POST" })
       .eq("case_id", data.caseId)
       .eq("chave", "id_canonico_pendente")
       .eq("status", "aberto");
+    if (erroBloqueio) throw new Error(erroBloqueio.message);
 
     return { ok: true };
   });

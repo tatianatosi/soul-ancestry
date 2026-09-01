@@ -11,6 +11,7 @@ import {
   type BlocoRg,
   type Sb,
 } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -295,12 +296,14 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { error } = await supabase
-        .from(alvo.tabela)
-        .update({ ...dados, updated_by: userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: alvo.tabela,
+        id: data.id,
+        organizationId,
+        userId,
+        payload: dados,
+      });
       return { id: data.id };
     }
 
@@ -326,16 +329,18 @@ export const arquivarRegistroPesquisa = createServerFn({ method: "POST" })
     const { podeEditar } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
     exigirEdicao(podeEditar);
 
-    const { error } = await supabase
-      .from(BLOCOS[data.bloco].tabela)
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: BLOCOS[data.bloco].tabela,
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
         archive_reason: data.motivo.trim(),
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -383,12 +388,19 @@ export const resolverPendenciaPesquisa = createServerFn({ method: "POST" })
     const { podeEditar } = await pesquisaAutorizada(supabase, organizationId, papel, userId, data.researchCaseId);
     exigirEdicao(podeEditar);
 
-    const { error } = await supabase
-      .from("research_pending_items")
-      .update({ status: "resolved", resolution_note: data.nota.trim(), resolved_by: userId, resolved_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "research_pending_items",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
+        status: "resolved",
+        resolution_note: data.nota.trim(),
+        resolved_by: userId,
+        resolved_at: new Date().toISOString(),
+      },
+    });
     return { ok: true };
   });
 
@@ -440,11 +452,14 @@ export const criarTarefaDaPendencia = createServerFn({ method: "POST" })
       .maybeSingle();
     if (tarefa.error) throw new Error(tarefa.error.message);
 
-    await supabase
-      .from("research_pending_items")
-      .update({ tarefa_id: tarefa.data?.id, status: "in_progress" })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "research_pending_items",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: { tarefa_id: tarefa.data?.id, status: "in_progress" },
+    });
 
     return { id: tarefa.data?.id as string, jaExistia: false };
   });
@@ -566,12 +581,14 @@ export const registrarLiberacaoExterna = createServerFn({ method: "POST" })
     }
 
 
-    const { error } = await supabase
-      .from("research_cases")
-      .update({ external_research_gate_status: "released_by_authorized_user" })
-      .eq("id", data.researchCaseId)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "research_cases",
+      id: data.researchCaseId,
+      organizationId,
+      userId,
+      payload: { external_research_gate_status: "released_by_authorized_user" },
+    });
 
     await supabase.from("research_audit_events").insert({
       organization_id: organizationId,

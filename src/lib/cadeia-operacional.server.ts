@@ -706,9 +706,9 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
   const { data: previa } = ficha?.id
     ? await supabase
         .from("contract_parameter_previews")
-        .select("id,tipo,gerado_em,aprovado_em")
+        .select("id,tipo,congelado_em,aprovado_em")
         .eq("parameters_id", ficha.id)
-        .order("gerado_em", { ascending: false })
+        .order("congelado_em", { ascending: false })
         .limit(1)
         .maybeSingle()
     : { data: null };

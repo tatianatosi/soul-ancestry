@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   bloqueiosDeEscopo,
   extrairEscopoDaProposta,
@@ -193,13 +194,15 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       registro = novo;
       fichaCriada = true;
     } else if (!registro.proposal_id && proposta?.id) {
-      const { data: atualizado } = await supabase
-        .from("contract_case_parameters")
-        .update({ proposal_id: proposta.id, updated_by: userId })
-        .eq("id", registro.id)
-        .select("*")
-        .single();
-      registro = atualizado ?? registro;
+      const resultado = await gravarComVerificacao({
+        supabase,
+        tabela: "contract_case_parameters",
+        id: registro.id,
+        organizationId: org,
+        userId,
+        payload: { proposal_id: proposta.id },
+      });
+      registro = resultado.registro;
     }
 
     const [{ data: valores }, { data: previas }, completude, pendencias] = await Promise.all([
@@ -380,11 +383,14 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
     });
 
     if (["rascunho", "em_validacao"].includes(registro.status)) {
-      const { error } = await supabase
-        .from("contract_case_parameters")
-        .update({ status: "em_validacao", updated_by: userId })
-        .eq("id", registro.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "contract_case_parameters",
+        id: registro.id,
+        organizationId: registro.organization_id,
+        userId,
+        payload: { status: "em_validacao" },
+      });
     }
 
     return { ok: true };

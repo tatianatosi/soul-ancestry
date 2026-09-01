@@ -39,18 +39,29 @@ export const BLOQUEIOS_PILOTO: BloqueioPiloto[] = [
   { codigo: "representacao_felipe", titulo: "Representação legal de Felipe pendente", dominio: "jurídico", detalhe: "Felipe é menor vinculado à Ana; representação legal ainda não registrada." },
 ];
 
+/**
+ * 30/08/2026 — achado real (P0, confirmado nos logs do Postgres): esta
+ * lista tinha `papel: "participante"` e nomes curtos ("Pai (Adair)",
+ * "Alice") que não existem em `nucleo_membros.papel_check` (só aceita
+ * `contratante_signatario`/`dependente`) nem batem com o nome completo já
+ * cadastrado no banco desde 18/08. Toda vez que `materializarPilotoAna`
+ * rodava, tentava inserir Adair e Alice de novo — o dedupe por nome exato
+ * não reconhecia "Pai (Adair)" como "Adair Pinto Silveira Júnior" — e o
+ * INSERT era rejeitado pela constraint, silenciosamente (o loop não
+ * verificava erro). Nomes e papéis agora batem com o registro real.
+ */
 export type MembroPiloto = {
   nome: string;
-  papel: "contratante" | "participante" | "dependente";
+  papel: "contratante_signatario" | "dependente";
   signatario: boolean;
   situacao: string;
   observacao: string;
 };
 
 export const NUCLEO_PILOTO: MembroPiloto[] = [
-  { nome: "Ana Luiza Gomes Silveira Rodrigues", papel: "contratante", signatario: true, situacao: "cadastro em conferência", observacao: "Contratante e signatária." },
-  { nome: "Pai (Adair)", papel: "participante", signatario: true, situacao: "cadastro em conferência", observacao: "Participante adulto signatário." },
-  { nome: "Alice", papel: "participante", signatario: true, situacao: "pendente de dados completos", observacao: "Nome completo e documento pendentes." },
+  { nome: "Ana Luiza Gomes Silveira Rodrigues", papel: "contratante_signatario", signatario: true, situacao: "cadastro em conferência", observacao: "Contratante e signatária." },
+  { nome: "Adair Pinto Silveira Júnior", papel: "contratante_signatario", signatario: true, situacao: "cadastro em conferência", observacao: "Participante adulto signatário." },
+  { nome: "Alice Gomes Silveira", papel: "contratante_signatario", signatario: true, situacao: "pendente de dados completos", observacao: "Nome completo e documento pendentes." },
   { nome: "Felipe", papel: "dependente", signatario: false, situacao: "menor vinculado à Ana", observacao: "Representação legal pendente; menor não é signatário." },
 ];
 

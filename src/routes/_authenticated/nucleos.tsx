@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -14,6 +15,7 @@ import {
   salvarDossieNucleo,
   salvarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
   head: () => ({
@@ -74,6 +76,7 @@ function NucleosPage() {
   const carregar = useServerFn(listarNucleos);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
+  const criarTarefa = useServerFn(salvarTarefa);
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
@@ -88,6 +91,9 @@ function NucleosPage() {
     null,
   );
   const [erroMembro, setErroMembro] = useState<string | null>(null);
+  const [sugestaoAcao, setSugestaoAcao] = useState<{ membroId: string; nome: string; caseId: string | null } | null>(
+    null,
+  );
 
   const nucleos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -144,15 +150,26 @@ function NucleosPage() {
   });
 
   const mMembro = useMutation({
-    mutationFn: (data: { membroId: string; nome: string; vinculo: string; processo: string }) =>
-      salvarMembro({ data }),
-    onSuccess: async () => {
+    mutationFn: (data: { membroId: string; nome: string; vinculo: string; processo: string; caseId: string | null }) =>
+      salvarMembro({ data: { membroId: data.membroId, nome: data.nome, vinculo: data.vinculo, processo: data.processo } }),
+    onSuccess: async (_r, variaveis) => {
       setErroMembro(null);
       setMembroEditando(null);
       setRascunhoMembro(null);
+      setSugestaoAcao({ membroId: variaveis.membroId, nome: variaveis.nome, caseId: variaveis.caseId });
       await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
     },
     onError: (e: Error) => setErroMembro(e.message),
+  });
+
+  const mTarefaAcao = useMutation({
+    mutationFn: (data: { caseId: string; titulo: string }) =>
+      criarTarefa({ data: { valores: { caso_id: data.caseId, titulo: data.titulo, status: "pendente" } } }),
+    onSuccess: () => {
+      setSugestaoAcao(null);
+      toast.success("Tarefa de acompanhamento criada.");
+    },
+    onError: (e: Error) => toast.error(`O dado foi salvo, mas a tarefa não foi criada: ${e.message}`),
   });
 
   return (
@@ -258,7 +275,9 @@ function NucleosPage() {
                                 <button
                                   type="button"
                                   disabled={!podeEscrever || mMembro.isPending}
-                                  onClick={() => mMembro.mutate({ membroId: m2.id, ...rascunhoMembro })}
+                                  onClick={() =>
+                                    mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null })
+                                  }
                                   className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
                                 >
                                   {mMembro.isPending ? "Gravando…" : "Salvar"}
@@ -305,6 +324,42 @@ function NucleosPage() {
                               ) : null}
                             </div>
                           )}
+                          {sugestaoAcao?.membroId === m2.id ? (
+                            <div className="mt-2 rounded-md border border-gold/50 bg-gold/10 px-2 py-1.5">
+                              <p className="text-navy">Alteração salva e confirmada no banco.</p>
+                              <p className="mt-1 text-navy/70">
+                                Deseja criar uma tarefa de acompanhamento para {sugestaoAcao.nome}?
+                              </p>
+                              <div className="mt-1.5 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  disabled={!sugestaoAcao.caseId || mTarefaAcao.isPending}
+                                  onClick={() =>
+                                    sugestaoAcao.caseId &&
+                                    mTarefaAcao.mutate({
+                                      caseId: sugestaoAcao.caseId,
+                                      titulo: `Revisar dado atualizado — ${sugestaoAcao.nome}`,
+                                    })
+                                  }
+                                  className="rounded-md bg-navy px-2 py-1 text-cream disabled:opacity-50"
+                                >
+                                  {mTarefaAcao.isPending ? "Criando…" : "Criar tarefa"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSugestaoAcao(null)}
+                                  className="rounded-md border border-navy/15 px-2 py-1"
+                                >
+                                  Sem ação necessária
+                                </button>
+                              </div>
+                              {!sugestaoAcao.caseId ? (
+                                <p className="mt-1 text-[11px] text-navy/50">
+                                  Este núcleo não tem caso vinculado — sem caso, não é possível criar tarefa.
+                                </p>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

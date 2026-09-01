@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -538,7 +539,11 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
 
     const userId = await helpers.garantirUsuarioAuth(email);
     if (userId) {
-      await helpers.adminClient.from("client_portal_access").update({ auth_user_id: userId }).eq("id", acessoId);
+      const vinculado = await helpers.adminClient
+        .from("client_portal_access")
+        .update({ auth_user_id: userId })
+        .eq("id", acessoId);
+      if (vinculado.error) throw new Error(vinculado.error.message);
     }
 
     const origem =
@@ -620,19 +625,20 @@ export const reenviarConvitePortal = createServerFn({ method: "POST" })
     // porque a janela e o contador são regravados no mesmo registro.
     const { LINK_LOGIN_VALIDADE_MINUTOS } = await import("./portal-elegibilidade");
     const expira = new Date(Date.now() + LINK_LOGIN_VALIDADE_MINUTOS * 60 * 1000).toISOString();
-    await supabase
-      .from("client_portal_access")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "client_portal_access",
+      id: data.acessoId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         invitation_expires_at: expira,
         magic_link_expires_at: expira,
         magic_link_uses: 0,
         magic_link_max_uses: 1,
         invited_at: new Date().toISOString(),
-        updated_by: context.userId,
-      })
-
-      .eq("id", data.acessoId)
-      .eq("organization_id", organizationId);
+      },
+    });
 
     const origem =
       getRequestHeader("origin") ?? (getRequestHeader("host") ? `https://${getRequestHeader("host")}` : "");
@@ -711,15 +717,17 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
 
 
 
-    const { error } = await supabase
-      .from("client_portal_access")
-      .update(patch)
-      .eq("id", data.acessoId)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "client_portal_access",
+      id: data.acessoId,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
 
     if (data.status === "revoked") {
-      await supabase
+      const { error: erroCascata } = await supabase
         .from("client_portal_case_access")
         .update({
           access_status: "revoked",
@@ -729,6 +737,7 @@ export const alterarStatusAcessoPortal = createServerFn({ method: "POST" })
         })
         .eq("client_portal_access_id", data.acessoId)
         .eq("organization_id", organizationId);
+      if (erroCascata) throw new Error(erroCascata.message);
     }
 
     await helpers.registrarEvento({
@@ -787,10 +796,14 @@ export const definirCasoDoAcesso = createServerFn({ method: "POST" })
         .eq("case_id", data.casoId)
         .maybeSingle();
       if (existente.data) {
-        await supabase
+        const { data: linhaAtualizada, error: erroAtualizar } = await supabase
           .from("client_portal_case_access")
           .update({ access_status: "active", revoked_at: null, revoked_by: null, revocation_reason: null })
-          .eq("id", existente.data.id);
+          .eq("id", existente.data.id)
+          .select("id")
+          .maybeSingle();
+        if (erroAtualizar) throw new Error(erroAtualizar.message);
+        if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: vínculo de acesso ao caso não encontrado.");
       } else {
         const { error } = await supabase.from("client_portal_case_access").insert({
           organization_id: organizationId,
@@ -801,7 +814,7 @@ export const definirCasoDoAcesso = createServerFn({ method: "POST" })
       }
     } else {
       const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-      const { error } = await supabase
+      const { data: linhaAtualizada, error } = await supabase
         .from("client_portal_case_access")
         .update({
           access_status: "revoked",
@@ -811,8 +824,11 @@ export const definirCasoDoAcesso = createServerFn({ method: "POST" })
         })
         .eq("client_portal_access_id", data.acessoId)
         .eq("case_id", data.casoId)
-        .eq("organization_id", organizationId);
+        .eq("organization_id", organizationId)
+        .select("id")
+        .maybeSingle();
       if (error) throw new Error(error.message);
+      if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: vínculo de acesso ao caso não encontrado.");
     }
 
     await helpers.registrarEvento({
@@ -849,17 +865,19 @@ export const definirLiberacaoCaso = createServerFn({ method: "POST" })
     const supabase = context.supabase as any;
     const { organizationId } = await helpers.exigirGestor(supabase, context.userId as string);
 
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.casoId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         app_access_status: data.liberado ? "liberado" : "bloqueado",
         app_visibility_level: data.liberado ? (data.nivel ?? "workspace") : "nenhum",
         consentimento_compartilhamento: data.liberado ? (data.consentimento ?? false) : false,
         info_cliente_liberada: data.liberado ? (data.infoLiberada ?? false) : false,
-      })
-      .eq("id", data.casoId)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     await helpers.registrarAuditoria({
       organizationId,
