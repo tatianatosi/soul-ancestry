@@ -139,21 +139,34 @@ function Conteudo({ dados }: { dados: any }) {
           {caso["codigo"]} — {dados.cliente?.nome ?? "Cliente não vinculado"}
         </h2>
         <p className="mt-0.5 font-mono text-[11px] text-cream/70">case_id: {caso["id"]}</p>
-        <Link
-          to="/casos/$caseId/contrato/preparar"
-          params={{ caseId: String(caso["id"]) }}
-          className="mt-2 inline-block rounded-lg bg-gold px-3 py-1.5 text-xs font-semibold text-navy"
-        >
-          Abrir ficha e prévia contratual
-        </Link>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          <Selo texto={`Aceite comercial: ${caso["aceite_comercial_em"] ?? "não registrado"}`} tom="ok" />
-          <Selo texto={`Preparação: ${caso["preparacao_status"]}`} tom="alerta" />
-          <Selo texto={`Ativação operacional: ${caso["ativacao_operacional"]}`} tom="erro" />
-          <Selo
-            texto={`Portal: ${caso["app_access_status"] === "liberado" ? "liberado" : "bloqueado"}`}
-            tom={caso["app_access_status"] === "liberado" ? "ok" : "erro"}
-          />
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Link
+            to="/casos/$caseId"
+            params={{ caseId: String(caso["id"]) }}
+            className="inline-block rounded-lg bg-gold px-3 py-1.5 text-xs font-semibold text-navy"
+          >
+            Abrir ficha do caso
+          </Link>
+          <Link
+            to="/casos/$caseId/contrato/preparar"
+            params={{ caseId: String(caso["id"]) }}
+            className="inline-block rounded-lg border border-gold/60 px-3 py-1.5 text-xs font-semibold text-cream"
+          >
+            Prévia contratual
+          </Link>
+          <Link
+            to="/nucleos"
+            className="inline-block rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream/90"
+          >
+            Ver núcleo familiar
+          </Link>
+          <Link
+            to="/ordens-servico"
+            search={{ caseId: String(caso["id"]) }}
+            className="inline-block rounded-lg border border-cream/30 px-3 py-1.5 text-xs text-cream/90"
+          >
+            Criar Ordem de Serviço
+          </Link>
         </div>
         {dados.duplicatas > 0 && (
           <p className="mt-2 text-xs text-terracotta">
@@ -162,78 +175,101 @@ function Conteudo({ dados }: { dados: any }) {
         )}
       </div>
 
-      <Painel titulo="Situação da conferência">
-        <ul className="space-y-1 text-sm text-navy/80">
-          <li>
-            Campos obrigatórios pendentes: <strong>{pendentes.length}</strong> (mostrados como pendência, nunca
-            preenchidos automaticamente)
-          </li>
-          <li>
-            Dados aguardando verificação humana: <strong>{naoVerificados.length}</strong>
-          </li>
-          <li>
-            Bloqueios críticos abertos: <strong>{criticosAbertos.length}</strong> — a ativação operacional permanece
-            NO_GO enquanto houver qualquer um deles.
-          </li>
-          {gatePendente && (
-            <li>
-              Primeiro gate não atendido: <strong>{gatePendente.gate.nome}</strong> ({gatePendente.abertos} item(ns)
-              aberto(s)). Evidências exigidas listadas abaixo, no bloco do gate.
-            </li>
-          )}
-        </ul>
-        <p className="mt-2 text-xs text-navy/60">
-          A importação de dados não cria cobranças, pesquisa externa, solicitações institucionais, entregas nem
-          acessos ampliados. Transcrições, WhatsApp e relatos são fontes brutas e não validam parentesco,
-          elegibilidade ou rota jurídica.
+      <details className="rounded-xl border border-navy/10 bg-white p-5">
+        <summary className="cursor-pointer font-serif text-base text-navy">
+          Dados técnicos — conferência, pendências e gates A–H
+        </summary>
+        <p className="mt-2 text-[11px] text-navy/50">
+          Leitura de diagnóstico. Não bloqueia a ficha do caso, tarefas, pesquisa, propostas, contratos ou OS em
+          rascunho — só é exigida antes de assinatura, envio externo ou ativação operacional real.
         </p>
-      </Painel>
 
-      {secoes.map((secao) => (
-        <Painel key={secao} titulo={`Conferir dados — ${secao}`}>
-          <div className="space-y-3">
-            {campos.filter((c) => c["secao"] === secao).map((c) => (
-              <LinhaCampo key={c["id"]} campo={c} aoSalvar={invalidar} />
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <Selo texto={`Aceite comercial: ${caso["aceite_comercial_em"] ?? "não registrado"}`} tom="ok" />
+          <Selo texto={`Preparação: ${caso["preparacao_status"]}`} tom="alerta" />
+          <Selo texto={`Ativação operacional: ${caso["ativacao_operacional"]}`} tom="erro" />
+          <Selo
+            texto={`Portal: ${caso["app_access_status"] === "liberado" ? "liberado" : "bloqueado"}`}
+            tom={caso["app_access_status"] === "liberado" ? "ok" : "erro"}
+          />
+        </div>
+
+        <div className="mt-4 rounded-lg border border-navy/10 p-3">
+          <p className="font-serif text-base text-navy">Situação da conferência</p>
+          <ul className="mt-1 space-y-1 text-sm text-navy/80">
+            <li>
+              Campos obrigatórios pendentes: <strong>{pendentes.length}</strong> (mostrados como pendência, nunca
+              preenchidos automaticamente)
+            </li>
+            <li>
+              Dados aguardando verificação humana: <strong>{naoVerificados.length}</strong>
+            </li>
+            <li>
+              Bloqueios críticos abertos: <strong>{criticosAbertos.length}</strong> — só afeta assinatura, envio
+              externo e ativação operacional; não bloqueia edição interna.
+            </li>
+            {gatePendente && (
+              <li>
+                Primeiro gate não atendido: <strong>{gatePendente.gate.nome}</strong> ({gatePendente.abertos}{" "}
+                item(ns) aberto(s)). Evidências exigidas listadas abaixo, no bloco do gate.
+              </li>
+            )}
+          </ul>
+          <p className="mt-2 text-xs text-navy/60">
+            A importação de dados não cria cobranças, pesquisa externa, solicitações institucionais, entregas nem
+            acessos ampliados. Transcrições, WhatsApp e relatos são fontes brutas e não validam parentesco,
+            elegibilidade ou rota jurídica.
+          </p>
+        </div>
+
+        {secoes.map((secao) => (
+          <div key={secao} className="mt-4 rounded-lg border border-navy/10 p-3">
+            <p className="font-serif text-base text-navy">Conferir dados — {secao}</p>
+            <div className="mt-2 space-y-3">
+              {campos.filter((c) => c["secao"] === secao).map((c) => (
+                <LinhaCampo key={c["id"]} campo={c} aoSalvar={invalidar} />
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="mt-4 rounded-lg border border-navy/10 p-3">
+          <p className="font-serif text-base text-navy">Bloqueios críticos por gate</p>
+          <p className="text-sm text-navy/70">
+            Os bloqueios são resolvidos em sequência (A a H). Um gate posterior só deve ser trabalhado depois que o
+            anterior estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
+            automaticamente.
+          </p>
+          <div className="mt-3 space-y-4">
+            {agrupados.map((g) => (
+              <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-serif text-base text-navy">
+                    Gate {g.gate.nome}: {g.total - g.abertos}/{g.total}
+                  </p>
+
+                  <Selo
+                    texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
+                    tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
+                  />
+                </div>
+                <p className="text-xs text-navy/60">{g.gate.objetivo}</p>
+                <div className="mt-2 space-y-3">
+                  {g.itens.map((i) => (
+                    <LinhaBloqueio
+                      key={i.bloqueio["id"]}
+                      bloqueio={i.bloqueio}
+                      requisito={i.requisito}
+                      dependenciaPendente={!g.liberado}
+                      aoSalvar={invalidar}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        </Painel>
-      ))}
-
-      <Painel titulo="Bloqueios críticos por gate">
-        <p className="text-sm text-navy/70">
-          Os bloqueios são resolvidos em sequência (A a H). Um gate posterior só deve ser trabalhado depois que o
-          anterior estiver concluído. “Resolver” apenas abre o registro da evidência: nenhum status de gate muda
-          automaticamente.
-        </p>
-        <div className="mt-3 space-y-4">
-          {agrupados.map((g) => (
-            <div key={g.gate.codigo} className="rounded-lg border border-navy/10 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-serif text-base text-navy">
-                  Gate {g.gate.nome}: {g.total - g.abertos}/{g.total}
-                </p>
-
-                <Selo
-                  texto={g.abertos === 0 ? "Concluído" : g.liberado ? "Em trabalho" : "Aguardando gate anterior"}
-                  tom={g.abertos === 0 ? "ok" : g.liberado ? "alerta" : "erro"}
-                />
-              </div>
-              <p className="text-xs text-navy/60">{g.gate.objetivo}</p>
-              <div className="mt-2 space-y-3">
-                {g.itens.map((i) => (
-                  <LinhaBloqueio
-                    key={i.bloqueio["id"]}
-                    bloqueio={i.bloqueio}
-                    requisito={i.requisito}
-                    dependenciaPendente={!g.liberado}
-                    aoSalvar={invalidar}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
-      </Painel>
+      </details>
 
 
       <Painel titulo="Contrato aplicável">

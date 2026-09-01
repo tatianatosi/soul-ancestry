@@ -126,12 +126,15 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
       patch["isencao_expira_em"] = data.isencaoExpiraEm || null;
     }
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("case_activation_checks")
       .update(patch)
       .eq("id", data.checkId)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
     if (error) return { ok: false, erro: error.message };
+    if (!linhaAtualizada?.id) return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do requisito." };
 
     await registrar(
       supabase,
@@ -215,17 +218,20 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
         });
         return { ok: false, pendencias: [motivo] };
       }
-      const { error } = await supabase
+      const { data: linhaAtualizada, error } = await supabase
         .from("crm_casos")
         .update(proximo === "ativo" ? { status: proximo, ativo: true } : { status: proximo })
         .eq("id", data.casoId)
-        .eq("organization_id", organizationId);
-      if (error) {
+        .eq("organization_id", organizationId)
+        .select("id")
+        .maybeSingle();
+      if (error || !linhaAtualizada?.id) {
+        const motivo = error?.message ?? "Nada foi gravado: verifique permissão e identificação do caso.";
         await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
           resumo: `Ativação recusada pelo banco na transição ${statusAtual} → ${proximo}`,
-          pendencias: [error.message],
+          pendencias: [motivo],
         });
-        return { ok: false, pendencias: [error.message] };
+        return { ok: false, pendencias: [motivo] };
       }
       statusAtual = proximo;
       saltos += 1;
@@ -248,12 +254,15 @@ export const suspenderCaso = createServerFn({ method: "POST" })
     if (!podeAtivar(papeis)) return { ok: false, erro: "Somente admin ou operações podem suspender." };
     const motivo = (data.motivo ?? "").trim() || "Suspensão sem motivo informado.";
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("crm_casos")
       .update({ status: "pausado", suspenso_motivo: motivo })
       .eq("id", data.casoId)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
     if (error) return { ok: false, erro: error.message };
+    if (!linhaAtualizada?.id) return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do caso." };
 
     await registrar(supabase, organizationId, "caso_suspenso", data.casoId, {
       resumo: "Caso suspenso",

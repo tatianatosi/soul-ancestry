@@ -9,6 +9,7 @@ import {
   validarTouchpoint,
   type StatusAprovacao,
 } from "@/lib/jornada-cliente";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -129,16 +130,18 @@ export const registrarInteracao = createServerFn({ method: "POST" })
 
     if (data.contaComoTouchpoint) {
       const t = data.touchpoint ?? {};
-      const { error: erroCaso } = await supabase
-        .from("crm_casos")
-        .update({
+      await gravarComVerificacao({
+        supabase,
+        tabela: "crm_casos",
+        id: data.casoId,
+        organizationId: ctx.organizationId,
+        userId: context.userId as string,
+        payload: {
           ultimo_touchpoint_em: data.ocorridoEm ?? hojeISO(),
           ultima_atualizacao_material_em: data.ocorridoEm ?? hojeISO(),
           proximo_marco_verificavel: t.proximoMarcoVerificavel ?? null,
-        })
-        .eq("id", data.casoId)
-        .eq("organization_id", ctx.organizationId);
-      if (erroCaso) throw new Error(erroCaso.message);
+        },
+      });
     }
 
     return inserida as Record<string, any>;
@@ -155,16 +158,18 @@ export const definirEsperaExterna = createServerFn({ method: "POST" })
     if (data.aguardando && !(data.motivo ?? "").trim())
       throw new Error("Espera institucional externa exige motivo comunicado.");
 
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.casoId,
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: {
         aguardando_instituicao_externa: data.aguardando,
         motivo_espera_externa: data.aguardando ? (data.motivo ?? "").trim() : null,
         proxima_atualizacao_limite_em: data.limite ?? null,
-      })
-      .eq("id", data.casoId)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -238,7 +243,6 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
 
     const patch: Record<string, any> = {
       approval_status: data.para,
-      updated_by: context.userId as string,
     };
     if (data.para === "publicado") patch['available_at'] = hojeISO();
     if (data.para === "arquivado") {
@@ -247,12 +251,14 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
       patch['archive_motivo'] = data.motivo ?? "Arquivada pela equipe";
     }
 
-    const { error } = await supabase
-      .from("client_deliverables")
-      .update(patch)
-      .eq("id", data.entregaId)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "client_deliverables",
+      id: data.entregaId,
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true, de, para: data.para };
   });
 

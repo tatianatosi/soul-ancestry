@@ -398,13 +398,15 @@ export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     if (data.scope_summary !== undefined) patch.scope_summary = data.scope_summary;
     if (data.internal_notes !== undefined) patch.internal_notes = data.internal_notes;
-    const { error } = await supabase
-      .from("service_orders")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "service_orders",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 export const mudarStatusOrdem = createServerFn({ method: "POST" })
@@ -422,12 +424,14 @@ export const mudarStatusOrdem = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!atual.data) throw new Error("Ordem de serviço não encontrada nesta organização.");
     validarFluxo("service_orders", atual.data.status as string, data.status);
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ status: data.status })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "service_orders",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status },
+    });
     return { ok: true };
   });
 

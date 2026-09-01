@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, type Linha } from "@/lib/caso-canonico.server";
 import { EVENTO_DO_ESTADO, validarTransicaoAceite, type EstadoAceite } from "@/lib/conversao";
 import { validarTransicaoEvento } from "@/lib/conversao-funil";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -196,12 +197,14 @@ export const avancarEstadoAceite = createServerFn({ method: "POST" })
     const campo = ["proposta_enviada", "aceite_verbal_confirmado", "confirmacao_formal_pendente", "confirmacao_formal_recebida"].includes(data.destino)
       ? "eixo_comercial"
       : "eixo_formalizacao";
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({ [campo]: data.destino })
-      .eq("id", data.caseId)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: { [campo]: data.destino },
+    });
 
     const evento = EVENTO_DO_ESTADO[data.destino];
     if (evento) {

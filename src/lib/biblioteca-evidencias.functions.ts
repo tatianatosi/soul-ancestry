@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -182,18 +183,19 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
     });
     if (hist.error) throw new Error(hist.error.message);
 
-    const upd = await supabase
-      .from("evidences")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "evidences",
+      id: data.evidenceId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         epistemic_validation_status: data.estadoNovo,
         confidence_level: data.confiancaNova,
         reviewed_by: context.userId as string,
         reviewed_at: agora,
-      })
-      .eq("id", data.evidenceId)
-      .select("id")
-      .maybeSingle();
-    if (upd.error) throw new Error(upd.error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -248,14 +250,20 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
   .inputValidator((d: { tabela: "evidences" | "app_projections"; id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const patch: Record<string, unknown> = {
       archived_at: new Date().toISOString(),
       archived_reason: motivo,
     };
     if (data.tabela === "app_projections") patch["approval_status"] = "archived";
-    const r = await supabase.from(data.tabela).update(patch).eq("id", data.id).select("id").maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });

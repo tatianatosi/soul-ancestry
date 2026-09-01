@@ -635,8 +635,8 @@ function FichaCaso() {
                 />
                 <div>
                   <Rotulo>Identificador canônico</Rotulo>
-                  <p className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
-                    {String(caso?.["codigo"] ?? "—")}
+                  <p className="flex flex-wrap items-center gap-2 overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                    <span className="whitespace-nowrap">{String(caso?.["codigo"] ?? "—")}</span>
                     {ehFixture(caso?.["codigo"] as string | null) && (
                       <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
                         {ROTULO_FIXTURE}
@@ -660,9 +660,9 @@ function FichaCaso() {
                       {(qc2.data?.aliases ?? []).map((a) => (
                         <li
                           key={String(a["id"])}
-                          className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
+                          className="overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
                         >
-                          <span className="font-mono text-navy">{String(a["alias"])}</span>
+                          <span className="whitespace-nowrap font-mono text-navy">{String(a["alias"])}</span>
                           <span className="ml-2 text-xs text-navy/50">
                             {String(a["alias_type"] ?? "historico")} · origem{" "}
                             {String(a["source"] ?? "—")}

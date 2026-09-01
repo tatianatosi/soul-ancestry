@@ -70,7 +70,7 @@ export async function conciliarPropostaComCatalogo(
 ): Promise<ResultadoConciliacao & { proposalId: string; produtoId: string | null }> {
   const { data: proposta } = await supabase
     .from("proposals")
-    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor_total,forma_pagamento,origem_preco")
+    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor,forma_pagamento,preco_fonte_referencia")
     .eq("id", input.proposalId)
     .maybeSingle();
   if (!proposta || proposta.organization_id !== input.org)
@@ -113,11 +113,11 @@ export async function conciliarPropostaComCatalogo(
     precoObservado:
       condicao?.valor_total_referencia !== undefined && condicao?.valor_total_referencia !== null
         ? Number(condicao.valor_total_referencia)
-        : proposta.valor_total !== null && proposta.valor_total !== undefined
-          ? Number(proposta.valor_total)
+        : proposta.valor !== null && proposta.valor !== undefined
+          ? Number(proposta.valor)
           : null,
     condicaoObservada: condicao?.forma_pagamento ?? proposta.forma_pagamento ?? null,
-    origemPreco: condicao?.origem ?? proposta.origem_preco ?? null,
+    origemPreco: condicao?.origem ?? proposta.preco_fonte_referencia ?? null,
     escopo,
     condicaoComercialPersistida: !!condicao?.id,
     hoje: input.hoje,
@@ -181,7 +181,7 @@ export async function registrarConciliacao(
     const existente = atuais.get(k);
     if (existente) {
       if (existente.detalhe !== detalhe || existente.resolvido) {
-        await supabase
+        const { data: atualizada, error: erroUpdate } = await supabase
           .from("catalog_source_divergences")
           .update({
             detalhe,
@@ -191,21 +191,31 @@ export async function registrarConciliacao(
             contract_id: contractId,
             service_order_id: serviceOrderId,
           })
-          .eq("id", existente.id);
+          .eq("id", existente.id)
+          .select("id")
+          .maybeSingle();
+        if (erroUpdate) throw new Error(erroUpdate.message);
+        if (!atualizada?.id) throw new Error(`Nenhuma linha afetada ao atualizar divergência ${existente.id}.`);
       }
     } else {
-      await supabase.from("catalog_source_divergences").insert({
-        organization_id: input.org,
-        sku: d.sku,
-        tipo: d.codigo,
-        detalhe,
-        severidade,
-        case_id: r.caseId ?? null,
-        contract_id: contractId,
-        service_order_id: serviceOrderId,
-        fonte_referencia: `conciliacao:${input.proposalId}`,
-        resolvido: false,
-      });
+      const { data: inserida, error: erroInsert } = await supabase
+        .from("catalog_source_divergences")
+        .insert({
+          organization_id: input.org,
+          sku: d.sku,
+          tipo: d.codigo,
+          detalhe,
+          severidade,
+          case_id: r.caseId ?? null,
+          contract_id: contractId,
+          service_order_id: serviceOrderId,
+          fonte_referencia: `conciliacao:${input.proposalId}`,
+          resolvido: false,
+        })
+        .select("id")
+        .maybeSingle();
+      if (erroInsert) throw new Error(erroInsert.message);
+      if (!inserida?.id) throw new Error(`Falha ao registrar divergência ${d.sku}/${d.codigo}.`);
       registradas += 1;
     }
   }
@@ -214,7 +224,14 @@ export async function registrarConciliacao(
   let resolvidas = 0;
   for (const [k, row] of atuais) {
     if (!desejadas.has(k) && !row.resolvido) {
-      await supabase.from("catalog_source_divergences").update({ resolvido: true }).eq("id", row.id);
+      const { data: resolvida, error: erroResolver } = await supabase
+        .from("catalog_source_divergences")
+        .update({ resolvido: true })
+        .eq("id", row.id)
+        .select("id")
+        .maybeSingle();
+      if (erroResolver) throw new Error(erroResolver.message);
+      if (!resolvida?.id) throw new Error(`Nenhuma linha afetada ao resolver divergência ${row.id}.`);
       resolvidas += 1;
     }
   }
