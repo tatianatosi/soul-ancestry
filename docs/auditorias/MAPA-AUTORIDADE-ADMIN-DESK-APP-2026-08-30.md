@@ -293,3 +293,46 @@ Sem evidência real levantada — não classificar por inferência:
 ## Próximo passo deste documento
 
 Prioridade combinada com a proprietária em 30/08: Configuração/App Cliente/Marketing ficam para depois da política unificada de casos, já que a fragmentação de identidade encontrada nesta rodada torna qualquer auditoria dessas áreas prematura sem antes saber qual vai ser a fonte canônica de pessoa. Próxima atualização deste documento vem junto com a Fase 1 (mapear sem modificar) da política unificada, assim que o acesso ao Supabase estiver liberado.
+
+---
+
+## Atualização 2026-09-01 — pedido direto da proprietária: "ainda há lugares e bugs onde não persiste minha autoridade?"
+
+Resposta curta: sim, achado um padrão novo (abaixo), além dos três bugs concretos já corrigidos nesta rodada. Nenhum item aqui foi testado manualmente em preview ainda — classificação segue a mesma regra do resto do documento (`HABILITADA_EM_CODIGO_AGUARDANDO_TESTE`, nunca `HABILITADA_E_VALIDADA`, até a proprietária confirmar).
+
+### Três bugs de "não persiste" corrigidos hoje (PR #44, ainda não mesclada)
+
+| Onde | O que quebrava | Correção |
+|---|---|---|
+| Documentos → Consentimento (`registrarConsentimento`) | Gravava `status: "ativo"`, valor fora do `CHECK` real (`pendente/coletado/revogado/expirado`) — a gravação falhava ou ficava em estado impossível de ler depois | Passa a gravar `status: "coletado"` |
+| Pesquisa → bloco "pedidos" (`salvarBlocoPesquisa`) | `requested_document_type` é `NOT NULL` no banco, mas a tela deixava criar pedido sem tipo — quebrava no insert sem mensagem clara | Valida antes de gravar, na criação e quando o campo é explicitamente limpo numa edição |
+| Contratos → Resumo, "Responsável pela revisão" | Campo de texto livre gravando direto em `review_owner_user_id` (UUID) — qualquer nome digitado por uma pessoa quebrava a gravação | Virou seletor com a equipe real (`listarEquipe`) |
+
+### Achado novo: mesmo padrão do "lead novo sem verificação" (já registrado no Mapa) se repete em mais 3 tabelas
+
+O Mapa já registrava que `salvarLeadDesk`/criação de lead grava com `.insert()` simples, sem a releitura de confirmação que `gravarComVerificacao` faz. Rastreando o mesmo padrão em `crm-desk.functions.ts` hoje, encontrei o idêntico em mais três pontos — todos usam `gravarComVerificacao` corretamente **na edição**, mas caem para `.insert()` cru **na criação**:
+
+| Função | Tabela | Linha | Update usa o padrão seguro? | Create usa o padrão seguro? |
+|---|---|---|---|---|
+| `salvarDependenteCaso` | `case_dependents` | crm-desk.functions.ts:302 | sim (`gravarComVerificacao`) | não — só checa `error`, não relê a linha criada |
+| `salvarTemaMatrizJuridica` | `legal_clause_matrix` | crm-desk.functions.ts:396 | sim | não — mesma lacuna |
+| `salvarPaginaCanva` | `proposal_canva_pages` | crm-desk.functions.ts:475 | sim | não — mesma lacuna |
+| criação de lead (fluxo de detecção de duplicidade) | `leads` | crm-desk.functions.ts:700 | — (é sempre criação) | parcial — usa `.select("*").maybeSingle()` após o insert, então pelo menos confirma que uma linha voltou com os dados, mas não é o helper padrão |
+
+**Por que isto importa agora, especificamente:** `proposal_canva_pages` é a tabela que a Proposta real do Caso 360 (item 2 do pedido de hoje, PR #44) passou a depender para decidir se mostra a seção de proposta. Se uma extração de página nova falhar silenciosamente no insert (sem lançar erro real, só um `error` mal formado que passa despercebido), a Completude Canva mostrada no Caso 360 fica desatualizada sem aviso.
+
+**Classificação: `COM_ERRO_OU_RISCO_CONHECIDO`** para os 3 pontos de criação sem releitura (`case_dependents`, `legal_clause_matrix`, `proposal_canva_pages`); risco menor, mas ainda `PARCIAL`, para a criação de lead com `.select()`.
+
+**Não corrigido neste commit** — fora do escopo do pedido de hoje (que era os 3 bugs já mapeados + aposentar o campo livre de proposta), fica registrado aqui para decisão: aplicar `inserirComVerificacao` nos 3 pontos de criação é uma correção pequena e mecânica, mesmo padrão já usado em outras 15+ funções nesta sessão — posso fazer como próximo passo se a proprietária confirmar.
+
+### Itens já conhecidos que continuam sem persistência real de autoridade (não novos, só reconfirmados nesta revisão)
+
+- Sistema C de Pesquisa (`pesquisa-cadeia.functions.ts`, `documentos-solicitacoes.functions.ts`) — 0 usos de `gravarComVerificacao`/`inserirComVerificacao` em ambos os arquivos, confirmado de novo hoje.
+- `portal.functions.ts` — mistura confirmada de novo: 4 usos do padrão seguro contra 12 chamadas `.insert()`/`.update()` no total.
+- Biblioteca de Mensagens: `salvarTemplate` pronta e segura, mas `biblioteca-mensagens.tsx` continua sem importá-la — só o toggle de status é gravável pela tela.
+- Clientes: segue sem UI de edição dos campos gerais (nome, e-mail, telefone, documento) apesar de `atualizarRegistro` já suportar a entidade com verificação.
+
+### Atualizações de status desde 30/08
+
+- PR #39 (11 funções de Comercial/Financeiro convertidas para `gravarComVerificacao`/`inserirComVerificacao`) foi mesclada hoje — o Achado 1 da seção Comercial deixa de ser "corrigido, aguardando merge" e passa a "corrigido, aguardando teste manual em preview".
+- Caso 360 → "Proposta (referência interna)": os seis campos de texto livre (`proposta_referencia_interna` e demais) foram aposentados desta tela (PR #44) — a seção agora só aparece quando existe proposta Canva real vinculada ao cliente, em modo somente leitura. `leads.tsx` mantém um campo equivalente (`proposta_link_interno`) no fluxo de lead, ainda não decidido.
