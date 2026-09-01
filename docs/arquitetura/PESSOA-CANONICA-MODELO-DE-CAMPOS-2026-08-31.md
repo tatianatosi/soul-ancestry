@@ -93,7 +93,7 @@ Organizado nos mesmos blocos que a proprietária descreveu.
 | Nome completo da mãe | texto | Idem |
 | Cidade de nascimento | texto | Só relevante informar quando diferente da cidade de residência — regra de exibição condicional, pedido explícito da proprietária |
 
-## 4. Relação com os 4 cadastros existentes
+## 4. Relação com os cadastros existentes
 
 Este modelo **não substitui** a finalidade específica de cada tabela — substitui a ausência de uma fonte comum entre elas. Proposta de relação (especificação, não implementação):
 
@@ -103,17 +103,26 @@ pessoas_canonicas (nova, hipotética)
   ← referenciada por nucleo_membros.pessoa_id
   ← referenciada por contract_parties.pessoa_id
   ← referenciada por genealogical_person_profiles.pessoa_id (quando o ancestral pesquisado também é uma pessoa viva do caso, ex.: o próprio requerente)
+  ← referenciada por leads.pessoa_id (revisão 01/09 — ver §4.1)
 ```
 
 Isso é exatamente o `person_id` compartilhado que falta hoje — já registrado como achado no Mapa de Autoridade Admin. Este documento fecha a lacuna de "que campos exatamente esse cadastro central deveria ter", que antes só existia como pergunta em aberto.
 
-## 5. O que este documento NÃO decide
+### 4.1 Revisão 01/09/2026 — Lead entra no escopo (eram 4 cadastros, agora são 5)
 
-- Não decide se `pessoas_canonicas` é uma tabela nova ou se um dos 4 cadastros existentes (mais provável: `clientes`, por já ser o mais próximo do papel de "pessoa viva") é expandido para assumir esse papel.
-- Não decide a estratégia de migração dos dados já existentes nas 4 tabelas (achados no Mapa: dados reais da Ana já estão consistentes entre `clientes`/`nucleo_membros`/`contract_parties` na prática, mesmo sem `person_id` comum — a migração precisa preservar isso, não recriar).
+A proprietária confirmou o ponto levantado ao revisar o documento CA-04 (CRM Mestre): a Ana foi lead, fez discovery, recebeu proposta, aceitou e só agora está virando cliente — **é a mesma pessoa em cada estágio**, e o modelo de Pessoa Canônica precisa cobrir isso, não só o lado civil. Pedido explícito: "expandir para todos aonde permeiam pessoas, clientes, leads."
+
+Confirmado em schema real (migration `20260816151056`): `leads` tem `nome`, `email`, `telefone`, `origem`, `pais_interesse` — um quinto cadastro fragmentado, sem `person_id`, com os mesmos campos de identidade básica que já se repetem em `clientes`/`contract_parties`. E confirmado também (migration `20260816190336`): `proposals.lead_id` e `proposals.client_id` já são FKs reais — ou seja, a ponte Lead→Proposta→Cliente **já existe estruturalmente**, só falta o `person_id` comum amarrando as pontas.
+
+Isso muda a lista de tabelas fragmentadas de 4 para 5: `clientes`, `nucleo_membros`, `genealogical_person_profiles`, `contract_parties`, `leads`.
+
+## 5. O que este documento NÃO decide (revisado 01/09)
+
+- Não decide se `pessoas_canonicas` é uma tabela nova ou se um dos cadastros existentes (mais provável: `clientes`, por já ser o mais próximo do papel de "pessoa viva") é expandido para assumir esse papel.
+- Não decide a estratégia de migração dos dados já existentes — **decisão da proprietária (01/09): antes de qualquer migração real, fazer uma verificação dedicada da jornada da Ana especificamente (lead → discovery → proposta → cliente → caso), confirmando que os dados já consistentes entre `clientes`/`nucleo_membros`/`contract_parties`/`leads` continuam batendo, antes de estender a estratégia para qualquer outra pessoa/caso.**
 - Não decide se "Dependentes" vira lista de referência a outras Pessoas Canônicas ou continua um atributo textual simples.
-- Não decide se o dropdown de país deve usar uma lista fixa curta (visto que o produto é sobre cidadania — provavelmente concentrado em poucos países de destino) ou uma lista internacional completa.
+- **Resolvido (01/09):** o dropdown de país usa lista curta, não internacional completa — os mesmos 10 países já cobertos pelo produto, conforme `País/linha prioritária` do CA-04 (Itália, Portugal, Espanha, Alemanha, Áustria, Polônia, Hungria, Luxemburgo, Croácia, Romênia), com Brasil como país de residência padrão. Não uma lista de todos os países do mundo.
 
 ## 6. Próximo passo
 
-Junto com as 3 decisões abertas no `MOTOR-CONTRATUAL-INVENTARIO-E-DE-PARA-2026-08-31.md`, este modelo de campos fica pronto para aprovação da proprietária antes de qualquer schema novo ou migration.
+Junto com as decisões abertas no `MOTOR-CONTRATUAL-INVENTARIO-E-DE-PARA-2026-08-31.md`, este modelo de campos fica pronto para aprovação da proprietária antes de qualquer schema novo ou migration. Antes de qualquer migração de dado real, a verificação da jornada da Ana (§5) é o próximo passo concreto, não a criação de `pessoas_canonicas`.
