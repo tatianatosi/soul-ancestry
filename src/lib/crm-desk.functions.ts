@@ -656,13 +656,15 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       indicado_por?: string | null;
       confirmarDuplicidade?: boolean;
     }) => {
-      if (!d?.nome?.trim()) throw new Error("Nome completo é obrigatório.");
-      if (!d.email?.trim() && !d.telefone?.trim()) throw new Error("Informe ao menos telefone ou e-mail.");
-      if (!d.origem) throw new Error("Origem é obrigatória.");
-      if (!d.objetivo) throw new Error("Interesse inicial é obrigatório.");
-      if (!d.responsavel_nome?.trim()) throw new Error("Responsável é obrigatório.");
-      if (!d.proxima_acao) throw new Error("Próxima ação é obrigatória.");
-      if (!d.proxima_acao_em) throw new Error("Prazo da próxima ação é obrigatório.");
+      const problemas: string[] = [];
+      if (!d?.nome?.trim()) problemas.push("Nome completo é obrigatório.");
+      if (!d?.email?.trim() && !d?.telefone?.trim()) problemas.push("Informe ao menos telefone ou e-mail.");
+      if (!d?.origem) problemas.push("Origem é obrigatória.");
+      if (!d?.objetivo) problemas.push("Interesse inicial é obrigatório.");
+      if (!d?.responsavel_nome?.trim()) problemas.push("Responsável é obrigatório.");
+      if (!d?.proxima_acao) problemas.push("Próxima ação é obrigatória.");
+      if (!d?.proxima_acao_em) problemas.push("Prazo da próxima ação é obrigatório.");
+      if (problemas.length) throw new Error(problemas.join(" · "));
       return d;
     },
   )
