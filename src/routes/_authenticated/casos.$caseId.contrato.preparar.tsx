@@ -40,8 +40,9 @@ import {
   FONTES_APENAS_APOIO,
 } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
-import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { CONTRATO_BASE_VERSAO, type EstadoVigenciaContratoBase } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -87,6 +88,18 @@ function Pagina() {
   const qc = useQueryClient();
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
+
+  const lerPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
+  const qp = useQuery({ queryKey: ["perfil-institucional-persistido"], queryFn: () => lerPerfilPersistido(), retry: false });
+  /**
+   * Fonte canônica do status do perfil institucional: o registro persistido em
+   * `institutional_profiles` (decisão da proprietária, 02/09/2026 — CA Regra
+   * Contratada). Sem registro ainda, cai no valor fixo de código (comportamento
+   * inalterado até a organização ter uma versão institucional registrada).
+   */
+  const perfilStatusPersistido = qp.data?.persistido
+    ? (qp.data.payload.status as EstadoVigenciaContratoBase)
+    : undefined;
 
   const abrir = useServerFn(abrirPreparacaoContrato);
   const importar = useServerFn(preencherDeOrigens);
@@ -280,7 +293,7 @@ function Pagina() {
     valores: (d.valores ?? []) as any[],
   });
   const anexosGovernados = anexosIaV(entradaAnexos);
-  const perfilInstitucional = perfilInstitucionalRenderizado();
+  const perfilInstitucional = perfilInstitucionalRenderizado(perfilStatusPersistido);
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
@@ -298,6 +311,7 @@ function Pagina() {
     foroConfigurado: false,
     metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
+    perfilStatus: perfilStatusPersistido,
   });
   const blocosCaso = blocosRenderizados(anexosGovernados);
   const linhasInstancia = conferirInstancias(
