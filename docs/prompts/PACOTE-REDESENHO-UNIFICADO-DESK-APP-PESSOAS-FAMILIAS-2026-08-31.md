@@ -19,6 +19,10 @@
 
 Nenhuma implementação foi iniciada a partir deste pacote. O próprio texto instrui explicitamente: "Não implemente ainda." O passo 0 que ele pede (mapa de fontes lidas, inventário de rotas/componentes/entidades/políticas, de-para de arquitetura, mockup visual "Hoje → Amanhã" para aprovação) ainda depende de decisão da proprietária sobre por onde começar.
 
+### Esclarecimento da proprietária (02/09/2026) sobre as telas A-Entrega/Fase 01/Fase 02
+
+Ao receber a versão "auditoria" do mockup (46 telas, ver `ARTEFATO-RESGATE-SKILLS-INTELIGENCIA-VARREDURA-DOSSIE-2026-09-02.md`), que mostra Entrega/Fase 01/Fase 02 como abas próprias na navegação do App Cliente, eu tinha sinalizado que isso pareceria conflitar com a Taxonomia Canônica travada (que não previa essas 3 abas). A proprietária esclareceu que **não é conflito**: Entrega, Fase 01 e Fase 02 não são telas novas e permanentes do App Cliente — são estados que só ficam visíveis para o cliente **depois de onboarding e cliente ativo**, ativados por ação da proprietária a partir da aba cliente do Desk, quando chegar o momento certo. Fase 01 = relatório de Diagnóstico Inicial; Fase 02 = relatório completo de pesquisa genealógica; Entrega = o cenário/cartão que envolve os dois. Isso é consistente com a Taxonomia Canônica (7 telas do App Cliente permanecem as mesmas) e com a área "Experiência no App" que este pacote já previa dentro de Pessoa 360/Caso 360 — a liberação condicional é exatamente esse mecanismo, não uma tela nova.
+
 ---
 
 ## Decisão de uso
