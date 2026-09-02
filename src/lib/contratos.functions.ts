@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { contratanteCanonica } from "@/lib/contratos.server";
 
 /**
  * Motor contratual — camada de servidor.
@@ -499,14 +500,16 @@ export const arquivarItemContrato = createServerFn({ method: "POST" })
   });
 
 /**
- * Ressincroniza a parte contratante a partir da matriz de Parâmetros do
- * contrato (contract_case_parameters/contract_parameter_values) — a mesma
- * fonte usada na criação automática do instrumento. A cópia original só
- * acontece uma vez, no momento de "enviar para assinatura"; edições
- * posteriores na matriz não chegam ao instrumento sozinhas. Esta função
- * repete essa cópia sob demanda, sem criar nenhuma entidade nova: atualiza a
- * parte "contracting_client" já existente do instrumento, ou cria uma se
- * nenhuma existir ainda.
+ * Ressincroniza a parte contratante a partir da fonte canônica: o cadastro
+ * do cliente em `clientes` (CRM/Pessoa Canônica) tem precedência sobre a
+ * matriz de Parâmetros do contrato (contract_case_parameters/
+ * contract_parameter_values), que só complementa o que o cadastro do
+ * cliente ainda não tem — decisão da proprietária, 02/09/2026. A cópia
+ * original só acontece uma vez, no momento de "enviar para assinatura";
+ * edições posteriores no CRM ou na matriz não chegam ao instrumento
+ * sozinhas. Esta função repete essa cópia sob demanda, sem criar nenhuma
+ * entidade nova: atualiza a parte "contracting_client" já existente do
+ * instrumento, ou cria uma se nenhuma existir ainda.
  */
 export const ressincronizarContratanteDaMatriz = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -542,13 +545,21 @@ export const ressincronizarContratanteDaMatriz = createServerFn({ method: "POST"
     if (erroValores) throw new Error(erroValores.message);
     const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
 
-    const nome = pegar("contratante_nome");
-    if (!nome) throw new Error("A matriz de parâmetros ainda não tem o nome da contratante preenchido.");
+    const cliente = contrato.client_id
+      ? (await supabase.from("clientes").select("nome,cpf,endereco_logradouro,endereco_numero,endereco_complemento,endereco_bairro,endereco_cidade,endereco_uf,endereco_cep,endereco_pais").eq("id", contrato.client_id).maybeSingle()).data
+      : null;
+
+    const contratante = contratanteCanonica(cliente, {
+      nome: pegar("contratante_nome"),
+      documento: pegar("contratante_documento"),
+      endereco: pegar("contratante_endereco"),
+    });
+    if (!contratante.nome) throw new Error("Nem o cadastro do cliente nem a matriz de parâmetros têm o nome da contratante preenchido.");
 
     const payload = {
-      person_name: nome,
-      document_number: pegar("contratante_documento"),
-      address: pegar("contratante_endereco"),
+      person_name: contratante.nome,
+      document_number: contratante.documento,
+      address: contratante.endereco,
       role: "contracting_client",
       client_id: contrato.client_id ?? null,
     };

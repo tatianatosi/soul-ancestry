@@ -682,15 +682,16 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             disabled={mSync.isPending}
             className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-50"
           >
-            {mSync.isPending ? "Ressincronizando…" : "Ressincronizar contratante da matriz"}
+            {mSync.isPending ? "Ressincronizando…" : "Ressincronizar contratante do CRM"}
           </button>
         </div>
       )}
       {avisoSync ? <p className="text-xs text-navy">{avisoSync}</p> : null}
       <p className="text-xs text-navy/60">
-        "Ressincronizar contratante da matriz" busca nome, documento e endereço da contratante na tela de Parâmetros do
-        contrato (o motor) e atualiza a parte "Contratante" deste instrumento — a cópia automática só acontece uma vez, na
-        criação do instrumento; edições feitas depois na matriz de parâmetros não chegam aqui sozinhas.
+        "Ressincronizar contratante do CRM" busca nome, documento e endereço no cadastro do cliente (CRM/Pessoa Canônica)
+        — fonte canônica — e usa a matriz de Parâmetros do contrato só para o que o cadastro ainda não tem, atualizando a
+        parte "Contratante" deste instrumento. A cópia automática só acontece uma vez, na criação do instrumento; edições
+        feitas depois no CRM ou na matriz de parâmetros não chegam aqui sozinhas.
       </p>
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.

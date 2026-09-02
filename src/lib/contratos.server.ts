@@ -29,6 +29,44 @@ export function selosDoInstrumento(tipo: string) {
   return selos;
 }
 
+/**
+ * Endereço da contratante formatado a partir dos campos estruturados do
+ * cadastro em `clientes` (Pessoa Canônica), no mesmo padrão do endereço
+ * institucional fixo em `PERFIL_INSTITUCIONAL`.
+ */
+export function enderecoDoCliente(cliente: Record<string, any> | null | undefined): string | null {
+  if (!cliente) return null;
+  const partes = [
+    [cliente.endereco_logradouro, cliente.endereco_numero].filter((p) => String(p ?? "").trim()).join(", "),
+    cliente.endereco_complemento,
+    cliente.endereco_bairro,
+    cliente.endereco_cep ? `CEP ${cliente.endereco_cep}` : null,
+    [cliente.endereco_cidade, cliente.endereco_uf].filter((p) => String(p ?? "").trim()).join(" – "),
+    cliente.endereco_pais,
+  ].filter((p) => String(p ?? "").trim());
+  return partes.length ? partes.join(", ") : null;
+}
+
+/**
+ * Dados da contratante para o instrumento contratual.
+ *
+ * Decisão da proprietária (02/09/2026): o CRM (`clientes`, Pessoa Canônica)
+ * é a fonte canônica de nome/documento/endereço da contratante — não o
+ * preenchimento livre da matriz de Parâmetros. A matriz só complementa o
+ * que o cadastro do cliente ainda não tem (ex.: caso de procurador com
+ * dados próprios, ou cliente ainda incompleto no CRM).
+ */
+export function contratanteCanonica(
+  cliente: Record<string, any> | null | undefined,
+  matriz: { nome?: string | null; documento?: string | null; endereco?: string | null },
+): { nome: string | null; documento: string | null; endereco: string | null } {
+  return {
+    nome: String(cliente?.nome ?? "").trim() || String(matriz.nome ?? "").trim() || null,
+    documento: String(cliente?.cpf ?? "").trim() || String(matriz.documento ?? "").trim() || null,
+    endereco: enderecoDoCliente(cliente) || String(matriz.endereco ?? "").trim() || null,
+  };
+}
+
 export type ConteudoRascunho = {
   selos: string[];
   contrato: Record<string, any>;

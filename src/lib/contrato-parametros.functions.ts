@@ -13,6 +13,7 @@ import {
   type EventoSnapshot,
 } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { contratanteCanonica } from "@/lib/contratos.server";
 import {
   CLAUSULAS_FIXAS,
   CONTRATO_BASE_ID,
@@ -1173,6 +1174,9 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
     const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
 
     const { data: caso } = await supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle();
+    const clienteContratante = caso?.cliente_id
+      ? (await supabase.from("clientes").select("nome,cpf,endereco_logradouro,endereco_numero,endereco_complemento,endereco_bairro,endereco_cidade,endereco_uf,endereco_cep,endereco_pais").eq("id", caso.cliente_id).maybeSingle()).data
+      : null;
 
     let contratoId = registro.contract_id as string | null;
     if (!contratoId) {
@@ -1201,14 +1205,19 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       contratoId = novo.id as string;
 
+      const contratante = contratanteCanonica(clienteContratante, {
+        nome: pegar("contratante_nome"),
+        documento: pegar("contratante_documento"),
+        endereco: pegar("contratante_endereco"),
+      });
       const { error: erroParte } = await supabase.from("contract_parties").insert({
         organization_id: registro.organization_id,
         contract_id: contratoId,
         role: "contracting_client",
         client_id: caso?.cliente_id ?? null,
-        person_name: pegar("contratante_nome") ?? "",
-        document_number: pegar("contratante_documento"),
-        address: pegar("contratante_endereco"),
+        person_name: contratante.nome ?? "",
+        document_number: contratante.documento,
+        address: contratante.endereco,
         signature_required: true,
         created_by: context.userId,
         updated_by: context.userId,
