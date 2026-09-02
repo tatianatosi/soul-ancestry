@@ -74,7 +74,7 @@ function DicionarioCallsCrm() {
   return (
     <SaasShell
       titulo="Dicionário de validações — Painel de Calls → CRM"
-      descricao="Referência interna somente leitura. Preço, SKU, condição e link vêm da Planilha Mestre; despesa de terceiro nunca é caixa do Clube."
+      descricao="Referência interna somente leitura. Preço, SKU, condição e link vêm do catálogo homologado (product_catalog) — a Planilha Mestre é legado de auditoria, não fonte viva; despesa de terceiro nunca é caixa do Clube."
     >
       <div className="grid gap-4">
         <div className="rounded-xl border border-gold/40 bg-cream/60 p-4 text-sm text-navy/80">
@@ -131,7 +131,7 @@ function DicionarioCallsCrm() {
         <Bloco titulo="4. Regras de dependência e bloqueio">
           <Lista
             itens={[
-              "SKU recomendado só após 'Produtos/serviços recomendados' e apenas com SKU ATIVO na Planilha Mestre.",
+              "SKU recomendado só após 'Produtos/serviços recomendados' e apenas com SKU ATIVO no catálogo homologado.",
               "Resultado comercial 'Convertido' exige contrato assinado, pagamento inicial confirmado e link do dossiê.",
               "Etapa 'Contrato assinado' exige contrato ou link correspondente.",
               "Etapa 'Onboarding' exige pagamento inicial confirmado.",

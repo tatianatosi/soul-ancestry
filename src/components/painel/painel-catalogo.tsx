@@ -11,7 +11,8 @@ import {
 
 /**
  * Painel Hoje — catálogo e homologação comercial.
- * Somente leitura: preço, condição, escopo e link vêm da Planilha Mestre.
+ * Somente leitura: preço, condição, escopo e link vêm do catálogo homologado
+ * (product_catalog) — a Planilha Mestre é legado de auditoria, não fonte viva.
  * Nada é criado ou alterado no Asaas a partir daqui.
  */
 export function PainelCatalogo() {
@@ -101,7 +102,7 @@ export function PainelCatalogo() {
           <p className="text-xs uppercase tracking-wide text-navy/50">Alerta — caso Ana Luiza</p>
           <p className="mt-2 text-xs text-navy/70">
             Não liberar contrato, Anexo I ou cobrança enquanto SKU, preço comercial vigente, escopo
-            aprovado, parcelamento e vencimento não estiverem reconciliados com a Planilha Mestre.
+            aprovado, parcelamento e vencimento não estiverem reconciliados com o catálogo homologado.
             Preço, condição e link são somente leitura; o Desk registra apenas referência de SKU,
             versão e data de última validação.
           </p>

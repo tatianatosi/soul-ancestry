@@ -1,9 +1,15 @@
 /**
- * Dicionário de Validações do Painel de Calls → CRM (v1.0).
+ * Dicionário de Validações do Painel de Calls → CRM (v1.1).
  *
  * Camada de entrada, qualificação e handoff comercial. Não é fonte de verdade
  * de preço, contrato, link de cobrança ou despesa: SKU/preço/condição/link vêm
- * da Planilha Mestre; despesa de terceiro nunca é caixa do Clube.
+ * do catálogo homologado (product_catalog); despesa de terceiro nunca é caixa
+ * do Clube.
+ *
+ * 02/09/2026 — v1.1: corrige a premissa de que a Planilha Mestre seria a fonte
+ * viva. Pelas Decisões Canônicas de CRM/Catálogo/Planejador/Jornada (19/08) e
+ * por `preco-canonico.ts`, a Planilha Mestre é legado de migração, reconciliação
+ * e auditoria histórica — a fonte operacional é o catálogo homologado no Desk.
  *
  * Registro interno somente leitura: nenhuma função aqui envia, cobra ou grava
  * em sistema externo.
@@ -11,11 +17,11 @@
 
 import { LISTAS_BASE_CA04 } from "@/lib/ca04-crm-mestre";
 
-export const DICIONARIO_CALLS_VERSAO = "1.0" as const;
+export const DICIONARIO_CALLS_VERSAO = "1.1" as const;
 
 export const PRINCIPIOS_GOVERNANCA_CALLS: readonly string[] = [
   "O Painel de Calls é a camada de entrada, qualificação e handoff comercial; não é fonte de verdade de preços, contratos, links de cobrança ou despesas.",
-  "A Planilha Mestre de Produtos/SKUs é a fonte de verdade para produto, preço, condição e link de cobrança.",
+  "O catálogo homologado (product_catalog, no Desk) é a fonte de verdade para produto, preço, condição e link de cobrança. A Planilha Mestre é legado de auditoria histórica, não fonte operacional viva.",
   "Despesas de terceiros são registradas como previstas/aprovadas/pagas pelo cliente, nunca como desembolso do Clube ou reembolso futuro.",
   "Campos padronizados usam lista controlada com rejeição de entrada livre; observações ficam em campos de texto separados.",
   "Elegibilidade e via jurídica são triagem comercial/técnica preliminar, nunca decisão jurídica final.",

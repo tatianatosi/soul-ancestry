@@ -740,7 +740,7 @@ function LeadsPage() {
 
           <Secao
             titulo="Recomendação comercial e despesas de terceiros"
-            descricao="Preço, condição e link de cobrança vêm da Planilha Mestre de Produtos/SKUs. O CRM registra apenas a recomendação e a referência."
+            descricao="Preço, condição e link de cobrança vêm do catálogo homologado (product_catalog). A Planilha Mestre é legado de auditoria histórica, não fonte viva. O CRM registra apenas a recomendação e a referência."
           >
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2">
@@ -766,7 +766,7 @@ function LeadsPage() {
                   })}
                 </div>
               </div>
-              <Texto label="Referência de SKU (Planilha Mestre)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} desabilitado={!podeEscrever} />
+              <Texto label="Referência de SKU (catálogo homologado)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} desabilitado={!podeEscrever} />
               <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} desabilitado={!podeEscrever} />
               <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} desabilitado={!podeEscrever} />
               <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} desabilitado={!podeEscrever} />
