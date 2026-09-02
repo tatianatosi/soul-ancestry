@@ -34,6 +34,7 @@ import {
   type Pendencia,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
+import { CAMPO_LEAD_POR_VARREDURA, type Achado } from "@/lib/varredura-whatsapp";
 
 const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
 
@@ -115,7 +116,19 @@ export function PainelCalls() {
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
-      <VarreduraWhatsApp />
+      <VarreduraWhatsApp
+        leadNome={lead?.nome ?? null}
+        onAplicar={(achado: Achado, codigo: string) => {
+          const { campoLead, multi } = CAMPO_LEAD_POR_VARREDURA[achado.campo];
+          if (multi) {
+            const atual = ((lead?.[campoLead as keyof LeadDesk] as string[] | null) ?? []) as string[];
+            if (atual.includes(codigo)) return;
+            setRascunho((r) => ({ ...r, [campoLead]: [...atual, codigo] }));
+          } else {
+            setRascunho((r) => ({ ...r, [campoLead]: codigo }));
+          }
+        }}
+      />
 
       <Secao
         titulo="Painel de Calls"

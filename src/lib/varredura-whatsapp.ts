@@ -364,3 +364,59 @@ export const ROTULO_CAMPO: Record<CampoVarrido, string> = {
   estrutura_familiar: "Estrutura familiar",
   objecao_predominante: "Objeção",
 };
+
+/**
+ * De-para do valor normalizado do achado (rótulo em português, lido da
+ * conversa) para o código de opção controlada do lead (`crm-desk.ts`).
+ *
+ * Só entra aqui o que tem correspondência inequívoca — na dúvida, fica de
+ * fora e o achado continua só como sinal para leitura humana, sem botão de
+ * aplicar. Confiança acima de cobertura, mesmo critério do resto do módulo.
+ *
+ * Os campos de lista (`nacionalidades_interesse`, `documentos_chave`) somam
+ * ao que já existe no lead; os demais substituem o valor único do campo.
+ */
+export const CAMPO_LEAD_POR_VARREDURA: Record<CampoVarrido, { campoLead: string; multi: boolean }> = {
+  nacionalidades_interesse: { campoLead: "nacionalidades_interesse", multi: true },
+  geracao_ascendente: { campoLead: "geracao_ascendente", multi: false },
+  linha_transmissao: { campoLead: "linha_transmissao", multi: false },
+  documentos_chave: { campoLead: "documentos_chave", multi: true },
+  estrutura_familiar: { campoLead: "estrutura_familiar", multi: false },
+  objecao_predominante: { campoLead: "objecao_predominante", multi: false },
+};
+
+const CODIGO_POR_CHAVE: Record<string, string> = {
+  // nacionalidades_interesse
+  "nacionalidades_interesse::Itália": "italiana",
+  "nacionalidades_interesse::Portugal": "portuguesa",
+  "nacionalidades_interesse::Espanha": "espanhola",
+  "nacionalidades_interesse::Alemanha": "alema",
+  "nacionalidades_interesse::Áustria": "austriaca",
+  "nacionalidades_interesse::Polônia": "polonesa",
+  // geracao_ascendente
+  "geracao_ascendente::trisavô ou tataravô": "trisavo",
+  "geracao_ascendente::bisavô ou bisavó": "bisavo",
+  "geracao_ascendente::avô ou avó": "avo",
+  "geracao_ascendente::pai ou mãe": "pai_mae",
+  // linha_transmissao
+  "linha_transmissao::paterna": "paterna",
+  "linha_transmissao::materna": "materna",
+  // documentos_chave
+  "documentos_chave::certidão de nascimento": "certidao_nascimento",
+  "documentos_chave::certidão de casamento": "certidao_casamento",
+  "documentos_chave::certidão de óbito": "certidao_obito",
+  "documentos_chave::naturalização": "naturalizacao_negativa",
+  "documentos_chave::passaporte": "passaporte",
+  "documentos_chave::registro de batismo": "registro_religioso",
+  "documentos_chave::registro de imigração": "registro_imigracao",
+  // estrutura_familiar
+  "estrutura_familiar::há menores envolvidos": "linha_com_menores",
+  // objecao_predominante
+  "objecao_predominante::preço": "preco",
+  "objecao_predominante::prazo": "prazo",
+};
+
+/** Código de opção controlada para o achado, ou `null` quando não há de-para confiável. */
+export function codigoLeadDoAchado(achado: Pick<Achado, "campo" | "valor">): string | null {
+  return CODIGO_POR_CHAVE[`${achado.campo}::${achado.valor}`] ?? null;
+}

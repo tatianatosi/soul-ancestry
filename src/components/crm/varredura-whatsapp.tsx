@@ -5,18 +5,37 @@
  * no meio: cola-se o dump, ela aponta o que parece responder a cada campo do
  * roteiro e mostra o trecho de onde tirou.
  *
- * Nada é preenchido sozinho e nada é gravado. A conversa é dado pessoal de
- * terceiro: ela vive nesta tela enquanto está aberta e some quando se sai —
- * não vai para o banco, não vira rascunho, não é enviada a lugar nenhum.
+ * A conversa em si (dump colado ou arquivo) é dado pessoal de terceiro: vive
+ * nesta tela enquanto está aberta e some quando se sai — não vai para o
+ * banco, não é enviada a lugar nenhum. Só o SINAL normalizado de um achado
+ * (ex.: "bisavô ou bisavó", não o trecho onde a cliente escreveu isso) pode
+ * virar rascunho do lead, e só quando a proprietária clica em "Usar no
+ * lead" — nada é preenchido sozinho. Gravar de fato continua exigindo o
+ * botão "Gravar registro da call" do Painel, como qualquer outro campo.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { ROTULO_CAMPO, varrerConversa, type CampoVarrido } from "@/lib/varredura-whatsapp";
+import {
+  ROTULO_CAMPO,
+  codigoLeadDoAchado,
+  varrerConversa,
+  type Achado,
+  type CampoVarrido,
+} from "@/lib/varredura-whatsapp";
 
-export function VarreduraWhatsApp() {
+export function VarreduraWhatsApp({
+  leadNome,
+  onAplicar,
+}: {
+  /** Nome do lead selecionado no Painel — habilita o botão "Usar no lead". */
+  leadNome?: string | null;
+  onAplicar?: (achado: Achado, codigo: string) => void;
+}) {
   const [bruto, setBruto] = useState("");
   const [casa, setCasa] = useState("");
   const [avisoArquivo, setAvisoArquivo] = useState<string | null>(null);
+  const [aplicados, setAplicados] = useState<Set<string>>(new Set());
+  useEffect(() => setAplicados(new Set()), [leadNome]);
 
   const carregarArquivo = (arquivo: File | undefined) => {
     if (!arquivo) return;
@@ -62,7 +81,13 @@ export function VarreduraWhatsApp() {
       <h2 className="font-serif text-lg text-navy">Varredura de conversa</h2>
       <p className="mt-0.5 text-xs text-navy/55">
         Cole o dump do WhatsApp do prospect. A varredura aponta o que parece responder ao roteiro e
-        mostra o trecho de onde veio — nada é preenchido nem gravado.
+        mostra o trecho de onde veio.
+        {leadNome ? (
+          <> Achados com de-para confiável podem ser usados no rascunho de <strong>{leadNome}</strong>.</>
+        ) : (
+          " Selecione um lead no Painel de Calls para poder usar um achado no rascunho."
+        )}{" "}
+        Só o sinal (não o trecho da conversa) pode virar rascunho, e só quando você clicar.
       </p>
 
       <div className="mt-4 grid gap-3">
@@ -141,30 +166,48 @@ export function VarreduraWhatsApp() {
                     {ROTULO_CAMPO[campo]}
                   </p>
                   <ul className="mt-1.5 space-y-1.5">
-                    {achados.map((a) => (
-                      <li
-                        key={`${a.campo}-${a.valor}`}
-                        className="rounded-lg border border-navy/12 bg-cream/25 p-3"
-                      >
-                        <div className="flex flex-wrap items-baseline gap-x-2">
-                          <p className="text-sm font-medium text-navy">{a.valor}</p>
-                          {a.ocorrencias > 1 ? (
-                            <span className="text-[11px] text-navy/50">
-                              citado {a.ocorrencias}×
-                            </span>
-                          ) : null}
-                        </div>
-                        {/* A evidência viaja junto: sem trecho, é palpite. */}
-                        <p className="mt-1 border-l-2 border-navy/15 pl-2 text-xs italic text-navy/65">
-                          “{a.trecho}”
-                        </p>
-                        <p className="mt-1 text-[11px] text-navy/45">
-                          {[a.autor, a.quando ? formatarDia(a.quando) : null]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      </li>
-                    ))}
+                    {achados.map((a) => {
+                      const codigo = codigoLeadDoAchado(a);
+                      const chave = `${a.campo}::${a.valor}`;
+                      const usado = aplicados.has(chave);
+                      return (
+                        <li
+                          key={chave}
+                          className="rounded-lg border border-navy/12 bg-cream/25 p-3"
+                        >
+                          <div className="flex flex-wrap items-baseline gap-x-2">
+                            <p className="text-sm font-medium text-navy">{a.valor}</p>
+                            {a.ocorrencias > 1 ? (
+                              <span className="text-[11px] text-navy/50">
+                                citado {a.ocorrencias}×
+                              </span>
+                            ) : null}
+                            {codigo && onAplicar && leadNome ? (
+                              <button
+                                type="button"
+                                disabled={usado}
+                                onClick={() => {
+                                  onAplicar(a, codigo);
+                                  setAplicados((s) => new Set(s).add(chave));
+                                }}
+                                className="ml-auto rounded-md border border-gold/50 bg-gold/10 px-2 py-0.5 text-[11px] text-navy hover:bg-gold/20 disabled:cursor-default disabled:opacity-50"
+                              >
+                                {usado ? "Usado no lead ✓" : "Usar no lead"}
+                              </button>
+                            ) : null}
+                          </div>
+                          {/* A evidência viaja junto: sem trecho, é palpite. */}
+                          <p className="mt-1 border-l-2 border-navy/15 pl-2 text-xs italic text-navy/65">
+                            “{a.trecho}”
+                          </p>
+                          <p className="mt-1 text-[11px] text-navy/45">
+                            {[a.autor, a.quando ? formatarDia(a.quando) : null]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))
