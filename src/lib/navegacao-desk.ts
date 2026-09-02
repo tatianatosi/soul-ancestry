@@ -109,7 +109,12 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
         to: "/governanca/dicionario-calls-crm",
         label: "Dicionário de validações (Calls → CRM)",
       },
-      { to: "/proximas-acoes", label: "Próximas ações dos leads" },
+      // 02/09/2026 — "o painel de leads como kanban que está como aba solta
+      // deve estar junto da aba que criamos novos leads" (Proprietária).
+      // Próximas Ações saiu do menu como item próprio e passou a viver
+      // dentro de /leads, junto do botão "Novo lead". Nenhuma tabela nova,
+      // nenhum dado movido; a rota /proximas-acoes continua existindo (só
+      // não tem mais entrada de menu própria).
       { grupo: "Relacionamento" },
       // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
       // é uma chave mestra" (Proprietária). A página existe desde antes desta
@@ -292,7 +297,9 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/relatorios",
   "/leads",
   "/calls",
-  "/proximas-acoes",
+  // "/proximas-acoes" saiu daqui em 02/09/2026 — consolidada dentro de
+  // /leads (ver comentário acima), mesmo padrão já usado para
+  // /crm-mestre/contatos-oportunidades em 27/08.
   "/propostas",
   "/conversao",
   "/clientes",

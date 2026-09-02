@@ -7,6 +7,7 @@ import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
+import { ProximasAcoes } from "@/components/crm/proximas-acoes";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -132,6 +133,7 @@ function LeadsPage() {
   const [busca, setBusca] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [novoLeadAberto, setNovoLeadAberto] = useState(false);
+  const [mostrarProximasAcoes, setMostrarProximasAcoes] = useState(true);
 
   const leads = (q.data ?? []) as LeadComPendencias[];
   const atual = useMemo(() => leads.find((l) => l.id === selecionado) ?? null, [leads, selecionado]);
@@ -222,7 +224,26 @@ function LeadsPage() {
           setMsg("Lead criado em Triagem.");
         }}
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
+
+      <Secao
+        titulo="Próximas ações dos leads"
+        descricao="Fila única por lead, agrupada por urgência — a correção rápida grava direto na ficha canônica. Antes ficava em aba solta, separada de onde os leads nascem; agora vive aqui."
+      >
+        <button
+          type="button"
+          onClick={() => setMostrarProximasAcoes((v) => !v)}
+          className="text-xs font-medium text-navy underline"
+        >
+          {mostrarProximasAcoes ? "Ocultar" : "Mostrar"}
+        </button>
+        {mostrarProximasAcoes ? (
+          <div className="mt-3">
+            <ProximasAcoes />
+          </div>
+        ) : null}
+      </Secao>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="space-y-3">
           <Secao titulo="Filtros" descricao="Todos os campos classificatórios são listas fechadas.">
             <div className="grid gap-3">
