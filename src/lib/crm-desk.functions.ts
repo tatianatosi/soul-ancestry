@@ -126,14 +126,13 @@ async function orgDoUsuario(supabase: any, userId: string) {
 /** Lista de leads do Desk com validação espelhada e resultado derivado. */
 export const listarLeadsDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: { incluirArquivados?: boolean }) => ({ incluirArquivados: d?.incluirArquivados === true }))
+  .handler(async ({ data: input, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1000);
+    let query = supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(1000);
+    if (!input.incluirArquivados) query = query.is("archived_at", null);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     const leads = (data ?? []) as LeadDesk[];
     return leads.map((l) => ({ ...l, pendencias: validarLead(l) }));
