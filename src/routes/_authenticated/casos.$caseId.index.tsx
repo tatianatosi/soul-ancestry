@@ -26,6 +26,7 @@ import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
 import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
+import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -1424,7 +1425,7 @@ function CartaoPessoa({
         <Texto
           label="CPF"
           valor={v("cpf")}
-          onChange={(x) => set("cpf", x)}
+          onChange={(x) => set("cpf", formatarCpf(x))}
           desabilitado={bloqueado}
         />
         <Texto
@@ -1448,8 +1449,9 @@ function CartaoPessoa({
         <Texto
           label="Telefone"
           valor={v("telefone")}
-          onChange={(x) => set("telefone", x)}
+          onChange={(x) => set("telefone", formatarTelefone(x))}
           desabilitado={bloqueado}
+          ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
           label="E-mail"
@@ -1466,7 +1468,7 @@ function CartaoPessoa({
         <Texto
           label="CEP"
           valor={v("cep")}
-          onChange={(x) => set("cep", x)}
+          onChange={(x) => set("cep", formatarCep(x))}
           desabilitado={bloqueado}
         />
         <Texto

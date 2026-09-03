@@ -61,6 +61,7 @@ import {
 import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 function MultiSelecao({
   label,
@@ -415,7 +416,12 @@ function LeadsPage() {
               <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} desabilitado={!podeEscrever} />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
               <Texto label="E-mail" valor={campo("email")} onChange={set("email")} desabilitado={!podeEscrever} />
-              <Texto label="Telefone" valor={campo("telefone")} onChange={set("telefone")} desabilitado={!podeEscrever} />
+              <Texto
+                label="Telefone"
+                valor={campo("telefone")}
+                onChange={(x) => set("telefone")(formatarTelefone(x))}
+                desabilitado={!podeEscrever}
+              />
               <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} desabilitado={!podeEscrever} />
               <Selecao
                 label="Área responsável"
