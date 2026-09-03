@@ -67,7 +67,25 @@ contra código e dado real antes de aceitar como verdade.
 | Existe pelo menos um 3º mecanismo "piloto" além do que eu já tinha mapeado | `src/components/desk-go-live.tsx` ("Go-live e registro central de casos") lê `CASE_REGISTRY`/`GO_LIVE_CHECKLIST` de `src/data/case-registry.ts` — parece ser o candidato a virar regra geral, não só da Ana | A confirmar no de-para |
 | `ANA_ESTADO_REAL.situacaoOperacional` ainda marcado `"NO_GO"` em `corte-vertical.ts` | Não confirmei se algum código trava comportamento real por causa disso | A verificar no de-para |
 
-## 5. Pendência maior do dia: de-para "piloto" → realidade (decidido, não executado)
+## 5. Motor contratual — estado real verificado agora, a pedido da proprietária
+
+A proprietária perguntou diretamente se o motor contratual funciona, se os anexos puxam dado real,
+se há "diversas versões de rascunho" soltas e se existe um lugar para editar divergências apontadas
+entre proposta e Planejador — não só nomeá-las. Verificação linha a linha de
+`contrato-parametros.functions.ts` e `casos.$caseId.contrato.preparar.tsx`:
+
+| Pergunta | Resposta verificada |
+|---|---|
+| O motor contratual está funcionando? | Sim — não é maquete. Ficha parametrizável, gates, versionamento e RPCs de completude/pendências (`contract_parameters_completude`, `contract_parameters_pendencias`) são reais. |
+| Os anexos puxam dado real? | Sim — `anexosIaV()` deriva o conteúdo dos anexos I–V a partir de `contract_parameter_values` (a ficha), não é texto fixo. `MaterializarRevisados`/`RessincronizarAnexos` mantêm o anexo materializado em sincronia com a ficha atual. |
+| Ainda temos diversas versões de rascunho soltas? | Não por desenho: existe **um único rascunho editável** por caso + modelo ativo — salvar atualiza esse mesmo rascunho, conteúdo idêntico não vira versão nova. Versão imutável só nasce em evento de governança (revisão solicitada, retorno para ajuste, aprovação, envio para assinatura, assinatura) — se parecem "várias versões", são o rastro de auditoria desses eventos, não duplicação por bug. |
+| Existe pré-visualização de onde falta dado? | Parcialmente. `completude_pct` (badge de %) e `PainelBloqueios` (lista `pendencias`, vinda da RPC real) já mostram o que falta. Não existe, porém, uma visão única "dado que já chegou × dado que falta" campo a campo fora da ficha inteira. |
+| Divergências entre proposta e Planejador têm lugar para editar? | **Aqui a proprietária está certa — é gap real, dois tipos diferentes de divergência:** ① conflito por campo (`contract_parameter_values.conflito`) **tem** edição no lugar — aparece dentro da própria linha do campo em `LinhaParametro`, e salvar um novo valor limpa o conflito (`salvarParametro` sempre grava `conflito: []`). ② Divergência **proposta × Planejador** (`conflitosProposta`, calculada em `preencherDeOrigens`) só aparece **uma vez, no toast** de "Pré-carregar do Planejador homologado" — depois disso ela desaparece, não fica em nenhum painel, não tem botão de resolver. Confirmado por busca no código: `conflitosProposta` não é renderizada em lugar nenhum da tela, só usada para montar a mensagem do toast. |
+
+**Gap real, ainda não corrigido:** divergência proposta × Planejador precisa de um lugar persistente
+(painel, não toast) com ação de resolver — igual ao que já existe para conflito por campo.
+
+## 6. Pendência maior do dia: de-para "piloto" → realidade (decidido, não executado)
 
 Mecanismos hoje espalhados, a mapear e reconciliar:
 
@@ -81,7 +99,7 @@ Próximo passo: ler os três por completo, decidir qual prevalece como regra ger
 (hoje o candidato mais forte é o Go-Live/`case-registry.ts`, por já não ser Ana-específico), e só então
 aposentar/reconciliar os demais — sem apagar histórico, sem criar caso novo.
 
-## 6. Pull requests abertas hoje (nenhuma mesclada)
+## 7. Pull requests abertas hoje (nenhuma mesclada)
 
 | PR | Título | Tipo |
 |---|---|---|
@@ -95,7 +113,7 @@ aposentar/reconciliar os demais — sem apagar histórico, sem criar caso novo.
 Todas em draft, `tsc`/`vitest`/`vite build` verdes, aguardando teste em preview e autorização explícita
 da proprietária para merge — nenhuma foi mesclada de forma autônoma.
 
-## 7. Riscos, limites e itens fora de escopo
+## 8. Riscos, limites e itens fora de escopo
 
 - Nenhuma migration foi aplicada hoje. A única escrita direta em produção foi um `UPDATE` em 1 linha
   de `clientes` (CPF, RG, telefone, estado civil da Ana) — dado real, sem ambiguidade, autorizado
@@ -107,24 +125,28 @@ da proprietária para merge — nenhuma foi mesclada de forma autônoma.
   para a auditoria visual tela a tela — segue pendente.
 - A timeline de conversão lead→cliente para Indicadores/Operação Viva é pedido novo, ainda sem desenho
   técnico.
+- Divergência proposta × Planejador não tem painel persistente de resolução (seção 5) — hoje só aparece
+  num toast que some.
 
-## 8. Critérios de aceite deste artefato
+## 9. Critérios de aceite deste artefato
 
 - [x] Lista as PRs reais abertas no dia, sem inventar números ou títulos.
 - [x] Separa achado verificado em código/banco de pendência ainda não resolvida.
 - [x] Registra a correção de um achado errado meu (motor de cadência), não só os da proprietária.
 - [x] Registra os limites do próprio trabalho do dia.
 
-## 9. Próximos passos
+## 10. Próximos passos
 
 1. Proprietária testa em preview e decide merge das PRs #64–#69 (nenhuma delas altera dado de produção
    além da correção já aplicada em `clientes`).
-2. Ler por completo os 3 mecanismos "piloto" (seção 5), decidir qual prevalece, propor o de-para.
+2. Ler por completo os 3 mecanismos "piloto" (seção 6), decidir qual prevalece, propor o de-para.
 3. Preencher o endereço estruturado da Ana, campo a campo, com a proprietária confirmando cada pedaço.
 4. Escopar tecnicamente a timeline de conversão lead→cliente para Indicadores/Operação Viva.
 5. Retomar a auditoria visual tela a tela com a conta de QA já criada.
 6. Continuar o de-para dos "Motores Unificados CRM Vivo" (PR #67): resolver `product_catalog`/`sku_catalog`,
    ligar o indicador agregado de cadência, centralizar botões do cabeçalho do Caso 360.
+7. Construir o painel persistente de divergência proposta × Planejador com ação de resolver (seção 5),
+   no mesmo padrão já usado para conflito por campo.
 
 ---
 
