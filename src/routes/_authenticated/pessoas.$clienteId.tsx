@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 import { carregarPessoa } from "@/lib/pessoa.functions";
 import {
   evidenciaDeMesmaPessoa,
@@ -39,6 +39,7 @@ const FORCA_ROTULO: Record<EvidenciaDeElo["forca"], string> = {
 
 function Pessoa() {
   const { clienteId } = Route.useParams();
+  const { ehAdmin } = useSaas();
   const carregar = useServerFn(carregarPessoa);
   const q = useQuery({
     queryKey: ["pessoa", clienteId],
@@ -110,12 +111,11 @@ function Pessoa() {
           ) : (
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {casos.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    to="/casos/$caseId"
-                    params={{ caseId: c.id }}
-                    className="block rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
-                  >
+                <li
+                  key={c.id}
+                  className="rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
+                >
+                  <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
                     <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
                     <p className="text-sm font-medium text-navy">{c.titulo}</p>
                     <p className="mt-1 text-xs text-navy/55">
@@ -128,6 +128,15 @@ function Pessoa() {
                         .join(" · ")}
                     </p>
                   </Link>
+                  {ehAdmin ? (
+                    <Link
+                      to="/app-cliente-como-pessoa"
+                      search={{ casoId: c.id }}
+                      className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+                    >
+                      Abrir visão do cliente
+                    </Link>
+                  ) : null}
                 </li>
               ))}
             </ul>
