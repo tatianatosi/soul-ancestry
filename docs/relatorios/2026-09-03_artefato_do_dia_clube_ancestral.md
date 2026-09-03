@@ -99,6 +99,23 @@ Próximo passo: ler os três por completo, decidir qual prevalece como regra ger
 (hoje o candidato mais forte é o Go-Live/`case-registry.ts`, por já não ser Ana-específico), e só então
 aposentar/reconciliar os demais — sem apagar histórico, sem criar caso novo.
 
+**Atualização:** o de-para completo (agente em background) revisou esse candidato — `case-registry.ts`
+está órfão, é mock, sem rota nem consulta ao banco; não é o "piloto go-live" real. Detalhe completo na
+PR do de-para (seção a ser criada) — este item fica como registrado, não reescrito, para não perder o
+rastro do que foi pensado durante o dia.
+
+## 6.1. Versões congeladas sem conteúdo real — arquivadas (não apagadas)
+
+A pedido da proprietária, verificado direto no banco: as 6 versões "congeladas" do contrato da Ana
+(`contract_parameter_previews`, versões 1–6) tinham `legado_sem_corpo = true` e `conteudo_hash = null` —
+cascas sem conteúdo real, criadas em lote em 17/08 sem nenhum evento de governança associado (revisão,
+aprovação, envio ou assinatura). Não representavam marco real do contrato.
+
+Arquivadas (`archived_at` + `archive_reason` preenchidos, coluna já existente no schema para esse fim) —
+não apagadas. A versão 0 (rascunho editável, com dado real e `conteudo_hash` válido) segue como única
+fonte de verdade visível na tela; a consulta que a tela usa já filtra `archived_at is null`, então a
+ficha da Ana simplifica sozinha, sem mudança de código.
+
 ## 7. Pull requests abertas hoje (nenhuma mesclada)
 
 | PR | Título | Tipo |
