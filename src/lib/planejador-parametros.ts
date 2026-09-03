@@ -161,7 +161,17 @@ export function convencaoDoCodigo(codigo?: string | null): ConvencaoPlanejador |
  * Parâmetros homologados do Planejador para o caso, derivados exclusivamente
  * da convenção de ID registrada. Sem convenção registrada, retorna lista vazia.
  */
-export function parametrosDoPlanejador(codigoCaso?: string | null): {
+/**
+ * SKU homologado e ativo em `product_catalog`, resolvido pelo chamador (que
+ * tem acesso ao Supabase) e injetado aqui. Este módulo permanece puro/sem I/O:
+ * ele só decide COMO usar o resultado, nunca consulta o banco diretamente.
+ */
+export type SkuHomologadoAtivo = { code: string; nome_comercial: string };
+
+export function parametrosDoPlanejador(
+  codigoCaso?: string | null,
+  skuHomologado?: SkuHomologadoAtivo | null,
+): {
   convencao: ConvencaoPlanejador | null;
   versao: string;
   homologadoEm: string;
@@ -183,10 +193,16 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
     { campo: "revisor_responsavel", valor: convencao.responsavel, detalhe },
   ];
 
-  // SKU só entra quando há SKU homologado para a rota da convenção.
-  // Sem SKU homologado, o campo permanece vazio (pendência), nunca herda SKU de outra cidadania.
-  if (convencao.sku && convencao.skuNome) {
-    parametros.unshift({ campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe });
+  // SKU só entra quando o código indicado pela convenção existe, homologado e
+  // ativo, em `product_catalog` (fonte viva) — nunca do nome estático da
+  // convenção. Convenção sem SKU catalogado ainda, ou SKU não mais ativo no
+  // catálogo, deixa o campo vazio (pendência), nunca herda SKU de outra rota.
+  if (convencao.sku && skuHomologado && skuHomologado.code === convencao.sku) {
+    parametros.unshift({
+      campo: "produto_sku",
+      valor: `${skuHomologado.code} — ${skuHomologado.nome_comercial}`,
+      detalhe: `${detalhe} · SKU confirmado ativo em product_catalog`,
+    });
   }
 
   // Cadastro de partes homologado no Planejador para este caso específico.

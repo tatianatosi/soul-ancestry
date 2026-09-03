@@ -33,7 +33,7 @@ import {
 import { ehAnexoRevisado, planejarMaterializacao } from "@/lib/anexos-materializacao";
 
 
-import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
+import { convencaoDoCodigo, parametrosDoPlanejador, type SkuHomologadoAtivo } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
 import { exigirGate } from "@/lib/escopo-conferencia.server";
@@ -267,8 +267,27 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    // Fonte única da pré-carga: Planejador Universal homologado.
-    const planejador = parametrosDoPlanejador(caso.codigo);
+    // Fonte única da pré-carga: Planejador Universal homologado. O SKU não vem
+    // mais do nome estático da convenção: é confirmado ao vivo em
+    // `product_catalog` (fonte operacional única de SKU, decisão de arquitetura
+    // de 2026-09-03 — reuso de taxonomias no Planejador de Cidadania).
+    const convencaoCaso = convencaoDoCodigo(caso.codigo);
+    let skuHomologado: SkuHomologadoAtivo | null = null;
+    if (convencaoCaso?.sku) {
+      const { data: produtoCatalogo } = await supabase
+        .from("product_catalog")
+        .select("code,nome_comercial")
+        .eq("organization_id", caso.organization_id)
+        .eq("code", convencaoCaso.sku)
+        .eq("estado_catalogo", "homologado_ativo")
+        .is("archived_at", null)
+        .maybeSingle();
+      if (produtoCatalogo) {
+        skuHomologado = { code: produtoCatalogo.code as string, nome_comercial: produtoCatalogo.nome_comercial as string };
+      }
+    }
+
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
     if (!planejador.convencao) {
       throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
     }
