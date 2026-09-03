@@ -99,10 +99,27 @@ Próximo passo: ler os três por completo, decidir qual prevalece como regra ger
 (hoje o candidato mais forte é o Go-Live/`case-registry.ts`, por já não ser Ana-específico), e só então
 aposentar/reconciliar os demais — sem apagar histórico, sem criar caso novo.
 
-**Atualização:** o de-para completo (agente em background) revisou esse candidato — `case-registry.ts`
-está órfão, é mock, sem rota nem consulta ao banco; não é o "piloto go-live" real. Detalhe completo na
-PR do de-para (seção a ser criada) — este item fica como registrado, não reescrito, para não perder o
-rastro do que foi pensado durante o dia.
+**Atualização 1 (PR #71):** o de-para completo revisou esse candidato — `case-registry.ts` está órfão,
+é mock, sem rota nem consulta ao banco; não é o "piloto go-live" real. O "piloto go-live" de verdade é
+a própria rota `/piloto` (rótulo de menu "Piloto e go-live"). Encontrados 3 mecanismos reais (`/piloto`,
+`/piloto-ana`, `/governanca/corte-vertical`) — nenhum deve virar regra geral como está; recomendação:
+combinar `derivarPendenciasPiloto` (motor ao vivo, de `/piloto-ana`) + `GATES_PILOTO` (estrutura A-H, de
+`/piloto`), endereçados por `case_id`. A proprietária aprovou essa combinação ("pode combinar as duas
+peças").
+
+**Atualização 2 — correção antes de executar a combinação:** ao investigar o passo 7 do próprio de-para
+(checar o mecanismo "9 gates de fechamento" citado em `desk-modulos.ts` antes de construir algo novo,
+para não fazer uma 4ª peça), confirmei que **esse mecanismo já existe, é real, e já é exatamente o que
+"combinar as duas peças" tentaria recriar** — `src/lib/fechamento-caso.ts` (`GATES_FECHAMENTO`/
+`avaliarFechamento`): 9 gates sequenciais (aceite_comercial → cadastro → contrato → cobranca →
+dossie_mae → familia → pesquisa → **onboarding** → caso_ativo), função pura, **já case-agnóstica de
+verdade** (nenhum hardcoding de Ana, nenhuma flag global), já wireado em `/casos/$id` (aba Fechamento)
+e `/onboarding/$id`. Onboarding é o gate 8 de 9 aqui — mais completo que o GATES_PILOTO A-H.
+
+**Consequência:** "combinar as duas peças" de `/piloto`/`/piloto-ana` construiria algo redundante com o
+que já existe e já funciona em `fechamento-caso.ts`. Recomendação revisada, ainda não executada,
+aguardando confirmação: **aposentar `/piloto` e `/piloto-ana` em favor de `fechamento-caso.ts`**, que já
+resolve o problema — não construir uma peça nova combinando as duas antigas.
 
 ## 6.1. Versões congeladas sem conteúdo real — arquivadas (não apagadas)
 
@@ -126,9 +143,13 @@ ficha da Ana simplifica sozinha, sem mudança de código.
 | #67 | De-para Motores Unificados CRM Vivo × o que já existe (corrigida em v1.1 pela proprietária) | docs |
 | #68 | `produto_sku` confirma SKU ao vivo em `product_catalog` | fix |
 | #69 | Máscara/validação reutilizável de CPF, CEP, UF e telefone | feat |
+| #70 | Artefato do dia — 03/09/2026 (este documento) | docs |
+| #71 | De-para "piloto" da Ana × realidade | docs |
+| #72 | Varredura Fase 1 — go-live controlado do App Cliente | docs |
 
-Todas em draft, `tsc`/`vitest`/`vite build` verdes, aguardando teste em preview e autorização explícita
-da proprietária para merge — nenhuma foi mesclada de forma autônoma.
+Todas em draft, `tsc`/`vitest`/`vite build` verdes (quando aplicável — #70/#71/#72 são só documentação),
+aguardando teste em preview e autorização explícita da proprietária para merge — nenhuma foi mesclada de
+forma autônoma.
 
 ## 8. Riscos, limites e itens fora de escopo
 
@@ -144,6 +165,12 @@ da proprietária para merge — nenhuma foi mesclada de forma autônoma.
   técnico.
 - Divergência proposta × Planejador não tem painel persistente de resolução (seção 5) — hoje só aparece
   num toast que some.
+- Varredura Fase 1 do App Cliente (PR #72) confirmou infraestrutura de segurança real e testada, mas
+  achou: Faturas vaza pro pacote da Ana via link fixo em Conta/Proposta; isolamento entre dois clientes
+  reais autenticados nunca foi testado; telemetria de uso de conteúdo não existe (só evento de acesso).
+- De-para de onboarding/cadência (pedido novo da proprietária, agente em background ao fim do dia) ainda
+  não voltou — vai reconciliar `orquestracao-jornada.ts`, `cadencia-onboarding.ts`/`cadencia-d0-d30.ts`,
+  `onboarding.$id.tsx` e `fechamento-caso.ts` contra o arquivo histórico de propostas de onboarding.
 
 ## 9. Critérios de aceite deste artefato
 
@@ -154,16 +181,21 @@ da proprietária para merge — nenhuma foi mesclada de forma autônoma.
 
 ## 10. Próximos passos
 
-1. Proprietária testa em preview e decide merge das PRs #64–#69 (nenhuma delas altera dado de produção
-   além da correção já aplicada em `clientes`).
-2. Ler por completo os 3 mecanismos "piloto" (seção 6), decidir qual prevalece, propor o de-para.
+1. Proprietária testa em preview e decide merge das PRs #64–#72 (nenhuma altera dado de produção além
+   da correção já aplicada em `clientes` e do arquivamento de versões vazias em
+   `contract_parameter_previews`, ambos já autorizados e feitos).
+2. Confirmar a recomendação revisada da seção 6 (aposentar `/piloto`/`/piloto-ana` em favor de
+   `fechamento-caso.ts`, em vez de combinar as duas peças antigas) antes de tocar em código.
 3. Preencher o endereço estruturado da Ana, campo a campo, com a proprietária confirmando cada pedaço.
 4. Escopar tecnicamente a timeline de conversão lead→cliente para Indicadores/Operação Viva.
-5. Retomar a auditoria visual tela a tela com a conta de QA já criada.
+5. Retomar a auditoria visual tela a tela com a conta de QA já criada — PR #72 já aponta que essa conta
+   precisa ser confirmada como genuinamente sem papel de staff antes do teste de isolamento cross-case.
 6. Continuar o de-para dos "Motores Unificados CRM Vivo" (PR #67): resolver `product_catalog`/`sku_catalog`,
    ligar o indicador agregado de cadência, centralizar botões do cabeçalho do Caso 360.
 7. Construir o painel persistente de divergência proposta × Planejador com ação de resolver (seção 5),
    no mesmo padrão já usado para conflito por campo.
+8. Corrigir o vazamento de Faturas no pacote da Ana (link fixo em Conta/Proposta) — PR #72, item P0.
+9. Aguardar o de-para de onboarding/cadência (agente em background) e revisar contra `fechamento-caso.ts`.
 
 ---
 
