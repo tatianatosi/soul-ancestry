@@ -44,9 +44,6 @@ function PortalConta() {
             <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
               Faturas
             </Link>
-            <Link to="/portal/proposta" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
-              Proposta
-            </Link>
           </div>
         </BlocoVisibilidade>
       )}
