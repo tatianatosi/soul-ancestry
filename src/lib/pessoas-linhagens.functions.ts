@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -358,7 +359,12 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
     return { id: perfil.data.id as string, research_person_id: pessoa.data.id as string };
   });
 
-/** Gravação genérica das entidades G-02, com releitura de conferência. */
+/**
+ * Gravação genérica das entidades G-02, com confirmação de linha afetada,
+ * releitura independente da gravação e comparação campo a campo. O retorno
+ * só é "salvo" quando o valor relido do banco bate com o que foi enviado —
+ * a UPDATE/INSERT devolver a própria linha não é, por si, confirmação.
+ */
 export const salvarRegistroG02 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -372,17 +378,26 @@ export const salvarRegistroG02 = createServerFn({ method: "POST" })
     if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id"))
       valores["case_id"] = data.caseId;
 
-    const r = data.id
-      ? await supabase.from(data.tabela).update(valores).eq("id", data.id).select("*").maybeSingle()
-      : await supabase
-          .from(data.tabela)
-          .insert({ ...valores, organization_id: organizationId })
-          .select("*")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data)
-      throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
-    return { registro: r.data as any };
+    if (data.id) {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: data.tabela,
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { registro: r.registro } as any;
+    }
+
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      organizationId,
+      userId: context.userId as string,
+      payload: valores,
+    });
+    return { registro: r.registro } as any;
   });
 
 /** Sem exclusão física: somente arquivamento com motivo. */
