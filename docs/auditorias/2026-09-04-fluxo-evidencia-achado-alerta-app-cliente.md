@@ -130,6 +130,49 @@ existe (`ale-achados` está `CONECTADO`).
    achado real e não corrigido por este achado novo: `client_deliverables` está bloqueada por RLS de
    portal (seção 5), e o caminho que funciona (`app_projections`) não nasce de achado.
 
+### 4.2 — Duas ações distintas pedidas pela Proprietária, e se existe backlog de comunicação
+
+A Proprietária separou o pedido em duas ações que a arquitetura hoje trata como uma coisa só (e não
+deveria):
+
+1. **Autorizar via Desk o alerta 🔔 do achado** — um ato humano explícito, na tela `/achados/$caseId`,
+   que transforma um achado em evento de alerta interno (o que `ale-achados` já cataloga como
+   `CONECTADO`, seção 4.1). Confirmado em código: `achados.$caseId.tsx` hoje só registra o achado
+   (`salvarAchado`) e mostra o aviso "Registro interno. Nada aqui é publicado no App Cliente nem gera
+   mensagem" (linha 198) — não existe, na tela, nenhum botão de "autorizar alerta" separado do
+   salvamento. A autorização que a Proprietária pede — um passo humano deliberado, distinto de só
+   salvar o achado — **não existe hoje como ação própria**; é o mesmo gap já registrado no backlog P0-2
+   (template + botão funcional), só que nomeado com mais precisão: falta a ação de **autorizar**, não só
+   o botão de copiar.
+2. **Preparar a mensagem ao cliente com o alerta no WhatsApp manual, junto com o onboarding** — depende
+   do item 1 (só faz sentido preparar mensagem de um alerta já autorizado) e do template que falta no
+   catálogo (`MAPA_ALERTA_TEMPLATE`, backlog P0-2). "Junto com o onboarding" significa: essa preparação
+   de mensagem deveria aparecer na mesma superfície onde a equipe já acompanha onboarding/micro-entregas
+   (`/ops`, `Onboarding-Jornada`), não como uma tela isolada — hoje não aparece em nenhuma das duas.
+
+**Backlog do que já foi enviado ao cliente / o que o cliente respondeu / o que a equipe enviou** — a
+Proprietária esperava que isso já existisse. A resposta é dividida, com evidência de código para os dois
+lados:
+
+- **Existe, e é real, para o canal dentro do App/Portal**: `portal_tickets` +
+  `portal_ticket_messages` (`src/lib/portal-atendimento.functions.ts:582-669`). `ticketInterno` lê as
+  mensagens com `autor_tipo` (equipe/cliente) e `responderTicketEquipe` grava resposta da equipe com
+  `visivel_cliente`. É um histórico bidirecional real — mas é o canal de **tickets de suporte dentro do
+  Portal**, não WhatsApp.
+- **Não existe para WhatsApp**: `registrarUsoTemplate`
+  (`src/lib/message-library.functions.ts:441-521`) grava em `message_template_usage` só que um template
+  foi copiado — `external_send_status: "copiado_para_envio_manual"` — sem o texto final realmente
+  enviado (a equipe edita antes de colar no WhatsApp) e sem nenhum registro de resposta do cliente no
+  WhatsApp. Esse canal é, por desenho, externo ao sistema (CA-OPS-02: envio sempre manual, fora da
+  plataforma), então hoje não há como o sistema capturar automaticamente o que foi enviado de fato nem
+  o que o cliente respondeu — só que **um template foi copiado, quando, e por qual alerta**.
+
+Ou seja: o backlog "o que enviamos / o que o cliente mandou / o que nós mandamos" existe de verdade só
+para tickets do Portal. Para WhatsApp — o canal que `MAPA_ALERTA_TEMPLATE` e o alerta de achado
+efetivamente usam — só existe o registro de que um template foi copiado, nunca o conteúdo final nem a
+resposta. Fechar esse gap exigiria um passo novo (colar de volta o texto enviado e, se houver, a
+resposta do cliente) — hoje inexistente em qualquer tela.
+
 ## 5. Visibilidade no App Cliente — três tabelas paralelas, sem link entre si
 
 - `src/lib/app-visibilidade.ts` controla só estado de tela (disponível/em preparação) a partir de
@@ -196,6 +239,15 @@ App Cliente. Resumo por elo:
 3. Se o vínculo achado↔entrega continuar manual por decisão (não automatizar ainda), ao menos criar o
    campo de UI para `client_deliverable_id` em `achados.$caseId.tsx` — hoje o campo existe no schema e
    na validação, mas não tem onde ser preenchido.
+4. **Criar a ação explícita de "autorizar alerta" em `achados.$caseId.tsx`**, distinta de salvar o
+   achado — hoje o achado é salvo, mas não há um ato humano separado que o marque como "pronto para
+   virar alerta" (item 4.2). Essa ação deveria alimentar o mesmo template que falta no item P0-2, e
+   aparecer também na superfície de onboarding/`/ops`, não só em `/achados/$caseId`.
+5. **Fechar o gap de backlog de WhatsApp**: hoje `message_template_usage` só registra que um template
+   foi copiado (`copiado_para_envio_manual`), nunca o texto final enviado nem a resposta do cliente
+   (item 4.2). Decidir e implementar um passo de "colar o que foi enviado / colar a resposta" — mesmo
+   que manual — para que exista, por canal, o mesmo tipo de histórico que já existe para tickets do
+   Portal (`portal_tickets`/`portal_ticket_messages`).
 
 **P1**
 4. Avaliar transformar `gatilhosDaEvidencia()` (já sugere "rascunho de microentrega" na tela quando a
