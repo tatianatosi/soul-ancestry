@@ -241,31 +241,43 @@ Não foi localizado documento de auditoria anterior mapeando especificamente ess
   `client_visibility` e evidência direta), somando os 4 campos de confiança/workflow que hoje só
   existem em `research_relationships` (seção 5.1).
 
-**P0**
-1. **Decidir e implementar a propagação de assinatura**: quando `registrarAssinatura` grava `contracts.status = "signed"`, sincronizar `crm_casos.contrato_assinado = true` no mesmo caso. É a lacuna que, sozinha, impede qualquer caso de chegar ao portal mesmo com contrato assinado corretamente no motor novo. Não decide aqui quem seta `pagamento_confirmado`/`documentos_minimos_ok` (são responsabilidades de outros módulos) — só a ponta de contrato.
-2. **Popular `cliente_id` ao materializar `nucleo_membros`, e ligar esse campo a um link de perfil em `/nucleos`**: a materialização do núcleo-piloto (`piloto-ana.functions.ts:167-176`) não grava `cliente_id`, mesmo a coluna existindo e sendo lida — é a causa concreta da fragmentação da Ana entre `clientes` (correto) e `nucleo_membros` (solto). Corrigir os dois lados: gravar o vínculo ao criar o membro, e usar `cliente_id` para renderizar "Ver perfil" apontando para `/pessoas/$clienteId`.
-3. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`.
+**P0 — executados nesta rodada, com autorização explícita da Proprietária** (commits `d06227e`, `46290af`):
+1. ✅ **Propagação de assinatura**: `registrarAssinatura` agora grava `crm_casos.contrato_assinado = true` no mesmo caso logo após `contracts.status = "signed"` — a lacuna que impedia qualquer caso de chegar ao portal mesmo com contrato assinado no motor novo. Não mexe em quem seta `pagamento_confirmado`/`documentos_minimos_ok` (responsabilidade de outros módulos, seção 10 pergunta 2 segue aberta).
+2. ✅ **Vínculo `cliente_id` em Núcleos**: "Ver perfil" (`/pessoas/$clienteId`) aparece ao lado de todo membro com `cliente_id` preenchido; o formulário de edição ganhou o seletor "Vincular a pessoa cadastrada" (nova função `listarClientesParaVinculo`), para ligar manualmente qualquer requerente ao seu cadastro de Pessoa Canônica — inclusive retroativamente, sem depender de reescrever a materialização hardcoded do piloto.
+3. ✅ **Divergência proposta × Planejador vira conflito persistente por campo**: `preencherDeOrigens` agora grava a mesma marca de conflito (`contract_parameter_values.conflito`) já usada para incoerência de país/rota, então a divergência aparece de forma persistente nas duas telas de parâmetros (não só no toast) e se resolve do mesmo jeito que qualquer outro conflito por campo — editando o valor.
+
+**Não executado nesta rodada** (decisão de arquitetura, não bug pontual):
+4. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`. Depende da resposta à pergunta 3 da seção 10 (quem executa a fila).
 
 **P1**
-4. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
-5. **Migrar os 4 campos de confiança/workflow** (`confidence_level`, `status`, `directionality`, `supporting_evidence_count`) de `research_relationships` para `genealogical_relationships`, depois reapontar `carregarFichaPiloto` para as tabelas reais — nessa ordem, para não perder dado (seção 5.1/5.2).
-6. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2).
-7. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 6.
-8. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
-9. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
+5. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
+6. **Migrar os 4 campos de confiança/workflow** (`confidence_level`, `status`, `directionality`, `supporting_evidence_count`) de `research_relationships` para `genealogical_relationships`, depois reapontar `carregarFichaPiloto` para as tabelas reais — nessa ordem, para não perder dado (seção 5.1/5.2).
+7. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2).
+8. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 7.
+9. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
+10. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
 
 **P2**
-10. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
+11. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
 
 ## 10. Perguntas de decisão que só a Proprietária pode responder
 
-1. **Propagação de assinatura**: confirma que `registrarAssinatura` deve setar `crm_casos.contrato_assinado = true` automaticamente? Isso muda o comportamento hoje (nenhuma automação existe) — é a decisão que desbloqueia o P0-1.
+1. ~~Propagação de assinatura~~ — **executada** nesta rodada (P0-1 do backlog), com autorização explícita da Proprietária.
 2. **Quem seta `pagamento_confirmado`/`documentos_minimos_ok`**: esses dois campos do gate do portal têm algum motor/tela por trás que ainda não foi mapeado nesta rodada, ou também estão sem nenhum caminho de escrita hoje? Vale uma rodada dedicada só a isso antes de declarar o funil resolvido.
-3. **Execução da fila de Drive**: quem deve marcar uma pasta como `approved`/`executed` na fila (`drive_provisioning_queue`) — é uma ação manual de alguém da equipe fora do Desk, ou a Proprietária quer uma tela dedicada para isso hoje? Não existe hoje nenhuma tela de ação sobre a fila, só a leitura em Visão Geral do caso.
-4. **Hipótese/pendência/solicitação de documento**: entram no módulo real de Pessoas e Linhagens junto com o vínculo familiar unificado, ou continuam em tabelas próprias (seção 5.2, item 6 do backlog)?
+3. **Execução da fila de Drive**: quem deve marcar uma pasta como `approved`/`executed` na fila (`drive_provisioning_queue`) — é uma ação manual de alguém da equipe fora do Desk, ou a Proprietária quer uma tela dedicada para isso hoje? Não existe hoje nenhuma tela de ação sobre a fila, só a leitura em Visão Geral do caso. Segue pendente — bloqueia o backlog P1-4 (dossiê-mãe ↔ fila de Drive).
+4. **Hipótese/pendência/solicitação de documento**: entram no módulo real de Pessoas e Linhagens junto com o vínculo familiar unificado, ou continuam em tabelas próprias (seção 5.2, item 7 do backlog)?
 
-## 11. O que este documento NÃO decide
+## 11. O que este documento (e o que a rodada de execução) NÃO decide
 
-- **Não decide** nem implementa a propagação de assinatura (P0-1), o vínculo `cliente_id` em Núcleos (P0-2) nem a conexão do dossiê-mãe à fila de Drive (P0-3) — ficam como backlog explícito, pendentes de execução, mesmo sendo correções pequenas e de baixo risco.
-- **Não decide** o destino de `research_hypotheses`/`research_pending_items`/`research_document_requests` na unificação da ficha piloto.
-- **Não altera nenhuma linha de banco, nenhum arquivo de código, nenhuma migration.**
+**Executado nesta rodada**, com autorização explícita da Proprietária, sobre este documento (commits
+`d06227e`, `46290af`, branch `claude/ancestral-club-desk-intelligence-0gsoeg`): propagação de assinatura
+para `crm_casos.contrato_assinado`; vínculo `cliente_id` em Núcleos com link de perfil e seletor de
+vinculação manual; persistência por campo da divergência proposta × Planejador. `tsc --noEmit` limpo,
+1595/1595 testes passando, `vite build` limpo em todas as três mudanças.
+
+**Ainda não decidido/executado**:
+- Conexão do dossiê-mãe à fila de Drive (P0-4/backlog) — depende da resposta à pergunta 3 da seção 10.
+- Qual tabela é canônica para vínculo familiar e para evidência (decisões de arquitetura, não bugs pontuais).
+- Se a branch de Pessoa 360 deve ser trazida para o histórico desta branch.
+- O destino de `research_hypotheses`/`research_pending_items`/`research_document_requests` na unificação da ficha piloto.
+- **Nenhuma migration foi criada ou alterada** — os três fixes escrevem em colunas já existentes no schema.
