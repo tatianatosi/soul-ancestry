@@ -30,8 +30,10 @@ const CAMPO_CONTRATADA_PARA_PERFIL: Record<string, string> = {
   cnpj: "cnpj",
   endereco: "endereco_institucional",
   email: "email_oficial",
-  // representante_legal não tem correspondente em PERFIL_INSTITUCIONAL hoje —
-  // continua genuinamente pendente, sem valor inventado.
+  // 04/09/2026 — Proprietária confirmou: dona da firma individual, portanto
+  // representante legal em todos os aspectos do Clube Ancestral. Passou a
+  // ter correspondente canônico em PERFIL_INSTITUCIONAL.
+  representante_legal: "representante_legal",
 };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

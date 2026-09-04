@@ -26,6 +26,7 @@ export const CAMPOS_INSTITUCIONAIS_OBRIGATORIOS = [
   "razao_empresarial",
   "nome_operacao",
   "cnpj",
+  "representante_legal",
   "endereco_institucional",
   "email_oficial",
   "site",
