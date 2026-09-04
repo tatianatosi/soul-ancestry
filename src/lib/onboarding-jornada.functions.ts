@@ -223,9 +223,9 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
     const emOnboarding = listaCasos.filter((c) => c["eixo_operacao"] === "onboarding_iniciado").length;
     const ativos = listaCasos.filter((c) => c["eixo_operacao"] === "caso_ativo").length;
     const entregasPendentesAprovacao = listaEntregas.filter(
-      (e) => e["approval_status"] === "in_review" || e["approval_status"] === "draft",
+      (e) => e["approval_status"] === "em_revisao" || e["approval_status"] === "rascunho",
     ).length;
-    const entregasPublicadas = listaEntregas.filter((e) => e["approval_status"] === "published").length;
+    const entregasPublicadas = listaEntregas.filter((e) => e["approval_status"] === "publicado").length;
 
     return {
       contadores: {
@@ -500,7 +500,7 @@ export const salvarEntregaCliente = createServerFn({ method: "POST" })
       journey_phase: data.fase,
       title_client: data.tituloCliente.trim(),
       summary_approved: data.resumoAprovado.trim(),
-      approval_status: "in_review",
+      approval_status: "em_revisao",
     };
     const r = data.deliverableId
       ? await supabase
@@ -514,7 +514,7 @@ export const salvarEntregaCliente = createServerFn({ method: "POST" })
     if (r.error) throw new Error(r.error.message);
     if (!r.data) throw new Error("Entrega não foi gravada.");
     await auditar(supabase, org, context.userId, "entrega_salva", "client_deliverables", r.data.id, {
-      status: "in_review",
+      status: "em_revisao",
     });
     return r.data;
   });
@@ -527,7 +527,7 @@ export const aprovarEntregaCliente = createServerFn({ method: "POST" })
     const org = await resolverOrg(supabase, context.userId as string);
     const r = await supabase
       .from("client_deliverables")
-      .update({ approval_status: "approved", approved_by: context.userId, approved_at: new Date().toISOString() })
+      .update({ approval_status: "aprovado", approved_by: context.userId, approved_at: new Date().toISOString() })
       .eq("organization_id", org)
       .eq("id", data.deliverableId)
       .select("*")
@@ -551,7 +551,7 @@ export const publicarEntregaCliente = createServerFn({ method: "POST" })
       .eq("id", data.deliverableId)
       .maybeSingle();
     if (!atual.data) throw new Error("Entrega não encontrada.");
-    if (atual.data.approval_status !== "approved" || !atual.data.approved_by) {
+    if (atual.data.approval_status !== "aprovado" || !atual.data.approved_by) {
       throw new Error("Publicação exige aprovação humana registrada.");
     }
     if (contemConteudoInterno(atual.data.summary_approved) || contemConteudoInterno(atual.data.title_client)) {
@@ -559,7 +559,7 @@ export const publicarEntregaCliente = createServerFn({ method: "POST" })
     }
     const r = await supabase
       .from("client_deliverables")
-      .update({ approval_status: "published", published_at: new Date().toISOString() })
+      .update({ approval_status: "publicado", published_at: new Date().toISOString() })
       .eq("organization_id", org)
       .eq("id", data.deliverableId)
       .select("*")
@@ -582,6 +582,6 @@ export const listarEntregasPublicadas = createServerFn({ method: "GET" })
       .select("*")
       .eq("organization_id", org)
       .eq("case_id", data.caseId)
-      .eq("approval_status", "published");
+      .eq("approval_status", "publicado");
     return projetarEntregasCliente((r.data ?? []) as never, data.caseId);
   });
