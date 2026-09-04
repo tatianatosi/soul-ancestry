@@ -41,7 +41,7 @@ import {
 } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
-import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -294,8 +294,24 @@ function Pagina() {
     entradaAnexos,
     anexos: anexosGovernados,
     conflitos: [],
-    politicaPrivacidadeVigente: false,
-    foroConfigurado: false,
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária (pente fino
+     * ponta a ponta na tela de preparação de contrato): estes dois campos
+     * estavam hardcoded `false` para todo caso, sempre — nenhuma tela ou
+     * fluxo jamais os definia como `true`, então a prévia final nunca
+     * conseguia ser liberada (previaFinalLiberada exige zero cláusulas
+     * bloqueantes), mesmo com o contrato-base já vigente. A cláusula H
+     * (retenção/descarte) e a O (foro) do próprio contrato-base
+     * (contrato-base-consolidado.ts, cláusulas 7.3 e 14.2) dizem
+     * textualmente que essas regras "observarão a política institucional
+     * versionada e vigente" — ou seja, já são a mesma vigência do
+     * contrato-base (CONTRATO_BASE_STATUS), revisada nos itens 2 e 4 de
+     * ITENS_REVISAO_JURIDICA antes de `CONTRATO_BASE_STATUS` virar
+     * "vigente". Não era uma segunda aprovação pendente: era um campo que
+     * nunca foi ligado à aprovação que já existia.
+     */
+    politicaPrivacidadeVigente: contratoBaseAssinavel(),
+    foroConfigurado: contratoBaseAssinavel(),
     metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
   });
