@@ -1,11 +1,12 @@
 # Motor do Planejador Universal — Produtos-Pai, Jornada e Multipaís: versão canônica final
 
 ```yaml
-status: em revisão — consolidação final, pendente de aprovação da Proprietária
-versão: 1.0
+status: em execução parcial — fundação da lista-alimento e preços resgatados aplicada; motor jurídico e
+  demais entidades multipaís pendentes
+versão: 1.1
 data: 2026-09-04
 projeto: Clube Ancestral
-classificação: consolidação de 5 documentos externos + cruzamento com dado real do repositório
+classificação: consolidação de 10 documentos externos + cruzamento com dado real do repositório
 responsável pela decisão: Proprietária do Clube Ancestral
 fontes:
   - CA-CAT-02 — Catálogo de Produtos-Pai, Multipaís e Planejador Universal (v1.0, 04/09) — 11 produtos-pai
@@ -14,19 +15,26 @@ fontes:
   - Revisão Canônica — Planejador Universal, Produtos-Pai, Jornada e Nacionalidades (v1.3, 04/09) — 9 produtos-pai
   - De-Para de Prompts — Planejador Universal, Produtos-Pai, Jornada, Desk e Valores (v1.0, 04/09) — reconciliação
     dos quatro acima, prompt final único
+  - Reconciliação Canônica dos Cinco Artefatos — Produto-Pai, Jornada, Planejador Universal e Legado (v1.0, 04/09)
+  - Resgate de Contexto — Motor Planejador de Cidadania e Matriz Produto-Pai × SKU (v1.0, 03/09)
+  - Instruções de Construção do Motor Planejador de Cidadania (v1.0, 02/09) — motor jurídico separado, não implementado
+  - Correção Canônica — Catálogo Multipaís, Produtos-Pai, Jornada, Valores e Legado (v2.0, 04/09)
+  - Prompt Canônico — Planejador Universal Multipaís, Catálogo-Alimento e Preços Resgatados (v2.1, 04/09) — executado (seção 11)
+  - Auditoria de Coerência — Produto-Pai, Jornada, Planejador Universal e Legado (v1.0, 04/09)
   - código real: src/data/casos.ts (PARAMETROS, SKUS_REFERENCIA), src/lib/planejador-parametros.ts,
     src/lib/contrato-parametros.functions.ts
   - as três reconciliações já feitas hoje nesta sessão contra os 35 SKUs ativos reais (PR #82, matriz
     PP-01-08, PR #85 parte 1)
-escopo: consolidar em UMA versão final os cinco documentos recebidos hoje sobre produtos-pai/jornada/
-  multipaís, aproveitando a lista de valores do quinto (de-para) e cruzando tudo contra o catálogo real
-  (35 SKUs ativos) e contra o código real de precificação (PARAMETROS)
+escopo: consolidar os documentos recebidos hoje sobre produtos-pai/jornada/multipaís, aproveitando a
+  lista de valores do de-para e cruzando tudo contra o catálogo real (35 SKUs ativos) e contra o código
+  real de precificação (PARAMETROS); executar a fundação aditiva (lista-alimento + preços resgatados)
+  autorizada pela Proprietária
 premissas: taxonomia de SKU existente não muda; produtos-pai são camada de orquestração, não nova
   família comercial; a Planilha Mestre vira legado/lista-alimento, não motor de decisão
-limites: nenhuma migration, nenhuma escrita em product_catalog, nenhum preço publicado, nenhum SKU novo
-  criado no banco. Implementação de código nesta rodada é limitada a dados/tipos locais versionados
-  (mesmo padrão de drive-provisioning.ts: preparação, nunca execução externa).
-próximos passos: seção 9
+limites: nenhuma escrita em product_catalog, nenhum preço homologado, nenhum SKU novo criado no
+  catálogo público. A migration da seção 11 cria só tabelas de referência aditivas (lista-alimento e
+  preços resgatados), sem tocar product_catalog nem qualquer SKU/família/faceta existente.
+próximos passos: seção 9 (perguntas originais) e seção 11.3 (o que ainda falta da execução de hoje)
 ```
 
 ## Causa
@@ -258,8 +266,79 @@ capacidade e preço (a mesma disciplina que os 5 documentos pedem entre si).
 
 - **Não decide** qual valor é correto para Itália, Portugal e Áustria — regista a divergência, não a resolve.
 - **Não cria** nenhum dos ~40 SKUs regionais propostos.
-- **Não implementa** o schema de multipaís/multirramos (ramo, base de pesquisa, trilha) — precisa de
-  migration e rodada própria.
+- **Não implementa** o schema completo de multipaís/multirramos (`family_branch`, `research_base`,
+  `nationality_track`, `incremental_scope`, `case_commercial_condition`, `microdelivery`) — a seção 11
+  implementa só a fundação (lista-alimento e preços resgatados); o restante precisa de rodada própria.
 - **Não altera `PARAMETROS`** nem qualquer outro dado em código nesta entrega — a correção de valores
   é ação futura, condicionada à decisão da seção 8.
-- **Não altera nenhuma linha de `product_catalog`, nenhuma migration.**
+- **Não altera nenhuma linha de `product_catalog`** nem de qualquer SKU/família/faceta existente — as
+  tabelas novas da seção 11 são aditivas, sem FK nem gatilho para `product_catalog`.
+- **Não homologa nenhum preço** — todos os valores da seção 11 entram como `REFERENCIA_RESGATADA`,
+  `CONDICAO_PARTICULAR_DE_CASO` ou `PENDENTE_DE_HOMOLOGACAO`; nenhum como `HOMOLOGADO_CATALOGO`.
+- **Não resolve a divergência PP-01-09 × PP-01-08** (seção 1.1) — a seção 11 executa a direção
+  PP-01-09 porque a Proprietária enviou quatro documentos convergentes hoje pedindo explicitamente para
+  "seguir a direção e ordem destes prompts", mas a matriz PP-01-08 (cruzada ao vivo contra os 35 SKUs
+  reais) segue sem reconciliação formal contra esta decisão.
+
+## 11. Execução aplicada nesta rodada — fundação da lista-alimento e preços resgatados
+
+A Proprietária enviou um quarto e quinto lote de documentos hoje (`Resgate de Contexto — Motor
+Planejador de Cidadania`, 03/09; `Instruções de Construção do Motor Planejador de Cidadania` v1.0,
+02/09; `Correção Canônica — Catálogo Multipaís, Produtos-Pai, Jornada, Valores e Legado` v2.0, 04/09;
+`Prompt Canônico — Planejador Universal Multipaís, Catálogo-Alimento e Preços Resgatados` v2.1, 04/09;
+`Auditoria de Coerência — Produto-Pai, Jornada, Planejador Universal e Legado` v1.0, 04/09), pedindo
+para "seguir a direção e ordem destes prompts corretamente".
+
+### 11.1 — O que esses 5 documentos confirmam ou acrescentam
+
+- Os documentos v2.0/v2.1/Auditoria de Coerência chegam, de forma independente, à **mesma lista de 9
+  produtos-pai** já registrada nas seções 1 e 1.1 deste documento — a quarta síntese independente a
+  convergir no mesmo resultado hoje.
+- A "Auditoria de Coerência" argumenta que os cinco artefatos anteriores não são modelos concorrentes,
+  mas **níveis diferentes do mesmo sistema** (Legado → Catálogo → Jornada → Caso → Operação →
+  Experiência) — não resolve, e nem tenta resolver, a divergência com a matriz PP-01-08 (fase da vida),
+  que é de uma linhagem de documentos diferente e foi cruzada ao vivo contra o banco real.
+- Traz uma "instrução do Motor de Cidadania" (v1.0, 02/09) que é um sistema **inteiramente separado**:
+  motor jurídico de determinação de elegibilidade por país (`legal_frameworks`, `citizenship_routes`,
+  `rule_evaluations`, `human_decisions`, 8 fases de implementação). Não tem relação direta com
+  produtos-pai/catálogo — não foi implementado nesta rodada por ser, sozinho, um projeto do tamanho
+  desta sessão inteira; fica registrado como pendência separada, não misturada ao catálogo.
+- Traz um dicionário completo de estados (`ATIVO_HOMOLOGADO`…`NAO_USAR_NO_MOTOR`), uma pré-lista de ~30
+  itens existentes mapeados a produto-pai/fase, e uma tabela de preços resgatados com estado
+  (`REFERENCIA_RESGATADA`/`CONDICAO_PARTICULAR_DE_CASO`/`DIVERGENTE`/`PENDENTE_DE_HOMOLOGACAO`) —
+  consistente ponto a ponto com os valores já divergentes encontrados nesta sessão (seção 3: Áustria,
+  Itália, Portugal).
+
+### 11.2 — O que foi executado
+
+Migration `20260904180000_planner_catalog_feed_price_catalog_rescued.sql`, aditiva, sem tocar
+`product_catalog` nem nenhum SKU/família existente:
+
+1. **`planner_catalog_feed`** — a lista-alimento. Semeada com os ~30 itens existentes já mapeados a
+   produto-pai/fase (seção 4.2 da Correção Canônica v2.0) e as ~30 especificações pendentes por país
+   (seção 4.3) — todas com `status_dictionary` explícito (a maioria `ESPECIFICACAO_PENDENTE` ou
+   `CONDICIONAL_POR_CASO`; nenhuma `ATIVO_HOMOLOGADO`). `CA-CURSO-001` entra como
+   `ARQUIVADO_DECISAO_PROPRIETARIA`.
+2. **`price_catalog_rescued`** — preços resgatados como referência, nunca como preço ativo. Semeada com
+   as referências por país (14 países/processos) e por item (20 itens com valor localizado), todas
+   `REFERENCIA_RESGATADA` exceto Luxemburgo/Hungria/Irlanda (`PENDENTE_DE_HOMOLOGACAO`, `amount = null`,
+   conforme "não estimar"), e a condição particular da Ana Luiza (R$ 9.600, `CONDICAO_PARTICULAR_DE_CASO`,
+   `case_only = true`, isolada da referência de R$ 4.800 para Áustria). Itália e Portugal ficam
+   registrados com nota de divergência (não escolhido automaticamente qual valor é correto).
+
+Idempotente (`not exists` antes de cada insert), escopado por organização (`organizations` não-demo,
+não-arquivada), sem RLS de portal (mesma política `is_org_member`/`can_write` de `product_catalog`).
+`npx tsc --noEmit` e `npx vitest run` não tocam SQL — validação desta migration é só revisão manual
+(sem sessão Supabase autorizada para aplicar/testar ao vivo nesta rodada).
+
+### 11.3 — O que NÃO foi executado, e por quê
+
+- **`family_branch`, `research_base`, `nationality_track`, `incremental_scope`,
+  `case_commercial_condition`, `microdelivery`** — as 6 entidades restantes do modelo de dados dos
+  documentos v2.0/v2.1. Envolvem re-arquitetura de como um caso se relaciona a trilhas/ramos/condição
+  comercial — mudança estrutural maior, que toca `case_services`/`contracts`/proposta, não uma tabela de
+  referência isolada. Fica como próxima rodada, não decidida aqui.
+- **O motor jurídico de cidadania** (Instruções v1.0) — projeto do tamanho de uma sessão inteira própria
+  (8 fases, dezenas de tabelas, revisão jurídica externa obrigatória). Registrado, não iniciado.
+- **Nenhum preço foi homologado, nenhum link criado, nenhuma proposta ou catálogo público alterado** —
+  consistente com a regra inegociável de todos os documentos desta linhagem.
