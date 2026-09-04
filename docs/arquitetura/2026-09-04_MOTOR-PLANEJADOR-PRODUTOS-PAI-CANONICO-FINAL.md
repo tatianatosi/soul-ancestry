@@ -342,3 +342,35 @@ não-arquivada), sem RLS de portal (mesma política `is_org_member`/`can_write` 
   (8 fases, dezenas de tabelas, revisão jurídica externa obrigatória). Registrado, não iniciado.
 - **Nenhum preço foi homologado, nenhum link criado, nenhuma proposta ou catálogo público alterado** —
   consistente com a regra inegociável de todos os documentos desta linhagem.
+
+## 12. O que rege a partir de agora, e o único ponto que falta para reduzir a "poucos SKUs"
+
+A Proprietária pediu para tratar como definitivo o conjunto mais recente de documentos (seção 11.1) e
+"executar e rever as correções" com o objetivo de que **"somente poucos SKUs irão permanecer"** —
+consistente com o teto Top 10 (Núcleo)/Top 30 (ampliado) já proposto no documento 9 (`Arquitetura Única
+de Oferta e Jornada`, seção 1).
+
+### O que já rege, executado nesta sessão
+
+- **Produtos-pai**: os 9 nomes da seção 1/1.1 — confirmados por quatro sínteses independentes hoje.
+- **Lista-alimento e preços resgatados**: `planner_catalog_feed`/`price_catalog_rescued` (seção 11) —
+  cobre os 11 países/processos do escopo dos documentos (IT, HR, PT, ES, DE, PL, RO, AT, LU, HU, IE, BR,
+  FR — 13 no total, além de "Europa geral" só como triagem), todos como referência ou pendência, nenhum
+  homologado.
+- **Planilha Mestre é legado**: nenhuma tabela ou código novo desta sessão a lê em runtime.
+
+### O único ponto que bloqueia a redução a "poucos SKUs"
+
+Reduzir `product_catalog` para "poucos SKUs" significa **desativar ou reclassificar SKUs hoje ativos em
+produção** (`ativo`/`elegivel_para_proposta`/`status_homologacao`) — ação em dado vivo, difícil de
+reverter se um SKU desativado ainda estiver referenciado por um caso, contrato ou proposta em andamento.
+Nenhum dos documentos recebidos até agora (incluindo os dois lotes de hoje) fecha, SKU a SKU, contra os
+35 códigos reais ativos, qual fica e qual sai — o documento 9 propõe Top 10/Top 30 sobre um universo de
+91 SKUs do `SANEAMENTO_DE_SKUS.csv` (a Planilha Mestre legada), não sobre os 35 realmente ativos hoje no
+banco.
+
+**Não executei essa redução.** Antes de desativar qualquer SKU real, preciso de uma lista explícita —
+SKU a SKU, contra os 35 ativos reais (já extraídos nesta sessão) — de qual fica ativo e qual sai, ou
+autorização para eu mesmo cruzar o Top 10/Top 30 do documento 9 contra os 35 reais e propor a lista antes
+de aplicar (não aplicar direto, dado o risco de desativar algo em uso). Tudo o que já está pronto (seção
+11) não depende dessa decisão — só a redução do catálogo ativo depende.
