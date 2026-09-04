@@ -196,10 +196,42 @@ rodada — seção 2). Reconstrução do que o de-para preserva por citação di
 | Micro-entrega, 7 estados únicos | **Gap + conflito ativo** — nenhum dos 4 mecanismos reais tem os 7 estados; `client_deliverables.approval_status` tem dois vocabulários conflitantes na mesma coluna (seção 2.1), confirmado ainda presente hoje |
 | Google Calendar | Corretamente não ativado — nenhuma integração encontrada, consistente com a política |
 
-A régua F é, portanto, **a única fonte com dias que passam de D30 — mas nenhuma das suas peças D31 em
-diante está implementada**. É exatamente o "resgate" que a Proprietária pedia: não precisa ser
-decidida do zero (ao contrário do que a seção 2 desta rodada concluiu antes da correção), precisa ser
-**executada** — o desenho já existe desde 03/09.
+A régua F é, portanto, **a única fonte com dias que passam de D30**. É exatamente o "resgate" que a
+Proprietária pedia: não precisa ser decidida do zero (ao contrário do que a seção 2 desta rodada
+concluiu antes da correção), precisa ser **executada** — o desenho já existe desde 03/09.
+
+### RÉGUA F — execução aplicada nesta rodada, autorizada pela Proprietária ("pode executar a regra D0 até D365 em todos os níveis e abas e grupos que se aplique")
+
+**1. Os 4 gates D0 sem correspondência foram criados** em `src/lib/fechamento-caso.ts` — o gate de
+fechamento passa de 9 para 13, com sinal real por trás de cada um:
+
+| Gate novo | Condição real | Fonte do dado |
+|---|---|---|
+| `produto_servico` | `case_services` do caso tem `product_catalog_id` referenciando um SKU com `estado_catalogo = 'homologado_ativo'` | mesma regra já usada por `preencherDeOrigens` (motor contratual) |
+| `perfil_institucional` | `perfilInstitucionalRenderizado().vigente` (`src/lib/perfil-institucional.ts`) | mesma função já usada por `piloto-ana.functions.ts` |
+| `conteudo_portal` | se `crm_casos.app_access_status = 'liberado'`, exige ao menos uma linha de `client_deliverables` com `approval_status` em `aprovado`/`publicado`; se o acesso não está liberado, o gate não se aplica (passa) | reaproveita o vocabulário já unificado nesta rodada (seção 2.1) |
+| `sem_bloqueio_critico` | nenhum `case_alerts` com `criticidade = 'critico'` e `status = 'pending'` para o caso | — |
+
+`caso_ativo` (o gate final) agora também exige `sem_bloqueio_critico`, e `contrato` agora depende de
+`perfil_institucional` além dos gates que já dependia — refletindo a ordem D0 da política (produto/
+perfil antes de contrato). `permite.casoAtivo` idem. 2 testes novos cobrem os dois gates condicionais
+(`sem_bloqueio_critico` barrando `caso_ativo`; `conteudo_portal` só cobrando quando o acesso está
+liberado).
+
+**2. O que NÃO foi executado nesta rodada, por escopo/risco, e fica registrado como continuação**:
+- Janelas de dia (D1–D30/D31–D90/D91–D365) para Fase 01/Fase 02 do App Cliente — mexe em
+  `app-visibilidade.ts`/`portal-jornada.functions.ts`, caminho que decide o que o cliente **vê**;
+  não fiz essa mudança sem revisão específica dela, dado o histórico de gap encontrado ali (comentário
+  do código já citava tabela errada — seção 4.2 do de-para).
+- Os 7 estados únicos de micro-entrega (`visualizada`, `ação pendente`, `concluída` como estados reais,
+  não como timestamp) — exigiria unificar ou ligar `client_deliverables` e `ops_microentregas`, mudança
+  de schema maior que os 4 gates.
+- `escopoIncluiFase2` continua hardcoded `false` — a política já sinaliza (seção 4, App Cliente) que
+  Fase 02 só libera "por gate `fase02` + condição", e esse gate/condição real ainda não existe em
+  nenhuma fonte para eu implementar contra algo concreto.
+
+Estas três peças continuam na régua F como trabalho real, não como decisão pendente — ficam registradas
+no backlog (seção 6) para a próxima rodada.
 
 ### O que existe hoje no código, no lugar de uma régua longa
 `CA-OPS-01`/`CA-OPS-02` (23/08) + `src/lib/fiacao-cadencia-catalogo.ts`: faixas de saúde (regular < 10
@@ -264,16 +296,16 @@ dias · atenção ≥ 10 · crítico ≥ 14) e 5 alertas derivados (`sem_touchpo
 
 ## 6. Próximos passos
 
-1. Aguardar resposta às 4 perguntas da seção 5 antes de escrever qualquer código de cadência longa ou
-   de produto-pai.
-2. Corrigir o conflito de vocabulário de `approval_status` (seção 2.1) assim que a pergunta 1 da seção 5
-   for respondida — é o item de menor escopo e maior risco imediato desta rodada.
-3. Implementar os gaps da régua F na ordem que a Proprietária priorizar (pergunta 2 da seção 5):
-   4 gates D0 faltantes em `fechamento-caso.ts`, janelas D1-D365 de Fase 01, gate `fase02` real para
-   D31-D90, e os 7 estados únicos de micro-entrega (unificando ou conectando `client_deliverables` e
-   `ops_microentregas`, conforme seção 1.2 do de-para recuperado).
+1. ✅ **Corrigido**: conflito de vocabulário de `approval_status` (seção 2.1) — decisão da Proprietária,
+   português sempre prevalece. `client_deliverables` unificado, migration de backfill aplicada.
+2. ✅ **Executado**: os 4 gates D0 de `fechamento-caso.ts` (régua F, subseção "execução aplicada nesta
+   rodada") — autorizado pela Proprietária.
+3. **Não executado ainda, registrado como continuação**: janelas de dia D1-D365 de Fase 01/Fase 02 do
+   App Cliente, e os 7 estados únicos de micro-entrega — ver a mesma subseção para o motivo (mexe
+   diretamente no que o cliente vê; exige unificar/ligar `client_deliverables` e `ops_microentregas`).
 4. Reconciliar a contradição C-01 da seção 4 (duas famílias de código de produto-pai) antes ou junto com
-   a decisão de produto-pai — são a mesma categoria de problema.
+   a decisão de produto-pai — são a mesma categoria de problema. Ainda aguardando confirmação da
+   pergunta 4 da seção 5 (qual documento é "as premissas de novos países").
 
 ## 7. O que este documento NÃO decide
 

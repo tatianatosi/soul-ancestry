@@ -18,7 +18,7 @@ const ROTULO_SITUACAO: Record<string, string> = {
 };
 
 /**
- * Fechamento do caso: os nove gates em uma tela única, com checklist, bloqueios
+ * Fechamento do caso: os treze gates em uma tela única, com checklist, bloqueios
  * e a ação que o Desk oferece. Nenhum gate avança automaticamente.
  */
 export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; bloqueado?: boolean }) {
