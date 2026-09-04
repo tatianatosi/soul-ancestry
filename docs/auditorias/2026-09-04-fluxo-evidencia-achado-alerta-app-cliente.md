@@ -235,7 +235,8 @@ App Cliente. Resumo por elo:
    `fiacao-cadencia-catalogo.ts`) e **conectar `DescoberturasAlertas`/`alertas-whatsapp.ts` a uma tela
    real** — a arquitetura já decidida (CA-OPS-02) prevê exatamente essa etapa manual
    (abrir preview, copiar, enviar fora do sistema); hoje ela não tem botão funcional em lugar nenhum,
-   apesar de já estar corretamente desenhada como não-automática.
+   apesar de já estar corretamente desenhada como não-automática. O copy já existe, pronto para
+   reaproveitar: `COM-PESQ-ACHADO-001`/`COM-PESQ-ACHADO-HIST-001` (seção 10.1).
 3. Se o vínculo achado↔entrega continuar manual por decisão (não automatizar ainda), ao menos criar o
    campo de UI para `client_deliverable_id` em `achados.$caseId.tsx` — hoje o campo existe no schema e
    na validação, mas não tem onde ser preenchido.
@@ -268,9 +269,64 @@ App Cliente. Resumo por elo:
 3. ~~Grau de automação~~ — **já decidido**: revisão humana explícita antes de cada envio, por desenho
    (G-06 + CA-OPS-01), não uma lacuna a preencher.
 
-## 10. O que este documento NÃO decide
+## 10. Material recuperado (`docs/evolucao/recuperados/`) — o de-para de mensagens e o mapa de cadências já têm resposta escrita para achado, mas nunca foram implementados
+
+A Proprietária apontou para continuar a varredura no material de onboarding/micro-entregas em busca do
+"mapa dos alertas" e de automações. Dois documentos recuperados de prompts anteriores (pasta
+`docs/evolucao/recuperados/prompts-lovable-2026-08-31/`, datados de 31/08 — depois de CA-OPS-02, de
+23/08) têm exatamente o conteúdo que faltava, mas **nenhuma linha deles existe em código hoje**
+(confirmado por busca exaustiva de cada código citado abaixo em `src/` e `supabase/migrations/`: zero
+resultados).
+
+### 10.1 — `CA_COMUNICACAO_DE_PARA_MICROENTREGAS_APP_COPY_CTA.md`: o template de achado já foi escrito
+
+A "Parte III — De-para: micro-entrega × mensagem × app copy × CTA" desse documento já resolve, com copy
+pronta, exatamente o gap registrado no backlog P0-2 (falta o template de achado no catálogo de
+alertas):
+
+| Evento | Código | Canal | Copy no app | CTA na mensagem |
+|---|---|---|---|---|
+| Certidão localizada | `COM-PESQ-ACHADO-001` | App imediato + WhatsApp opcional | "Encontramos um novo registro da sua história." | "Encontramos uma certidão/registro importante e já estamos avaliando os próximos passos." |
+| Achado histórico relevante | `COM-PESQ-ACHADO-HIST-001` | Portal + WhatsApp de celebração opcional | "Uma nova peça da sua história foi encontrada." | "Encontramos um registro que ajuda a contar mais um capítulo da sua família." |
+
+Isso não substitui a decisão já tomada (seção 4.1: alerta é sinal interno, nunca envio automático) —
+complementa exatamente o pedaço que faltava: o **conteúdo** do template que a equipe abriria/copiaria
+manualmente. Hoje `MAPA_ALERTA_TEMPLATE` (`fiacao-cadencia-catalogo.ts`) não tem nenhum dos dois
+códigos; a Biblioteca de Mensagens não foi conferida nesta rodada para saber se algum template
+equivalente já existe lá com outro código (fica como verificação pendente, não como gap confirmado).
+
+### 10.2 — `PROMPT_MOTORES_UNIFICADOS_CRM_VIVO_ONBOARDING_CADENCIAS_INDICADORES.md`: mapa de cadências e resposta à pergunta sobre a aba "Cliente" do Caso 360
+
+Este documento (seção 6, "Caso 360: única mesa de trabalho") lista as abas obrigatórias do Caso 360:
+"Visão geral, Discovery e diagnóstico, Jornada e Planejador, Onboarding e cadências, Documentos,
+Pesquisa, Propostas, Contratos, Financeiro, Atualizações e comunicação, Produtos/SKUs, **Visão do
+cliente**" — e um botão de cabeçalho "Abrir visão do cliente". Isso responde, com evidência de material
+já decidido, a pergunta da Proprietária sobre por que o Caso 360 de Ana não tem uma aba "Cliente"
+isolada: **deveria ter uma "Visão do cliente"**, e a implementação real (`SECOES` em
+`casos.$caseId.index.tsx:274-281` — Indicadores/Jurídico/Técnico e riscos/Pessoa e família/Jornada/
+Registro de alterações) não tem nenhuma aba equivalente. Registro formal do achado, como devido.
+
+A seção 8 do mesmo documento ("Cadências unificadas") lista um catálogo de eventos canônicos
+(`lead_created`, `proposal_sent`, `contract_signed`, `document_received`, **`research_finding_created`**,
+`milestone_completed`, etc.) e cadências (`CAD-LEAD-PRIMEIRO-CONTATO`, `CAD-ONBOARDING`,
+`CAD-DOCUMENTO-PENDENTE`...) com regra de parada por evento — e a seção 9 define uma tabela
+`micro_deliveries` (com `visible_to_client`, `related_product_sku_id`, `source_type`/`source_id`) como a
+peça central de micro-entrega. **Nenhuma dessas duas coisas existe em código**: nenhum evento `CAD-*`,
+nenhuma tabela `micro_deliveries` — o que existe de fato é outro desenho, com outro nome
+(`client_deliverables`, `ale-achados`/`ale-microentregas` em `AUDITORIA_MODULOS_ALERTA`), construído
+depois (CA-OPS-01/02, 20-23/08) e parcialmente implementado. Os dois documentos não são a mesma decisão
+com nomes diferentes — são duas propostas de arquitetura para o mesmo problema, uma nunca chegou a ser
+código, a outra chegou parcialmente. Isso não é uma correção do que já foi registrado nesta auditoria
+(a leitura de que `ale-achados`/CA-OPS-02 é a arquitetura real e vigente continua de pé) — é a
+confirmação de que existe também um plano mais antigo, mais amplo e mais ambicioso, nunca executado, que
+a Proprietária pode querer resgatar ou descartar explicitamente.
+
+## 11. O que este documento NÃO decide
 
 - **Não decide** qual tabela (`client_deliverables` ou `app_projections`) é a via canônica de entrega
   ao cliente.
 - **Não decide** nem implementa nenhum canal de alerta.
+- **Não decide** se o material recuperado da seção 10 (`COM-*`, `CAD-*`, `micro_deliveries`, aba "Visão
+  do cliente") deve ser resgatado, adaptado ou descartado — só confirma que existe e nunca foi
+  implementado.
 - **Não altera nenhuma linha de banco, nenhum arquivo de código, nenhuma migration.**
