@@ -220,7 +220,16 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
       }
       const { data: linhaAtualizada, error } = await supabase
         .from("crm_casos")
-        .update(proximo === "ativo" ? { status: proximo, ativo: true } : { status: proximo })
+        .update(
+          proximo === "ativo"
+            ? // Propaga para o campo que o gate de acesso ao App Cliente de fato
+              // verifica (portal-elegibilidade.ts/fn_portal_case_access_guard) —
+              // mesma classe de lacuna já corrigida para assinatura de contrato
+              // (contrato-parametros.functions.ts) e pagamento (comercial.functions.ts):
+              // sem isto, um caso ativado aqui nunca conta como "ativado_em" para o portal.
+              { status: proximo, ativo: true, ativado_em: new Date().toISOString() }
+            : { status: proximo },
+        )
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
         .select("id")
