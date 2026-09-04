@@ -139,9 +139,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/ops-excecoes", label: "Exceções operacionais" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
       { grupo: "Ativação" },
-      { to: "/piloto", label: "Piloto e go-live" },
-      { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
-      { to: "/casos", hash: "onboarding", label: "Onboarding do caso" },
+      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
     ],
   },
@@ -285,6 +283,12 @@ export const MENU_CONTA: {
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
  * Serve de trava de regressão: nenhuma delas pode sumir da navegação.
+ *
+ * 03/09/2026 — /piloto e /piloto-ana removidas desta lista por decisão
+ * explícita da proprietária: o mecanismo de "piloto" da Ana convergiu para
+ * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
+ * de src/lib/fechamento-caso.ts). As rotas continuam existindo no
+ * repositório, só saíram do menu.
  */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
@@ -301,8 +305,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/tarefas",
   "/ops-excecoes",
   "/qualidade",
-  "/piloto",
-  "/piloto-ana",
   "/pesquisa-modulo",
   "/evidencias",
   "/fontes-genealogicas",
