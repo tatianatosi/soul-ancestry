@@ -55,7 +55,9 @@ create table if not exists public.price_catalog_rescued (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete restrict,
   item_id text,
-  country_code text not null,
+  -- nullable: assinaturas/planos de continuidade (CA-ASS-*/CA-WPP-*/CA-FAM-*) são
+  -- produto-nível, não país-nível — não têm país para declarar.
+  country_code text,
   phase text,
   price_component text not null check (price_component in ('honorarios', 'despesas', 'taxas', 'parcelas_padrao')),
   amount numeric(14,2),
