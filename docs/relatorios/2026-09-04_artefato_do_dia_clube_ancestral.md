@@ -120,6 +120,52 @@ Resumo dos achados na tabela da seção 4; backlog completo (P0: propagar assina
 branch de Pessoa 360 não mesclada, decidir tabela canônica de vínculo familiar, especificar o destino
 do dossiê-mãe) e perguntas de decisão estão no próprio documento — não repetidos aqui.
 
+## 6.1. Atualização do fim do dia — correções da Proprietária e três fixes executados
+
+Depois da primeira versão deste artefato, a Proprietária corrigiu três leituras e autorizou execução
+de código diretamente ("ataque e execute todas as correções necessárias"). Tudo registrado em
+`docs/auditorias/2026-09-04-nucleos-pessoa-360-contrato-acesso-app-cliente.md` (atualizado) e num novo
+documento, `docs/auditorias/2026-09-04-fluxo-evidencia-achado-alerta-app-cliente.md`:
+
+- **Novo achado — pipeline evidência→achado→alerta→App Cliente não existe ponta a ponta.** A pedido da
+  Proprietária, verificado se cada evidência nova vira achado, gera alerta ao cliente e aparece no app.
+  Nenhum elo é automático: achado é sempre ação manual; `client_deliverable_id` não tem campo de UI;
+  alerta ao cliente **não existe** (`alertas-whatsapp.ts` só gera template nunca enviado;
+  `DescoberturasAlertas` é componente órfão, `console.log` em vez de envio real, não importado em
+  nenhuma tela); a rota real `/portal/entregas` é estática (sempre "nenhuma entrega"); e
+  `client_deliverables` está bloqueada por falta de policy de portal. O caminho que de fato funciona
+  (`app_projections`) parte de evidência, não de achado.
+- **Correção: dossiê-mãe não é decisão em aberto.** Já existe fila de governança real
+  (`drive-provisioning.ts`, `CA-AC-10`, tabela `drive_provisioning_queue`) que só libera provisionamento
+  de pasta após contrato+pagamento+onboarding, com execução sempre manual fora do Desk. O gap real é que
+  `nucleos_familiares.link_interno` (o campo visível em `/nucleos`) nunca foi ligado a essa fila — duas
+  peças corretas, nunca costuradas.
+- **Correção: Pessoa 360 já está aprovada**, não pendente de decisão — protocolo de 5 camadas (PR #64,
+  branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`, ainda não mesclada aqui). Falta execução,
+  não aprovação.
+- **Fragmentação da Ana, localizada com precisão**: `contract_parties` já vincula corretamente a
+  `clientes.id` (`contrato-parametros.functions.ts:1204-1208`); `nucleo_membros` não, mesmo a coluna
+  existindo — a materialização do piloto (`piloto-ana.functions.ts:167-176`) cria membros só por nome,
+  sem `cliente_id`. `genealogical_person_profiles` (pesquisa genealógica) não tem — e não deveria ter —
+  esse vínculo: é isolamento deliberado da Camada 3 do protocolo aprovado, não fragmentação.
+- **De-para campo a campo `research_relationships` × `genealogical_relationships`**: a ficha piloto tem
+  4 campos de confiança/workflow que o módulo real não tem (`confidence_level`, `status`,
+  `directionality`, `supporting_evidence_count`); o módulo real tem `client_visibility` (sanitização
+  para o App Cliente) e vínculo direto a evidência/fonte que a ficha piloto não tem. Recomendação:
+  unificar em `genealogical_relationships`, somando os 4 campos que faltam nele.
+
+**Três correções executadas** (commits `d06227e`, `46290af`, branch `claude/ancestral-club-desk-intelligence-0gsoeg`,
+`tsc --noEmit` limpo + 1595/1595 testes + `vite build` limpo em cada uma):
+1. `registrarAssinatura` agora grava `crm_casos.contrato_assinado = true` junto com `contracts.status = "signed"`
+   — a lacuna que impedia o portal de reconhecer um contrato assinado no motor novo.
+2. `/nucleos` ganhou link "Ver perfil" (`/pessoas/$clienteId`) para todo membro com `cliente_id`
+   preenchido, mais um seletor "Vincular a pessoa cadastrada" no formulário de edição (nova função
+   `listarClientesParaVinculo`) — corrige a fragmentação da Ana de forma geral, não só pontual.
+3. A divergência proposta × Planejador (`preencherDeOrigens`/`conflitosProposta`) — que antes só
+   aparecia uma vez num toast e desaparecia — agora grava a mesma marca de conflito por campo já usada
+   para incoerência de país/rota, aparecendo de forma persistente nas duas telas de parâmetros
+   contratuais e se resolvendo do mesmo jeito (editar o valor limpa o conflito).
+
 ## 7. Riscos, limites e itens fora de escopo
 
 - Nenhuma migration foi aplicada hoje. Nenhuma escrita direta em produção fora do que já estava
@@ -127,8 +173,10 @@ do dossiê-mãe) e perguntas de decisão estão no próprio documento — não r
 - O MCP do Supabase está sem autorização nesta sessão (parte da conversa que gerou a PR #85) — a
   reconciliação PP-01-14 usou as duas extrações independentes já feitas hoje mais cedo (PR #82 e o
   documento da matriz PP-01-08), não uma nova consulta ao vivo.
-- Nenhuma das duas correções P0 do relatório de núcleos/contrato (seção 6) foi implementada — ambas
-  ficaram como recomendação explícita, aguardando aprovação, mesmo sendo pequenas e de baixo risco.
+- As três correções P0 do relatório de núcleos/contrato (seção 6.1) foram implementadas e validadas
+  nesta rodada — deixam de ser risco em aberto.
+- O pipeline evidência→achado→alerta→App Cliente não existe hoje (seção 6.1) — não foi corrigido nesta
+  rodada, só documentado; decisão de canal/via de exposição é da Proprietária antes de qualquer código.
 - A causa raiz do erro real por trás do painel TOP 30 (PR #83) não foi identificada — o fix só torna
   a falha visível; pode exigir um segundo ciclo depois que a proprietária vir a mensagem real.
 - `prioridade-matriz.ts` continua com os limiares de cadência redeclarados por fora da unificação do
@@ -148,8 +196,8 @@ do dossiê-mãe) e perguntas de decisão estão no próprio documento — não r
 ## 9. Próximos passos
 
 1. Proprietária testa em preview e decide merge das PRs #79–#85 — nenhuma altera dado de produção.
-2. Confirmar as duas correções P0 do relatório de núcleos/contrato (seção 6): propagar assinatura de
-   contrato para `crm_casos.contrato_assinado`, e ligar `cliente_id` ao link de perfil em `/nucleos`.
+2. Decidir o canal de alerta ao cliente (e-mail, WhatsApp, notificação no app) e a via oficial de
+   exposição de achado (`client_deliverables`/`/portal/entregas` ou `app_projections`) — seção 6.1.
 3. Decidir se a branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03` (não mesclada) já é a
    direção aprovada para Pessoa 360, antes de desenhar qualquer unificação nova.
 4. Decidir a tabela canônica de evidência (`evidencias` × `evidences` × `research_evidence_items`) e de
