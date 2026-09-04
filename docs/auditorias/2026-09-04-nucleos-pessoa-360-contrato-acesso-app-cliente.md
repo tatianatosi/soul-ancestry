@@ -242,6 +242,33 @@ como a Proprietária pediu significa, no mínimo: (1) mover os 4 campos de confi
 mesmo módulo ou continuam em tabelas próprias já existentes; (3) reapontar `carregarFichaPiloto` para
 ler as tabelas reais em vez de `research_relationships`/`research_people` isoladas.
 
+### 5.3 — Execução aplicada nesta rodada: itens (1) e (3) fechados; item (2) segue como decisão em aberto
+
+Migration `20260904190000_genealogical_relationships_confianca_workflow.sql`:
+
+1. **`genealogical_relationships` ganha os 4 campos** (`confidence_level`, `status`,
+   `directionality`, `supporting_evidence_count`), mesmos valores/defaults de `research_relationships`
+   — `STATUS_VINCULO` (`ficha-piloto-genealogica.ts:58-65`) já esperava exatamente esses 6 estados de
+   `status`, então a tela não precisou de novo vocabulário.
+2. **Backfill idempotente**: para todo vínculo que já existe nas duas tabelas para o mesmo par de
+   pessoas (em qualquer sentido) e o mesmo caso (via `research_cases.case_id`), copia os 4 campos —
+   só nas linhas ainda no default (nunca tocadas), não apaga nem funde nada.
+3. **`carregarFichaPiloto` (`src/lib/ficha-piloto-genealogica.functions.ts`) reapontado**: a seção
+   "Vínculos familiares" agora lê `genealogical_relationships` (`case_id` direto) em vez de
+   `research_relationships` (`research_case_id`) — um vínculo criado na tela real de Pessoas e Linhagens
+   agora aparece na ficha piloto, e vice-versa deixa de ser possível (a ficha piloto é só leitura; não
+   há mais um segundo lugar para gravar um vínculo divergente).
+4. **`ficha-piloto-genealogica.tsx` atualizado** para os nomes de campo da tabela real
+   (`person_from_id`/`person_to_id`/`relation_type` em vez de `person_a_id`/`person_b_id`/
+   `relationship_type`) — mesmo conceito, resolução de nome de pessoa (`research_people`) inalterada,
+   porque as duas tabelas sempre referenciaram o mesmo `research_people.id`.
+
+**O que isso não decide**: o item (2) — se hipótese/pendência/solicitação de documento entram no mesmo
+módulo de Pessoas e Linhagens ou continuam em `research_hypotheses`/`research_pending_items`/
+`research_document_requests` — segue como pergunta em aberto (seção 10). `npx tsc --noEmit`,
+`npx vitest run` (1597/1597) e `npx vite build` passam. Sem acesso ao Supabase nesta sessão para
+confirmar ao vivo que o backfill encontrou pares reais — revisão manual do SQL só.
+
 ## 6. Contrato — fluxo real ponta a ponta
 
 O contrato nasce sempre de um caso (nunca de proposta isolada): `abrirPreparacaoContrato` (`src/lib/contrato-preparar.functions.ts:93-347`) busca o caso, a proposta aprovada mais recente, o template e a base de cláusulas, e cria/reaproveita um registro único em `contract_case_parameters` — bloqueando explicitamente casos e clientes demo.
@@ -303,21 +330,22 @@ Não foi localizado documento de auditoria anterior mapeando especificamente ess
 2. ✅ **Vínculo `cliente_id` em Núcleos**: "Ver perfil" (`/pessoas/$clienteId`) aparece ao lado de todo membro com `cliente_id` preenchido; o formulário de edição ganhou o seletor "Vincular a pessoa cadastrada" (nova função `listarClientesParaVinculo`), para ligar manualmente qualquer requerente ao seu cadastro de Pessoa Canônica — inclusive retroativamente, sem depender de reescrever a materialização hardcoded do piloto.
 3. ✅ **Divergência proposta × Planejador vira conflito persistente por campo**: `preencherDeOrigens` agora grava a mesma marca de conflito (`contract_parameter_values.conflito`) já usada para incoerência de país/rota, então a divergência aparece de forma persistente nas duas telas de parâmetros (não só no toast) e se resolve do mesmo jeito que qualquer outro conflito por campo — editando o valor.
 4. ✅ **Pessoa 360 — vínculo `cliente_id`/`client_id` fechado nas 3 tabelas onde Ana estava fragmentada** (seção 4.2): `case_members` ganhou a coluna que nunca teve; migration de backfill liga retroativamente `nucleo_membros`/`contract_parties`/`case_members` para qualquer pessoa sem vínculo cujo nome bate sem ambiguidade; `materializarPilotoAna` e `semearChecklistCadastral` param de usar igualdade exata de nome (a causa raiz do caso de Ana) e passam a gravar o vínculo, inclusive retroativo, em vez de só ler.
+5. ✅ **"Ver perfil" estendido à segunda tela que mostra membros de núcleo** (seção 4.3): `pessoas-do-nucleo.tsx` (aba "Pessoa e família" do Caso 360) tinha o mesmo bug de `/nucleos` — lia `cliente_id` mas descartava o campo.
+6. ✅ **Vínculo familiar unificado — itens (1) e (3) da seção 5.2** (seção 5.3): `genealogical_relationships` ganhou os 4 campos de confiança/workflow que só existiam em `research_relationships`, com backfill idempotente; `carregarFichaPiloto` reapontado para ler a tabela real. Um vínculo criado pela tela de Pessoas e Linhagens agora aparece na ficha piloto.
 
 **Não executado nesta rodada** (decisão de arquitetura, não bug pontual):
-5. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`. Depende da resposta à pergunta 3 da seção 10 (quem executa a fila).
+7. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`. Depende da resposta à pergunta 3 da seção 10 (quem executa a fila).
 
 **P1**
-6. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
-7. **Migrar os 4 campos de confiança/workflow** (`confidence_level`, `status`, `directionality`, `supporting_evidence_count`) de `research_relationships` para `genealogical_relationships`, depois reapontar `carregarFichaPiloto` para as tabelas reais — nessa ordem, para não perder dado (seção 5.1/5.2).
-8. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2).
-9. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 8.
-10. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
-11. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
-12. Rodar a migration de backfill (item 4) em produção e conferir com `conferirEstruturaFamiliar` se as 3 linhas de Ana ficaram de fato ligadas — esta sessão não tem acesso ao Supabase para confirmar o resultado real do backfill.
+8. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
+9. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2, item (2) — a única parte da unificação de vínculo ainda não decidida).
+10. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 9.
+11. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
+12. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
+13. Rodar as migrations de backfill (itens 4 e 6) em produção e conferir com `conferirEstruturaFamiliar` se as 3 linhas de Ana ficaram de fato ligadas — esta sessão não tem acesso ao Supabase para confirmar o resultado real do backfill.
 
 **P2**
-13. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
+14. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
 
 ## 10. Perguntas de decisão que só a Proprietária pode responder
 
