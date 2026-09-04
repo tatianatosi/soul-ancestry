@@ -302,3 +302,51 @@ Esta rodada não teve acesso a um arquivo de mockup do Desk especificamente rotu
 - Nenhum conteúdo de pessoa, CPF, documento ou texto de pesquisa foi lido ou exposto nesta auditoria — apenas contagens agregadas (`count(*)`) e nomes de colunas/tabelas.
 - **Não investigado nesta rodada** (fora do escopo focal desta sessão, listado para transparência): consumo real de `prioridade-matriz.ts` dentro de Painel Hoje; conteúdo de `/governanca/indicadores` (hardcoded ou vivo); pipeline de sanitização achado→micro-entrega→App Cliente; conteúdo semântico das 4 trilhas por país (só a contagem foi confirmada); cruzamento site×catálogo×produto por país (deliberadamente deixado para o PR #82 em andamento, para não duplicar).
 - Testes: cobertura confirmada para `radar-elegibilidade` (indireto, via `indicadores-sinais.test.ts`), `radar-eixos-canonicos`, `prioridade-matriz`, `matriz-posicionamento`, `matriz-juridica`, `varredura-completude`, `pesquisa-cadeia`, `achados-genealogicos`, `plano-acao-pesquisa`. Sem teste localizado nesta rodada: `nucleo-completude.ts`, `trilhas-juridicas.functions.ts`, `biblioteca-mestre.functions.ts`, o endpoint `pesquisa-assistente.ts` e `pesquisa-ia.server.ts` (`avaliarSuficiencia`/`montarDossie` são funções puras e testáveis, mas teste não encontrado).
+
+---
+
+## 14. Adendo (04/09) — por que a duplicidade de evidência aparece como abas que se contradizem
+
+A Proprietária apontou, depois desta auditoria, que não via necessidade de 3 tabelas de evidência e suspeitava que o problema nascia de duas telas contraditórias — uma "operacional", outra de "pesquisa genealógica" — tratando pedido, encontrado e requerido como coisas diferentes quando deveriam ser estados de **uma única evidência**. Esta rodada seguiu a pista até o código e código confirma a suspeita, com um detalhe mais grave do que a seção 1 havia registrado.
+
+### 14.1 — As duas telas de evidência não leem tabelas diferentes entre si — leem a MESMA tabela com DOIS vocabulários de status que não batem
+
+`/biblioteca-evidencias/$caseId` (rótulo "G-03 · Uso interno", a tela "operacional") e `/pesquisa-evidencias/$caseId` (rótulo "Pesquisa Genealógica e Evidências") **não são as duas pontas da duplicidade de tabela** — as duas leem e escrevem a mesma coluna, `evidences.workflow_status`:
+- `/biblioteca-evidencias` grava evidência nova via `salvarEvidencia` (`src/lib/biblioteca-evidencias.functions.ts`) → `.from("evidences")`.
+- `/pesquisa-evidencias` muda o status da mesma evidência via `mudarEstadoEvidencia` (`src/lib/pesquisa-cadeia.functions.ts:218-233`) → também `.from("evidences")`, mesma coluna `workflow_status`.
+
+O problema é que cada tela usa uma lista de rótulos **escrita à mão, de forma independente**, para os mesmos valores dessa coluna:
+
+| Conceito | `FLUXO_EVIDENCIA` (`src/lib/biblioteca-evidencias.ts:22-34`, usado por `/biblioteca-evidencias`) | `STATUS_EVIDENCIA` (`src/lib/pesquisa-cadeia.ts:39-52`, usado por `/pesquisa-evidencias`) |
+|---|---|---|
+| Requer tradução/apostila | `requer_traducao_apostila` | `requer_traducao_ou_apostila` |
+| Rejeitada/inaplicável | `rejeitada_inaplicavel` | `rejeitada_ou_inaplicavel` |
+| Aprovada para entrega | `aprovada_para_entrega` | `aprovada_para_entrega_cliente` |
+| Publicada | `publicada` | `publicada_ao_cliente` |
+| Validada internamente | **não existe nesta lista** | `validada_internamente` |
+
+Os dois componentes resolvem o rótulo do mesmo jeito — `lista.find(x => x.id === valor)?.rotulo ?? String(valor)` — ou seja, quando o valor gravado por uma tela não existe na lista da outra, a outra tela não erra silenciosamente: **mostra o id técnico em texto cru** (ex.: `validada_internamente`) em vez de um rótulo em português. Isso é, ao vivo, exatamente a "contradição entre abas" que a Proprietária descreveu: a mesma evidência muda de aparência (e, em 4 dos 11 estados, de identidade) dependendo de qual tela a editou por último.
+
+### 14.2 — A tela "Pesquisa Genealógica" mistura duas tabelas diferentes dentro da MESMA aba, o que explica o "pedido/encontrado/requerido"
+
+Em `src/routes/_authenticated/pesquisa-evidencias.$caseId.tsx`, a aba `"evidencias"` do seletor renderiza **dois blocos com fontes de dado diferentes**, um logo depois do outro (linhas 540 e 639 do arquivo, ambos sob `secao === "evidencias"`):
+1. "Evidências e validação" — lê `evidences` (a mesma tabela da seção 14.1).
+2. "Documentos e Solicitações" — lê `document_requests` (`src/lib/documentos-solicitacoes.functions.ts:61`), com seu próprio vocabulário de status (`STATUS_SOLICITACAO`, `src/lib/documentos-solicitacoes.ts:89-100`): `nao_solicitado → a_preparar → solicitado → aguardando_pagamento_cliente → aguardando_cliente → aguardando_instituicao → recebido → em_revisao → validado_internamente → divergente → insuficiente → requer_complemento → ...`.
+
+Note que a cauda desse vocabulário (`recebido`, `em_revisao`, `validado_internamente`, `divergente`, `insuficiente`, `requer_complemento`) **repete quase palavra por palavra** a cauda de `STATUS_EVIDENCIA`/`FLUXO_EVIDENCIA` da seção 14.1 — é o mesmo ciclo de vida modelado duas vezes, uma vez com a etapa de "pedido" na frente (`document_requests`) e outra sem ela (`evidences`). Isto é exatamente o que a Proprietária descreveu: pedido, encontrado e requerido não são conceitos diferentes — são **pontos do mesmo ciclo de vida**, hoje partido em duas tabelas com vocabulário redundante, apresentadas lado a lado na mesma aba como se fossem seções distintas.
+
+O schema já antecipava a costura: `document_requests` tem uma coluna `evidence_id` (confirmada em `src/lib/documentos-solicitacoes.functions.ts:14` e `src/lib/documentos-solicitacoes.ts:259`, esta última na lista de campos nunca expostos ao App Cliente). Mas **nenhum formulário da tela usa esse campo** — o formulário de "Nova solicitação documental" (linhas 736-891 do arquivo) não tem campo para vincular a solicitação à evidência que ela eventualmente produz. Na prática, hoje, uma solicitação e a evidência que deveria fechá-la são dois registros criados e mantidos à mão, sem vínculo — mesmo a coluna que faria esse vínculo já existindo no banco, sem uso.
+
+### 14.3 — A terceira tabela é a única com dado real, e fica isolada numa terceira tela
+
+A seção 1 já havia contado 5 linhas reais em `research_evidence_items` contra 0 em `evidencias`/`evidences`. Esta rodada confirma onde essas 5 linhas aparecem: **só em `/achados/$caseId`** (`src/lib/achados-genealogicos.functions.ts:87-94`, função `painelAchados`), como uma lista de seleção múltipla ("Evidências vinculadas") para linkar a um achado genealógico. Resultado prático e verificável hoje: abrir `/biblioteca-evidencias/$caseId` ou `/pesquisa-evidencias/$caseId` de um caso mostra "Nenhuma evidência registrada"; abrir `/achados/$caseId` do MESMO caso mostra uma lista de evidências para escolher. Três telas, três impressões diferentes do que existe, para o mesmo caso.
+
+(Ressalva de leitura, já registrada na seção 5.4 de outro documento desta sessão: a consulta de `painelAchados` a `research_evidence_items` filtra só por `organization_id`, sem filtro por `case_id`/`research_case_id` — outro ponto a revisar quando a tabela canônica for decidida, não coberto por esta rodada.)
+
+### 14.4 — Confirmação: é 1 evidência, não 3
+
+Código confirma a leitura da Proprietária. Não há três tipos de evidência — há um único ciclo de vida (solicitada → recebida → registrada → em revisão/validação → aprovada para entrega → publicada) que hoje está:
+- fisicamente espalhado em `document_requests` (front do ciclo, "pedido") + `evidences` (miolo do ciclo, "encontrado/validado") + `research_evidence_items` (onde o dado real efetivamente foi parar, com uso em `/achados` e no Assistente de Pesquisa de IA — este último lendo `evidencias`, a terceira grafia, vazia, por engano, conforme já registrado na seção 1);
+- e, mesmo nos dois pontos que já compartilham `evidences.workflow_status`, exibido com dois vocabulários de rótulo divergentes que fazem a mesma evidência parecer mudar de identidade conforme a tela usada por último.
+
+Isso não muda a recomendação P0 já registrada na seção 11 (decidir fonte canônica antes de qualquer PR de código) — reforça-a com um motivo concreto a mais para a decisão não esperar: enquanto ela não for tomada, editar evidência em uma tela pode produzir um estado que a outra tela não sabe rotular. Nenhum código foi alterado nesta rodada; este adendo é só leitura adicional, seguindo o mesmo limite do restante do documento.
