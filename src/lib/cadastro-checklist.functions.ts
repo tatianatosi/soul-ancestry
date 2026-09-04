@@ -11,6 +11,7 @@ import {
   type ItemChecklist,
   type PessoaTipo,
 } from "@/lib/cadastro-checklist";
+import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -81,7 +82,7 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
 
     const { data: membros } = await supabase
       .from("case_members")
-      .select("id,nome,papel_no_caso,titular,contratante,dependente")
+      .select("id,nome,papel_no_caso,titular,contratante,dependente,cliente_id")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
 
@@ -97,19 +98,32 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
       .select("id,nome")
       .eq("organization_id", caso.organization_id)
       .is("archived_at", null);
-    const clientePorNome = new Map(
-      ((clientes ?? []) as any[]).map((c) => [String(c.nome).trim().toLowerCase(), c.id as string]),
-    );
+    const clientesOrg = (clientes ?? []) as { id: string; nome: string }[];
 
+    /*
+     * 04/09/2026 — achado real (Ana Luiza, Pessoa 360): o vínculo aqui era
+     * calculado apenas para preencher `checklist_cadastral.cliente_id`
+     * (uma linha derivada), e por igualdade exata de nome — o mesmo erro
+     * que deixou `nucleo_membros.cliente_id` nulo para Ana (nome curto no
+     * cadastro em `clientes` vs. nome completo em `case_members`). Agora
+     * usa a mesma regra tolerante do backfill (clienteCorrespondentePorNome)
+     * e também grava o vínculo de volta em `case_members.cliente_id` —
+     * fonte, não só a derivada — para que a próxima leitura de qualquer
+     * tela não dependa de recalcular o match de novo.
+     */
     const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null; tabela: string | null; cliente: string | null }[] = [];
     for (const m of (membros ?? []) as any[]) {
       if (m.dependente) continue;
+      const clienteId = m.cliente_id ?? clienteCorrespondentePorNome(String(m.nome), clientesOrg);
+      if (clienteId && !m.cliente_id) {
+        await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id);
+      }
       pessoas.push({
         tipo: "titular",
         nome: m.nome,
         ref: m.id,
         tabela: "case_members",
-        cliente: clientePorNome.get(String(m.nome).trim().toLowerCase()) ?? null,
+        cliente: clienteId ?? null,
       });
     }
     for (const d of (dependentes ?? []) as any[]) {

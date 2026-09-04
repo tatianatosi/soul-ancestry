@@ -109,27 +109,66 @@ recebem pesquisa real primeiro; (3) desenhar o adaptador Camadas 1–4 → `Case
 gaps sem fonte alguma hoje (percentual de aderência por país, texto de alerta de engajamento, timeline
 do lado "cliente").
 
-### 4.1 — A fragmentação real, com nome: `nucleo_membros` não usa a Camada 2 que o próprio protocolo já define
+### 4.1 — A fragmentação real, com nome: Ana Luiza tem, hoje, 4 registros de "pessoa" sem vínculo entre si
 
 A Proprietária pediu para verificar a fragmentação de "uma Ana em 4 cadastros diferentes", ligando isso
 ao contrato. Não foi possível confirmar contagem exata de linhas ao vivo (MCP do Supabase sem
-autorização nesta sessão — mesma limitação já registrada em `docs/auditorias/MATRIZ-RECONCILIACAO-ANA-LUIZA-2026-08-30.md`,
-que também não teve acesso ao banco). O que o código confirma, com evidência exata de onde a
-fragmentação nasce e onde já está correta:
+autorização nesta sessão — mesma limitação já registrada em `docs/auditorias/MATRIZ-RECONCILIACAO-ANA-LUIZA-2026-08-30.md`).
+Mas desta vez a causa raiz foi encontrada por completo, com evidência de migration — e não é a mesma
+leitura da rodada anterior (que apontava só `nucleo_membros`). São **quatro** tabelas, cada uma com um
+"Ana" próprio:
 
-| Tabela | Vínculo a `clientes` (Pessoa Canônica)? | Evidência |
-|---|---|---|
-| `contract_parties` | **Sim, correto** | `contrato-parametros.functions.ts:1204-1208` — `client_id: caso?.cliente_id ?? null` ao criar a parte contratante. Prova que o padrão certo (referenciar `clientes.id`) já é usado em pelo menos um lugar do sistema — não precisa ser inventado, só replicado. |
-| `nucleo_membros` | **Não, apesar da coluna existir** | A materialização do núcleo-piloto (`src/lib/piloto-ana.functions.ts:167-176`, função que cria "Ana Luiza", "Adair", "Alice", "Felipe" como membros) insere `organization_id`, `nucleo_id`, `nome`, `papel`, `vinculo`, `processo`, `ordem` — **sem `cliente_id`**, mesmo a coluna existindo no schema e sendo lida por `listarNucleos` (achado da seção 2). A dedupe desse insert é por **nome dentro do núcleo** (linha 161-162: `select("nome")` + `Set`), não por `cliente_id` — exatamente o padrão que gera um segundo cadastro solto para a mesma pessoa. |
-| `genealogical_person_profiles` (Camada 3) | **Não tem coluna para isso — e não deveria ter, por desenho** | Confirmado por leitura de `pessoas-linhagens.functions.ts`: nenhuma referência a `cliente_id`/`client_id`. Isso não é a mesma fragmentação — é a Camada 3 sendo deliberadamente isolada (ver seção 4), a mesma regra que impede o App Cliente de ler pesquisa bruta. |
-| `leads` | **Não verificado nesta rodada** | O artefato de 03/09 já registrou que existe uma linha "Ana Luiza (dado de teste)" em `leads` — não confirmei nesta rodada se ela tem algum campo de conversão apontando para `clientes.id`. Fica como item a verificar, não como achado fechado. |
+| # | Tabela | Registro de Ana | Vínculo a `clientes` (Pessoa Canônica)? | Origem/evidência |
+|---|---|---|---|---|
+| 1 | `clientes` | `nome = "Ana Luiza"` (nome curto, dado mínimo) | **É** o canônico — `crm_casos.cliente_id` e `contracts.client_id` apontam para ele | `supabase/migrations/20260816232935_a72396bb...sql:247-249`, id `a11a0000-...-000000000001`, criado 16/08 |
+| 2 | `nucleo_membros` | `nome = "Ana Luiza Gomes Silveira Rodrigues"` (nome completo) | **Não** — `cliente_id` nulo desde a origem | Seed de 18/08 (`20260818201721_818f92ac...sql:90-101`) faz `left join clientes on lower(c.nome) = lower(m.nome)` — igualdade exata. "Ana Luiza" ≠ "Ana Luiza Gomes Silveira Rodrigues": nunca bateu. Adair e Alice bateram porque o nome completo deles já era o nome cadastrado em `clientes`. |
+| 3 | `contract_parties` | `person_name = "Ana Luiza Gomes Silveira Rodrigues"`, com CPF/e-mail/telefone/endereço reais | **Não** — `client_id` nulo pelo mesmo motivo | Mesma migration, linhas 114-126, mesmo `left join` por igualdade exata. |
+| 4 | `case_members` | `nome ilike 'Ana Luiza%'` | **Impossível de ter vínculo — a coluna não existia** | `case_members` (`supabase/migrations/20260816190336_...sql:234-246`) nunca teve `cliente_id`/`client_id` no schema. Usada por ~15 módulos ativos (`cadastro-checklist`, `escopo-conferencia`, `matriz-conformidade`, `matriz-equivalencia`, `pesquisa`, `contrato-preparar`, entre outros) — não é tabela morta, é a base de "pessoa do caso" para grande parte do Desk. |
 
-**Conclusão**: a fragmentação não é um problema arquitetural amplo — o protocolo já aprovado (Camada 2)
-já resolve isso corretamente para contrato. O ponto exato que falta é um: a materialização de núcleo
-(hoje só usada pelo piloto, mas é o mesmo caminho de código que qualquer novo núcleo usaria) não
-preenche `cliente_id` ao criar o membro. Corrigir isso é o mesmo ponto já listado como backlog P0-2
-(seção 9) — a correção completa precisa dos dois lados: **popular `cliente_id` ao criar/materializar
-o membro**, e **usar esse campo para linkar o perfil na tela**, como já registrado.
+Cada um dos 4 tem um subconjunto diferente do dado real de Ana: o (1) tem o vínculo comercial/contrato
+mas nome e dados mínimos; o (2)/(3) têm documento, endereço e contato completos mas nenhum vínculo; o
+(4) tem os campos de checklist/conformidade e também não tinha como se vincular a nada. **Nenhum dos
+quatro tem, sozinho, todos os dados reais de Ana** — exatamente o que a Proprietária descreveu.
+
+`genealogical_person_profiles` (Camada 3, pesquisa genealógica) fica de fora dessa contagem de
+propósito: confirmado por leitura de `pessoas-linhagens.functions.ts` que não tem `cliente_id`/`client_id`
+— isolamento deliberado (mesma regra que impede o App Cliente de ler pesquisa bruta), não fragmentação.
+
+### 4.2 — Execução aplicada nesta rodada: vínculo fechado nas 3 tabelas, para Ana e para qualquer caso futuro
+
+Autorizado pela Proprietária ("pode executar a unificação... para não acontecer o que está acontecendo
+com a Ana em nenhum lugar"). Três mudanças, todas aditivas — nenhuma linha apagada ou fundida:
+
+1. **`case_members` ganha a coluna `cliente_id`** (migration
+   `20260904140000_pessoa360_vinculo_case_members_e_backfill_cliente_id.sql`) — a Camada 2 do protocolo
+   Pessoa 360, que hoje só cobria `nucleo_membros`/`contract_parties`, passa a cobrir também esta
+   tabela.
+2. **Backfill retroativo, não específico da Ana**: a mesma migration liga `cliente_id`/`client_id` em
+   `nucleo_membros`, `contract_parties` e `case_members` para qualquer linha hoje sem vínculo cujo nome
+   bate — exato, ou por um nome ser prefixo do outro seguido de espaço (cobre "Ana Luiza" ⊂ "Ana Luiza
+   Gomes Silveira Rodrigues") — **com exatamente um cliente candidato** na mesma organização. Caso
+   ambíguo (mais de um candidato) fica nulo, como estava — decisão humana, nunca escolha às cegas.
+3. **Correção do código-fonte do problema, para não se repetir em nenhum caso novo**:
+   - `src/lib/pessoa-vinculo.ts` (novo) — `clienteCorrespondentePorNome()`, a mesma regra tolerante do
+     backfill SQL, reutilizável em qualquer função de servidor.
+   - `src/lib/piloto-ana.functions.ts` (`materializarPilotoAna`) — agora busca os clientes da
+     organização, calcula o vínculo com `clienteCorrespondentePorNome()` e grava `cliente_id` tanto ao
+     inserir um membro novo quanto ao encontrar um membro já existente sem vínculo (antes, a função só
+     inseria — nunca corrigia um membro já criado sem `cliente_id`, que era exatamente o caso de Ana).
+   - `src/lib/cadastro-checklist.functions.ts` (`semearChecklistCadastral`) — trocou o match por
+     igualdade exata de nome pela mesma regra tolerante, e passou a **gravar o vínculo de volta em
+     `case_members.cliente_id`** (antes só existia, de forma transitória, dentro de
+     `checklist_cadastral`, recalculado a cada chamada).
+
+**O que isso não faz**: não decide qual dos 4 registros deveria ser o único (a Camada 2 do protocolo já
+decidiu que `clientes` é a Pessoa Canônica — as outras três tabelas apontam para ela, não a substituem);
+não apaga nenhuma linha de `case_members`/`nucleo_membros`/`contract_parties`; não confirma, porque não
+há acesso ao Supabase nesta sessão, que o backfill realmente encontrou e ligou as linhas de Ana em
+produção — isso só pode ser conferido rodando a migration e depois `conferirEstruturaFamiliar`
+(`src/lib/nucleo-familiar.functions.ts`, critério "Existem três registros individuais no CRM, sem
+duplicidade") ou a consulta SQL já preparada em `MATRIZ-RECONCILIACAO-ANA-LUIZA-2026-08-30.md`.
+`npx tsc --noEmit`, `npx vitest run` (1595/1595) e `npx vite build` passam com as três mudanças de
+código.
 
 ## 5. Ficha piloto × módulo real de pesquisa genealógica — de-para completo e recomendação de unificação
 
@@ -245,20 +284,22 @@ Não foi localizado documento de auditoria anterior mapeando especificamente ess
 1. ✅ **Propagação de assinatura**: `registrarAssinatura` agora grava `crm_casos.contrato_assinado = true` no mesmo caso logo após `contracts.status = "signed"` — a lacuna que impedia qualquer caso de chegar ao portal mesmo com contrato assinado no motor novo. Não mexe em quem seta `pagamento_confirmado`/`documentos_minimos_ok` (responsabilidade de outros módulos, seção 10 pergunta 2 segue aberta).
 2. ✅ **Vínculo `cliente_id` em Núcleos**: "Ver perfil" (`/pessoas/$clienteId`) aparece ao lado de todo membro com `cliente_id` preenchido; o formulário de edição ganhou o seletor "Vincular a pessoa cadastrada" (nova função `listarClientesParaVinculo`), para ligar manualmente qualquer requerente ao seu cadastro de Pessoa Canônica — inclusive retroativamente, sem depender de reescrever a materialização hardcoded do piloto.
 3. ✅ **Divergência proposta × Planejador vira conflito persistente por campo**: `preencherDeOrigens` agora grava a mesma marca de conflito (`contract_parameter_values.conflito`) já usada para incoerência de país/rota, então a divergência aparece de forma persistente nas duas telas de parâmetros (não só no toast) e se resolve do mesmo jeito que qualquer outro conflito por campo — editando o valor.
+4. ✅ **Pessoa 360 — vínculo `cliente_id`/`client_id` fechado nas 3 tabelas onde Ana estava fragmentada** (seção 4.2): `case_members` ganhou a coluna que nunca teve; migration de backfill liga retroativamente `nucleo_membros`/`contract_parties`/`case_members` para qualquer pessoa sem vínculo cujo nome bate sem ambiguidade; `materializarPilotoAna` e `semearChecklistCadastral` param de usar igualdade exata de nome (a causa raiz do caso de Ana) e passam a gravar o vínculo, inclusive retroativo, em vez de só ler.
 
 **Não executado nesta rodada** (decisão de arquitetura, não bug pontual):
-4. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`. Depende da resposta à pergunta 3 da seção 10 (quem executa a fila).
+5. **Conectar `nucleos_familiares.link_interno` à fila real de Drive** (`drive_provisioning_queue`): hoje são dois mecanismos corretos e desconectados — a fila sabe quando uma pasta pode ser criada (gates completos) e guarda o resultado (`external_result_reference`), mas nada sincroniza esse valor para o campo que a Proprietária vê em `/nucleos`. Depende da resposta à pergunta 3 da seção 10 (quem executa a fila).
 
 **P1**
-5. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
-6. **Migrar os 4 campos de confiança/workflow** (`confidence_level`, `status`, `directionality`, `supporting_evidence_count`) de `research_relationships` para `genealogical_relationships`, depois reapontar `carregarFichaPiloto` para as tabelas reais — nessa ordem, para não perder dado (seção 5.1/5.2).
-7. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2).
-8. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 7.
-9. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
-10. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
+6. Trazer para esta branch (ou confirmar que já seguiu outro caminho de merge) a proposta "Pessoa 360 — Conjunto Unificado de Dados" (branch `docs/pessoa-360-conjunto-unificado-dados-2026-09-03`) — já aprovada, falta só integrar ao histórico de trabalho.
+7. **Migrar os 4 campos de confiança/workflow** (`confidence_level`, `status`, `directionality`, `supporting_evidence_count`) de `research_relationships` para `genealogical_relationships`, depois reapontar `carregarFichaPiloto` para as tabelas reais — nessa ordem, para não perder dado (seção 5.1/5.2).
+8. Decidir se `research_hypotheses`/`research_pending_items`/`research_document_requests` (lidos hoje só pela ficha piloto) entram no módulo real de Pessoas e Linhagens ou continuam separados (seção 5.2).
+9. Confirmar se `research_document_requests` é a mesma tabela que `document_requests` (já mapeada na auditoria de evidência, PR #84) antes de decidir o item 8.
+10. Criar um teste de integração que exercite o funil completo (assinatura → gate do portal → convite) para que essa lacuna não volte a passar despercebida.
+11. Verificar se a linha "Ana Luiza (dado de teste)" em `leads` tem algum vínculo com `clientes.id` — não confirmado nesta rodada (seção 4.1).
+12. Rodar a migration de backfill (item 4) em produção e conferir com `conferirEstruturaFamiliar` se as 3 linhas de Ana ficaram de fato ligadas — esta sessão não tem acesso ao Supabase para confirmar o resultado real do backfill.
 
 **P2**
-11. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
+13. Unificar `case_activation_checks` (ativação interna) e os campos lidos por `portal-elegibilidade.ts` (acesso ao portal) num único sistema de gate, se fizer sentido — hoje são dois mecanismos paralelos com requisito de contrato duplicado.
 
 ## 10. Perguntas de decisão que só a Proprietária pode responder
 
