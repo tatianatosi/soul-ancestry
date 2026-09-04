@@ -12,6 +12,27 @@ import {
   type PessoaTipo,
 } from "@/lib/cadastro-checklist";
 import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
+import { PERFIL_INSTITUCIONAL } from "@/lib/contrato-base-consolidado";
+
+/*
+ * 04/09/2026 — achado real reportado pela Proprietária: o checklist cadastral
+ * marcava razão social/CNPJ/endereço/e-mail da própria contratada (Clube
+ * Ancestral) como "aguarda fonte societária" em TODO caso novo — mesmo esse
+ * dado já sendo canônico, versionado e conhecido em PERFIL_INSTITUCIONAL
+ * (contrato-base-consolidado.ts). Tratar dado institucional já homologado
+ * como pendência de verificação por caso não fazia sentido e aparecia como
+ * bloqueio vermelho permanente sem ação possível de resolver de verdade
+ * (o valor já é conhecido; não há "fonte societária" nova a declarar por
+ * caso). De-para campo do checklist → campo do perfil institucional:
+ */
+const CAMPO_CONTRATADA_PARA_PERFIL: Record<string, string> = {
+  razao_social: "razao_empresarial",
+  cnpj: "cnpj",
+  endereco: "endereco_institucional",
+  email: "email_oficial",
+  // representante_legal não tem correspondente em PERFIL_INSTITUCIONAL hoje —
+  // continua genuinamente pendente, sem valor inventado.
+};
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -143,9 +164,15 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
         `Checklist por pessoa exige referência por ID. Sem referência: ${semRef.join(", ")}. Nenhuma linha foi criada por nome.`,
       );
 
+    const hoje = new Date().toISOString().slice(0, 10);
     const linhas: any[] = [];
     for (const p of pessoas) {
       camposDoTipo(p.tipo).forEach((c, i) => {
+        const campoPerfil = p.tipo === "contratada" ? CAMPO_CONTRATADA_PARA_PERFIL[c.campo] : null;
+        const valorPerfil = campoPerfil
+          ? PERFIL_INSTITUCIONAL.find((x) => x.campo === campoPerfil)?.valor
+          : null;
+        const resolvidoPeloPerfil = Boolean(valorPerfil && valorPerfil.trim());
         linhas.push({
           organization_id: caso.organization_id,
           case_id: data.caseId,
@@ -157,9 +184,13 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           campo: c.campo,
           campo_rotulo: c.rotulo,
           obrigatorio: true,
-          status: p.tipo === "contratada" ? "aguarda_fonte_societaria" : "pendente",
-          fonte: null,
-          data_verificacao: null,
+          status: resolvidoPeloPerfil
+            ? "verificado"
+            : p.tipo === "contratada"
+              ? "aguarda_fonte_societaria"
+              : "pendente",
+          fonte: resolvidoPeloPerfil ? "fonte_societaria" : null,
+          data_verificacao: resolvidoPeloPerfil ? hoje : null,
           acesso_restrito: true,
           ordem: i,
           created_by: userId,
