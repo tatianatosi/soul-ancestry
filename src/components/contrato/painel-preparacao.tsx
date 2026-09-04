@@ -3,12 +3,79 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { useState } from "react";
+
 import { Painel, Selo, moeda } from "@/components/comercial/base";
-import { conferirEscopoProposta, painelPreparacaoContratual, registrarRevalidacaoProposta } from "@/lib/escopo-conferencia.functions";
+import {
+  conferirEscopoProposta,
+  painelPreparacaoContratual,
+  registrarOverrideGateInterno,
+  registrarRevalidacaoProposta,
+} from "@/lib/escopo-conferencia.functions";
 import { ROTULO_DECISAO_VALIDADE } from "@/lib/proposta-saneamento";
 import { contextoGatesDaConferencia } from "@/lib/escopo-conferencia";
-import { ACOES_GATEADAS, ROTULO_ACAO, ROTULO_GATE, podeExecutar, type AvaliacaoGate } from "@/lib/gates-formalizacao";
+import {
+  ACOES_GATEADAS,
+  ACOES_GATEADAS_INTERNAS,
+  ROTULO_ACAO,
+  ROTULO_GATE,
+  podeExecutar,
+  type AcaoGateada,
+  type AvaliacaoGate,
+} from "@/lib/gates-formalizacao";
 import { ROTULO_FONTE_CANONICA } from "@/lib/preco-canonico";
+
+/**
+ * Decisão auditada da Proprietária Administradora para superar um gate
+ * INTERNO específico, sem esperar a pendência que o gerou ser resolvida.
+ * Ações externas/irreversíveis (assinatura, envio, pagamento) não aparecem
+ * aqui — continuam exigindo a janela de confirmação explícita própria delas.
+ */
+function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: AcaoGateada; onFeito: () => void }) {
+  const [aberto, setAberto] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const registrar = useServerFn(registrarOverrideGateInterno);
+  const m = useMutation({
+    mutationFn: () => registrar({ data: { caseId, acao, motivo } }),
+    onSuccess: () => {
+      toast.success(`Decisão registrada: "${ROTULO_ACAO[acao] ?? acao}" liberada por decisão da Proprietária.`);
+      setAberto(false);
+      setMotivo("");
+      onFeito();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível registrar a decisão."),
+  });
+
+  if (!aberto) {
+    return (
+      <button type="button" onClick={() => setAberto(true)} className="text-[11px] font-medium text-navy underline">
+        Assumir e liberar mesmo assim (decisão auditada)
+      </button>
+    );
+  }
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2">
+      <input
+        type="text"
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        placeholder="Motivo da decisão (mín. 10 caracteres)"
+        className="min-w-[220px] flex-1 rounded border border-navy/20 px-2 py-1 text-xs"
+      />
+      <button
+        type="button"
+        onClick={() => m.mutate()}
+        disabled={m.isPending || motivo.trim().length < 10}
+        className="rounded bg-navy px-2 py-1 text-[11px] font-medium text-cream disabled:opacity-50"
+      >
+        {m.isPending ? "Registrando…" : "Confirmar decisão"}
+      </button>
+      <button type="button" onClick={() => setAberto(false)} className="text-[11px] text-navy/50 underline">
+        Cancelar
+      </button>
+    </div>
+  );
+}
 
 const ROTULO_STATUS: Record<string, string> = {
   aprovado_para_preparacao: "Aprovado para preparação",
@@ -152,6 +219,20 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
               {b.codigo}: {b.descricao}
             </p>
           ))}
+          {(r.bloqueios ?? []).length > 0 && (
+            <div className="mt-2 space-y-1 rounded border border-navy/15 bg-white p-2">
+              <p className="text-[11px] text-navy/60">
+                Bloqueio interno — a Proprietária Administradora pode assumir a pendência e seguir. A pendência
+                continua registrada; a decisão fica auditada.
+              </p>
+              {ACOES_GATEADAS_INTERNAS.filter((a) => !liberadas.includes(a)).map((a) => (
+                <div key={a} className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-navy/70">{ROTULO_ACAO[a] ?? a}:</span>
+                  <OverrideGateInterno caseId={caseId} acao={a} onFeito={() => qc.invalidateQueries({ queryKey: chave })} />
+                </div>
+              ))}
+            </div>
+          )}
         </Bloco>
 
         <Bloco n={6} titulo="Campos da proposta Canva (páginas 1–7)">

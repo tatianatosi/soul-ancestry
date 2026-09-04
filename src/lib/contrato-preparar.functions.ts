@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
-import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
+import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
@@ -369,10 +369,7 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       .select("id,case_id,proposal_id")
       .eq("id", registro.id)
       .maybeSingle();
-    const coerencia = await conflitosCoerenciaDoRegistro(supabase, completo ?? registro);
-    if (coerencia.conflitos.length) {
-      throw new Error(`Conflito crítico (${CONFLITO_PAIS_ROTA}): ${coerencia.conflitos[0].mensagem}`);
-    }
+    await exigirCoerencia(supabase, completo ?? registro, { userId, organizationId: registro.organization_id });
 
     await auditar(supabase, {
       org: registro.organization_id,

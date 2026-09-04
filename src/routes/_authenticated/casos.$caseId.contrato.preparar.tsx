@@ -642,7 +642,12 @@ function Pagina() {
                 const motivo = window.prompt("Motivo da versão final (opcional)");
                 if (motivo !== null) mCongelar.mutate({ evento: "aprovacao", motivo });
               }}
-              disabled={mCongelar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
+              disabled={mCongelar.isPending}
+              title={
+                bloqueios.some((b) => b.chave !== "revisao_humana")
+                  ? "Há bloqueios acionáveis abertos — ver seção abaixo. É possível prosseguir; a pendência fica registrada."
+                  : undefined
+              }
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
             >
               Congelar versão final
@@ -720,12 +725,12 @@ function Pagina() {
                 />
                 <button
                   onClick={() => mRevisar.mutate()}
-                  disabled={mRevisar.isPending || !nota.trim() || revisaoTravada}
+                  disabled={mRevisar.isPending || !nota.trim()}
                   title={
                     revisaoTravada
-                      ? `Indisponível: ${impeditivos.length} bloqueio(s) impeditivo(s) — ${impeditivos
+                      ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
                           .map((b) => b.titulo)
-                          .join("; ")}`
+                          .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
                       : "Registra o pedido de revisão humana em auditoria."
                   }
                   className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"

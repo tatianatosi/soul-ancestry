@@ -893,7 +893,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
     const supabase = context.supabase as Sb;
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: "gerar_versao_final",
@@ -1017,7 +1017,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
     if (tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: data.evento === "envio_assinatura" ? "solicitar_assinatura" : "gerar_versao_final",
@@ -1139,11 +1139,14 @@ export const aprovarParametros = createServerFn({ method: "POST" })
 
     const { data: registroAprovacao } = await supabase
       .from("contract_case_parameters")
-      .select("id,case_id,proposal_id")
+      .select("id,case_id,proposal_id,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!registroAprovacao) throw new Error("Registro de parâmetros não encontrado.");
-    await exigirCoerencia(supabase, registroAprovacao);
+    await exigirCoerencia(supabase, registroAprovacao, {
+      userId: context.userId as string,
+      organizationId: registroAprovacao.organization_id,
+    });
 
     const { error: e1 } = await supabase
       .from("contract_parameter_previews")
