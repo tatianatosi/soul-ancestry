@@ -61,10 +61,11 @@ function Pagina() {
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id } }),
     onSuccess: (r: any) => {
+      const conflitosProposta = r.proposta?.conflitos?.length ?? 0;
       toast.success(
         `${r.importados} parâmetro(s) importados como “a confirmar”${
           r.conflitos.length ? ` · ${r.conflitos.length} conflito(s) sinalizado(s)` : ""
-        }.`,
+        }${conflitosProposta ? ` · ${conflitosProposta} divergência(s) proposta × Planejador (ver campo abaixo)` : ""}.`,
       );
       invalidar();
     },
