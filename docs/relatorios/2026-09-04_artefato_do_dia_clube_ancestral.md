@@ -267,6 +267,76 @@ Drive — ~20 branches de 03/09 seguem não abertas (seção 7).
    a causa raiz (RLS, organização, etc.).
 8. Retomar a convergência das PRs #30/#36 (Núcleos Unificados) quando a proprietária decidir priorizar essa frente.
 
+## 10. Atualização — segunda metade do dia (contrato, ativação e o achado que muda a leitura de tudo)
+
+A Proprietária passou a noite tentando avançar um contrato real (caso da Ana Luiza) e reportou, com
+prints, bloqueio em praticamente toda tela tocada. As seções abaixo registram o que foi corrigido, o
+que ainda falta, e — o mais importante — a causa que explica por que várias correções desta mesma
+sessão pareceram "não ter feito nada".
+
+### 10.1 — Achado que muda a leitura do dia inteiro: migrations nunca aplicadas no banco real
+
+Todo commit desta sessão que dependia de **migration SQL** (dado/schema) foi escrito, testado
+localmente (`tsc`/`vitest`/`vite build`) e enviado ao GitHub — mas o **MCP do Supabase está sem
+autorização nesta sessão**, e não existe nenhum passo automático (CI, hook de build, `vercel.json`) que
+aplique migrations contra o banco real. O deploy do Vercel só recompila o código TypeScript; migrations
+em `supabase/migrations/*.sql` ficam **paradas no repositório até alguém rodá-las manualmente**.
+
+Isso explica, especificamente: por que o CNPJ/razão social do Clube Ancestral no checklist cadastral
+continuava "aguarda fonte societária" mesmo após a correção de código; por que o representante legal
+não aparecia resolvido; por que os produtos-pai/`planner_catalog_feed` não aparecem em tela nenhuma
+ainda. **Nenhuma dessas correções é inválida — todas estão prontas e testadas — mas nenhuma tem efeito
+real até alguém aplicar as migrations pendentes no Supabase de produção/preview.**
+
+Duas migrations novas desta rodada também entram nessa fila (seção 10.3).
+
+**Isto não decide**: como e quando essas migrations serão aplicadas — decisão e execução dependem de
+acesso ao Supabase que esta sessão não tem hoje.
+
+### 10.2 — Correções de código já ativas no preview (não dependem de migration)
+
+| Achado | Correção | Onde |
+|---|---|---|
+| `politicaPrivacidadeVigente`/`foroConfigurado` hardcoded `false` para todo caso, sempre — a "Prévia final" nunca podia ser liberada, mesmo com contrato-base já vigente | Ligados a `contratoBaseAssinavel()`, a mesma vigência já aprovada do contrato-base | `casos.$caseId.contrato.preparar.tsx` |
+| Gate `gerar_versao_final` (trava do botão "Congelar versão final") já era desenhado para ser superável por decisão auditada da Proprietária, mas nenhuma tela chamava essa função | Botão novo "Assumir e liberar mesmo assim (decisão auditada)" no painel de preparação; nova função `registrarOverrideGateInterno` | `painel-preparacao.tsx`, `escopo-conferencia.functions.ts` |
+| Conflito país×rota (`exigirCoerencia`) era o único gate do fluxo contratual sem nenhum caminho de override | Mesmo mecanismo de decisão auditada estendido a ele | `coerencia-caso.server.ts` |
+| Botões "Congelar versão final" e "Solicitar revisão humana" ficavam desabilitados no cliente pela lista de bloqueios, mesmo quando o servidor já aceitaria a decisão da Proprietária | Desabilitação client-side removida; servidor decide | `casos.$caseId.contrato.preparar.tsx` |
+| Segundo mecanismo de override (`override-proprietaria-comercial.functions.ts`) gravava numa categoria (`override_proprietaria_comercial`) que o `CHECK` da tabela rejeita — nunca funcionou | Identificado; não removido (fora do escopo desta rodada), documentado para não ser reusado por engano | `owner_override_events` |
+| Marcar item do checklist cadastral "Verificado" antes de preencher Fonte e Data falha silenciosamente (a validação exige as duas já preenchidas) | Identificado como bug de ordem de preenchimento; **workaround comunicado** (Fonte → Data → Status); correção de código para não depender da ordem **ainda não implementada** | `cadastro-checklist.functions.ts` |
+
+### 10.3 — Achado nas "Requisitos de ativação" (onboarding.$id.tsx): um quarto gate, isolado dos outros três
+
+A tela de ativação do caso tem **três sistemas de gate independentes e nunca sincronizados entre si**:
+(1) o checklist de 14 requisitos (`case_activation_checks`, o que a Proprietária vê e marca "isento"),
+(2) `case_activacao_bloqueios()` no banco (o que `ativarCasoComChecks` de fato consulta antes de tentar
+ativar), e (3) o trigger `guard_consentimento_ativacao`, que exige uma linha em `consent_records` OU
+`consent_exceptions` — duas tabelas que **nada na tela escrevia**. Por isso o caso aparecia com
+"Requisitos completos" e mesmo assim era recusado ao tentar ativar de verdade, com a mensagem de erro
+do banco duplicada na tela ("Ativação bloqueada: Ativação bloqueada: ...").
+
+Corrigido: marcar "isento" no requisito "Dados mínimos e consentimento registrados" agora também grava
+a exceção formal real em `consent_exceptions` (mesmo padrão de decisão auditada admin-only já usado no
+contrato). **Depende da migration mais recente estar aplicada (seção 10.1) para valer em produção.**
+
+### 10.4 — O que ainda não foi estendido, apesar do pedido explícito da Proprietária
+
+A Proprietária pediu a remoção do mesmo padrão de barreira em **todas as abas e grupos**. O que foi
+feito hoje cobre apenas contrato (10.2) e ativação de caso (10.3). **Não foram revisados ainda**:
+Pessoas, Ordens de Serviço, Tarefas/Painel Hoje, Comercial, Marketing, Pesquisa. Cada tela pode ter o
+mesmo padrão (UI mostra "resolvido", mas um trigger ou gate separado no banco não reconhece essa
+resolução) — não foi assumido que sim nem que não; fica registrado como varredura pendente, tela por
+tela, e não como algo já verificado.
+
+### 10.5 — Próximos passos desta atualização
+
+1. Obter autorização do MCP do Supabase (ou a Proprietária aplicar as migrations pendentes pelo painel
+   do Supabase) — sem isso, nenhuma nova correção de dado terá efeito visível, e é o bloqueio real por
+   trás da sensação de "nada foi feito" hoje.
+2. Corrigir a dependência de ordem no checklist cadastral (Fonte/Data antes de "Verificado").
+3. Repetir a mesma varredura (UI diz "resolvido" × gate real no banco) nas telas listadas em 10.4, uma
+   de cada vez, com o mesmo padrão de correção (override auditado ou wiring real, nunca remoção de
+   RLS/autenticação/auditoria).
+
 ---
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
