@@ -66,6 +66,25 @@ export const listarNucleos = createServerFn({ method: "GET" })
     }));
   });
 
+/**
+ * Lista leve de pessoas cadastradas (Pessoa Canônica), para o seletor "vincular a pessoa"
+ * no formulário de requerente do núcleo — evita fragmentar a mesma pessoa entre `clientes`
+ * e `nucleo_membros` sem vínculo (achado: piloto-ana.functions.ts cria membro sem cliente_id).
+ */
+export const listarClientesParaVinculo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+    const { data, error } = await supabase
+      .from("clientes")
+      .select("id,nome")
+      .is("archived_at", null)
+      .order("nome");
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nome: string }[];
+  });
+
 /** Atualiza o cadastro do dossiê-mãe de um núcleo. Campos classificatórios são listas fechadas. */
 export const salvarDossieNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -137,9 +156,10 @@ export const salvarDossieNucleo = createServerFn({ method: "POST" })
  */
 export const salvarMembroNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { membroId: string; nome: string; vinculo: string; processo: string }) => {
+  .inputValidator((data: { membroId: string; nome: string; vinculo: string; processo: string; clienteId?: string | null }) => {
     if (!UUID.test(data?.membroId ?? "")) throw new Error("Requerente inválido.");
     if (!data.nome?.trim()) throw new Error("Nome é obrigatório.");
+    if (data.clienteId && !UUID.test(data.clienteId)) throw new Error("Pessoa vinculada inválida.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -149,13 +169,14 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
       nome: data.nome.trim(),
       vinculo: data.vinculo?.trim() || null,
       processo: data.processo?.trim() || null,
+      cliente_id: data.clienteId || null,
     };
 
     const { data: salvo, error } = await supabase
       .from("nucleo_membros")
       .update(patch)
       .eq("id", data.membroId)
-      .select("id,nome,vinculo,processo")
+      .select("id,nome,vinculo,processo,cliente_id")
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!salvo) throw new Error("Requerente não encontrado ou sem permissão de escrita.");

@@ -11,6 +11,7 @@ import {
   NUCLEO_DOSSIE_STATUS,
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
+  listarClientesParaVinculo,
   listarNucleos,
   salvarDossieNucleo,
   salvarMembroNucleo,
@@ -47,7 +48,14 @@ const CORES_STATUS: Record<string, string> = {
   arquivado: "bg-navy/5 text-navy/50",
 };
 
-type Membro = { id: string; nome: string; papel: string; vinculo: string | null; processo: string | null };
+type Membro = {
+  id: string;
+  nome: string;
+  papel: string;
+  vinculo: string | null;
+  processo: string | null;
+  cliente_id: string | null;
+};
 type Nucleo = {
   id: string;
   nome: string;
@@ -74,12 +82,14 @@ type Rascunho = {
 function NucleosPage() {
   const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarNucleos);
+  const carregarClientes = useServerFn(listarClientesParaVinculo);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
   const criarTarefa = useServerFn(salvarTarefa);
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
+  const qClientes = useQuery({ queryKey: ["clientes-vinculo"], queryFn: () => carregarClientes(), retry: false });
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
   const [selecionado, setSelecionado] = useState<string | null>(null);
@@ -87,9 +97,12 @@ function NucleosPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [membroEditando, setMembroEditando] = useState<string | null>(null);
-  const [rascunhoMembro, setRascunhoMembro] = useState<{ nome: string; vinculo: string; processo: string } | null>(
-    null,
-  );
+  const [rascunhoMembro, setRascunhoMembro] = useState<{
+    nome: string;
+    vinculo: string;
+    processo: string;
+    clienteId: string;
+  } | null>(null);
   const [erroMembro, setErroMembro] = useState<string | null>(null);
   const [sugestaoAcao, setSugestaoAcao] = useState<{ membroId: string; nome: string; caseId: string | null } | null>(
     null,
@@ -150,8 +163,23 @@ function NucleosPage() {
   });
 
   const mMembro = useMutation({
-    mutationFn: (data: { membroId: string; nome: string; vinculo: string; processo: string; caseId: string | null }) =>
-      salvarMembro({ data: { membroId: data.membroId, nome: data.nome, vinculo: data.vinculo, processo: data.processo } }),
+    mutationFn: (data: {
+      membroId: string;
+      nome: string;
+      vinculo: string;
+      processo: string;
+      clienteId: string;
+      caseId: string | null;
+    }) =>
+      salvarMembro({
+        data: {
+          membroId: data.membroId,
+          nome: data.nome,
+          vinculo: data.vinculo,
+          processo: data.processo,
+          clienteId: data.clienteId || null,
+        },
+      }),
     onSuccess: async (_r, variaveis) => {
       setErroMembro(null);
       setMembroEditando(null);
@@ -270,6 +298,13 @@ function NucleosPage() {
                                 valor={rascunhoMembro.processo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, processo: v })}
                               />
+                              <Selecao
+                                label="Vincular a pessoa cadastrada"
+                                ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                valor={rascunhoMembro.clienteId}
+                                opcoes={(qClientes.data ?? []).map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
+                              />
                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
                               <div className="flex gap-2 pt-1">
                                 <button
@@ -305,23 +340,35 @@ function NucleosPage() {
                                 {m2.vinculo ? <p className="text-navy/55">{m2.vinculo}</p> : null}
                                 {m2.processo ? <p className="text-navy/45">{m2.processo}</p> : null}
                               </div>
-                              {podeEscrever ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMembroEditando(m2.id);
-                                    setRascunhoMembro({
-                                      nome: m2.nome,
-                                      vinculo: m2.vinculo ?? "",
-                                      processo: m2.processo ?? "",
-                                    });
-                                    setErroMembro(null);
-                                  }}
-                                  className="shrink-0 rounded-md border border-navy/15 px-2 py-1 text-navy hover:border-gold"
-                                >
-                                  Editar
-                                </button>
-                              ) : null}
+                              <div className="flex shrink-0 gap-2">
+                                {m2.cliente_id ? (
+                                  <Link
+                                    to="/pessoas/$clienteId"
+                                    params={{ clienteId: m2.cliente_id }}
+                                    className="rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-navy hover:bg-gold/20"
+                                  >
+                                    Ver perfil
+                                  </Link>
+                                ) : null}
+                                {podeEscrever ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMembroEditando(m2.id);
+                                      setRascunhoMembro({
+                                        nome: m2.nome,
+                                        vinculo: m2.vinculo ?? "",
+                                        processo: m2.processo ?? "",
+                                        clienteId: m2.cliente_id ?? "",
+                                      });
+                                      setErroMembro(null);
+                                    }}
+                                    className="rounded-md border border-navy/15 px-2 py-1 text-navy hover:border-gold"
+                                  >
+                                    Editar
+                                  </button>
+                                ) : null}
+                              </div>
                             </div>
                           )}
                           {sugestaoAcao?.membroId === m2.id ? (

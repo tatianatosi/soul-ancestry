@@ -1290,6 +1290,12 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     await supabase.from("contract_case_parameters").update({ status: "assinado" }).eq("id", data.id);
+
+    // Propaga a assinatura para o campo que o gate de acesso ao App Cliente
+    // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard).
+    // Sem isto, o contrato fica "assinado" no motor novo sem nunca liberar o portal.
+    await supabase.from("crm_casos").update({ contrato_assinado: true }).eq("id", registro.case_id);
+
     return { ok: true };
   });
 
