@@ -87,6 +87,49 @@ numa tela diferente, sem campo de UI para isso (item 2). A publicação em si ta
 **Não há hoje nenhum canal funcional de alerta ao cliente sobre achado** — nem automático, nem manual
 com um botão que funcione.
 
+### 4.1 — Correção: existe arquitetura decidida para "alerta", e ela não é "notificar o cliente"
+
+A Proprietária apontou que este material provavelmente já estava especificado em arquitetura/onboarding
+— achado nos documentos de operação já existentes (`docs/G06_ACHADOS_E_ENCONTROS_v1.0.md`,
+`docs/operacao/CA-OPS-01_Orquestracao_Jornada_CRM_Onboarding_Microentregas.md`,
+`docs/operacao/CA-OPS-02_Fiacao_Cadencia_Mensagens_Alertas.md`), não cruzados na primeira versão desta
+auditoria. Achado real, que corrige a leitura acima:
+
+- **G-06 (20/08) já definia, por desenho, que "alerta" não é notificação automática ao cliente.** O
+  fluxo documentado é "Fonte → Evidência → Validação interna → Achado Genealógico → Árvore/Linha do
+  tempo → Micro-entrega ou Relatório, **se aprovado**" — e a confirmação do próprio documento diz:
+  "nenhuma publicação, mensagem ou ação externa" é disparada pelo módulo. Isso não é lacuna — é a regra
+  desde a origem do módulo.
+- **CA-OPS-01/02 definem "alerta" como um sinal interno que abre um objeto e sugere um template — nunca
+  envia sozinho.** Regra textual do CA-OPS-01 (seção B): ações permitidas por evento incluem "sugerir
+  template vigente" e "gerar alerta derivado"; ações **não autorizadas** incluem "enviar WhatsApp/e-mail/
+  SMS". O CA-OPS-02 confirma em código real: `MAPA_ALERTA_TEMPLATE`
+  (`src/lib/fiacao-cadencia-catalogo.ts`) liga tipo de alerta → modelo na Biblioteca de Mensagens, com
+  ação sempre `abrir_preview_e_copiar_manual` — nunca envio automático. A "Matriz de Alertas e
+  Acionamentos" (`docs/operacao/CA-OPS-02_Matriz_Alertas_e_Acionamentos.csv`) já cataloga um alerta
+  **especificamente para achados** — `ale-achados`, módulo "Achados novos", rota `/achados/$caseId`,
+  severidade média, estado **`CONECTADO`** — confirmado em código
+  (`fiacao-cadencia-catalogo.ts:227-237`, `AUDITORIA_MODULOS_ALERTA`).
+
+**O que isso muda na leitura**: o "alerta" que a arquitetura já decidiu é um sinal **interno**, para a
+equipe revisar achados/micro-entregas pendentes (`ale-achados` → `/achados/$caseId`;
+`ale-microentregas` → `/ops`) e, se decidir comunicar, abrir manualmente um template pronto para copiar
+e enviar — nunca um envio automático ao cliente. Isso está desenhado corretamente, e uma parte real
+existe (`ale-achados` está `CONECTADO`).
+
+**O que continua sendo gap real, mesmo dentro dessa arquitetura correta**:
+1. `ale-achados` na matriz tem `template_oficial = "não aplicável"` — não existe, no catálogo de
+   `MAPA_ALERTA_TEMPLATE`, nenhum modelo específico para "achado elegível pronto para virar
+   micro-entrega ao cliente" (os 5 alertas com template real são todos de cadência/touchpoint, não de
+   achado).
+2. `DescoberturasAlertas`/`alertas-whatsapp.ts` — que seriam o componente de "abrir preview e copiar
+   manual" para achado especificamente — existem em código mas o componente não está importado em
+   nenhuma tela, e o botão que existe só faz `console.log`. Ou seja: mesmo a etapa manual prevista pela
+   arquitetura não tem hoje um botão funcional.
+3. O terceiro elo do fluxo do prompt original da Proprietária ("acha visível no App") segue sendo o
+   achado real e não corrigido por este achado novo: `client_deliverables` está bloqueada por RLS de
+   portal (seção 5), e o caminho que funciona (`app_projections`) não nasce de achado.
+
 ## 5. Visibilidade no App Cliente — três tabelas paralelas, sem link entre si
 
 - `src/lib/app-visibilidade.ts` controla só estado de tela (disponível/em preparação) a partir de
@@ -116,17 +159,27 @@ manualmente hoje, a tela que deveria mostrar o resultado ao cliente não lê a t
 
 ## 7. Conclusão
 
-O "ideal" descrito pela Proprietária — evidência → achado → alerta → app — não existe ponta a ponta em
-nenhum trecho. Cada elo é uma peça isolada e manual, e o elo de notificação simplesmente não está
-implementado (nem automático, nem manual funcional). Resumo por elo:
+**Correção após cruzar `G-06`/`CA-OPS-01`/`CA-OPS-02`**: o "ideal" da Proprietária não é literalmente
+"achado dispara notificação automática ao cliente" — a arquitetura já decidida (G-06, 20/08) proíbe
+isso de propósito ("nenhuma publicação, mensagem ou ação externa" a partir do módulo de achados). O
+"alerta" que a arquitetura define é um sinal **interno**: equipe é avisada de que há achado/micro-entrega
+pendente de revisão (`ale-achados`/`ale-microentregas`, ambos `CONECTADO`), e decide manualmente se e
+como comunicar, com um template pronto para copiar — nunca envio automático.
+
+Dentro dessa arquitetura correta, ainda faltam peças reais — não é tudo lista, mas também não é tudo
+motor: falta o template específico de achado no catálogo de alertas, falta o botão funcional que a
+própria arquitetura previu (`DescoberturasAlertas` está órfão), e o terceiro elo (achado visível no
+App Cliente) segue genuinamente quebrado — nenhum caminho hoje leva de achado a algo visível no
+App Cliente. Resumo por elo:
 
 | Elo | Estado |
 |---|---|
-| Evidência → achado | Manual, sem gatilho (só uma sugestão textual em tela) |
+| Evidência → achado | Manual, sem gatilho (só uma sugestão textual em tela) — consistente com o desenho do G-06 |
 | Achado → elegível para cliente | Checkbox manual; 2 dos 3 campos sem rotina de preenchimento |
 | Achado → `client_deliverables` | Duas telas humanas desconectadas, sem vínculo automático nem campo de UI |
-| Alerta ao cliente | **Não existe** — protótipo de template WhatsApp nunca enviado, componente órfão não importado |
-| Achado → visível no App | Caminho real (`app_projections`) parte de evidência, não de achado; caminho "certo" (`client_deliverables`/`/portal/entregas`) está bloqueado por RLS e a rota é estática |
+| Alerta à equipe (sinal interno) | **Existe e está conectado** (`ale-achados`/`ale-microentregas`) — mas sem template específico de achado, e o botão manual de "abrir preview e copiar" não está implementado em nenhuma tela |
+| Alerta ao cliente (envio) | **Corretamente não-automático por desenho** — nunca deveria ser automático; a etapa manual prevista não tem hoje botão funcional |
+| Achado → visível no App | Caminho real (`app_projections`) parte de evidência, não de achado; caminho "certo" (`client_deliverables`/`/portal/entregas`) está bloqueado por RLS e a rota é estática — este elo continua sendo o gap mais concreto |
 
 ## 8. Backlog P0/P1/P2
 
@@ -135,8 +188,11 @@ implementado (nem automático, nem manual funcional). Resumo por elo:
    `client_deliverables` e conectar `/portal/entregas` ao dado real, ou formalizar `app_projections`
    (já funcional) como o caminho único — hoje as duas coexistem, nenhuma decidida, e nenhuma parte de
    achado.
-2. **Decidir o canal de alerta ao cliente** (e-mail, WhatsApp retomando `alertas-whatsapp.ts`, ou
-   notificação dentro do próprio app) — nenhum existe hoje, nem manual funcional.
+2. **Adicionar o template de "achado elegível" ao catálogo de alertas** (`MAPA_ALERTA_TEMPLATE`,
+   `fiacao-cadencia-catalogo.ts`) e **conectar `DescoberturasAlertas`/`alertas-whatsapp.ts` a uma tela
+   real** — a arquitetura já decidida (CA-OPS-02) prevê exatamente essa etapa manual
+   (abrir preview, copiar, enviar fora do sistema); hoje ela não tem botão funcional em lugar nenhum,
+   apesar de já estar corretamente desenhada como não-automática.
 3. Se o vínculo achado↔entrega continuar manual por decisão (não automatizar ainda), ao menos criar o
    campo de UI para `client_deliverable_id` em `achados.$caseId.tsx` — hoje o campo existe no schema e
    na validação, mas não tem onde ser preenchido.
@@ -145,8 +201,6 @@ implementado (nem automático, nem manual funcional). Resumo por elo:
 4. Avaliar transformar `gatilhosDaEvidencia()` (já sugere "rascunho de microentrega" na tela quando a
    evidência é validada) num botão real de "criar achado a partir desta evidência", pré-preenchido —
    assistido, não necessariamente automático, reduzindo o trabalho manual do elo 1.
-5. Conectar `DescoberturasAlertas`/`alertas-whatsapp.ts` a uma tela real (hoje órfãos) ou arquivá-los
-   como protótipo descontinuado, para não confundir leitura futura do código.
 
 **P2**
 6. Renomear ou documentar a colisão de nome `client_projection_status` (existe em `genealogical_findings`
@@ -156,10 +210,11 @@ implementado (nem automático, nem manual funcional). Resumo por elo:
 
 1. **Via de exposição ao cliente**: `client_deliverables`/`/portal/entregas` (hoje bloqueada e
    desconectada) ou `app_projections` (hoje funcional, mas alimentada por evidência, não por achado)?
-2. **Canal de alerta**: e-mail, WhatsApp, notificação no app, ou combinação? Nenhum está implementado.
-3. **Grau de automação desejado**: o vínculo achado→entrega e o próprio alerta devem nascer automáticos
-   quando um achado é marcado elegível, ou a equipe quer manter uma etapa de revisão humana explícita
-   antes de cada envio ao cliente (padrão já usado em `communication_queue` para outras comunicações)?
+2. ~~Canal de alerta~~ — **já decidido pela arquitetura existente** (CA-OPS-01/02): WhatsApp via
+   Biblioteca de Mensagens, sempre com abertura manual de preview e cópia — nunca envio automático.
+   Não é mais pergunta em aberto; falta só a execução (backlog P0-2).
+3. ~~Grau de automação~~ — **já decidido**: revisão humana explícita antes de cada envio, por desenho
+   (G-06 + CA-OPS-01), não uma lacuna a preencher.
 
 ## 10. O que este documento NÃO decide
 
