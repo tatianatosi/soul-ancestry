@@ -67,6 +67,41 @@ Os 9 produtos-pai canônicos (de-para, seção 5 · "Revisão Canônica", seçã
 | PP-08 | História de Família, Memória e Legado | Memória e legado |
 | PP-09 | Continuidade e Acervo Familiar | Continuidade |
 
+## 1.1 — Sexto documento (04/09, enviado depois deste): confirma PP-01–PP-09, mas não resolve o conflito com PP-01–PP-08
+
+A Proprietária enviou um sexto documento — "Reconciliação Canônica dos Cinco Artefatos" — que faz,
+independentemente, a mesma arbitragem dos cinco documentos-fonte descrita na seção 1: chega à **mesma
+lista de 9 produtos-pai, nos mesmos nomes e na mesma ordem** (PP-01 Diagnóstico Familiar Multipaís …
+PP-09 Continuidade e Acervo Familiar). Duas sínteses independentes do mesmo material convergindo no
+mesmo resultado é um sinal real de solidez — mas **não fecha a pergunta em aberto desta seção**: o
+sexto documento reconcilia os 5 artefatos entre si, não contra a terceira linhagem já registrada nesta
+sessão.
+
+Especificamente, `2026-09-04_MATRIZ-HOMOLOGACAO-PRODUTOS-PAI-PP01-PP08.md` (commit `a6a3b69`, mesma
+sessão) usa uma taxonomia diferente — **PP-01 a PP-08, organizada por fase da vida** (Descobrir → Decidir
+→ Preparar → Executar → Transicionar → Preservar → Manter), não por bloco de cidadania — e diz
+explicitamente, sobre a linhagem P01–P09: *"não deve ser usada isoladamente para orientar o novo
+Planejador Universal — ela representa material de saneamento anterior."* Essa matriz foi cruzada **ao
+vivo contra o `product_catalog` real** (35 códigos ativos, Supabase, 04/09), com status de homologação
+por SKU — algo que nem o sexto documento nem os 5 originais fizeram (todos são reconciliação de
+documento contra documento, não de documento contra o banco real).
+
+Ou seja: continuam existindo **duas linhagens de produtos-pai que se rejeitam mutuamente por
+declaração explícita** (PP-01–09 "por bloco de cidadania" vs. PP-01–08 "por fase da vida"), mais a
+terceira já registrada (PP-01–14, `2026-09-04_RECONCILIACAO-PP01-14-vs-35-SKUS-ATIVOS.md`). O sexto
+documento reforça a primeira, mas não é o desempate — quem cruzou contra dado real (produção) foi a
+segunda. Isso pesa a favor de tratar a matriz PP-01-08 como o ponto de partida mais confiável para
+qualquer implementação, mas a decisão continua sendo da Proprietária, não algo que este documento
+resolve sozinho.
+
+**Sobre "ajudar na cadência"**: o sexto documento não traz nenhum dia (D0, D+7, D365…) — sua seção 4.3
+("Fases de jornada") define 8 fases sem prazo (F0 Entrada e triagem → F7 Continuidade), estrutura
+compatível com as oito fases sem prazo do fluxo canônico já implementado (seção 10 de
+`docs/politicas/PROMPT-EIXO-COMUNICACAO-IMPLANTACAO-FUTURA.md` e CA-DECISOES-CANONICAS §10, ver
+`2026-09-04-consolidacao-12-documentos-drive-cadencia-d0-d365.md`). Isso pode servir de esqueleto para
+mapear uma régua de dias sobre as fases — decidir quantos dias cada fase leva, por produto-pai — mas
+não é, por si só, a régua D0→D365: não há data em nenhuma linha deste documento.
+
 ## 2. Cruzamento contra os 35 SKUs reais ativos hoje
 
 Os cinco documentos descrevem "SKUs existentes" a partir da Planilha Mestre/Planejador — não do
@@ -197,6 +232,11 @@ capacidade e preço (a mesma disciplina que os 5 documentos pedem entre si).
    ou tratar como pendência de mapeamento explícito?
 5. **Multipaís/multirramos**: aprovar o desenho de schema (seção 6) para uma rodada de implementação
    dedicada, com migration própria?
+6. **PP-01–09 (bloco de cidadania) ou PP-01–08 (fase da vida)**: duas linhagens de produtos-pai se
+   rejeitam mutuamente por declaração explícita (seção 1.1). A segunda foi cruzada ao vivo contra os 35
+   SKUs reais; a primeira (reforçada por um sexto documento nesta rodada) nunca foi. Qual prevalece?
+   Enquanto essa pergunta não for respondida, nenhuma implementação de produto-pai deve começar — o
+   risco de escolher errado e ter que desfazer é alto.
 
 ## 9. Próximos passos
 
@@ -209,8 +249,10 @@ capacidade e preço (a mesma disciplina que os 5 documentos pedem entre si).
    um de cada vez, com escopo e preço reais aprovados — nunca em lote.
 5. Desenho de schema para multipaís/multirramos (seção 6) como rodada própria, com migration, quando
    priorizada.
-6. Fechar formalmente as três rodadas anteriores de produto-pai desta sessão (P01-09, PP-01-08,
-   PP-01-14) como supersedidas por esta versão de 9 produtos-pai, assim que aprovada.
+6. Responder a pergunta 6 da seção 8 (PP-01-09 × PP-01-08) antes de tratar qualquer uma das três
+   linhagens de produto-pai desta sessão (P01-09, PP-01-08, PP-01-14) como encerrada — um sexto
+   documento reforçou PP-01-09, mas não desempatou contra PP-01-08, que é a única cruzada ao vivo
+   contra os 35 SKUs reais.
 
 ## 10. O que este documento NÃO decide
 
