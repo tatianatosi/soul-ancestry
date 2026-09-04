@@ -231,12 +231,18 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
 
     const portal = await import("./portal.server");
     if (data.solicitacaoId) {
-      await portal.adminClient
+      const atualizado = await portal.adminClient
         .from("portal_document_requests")
         .update({ status: "recebido", document_id: inserido.data.id, motivo_recusa: null })
         .eq("id", data.solicitacaoId)
         .eq("case_id", data.casoId)
-        .eq("organization_id", acesso.organization_id);
+        .eq("organization_id", acesso.organization_id)
+        .select("id")
+        .maybeSingle();
+      if (atualizado.error) throw new Error(atualizado.error.message);
+      if (!atualizado.data?.id) {
+        throw new Error("NENHUMA_LINHA_AFETADA: solicitação de documento não encontrada neste caso.");
+      }
     }
     await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,

@@ -260,10 +260,11 @@ export const convidarMembroEquipe = createServerFn({ method: "POST" })
       redirectTo: `${origem()}/equipe/redefinir-senha`,
     });
     if (convite?.data?.user?.id) {
-      await h.adminClient
+      const vinculo = await h.adminClient
         .from("staff_access")
         .update({ auth_user_id: convite.data.user.id })
         .eq("id", inserido.data.id);
+      if (vinculo.error) throw new Error(vinculo.error.message);
     }
 
     await h.registrarAuditoria({
@@ -292,11 +293,12 @@ export const alterarPapelMembro = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!alvo.data) throw new Error("Membro não encontrado.");
 
-    await h.adminClient
+    const atualizado = await h.adminClient
       .from("staff_access")
       .update({ role: data.papel, updated_by: context.userId })
       .eq("id", data.id)
       .eq("organization_id", gestor.organization_id);
+    if (atualizado.error) throw new Error(atualizado.error.message);
 
     if (alvo.data.auth_user_id && alvo.data.status === "active") {
       await h.sincronizarVinculo({ ...alvo.data, role: data.papel, email: null, full_name: null }, alvo.data.auth_user_id);

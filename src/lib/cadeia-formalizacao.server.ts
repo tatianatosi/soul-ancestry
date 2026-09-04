@@ -237,8 +237,14 @@ export async function persistirAnexoI(
 
   let osId = ctx.ordemServico?.id as string | undefined;
   if (osId) {
-    const { error } = await supabase.from("service_orders").update(payloadOS).eq("id", osId);
+    const { data: osAtualizada, error } = await supabase
+      .from("service_orders")
+      .update(payloadOS)
+      .eq("id", osId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!osAtualizada?.id) throw new Error("Nenhuma linha afetada ao atualizar a ordem de serviço do Anexo I.");
   } else {
     const { data, error } = await supabase
       .from("service_orders")
@@ -252,7 +258,7 @@ export async function persistirAnexoI(
   // Reescreve os itens derivados desta origem: arquiva os anteriores (sem exclusão física).
   const anteriores = ctx.itensEscopo.filter((i: any) => i.source_type === "proposal");
   if (anteriores.length) {
-    await supabase
+    const { data: arquivados, error: erroArquivar } = await supabase
       .from("contract_scope_items")
       .update({
         archived_at: new Date().toISOString(),
@@ -262,7 +268,11 @@ export async function persistirAnexoI(
       .in(
         "id",
         anteriores.map((i: any) => i.id),
-      );
+      )
+      .select("id");
+    if (erroArquivar) throw new Error(erroArquivar.message);
+    if ((arquivados ?? []).length !== anteriores.length)
+      throw new Error("Nem todos os itens de escopo anteriores foram arquivados ao derivar o Anexo I.");
   }
 
   const linhas = itens.map((i, idx) => ({

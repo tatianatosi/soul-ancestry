@@ -1,6 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -109,12 +110,14 @@ export const salvarIntegracao = createServerFn({ method: "POST" })
       patch["retry_backoff_seg"] = Math.min(3600, Math.max(5, Math.trunc(data.retryBackoff)));
     if (data.config) patch["config"] = data.config;
 
-    const r = await supabase
-      .from("integrations")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "integrations",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });
 
@@ -130,16 +133,17 @@ export const alterarSituacaoIntegracao = createServerFn({ method: "POST" })
     if (!["desligada", "teste", "pausada"].includes(data.status)) throw new Error("Situação inválida.");
     if (data.status === "pausada" && !(data.motivo ?? "").trim()) throw new Error("Pausar exige motivo.");
 
-    const r = await supabase
-      .from("integrations")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "integrations",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         status: data.status,
         pausa_motivo: data.status === "pausada" ? (data.motivo ?? "").trim().slice(0, 500) : null,
-        updated_by: context.userId,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+      },
+    });
 
     await auditar({
       organizationId,
@@ -177,12 +181,14 @@ export const ativarIntegracao = createServerFn({ method: "POST" })
     if (faltando.length) throw new Error(`Campos obrigatórios sem mapeamento: ${faltando.join(", ")}`);
     if (!atual.data.owner_user_id) throw new Error("Defina o responsável interno antes de ativar.");
 
-    const r = await supabase
-      .from("integrations")
-      .update({ status: "ativa", ativacao_confirmacao: "ATIVAR", pausa_motivo: null, updated_by: context.userId })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "integrations",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "ativa", ativacao_confirmacao: "ATIVAR", pausa_motivo: null },
+    });
 
     await auditar({
       organizationId,
@@ -399,15 +405,21 @@ export const resolverRevisaoIntegracao = createServerFn({ method: "POST" })
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.id)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
     if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do item da fila.");
 
     // Zera o contador, mas a integração volta desligada: religar é decisão humana.
-    await supabase
-      .from("integrations")
-      .update({ falhas_consecutivas: 0, status: "desligada", updated_by: context.userId })
-      .eq("id", item.data.integration_id)
-      .eq("organization_id", organizationId);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "integrations",
+      id: item.data.integration_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { falhas_consecutivas: 0, status: "desligada" },
+    });
 
     await auditar({
       organizationId,

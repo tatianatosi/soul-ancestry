@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { itemElegivelParaProposta, regraAplicavelACaso } from "@/lib/biblioteca-mestre";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /**
  * Biblioteca Mestre — leitura e escrita auditada das referências internas.
@@ -343,8 +344,14 @@ export const arquivarItemBiblioteca = createServerFn({ method: "POST" })
     if (data.fonte === "dicionarios" || data.fonte === "trilhas") patch["ativo"] = false;
     if (data.fonte === "top30") patch["elegivel_para_proposta"] = false;
 
-    const { error } = await supabase.from(tabela).update(patch).eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela,
+      id: data.id,
+      organizationId: atual.organization_id as string,
+      userId: context.userId as string,
+      payload: patch,
+    });
 
     await registrarAuditoriaBiblioteca(supabase, {
       organizationId: atual.organization_id ?? null,
@@ -468,16 +475,25 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
 
       // Reciprocidade: o sucessor referencia explicitamente seu predecessor.
       if (sucessor.substitui_item_id !== data.id) {
-        const { error: erroSucessor } = await supabase
-          .from("master_library_items")
-          .update({ substitui_item_id: data.id })
-          .eq("id", data.sucessorId);
-        if (erroSucessor) throw new Error(erroSucessor.message);
+        await gravarComVerificacao({
+          supabase,
+          tabela: "master_library_items",
+          id: data.sucessorId as string,
+          organizationId: sucessor.organization_id as string,
+          userId: context.userId as string,
+          payload: { substitui_item_id: data.id },
+        });
       }
     }
 
-    const { error } = await supabase.from("master_library_items").update(patch).eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "master_library_items",
+      id: data.id,
+      organizationId: atual.organization_id as string,
+      userId: context.userId as string,
+      payload: patch,
+    });
 
     await registrarAuditoriaBiblioteca(supabase, {
       organizationId: atual.organization_id ?? null,

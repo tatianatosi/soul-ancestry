@@ -14,6 +14,7 @@ import {
   type Recurso,
   type Sb,
 } from "@/lib/comercial.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -181,12 +182,14 @@ export const salvarProposta = createServerFn({ method: "POST" })
         .maybeSingle();
       if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
       delete dados["status"];
-      const { error } = await supabase
-        .from("proposals")
-        .update(dados)
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "proposals",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: dados,
+      });
       return { id: data.id };
     }
     if (!dados["client_id"] && !dados["lead_id"]) throw new Error("Informe o cliente ou o lead da proposta.");
@@ -198,18 +201,14 @@ export const salvarProposta = createServerFn({ method: "POST" })
       .order("versao", { ascending: false })
       .limit(1)
       .maybeSingle();
-    const { data: linha, error } = await supabase
-      .from("proposals")
-      .insert({
-        ...dados,
-        organization_id: organizationId,
-        status: "rascunho",
-        versao: Number(proximaVersao.data?.versao ?? 0) + 1,
-      })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "proposals",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...dados, status: "rascunho", versao: Number(proximaVersao.data?.versao ?? 0) + 1 },
+    });
+    return { id: r.id };
   });
 
 export const mudarStatusProposta = createServerFn({ method: "POST" })
@@ -227,12 +226,14 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!atual.data) throw new Error("Proposta não encontrada nesta organização.");
     validarFluxo("proposals", atual.data.status as string, data.status);
-    const { error } = await supabase
-      .from("proposals")
-      .update({ status: data.status })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "proposals",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status },
+    });
     return { ok: true };
   });
 
@@ -247,12 +248,14 @@ export const renovarValidadeProposta = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin renovam validade.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from("proposals")
-      .update({ validade: data.validade, validade_renovada_motivo: motivo })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "proposals",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { validade: data.validade, validade_renovada_motivo: motivo },
+    });
     return { ok: true };
   });
 
@@ -298,33 +301,30 @@ export const criarVersaoAjusteProposta = createServerFn({ method: "POST" })
       delete base[campo];
     }
 
-    const { data: nova, error } = await supabase
-      .from("proposals")
-      .insert({
-        ...base,
-        organization_id: organizationId,
-        status: "rascunho",
-        versao: Number(atual.data.versao ?? 0) + 1,
-        derivada_de_id: atual.data.id,
-      })
-      .select("id,versao")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
+    const nova = await inserirComVerificacao({
+      supabase,
+      tabela: "proposals",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...base, status: "rascunho", versao: Number(atual.data.versao ?? 0) + 1, derivada_de_id: atual.data.id },
+    });
 
     // Proposta arquivada permanece arquivada: o rascunho derivado nasce novo, sem alterar o histórico.
     const permiteSubstituir =
       !atual.data.archived_at && ["enviada", "em_negociacao", "aprovada", "recusada", "expirada"].includes(atual.data.status);
 
     if (permiteSubstituir) {
-      const { error: e2 } = await supabase
-        .from("proposals")
-        .update({ status: "substituida", substituida_por_id: nova?.id })
-        .eq("id", atual.data.id)
-        .eq("organization_id", organizationId);
-      if (e2) throw new Error(e2.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "proposals",
+        id: atual.data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: { status: "substituida", substituida_por_id: nova.id },
+      });
     }
 
-    return { id: nova?.id as string, versao: nova?.versao as number, substituiu: permiteSubstituir };
+    return { id: nova.id, versao: nova.registro["versao"] as number, substituiu: permiteSubstituir };
   });
 
 /** Restaura uma proposta arquivada, com motivo rastreável. */
@@ -336,18 +336,20 @@ export const restaurarProposta = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente comercial, operações ou admin restauram propostas.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from("proposals")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "proposals",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         archived_at: null,
         archived_by: null,
         restaurado_em: new Date().toISOString(),
         restaurado_por: context.userId,
         restauracao_motivo: motivo,
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -365,20 +367,20 @@ export const criarOrdemServico = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_COMERCIAL, "Somente operações, comercial ou admin criam ordens de serviço.");
-    const { data: linha, error } = await supabase
-      .from("service_orders")
-      .insert({
-        organization_id: organizationId,
+    const linha = await inserirComVerificacao({
+      supabase,
+      tabela: "service_orders",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         contract_id: data.contract_id,
         case_id: data.case_id,
         scope_summary: data.scope_summary,
         status: "draft",
         service_order_number: "pendente",
-      })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+      },
+    });
+    return { id: linha.id };
   });
 
 /**
@@ -396,13 +398,15 @@ export const atualizarObservacaoOrdem = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     if (data.scope_summary !== undefined) patch.scope_summary = data.scope_summary;
     if (data.internal_notes !== undefined) patch.internal_notes = data.internal_notes;
-    const { error } = await supabase
-      .from("service_orders")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "service_orders",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 export const mudarStatusOrdem = createServerFn({ method: "POST" })
@@ -420,12 +424,14 @@ export const mudarStatusOrdem = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!atual.data) throw new Error("Ordem de serviço não encontrada nesta organização.");
     validarFluxo("service_orders", atual.data.status as string, data.status);
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ status: data.status })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "service_orders",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: data.status },
+    });
     return { ok: true };
   });
 
@@ -453,21 +459,24 @@ export const salvarFatura = createServerFn({ method: "POST" })
       if (atual.data.status === "paga" && Number(dados["valor"]) !== Number(atual.data.valor)) {
         throw new Error("Fatura paga não pode ter o valor editado. Registre um ajuste de fatura.");
       }
-      const { error } = await supabase
-        .from("invoices")
-        .update(dados)
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "invoices",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: dados,
+      });
       return { id: data.id };
     }
-    const { data: linha, error } = await supabase
-      .from("invoices")
-      .insert({ ...dados, organization_id: organizationId, status: dados["status"] ?? "rascunho" })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    const linha = await inserirComVerificacao({
+      supabase,
+      tabela: "invoices",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...dados, status: dados["status"] ?? "rascunho" },
+    });
+    return { id: linha.id };
   });
 
 export const registrarAjusteFatura = createServerFn({ method: "POST" })
@@ -482,15 +491,18 @@ export const registrarAjusteFatura = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Ajuste de fatura exige papel financeiro ou admin.");
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase.from("invoice_adjustments").insert({
-      organization_id: organizationId,
-      invoice_id: data.invoice_id,
-      valor: Number(data.valor),
-      motivo,
-      referencia_externa: data.referencia_externa || null,
-      created_by: context.userId,
+    await inserirComVerificacao({
+      supabase,
+      tabela: "invoice_adjustments",
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        invoice_id: data.invoice_id,
+        valor: Number(data.valor),
+        motivo,
+        referencia_externa: data.referencia_externa || null,
+      },
     });
-    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -518,22 +530,25 @@ export const salvarPagamento = createServerFn({ method: "POST" })
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Alteração financeira exige papel financeiro ou admin.");
     const dados = limpar("payments", data.dados);
     if (data.id) {
-      const { error } = await supabase
-        .from("payments")
-        .update(dados)
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "payments",
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: dados,
+      });
       return { id: data.id };
     }
     if (!dados["invoice_id"]) throw new Error("Vincule o pagamento a uma fatura.");
-    const { data: linha, error } = await supabase
-      .from("payments")
-      .insert({ ...dados, organization_id: organizationId, status: dados["status"] ?? "pendente" })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+    const linha = await inserirComVerificacao({
+      supabase,
+      tabela: "payments",
+      organizationId,
+      userId: context.userId as string,
+      payload: { ...dados, status: dados["status"] ?? "pendente" },
+    });
+    return { id: linha.id };
   });
 
 /** Conciliação manual: exige data, valor e referência; divergência é marcada pelo banco. */
@@ -551,24 +566,21 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
     exigirPapel(papel, PAPEIS_FINANCEIRO, "Conciliação exige papel financeiro ou admin.");
-    const { error } = await supabase
-      .from("payments")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "payments",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         pago_em: data.pago_em,
         valor: Number(data.valor),
         referencia_externa: data.referencia_externa.trim(),
         status: "confirmado",
         conciliacao_status: "conciliado",
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
-    const conferido = await supabase
-      .from("payments")
-      .select("conciliacao_status")
-      .eq("id", data.id)
-      .maybeSingle();
-    return { conciliacao: (conferido.data?.conciliacao_status ?? "conciliado") as string };
+      },
+    });
+    return { conciliacao: (r.registro["conciliacao_status"] ?? "conciliado") as string };
   });
 
 export const arquivarComercial = createServerFn({ method: "POST" })
@@ -591,11 +603,13 @@ export const arquivarComercial = createServerFn({ method: "POST" })
       archived_by: context.userId,
     };
     payload[usaReason ? "archive_reason" : "archive_motivo"] = (data.motivo ?? "").trim() || "Sem motivo informado.";
-    const { error } = await supabase
-      .from(data.recurso)
-      .update(payload)
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.recurso,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload,
+    });
     return { ok: true };
   });

@@ -111,7 +111,15 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
       { grupo: "Relacionamento" },
-      { to: "/clientes", label: "Clientes e núcleos comerciais" },
+      // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
+      // é uma chave mestra" (Proprietária). A página existe desde antes desta
+      // sessão (pessoas.$clienteId.tsx — "Ana Luiza um dia foi lead e depois
+      // virou cliente, mas Ana Luiza continua sendo Ana Luiza") e já era
+      // linkada a partir do nome em /clientes — mas nunca teve o rótulo do
+      // menu dizendo que é isso que ela é. Não tem link de menu genérico
+      // possível (a página exige uma pessoa específica); o rótulo abaixo
+      // deixa explícito que /clientes é a porta de entrada da pessoa 360.
+      { to: "/clientes", label: "Clientes e pessoa 360 (histórico completo por pessoa)" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
     ],
   },

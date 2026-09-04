@@ -10,6 +10,7 @@ import {
   validarConfirmacaoFormal,
   validarOportunidade,
 } from "@/lib/crm-fluxo";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -67,11 +68,14 @@ async function materializarCasoDaOportunidade(
     .single();
   if (error) throw new Error(`Não foi possível abrir o caso a partir da oportunidade: ${error.message}`);
 
-  const { error: erroVinculo } = await supabase
-    .from("opportunities")
-    .update({ case_id: caso.id, updated_by: userId })
-    .eq("id", op.id);
-  if (erroVinculo) throw new Error(erroVinculo.message);
+  await gravarComVerificacao({
+    supabase,
+    tabela: "opportunities",
+    id: op.id,
+    organizationId,
+    userId,
+    payload: { case_id: caso.id },
+  });
 
   return caso.id as string;
 }
@@ -233,14 +237,15 @@ export const salvarOportunidade = createServerFn({ method: "POST" })
     const etapaAnterior = atual?.etapa_comercial ?? null;
     let row: any;
     if (data.id) {
-      const r = await supabase
-        .from("opportunities")
-        .update({ ...patch, updated_by: userId })
-        .eq("id", data.id)
-        .select("*")
-        .maybeSingle();
-      if (r.error) throw new Error(r.error.message);
-      row = r.data;
+      const resultado = await gravarComVerificacao({
+        supabase,
+        tabela: "opportunities",
+        id: data.id,
+        organizationId: organization_id,
+        userId,
+        payload: patch,
+      });
+      row = resultado.registro;
     } else {
       const r = await supabase
         .from("opportunities")
@@ -376,16 +381,18 @@ export const registrarAceiteVerbal = createServerFn({ method: "POST" })
 
     const prazo = new Date();
     prazo.setDate(prazo.getDate() + 3);
-    const { error } = await supabase
-      .from("opportunities")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "opportunities",
+      id: op.id,
+      organizationId: organization_id,
+      userId,
+      payload: {
         etapa_comercial: "aceite_verbal",
         proxima_acao: PROXIMA_ACAO_PADRAO_ACEITE_VERBAL,
         prazo_proxima_acao: prazo.toISOString().slice(0, 10),
-        updated_by: userId,
-      })
-      .eq("id", op.id);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     await registrarEvento(supabase, userId, organization_id, {
       event_type: "aceite_verbal_confirmado",
@@ -428,16 +435,18 @@ export const registrarConfirmacaoFormal = createServerFn({ method: "POST" })
 
     const prazo = new Date();
     prazo.setDate(prazo.getDate() + 5);
-    const { error } = await supabase
-      .from("opportunities")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "opportunities",
+      id: op.id,
+      organizationId: organization_id,
+      userId,
+      payload: {
         etapa_comercial: "formalizacao_em_preparacao",
         proxima_acao: "Preparar instrumentos internamente (sem contrato, cobrança ou assinatura)",
         prazo_proxima_acao: prazo.toISOString().slice(0, 10),
-        updated_by: userId,
-      })
-      .eq("id", op.id);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     await registrarEvento(supabase, userId, organization_id, {
       event_type: "confirmacao_formal_recebida",
@@ -473,16 +482,19 @@ export const arquivarOportunidade = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
-    const { error } = await supabase
-      .from("opportunities")
-      .update({
+    const organization_id = await orgDoUsuario(supabase, userId);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "opportunities",
+      id: data.id,
+      organizationId: organization_id,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
         archive_motivo: sanitizarParaAuditoria(data.motivo),
         etapa_comercial: "arquivada",
-        updated_by: userId,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true as const };
   });

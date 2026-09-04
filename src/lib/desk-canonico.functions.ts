@@ -10,6 +10,7 @@ import {
   type EventoFunil,
   type TipoConversa,
 } from "@/lib/desk-canonico";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -231,11 +232,22 @@ export const registrarEventoFunil = createServerFn({ method: "POST" })
     const opportunityId = opcionalUuid(data.opportunity_id);
     if (opportunityId) {
       const prazo = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-      await supabase
+      const { data: op } = await supabase
         .from("opportunities")
-        .update({ proxima_acao: proximaAcaoPadrao(tipo), prazo_proxima_acao: prazo, updated_by: userId })
+        .select("id")
         .eq("id", opportunityId)
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .maybeSingle();
+      if (op) {
+        await gravarComVerificacao({
+          supabase,
+          tabela: "opportunities",
+          id: opportunityId,
+          organizationId: organization_id,
+          userId,
+          payload: { proxima_acao: proximaAcaoPadrao(tipo), prazo_proxima_acao: prazo },
+        });
+      }
     }
 
     return {

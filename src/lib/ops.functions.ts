@@ -10,6 +10,7 @@ import {
   type Sb,
 } from "@/lib/ops.server";
 import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autorizacoes";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -185,12 +186,14 @@ export const salvarTarefa = createServerFn({ method: "POST" })
     if (!valores["titulo"]) throw new Error("Informe o título da tarefa.");
 
     if (data.id) {
-      const { error } = await supabase
-        .from("tarefas")
-        .update(valores)
-        .eq("id", data.id)
-        .eq("organization_id", ctx.organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "tarefas",
+        id: data.id,
+        organizationId: ctx.organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
       return { id: data.id };
     }
 
@@ -247,12 +250,14 @@ export const moverTarefa = createServerFn({ method: "POST" })
       patch["desbloqueio_justificativa"] = (data.desbloqueioJustificativa ?? "").trim() || "Sem justificativa informada.";
     }
 
-    const { error } = await supabase
-      .from("tarefas")
-      .update(patch)
-      .eq("id", data.id)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "tarefas",
+      id: data.id,
+      organizationId: ctx.organizationId,
+      userId,
+      payload: patch,
+    });
     return { ok: true };
   });
 
@@ -273,12 +278,14 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
     if (!valores["caso_id"]) throw new Error("Vincule a micro-entrega a um caso.");
 
     if (data.id) {
-      const { error } = await supabase
-        .from("ops_microentregas")
-        .update(valores)
-        .eq("id", data.id)
-        .eq("organization_id", ctx.organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "ops_microentregas",
+        id: data.id,
+        organizationId: ctx.organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
       return { id: data.id };
     }
 
@@ -307,16 +314,18 @@ export const arquivarOps = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    const { error } = await supabase
-      .from(data.tabela)
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: context.userId,
         archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
-      })
-      .eq("id", data.id)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 

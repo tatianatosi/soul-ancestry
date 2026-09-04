@@ -1,6 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -120,8 +121,14 @@ export const salvarArtefato = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase.from("artifact_register").update(registro).eq("id", data.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "artifact_register",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: registro,
+      });
       await auditar({
         organizationId, userId, acao: "artefato_atualizado", entidade: "artifact_register",
         entidadeId: data.id, metadados: { status: data.status_recuperacao },
@@ -151,18 +158,20 @@ export const arquivarArtefato = createServerFn({ method: "POST" })
     const { organizationId } = await contexto(supabase, userId);
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
 
-    const { error } = await supabase
-      .from("artifact_register")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "artifact_register",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
         archive_motivo: motivo,
         sucessor_id: data.sucessor_id ?? null,
         change_resumo: `Arquivado: ${motivo}`,
-        updated_by: userId,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     await auditar({
       organizationId, userId, acao: "artefato_arquivado", entidade: "artifact_register",
@@ -207,8 +216,14 @@ export const salvarItemConhecimento = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase.from("knowledge_items").update(registro).eq("id", data.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "knowledge_items",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: registro,
+      });
       return { id: data.id };
     }
 
@@ -277,8 +292,14 @@ export const salvarDecisao = createServerFn({ method: "POST" })
 
     let id = data.id;
     if (id) {
-      const { error } = await supabase.from("decisions").update(registro).eq("id", id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "decisions",
+        id,
+        organizationId,
+        userId,
+        payload: registro,
+      });
     } else {
       const { data: criado, error } = await supabase
         .from("decisions")
@@ -291,10 +312,18 @@ export const salvarDecisao = createServerFn({ method: "POST" })
 
     // Itens substituídos passam a "substituida" e apontam para a nova decisão.
     if (status === "publicada" && (data.substitui_ids?.length ?? 0) > 0) {
-      await supabase
+      const substituidos = await supabase
         .from("decisions")
         .update({ status: "substituida", substituida_por: id, change_resumo: `Substituída por ${data.titulo}.`, updated_by: userId })
-        .in("id", data.substitui_ids as string[]);
+        .eq("organization_id", organizationId)
+        .in("id", data.substitui_ids as string[])
+        .select("id");
+      if (substituidos.error) throw new Error(substituidos.error.message);
+      if ((substituidos.data?.length ?? 0) !== (data.substitui_ids?.length ?? 0)) {
+        throw new Error(
+          "NENHUMA_LINHA_AFETADA: uma ou mais decisões a substituir não foram encontradas nesta organização.",
+        );
+      }
     }
 
     await auditar({
@@ -313,18 +342,20 @@ export const arquivarDecisao = createServerFn({ method: "POST" })
     const userId = context.userId as string;
     const { organizationId } = await contexto(supabase, userId);
 
-    const { error } = await supabase
-      .from("decisions")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "decisions",
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         status: "arquivada",
         archived_at: new Date().toISOString(),
         archived_by: userId,
         archive_motivo: data.motivo,
         change_resumo: `Arquivada: ${data.motivo}`,
-        updated_by: userId,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+      },
+    });
 
     await auditar({
       organizationId, userId, acao: "decisao_arquivada", entidade: "decisions",

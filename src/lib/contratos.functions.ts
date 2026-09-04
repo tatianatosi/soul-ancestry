@@ -1,6 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /**
  * Motor contratual — camada de servidor.
@@ -309,12 +310,14 @@ export const atualizarContrato = createServerFn({ method: "POST" })
     }
     if (!Object.keys(patch).length) return { ok: true };
 
-    const { error } = await supabase
-      .from("contracts")
-      .update(patch)
-      .eq("organization_id", organizationId)
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });
 
@@ -396,12 +399,14 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
 
     const dados = sanitizarFilho(data.tabela, data.dados);
     if (data.id) {
-      const { error } = await supabase
-        .from(data.tabela)
-        .update(dados)
-        .eq("organization_id", organizationId)
-        .eq("id", data.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: data.tabela,
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: dados,
+      });
     } else {
       const { error } = await supabase.from(data.tabela).insert({
         ...dados,
@@ -426,12 +431,14 @@ export const arquivarItemContrato = createServerFn({ method: "POST" })
     exigir(papel, PAPEIS_FILHO[data.tabela], "Seu papel não permite arquivar este item.");
     if (!data.motivo?.trim()) throw new Error("Arquivamento exige motivo.");
 
-    const { error } = await supabase
-      .from(data.tabela)
-      .update({ archived_at: new Date().toISOString(), archive_reason: data.motivo })
-      .eq("organization_id", organizationId)
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { archived_at: new Date().toISOString(), archive_reason: data.motivo },
+    });
     await evento(supabase, organizationId, data.contract_id, "archived", { bloco: data.tabela });
     return { ok: true };
   });
@@ -551,26 +558,33 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
         .from(helpers.BUCKET_CONTRATOS)
         .upload(caminho, new Blob([conteudo.html], { type: "text/html" }), { upsert: false });
       if (up.error) throw new Error(up.error.message);
-      await supabase
-        .from("contract_versions")
-        .update({ rendered_file_path: caminho, rendered_file_hash: hash })
-        .eq("organization_id", organizationId)
-        .eq("id", versao.id);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "contract_versions",
+        id: versao.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: { rendered_file_path: caminho, rendered_file_hash: hash },
+      });
     } catch (e) {
       falha = e instanceof Error ? e.message : "falha na renderização";
-      await supabase
+      const { error: erroFalha } = await supabase
         .from("contract_versions")
         .update({ status: "validation_failed", render_error: falha })
         .eq("organization_id", organizationId)
         .eq("id", versao.id);
+      if (erroFalha) falha = `${falha} (e não foi possível registrar a falha: ${erroFalha.message})`;
       await evento(supabase, organizationId, data.contract_id, "render_failed", { etapa: "upload" }, versao.id);
     }
 
-    await supabase
-      .from("contracts")
-      .update({ current_version_id: versao.id, status: "pending_data" })
-      .eq("organization_id", organizationId)
-      .eq("id", data.contract_id);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { current_version_id: versao.id, status: "pending_data" },
+    });
 
     await evento(
       supabase,
@@ -638,12 +652,14 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       return { ok: false, bloqueios: bloqueios.map((b) => b.label as string) };
     }
 
-    const up = await supabase
-      .from("contracts")
-      .update({ status: "ready_for_review" })
-      .eq("organization_id", organizationId)
-      .eq("id", data.contract_id);
-    if (up.error) throw new Error(up.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "ready_for_review" },
+    });
     await evento(supabase, organizationId, data.contract_id, "review_requested", {});
     return { ok: true, bloqueios: [] as string[] };
   });
@@ -660,25 +676,31 @@ export const registrarDecisaoRevisao = createServerFn({ method: "POST" })
     exigir(papel, ["admin"], "Somente admin conclui a revisão humana.");
 
     const agora = new Date().toISOString();
-    await supabase
-      .from("contract_versions")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contract_versions",
+      id: data.version_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         review_decision: data.decisao,
         review_notes: data.notas ?? null,
         reviewed_at: agora,
         reviewed_by: context.userId,
         status: data.decisao === "approved" ? "ready_for_review" : "working",
-      })
-      .eq("organization_id", organizationId)
-      .eq("id", data.version_id);
+      },
+    });
 
     const status =
       data.decisao === "approved" ? "under_human_review" : data.decisao === "rejected" ? "rejected" : "pending_data";
-    await supabase
-      .from("contracts")
-      .update({ status })
-      .eq("organization_id", organizationId)
-      .eq("id", data.contract_id);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status },
+    });
 
     await evento(
       supabase,
@@ -741,17 +763,23 @@ export const aprovarParaEnvio = createServerFn({ method: "POST" })
       evento: "versao_contratual_congelada",
       userId: context.userId as string,
     });
-    await supabase
-      .from("contract_versions")
-      .update({ status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId })
-      .eq("organization_id", organizationId)
-      .eq("id", data.version_id);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contract_versions",
+      id: data.version_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "approved_for_send", frozen_at: agora, frozen_by: context.userId, approved_at: agora, approved_by: context.userId },
+    });
 
-    await supabase
-      .from("contracts")
-      .update({ status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora })
-      .eq("organization_id", organizationId)
-      .eq("id", data.contract_id);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "approved_for_send", approved_for_send_by: context.userId, approved_for_send_at: agora },
+    });
     await evento(supabase, organizationId, data.contract_id, "approved_for_send", {}, data.version_id);
     return { ok: true, impedimentos: [] as string[] };
   });
@@ -780,12 +808,14 @@ export const arquivarContrato = createServerFn({ method: "POST" })
     exigir(papel, ["admin", "operacoes"], "Seu papel não permite arquivar instrumentos.");
     if (!data.motivo?.trim()) throw new Error("Arquivamento exige motivo.");
 
-    const { error } = await supabase
-      .from("contracts")
-      .update({ status: "archived", archived_at: new Date().toISOString(), archive_reason: data.motivo })
-      .eq("organization_id", organizationId)
-      .eq("id", data.contract_id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "contracts",
+      id: data.contract_id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { status: "archived", archived_at: new Date().toISOString(), archive_reason: data.motivo },
+    });
     await evento(supabase, organizationId, data.contract_id, "archived", {});
     return { ok: true };
   });
@@ -818,12 +848,17 @@ export const salvarOrdemServico = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase
+      const { data: linhaAtualizada, error } = await supabase
         .from("service_orders")
         .update(corpo)
         .eq("organization_id", organizationId)
-        .eq("id", data.id);
+        .eq("id", data.id)
+        .select("id")
+        .maybeSingle();
       if (error) return { ok: false, mensagem: error.message };
+      if (!linhaAtualizada?.id) {
+        return { ok: false, mensagem: "Nada foi gravado: ordem de serviço não encontrada nesta organização." };
+      }
     } else {
       const { error } = await supabase.from("service_orders").insert({
         ...corpo,

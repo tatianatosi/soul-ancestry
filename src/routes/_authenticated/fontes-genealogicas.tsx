@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
@@ -21,7 +21,7 @@ import {
   STATUS_INTEGRACAO,
   type Fonte,
 } from "@/lib/fontes-genealogicas";
-import { painelFontes } from "@/lib/fontes-genealogicas.functions";
+import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -64,8 +64,92 @@ function Secao({ titulo, subtitulo, children }: { titulo: string; subtitulo?: st
   );
 }
 
-function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; backlog: any[] }) {
+function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) {
+  const [form, setForm] = useState({
+    status_documentacao: fonte.status_documentacao ?? "",
+    status_integracao: fonte.status_integracao ?? "",
+    scraping_status: fonte.scraping_status ?? "",
+    ultima_verificacao: fonte.ultima_verificacao ?? "",
+    responsavel_revisao: fonte.responsavel_revisao ?? "",
+    proxima_acao: fonte.proxima_acao ?? "",
+    observacao_risco: fonte.observacao_risco ?? "",
+  });
+  const [erro, setErro] = useState<string | null>(null);
+  const salvarFn = useServerFn(salvarFonte);
+  const m = useMutation({
+    mutationFn: () => salvarFn({ data: { id: fonte.id, valores: form } }),
+    onSuccess: () => {
+      setErro(null);
+      onSalvo();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+  const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const cls = "w-full rounded border border-navy/15 px-2 py-1 text-[11px]";
+
+  return (
+    <div className="sm:col-span-2 space-y-2 rounded border border-gold/40 bg-gold/5 p-3">
+      {erro ? <p className="text-[11px] text-terracotta">{erro}</p> : null}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Documentação
+          <select className={cls} value={form.status_documentacao} onChange={(e) => set("status_documentacao", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(STATUS_DOCUMENTACAO).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Integração
+          <select className={cls} value={form.status_integracao} onChange={(e) => set("status_integracao", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(STATUS_INTEGRACAO).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Scraping
+          <select className={cls} value={form.scraping_status} onChange={(e) => set("scraping_status", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(SCRAPING_STATUS).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Última verificação
+          <input type="date" className={cls} value={form.ultima_verificacao} onChange={(e) => set("ultima_verificacao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Responsável pela revisão
+          <input className={cls} value={form.responsavel_revisao} onChange={(e) => set("responsavel_revisao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Próxima ação
+          <input className={cls} value={form.proxima_acao} onChange={(e) => set("proxima_acao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50 sm:col-span-2">
+          Observação de risco
+          <textarea className={cls} rows={2} value={form.observacao_risco} onChange={(e) => set("observacao_risco", e.target.value)} />
+        </label>
+      </div>
+      <button
+        type="button"
+        disabled={m.isPending}
+        onClick={() => m.mutate()}
+        className="rounded bg-navy px-3 py-1.5 text-[11px] text-cream disabled:opacity-50"
+      >
+        {m.isPending ? "Salvando…" : "Salvar"}
+      </button>
+    </div>
+  );
+}
+
+function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz: any[]; backlog: any[]; onSalvo: () => void }) {
   const [aberto, setAberto] = useState(false);
+  const [editando, setEditando] = useState(false);
   const consulta = permiteConsultaAutomatica(fonte);
   const pendencias = pendenciasGovernanca(fonte);
 
@@ -112,6 +196,25 @@ function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; 
           <div className="sm:col-span-2 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/70">
             Consulta automática: indisponível. {consulta.motivo}
           </div>
+
+          <div className="sm:col-span-2">
+            <button
+              type="button"
+              onClick={() => setEditando((v) => !v)}
+              className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy hover:border-gold"
+            >
+              {editando ? "Fechar edição" : "Editar"}
+            </button>
+          </div>
+          {editando ? (
+            <EditarFonte
+              fonte={fonte}
+              onSalvo={() => {
+                setEditando(false);
+                onSalvo();
+              }}
+            />
+          ) : null}
 
           {pendencias.length > 0 && (
             <div className="sm:col-span-2">
@@ -162,7 +265,9 @@ function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; 
 
 function FontesGenealogicas() {
   const carregar = useServerFn(painelFontes);
+  const qc = useQueryClient();
   const { data, isPending, error } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
+  const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
 
   const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
@@ -175,7 +280,7 @@ function FontesGenealogicas() {
     lista.length === 0 ? (
       <p className="text-[11px] text-navy/50">Nenhuma fonte nesta lista.</p>
     ) : (
-      lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} />)
+      lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} onSalvo={onSalvo} />)
     );
 
   return (

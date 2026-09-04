@@ -202,7 +202,7 @@ export const marcarItemChecklist = createServerFn({ method: "POST" })
         ? (data.observacao ?? "").trim() || "Não aplicável — sem justificativa informada."
         : data.observacao?.trim() || null;
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("case_checklist_items")
       .update({
         status: data.status,
@@ -211,8 +211,11 @@ export const marcarItemChecklist = createServerFn({ method: "POST" })
         concluido_por: data.status === "pendente" ? null : context.userId,
       })
       .eq("id", data.id)
-      .eq("organization_id", ctx.organizationId);
+      .eq("organization_id", ctx.organizationId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: item de checklist não encontrado nesta organização.");
     return { ok: true };
   });
 
