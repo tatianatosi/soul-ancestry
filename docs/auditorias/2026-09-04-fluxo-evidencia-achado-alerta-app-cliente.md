@@ -193,6 +193,42 @@ resposta do cliente) — hoje inexistente em qualquer tela.
   (`fechamento-caso.functions.ts:185`) é métrica interna do Desk (funil de fechamento), e a tabela está
   bloqueada no portal — nunca vira badge no app.
 
+### 5.1 — Consolidação de toda a varredura de micro-entrega: qual é a rota correta para o App Cliente
+
+A Proprietária pediu para revisar todo o consolidado antes de qualquer implementação no App Cliente, para
+não errar a rota. Reunindo esta seção com os achados de
+`docs/auditorias/2026-09-04-consolidacao-12-documentos-drive-cadencia-d0-d365.md` (Parte 3) e do de-para
+recuperado `docs/arquitetura/2026-09-03_DE-PARA-CADENCIA-D0-D365-MICROENTREGAS-PLANEJADOR.md` (seção 1),
+existem **cinco mecanismos reais ou propostos** de "micro-entrega" no repositório — não dois:
+
+| # | Mecanismo | Tabela | Alcança o cliente hoje? | Por quê |
+|---|---|---|---|---|
+| 1 | Entrega cliente-facing (vocabulário unificado nesta sessão, seção 2.1 de `2026-09-04-consolidacao-...md`) | `client_deliverables` | **Não** | RLS só tem `is_org_member(organization_id)` (`portal-dados-vivos.ts:36`, `BLOQUEIOS_CA_PORTAL_02`) — **nenhuma policy de portal existe para esta tabela**. Não é falta de wiring de tela; é bloqueio estrutural no banco. `/portal/entregas` (`src/routes/portal/entregas.tsx`) nem tenta ler: é placeholder estático (seção 6 abaixo). |
+| 2 | Projeção autorizada | `app_projections` (view `portal_projecoes`) | **Sim** | Única tabela com RLS de portal comprovada (`app_proj_select_portal`, restringe ao caso do próprio cliente) — é o que `projecoes-cliente.ts`/`publicacoesParaCliente` de fato usam. Mas o modelo é mais simples (`content_sanitized` + `projection_type` + vigência), sem os campos de micro-entrega (tipo, fase, evidência, próxima ação) e alimentado por evidência aprovada, não por achado nem por `client_deliverables`. |
+| 3 | Tarefa operacional interna | `ops_microentregas` | Não, nem deveria | Painel Hoje/SLA — uso exclusivamente interno, tem `evidencia_url`/`concluida_em` que faltam no #1, mas não tem nenhum campo cliente-facing (`title_client`, `deep_link`). |
+| 4 | `micro_deliveries` (proposta) | não existe | Não | Nunca implementada (`docs/evolucao/recuperados/prompts-lovable-2026-08-31/`); duplicaria o #1. |
+| 5 | 7 estados únicos (régua F, seção 3 do Mapa de Cadências D0-D365) | nenhuma hoje | Não | Nenhuma das 4 tabelas acima tem os 7 estados (preparada/em revisão/publicada/visualizada/ação pendente/concluída/arquivada) — a mais próxima (#1) tem 5. |
+
+**A rota correta, dado o que existe hoje, não é uma escolha livre — é uma restrição de RLS**: qualquer
+implementação de App Cliente que tente ler `client_deliverables` diretamente devolve zero linhas para um
+usuário que não seja da equipe, porque a policy não existe. Isso reduz a pergunta 1 da seção 9 a duas
+opções concretas, não mais simétricas:
+
+- **(a) Adicionar policy de portal a `client_deliverables`** — preserva o trabalho já feito
+  (`salvarEntregaCliente`/`aprovarEntregaCliente`/`publicarEntregaCliente`/`listarEntregasPublicadas` em
+  `onboarding-jornada.functions.ts`, e o vocabulário `client_deliverables.approval_status` já unificado
+  em português nesta sessão) e o campo `deep_link` já modelado. Exige migration de RLS (mesmo padrão de
+  `app_proj_select_portal`) e religar `/portal/entregas` para consultar a tabela real em vez do
+  placeholder.
+- **(b) Rotear pelo `app_projections`/`portal_projecoes`** — já funciona hoje, sem migration de RLS, mas
+  exige mapear os campos de micro-entrega (tipo, fase, próxima ação) para dentro do modelo de projeção
+  mais simples, ou aceitar perder esses campos na exibição ao cliente.
+
+**Recomendação, sem decidir por conta própria**: (a) é o caminho mais coerente com o que já foi
+construído (o motor de aprovação/publicação inteiro já grava e lê `client_deliverables`) — trocar de
+tabela agora jogaria fora esse trabalho. Mas a decisão final, por mexer em RLS/segurança de dado do
+cliente, é da Proprietária — ver pergunta 1 da seção 9, reformulada abaixo.
+
 ## 6. Jornada do cliente e micro-entregas — a rota real do portal é estática
 
 A rota `src/routes/portal/entregas.tsx` **não lê dado nenhum**: é um placeholder que sempre mostra
@@ -261,8 +297,12 @@ App Cliente. Resumo por elo:
 
 ## 9. Perguntas de decisão que só a Proprietária pode responder
 
-1. **Via de exposição ao cliente**: `client_deliverables`/`/portal/entregas` (hoje bloqueada e
-   desconectada) ou `app_projections` (hoje funcional, mas alimentada por evidência, não por achado)?
+1. **Via de exposição ao cliente — reformulada com o achado de RLS da seção 5.1**: não é mais uma
+   escolha simétrica entre duas tabelas prontas. `client_deliverables` (a mais coerente com o que já
+   foi construído) exige criar policy de portal, hoje inexistente — sem isso ela devolve zero linhas
+   para qualquer cliente. `app_projections` funciona hoje sem migration, mas com modelo mais pobre.
+   Aprovar (a) adicionar RLS a `client_deliverables` e religar `/portal/entregas`, ou (b) aceitar rotear
+   pelo `app_projections` e perder os campos de micro-entrega na exibição?
 2. ~~Canal de alerta~~ — **já decidido pela arquitetura existente** (CA-OPS-01/02): WhatsApp via
    Biblioteca de Mensagens, sempre com abertura manual de preview e cópia — nunca envio automático.
    Não é mais pergunta em aberto; falta só a execução (backlog P0-2).
