@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
+import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -22,6 +25,13 @@ export const Route = createFileRoute("/portal/conta")({
 function PortalConta() {
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
+  const carregarFaturas = useServerFn(minhasFaturas);
+  const faturas = useQuery({
+    queryKey: ["portal-conta-faturas"],
+    queryFn: () => carregarFaturas({}),
+    retry: false,
+  });
+  const temFatura = (faturas.data?.length ?? 0) > 0;
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
@@ -40,11 +50,13 @@ function PortalConta() {
             </div>
           </dl>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
-              Faturas
-            </Link>
-          </div>
+          {temFatura && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
+                Pagamentos já feitos
+              </Link>
+            </div>
+          )}
         </BlocoVisibilidade>
       )}
     </PortalShell>
