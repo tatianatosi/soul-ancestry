@@ -97,6 +97,37 @@ D31–D90, D91–D365) e os quatro gaps que o de-para de 03/09 já identificou n
 primeiro. **Este documento registra a decisão; não decide o formato de aplicação** — ver perguntas na
 seção 5.
 
+### 2.3 — Fonte primária recuperada: o texto integral do "Mapa de cadências" agora existe no repositório
+
+A Proprietária enviou o arquivo original da política, que esta sessão só conhecia por citação indireta
+via o de-para de 03/09. Recuperado sem alteração em
+`docs/arquitetura/2026-09-03_MAPA-CADENCIAS-D0-D365-ANA-REGRA-UNIVERSAL.md`. Conferido campo a campo
+contra as citações do de-para (seção 3, Régua F, abaixo): **batem exatamente** — nenhuma divergência
+entre o que o de-para tinha reconstruído por citação e o texto integral agora disponível. A Régua F
+nesta rodada já foi escrita com base no texto completo.
+
+### 2.4 — Achado sistêmico, fora do escopo original do pedido: 03/09 tem ~20 branches nunca mescladas
+
+Ao procurar o commit do de-para de cadência, esta rodada encontrou que ele não é um caso isolado. Uma
+única data, 03/09/2026, tem **cerca de 20 branches** (`docs/*-2026-09-03`, `fix/*-2026-09-03`,
+`feat/*-2026-09-03`) que nunca foram mescladas a `main` nem a nenhuma branch de trabalho posterior —
+confirmado com `git merge-base --is-ancestor` para as verificadas nesta rodada. Quatro foram abertas e
+lidas parcialmente:
+
+| Branch | Commit | Conteúdo | Verificado nesta rodada |
+|---|---|---|---|
+| `docs/de-para-cadencia-microentregas-planejador-2026-09-03` | `6fc2521` | De-para cadência D0-D365 (seção 2 acima) | Recuperado integralmente |
+| `docs/arquiva-planejador-universal-produtos-pai-jornada-2026-09-03` | `8bef659` | Arquiva proposta de 11 entidades novas; decisão de estender tabelas existentes em vez de criar; achado de 20+ códigos triplicados em `product_catalog` | Só o resumo do commit, não o documento completo |
+| `docs/de-para-planejador-cidadania-motores-unificados-2026-09-03` | `021b8a8` | Confirma dois motores reais desconectados (`case_plans`/`cadeia-operacional.ts` × `orquestracao-jornada.ts`/CA-OPS-01/02); `produto_pai_id` confirmado como FK morta, zero consumidor | Só o resumo do commit |
+| `docs/de-para-onboarding-jornada-cadencia-2026-09-03` | `334f2ad` | "PR #75" — citado como já mesclado pelo de-para de cadência recuperado, mas **também está numa branch nunca mesclada** | Só confirmado que não está em `main` |
+| `fix/produto-sku-catalogo-vivo-2026-09-03` | `c8faf91` | **Correção de código real, não só documentação**: `preencherDeOrigens()` do motor contratual parava de usar nome de SKU hardcoded e passava a exigir `product_catalog.estado_catalogo = 'homologado_ativo'` ao vivo. `tsc`/1595 testes confirmados passando no commit | Só o resumo do commit; código não conferido contra o estado atual desta branch |
+
+**Isto não foi investigado a fundo nesta rodada** — abrir e ler as ~15 branches restantes de 03/09, mais
+todo o resto de 04/09 e dias anteriores que possa ter o mesmo padrão, é trabalho de escopo próprio, não
+cabe dentro do pedido original (12 documentos do Drive). Fica registrado como achado novo e como
+pergunta de decisão (seção 5) porque muda o quadro geral: pelo menos uma dessas cinco branches contém
+**código testado, não apenas documento**, esperando revisão para ir a `main`.
+
 ## 3. As seis arquiteturas de cadência encontradas — só uma vai além de D30, e não está implementada
 
 ### RÉGUA A — Onboarding WhatsApp automático D0–D30 (SUPERADA E PROIBIDA)
@@ -215,13 +246,21 @@ dias · atenção ≥ 10 · crítico ≥ 14) e 5 alertas derivados (`sem_touchpo
    ser uma sequência fixa universal") — ela foi escrita depois da política D0-D365 (a política é de
    03/09; não há data de criação confirmada para o documento da vedação nesta rodada) ou antes? Precisa
    de reconciliação explícita antes de qualquer implementação de janelas fixas D31-D365.
-4. **Produtos-pai**: a Proprietária sinalizou nesta sessão acreditar que já existe "material consolidado
-   para executar em todos os níveis junto com jornada" — mas a varredura desta rodada (e a reconciliação
-   já registrada em `2026-09-04_RECONCILIACAO-PP01-14-vs-35-SKUS-ATIVOS.md`) encontrou três desenhos
-   concorrentes, nenhum ratificado, com 15 códigos sem correspondência real no catálogo de 35 SKUs
-   ativos. Qual documento especificamente ela considera pronto para execução? Sem essa resposta, nenhuma
-   implementação de produto-pai foi iniciada nesta rodada — o risco de travar Planejador/proposta/App
-   numa taxonomia que depois precisa ser desfeita é alto e a ação é difícil de reverter.
+4. **Produtos-pai — qual documento é "as premissas de novos países enviadas ontem no motor do
+   planejador universal"?** A Proprietária instruiu usar a lista de valores do de-para (documento 5 dos
+   5 já reconciliados em `2026-09-04_MOTOR-PLANEJADOR-PRODUTOS-PAI-CANONICO-FINAL.md` — já aplicado) e
+   "aplicar primeiro" as premissas de países novos enviadas em 03/09 dentro do "motor do planejador
+   universal". Esta rodada não conseguiu identificar esse documento com confiança: checados e
+   descartados (sem conteúdo específico de países novos) `docs/de-para-motor-cidadania-tabelas-existentes-2026-09-03`
+   e o resumo de `docs/de-para-planejador-cidadania-motores-unificados-2026-09-03`; não abertos por
+   completo (só o commit) `docs/arquiva-planejador-universal-produtos-pai-jornada-2026-09-03` e
+   `docs/de-para-motores-unificados-crm-vivo-2026-09-03`, candidatos mais prováveis pelo nome. Pode ser
+   um desses, outra das ~20 branches de 03/09 (seção 2.4), ou as tabelas de país já incorporadas em
+   `2026-09-04_MOTOR-PLANEJADOR-PRODUTOS-PAI-CANONICO-FINAL.md` seção 5-7 (a partir do de-para, doc 5).
+   Peço confirmação do nome exato ou do trecho, para não aplicar a ordem errada.
+5. **Fazer a varredura completa das ~20 branches de 03/09 (seção 2.4)?** É trabalho de escopo próprio —
+   pelo menos uma delas (`fix/produto-sku-catalogo-vivo-2026-09-03`) tem código testado esperando
+   revisão, não só documento. Vale uma rodada dedicada, separada dos produtos-pai e da cadência.
 
 ## 6. Próximos passos
 
