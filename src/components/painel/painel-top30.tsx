@@ -26,7 +26,13 @@ export function PainelTop30() {
 
   if (q.isLoading)
     return <p className="mt-6 text-sm text-navy/50">Carregando base comercial Top 30…</p>;
-  if (q.isError || !q.data) return null;
+  if (q.isError)
+    return (
+      <p className="mt-6 text-sm text-terracotta">
+        Não foi possível carregar a base comercial Top 30: {(q.error as Error)?.message ?? "erro desconhecido"}.
+      </p>
+    );
+  if (!q.data) return null;
 
   const { resumo, top10, top30, filas, fases, pendenciasPorResponsavel } = q.data;
   type Produto = (typeof top10)[number];
