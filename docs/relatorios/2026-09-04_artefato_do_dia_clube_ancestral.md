@@ -166,6 +166,62 @@ documento, `docs/auditorias/2026-09-04-fluxo-evidencia-achado-alerta-app-cliente
    para incoerência de país/rota, aparecendo de forma persistente nas duas telas de parâmetros
    contratuais e se resolvendo do mesmo jeito (editar o valor limpa o conflito).
 
+## 6.2 — Terceira atualização do dia: régua D0–D365 completa, produtos-pai canônicos e mais dois fixes do gate do portal
+
+Depois da seção 6.1, a Proprietária autorizou três frentes novas em sequência ("pode executar a regra
+D0 até d365", "aplique os 9 produtos pai, aplique os 35 skus ativos", e a pergunta direta sobre por que
+um usuário real ainda não consegue entrar no App Cliente). Registrado aqui porque ainda não fechou em
+documento de auditoria próprio — os detalhes completos estão nos commits e no
+`docs/arquitetura/2026-09-04_MOTOR-PLANEJADOR-PRODUTOS-PAI-CANONICO-FINAL.md` (seções 11–12).
+
+- **Régua de cadência D0–D365 completa.** `cadencia-d0-d30.ts` já cobria D0–D30 (norma §10.3, 6
+  momentos); novo módulo `cadencia-d31-d365.ts` transcreve literalmente as 6 janelas seguintes do Mapa
+  de Cadências recuperado (D31–D45, D46–D60, D61–D90, M4–M6, M7–M9, M10–M12), reaproveitando a mesma
+  lógica de cobertura/situação (nada duplicado). Camada pura, sem I/O — wiring na tela do plano de
+  onboarding e o cruzamento com o catálogo-alimento por país ainda não foram feitos.
+- **Fundação do Planejador Universal (produtos-pai × país), aditiva.** `planner_catalog_feed` e
+  `price_catalog_rescued` (migration `20260904180000`) cobrem 13 países/processos como referência ou
+  pendência — nenhum preço homologado, nenhum SKU real desativado ou reclassificado. Os 9 produtos-pai
+  canônicos (PP-01 a PP-09) já estão confirmados por múltiplas sínteses independentes; aplicar essa
+  categorização aos 35 SKUs reais ativos (a maior parte já mapeada na seção 2 do Motor Planejador, com
+  gaps conhecidos em `CA-COMBO-001`/`CA-FAM-002`/`CA-HIST-*`/`CA-IND-*`/`CA-MEM-*`/`CA-WPP-002`) segue
+  como a próxima migration desta frente, ainda não executada.
+- **Mais dois campos do gate de acesso ao App Cliente corrigidos (mesma classe do fix da assinatura).**
+  Investigando a pergunta da Proprietária sobre acesso real de cliente, achado que a mesma lacuna da
+  assinatura (seção 6.1, item 1) se repetia em dois lugares: `conciliarPagamento`
+  (`comercial.functions.ts`) nunca propagava `crm_casos.pagamento_confirmado`, e `ativarCasoComChecks`
+  (`onboarding.functions.ts`) nunca gravava `crm_casos.ativado_em` — os dois campos que
+  `portal-elegibilidade.ts`/`fn_portal_case_access_guard` de fato verificam. Corrigidos nos mesmos
+  moldes do fix da assinatura. **O terceiro campo do mesmo gate, `crm_casos.documentos_minimos_ok`,
+  continua sem nenhum código que o grave** — não existe hoje tela ou ação de "confirmar documentos
+  mínimos"; precisa de decisão sobre o critério antes de criar essa ação. Enquanto esse terceiro campo
+  não for resolvido, o portal continua bloqueado mesmo com contrato assinado, pagamento confirmado e
+  caso ativado.
+- Todas as mudanças de código desta seção: `npx tsc --noEmit` limpo, `npx vitest run
+  --exclude '**/.claude/**'` 1597/1597 sem regressão, `npx vite build` limpo. Commits
+  `7c56609` (régua D0–D365) e `67ebc15` (fixes do gate do portal), branch
+  `claude/ancestral-club-desk-intelligence-0gsoeg`.
+
+## 6.3 — Status dos prompts recebidos esta semana
+
+A Proprietária pediu para consolidar, por prompt, o que já foi feito e o que falta. Escopo: os
+documentos efetivamente discutidos/citados nesta sessão (01–04/09); não é uma varredura exaustiva do
+Drive — ~20 branches de 03/09 seguem não abertas (seção 7).
+
+| Prompt/documento | O que pedia | Status |
+|---|---|---|
+| Mapa de cadências D0–D365 (Ana como piloto, regra universal) | Régua D0→D365 completa, evento antes de data, micro-entrega como motor de valor | **D0–D30 e D31–D365 implementados** como régua de cobertura (`cadencia-d0-d30.ts`/`cadencia-d31-d365.ts`); wiring na tela e no App Cliente **não feito** |
+| De-para cadência × microentregas × Planejador (03/09) | Consolidar rota correta de microentrega para o App Cliente | Consolidado em documento de auditoria; decisão de rota (`client_deliverables` × `app_projections`) **ainda em aberto**, registrada como pergunta |
+| Resgate de Contexto + Instruções de Construção do Motor Planejador v1.0 | Contexto e regras do motor do Planejador de cidadania | Lido e incorporado ao Motor Planejador Canônico; motor de recomendação em si **não construído** |
+| Correção Canônica v2.0 + Prompt Canônico v2.1 (lista-alimento e preços resgatados) | Fundação aditiva de catálogo por país, sem tocar `product_catalog` | **Executado** — `planner_catalog_feed`/`price_catalog_rescued`, 13 países, migration `20260904180000` |
+| Auditoria de Coerência v1.0 | Verificar coerência entre os documentos anteriores | Incorporada como seção 1/1.1 do Motor Planejador Canônico |
+| Reconciliação Canônica dos Cinco Artefatos (9 produtos-pai) | Arbitrar entre P01–P09/PP-01–08/PP-01–14 | **Decisão tratada como tomada** pela Proprietária nesta sessão (PP-01 a PP-09); aplicação aos 35 SKUs reais **pendente de execução** |
+| Prompt Implantação — Política Unificada de Casos Familiares | Ana como padrão replicável, não caso especial; um único ID/jornada por caso | **Já é o que a correção de vínculo tolerante (`clienteCorrespondentePorNome`) faz** — não é política exclusiva da Ana |
+| Prompt Motores Unificados (CRM Vivo, Onboarding, Cadências, Indicadores) | Motor único substituindo abas isoladas — schema próprio (`leads`/`clients`/`tasks`/`proposals`...) | **Não implementado.** Descreve tabelas que não batem com o banco real — implementar ao pé da letra duplicaria entidades, contra a própria regra do documento (§18) |
+| Prompt Cockpit do Desk (Indicadores, Cadências, Ações) | Mesmo objetivo do anterior, mas reusando tabelas/rotas/funções já existentes | **Direção adotada** por indicação explícita da Proprietária; de-para Cockpit × implementado ainda **não escrito como documento próprio** — próximo passo |
+| Taxonomia Canônica do Mockup Aprovado (7 telas App Cliente / 7 telas Desk) | Nomenclatura de interface aprovada, não implementação | Registrada como referência; **cotejo nome a nome contra o código não foi feito** ainda |
+| Ficha piloto × Pessoas e Linhagens (de-para de campos) | De-para campo a campo, não uma nova implementação | **Executado**: 4 campos migrados para `genealogical_relationships`, ficha piloto reapontada (migration `20260904190000`). Tela da ficha piloto **continua existindo separada** — não foi incorporada à tela de Pessoas e Linhagens, se essa fusão de tela (não só de dado) for o que falta, segue pendente |
+
 ## 7. Riscos, limites e itens fora de escopo
 
 - Nenhuma migration foi aplicada hoje. Nenhuma escrita direta em produção fora do que já estava
