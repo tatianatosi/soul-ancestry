@@ -170,6 +170,24 @@ duplicidade") ou a consulta SQL já preparada em `MATRIZ-RECONCILIACAO-ANA-LUIZA
 `npx tsc --noEmit`, `npx vitest run` (1595/1595) e `npx vite build` passam com as três mudanças de
 código.
 
+### 4.3 — Execução estendida: o vínculo agora aparece em toda tela onde a pessoa é exibida, não só em `/nucleos`
+
+Correção pedida pela Proprietária ("estender pra todas os níveis"). O backfill da seção 4.2 populava
+`cliente_id`, mas o link "Ver perfil" só tinha sido adicionado à seção 4.2 anterior desta rodada em
+`/nucleos` (`src/routes/_authenticated/nucleos.tsx`). Existe uma segunda tela que mostra os mesmos
+membros do núcleo — `src/components/caso/pessoas-do-nucleo.tsx`, a projeção somente leitura de
+"Pessoa e família" dentro do próprio Caso 360 (`casos.$caseId.index.tsx`, usada sempre que o caso tem
+núcleo vinculado, que é o caso de Ana) — e essa tela lia `id,nome,papel,vinculo,processo` mas **descartava
+`cliente_id`**, exatamente o mesmo bug de origem já corrigido em `/nucleos` na rodada anterior. Corrigido:
+o tipo `MembroNucleo` passou a incluir `cliente_id`, e cada membro com vínculo agora mostra "Ver perfil"
+(`/pessoas/$clienteId`) ao lado do papel — a mesma pessoa aparece com o mesmo link em qualquer uma das
+duas telas que a listam. `listarNucleos` (`src/lib/nucleos-desk.functions.ts:50`) já selecionava
+`cliente_id` desde antes; só a segunda tela não repassava o campo. `npx tsc --noEmit` e
+`npx vitest run` (1595/1595) passam.
+
+Não foi identificada uma terceira tela que liste pessoas de núcleo com os mesmos dados — as duas
+cobertas (`/nucleos` e a aba "Pessoa e família" do Caso 360) são as únicas que consomem `listarNucleos`.
+
 ## 5. Ficha piloto × módulo real de pesquisa genealógica — de-para completo e recomendação de unificação
 
 A pedido da Proprietária: de-para campo a campo entre a ficha piloto e o módulo real, para dizer

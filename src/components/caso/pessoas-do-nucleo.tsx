@@ -4,7 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { listarNucleos } from "@/lib/nucleos-desk.functions";
 
-type MembroNucleo = { id: string; nome: string; papel: string; vinculo: string | null; processo: string | null };
+type MembroNucleo = {
+  id: string;
+  nome: string;
+  papel: string;
+  vinculo: string | null;
+  processo: string | null;
+  cliente_id: string | null;
+};
 type NucleoLinha = {
   id: string;
   case_id: string | null;
@@ -55,10 +62,21 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
           <ul className="divide-y divide-navy/10">
             {membros.map((m) => (
               <li key={m.id} className="py-2 text-sm text-navy/80">
-                <span className="font-medium text-navy">{m.nome}</span>
-                <span className="ml-2 rounded-full border border-navy/15 bg-cream/60 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
-                  {ROTULO_PAPEL[m.papel] ?? m.papel}
-                </span>
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="font-medium text-navy">{m.nome}</span>
+                  <span className="rounded-full border border-navy/15 bg-cream/60 px-2 py-0.5 text-[11px] uppercase tracking-wide text-navy/65">
+                    {ROTULO_PAPEL[m.papel] ?? m.papel}
+                  </span>
+                  {m.cliente_id ? (
+                    <Link
+                      to="/pessoas/$clienteId"
+                      params={{ clienteId: m.cliente_id }}
+                      className="text-xs text-navy underline underline-offset-2"
+                    >
+                      Ver perfil
+                    </Link>
+                  ) : null}
+                </div>
                 {m.vinculo ? <p className="text-xs text-navy/55">{m.vinculo}</p> : null}
                 {m.processo ? <p className="text-[11px] text-navy/45">{m.processo}</p> : null}
               </li>
