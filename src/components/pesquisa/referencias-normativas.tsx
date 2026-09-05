@@ -103,6 +103,18 @@ export function ReferenciasNormativasAplicaveis({ caseId }: { caseId: string }) 
       </p>
 
       {q.isLoading && <p className="text-sm text-navy/60">Carregando referências…</p>}
+      {q.isError && (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar referências normativas — a lista está vazia por falha de consulta, não por ausência de registro.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
       {q.error && <p className="text-sm text-navy/60">Referências indisponíveis para o seu acesso.</p>}
 
       {d && (
@@ -160,6 +172,18 @@ export function ConsultaBasesHomologadas({ caseId }: { caseId: string }) {
       {aberto && (
         <div className="mt-3 space-y-4">
           {q.isLoading && <p className="text-sm text-navy/60">Carregando catálogo…</p>}
+      {q.isError && (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar catálogo de fontes — a lista está vazia por falha de consulta, não por ausência de registro.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
           {q.error && <p className="text-sm text-navy/60">Catálogo indisponível para o seu acesso.</p>}
           {d && (
             <>
@@ -196,6 +220,18 @@ export function DecisoesNormativasDoCaso({ caseId }: { caseId: string }) {
         Somente vínculos já existentes. Nenhuma decisão é criada, editada ou vinculada automaticamente por esta tela.
       </p>
       {q.isLoading && <p className="text-sm text-navy/60">Carregando decisões…</p>}
+      {q.isError && (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar log de decisões — a lista está vazia por falha de consulta, não por ausência de registro.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
       {q.error && <p className="text-sm text-navy/60">Decisões indisponíveis para o seu acesso.</p>}
       {d && <Lista itens={d.decisoes} vazio={VAZIO_DECISOES} />}
       <Link

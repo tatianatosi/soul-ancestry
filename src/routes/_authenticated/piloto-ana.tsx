@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA, ROTULO_ORIGEM_PENDENCIA, type PendenciaPiloto } from "@/lib/piloto-ana";
@@ -79,6 +80,18 @@ function PilotoAna() {
     >
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando caso-piloto…" />
+      ) : q.isError ? (
+        <div role="alert" className="space-y-2 rounded-xl border border-terracotta/40 bg-terracotta/10 p-5 text-sm text-navy">
+          <p>Não foi possível carregar o caso-piloto. O que aparece abaixo não seria o estado real do banco.</p>
+          <p className="text-xs text-navy/60">{(q.error as Error)?.message ?? "Falha na consulta."}</p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
       ) : (
         <div className="grid gap-4">
           <Bloco titulo="Identificação">
@@ -166,13 +179,28 @@ function PilotoAna() {
                 onChange={(e) => setDecisor(e.target.value)}
                 placeholder="Quem decide"
               />
+              {/*
+                Autoridade operacional: a ausência do caso materializado é
+                pendência declarada ao lado, não trava do controle.
+              */}
               <button
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
-                disabled={!caso || mId.isPending}
-                onClick={() => caso && mId.mutate(caso.id)}
+                disabled={mId.isPending}
+                onClick={() => {
+                  if (!caso) {
+                    toast.error("Caso-piloto ainda não materializado — use “Localizar ou registrar caso” acima.");
+                    return;
+                  }
+                  mId.mutate(caso.id);
+                }}
               >
                 Registrar decisão
               </button>
+              {!caso ? (
+                <span className="text-xs text-navy/60">
+                  Pendência registrada: caso-piloto ainda não materializado no banco.
+                </span>
+              ) : null}
             </div>
             <p className="mt-2 text-xs text-navy/60">
               Decisão registrada: {caso?.id_canonico_decidido ?? "pendente"}

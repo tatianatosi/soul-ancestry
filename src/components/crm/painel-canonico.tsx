@@ -69,9 +69,31 @@ export function PainelCanonicoCrm({ podeEscrever }: { podeEscrever: boolean }) {
   );
 
   const vinculo = { contactId, opportunityId, caseId: null };
+  const leiturasComFalha = [
+    { rotulo: "contatos", q: qContatos },
+    { rotulo: "oportunidades", q: qOportunidades },
+    { rotulo: "conversas", q: qConversas },
+    { rotulo: "eventos de funil", q: qEventos },
+  ].filter((x) => Boolean(x.q.error));
 
   return (
     <div className="grid gap-4">
+      {leiturasComFalha.length ? (
+        <p
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/5 px-4 py-2 text-sm text-terracotta"
+        >
+          Falha ao ler {leiturasComFalha.map((x) => x.rotulo).join(", ")}. Os números e listas correspondentes
+          aparecem vazios por erro de leitura, não por ausência de registro.
+          <button
+            type="button"
+            onClick={() => leiturasComFalha.forEach((x) => void x.q.refetch())}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
       <Secao
         titulo="Fonte canônica"
         descricao="Contatos, conversas, oportunidades e eventos vivem no Desk Intelligence. Planilhas são legado somente leitura; Placego entra apenas por importação de contatos em CSV."

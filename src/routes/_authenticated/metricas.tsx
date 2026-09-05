@@ -56,7 +56,7 @@ function Linhas({ itens, vazio }: { itens: { chave: string; total: number }[]; v
 function Metricas() {
   const buscar = useServerFn(painelHojeDesk);
   const [incluirDemo, setIncluirDemo] = useState(false);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["metricas-crm", incluirDemo],
     queryFn: () => buscar({ data: { incluirDemo } }),
   });
@@ -72,8 +72,21 @@ function Metricas() {
         Incluir registros de demonstração/teste (fora das métricas reais por padrão)
       </label>
 
-      {isLoading || !m ? (
+      {isLoading ? (
         <p className="text-sm text-navy/60">Calculando métricas…</p>
+      ) : isError || !m ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
+          <p className="text-sm text-terracotta">
+            Não foi possível calcular as métricas. Os números não estão zerados — a leitura falhou.
+          </p>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
       ) : (
         <div className="space-y-6">
           {/* Máximo de cinco métricas principais (CA-UX-03 Fase B). */}

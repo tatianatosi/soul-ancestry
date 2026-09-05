@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   FONTES_CADASTRO,
   PESSOA_TIPOS,
@@ -66,6 +67,28 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
     onSuccess: () => { setErro(null); recarregar(); },
     onError: (e: any) => setErro(e?.message ?? "Falha ao registrar a ação."),
   });
+
+  // Sem leitura confirmada não se afirma "nenhuma linha": mostra a falha.
+  if (q.isLoading) return <p className="py-6 text-sm text-navy/60" role="status">Carregando o checklist cadastral…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">Não foi possível carregar o checklist cadastral.</p>
+        <p className="text-navy/80">
+          {q.error instanceof Error
+            ? q.error.message
+            : "A consulta não retornou resultado nem erro. Isso é falha de carga, não base vazia."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   const itens = (q.data?.itens ?? []) as ItemChecklist[];
   const grupos = [...new Set(itens.map((i) => `${i.pessoa_tipo}::${i.pessoa_nome}`))];
@@ -201,17 +224,24 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
         titulo="Pendências cadastrais"
         descricao="Enquanto houver pendência obrigatória, contrato, assinatura e financeiro seguem bloqueados."
       >
-        {(q.data?.pendencias ?? []).length === 0 ? (
-          <p className="text-sm text-navy/55">Nenhuma pendência registrada.</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-terracotta">
-            {(q.data?.pendencias ?? []).map((p: any, n: number) => (
-              <li key={n}>
-                {p.pessoa} · {p.rotulo}: {p.motivo}
-              </li>
-            ))}
-          </ul>
-        )}
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.pendencias as any[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as pendências cadastrais"
+          vazio="Nenhuma pendência registrada."
+        >
+          {(pendencias) => (
+            <ul className="space-y-1 text-sm text-terracotta">
+              {pendencias.map((p: any, n: number) => (
+                <li key={n}>
+                  {p.pessoa} · {p.rotulo}: {p.motivo}
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       </Secao>
 
       <Secao
@@ -243,19 +273,26 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
         </div>
 
         <div className="mt-4 space-y-2">
-          {(q.data?.comunicacoes ?? []).length === 0 ? (
-            <p className="text-sm text-navy/55">Nenhum rascunho registrado.</p>
-          ) : (
-            (q.data?.comunicacoes ?? []).map((c: any) => (
-              <article key={c.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
-                <p className="font-medium text-navy">{c.assunto}</p>
-                <p className="text-xs text-navy/50">
-                  {c.status} · {c.suggested_channel} · {c.sent_at ? "enviado" : "não enviado"}
-                </p>
-                <pre className="mt-2 whitespace-pre-wrap font-sans text-xs text-navy/70">{c.corpo_rascunho}</pre>
-              </article>
-            ))
-          )}
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data?.comunicacoes as any[] | undefined}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os rascunhos de comunicação"
+            vazio="Nenhum rascunho registrado."
+          >
+            {(comunicacoes) =>
+              comunicacoes.map((c: any) => (
+                <article key={c.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
+                  <p className="font-medium text-navy">{c.assunto}</p>
+                  <p className="text-xs text-navy/50">
+                    {c.status} · {c.suggested_channel} · {c.sent_at ? "enviado" : "não enviado"}
+                  </p>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-xs text-navy/70">{c.corpo_rascunho}</pre>
+                </article>
+              ))
+            }
+          </EstadoDados>
         </div>
       </Secao>
     </div>

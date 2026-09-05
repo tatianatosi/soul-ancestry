@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
@@ -285,6 +288,7 @@ const SECOES = [
 function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever, ehAdmin } = useSaas();
+  const autoridade = useAutoridade();
   const carregar = useServerFn(carregarFichaCaso);
   const carregarCanon = useServerFn(carregarCanonico);
   const atualizar = useServerFn(atualizarRegistro);
@@ -427,7 +431,18 @@ function FichaCaso() {
     );
   }
 
-  const bloqueado = !podeEscrever || Boolean(caso["archived_at"]);
+  // Autoridade operacional: só se desabilita controle quando falta papel ou
+  // organização. Papel somente leitura e caso arquivado deixam de travar a
+  // tela — passam a pendência declarada, confirmada com motivo registrado.
+  const bloqueado = autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaCadastro =
+    [
+      !podeEscrever ? "Seu vínculo de equipe está marcado como somente leitura." : null,
+      caso["archived_at"] ? "Caso arquivado." : null,
+      derivadoGates.elegivel ? null : `${derivadoGates.rotulo} — ${derivadoGates.explicacao}`,
+    ]
+      .filter(Boolean)
+      .join(" ") || null;
 
   return (
     <SaasShell
@@ -455,13 +470,17 @@ function FichaCaso() {
                     ? `Salvo às ${salvoEm}`
                     : "Sem alterações pendentes"}
           </span>
-          <button
-            onClick={() => mSalvar.mutate()}
-            disabled={bloqueado || !sujo || mSalvar.isPending}
+          <AcaoOperacional
+            rotulo="Salvar alterações"
+            capacidade="editar_rascunho"
+            pendenciaGate={pendenciaCadastro}
+            efeito="Grava as alterações desta ficha operacional do caso."
             className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-40"
-          >
-            Salvar alterações
-          </button>
+            onConfirmar={() => {
+              if (!sujo || mSalvar.isPending) return;
+              mSalvar.mutate();
+            }}
+          />
         </div>
       }
     >
@@ -489,11 +508,27 @@ function FichaCaso() {
           Conferido no banco após gravar: {camposSalvos.join(", ")}.
         </p>
       ) : null}
-      {bloqueado ? (
+      {pendenciaCadastro ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Edição indisponível:{" "}
-          {caso["archived_at"] ? "caso arquivado." : "seu papel é somente leitura."}
+          Pendência registrada: {pendenciaCadastro} A edição segue disponível por decisão sua e a
+          gravação pede motivo.
         </p>
+      ) : null}
+
+      {qc2.isError ? (
+        <div
+          role="alert"
+          className="mb-4 space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs"
+        >
+          <p className="font-medium text-destructive">
+            Não foi possível carregar o consolidado canônico do caso (aliases, etiquetas, produto,
+            onboarding, núcleos).
+          </p>
+          <p className="text-navy/80">
+            {qc2.error instanceof Error ? qc2.error.message : "Erro desconhecido."}
+          </p>
+          <BotaoTentarNovamente aoClicar={() => void qc2.refetch()} />
+        </div>
       ) : null}
 
       {/* Cabeçalho de estado */}
@@ -671,13 +706,17 @@ function FichaCaso() {
                 </div>
                 <div className="sm:col-span-2">
                   <Rotulo>Identificadores históricos (aliases)</Rotulo>
-                  {(qc2.data?.aliases ?? []).length === 0 ? (
-                    <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/60">
-                      Nenhum identificador histórico registrado.
-                    </p>
-                  ) : (
+                  <EstadoDados
+                    carregando={qc2.isLoading}
+                    erro={qc2.error}
+                    dados={qc2.data?.aliases}
+                    aoTentarNovamente={() => void qc2.refetch()}
+                    recurso="os identificadores históricos"
+                    vazio="Nenhum identificador histórico registrado."
+                  >
+                    {(aliases) => (
                     <ul className="space-y-1">
-                      {(qc2.data?.aliases ?? []).map((a) => (
+                      {aliases.map((a) => (
                         <li
                           key={String(a["id"])}
                           className="overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
@@ -693,7 +732,8 @@ function FichaCaso() {
                         </li>
                       ))}
                     </ul>
-                  )}
+                    )}
+                  </EstadoDados>
                   <p className="mt-1 text-xs text-navy/50">
                     Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
                   </p>
@@ -1139,9 +1179,15 @@ function FichaCaso() {
             titulo="Registro de alterações"
             descricao="Quem alterou, quando e o quê. Nada é apagado."
           >
-            {(q.data?.log ?? []).length === 0 ? (
-              <p className="text-sm text-navy/55">Nenhuma alteração registrada ainda.</p>
-            ) : (
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.log as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="o registro de alterações"
+              vazio="Nenhuma alteração registrada ainda."
+            >
+              {(linhasLog) => (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="text-[11px] uppercase tracking-wide text-navy/50">
@@ -1154,7 +1200,7 @@ function FichaCaso() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(q.data?.log ?? []).map((l: Record<string, unknown>) => (
+                    {linhasLog.map((l: Record<string, unknown>) => (
                       <tr key={String(l["id"])} className="border-t border-navy/10 align-top">
                         <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
                           {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
@@ -1172,7 +1218,8 @@ function FichaCaso() {
                   </tbody>
                 </table>
               </div>
-            )}
+              )}
+            </EstadoDados>
           </Secao>
         </SecaoAncora>
       </div>
@@ -1255,9 +1302,8 @@ function AbaPessoas({
     queryFn: () => carregarNucleos(),
     retry: false,
   });
-  const temNucleo = ((qNucleos.data ?? []) as { case_id: string | null }[]).some(
-    (n) => n.case_id === casoId,
-  );
+  const nucleosCarregados = (qNucleos.data ?? null) as { case_id: string | null }[] | null;
+  const temNucleo = (nucleosCarregados ?? []).some((n) => n.case_id === casoId);
 
   const mCriar = useMutation({
     mutationFn: () =>
@@ -1272,6 +1318,22 @@ function AbaPessoas({
 
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
   if (temNucleo) return <PessoasDoNucleo caseId={casoId} />;
+
+  // Sem a lista de núcleos não se sabe qual painel vale: mostra a falha em vez de
+  // supor "caso sem núcleo".
+  if (qNucleos.isError || (!qNucleos.isLoading && nucleosCarregados === null)) {
+    return (
+      <div role="alert" className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">Não foi possível carregar os núcleos do caso.</p>
+        <p className="text-navy/80">
+          {qNucleos.error instanceof Error
+            ? qNucleos.error.message
+            : "A consulta de núcleos não retornou resultado nem erro."}
+        </p>
+        <BotaoTentarNovamente aoClicar={() => void qNucleos.refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

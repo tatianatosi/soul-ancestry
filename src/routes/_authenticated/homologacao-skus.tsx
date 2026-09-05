@@ -206,12 +206,17 @@ function HomologacaoSkusPage() {
               ) : (
                 <p className="mt-3 text-xs text-navy/60">Sem pendência bloqueante para homologar.</p>
               )}
+              {!i.elegivel ? (
+                <p className="mt-2 text-xs text-terracotta">
+                  Pendência aberta: marcar para homologar exige justificativa da proprietária no momento da
+                  confirmação.
+                </p>
+              ) : null}
 
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant={d === "homologar" ? "default" : "outline"}
-                  disabled={!i.elegivel}
                   onClick={() => decidir(i.id, "homologar")}
                 >
                   Homologar

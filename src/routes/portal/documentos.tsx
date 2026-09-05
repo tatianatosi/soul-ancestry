@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
 
@@ -28,7 +29,12 @@ function DocumentosPage() {
   const carregar = useServerFn(minhasEntregas);
   const baixar = useServerFn(baixarEntrega);
   const [erro, setErro] = useState<string | null>(null);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-entregas"], queryFn: () => carregar({}) });
+  const {
+    data,
+    isLoading,
+    error: erroLeitura,
+    refetch,
+  } = useQuery({ queryKey: ["portal-entregas"], queryFn: () => carregar({}) });
 
   async function abrir(id: string) {
     setErro(null);
@@ -52,6 +58,13 @@ function DocumentosPage() {
       {isLoading ? (
         <PortalCarregando />
       ) : (
+        <EstadoDados
+          erro={erroLeitura}
+          dados={data ? [data] : null}
+          aoTentarNovamente={() => void refetch()}
+          recurso="os seus documentos"
+        >
+          {() => (
         <div className="space-y-8">
           <section>
             <h2 className="font-serif text-xl">Preparado para você</h2>
@@ -113,6 +126,8 @@ function DocumentosPage() {
             )}
           </section>
         </div>
+          )}
+        </EstadoDados>
       )}
     </PortalShell>
   );

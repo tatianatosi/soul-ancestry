@@ -30,9 +30,14 @@ describe("Planejador operacional — entrada que faltava no elo 1 da cadeia", ()
     expect(idxPlanejador).toBeLessThan(idxCadeia);
   });
 
-  it("respeita a permissão de escrita do caso", () => {
-    expect(componente).toContain("podeEscrever");
-    expect(componente).toContain("if (!podeEscrever) return null;");
+  it("não se esconde de quem tem autoridade e só trava durante a gravação", () => {
+    // Política de autoridade operacional (05/09/2026): a tela nunca some por
+    // permissão. O único bloqueio legítimo do controle de escrita é a gravação
+    // em andamento, que protege contra envio duplicado.
+    expect(componente).not.toContain("if (!podeEscrever) return null;");
+    expect(componente).toContain("disabled={mSalvar.isPending}");
+    expect(componente).not.toMatch(/disabled=\{[^}]*!podeEscrever/);
+    expect(componente).not.toMatch(/disabled=\{[^}]*somenteLeitura/);
   });
 
   it("o motor nunca infere: campos vazios viram string vazia ou lista vazia, nunca valor chutado", () => {

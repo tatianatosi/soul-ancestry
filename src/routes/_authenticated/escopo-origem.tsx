@@ -84,7 +84,11 @@ function OrigemEscopoPage() {
       acoes={
         <button
           onClick={() => baixarCsvOrigemEscopo(linhas)}
-          disabled={!linhas.length}
+          title={
+            linhas.length
+              ? undefined
+              : "Nenhuma linha no filtro atual — o CSV sai apenas com o cabeçalho."
+          }
           className="rounded-md border border-gold/60 px-3 py-1.5 text-sm text-navy hover:bg-gold/10 disabled:opacity-40"
         >
           Exportar CSV

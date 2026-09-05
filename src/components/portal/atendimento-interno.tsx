@@ -106,7 +106,12 @@ export function AtendimentoInterno() {
   const [erro, setErro] = useState<string | null>(null);
   const [ticketAberto, setTicketAberto] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError: falhaLeitura,
+    refetch: recarregarLeitura,
+  } = useQuery({
     queryKey: ["atendimento", casoId],
     queryFn: () => carregar({ data: casoId ? { casoId } : {} }),
   });
@@ -256,6 +261,20 @@ export function AtendimentoInterno() {
 
   return (
     <div className="space-y-5">
+      {falhaLeitura ? (
+        <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não foi possível carregar o atendimento. As listas abaixo estão incompletas — não trate
+          como ausência de registro.
+          <button
+            type="button"
+            onClick={() => void recarregarLeitura()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
+
       {erro ? (
         <p className="rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
           {erro}

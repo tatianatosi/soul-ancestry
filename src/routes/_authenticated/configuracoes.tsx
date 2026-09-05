@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { BotaoTentarNovamente, EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -23,7 +25,10 @@ export const Route = createFileRoute("/_authenticated/configuracoes")({
 const PAPEIS = Object.keys(PAPEL_LABEL) as Papel[];
 
 function ConfiguracoesPage() {
-  const { ehAdmin } = useSaas();
+  const autoridade = useAutoridade();
+  // Antes: `ehAdmin` escondia a tela inteira e desligava a consulta.
+  const decisao = autoridade.decidir({ capacidade: "ver_todos_estados_da_organizacao" });
+  const liberado = decisao.decisao !== "bloquear";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarUsuarios);
   const definir = useServerFn(definirPapel);
@@ -31,7 +36,7 @@ function ConfiguracoesPage() {
   const q = useQuery({
     queryKey: ["saas", "usuarios"],
     queryFn: () => listar(),
-    enabled: ehAdmin,
+    enabled: liberado,
   });
 
   const m = useMutation({
@@ -41,20 +46,20 @@ function ConfiguracoesPage() {
 
   return (
     <SaasShell titulo="Usuários e papéis" descricao="Somente administradores da organização.">
-      {!ehAdmin ? (
-        <EstadoVazio mensagem="Acesso restrito a administradores da organização." />
-      ) : q.isLoading ? (
-        <EstadoVazio mensagem="Carregando membros…" />
-      ) : q.isError ? (
-        <EstadoVazio
-          mensagem="Não foi possível carregar os membros da organização."
-          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
-        />
-      ) : (q.data ?? []).length === 0 ? (
-        <EstadoVazio mensagem="Nenhum membro nesta organização ainda." />
+      {!liberado ? (
+        <EstadoVazio mensagem={decisao.motivo} />
       ) : (
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os membros da organização"
+          vazio="Nenhum membro nesta organização ainda."
+        >
+          {(usuarios) => (
         <div className="space-y-3">
-          {(q.data ?? []).map((u) => (
+          {usuarios.map((u) => (
             <div key={u.userId} className="rounded-xl border border-navy/10 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
@@ -84,6 +89,8 @@ function ConfiguracoesPage() {
             </div>
           ))}
         </div>
+          )}
+        </EstadoDados>
       )}
     </SaasShell>
   );

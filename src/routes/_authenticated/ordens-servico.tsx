@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
   FiltroStatus,
@@ -49,7 +50,6 @@ type Linha = Record<string, unknown>;
 
 function OrdensPage() {
   const { caseId } = Route.useSearch();
-  const { podeComercial } = useSaas();
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
   const vinculos = useServerFn(listarVinculos);
@@ -106,6 +106,7 @@ function OrdensPage() {
 
   const contratos = qv.data?.contratos ?? [];
   const casos = qv.data?.casos ?? [];
+  const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const linhas = linhasDoCase ?? ((q.data ?? []) as Linha[]);
   const rotuloCaso = (id: unknown) => {
     const c = casos.find((x) => x.id === id);
@@ -122,7 +123,7 @@ function OrdensPage() {
           : "Execução só começa com caso vinculado e contrato assinado (ou exceção aprovada)."
       }
       acoes={
-        podeComercial ? (
+        (
           <button
             onClick={() => {
               setErro(null);
@@ -132,7 +133,7 @@ function OrdensPage() {
           >
             Nova ordem
           </button>
-        ) : null
+        )
       }
     >
       <div className="space-y-4">
@@ -143,14 +144,33 @@ function OrdensPage() {
           </p>
         ) : null}
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando…" />
-        ) : q.isError ? (
-          <EstadoVazio
-            mensagem="Não foi possível carregar as ordens de serviço."
-            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
-          />
-        ) : !linhas.length ? (
+        {vinculosIndisponiveis ? (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+          >
+            Não foi possível carregar contratos e casos vinculados. Os nomes exibidos e as listas de seleção
+            estão vazios por falha de leitura, não por ausência de cadastro.
+            <button
+              type="button"
+              onClick={() => void qv.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data as Linha[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as ordens de serviço"
+          vazio="Nenhuma ordem de serviço cadastrada ainda."
+        >
+          {() =>
+          !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma ordem de serviço neste filtro." />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
@@ -196,7 +216,9 @@ function OrdensPage() {
               </tbody>
             </table>
           </div>
-        )}
+        )
+          }
+        </EstadoDados>
       </div>
 
       {detalhe ? (
@@ -218,7 +240,7 @@ function OrdensPage() {
             </dl>
           </Painel>
 
-          {podeComercial ? (
+          {(
             <Painel titulo="Escopo / observação">
               <textarea
                 rows={4}
@@ -240,9 +262,9 @@ function OrdensPage() {
                 {salvo ? <span className="text-xs text-navy/60">Salvo.</span> : null}
               </div>
             </Painel>
-          ) : null}
+          )}
 
-          {podeComercial ? (
+          {(
             <Painel titulo="Mover status">
               <div className="flex flex-wrap gap-2">
                 {(FLUXO["service_orders"]?.[String(detalhe["status"])] ?? []).map((destino) => (
@@ -260,7 +282,7 @@ function OrdensPage() {
                 O banco recusa a execução sem contrato assinado ou exceção vigente e sem caso vinculado.
               </p>
             </Painel>
-          ) : null}
+          )}
 
           <Painel titulo="Histórico">
             <Historico entidade="service_orders" id={String(detalhe["id"])} />

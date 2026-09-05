@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
   carregarJornadaCaso,
   criarMicroentregaCliente,
@@ -114,7 +115,14 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
   });
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["jornada-cliente", casoId] });
-  const somenteLeitura = bloqueado || !q.data?.podeEscrever;
+  // Autoridade operacional: gate de domínio (`podeEscrever` do servidor) não
+  // desabilita mais nada — vira pendência declarada. Só falta de papel ou de
+  // organização (prop `bloqueado`, já vinda da autoridade) desabilita controle.
+  const somenteLeitura = Boolean(bloqueado);
+  const pendenciaJornada =
+    q.data && !q.data.podeEscrever
+      ? "Seu vínculo de equipe neste caso está marcado como somente leitura."
+      : null;
 
   const [inter, setInter] = useState({
     tipo: "call",
@@ -224,6 +232,12 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
 
   return (
     <div className="space-y-4">
+      {pendenciaJornada ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaJornada} A operação segue disponível por decisão sua e a
+          gravação pede motivo.
+        </p>
+      ) : null}
       <Secao titulo="Saúde do caso" descricao="Cadência de contato e espera institucional. Nenhuma projeção de prazo ou resultado.">
         <div className="grid gap-3 sm:grid-cols-3">
           <div className={"rounded-lg border p-4 " + (CORES_CADENCIA[cadencia?.status ?? "regular"] ?? "")}>
@@ -439,15 +453,23 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(TRANSICOES_ENTREGA[status] ?? []).map((p) => (
-                      <button
+                      <AcaoOperacional
                         key={p}
-                        type="button"
-                        disabled={somenteLeitura || mTransicao.isPending}
+                        rotulo={p === "publicado" ? "Publicar no App Cliente" : `Mover para ${p}`}
+                        capacidade={p === "publicado" ? undefined : "aprovar_projecao_app_cliente"}
+                        acaoExterna={p === "publicado" ? "publicar_no_app_cliente" : undefined}
+                        pendenciaGate={pendenciaJornada}
+                        efeito={
+                          p === "publicado"
+                            ? "Torna esta micro-entrega visível para o cliente no App Cliente."
+                            : `Move a micro-entrega para o estado ${p}.`
+                        }
                         className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
-                        onClick={() => mTransicao.mutate({ entregaId: String(e['id']), para: p })}
-                      >
-                        {p === "publicado" ? "Publicar no App Cliente" : `Mover para ${p}`}
-                      </button>
+                        onConfirmar={() => {
+                          if (mTransicao.isPending) return;
+                          mTransicao.mutate({ entregaId: String(e['id']), para: p });
+                        }}
+                      />
                     ))}
                   </div>
                 </div>

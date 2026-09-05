@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -42,11 +43,20 @@ function ExcecoesPage() {
   const fnRefs = useServerFn(referenciasOps);
   const fnRegistrar = useServerFn(registrarExcecao);
 
+  const autoridade = useAutoridade();
   const lista = useQuery({ queryKey: ["ops", "excecoes"], queryFn: () => fnListar() });
   const refs = useQuery({ queryKey: ["ops", "refs"], queryFn: () => fnRefs() });
 
-  const ehAdmin = lista.data?.ehAdmin ?? false;
+  // Autoridade operacional: o flag de admin do servidor deixa de esconder o
+  // formulário de exceção. Falta de papel/organização é o único bloqueio.
+  const autoridadeBloqueada = autoridade.bloqueado({ capacidade: "resolver_divergencia" });
+  const ehAdmin = !autoridadeBloqueada;
+  const pendenciaAdmin =
+    lista.data && !lista.data.ehAdmin
+      ? "O servidor não reconhece seu vínculo como administrador — o registro de exceção segue disponível por decisão sua e é revalidado no servidor."
+      : null;
   const casos = (refs.data?.casos ?? []) as Linha[];
+  const falhaRefs = refs.isError ? "Não foi possível carregar a lista de casos para vincular a exceção." : null;
 
   return (
     <SaasShell
@@ -54,6 +64,23 @@ function ExcecoesPage() {
       descricao="Toda exceção exige motivo, autor e fica auditada. Sem exceção, o banco bloqueia a operação."
     >
       <div className="space-y-4">
+        {pendenciaAdmin ? (
+          <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada: {pendenciaAdmin}
+          </p>
+        ) : null}
+        {falhaRefs ? (
+          <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+            {falhaRefs}
+            <button
+              type="button"
+              onClick={() => void refs.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
         {ehAdmin ? (
           <Painel titulo="Registrar exceção">
             <form
@@ -116,10 +143,21 @@ function ExcecoesPage() {
 
         <Painel titulo="Histórico de exceções">
           {lista.isLoading && <p className="text-sm text-navy/60">Carregando…</p>}
-          {lista.error && <p className="text-sm text-terracotta">{(lista.error as Error).message}</p>}
+          {lista.error && (
+            <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+              {(lista.error as Error).message}
+              <button
+                type="button"
+                onClick={() => void lista.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          )}
           <div className="space-y-2">
-            {(lista.data?.excecoes ?? []).length === 0 && (
-              <p className="text-sm text-navy/60">Nenhuma exceção registrada.</p>
+            {!lista.isLoading && !lista.error && (lista.data?.excecoes ?? []).length === 0 && (
+              <p className="text-sm text-navy/60">Consulta concluída: nenhuma exceção registrada.</p>
             )}
             {(lista.data?.excecoes ?? []).map((e: Linha) => (
               <div key={e["id"]} className="rounded-xl border border-navy/10 bg-white p-3">

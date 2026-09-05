@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -90,7 +91,14 @@ type Rascunho = {
 };
 
 function NucleosPage() {
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura deixa de travar campos e
+  // botões. Só falta de papel/organização bloqueia; o vínculo vira pendência.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarNucleos);
   const carregarClientes = useServerFn(listarClientesParaVinculo);
   const salvar = useServerFn(salvarDossieNucleo);
@@ -376,7 +384,11 @@ function NucleosPage() {
                               />
                               <Selecao
                                 label="Vincular a pessoa cadastrada"
-                                ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                ajuda={
+                                  qClientes.isError
+                                    ? "Não foi possível carregar as pessoas cadastradas — a lista está incompleta por falha de consulta, não por ausência de registro."
+                                    : "Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                }
                                 valor={rascunhoMembro.clienteId}
                                 opcoes={(qClientes.data ?? []).map((c) => ({ valor: c.id, rotulo: c.nome }))}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
@@ -385,7 +397,7 @@ function NucleosPage() {
                               <div className="flex gap-2 pt-1">
                                 <button
                                   type="button"
-                                  disabled={!podeEscrever || mMembro.isPending}
+                                  disabled={mMembro.isPending}
                                   onClick={() =>
                                     mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null })
                                   }
@@ -467,7 +479,12 @@ function NucleosPage() {
                               <div className="mt-1.5 flex flex-wrap gap-2">
                                 <button
                                   type="button"
-                                  disabled={!sugestaoAcao.caseId || mTarefaAcao.isPending}
+                                  disabled={mTarefaAcao.isPending}
+                                  title={
+                                    sugestaoAcao.caseId
+                                      ? undefined
+                                      : "Membro sem caso vinculado — sem caso não há onde criar a tarefa."
+                                  }
                                   onClick={() =>
                                     sugestaoAcao.caseId &&
                                     mTarefaAcao.mutate({
@@ -566,7 +583,7 @@ function NucleosPage() {
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
-                disabled={!podeEscrever || m.isPending}
+                disabled={m.isPending}
                 onClick={() => m.mutate({ nucleoId: atual.id, ...rascunho })}
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
               >
@@ -583,8 +600,8 @@ function NucleosPage() {
                 Fechar
               </button>
             </div>
-            {!podeEscrever ? (
-              <p className="mt-2 text-xs text-navy/50">Seu perfil tem acesso somente de leitura.</p>
+            {pendenciaVinculo ? (
+              <p className="mt-2 text-xs text-navy/60">Pendência registrada: {pendenciaVinculo}</p>
             ) : null}
           </Secao>
         ) : null}

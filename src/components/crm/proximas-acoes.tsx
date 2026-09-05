@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Selecao, Texto } from "@/components/caso/campos";
-import { useSaas } from "@/components/saas/shell";
 import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { ROTULO_ESTADO_ACAO, listaAcoes, resumoAcoes, type EstadoAcao, type LinhaAcao } from "@/lib/proximas-acoes";
@@ -20,7 +19,6 @@ const COR: Record<EstadoAcao, string> = {
 };
 
 export function ProximasAcoes() {
-  const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const qc = useQueryClient();
@@ -117,15 +115,13 @@ export function ProximasAcoes() {
                 <p>Prazo: {l.prazo ?? "—"}</p>
                 <p>Responsável: {l.responsavel || "—"}</p>
               </div>
-              {podeEscrever ? (
-                <button
-                  type="button"
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-cream"
-                  onClick={() => (editando === l.leadId ? setEditando(null) : abrir(l))}
-                >
-                  {editando === l.leadId ? "Fechar" : "Corrigir"}
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-cream"
+                onClick={() => (editando === l.leadId ? setEditando(null) : abrir(l))}
+              >
+                {editando === l.leadId ? "Fechar" : "Corrigir"}
+              </button>
             </div>
 
             {l.pendencias.length ? (

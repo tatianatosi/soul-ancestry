@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -166,6 +167,7 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const autoridade = useAutoridade();
   const evidencias = (q.data?.evidencias ?? []).map((e) => ({
     id: String(e["id"]),
     label: `${String(e["title"] ?? "Evidência")} · ${String(e["evidence_status"] ?? "")}`,
@@ -178,7 +180,13 @@ function Pagina() {
 
   const bloqA = validarAchado(achado as never);
   const bloqE = validarEncontro(encontro as never);
-  const podeEditar = q.data?.podeEditar ?? false;
+  // Autoridade operacional: gate de domínio do servidor não trava mais campo
+  // nem esconde formulário; vira pendência declarada.
+  const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaAchados =
+    q.data && !q.data.podeEditar
+      ? "O servidor marcou este caso como somente leitura para o seu vínculo — o registro segue disponível por decisão sua."
+      : null;
 
   const setA = (k: string, v: unknown) => setAchado((p) => ({ ...p, [k]: v }));
   const setE = (k: string, v: unknown) => setEncontro((p) => ({ ...p, [k]: v }));
@@ -200,6 +208,11 @@ function Pagina() {
         </p>
       </header>
 
+      {pendenciaAchados ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaAchados}
+        </p>
+      ) : null}
       {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
       {q.isError ? (
         <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-terracotta">
@@ -365,7 +378,7 @@ function Pagina() {
 
             <Bloqueios lista={bloqA} />
             <button
-              disabled={!podeEditar || bloqA.length > 0 || mAchado.isPending}
+              disabled={mAchado.isPending}
               onClick={() => mAchado.mutate()}
               className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
             >
@@ -375,7 +388,7 @@ function Pagina() {
 
           <section className="space-y-3">
             <h2 className="font-serif text-lg text-navy">Achados do caso</h2>
-            {(q.data?.achados ?? []).length === 0 ? (
+            {!q.isLoading && !q.isError && (q.data?.achados ?? []).length === 0 ? (
               <p className="rounded-lg border border-navy/10 bg-navy/5 p-3 text-sm text-navy/60">Nenhum achado registrado.</p>
             ) : (
               (q.data?.achados ?? []).map((a) => (
@@ -542,7 +555,7 @@ function Pagina() {
 
             <Bloqueios lista={bloqE} />
             <button
-              disabled={!podeEditar || bloqE.length > 0 || mEncontro.isPending}
+              disabled={mEncontro.isPending}
               onClick={() => mEncontro.mutate()}
               className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
             >
@@ -552,7 +565,7 @@ function Pagina() {
 
           <section className="space-y-3">
             <h2 className="font-serif text-lg text-navy">Encontros do caso</h2>
-            {(q.data?.encontros ?? []).length === 0 ? (
+            {!q.isLoading && !q.isError && (q.data?.encontros ?? []).length === 0 ? (
               <p className="rounded-lg border border-navy/10 bg-navy/5 p-3 text-sm text-navy/60">Nenhum encontro registrado.</p>
             ) : (
               (q.data?.encontros ?? []).map((e) => {

@@ -53,6 +53,7 @@ export function CompletudeCanva({
   }
 
   const registros = (q.data ?? []) as Record<string, unknown>[];
+  const leituraFalhou = Boolean(q.error);
   const porPagina = new Map(registros.map((r) => [Number(r.page_number), r]));
   const pendentes = PAGINAS.filter((p) => porPagina.get(p)?.extracao_status !== "extraida");
 
@@ -66,6 +67,18 @@ export function CompletudeCanva({
       }
     >
       <div className="space-y-3">
+        {leituraFalhou ? (
+          <p role="alert" className="flex flex-wrap items-center gap-2 text-sm text-terracotta">
+            Não foi possível ler as páginas já extraídas. O que aparece como pendente pode estar registrado.
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
         {PAGINAS.map((p) => {
           const r = porPagina.get(p);
           const d = rascunho[p] ?? {};
@@ -81,23 +94,20 @@ export function CompletudeCanva({
                   valor={d.status ?? String(r?.extracao_status ?? "")}
                   opcoes={STATUS}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], status: v } }))}
-                  desabilitado={!podeEscrever}
                 />
                 <Texto
                   label="Campos não localizados"
                   valor={d.nao_localizados ?? naoLocalizados}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], nao_localizados: v } }))}
                   ajuda="Separe por vírgula. Cada item vira pendência, nunca valor presumido."
-                  desabilitado={!podeEscrever}
                 />
                 <Texto
                   label="Observação interna"
                   valor={d.observacao ?? String(r?.observacao_interna ?? "")}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], observacao: v } }))}
-                  desabilitado={!podeEscrever}
                 />
               </div>
-              {podeEscrever ? (
+              {(
                 <button
                   type="button"
                   className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
@@ -118,7 +128,7 @@ export function CompletudeCanva({
                 >
                   Registrar página {p}
                 </button>
-              ) : null}
+              )}
             </div>
           );
         })}

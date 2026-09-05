@@ -57,7 +57,12 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
   const [mensagem, setMensagem] = useState("");
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const { data: painel, isLoading } = useQuery({
+  const {
+    data: painel,
+    isLoading,
+    isError: falhaLeitura,
+    refetch: recarregarPainel,
+  } = useQuery({
     queryKey: ["portal-caso-detalhe", casoId],
     queryFn: () => carregar({ data: { casoId } }),
   });
@@ -106,6 +111,19 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
   }
 
   if (isLoading) return <PortalVazio mensagem="Carregando…" />;
+  if (falhaLeitura)
+    return (
+      <p className="flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+        Não conseguimos abrir o seu acompanhamento agora. Nada foi perdido.
+        <button
+          type="button"
+          onClick={() => void recarregarPainel()}
+          className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
   if (!painel) return <PortalVazio mensagem="Este caso não está disponível para o seu acesso." />;
 
   return (

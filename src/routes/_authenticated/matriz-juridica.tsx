@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -24,7 +25,13 @@ export const Route = createFileRoute("/_authenticated/matriz-juridica")({
 });
 
 function MatrizPage() {
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — o registro de decisão segue disponível por decisão sua.";
   const carregar = useServerFn(listarMatrizJuridica);
   const registrar = useServerFn(registrarDecisaoTema);
   const consolidar = useServerFn(consolidarMatrizJuridica);
@@ -55,6 +62,24 @@ function MatrizPage() {
           ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura permanece bloqueada.`
           : "Nenhum tema bloqueante pendente."}
       </div>
+
+      {pendenciaVinculo ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
+      {q.isError ? (
+        <p role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não foi possível carregar a matriz jurídica. A lista abaixo está vazia por falha de consulta, não por ausência de tema.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       {podeEscrever ? (
         <button

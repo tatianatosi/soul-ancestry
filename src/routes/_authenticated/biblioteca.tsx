@@ -146,6 +146,7 @@ function BibliotecaPage() {
 
   const meta = SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub)!;
   const carregando = geral.isLoading || catalogo.isLoading;
+  const falhaLeitura = geral.isError || catalogo.isError;
 
   return (
     <SaasShell
@@ -258,6 +259,28 @@ function BibliotecaPage() {
 
         {carregando ? (
           <p className="text-sm text-muted-foreground">Carregando referências internas…</p>
+        ) : falhaLeitura ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
+            <p>
+              Não foi possível carregar a Biblioteca Mestre
+              {geral.isError && catalogo.isError
+                ? "."
+                : geral.isError
+                  ? " (base geral)."
+                  : " (catálogo Top 30)."}{" "}
+              A lista abaixo não reflete o acervo — não trate como base vazia.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (geral.isError) void geral.refetch();
+                if (catalogo.isError) void catalogo.refetch();
+              }}
+              className="rounded-md border border-destructive/50 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/10"
+            >
+              Tentar novamente
+            </button>
+          </div>
         ) : lista.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
             Nenhum registro nesta subárea com os filtros atuais. Os itens entram pelas rotinas internas de

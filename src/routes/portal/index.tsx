@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { meusCasos } from "@/lib/portal-cliente.functions";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -23,17 +24,24 @@ export const Route = createFileRoute("/portal/")({
 
 function PortalHome() {
   const carregar = useServerFn(meusCasos);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-meus-casos"], queryFn: () => carregar({}) });
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["portal-meus-casos"],
+    queryFn: () => carregar({}),
+  });
 
   return (
     <PortalShell titulo={COPY_TELAS.casos.titulo} descricao={COPY_TELAS.casos.descricao}>
-      {isLoading ? (
-        <PortalCarregando />
-      ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem={COPY_TELAS.casos.vazio} />
-      ) : (
+      <EstadoDados
+        carregando={isLoading}
+        erro={error}
+        dados={data}
+        aoTentarNovamente={() => void refetch()}
+        recurso="os seus casos"
+        vazio={COPY_TELAS.casos.vazio}
+      >
+        {(casos) => (
         <ul className="space-y-3">
-          {data.map((c) => (
+          {casos.map((c) => (
             <li key={c.id}>
               <Link
                 to="/portal/casos/$id"
@@ -56,7 +64,8 @@ function PortalHome() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </EstadoDados>
     </PortalShell>
   );
 }

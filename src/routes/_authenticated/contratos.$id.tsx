@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
@@ -61,7 +61,6 @@ const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 function ContratoDetalhe() {
   const { id } = Route.useParams();
-  const { ehAdmin } = useSaas();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
@@ -148,7 +147,7 @@ function ContratoDetalhe() {
         >
           Enviar ao cliente (desabilitado)
         </Acao>
-        {ehAdmin ? (
+        {(
           <Acao
             onClick={async () => {
               const motivo = prompt("Motivo do arquivamento:");
@@ -160,7 +159,7 @@ function ContratoDetalhe() {
           >
             Arquivar
           </Acao>
-        ) : null}
+        )}
       </div>
 
       <nav className="mt-6 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-navy/10">
@@ -201,7 +200,7 @@ function ContratoDetalhe() {
         {aba === "Validações" ? <Validacoes dados={d} /> : null}
         {aba === "Versões" ? <Versoes dados={d} contratoId={id} /> : null}
         {aba === "Revisão" ? (
-          <Revisao dados={d} contratoId={id} versao={versaoAtual} ehAdmin={ehAdmin} onSalvo={recarregar} setAviso={setAviso} />
+          <Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} />
         ) : null}
       </div>
     </SaasShell>
@@ -274,8 +273,12 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
   const carregarEquipe = useServerFn(listarEquipe);
   const [erro, setErro] = useState<string | null>(null);
   const equipe = useQuery({ queryKey: ["equipe-revisao"], queryFn: () => carregarEquipe() });
+  const equipeIndisponivel = !equipe.isLoading && (Boolean(equipe.error) || equipe.data === undefined);
   const opcoesRevisor = [
-    { valor: "", rotulo: "Não definido" },
+    {
+      valor: "",
+      rotulo: equipeIndisponivel ? "Equipe indisponível — leitura falhou" : "Não definido",
+    },
     ...((equipe.data?.membros ?? []) as any[]).map((m) => ({
       valor: m.id as string,
       rotulo: (m.full_name as string) || (m.email as string),
@@ -878,14 +881,12 @@ function Revisao({
   dados,
   contratoId,
   versao,
-  ehAdmin,
   onSalvo,
   setAviso,
 }: {
   dados: any;
   contratoId: string;
   versao: any;
-  ehAdmin: boolean;
   onSalvo: () => void;
   setAviso: (v: string) => void;
 }) {
@@ -902,7 +903,7 @@ function Revisao({
         <p className="text-sm">
           Versão em revisão: <strong>v{versao.version_number}</strong> · decisão atual: {versao.review_decision}
         </p>
-        {ehAdmin ? (
+        {(
           <div className="mt-2 flex flex-wrap gap-2">
             {(["approved", "changes_requested", "rejected"] as const).map((d) => (
               <button
@@ -929,8 +930,6 @@ function Revisao({
               Aprovar para envio (congela versão)
             </button>
           </div>
-        ) : (
-          <p className="mt-2 text-xs text-navy/60">Somente admin conclui revisão e aprova para envio.</p>
         )}
       </div>
 
@@ -972,7 +971,7 @@ function Revisao({
         </div>
       </div>
 
-      {ehAdmin ? (
+      {(
         <div className="rounded-lg border border-terracotta/30 p-3">
           <h3 className="text-sm font-medium">Exceções formais</h3>
           <p className="text-xs text-navy/60">Exceção não oculta validação: continua visível no painel de completude.</p>
@@ -997,7 +996,7 @@ function Revisao({
             ))}
           </ul>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

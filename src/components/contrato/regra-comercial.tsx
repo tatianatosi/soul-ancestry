@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Painel, Selo, moeda } from "@/components/comercial/base";
-import { useSaas } from "@/components/saas/shell";
 import {
   CLAUSULA_DESPESAS_TERCEIROS,
   REGRAS_DESPESAS_TERCEIROS,
@@ -24,11 +23,10 @@ function faixa(d: Despesa) {
 }
 
 export function RegraComercial({ caseId }: { caseId: string }) {
-  const { podeEscrever } = useSaas();
   const qc = useQueryClient();
   const conferir = useServerFn(conferirRegraComercial);
   const assumirExcecao = useServerFn(registrarExcecaoComercial);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["regra-comercial", caseId],
     queryFn: () => conferir({ data: { caseId } }),
   });
@@ -83,7 +81,20 @@ export function RegraComercial({ caseId }: { caseId: string }) {
 
         <div className="mt-3 space-y-2">
           {isLoading && <p className="text-sm text-navy/60">Conferindo…</p>}
-          {!isLoading && despesas.length === 0 && (
+          {error ? (
+            <p role="alert" className="flex flex-wrap items-center gap-2 text-sm text-terracotta">
+              Não foi possível conferir a regra comercial deste caso. Preço, despesas e exceções abaixo estão
+              vazios por falha de leitura, não por ausência de registro.
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
+          {!isLoading && !error && despesas.length === 0 && (
             <p className="text-sm text-navy/60">
               Nenhuma despesa de terceiro registrada neste caso. Estado padrão: “Estimativa pendente” assim que uma despesa
               aplicável for identificada.
@@ -155,7 +166,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
                  * apaga catálogo: cria uma exceção nova, com motivo,
                  * responsável e validade, exatamente como a regra já exigia.
                  */}
-                {podeEscrever && data?.sku ? (
+                {data?.sku ? (
                   abrirExcecao ? (
                     <div className="mt-2 space-y-2 rounded border border-terracotta/30 bg-white p-2 text-navy">
                       <label className="block text-xs">

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -136,6 +137,7 @@ function Pagina() {
   const buscar = useServerFn(painelPessoasLinhagens);
   const queryClient = useQueryClient();
   const chave = ["g02", caseId];
+  const autoridade = useAutoridade();
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
   const [aba, setAba] = useState<AbaId>("perfis");
 
@@ -180,7 +182,14 @@ function Pagina() {
   const relacoes = (data?.relacoes ?? []) as unknown as Relacao[];
   const eventos = (data?.eventos ?? []) as unknown as Evento[];
   const linhagens = (data?.linhagens ?? []) as unknown as Linhagem[];
-  const podeEditar = data?.podeEditar ?? false;
+  // Autoridade operacional: o gate de domínio do servidor (`podeEditar`) não
+  // desabilita mais campo nem esconde formulário. Só falta de papel ou de
+  // organização bloqueia; o resto vira pendência declarada na tela.
+  const podeEditar = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaFicha =
+    data && !data.podeEditar
+      ? "O servidor marcou esta ficha genealógica como somente leitura para o seu vínculo."
+      : null;
   const pesquisaId = (data?.pesquisas?.[0]?.id as string | undefined) ?? "";
 
   const pessoasOpcoes = useMemo(
@@ -240,6 +249,12 @@ function Pagina() {
           Origem canônica interna de pessoas, relações, variantes, eventos e linhagens. Árvore e linha do tempo derivam
           apenas de registros persistidos. {MOTIVO_SEM_PROJECAO}
         </p>
+        {pendenciaFicha ? (
+          <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada: {pendenciaFicha} Os campos seguem editáveis por decisão sua e cada
+            gravação fica auditada.
+          </p>
+        ) : null}
         {!pesquisaId ? (
           <p className="rounded-lg border border-terracotta/30 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
             Este caso ainda não possui registro de pesquisa. Crie a pesquisa do caso no módulo Pesquisa Genealógica

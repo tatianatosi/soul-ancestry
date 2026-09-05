@@ -192,7 +192,8 @@ function Rascunho({
       </p>
       <div className="mt-2">
         <Rotulo>Texto do rascunho</Rotulo>
-        <textarea className={inputCls} rows={4} value={corpo} disabled={bloqueado || aprovado} onChange={(e) => setCorpo(e.target.value)} />
+        <textarea className={inputCls} rows={4} value={corpo} disabled={bloqueado}
+          title={aprovado ? "Rascunho já aprovado — nova edição registra alteração." : undefined} onChange={(e) => setCorpo(e.target.value)} />
       </div>
       {!aprovado ? (
         <button

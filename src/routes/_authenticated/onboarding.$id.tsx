@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -128,9 +129,16 @@ function OnboardingPage() {
     },
   });
 
+  const autoridade = useAutoridade();
   const dados = q.data;
   const papeis = (dados?.papeis ?? []) as Papel[];
-  const ehAdmin = papeis.includes("admin");
+  // Autoridade operacional: papel "admin" do caso deixa de esconder as ações de
+  // requisito. Só falta de papel ou de organização bloqueia; a diferença de
+  // vínculo vira pendência declarada na tela.
+  const ehAdmin = !autoridade.bloqueado({ capacidade: "avancar_caso_planejador_tarefa" });
+  const pendenciaVinculo = papeis.includes("admin")
+    ? null
+    : "Seu vínculo neste caso não é de administrador — as validações de requisito seguem disponíveis por decisão sua.";
   const caso = (dados?.caso ?? {}) as Record<string, string | number | boolean | null>;
   const checks = dados?.checks ?? [];
   // 05/09/2026 — "pronto"/"Requisitos completos" não pode mais vir só do
@@ -176,6 +184,23 @@ function OnboardingPage() {
       ) : null}
 
       {q.isLoading ? <p className="text-sm text-navy/60">Carregando requisitos…</p> : null}
+      {q.isError ? (
+        <p role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não foi possível carregar os requisitos de ativação deste caso.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
+      {pendenciaVinculo ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
 
       {dados ? (
         <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">

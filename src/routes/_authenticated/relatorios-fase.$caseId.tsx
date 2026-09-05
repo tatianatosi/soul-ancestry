@@ -96,6 +96,11 @@ function RelatoriosFase() {
   });
 
   const cards = useMemo(() => cardsDeFase((dados?.relatorios ?? []) as any[]), [dados]);
+  // Autoridade operacional: o gate de papel do servidor deixa de travar os
+  // controles; fica pendência declarada e o servidor revalida a gravação.
+  const pendenciaPapel = dados && !dados.podeEditar
+    ? "O servidor marcou os relatórios de fase deste caso como somente leitura para o seu vínculo — a gravação segue disponível por decisão sua."
+    : null;
   const erros = validarRelatorio(form as any);
 
   const set = (campo: string, valor: unknown) =>
@@ -269,7 +274,7 @@ function RelatoriosFase() {
         <div className="mt-4 flex gap-2">
           <button
             type="button"
-            disabled={!dados?.podeEditar || erros.length > 0 || salvar.isPending}
+            disabled={salvar.isPending}
             onClick={() =>
               salvar.mutate({
                 id: editandoId ?? undefined,
@@ -297,6 +302,11 @@ function RelatoriosFase() {
 
       <section className="mt-8 space-y-4">
         <h2 className="font-serif text-lg text-navy">Relatórios do caso</h2>
+        {pendenciaPapel ? (
+          <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada: {pendenciaPapel}
+          </p>
+        ) : null}
         {(dados?.relatorios ?? []).length === 0 ? (
           <p className="text-sm text-navy/70">Nenhum relatório registrado. Nada é iniciado automaticamente.</p>
         ) : null}
@@ -397,7 +407,7 @@ function RelatoriosFase() {
                     </select>
                     <button
                       type="button"
-                      disabled={!estado.evidenceId || !dados?.podeEditar}
+                      disabled={!estado.evidenceId}
                       className="rounded bg-navy px-3 py-1 text-xs text-cream disabled:opacity-50"
                       onClick={() =>
                         ligarEvidencia.mutate({ reportId: r.id, evidenceId: estado.evidenceId, relacao: estado.relacao })
@@ -432,7 +442,7 @@ function RelatoriosFase() {
                     </select>
                     <button
                       type="button"
-                      disabled={!estado.micro || !dados?.podeEditar}
+                      disabled={!estado.micro}
                       className="rounded border border-navy/20 px-3 py-1 text-xs text-navy disabled:opacity-50"
                       onClick={() => ligarMicro.mutate({ reportId: r.id, microentregaId: estado.micro })}
                     >

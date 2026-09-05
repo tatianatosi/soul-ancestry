@@ -23,6 +23,7 @@ import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
@@ -336,6 +337,13 @@ function Pagina() {
     })),
     (qi.data ?? []) as any,
   );
+  // Autoridade operacional: bloqueio de gate não desabilita controle nem
+  // esconde bloco. Vira pendência declarada, preservada na confirmação.
+  const pendenciaBloqueios = bloqueios.length
+    ? `${bloqueios.length} bloqueio(s) de gate aberto(s): ${bloqueios
+        .map((b) => b.motivo)
+        .join("; ")}`
+    : null;
   const previaFinalCaso = previaFinalLiberada({
     modelo: "MODELO-ESTUDO",
     linhas: clausulasAvaliadas,
@@ -578,7 +586,7 @@ function Pagina() {
               <div className="mt-2">
                 <MaterializarRevisados
                   plano={planoRevisados}
-                  ocupado={mMaterializar.isPending || !registroId}
+                  ocupado={mMaterializar.isPending}
                   onVerificar={() => mMaterializar.mutate(false)}
                   onMaterializar={() => mMaterializar.mutate(true)}
                 />
@@ -586,7 +594,7 @@ function Pagina() {
               <div className="mt-2">
                 <RessincronizarAnexos
                   plano={planoRessincronizacao}
-                  ocupado={mRessincronizar.isPending || !registroId}
+                  ocupado={mRessincronizar.isPending}
                   onVerificar={() => mRessincronizar.mutate(false)}
                   onSincronizar={() => mRessincronizar.mutate(true)}
                 />
@@ -655,7 +663,12 @@ function Pagina() {
                 const motivo = window.prompt("Motivo do retorno para ajuste (opcional)");
                 if (motivo !== null) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
               }}
-              disabled={mCongelar.isPending || !rascunhoAtual}
+              disabled={mCongelar.isPending}
+              title={
+                rascunhoAtual
+                  ? "Congela o rascunho atual como retorno para ajuste."
+                  : "Nenhum rascunho editável no momento — a pendência fica registrada."
+              }
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
             >
               Congelar retorno para ajuste
@@ -733,10 +746,12 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Revisão humana e assinatura">
-          {bloqueado ? (
+          <div className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm text-navy/70">
-                Enquanto houver bloqueios, o envio para assinatura permanece indisponível. Registre o pedido de revisão humana.
+                {pendenciaBloqueios
+                  ? "Há bloqueios de gate abertos. Eles ficam registrados e visíveis, mas não travam a operação: registre o pedido de revisão humana ou prossiga assumindo a decisão."
+                  : "Registre o pedido de revisão humana em auditoria."}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <input
@@ -762,19 +777,34 @@ function Pagina() {
                 </button>
               </div>
             </div>
-          ) : (
-            <div className="space-y-3">
+
+            <div className="space-y-3 border-t border-navy/10 pt-3">
               <p className="text-sm text-navy/70">
-                Revisão humana aprovada em {new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")} — criação da solicitação de assinatura
-                liberada, com registro de template, versão e aprovador.
+                {d.revisaoAprovadaEm
+                  ? `Revisão humana aprovada em ${new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")} — criação da solicitação de assinatura liberada, com registro de template, versão e aprovador.`
+                  : "Revisão humana ainda não aprovada. A criação da solicitação de assinatura segue disponível por decisão sua, com a pendência registrada."}
               </p>
-              <button
-                onClick={() => mEnviar.mutate()}
-                disabled={mEnviar.isPending || !["aprovado", "validado"].includes(d.registro.status)}
+              <AcaoOperacional
+                rotulo="Criar solicitação de assinatura"
+                acaoExterna="solicitar_assinatura"
+                pendenciaGate={
+                  [
+                    pendenciaBloqueios,
+                    d.revisaoAprovadaEm ? null : "Revisão humana ainda não aprovada.",
+                    ["aprovado", "validado"].includes(d.registro.status)
+                      ? null
+                      : `Registro do contrato está em "${d.registro.status}", não em aprovado nem validado.`,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || null
+                }
+                efeito="Cria a solicitação de assinatura do contrato, registrando template, versão e aprovador."
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-              >
-                Criar solicitação de assinatura
-              </button>
+                onConfirmar={() => {
+                  if (mEnviar.isPending) return;
+                  mEnviar.mutate();
+                }}
+              />
               {finalAprovada && d.registro.contract_id && (
                 <div className="grid gap-2 md:grid-cols-4">
                   <input
@@ -807,7 +837,7 @@ function Pagina() {
                 </div>
               )}
             </div>
-          )}
+          </div>
           <p className="mt-2 text-xs text-navy/60">
             Assinatura registrada não cria cobrança, não libera portal e não inicia pesquisa externa: financeiro e ativação continuam
             sujeitos aos gates próprios.

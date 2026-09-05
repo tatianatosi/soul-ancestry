@@ -3,8 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ANEXOS_MODELO_FAMILIAR_CASAL,
@@ -58,12 +59,14 @@ const CLASSE_ROTULO: Record<string, string> = {
   nao_aplicavel_por_padrao: "Não aplicável por padrão",
 };
 
+type EventoRegistro = { id: string; evento: string; detalhe: string | null; criado_em: string };
+
 function RegistroVersionado() {
   const queryClient = useQueryClient();
   const ler = useServerFn(lerRegistroModeloFamiliarCasal);
   const registrar = useServerFn(registrarModeloFamiliarCasal);
 
-  const { data } = useQuery({
+  const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["modelo-familiar-casal-registro"],
     queryFn: () => ler({}),
   });
@@ -100,25 +103,38 @@ function RegistroVersionado() {
           </p>
         )}
         {!modelo && (
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            Registrar modelo v1.0 (under_legal_review)
-          </Button>
+          <AcaoOperacional
+            size="sm"
+            rotulo="Registrar modelo v1.0 (under_legal_review)"
+            capacidade="criar_versao_derivada"
+            efeito="Grava o registro versionado do modelo nesta organização. Não libera contrato, assinatura ou cobrança."
+            onConfirmar={async () => {
+              await mutation.mutateAsync();
+            }}
+          />
         )}
         {mutation.isError && (
           <p className="text-xs text-terracotta">{(mutation.error as Error).message}</p>
         )}
-        {(data?.eventos ?? []).length > 0 && (
-          <ul className="space-y-1 text-xs text-muted-foreground">
-            {(data?.eventos ?? []).map(
-              (ev: { id: string; evento: string; detalhe: string | null; criado_em: string }) => (
+        <EstadoDados
+          carregando={isLoading}
+          erro={error}
+          dados={data?.eventos as EventoRegistro[] | undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="os eventos do registro"
+          vazio="Nenhum evento registrado ainda."
+        >
+          {(eventos) => (
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              {eventos.map((ev) => (
                 <li key={ev.id}>
                   {new Date(ev.criado_em).toLocaleString("pt-BR")} · {ev.evento}
                   {ev.detalhe ? ` · ${ev.detalhe}` : ""}
                 </li>
-              ),
-            )}
-          </ul>
-        )}
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       </CardContent>
     </Card>
   );

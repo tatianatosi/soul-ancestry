@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { EstadoVazio, SaasShell, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { listarAuditoria } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/auditoria")({
@@ -21,31 +22,24 @@ export const Route = createFileRoute("/_authenticated/auditoria")({
 });
 
 function AuditoriaPage() {
-  const { ehAdmin } = useSaas();
   const listar = useServerFn(listarAuditoria);
   const q = useQuery({
     queryKey: ["saas", "auditoria"],
     queryFn: () => listar(),
-    enabled: ehAdmin,
   });
-
-  const linhas = (q.data ?? []) as Record<string, unknown>[];
 
   return (
     <SaasShell titulo="Auditoria" descricao="Últimos 200 eventos registrados na sua organização.">
-      {!ehAdmin ? (
-        <EstadoVazio mensagem="Acesso restrito a administradores da organização." />
-      ) : q.isLoading ? (
-        <EstadoVazio mensagem="Carregando eventos…" />
-      ) : q.isError ? (
-        <EstadoVazio
-          mensagem="Não foi possível carregar os eventos de auditoria."
-          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
-        />
-      ) : linhas.length === 0 ? (
-        <EstadoVazio mensagem="Nenhum evento de auditoria registrado ainda." />
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+      <EstadoDados
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={q.data as Record<string, unknown>[] | undefined}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="os eventos de auditoria"
+        vazio="Nenhum evento de auditoria registrado ainda."
+      >
+        {(linhas) => (
+          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
               <tr>
@@ -66,8 +60,9 @@ function AuditoriaPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+          </div>
+        )}
+      </EstadoDados>
     </SaasShell>
   );
 }

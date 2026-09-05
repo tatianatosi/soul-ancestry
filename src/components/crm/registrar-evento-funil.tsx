@@ -81,7 +81,6 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
               setTipo(e.target.value as EventoFunil);
               setConfirmado(false);
             }}
-            disabled={!podeEscrever}
           >
             {EVENTOS_FUNIL.map((t) => (
               <option key={t} value={t}>
@@ -98,7 +97,6 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
             className={inputCls}
             value={ocorreuEm}
             onChange={(e) => setOcorreuEm(e.target.value)}
-            disabled={!podeEscrever}
           />
         </label>
 
@@ -107,13 +105,12 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
             label="Referência à conversa ou evidência interna"
             valor={evidencia}
             onChange={setEvidencia}
-            desabilitado={!podeEscrever}
             ajuda="Obrigatória. Use a referência interna do registro (conversa, print, documento interno)."
           />
         </div>
 
         <div className="md:col-span-2">
-          <Texto label="Observação interna (opcional)" valor={observacao} onChange={setObservacao} area desabilitado={!podeEscrever} />
+          <Texto label="Observação interna (opcional)" valor={observacao} onChange={setObservacao} area />
         </div>
       </div>
 
@@ -124,7 +121,7 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
 
       {sensivel ? (
         <label className="mt-3 flex items-start gap-2 rounded-lg border border-terracotta/40 bg-terracotta/5 px-3 py-2 text-xs text-terracotta">
-          <input type="checkbox" checked={confirmado} onChange={(e) => setConfirmado(e.target.checked)} disabled={!podeEscrever} />
+          <input type="checkbox" checked={confirmado} onChange={(e) => setConfirmado(e.target.checked)} />
           <span>
             Confirmo, como responsável, que “{ROTULO_EVENTO[tipo]}” ocorreu e está suportado pela referência interna informada.
           </span>
@@ -146,7 +143,7 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
       <button
         type="button"
         className="mt-4 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-40"
-        disabled={!podeEscrever || !temVinculo || mut.isPending || (sensivel && !confirmado)}
+        disabled={!temVinculo || mut.isPending || (sensivel && !confirmado)}
         onClick={() => mut.mutate()}
       >
         {mut.isPending ? "Registrando…" : "Registrar evento"}

@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoAcessoPainel } from "@/lib/painel-hoje-acoes.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
@@ -282,7 +283,10 @@ export function PainelDia() {
     queryFn: () => carregarModo(),
     retry: false,
   });
-  const proprietaria = podeExibirAcoesRapidas(qModo.data);
+  const { proprietaria: proprietariaAutoridade } = useAutoridade();
+  // Autoridade operacional é a fonte canônica; o estado legado do painel continua
+  // valendo como fallback para não estreitar acesso já concedido.
+  const proprietaria = proprietariaAutoridade || podeExibirAcoesRapidas(qModo.data);
   const qCad = useQuery({
     queryKey: ["painel-cadencia"],
     queryFn: () => carregarCadencia(),
@@ -300,6 +304,13 @@ export function PainelDia() {
     queryFn: () => carregarChecklistJuridico({ data: { incluirDemo } }),
     retry: false,
   });
+  const leiturasSecundarias = [
+    { rotulo: "cadência dos casos", q: qCad },
+    { rotulo: "bloqueios de catálogo", q: qCatalogo },
+    { rotulo: "checklist jurídico", q: qJuridico },
+    { rotulo: "estado de acesso do painel", q: qModo },
+  ].filter((l) => l.q.isError);
+
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
   const instrumentosComBloqueio = instrumentosJuridico.filter((i) => i.bloqueios > 0);
   const instrumentosComPendencia = instrumentosJuridico.filter(
@@ -644,6 +655,21 @@ export function PainelDia() {
         quem chega de manhã lia cinco números sem saber o que fazer com eles.
         Nada de novo é calculado aqui — é leitura do que já foi derivado.
       */}
+      {leiturasSecundarias.length ? (
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
+          <p className="text-sm text-terracotta">
+            Falha ao carregar: {leiturasSecundarias.map((l) => l.rotulo).join(", ")}. Os blocos
+            correspondentes estão incompletos — não trate como ausência de registro.
+          </p>
+          <button
+            type="button"
+            onClick={() => leiturasSecundarias.forEach((l) => void l.q.refetch())}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
       <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}

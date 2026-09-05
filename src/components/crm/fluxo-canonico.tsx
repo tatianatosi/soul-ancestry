@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
-import { useSaas } from "@/components/saas/shell";
 import {
   DIRECOES_INTERACAO,
   ETAPAS_COMERCIAIS,
@@ -29,7 +28,6 @@ const op = (lista: readonly { id: string; rotulo: string }[]) => lista.map((x) =
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export function FluxoComercialCanonico() {
-  const { podeEscrever } = useSaas();
   const qc = useQueryClient();
   const carregar = useServerFn(painelCrmFluxo);
   const novoContato = useServerFn(registrarContato);
@@ -196,7 +194,7 @@ export function FluxoComercialCanonico() {
               <button
                 type="button"
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                disabled={!podeEscrever || !contato.nome.trim() || mutContato.isPending}
+                disabled={!contato.nome.trim() || mutContato.isPending}
                 onClick={() => mutContato.mutate()}
               >
                 Registrar contato
@@ -270,7 +268,7 @@ export function FluxoComercialCanonico() {
               <button
                 type="button"
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                disabled={!podeEscrever || mutOp.isPending}
+                disabled={mutOp.isPending}
                 onClick={() => mutOp.mutate()}
               >
                 Salvar oportunidade
@@ -279,7 +277,7 @@ export function FluxoComercialCanonico() {
                 <button
                   type="button"
                   className="rounded-lg border border-terracotta/40 px-4 py-2 text-sm text-terracotta disabled:opacity-50"
-                  disabled={!podeEscrever || mutArquivar.isPending}
+                  disabled={mutArquivar.isPending}
                   onClick={() => {
                     const motivo = window.prompt("Motivo do arquivamento");
                     if (motivo?.trim()) mutArquivar.mutate(motivo.trim());
@@ -303,7 +301,7 @@ export function FluxoComercialCanonico() {
                 <button
                   type="button"
                   className="mt-3 rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                  disabled={!podeEscrever || !disc.objetivo_principal.trim() || mutDiscovery.isPending}
+                  disabled={!disc.objetivo_principal.trim() || mutDiscovery.isPending}
                   onClick={() => mutDiscovery.mutate()}
                 >
                   Registrar triagem
@@ -321,7 +319,7 @@ export function FluxoComercialCanonico() {
                   <button
                     type="button"
                     className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-50"
-                    disabled={!podeEscrever || mutAceite.isPending}
+                    disabled={mutAceite.isPending}
                     onClick={() => mutAceite.mutate()}
                   >
                     Registrar aceite verbal
@@ -331,7 +329,7 @@ export function FluxoComercialCanonico() {
                     <button
                       type="button"
                       className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                      disabled={!podeEscrever || mutConfirmacao.isPending}
+                      disabled={mutConfirmacao.isPending}
                       onClick={() => mutConfirmacao.mutate()}
                     >
                       Registrar confirmação formal
@@ -356,7 +354,7 @@ export function FluxoComercialCanonico() {
                 <button
                   type="button"
                   className="mt-3 rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                  disabled={!podeEscrever || !inter.tipo || !inter.resumo_interno.trim() || mutInteracao.isPending}
+                  disabled={!inter.tipo || !inter.resumo_interno.trim() || mutInteracao.isPending}
                   onClick={() => mutInteracao.mutate()}
                 >
                   Registrar interação

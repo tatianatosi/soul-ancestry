@@ -88,9 +88,21 @@ export function usePortalVivo() {
   });
 
   if (externa) {
-    return { data: externa.dados, isLoading: externa.carregando, isError: externa.erro };
+    return {
+      data: externa.dados,
+      isLoading: externa.carregando,
+      isError: externa.erro,
+      error: externa.erro ? new Error("Falha ao carregar os dados do acompanhamento.") : null,
+      refetch: () => {},
+    };
   }
-  return { data: consulta.data, isLoading: consulta.isLoading, isError: consulta.isError };
+  return {
+    data: consulta.data,
+    isLoading: consulta.isLoading,
+    isError: consulta.isError,
+    error: consulta.error,
+    refetch: () => void consulta.refetch(),
+  };
 }
 
 /**

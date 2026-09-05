@@ -98,6 +98,18 @@ function AppClienteComoPessoa() {
               </option>
             ))}
           </select>
+          {casos.isError ? (
+            <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-terracotta">
+              Não foi possível carregar a lista de casos. A lista acima está incompleta.
+              <button
+                type="button"
+                onClick={() => void casos.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </span>
+          ) : null}
         </label>
 
         {casoId ? (
