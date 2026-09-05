@@ -27,15 +27,36 @@ import {
 import { ROTEIRO_DISCOVERY, progressoRoteiro } from "@/lib/discovery-roteiro";
 import {
   ROTULO_ESTADO_CALL,
+  acaoVencida,
   avaliarHandoffCall,
+  corComplexidade,
+  corElegibilidade,
   estadoCall,
   filasCalls,
   resumoCalls,
   type Pendencia,
+  type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
 
 const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
+
+const CORES_SELO: Record<Exclude<SinalCor, "neutro">, string> = {
+  verde: "border-sage/50 bg-sage/15 text-navy",
+  amarelo: "border-gold/50 bg-gold/15 text-atencao",
+  vermelho: "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  laranja: "border-atencao/40 bg-atencao-suave text-atencao",
+};
+
+/** Sinal visual — seção 5 (formatação condicional) da especificação do Painel de Calls. */
+function Selo({ cor, children }: { cor: SinalCor; children: React.ReactNode }) {
+  if (cor === "neutro") return null;
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CORES_SELO[cor]}`}>
+      {children}
+    </span>
+  );
+}
 
 function Pendencias({ titulo, itens }: { titulo: string; itens: Pendencia[] }) {
   if (!itens.length) {
@@ -169,13 +190,16 @@ export function PainelCalls() {
                           : "border-navy/10 bg-white hover:border-navy/30"
                       }`}
                     >
-                      <span className="block font-medium text-navy">
+                      <span className="flex flex-wrap items-center gap-1 font-medium text-navy">
                         {l.nome}
                         {l.dados_teste ? (
-                          <span className="ml-1 text-[10px] uppercase text-terracotta">
-                            fixture
-                          </span>
+                          <span className="text-[10px] uppercase text-terracotta">fixture</span>
                         ) : null}
+                        <Selo cor={corElegibilidade(l.elegibilidade_preliminar)}>
+                          {rotulo("elegibilidade_preliminar", l.elegibilidade_preliminar)}
+                        </Selo>
+                        {estadoCall(l) === "no_show" ? <Selo cor="vermelho">No-show</Selo> : null}
+                        {acaoVencida(l, hoje) ? <Selo cor="vermelho">Ação vencida</Selo> : null}
                       </span>
                       <span className="text-[11px] text-navy/55">
                         {ROTULO_ESTADO_CALL[estadoCall(l)]}
@@ -300,6 +324,14 @@ export function PainelCalls() {
                 titulo="Qualificação preliminar"
                 descricao="Sinal interno de triagem. Não é parecer jurídico nem confirmação de elegibilidade."
               >
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <Selo cor={corElegibilidade(lead.elegibilidade_preliminar)}>
+                    Elegibilidade: {rotulo("elegibilidade_preliminar", lead.elegibilidade_preliminar)}
+                  </Selo>
+                  <Selo cor={corComplexidade(lead.complexidade_documental)}>
+                    Complexidade: {rotulo("complexidade_documental", lead.complexidade_documental)}
+                  </Selo>
+                </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <Selecao
                     label="Elegibilidade preliminar"
