@@ -69,7 +69,11 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       : { data: null };
 
     const { data: trilha } = servico?.citizenship_track_id
-      ? await supabase.from("citizenship_tracks").select("id,code,pais").eq("id", servico.citizenship_track_id).maybeSingle()
+      ? await supabase
+          .from("citizenship_tracks")
+          .select("id,code,pais")
+          .eq("id", servico.citizenship_track_id)
+          .maybeSingle()
       : { data: null };
 
     const { data: proposta } = await supabase
@@ -81,7 +85,9 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
 
-    const conferencia = await montarConferencia(supabase, { caseId: data.caseId }).then((r) => r.resultado).catch(() => null);
+    const conferencia = await montarConferencia(supabase, { caseId: data.caseId })
+      .then((r) => r.resultado)
+      .catch(() => null);
 
     const membros = await pessoasDoCasoComFallbackNucleo(supabase, data.caseId);
 
@@ -114,7 +120,9 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       nucleo: {
         titulares: (membros ?? []).filter((m: any) => !m.dependente).map((m: any) => m.nome),
         dependentes: (dependentes ?? []).map((d: any) => d.nome_completo),
-        representacaoPendente: (dependentes ?? []).some((d: any) => d.status_representacao !== "confirmada"),
+        representacaoPendente: (dependentes ?? []).some(
+          (d: any) => d.status_representacao !== "confirmada",
+        ),
       },
     });
 
@@ -144,7 +152,8 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
     const promocao = avaliarPromocaoCaseService({
       criterios: itens as unknown as CriterioRegistro[],
       condicao: avaliacaoCondicao,
-      referenciaContratualInterna: servico?.referencia_contratual_interna ?? servico?.contract_id ?? null,
+      referenciaContratualInterna:
+        servico?.referencia_contratual_interna ?? servico?.contract_id ?? null,
       divergencias,
     });
 
@@ -169,11 +178,18 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
     const planoInicial = avaliarPlanoInicial({
       responsavelUserId: casoFicha?.responsavel_id ?? servico?.responsavel_id ?? null,
       caseServiceStatusPermitido: promocao.statusPermitido,
-      proximaAcao: { descricao: casoFicha?.proxima_acao ?? null, data: casoFicha?.prazo_proxima_acao ?? null },
+      proximaAcao: {
+        descricao: casoFicha?.proxima_acao ?? null,
+        data: casoFicha?.prazo_proxima_acao ?? null,
+      },
       checklistItens:
-        (checklistItens ?? 0) || (Array.isArray(plano?.checklist_inicial) ? plano!.checklist_inicial.length : 0),
+        (checklistItens ?? 0) ||
+        (Array.isArray(plano?.checklist_inicial) ? plano!.checklist_inicial.length : 0),
       onboardingLiberado,
-      primeiraEntrega: { titulo: plano?.primeira_microentrega_descricao ?? null, data: plano?.inicio_previsto ?? null },
+      primeiraEntrega: {
+        titulo: plano?.primeira_microentrega_descricao ?? null,
+        data: plano?.inicio_previsto ?? null,
+      },
     });
 
     return {
@@ -242,17 +258,32 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
       : { data: null };
 
     const elegibilidade = avaliarElegibilidadePreco(catalogo ?? null);
-    const gravacao = validarGravacaoPreco({
-      campos: { valor_total_referencia: data.valor_total_referencia ?? null },
-      precoCatalogo: catalogo?.preco_comercial_vigente ?? null,
-      elegibilidade,
-      parcelamento: { parcelas: data.parcelas ?? null, valor_parcela: data.valor_parcela ?? null },
-    });
-    if (!gravacao.permitido) throw new Error(gravacao.erros.join(" "));
-    if (data.homologar && !elegibilidade.elegivel)
-      throw new Error(`Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`);
-    if (data.homologar && !data.homologadoPor?.trim())
-      throw new Error("Informe o responsável humano pela homologação da condição comercial.");
+    /*
+     * 05/09/2026 — achado real: validarGravacaoPreco recusava QUALQUER
+     * valor_total_referencia quando o caso não tinha SKU homologado
+     * vinculado (elegibilidade.elegivel=false) — inclusive para salvar um
+     * rascunho. Isso contradiz a regra definitiva da Proprietária: "Proposta
+     * ausente permite condição comercial preliminar 'a confirmar'". A
+     * validação estrita (preço deve espelhar o catálogo) só faz sentido no
+     * momento de homologar; salvar como rascunho precisa ser sempre
+     * permitido, com o valor livre registrado como preliminar.
+     */
+    if (data.homologar) {
+      const gravacao = validarGravacaoPreco({
+        campos: { valor_total_referencia: data.valor_total_referencia ?? null },
+        precoCatalogo: catalogo?.preco_comercial_vigente ?? null,
+        elegibilidade,
+        parcelamento: {
+          parcelas: data.parcelas ?? null,
+          valor_parcela: data.valor_parcela ?? null,
+        },
+      });
+      if (!gravacao.permitido) throw new Error(gravacao.erros.join(" "));
+      if (!elegibilidade.elegivel)
+        throw new Error(`Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`);
+      if (!data.homologadoPor?.trim())
+        throw new Error("Informe o responsável humano pela homologação da condição comercial.");
+    }
 
     const { data: existente } = await supabase
       .from("commercial_conditions")
@@ -293,7 +324,8 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
           .select("id");
     const { data: salvo, error } = await query;
     if (error) throw new Error(error.message);
-    if (!salvo?.length) throw new Error("Nada foi gravado: seu papel não permite alterar a condição comercial.");
+    if (!salvo?.length)
+      throw new Error("Nada foi gravado: seu papel não permite alterar a condição comercial.");
     return { id: salvo[0].id, status: linha.status };
   });
 
@@ -322,9 +354,10 @@ export const semearCriteriosAceite = createServerFn({ method: "POST" })
       updated_by: (context as any).userId,
     }));
 
-    const { error } = await supabase
-      .from("case_service_criterios")
-      .upsert(linhas, { onConflict: "case_id,entrega_codigo,criterio_codigo", ignoreDuplicates: true });
+    const { error } = await supabase.from("case_service_criterios").upsert(linhas, {
+      onConflict: "case_id,entrega_codigo,criterio_codigo",
+      ignoreDuplicates: true,
+    });
     if (error) throw new Error(error.message);
     return { criados: linhas.length };
   });
@@ -354,9 +387,13 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
     const permitidos = ["pendente_decisao_humana", "aceito", "recusado", "nao_aplicavel"];
     if (!permitidos.includes(data.status)) throw new Error("Status de critério inválido.");
     if ((data.status === "aceito" || data.status === "recusado") && !data.decididoPor)
-      throw new Error("Informe quem decidiu — critério não pode ser aceito ou recusado sem responsável humano.");
+      throw new Error(
+        "Informe quem decidiu — critério não pode ser aceito ou recusado sem responsável humano.",
+      );
     if (data.status !== "pendente_decisao_humana" && !data.justificativa)
-      throw new Error("Informe a justificativa da decisão — nenhum critério muda de estado sem justificativa registrada.");
+      throw new Error(
+        "Informe a justificativa da decisão — nenhum critério muda de estado sem justificativa registrada.",
+      );
     if (data.status === "aceito" && !data.evidenciaInterna)
       throw new Error("Informe a evidência interna que sustenta o aceite deste critério.");
 
@@ -375,6 +412,7 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .select("id");
     if (error) throw new Error(error.message);
-    if (!linhas?.length) throw new Error("Nada foi gravado: seu papel não permite decidir este critério.");
+    if (!linhas?.length)
+      throw new Error("Nada foi gravado: seu papel não permite decidir este critério.");
     return { id: data.id, salvoEm: new Date().toISOString() };
   });
