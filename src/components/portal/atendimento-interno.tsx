@@ -7,6 +7,7 @@ import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   atualizarStatusTicket,
   cancelarSolicitacaoDocumento,
+  confirmarDocumentosMinimos,
   criarSolicitacaoDocumento,
   liberarEntregaCliente,
   liberarFaturaCliente,
@@ -86,6 +87,7 @@ export function AtendimentoInterno() {
   const revisar = useServerFn(revisarEnvioCliente);
   const liberarDoc = useServerFn(liberarEntregaCliente);
   const liberarFat = useServerFn(liberarFaturaCliente);
+  const confirmarDocsMinimos = useServerFn(confirmarDocumentosMinimos);
 
   const [casoId, setCasoId] = useState<string>("");
   const [form, setForm] = useState({
@@ -212,6 +214,12 @@ export function AtendimentoInterno() {
     onError: falhar,
   });
 
+  const confirmarDocumentos = useMutation({
+    mutationFn: (p: { caseId: string; motivo?: string }) => confirmarDocsMinimos({ data: p }),
+    onSuccess: recarregar,
+    onError: falhar,
+  });
+
   const formIncompleto =
     !casoId ||
     !!bloqueioSelecionado?.bloqueado ||
@@ -304,6 +312,16 @@ export function AtendimentoInterno() {
           ) : null}
         </div>
         {bloqueioSelecionado ? <Bloqueado motivos={bloqueioSelecionado.motivos} /> : null}
+        {casoSelecionado && casoSelecionado.documentos_minimos_ok !== true ? (
+          <button
+            type="button"
+            disabled={confirmarDocumentos.isPending}
+            onClick={() => confirmarDocumentos.mutate({ caseId: casoSelecionado.id })}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 disabled:opacity-50"
+          >
+            {confirmarDocumentos.isPending ? "Confirmando…" : "Confirmar documentos mínimos deste caso"}
+          </button>
+        ) : null}
         <ul className="grid gap-1.5 md:grid-cols-3">
           {casos.map((c) => {
             const e = estadoCasoAtendimento(c);

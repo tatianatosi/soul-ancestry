@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
@@ -76,6 +76,18 @@ function ContratosPage() {
         ) : null
       }
     >
+      {qPainel.isError ? (
+        <p className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não foi possível carregar os indicadores abaixo — os números não são zero, a leitura falhou.
+          <button
+            type="button"
+            onClick={() => void qPainel.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Cartao titulo="Bloqueios abertos" valor={qPainel.data?.bloqueios.length ?? 0} />
         <Cartao titulo="Aguardando revisão humana" valor={qPainel.data?.revisaoPendente.length ?? 0} />
@@ -128,6 +140,11 @@ function ContratosPage() {
 
       {qLista.isLoading ? (
         <EstadoVazio mensagem="Carregando instrumentos…" />
+      ) : qLista.isError ? (
+        <EstadoVazio
+          mensagem="Não foi possível carregar os instrumentos contratuais."
+          acao={<BotaoTentarNovamente aoClicar={() => void qLista.refetch()} />}
+        />
       ) : !qLista.data?.contratos.length ? (
         <EstadoVazio mensagem="Nenhum instrumento contratual nesta organização ainda." />
       ) : (

@@ -253,7 +253,18 @@ function Pagina() {
     return (
       <SaasShell titulo="Preparar contrato">
         <Painel titulo="Preparação bloqueada">
-          <p className="text-sm text-terracotta">{(q.error as Error)?.message ?? "Caso indisponível para esta organização."}</p>
+          <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+            {(q.error as Error)?.message ?? "Caso indisponível para esta organização."}
+            {q.error ? (
+              <button
+                type="button"
+                onClick={() => void q.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            ) : null}
+          </p>
         </Painel>
       </SaasShell>
     );
@@ -551,6 +562,18 @@ function Pagina() {
               nenhum campo é preenchido por inferência.
             </p>
             <div className="mb-3">
+              {qi.isError ? (
+                <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+                  Não foi possível carregar os anexos.
+                  <button
+                    type="button"
+                    onClick={() => void qi.refetch()}
+                    className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+                  >
+                    Tentar novamente
+                  </button>
+                </p>
+              ) : null}
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
               <div className="mt-2">
                 <MaterializarRevisados
@@ -795,6 +818,18 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
+          {qa.isError ? (
+            <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+              Não foi possível carregar a auditoria.
+              <button
+                type="button"
+                onClick={() => void qa.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
           <ul className="space-y-1 text-xs text-navy/70">
             {eventos.map((e) => (
               <li key={e.id}>

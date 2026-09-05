@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
 import {
   Campo,
   FiltroStatus,
@@ -145,6 +145,11 @@ function OrdensPage() {
 
         {q.isLoading ? (
           <EstadoVazio mensagem="Carregando…" />
+        ) : q.isError ? (
+          <EstadoVazio
+            mensagem="Não foi possível carregar as ordens de serviço."
+            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+          />
         ) : !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma ordem de serviço neste filtro." />
         ) : (

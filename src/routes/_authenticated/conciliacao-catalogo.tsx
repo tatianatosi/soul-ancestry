@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { Painel, Selo, inputCls } from "@/components/comercial/base";
 import { varreduraConciliacaoCatalogo } from "@/lib/conciliacao-catalogo.functions";
 
@@ -103,6 +103,11 @@ function ConciliacaoCatalogoPage() {
           <Painel titulo="Carregando">
             <p className="text-sm text-navy/60">Conciliando propostas contra o catálogo homologado…</p>
           </Painel>
+        ) : q.isError ? (
+          <EstadoVazio
+            mensagem="Não foi possível conciliar as propostas contra o catálogo."
+            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+          />
         ) : !linhas.length ? (
           <EstadoVazio mensagem="Não há proposta viva que atenda ao filtro atual." />
         ) : (

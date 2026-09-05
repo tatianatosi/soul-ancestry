@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
 import {
   Campo,
   FiltroStatus,
@@ -194,6 +194,22 @@ function FinanceiroPage() {
       }
     >
       <div className="space-y-4">
+        {qFaturas.isError || qPagamentos.isError ? (
+          <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+            Não foi possível carregar {qFaturas.isError && qPagamentos.isError ? "faturas nem pagamentos" : qFaturas.isError ? "as faturas" : "os pagamentos"}.
+            Os totais abaixo não refletem valor real — a leitura falhou, não é zero.
+            <button
+              type="button"
+              onClick={() => {
+                if (qFaturas.isError) void qFaturas.refetch();
+                if (qPagamentos.isError) void qPagamentos.refetch();
+              }}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
         <div className="flex gap-2">
           {(["faturas", "pagamentos"] as Aba[]).map((a) => (
             <button
@@ -342,6 +358,11 @@ function FinanceiroPage() {
 
         {q.isLoading ? (
           <EstadoVazio mensagem="Carregando…" />
+        ) : q.isError ? (
+          <EstadoVazio
+            mensagem="Não foi possível carregar este filtro."
+            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+          />
         ) : !linhas.length ? (
           <EstadoVazio mensagem="Nenhum registro neste filtro." />
         ) : (
