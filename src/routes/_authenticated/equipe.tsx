@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { BotaoTentarNovamente, EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import {
@@ -183,6 +183,13 @@ function EquipePage() {
             <h2 className="font-serif text-xl">Membros</h2>
             {q.isLoading ? (
               <p className="mt-3 text-sm text-navy/60">Carregando…</p>
+            ) : q.isError ? (
+              <div className="mt-3">
+                <EstadoVazio
+                  mensagem="Não foi possível carregar a equipe."
+                  acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+                />
+              </div>
             ) : !q.data?.membros.length ? (
               <div className="mt-3">
                 <EstadoVazio mensagem="Nenhum acesso interno cadastrado." />

@@ -81,9 +81,10 @@ categoria (item 6 da tabela) foi corrigido nesta sessão.
   genealógicas, Pessoas e Linhagens e Marketing nunca verificavam `isError` na query principal — um
   erro de leitura renderizava exatamente como "nenhum registro", sem diferença visível de estar
   realmente vazio. Todos corrigidos e retestados por `tsc`+suíte+build.
-- Administração → Integrações (`/integracoes`) delega para dois componentes
-  (`MatrizProntidaoIntegracoes`, `CentroIntegracoes`) que ainda não foram abertos para conferir o
-  mesmo padrão. Não verificado ainda — dizendo isso em vez de presumir que está limpo.
+- ~~Administração → Integrações não verificada~~ — **feito**: `CentroIntegracoes` tinha o mesmo
+  problema (corrigido); `MatrizProntidaoIntegracoes` é matriz estática, sem leitura ao vivo, nada a
+  corrigir. `configuracoes.tsx` (Usuários e papéis) e `equipe.tsx` (Equipe) tinham o mesmo problema —
+  corrigidos também.
 - Dentro de CRM/Núcleos/Pesquisa, o que eu NÃO verifiquei ainda é o inverso do que corrigi agora:
   se toda ação de criar/editar/vincular realmente persiste e sobrevive a um reload real no navegador
   (seção 2 explica por que essa prova específica não é possível nesta sessão).
