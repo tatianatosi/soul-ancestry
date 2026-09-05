@@ -8,6 +8,7 @@ import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
   ROTULO_CATEGORIA_ESCOPO,
+  ROTULO_GATE_PESQUISA,
   ROTULO_PAPEL_PARTE,
   ROTULO_STATUS_ANEXO,
   ROTULO_STATUS_CONTRATO,
@@ -127,6 +128,19 @@ function ContratoDetalhe() {
         <p className="mt-3 rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm">
           Contrato-base vinculado: <strong>{(d.contratoBase as any).contract_number}</strong> —{" "}
           {(d.contratoBase as any).title}. Permanece íntegro e em leitura.
+        </p>
+      ) : null}
+
+      {d.parametrosId ? (
+        <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">
+          Este caso já tem parâmetros capturados pelo Planejador (nome, documento, endereço, valor, escopo).{" "}
+          <Link
+            to="/contrato-parametros/$id"
+            params={{ id: d.parametrosId }}
+            className="font-medium underline underline-offset-2"
+          >
+            Ver/editar parâmetros do Planejador
+          </Link>
         </p>
       ) : null}
 
@@ -358,8 +372,8 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
         onSalvar={(v) => salvar({ financial_gate_status: v })}
       />
       <p className="text-xs text-navy/60 sm:col-span-2">
-        Gate de pesquisa externa: {c.research_gate_status}. Cobrança, assinatura e pesquisa externa exigem gatilhos
-        próprios e não são liberadas por rascunho contratual.
+        Gate de pesquisa externa: {ROTULO_GATE_PESQUISA[c.research_gate_status] ?? c.research_gate_status}. Cobrança,
+        assinatura e pesquisa externa exigem gatilhos próprios e não são liberadas por rascunho contratual.
       </p>
     </div>
   );

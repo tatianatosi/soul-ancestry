@@ -9,9 +9,13 @@ import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/compone
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
+  ROTULO_GATE_FINANCEIRO,
+  ROTULO_GATE_PESQUISA,
   ROTULO_STATUS_CONTRATO,
   ROTULO_TIPO_INSTRUMENTO,
   Selo,
+  tomGateFinanceiro,
+  tomGatePesquisa,
 } from "@/components/contratos/rotulos";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
@@ -173,8 +177,18 @@ function ContratosPage() {
                   <td className="px-3 py-2">
                     <Selo texto={ROTULO_STATUS_CONTRATO[c.status] ?? c.status} />
                   </td>
-                  <td className="px-3 py-2 text-navy/70">{c.financial_gate_status}</td>
-                  <td className="px-3 py-2 text-navy/70">{c.research_gate_status}</td>
+                  <td className="px-3 py-2">
+                    <Selo
+                      texto={ROTULO_GATE_FINANCEIRO[c.financial_gate_status] ?? c.financial_gate_status}
+                      tom={tomGateFinanceiro(c.financial_gate_status)}
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <Selo
+                      texto={ROTULO_GATE_PESQUISA[c.research_gate_status] ?? c.research_gate_status}
+                      tom={tomGatePesquisa(c.research_gate_status)}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>

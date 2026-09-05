@@ -135,10 +135,26 @@ export const obterContrato = createServerFn({ method: "GET" })
       contratoBase = r.data ?? null;
     }
 
+    // Parâmetros já capturados pelo Planejador para o mesmo caso — nem sempre
+    // existem (nem todo contrato nasce de um caso com Planejador rodado), mas
+    // quando existem precisam estar acessíveis daqui, não só por URL direta.
+    const parametros = contrato.data.case_id
+      ? (
+          await supabase
+            .from("contract_case_parameters")
+            .select("id")
+            .eq("organization_id", organizationId)
+            .eq("case_id", contrato.data.case_id)
+            .is("archived_at", null)
+            .maybeSingle()
+        ).data
+      : null;
+
     return {
       papel,
       contrato: contrato.data,
       contratoBase,
+      parametrosId: (parametros?.id as string | undefined) ?? null,
       partes: partes.data ?? [],
       escopo: escopo.data ?? [],
       clausulas: clausulas.data ?? [],
@@ -259,6 +275,19 @@ export const criarInstrumento = createServerFn({ method: "POST" })
       .select("id,contract_number")
       .single();
     if (error) throw new Error(error.message);
+
+    // Reconecta com os parâmetros já capturados pelo Planejador para este caso
+    // (contract_case_parameters), quando existirem — sem isso, o contrato-base
+    // nasce desconectado de tudo que já foi validado para o caso (nome,
+    // documento, endereço, valor, escopo), como aconteceu com o caso real da
+    // Ana Luiza: os 22 campos existiam, só nunca foram ligados a este contrato.
+    if (data.contract_type === "contract_base" && data.case_id) {
+      await supabase
+        .from("contract_case_parameters")
+        .update({ contract_id: novo.id, updated_by: context.userId })
+        .eq("case_id", data.case_id)
+        .is("contract_id", null);
+    }
 
     await evento(supabase, organizationId, novo.id, "created", { tipo: data.contract_type });
     return novo as { id: string; contract_number: string };
