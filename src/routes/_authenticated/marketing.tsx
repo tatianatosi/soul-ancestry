@@ -163,6 +163,20 @@ function Marketing() {
           ))}
         </nav>
 
+        {q.isError ? (
+          <p className="flex flex-wrap items-center gap-3 rounded-xl border border-terracotta/40 bg-terracotta/10 p-4 text-sm text-terracotta">
+            Não foi possível carregar os dados de marketing e aquisição. Todas as seções abaixo estão
+            vazias por causa deste erro — não porque não há dado.
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
         <section
           data-marketing="filtros"
           className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-4"
@@ -353,7 +367,7 @@ function Marketing() {
           </label>
           {q.isLoading ? (
             <p className="text-[13px] text-navy/50">Carregando leitura de aquisição…</p>
-          ) : origens.length === 0 ? (
+          ) : origens.length === 0 && !q.isError ? (
             <EstadoVazio mensagem="Sem entradas de aquisição no recorte: nenhum lead ou evento de conversão disponível para leitura." />
           ) : (
             <ul className="divide-y divide-navy/10">

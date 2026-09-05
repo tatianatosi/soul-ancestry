@@ -69,7 +69,18 @@ function Index() {
       descricao="Pesquisas por caso, com pendências, evidências e travas de pesquisa externa."
     >
       {q.isLoading && <p className="text-sm text-navy/60">Carregando painel…</p>}
-      {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
+      {q.error ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {(q.error as Error).message}
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       {d && (
         <div className="space-y-4">

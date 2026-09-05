@@ -200,6 +200,20 @@ function Pagina() {
         </p>
       </header>
 
+      {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+      {q.isError ? (
+        <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 p-3 text-sm text-terracotta">
+          Não foi possível carregar achados e encontros deste caso.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
+
       <div className="flex gap-2">
         {(["achados", "encontros"] as const).map((t) => (
           <button

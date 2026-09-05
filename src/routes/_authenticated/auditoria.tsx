@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
 import { listarAuditoria } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/auditoria")({
@@ -37,6 +37,11 @@ function AuditoriaPage() {
         <EstadoVazio mensagem="Acesso restrito a administradores da organização." />
       ) : q.isLoading ? (
         <EstadoVazio mensagem="Carregando eventos…" />
+      ) : q.isError ? (
+        <EstadoVazio
+          mensagem="Não foi possível carregar os eventos de auditoria."
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : linhas.length === 0 ? (
         <EstadoVazio mensagem="Nenhum evento de auditoria registrado ainda." />
       ) : (

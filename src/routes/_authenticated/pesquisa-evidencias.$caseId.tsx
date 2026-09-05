@@ -186,7 +186,30 @@ function AreaPesquisaEvidencias() {
       </p>
 
       {painel.isLoading && <p className="text-sm text-navy/60">Carregando área de pesquisa…</p>}
-      {painel.error && <p className="text-sm text-terracotta">{String((painel.error as any).message)}</p>}
+      {painel.error ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {String((painel.error as any).message)}
+          <button
+            type="button"
+            onClick={() => void painel.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
+      {cadeia.error ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar a cadeia de custódia da evidência.
+          <button
+            type="button"
+            onClick={() => void cadeia.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       {d && secao === "visao" && (
         <section className="space-y-3">

@@ -11,7 +11,7 @@ import {
   type Entidade,
 } from "@/lib/saas.functions";
 import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
-import { EstadoVazio, useSaas } from "./shell";
+import { BotaoTentarNovamente, EstadoVazio, useSaas } from "./shell";
 import { cn } from "@/lib/utils";
 
 export type Campo = {
@@ -212,6 +212,11 @@ export function EntidadeCrud({
 
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando…" />
+      ) : q.isError ? (
+        <EstadoVazio
+          mensagem={`Não foi possível carregar ${titulo.toLowerCase()}.`}
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : linhas.length === 0 ? (
         <EstadoVazio mensagem={`Nenhum registro em ${titulo.toLowerCase()} ainda.`} />
       ) : (

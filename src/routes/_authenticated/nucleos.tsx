@@ -244,7 +244,18 @@ function NucleosPage() {
         </Secao>
 
         {q.isLoading ? <p className="text-sm text-navy/60">Carregando núcleos…</p> : null}
-        {q.error ? <p className="text-sm text-red-700">{(q.error as Error).message}</p> : null}
+        {q.error ? (
+          <p className="flex flex-wrap items-center gap-3 text-sm text-red-700">
+            {(q.error as Error).message}
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
         {!q.isLoading && !q.error && nucleos.length === 0 ? (
           <p className="text-sm text-navy/60">Nenhum núcleo familiar encontrado com os filtros atuais.</p>
         ) : null}

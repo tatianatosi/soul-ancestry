@@ -241,6 +241,18 @@ function LeadsPage() {
 
           <Secao titulo={`Leads (${visiveis.length})`} descricao="Código único gerado pelo sistema.">
             {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+            {q.isError ? (
+              <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+                Não foi possível carregar os leads.
+                <button
+                  type="button"
+                  onClick={() => void q.refetch()}
+                  className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+                >
+                  Tentar novamente
+                </button>
+              </p>
+            ) : null}
             <ul className="max-h-[520px] space-y-2 overflow-auto">
               {visiveis.map((l) => (
                 <li key={l.id}>
@@ -275,7 +287,9 @@ function LeadsPage() {
                   </button>
                 </li>
               ))}
-              {!visiveis.length && !q.isLoading ? <li className="text-sm text-navy/50">Nenhum lead nos filtros.</li> : null}
+              {!visiveis.length && !q.isLoading && !q.isError ? (
+                <li className="text-sm text-navy/50">Nenhum lead nos filtros.</li>
+              ) : null}
             </ul>
           </Secao>
         </div>
