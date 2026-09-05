@@ -10,7 +10,12 @@ import {
   obterOnboarding,
   suspenderCaso,
 } from "@/lib/onboarding.functions";
-import { podeValidar, responsavelDoCheck, type CheckAtivacao, type Papel } from "@/lib/onboarding-regras";
+import {
+  podeValidar,
+  responsavelDoCheck,
+  type CheckAtivacao,
+  type Papel,
+} from "@/lib/onboarding-regras";
 
 export const Route = createFileRoute("/_authenticated/onboarding/$id")({
   head: () => ({
@@ -18,10 +23,14 @@ export const Route = createFileRoute("/_authenticated/onboarding/$id")({
       { title: "Onboarding do caso — Clube Ancestral" },
       {
         name: "description",
-        content: "Requisitos executáveis de ativação: validação, isenções autorizadas e linha do tempo do onboarding.",
+        content:
+          "Requisitos executáveis de ativação: validação, isenções autorizadas e linha do tempo do onboarding.",
       },
       { property: "og:title", content: "Onboarding do caso — Clube Ancestral" },
-      { property: "og:description", content: "Painel de ativação de casos com travas de validação." },
+      {
+        property: "og:description",
+        content: "Painel de ativação de casos com travas de validação.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -89,7 +98,9 @@ function OnboardingPage() {
     mutationFn: () => suspender({ data: { casoId: id, motivo: motivoSuspensao } }),
     onSuccess: (r) => {
       setAviso(
-        r.ok ? "Caso suspenso. Tarefa de revisão criada para o responsável." : `Bloqueado: ${r.erro}`,
+        r.ok
+          ? "Caso suspenso. Tarefa de revisão criada para o responsável."
+          : `Bloqueado: ${r.erro}`,
       );
       if (r.ok) {
         setSuspendendo(false);
@@ -104,8 +115,14 @@ function OnboardingPage() {
   const ehAdmin = papeis.includes("admin");
   const caso = (dados?.caso ?? {}) as Record<string, string | number | boolean | null>;
   const checks = dados?.checks ?? [];
-  const pendencias = dados?.pendencias ?? [];
-  const pronto = pendencias.length === 0;
+  // 05/09/2026 — "pronto"/"Requisitos completos" não pode mais vir só do
+  // checklist clicável (pendencias): o banco recusa a ativação por até 4
+  // outras fontes reais que o checklist nunca leu. bloqueiosReais é a
+  // mesma projeção usada pelo banco (ver migration
+  // 20260905120000_case_ativacao_bloqueios_reais.sql); só quando ela vem
+  // vazia é que a tela pode dizer "completo".
+  const bloqueiosReais = dados?.bloqueiosReais ?? [];
+  const pronto = bloqueiosReais.length === 0;
   const ativo = Boolean(caso["ativo"]);
 
   return (
@@ -120,16 +137,23 @@ function OnboardingPage() {
           </p>
           <p className="text-xs text-navy/60">
             Status atual: {String(caso["status"] ?? "—")}
-            {caso["data_ativacao"] ? ` · ativado em ${new Date(String(caso["data_ativacao"])).toLocaleString("pt-BR")}` : ""}
+            {caso["data_ativacao"]
+              ? ` · ativado em ${new Date(String(caso["data_ativacao"])).toLocaleString("pt-BR")}`
+              : ""}
           </p>
         </div>
-        <Link to="/casos" className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70 hover:bg-navy/5">
+        <Link
+          to="/casos"
+          className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70 hover:bg-navy/5"
+        >
           Voltar aos casos
         </Link>
       </div>
 
       {aviso ? (
-        <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">{aviso}</p>
+        <p className="mb-4 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">
+          {aviso}
+        </p>
       ) : null}
 
       {q.isLoading ? <p className="text-sm text-navy/60">Carregando requisitos…</p> : null}
@@ -141,44 +165,86 @@ function OnboardingPage() {
               <h2 className="text-base font-semibold text-navy">Requisitos de ativação</h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  ativo ? "bg-emerald-100 text-emerald-800" : pronto ? "bg-gold/20 text-navy" : "bg-terracotta/10 text-terracotta"
+                  ativo
+                    ? "bg-emerald-100 text-emerald-800"
+                    : pronto
+                      ? "bg-gold/20 text-navy"
+                      : "bg-terracotta/10 text-terracotta"
                 }`}
               >
                 {ativo
                   ? "Caso ativo"
                   : pronto
                     ? "Requisitos completos"
-                    : `Não elegível — ativação bloqueada (${pendencias.length} pendência(s))`}
+                    : `Não elegível — ativação bloqueada (${bloqueiosReais.length} bloqueio(s) real(is))`}
               </span>
             </header>
 
             {!pronto ? (
               <div className="mb-4 rounded-lg border border-terracotta/30 bg-terracotta/5 p-3 text-sm text-navy">
                 <p className="font-medium">
-                  Não elegível — ativação bloqueada. Painel em modo somente leitura para ativação enquanto houver
-                  pendência; datas futuras de contrato, pagamento ou onboarding são previsão condicional.
+                  Não elegível — ativação bloqueada. Cada linha abaixo é um bloqueio real que o
+                  banco confere agora mesmo — não uma opinião do checklist. Resolver a linha na tela
+                  indicada e recarregar atualiza o estado aqui.
                 </p>
-                <ul className="mt-1 list-disc pl-5 text-navy/75">
-                  {pendencias.map((p) => (
-                    <li key={p.check_key}>
-                      {p.label} — {p.motivo}
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full min-w-[640px] border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-terracotta/20 text-left text-navy/60">
+                        <th className="py-1 pr-3 font-medium">Bloqueio</th>
+                        <th className="py-1 pr-3 font-medium">Tabela/campo</th>
+                        <th className="py-1 pr-3 font-medium">Valor atual</th>
+                        <th className="py-1 font-medium">Tela para resolver</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bloqueiosReais.map((b, i) => (
+                        <tr
+                          key={`${b.regra}-${i}`}
+                          className="border-b border-terracotta/10 align-top"
+                        >
+                          <td className="py-1.5 pr-3 text-navy/85">{b.motivo}</td>
+                          <td className="py-1.5 pr-3 font-mono text-[11px] text-navy/50">
+                            {b.tabela_campo}
+                          </td>
+                          <td className="py-1.5 pr-3 text-navy/70">{b.valor_atual}</td>
+                          <td className="py-1.5 text-navy/70">
+                            {b.cta_tela ? (
+                              <a href={b.cta_tela} className="text-navy underline hover:text-gold">
+                                Abrir
+                              </a>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
 
+            <p className="mb-2 text-xs text-navy/50">
+              Lista abaixo: quem confirma cada item e quando confirmou. Clicar em "Validar" registra
+              a confirmação, mas não substitui o dado real — itens com fonte própria (consentimento,
+              onboarding, contrato) só saem da lista de bloqueios acima quando o dado real existir.
+            </p>
             <ul className="divide-y divide-navy/10">
               {checks.map((c) => {
                 const expirada =
-                  c.status === "isento" && !!c.isencao_expira_em && new Date(c.isencao_expira_em) < new Date();
+                  c.status === "isento" &&
+                  !!c.isencao_expira_em &&
+                  new Date(c.isencao_expira_em) < new Date();
                 return (
                   <li key={c.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                     <div className="min-w-[220px]">
                       <p className="text-sm font-medium text-navy">{c.label}</p>
                       <p className="text-xs text-navy/55">
                         Responsável: {responsavelDoCheck(c.dominio)}
-                        {c.validado_em ? ` · ${new Date(c.validado_em).toLocaleString("pt-BR")}` : ""}
+                        {c.validado_em
+                          ? ` · ${new Date(c.validado_em).toLocaleString("pt-BR")}`
+                          : ""}
                         {c.origem_validacao ? ` · origem: ${c.origem_validacao}` : ""}
                       </p>
                       {c.isencao_motivo ? (
@@ -191,7 +257,9 @@ function OnboardingPage() {
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`rounded-full px-2 py-1 text-xs ${badge(c.status, expirada)}`}>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs ${badge(c.status, expirada)}`}
+                      >
                         {expirada ? "Isenção expirada" : (STATUS_LABEL[c.status] ?? c.status)}
                       </span>
                       {c.status !== "validado" && podeValidar(papeis, c.dominio, "validado") ? (
@@ -239,8 +307,8 @@ function OnboardingPage() {
               ) : null}
               {!ativo && !pronto ? (
                 <p className="text-xs text-navy/55">
-                  Sem botão de ativação: o checklist obrigatório ainda não está completo. A validação final é feita pelo
-                  banco de dados.
+                  Sem botão de ativação: o checklist obrigatório ainda não está completo. A
+                  validação final é feita pelo banco de dados.
                 </p>
               ) : null}
               {dados.podeAtivar && ativo ? (
@@ -264,13 +332,17 @@ function OnboardingPage() {
             <ol className="space-y-3">
               <li className="border-l-2 border-gold/60 pl-3">
                 <p className="text-xs text-navy/55">
-                  {caso["created_at"] ? new Date(String(caso["created_at"])).toLocaleString("pt-BR") : "—"}
+                  {caso["created_at"]
+                    ? new Date(String(caso["created_at"])).toLocaleString("pt-BR")
+                    : "—"}
                 </p>
                 <p className="text-sm text-navy">Caso criado</p>
               </li>
               {dados.timeline.map((e) => (
                 <li key={e.id} className="border-l-2 border-navy/15 pl-3">
-                  <p className="text-xs text-navy/55">{new Date(e.quando).toLocaleString("pt-BR")}</p>
+                  <p className="text-xs text-navy/55">
+                    {new Date(e.quando).toLocaleString("pt-BR")}
+                  </p>
                   <p className="text-sm text-navy">
                     {e.acao} — {e.detalhe}
                   </p>
@@ -284,7 +356,9 @@ function OnboardingPage() {
       {isencaoDe ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-4">
-            <h3 className="text-sm font-semibold text-navy">Autorizar isenção — {isencaoDe.label}</h3>
+            <h3 className="text-sm font-semibold text-navy">
+              Autorizar isenção — {isencaoDe.label}
+            </h3>
             <p className="mt-1 text-xs text-navy/60">
               A isenção é registrada com motivo, admin autorizador, data/hora e expiração opcional.
             </p>

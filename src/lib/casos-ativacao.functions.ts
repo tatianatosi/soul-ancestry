@@ -13,16 +13,24 @@ export type EstadoAtivacaoCaso = {
   motivos: string[];
 };
 
+type BloqueioReal = { regra: string; motivo: string };
+
 /** Os 14 requisitos obrigatórios (espelho de activation_check_definicoes()). */
 const REQUISITOS_OBRIGATORIOS: { chave: string; label: string }[] = [
   { chave: "contrato_assinado_ou_isencao_autorizada", label: "Contrato assinado" },
-  { chave: "pagamento_confirmado_ou_condicao_financeira_autorizada", label: "Pagamento inicial confirmado" },
+  {
+    chave: "pagamento_confirmado_ou_condicao_financeira_autorizada",
+    label: "Pagamento inicial confirmado",
+  },
   { chave: "responsavel_designado", label: "Responsável interno definido" },
   { chave: "cliente_identificado", label: "Contratante e participantes conferidos" },
   { chave: "nucleo_familiar_conferido", label: "Núcleo familiar confirmado" },
   { chave: "dossie_mae_criado", label: "Dossiê-mãe criado e vinculado" },
   { chave: "consentimento_registrado", label: "Dados mínimos e consentimento registrados" },
-  { chave: "proposta_aprovada_ou_isencao_autorizada", label: "Escopo, SKU, preço e vencimento reconciliados" },
+  {
+    chave: "proposta_aprovada_ou_isencao_autorizada",
+    label: "Escopo, SKU, preço e vencimento reconciliados",
+  },
   { chave: "ordem_de_servico_criada", label: "Ordem de serviço / Anexo I vinculada" },
   { chave: "escopo_definido", label: "Ambiente operacional provisionado" },
   { chave: "ambiente_acesso_definido", label: "Nível de acesso definido" },
@@ -55,7 +63,10 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
       .select("id,ativo")
       .eq("organization_id", organizationId);
 
-    const porCaso = new Map<string, Map<string, { status: string; isencao_expira_em: string | null }>>();
+    const porCaso = new Map<
+      string,
+      Map<string, { status: string; isencao_expira_em: string | null }>
+    >();
     for (const k of (checks.data ?? []) as {
       case_id: string;
       check_key: string;
@@ -81,7 +92,9 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
           continue;
         }
         const isencaoExpirada =
-          k.status === "isento" && !!k.isencao_expira_em && new Date(k.isencao_expira_em).getTime() < agora;
+          k.status === "isento" &&
+          !!k.isencao_expira_em &&
+          new Date(k.isencao_expira_em).getTime() < agora;
         if (isencaoExpirada) {
           motivos.push(`${req.label} — isenção expirada`);
           continue;
@@ -103,6 +116,27 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
       });
     }
 
+    /*
+     * 05/09/2026 — achado real: este card contava "pendentes"/"motivos"
+     * olhando só para case_activation_checks (checklist clicável). Um caso
+     * podia mostrar 14/14 validado aqui e ainda ser recusado pelo banco por
+     * consentimento real ausente, item de onboarding_checklist pendente ou
+     * inconsistência crítica em quality_issues — nenhuma das três é lida
+     * nesta tabela. Sobrescrevemos pendentes/motivos com a mesma projeção
+     * usada pela tela de ativação (case_ativacao_bloqueios_reais), sem
+     * cases ativos: para um caso já ativo o card continua mostrando "Caso
+     * ativo" e não precisa reavaliar bloqueios.
+     */
+    await Promise.all(
+      resultado
+        .filter((r) => !r.ativo)
+        .map(async (r) => {
+          const { data } = await supabase.rpc("case_ativacao_bloqueios_reais", { _case: r.caseId });
+          const reais = (data ?? []) as BloqueioReal[];
+          r.motivos = reais.map((b) => b.motivo);
+          r.pendentes = reais.length;
+        }),
+    );
+
     return resultado;
   });
-
