@@ -13,7 +13,7 @@ import {
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -299,14 +299,13 @@ export const salvarDependente = createServerFn({ method: "POST" })
       await sincronizarParametroDependentes(supabase, data.caseId);
       return { ok: true };
     }
-    const { error } = await supabase.from("case_dependents").insert({
-      ...patch,
-      case_id: data.caseId,
-      organization_id: caso.organization_id,
-      created_by: userId,
-      updated_by: userId,
+    await inserirComVerificacao({
+      supabase,
+      tabela: "case_dependents",
+      organizationId: caso.organization_id as string,
+      userId,
+      payload: { ...patch, case_id: data.caseId },
     });
-    if (error) throw new Error(error.message);
     await sincronizarParametroDependentes(supabase, data.caseId);
     return { ok: true };
   });
@@ -393,8 +392,13 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
         payload: registro,
       });
     } else {
-      const { error } = await supabase.from("legal_clause_matrix").insert({ ...registro, created_by: userId });
-      if (error) throw new Error(error.message);
+      await inserirComVerificacao({
+        supabase,
+        tabela: "legal_clause_matrix",
+        organizationId: organization_id,
+        userId,
+        payload: registro,
+      });
     }
     return { ok: true };
   });
@@ -472,8 +476,13 @@ export const salvarPaginaCanva = createServerFn({ method: "POST" })
         payload: registro,
       });
     } else {
-      const { error } = await supabase.from("proposal_canva_pages").insert({ ...registro, created_by: userId });
-      if (error) throw new Error(error.message);
+      await inserirComVerificacao({
+        supabase,
+        tabela: "proposal_canva_pages",
+        organizationId: caso.organization_id as string,
+        userId,
+        payload: registro,
+      });
     }
     return { ok: true };
   });
