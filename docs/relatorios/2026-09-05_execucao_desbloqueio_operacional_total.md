@@ -71,10 +71,9 @@ categoria (item 6 da tabela) foi corrigido nesta sessão.
   agora mostram erro com "Tentar novamente" em vez de sumir. `conversao.tsx`, `etiquetas.tsx`,
   `divergencias-catalogo.tsx`, `plano-acao.$caseId.tsx` e `fluxo-canonico.tsx` já mostravam a
   mensagem de erro mas sem ação — mesma correção aplicada.
-- "Assumir exceção comercial" (item 7) hoje só está acessível na tela de preparação de contrato. O
-  pedido explícito de estender o mesmo botão para a tela de Proposta (`/propostas`) — para "seguir
-  proposta mesmo com divergência do Planejador" — ainda não foi feito. O componente já é reutilizável
-  (só recebe `caseId`); o trabalho que falta é a chamada em `propostas.tsx`, não um mecanismo novo.
+- ~~"Assumir exceção comercial" só estava acessível na tela de preparação de contrato~~ — **corrigido
+  nesta mesma rodada**: o mesmo componente (`RegraComercial`, sem duplicar nada) agora também aparece
+  no detalhe da proposta em `/propostas`, quando a proposta tem caso vinculado.
 - CRM (Leads, Clientes, Pipeline, Timeline, Cadência, Microentregas), Núcleos/Pessoa 360 além do
   vínculo já corrigido, Pesquisa (fontes/evidências/hipóteses/achados), Marketing e Administração
   (usuários/papéis/configurações/integrações) foram auditados em rodadas anteriores desta mesma
