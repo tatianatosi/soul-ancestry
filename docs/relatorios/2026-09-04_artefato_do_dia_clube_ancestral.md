@@ -337,6 +337,47 @@ tela, e não como algo já verificado.
    de cada vez, com o mesmo padrão de correção (override auditado ou wiring real, nunca remoção de
    RLS/autenticação/auditoria).
 
+## 11. Atualização — execução do fluxo básico (CA-P0-EXEC-001) e conflito de merge da PR #85
+
+A Proprietária enviou dois documentos (`PROMPT_CLAUDE_CODE_CAP0EXEC001.md`,
+`ARTEFATO_EXECUCAO_CAP0EXEC001.md`) especificando uma missão fechada — quatro fluxos convertidos de
+código isolado/draft para operável, testado e com roteiro de preview — em vez do pedido anterior de
+remoção geral de bloqueios (mantido recusado, pelos mesmos motivos já registrados neste artefato).
+Diferente daquele pedido, esta missão foi executada integralmente, na própria branch já usada por toda
+a PR #85 (decisão de não abrir a branch nova literalmente nomeada no prompt, para não fragmentar o
+mesmo trabalho em duas PRs draft).
+
+### 11.1 — Os quatro critérios de aceite
+
+| Critério | Situação encontrada | O que foi feito |
+|---|---|---|
+| A — assinatura de contrato libera o gate real do App Cliente | Já corrigido em código nesta mesma sessão (seção 6); faltava teste automatizado | Criado `src/lib/__tests__/portal-elegibilidade.test.ts` (4 testes) fixando o contrato exato que `bloqueioDoCaso` exige |
+| B — `/nucleos` explica ausência de vínculo com Pessoa Canônica | Seletor de vínculo manual já existia; a leitura ficava muda quando não havia vínculo | `nucleos.tsx` agora mostra "Sem vínculo com Pessoa Canônica — use 'Editar' para vincular" no lugar do silêncio |
+| C — dossiê-mãe conectado à fila real do Drive | `/nucleos` tratava dossiê-mãe como texto livre, sem nenhuma leitura/escrita em `drive_provisioning_queue` | Nova função `encaminharFilaDrive` (`nucleos-desk.functions.ts`): avalia os gates reais do caso (contrato, pagamento, ativação) e só então move o item de "blocked" para "ready_for_review" — nunca cria pasta, nunca aprova/executa; `/nucleos` mostra o estado real e o botão "Encaminhar para revisão" |
+| D — painel TOP 30 nunca some silenciosamente | Corrigido nesta mesma sessão (seção anterior a esta atualização); faltava teste | Comportamento já coberto por inspeção de código; estados de UI documentados no roteiro de preview |
+
+### 11.2 — Validação e entrega
+
+`tsc --noEmit` limpo, `vitest run` com 166 arquivos e 1604 testes passando, `vite build` concluído —
+antes e depois da resolução do conflito de merge (seção 11.3). Relatório específico desta execução,
+com roteiro de preview passo a passo para os quatro critérios, em
+`docs/relatorios/2026-09-04_execucao_fluxo_basico.md`.
+
+### 11.3 — Conflito de merge da PR #85 com `main`, encontrado e resolvido
+
+Depois de enviado o commit da seção 11.1, a PR #85 passou a `mergeable_state: "dirty"`: a branch
+`main` havia avançado (PRs #73, #77, #78) tocando os mesmos cinco arquivos que esta sessão já vinha
+alterando (`comercial.functions.ts`, `nucleos-desk.functions.ts`, `onboarding.functions.ts`,
+`piloto-ana.functions.ts`, `nucleos.tsx`). Em cada um dos 13 trechos em conflito, o lado desta branch
+era estritamente mais completo que o lado de `main` (a mesma correção, mais um campo ou uma função que
+`main` ainda não tinha) — nenhum conflito exigiu decisão de produto, só decisão de qual código é mais
+novo. Resolvido mantendo sempre o lado mais completo, revalidado (`tsc`/1604 testes/`build`, todos
+limpos) e enviado como commit de merge. A PR #85 voltou a `mergeable_state: "clean"`, com o preview do
+Vercel publicado com sucesso.
+
+**Isto não decide**: se/quando a Proprietária mescla a PR #85 — isso continua dependendo de teste em
+preview e autorização explícita dela, como todas as PRs abertas hoje.
+
 ---
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
