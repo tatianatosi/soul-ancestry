@@ -86,7 +86,8 @@ function Pessoa() {
     );
   }
 
-  const { cliente, casos, eventos, leads } = q.data;
+  const { cliente, casos, eventos, leads, nucleoMembros, propostas, contratos, contractParties, documentos, projecoesPublicadas, pesquisaPossivel } =
+    q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
     casos.map((c) => ({
@@ -150,6 +151,119 @@ function Pessoa() {
             </ul>
           )}
         </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Núcleo familiar e papéis</h2>
+            <p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>
+          </div>
+          {nucleoMembros.length === 0 ? (
+            <p className="mt-2 text-sm text-navy/60">Esta pessoa não está vinculada a nenhum núcleo familiar.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {nucleoMembros.map((m) => (
+                <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
+                  <p className="text-sm font-medium text-navy">{m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}</p>
+                  <p className="mt-0.5 text-xs text-navy/60">{m.vinculo}{m.processo ? ` · ${m.processo}` : ""}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Propostas</p>
+              {propostas.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhuma proposta.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {propostas.map((p) => (
+                    <li key={p.id} className="text-sm text-navy/80">
+                      {p.status}{p.valor ? ` · R$ ${p.valor}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Contratos</p>
+              {contratos.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhum contrato.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {contratos.map((c) => (
+                    <li key={c.id} className="text-sm text-navy/80">
+                      {c.status}{c.signed_at ? ` · assinado em ${formatarDia(c.signed_at)}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {contractParties.length > 0 ? (
+                <p className="mt-1 text-[11px] text-navy/50">
+                  Parte em {contractParties.length} instrumento(s) ({contractParties.map((p) => p.document_type).filter(Boolean).join(", ") || "documento não informado"})
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Documentos</p>
+              {documentos.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhum documento vinculado.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {documentos.slice(0, 5).map((d) => (
+                    <li key={d.id} className="text-sm text-navy/80">
+                      {d.titulo} {d.liberado_cliente ? <span className="text-[11px] text-navy/50">· liberado ao cliente</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Conteúdo publicado para o App Cliente</h2>
+            <p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>
+          </div>
+          {projecoesPublicadas.length === 0 ? (
+            <p className="mt-2 text-sm text-navy/60">Nada foi publicado para o App Cliente nos casos desta pessoa ainda.</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {projecoesPublicadas.map((p) => (
+                <li key={p.id} className="flex items-center justify-between rounded-lg border border-navy/12 bg-cream/25 p-3 text-sm">
+                  <span className="text-navy/85">{p.projection_type}</span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[11px] ${
+                      p.approval_status === "published" ? "bg-gold/15 text-navy" : "bg-navy/8 text-navy/70"
+                    }`}
+                  >
+                    {p.approval_status === "published" ? "Publicado" : p.approval_status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {pesquisaPossivel.length > 0 ? (
+          <section className="rounded-xl border border-dashed border-navy/20 bg-cream/20 p-5">
+            <h2 className="font-serif text-lg text-navy">Pesquisa genealógica interna (restrita ao Desk)</h2>
+            <p className="mt-1 text-xs text-navy/55">
+              Correspondência por nome, não vínculo confirmado — esta camada nunca é exposta ao App Cliente.
+            </p>
+            <ul className="mt-3 space-y-1">
+              {pesquisaPossivel.map((p) => (
+                <li key={p.id} className="text-sm text-navy/80">
+                  {p.nome_completo} <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {/*
           O elo com o lead. `leads.case_id` está nulo em todo o banco, então

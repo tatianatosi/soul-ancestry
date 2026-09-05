@@ -91,11 +91,88 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       .is("archived_at", null)
       .limit(500);
 
+    /*
+      Perfil 360 (execução sobre tabelas existentes, sem tabela nova):
+      núcleo/papéis, propostas, contratos/partes e documentos liberados são
+      todos vínculos que já existem no banco — clientes.id é a Pessoa
+      Canônica; nucleo_membros.cliente_id, contract_parties.client_id,
+      proposals.client_id e documents.client_id já apontam para ela. Esta
+      função só passa a ler os quatro juntos; nenhum schema muda.
+    */
+    const [nucleoMembros, propostas, contratos, contractParties, documentos, projecoes, pesquisaPossivel] =
+      await Promise.all([
+        supabase
+          .from("nucleo_membros")
+          .select("id, nucleo_id, nome, papel, vinculo, processo, ordem")
+          .eq("cliente_id", cliente.id)
+          .is("archived_at", null),
+        supabase
+          .from("proposals")
+          .select("id, case_id, status, valor, created_at")
+          .eq("client_id", cliente.id)
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("contracts")
+          .select("id, case_id, status, signed_at, created_at")
+          .eq("client_id", cliente.id)
+          .eq("organization_id", organizationId)
+          .is("archived_at", null)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("contract_parties")
+          .select("id, contract_id, person_name, document_type")
+          .eq("client_id", cliente.id)
+          .is("archived_at", null),
+        ids.length
+          ? supabase
+              .from("documents")
+              .select("id, case_id, titulo, status, liberado_cliente, created_at")
+              .in("case_id", ids)
+              .eq("client_id", cliente.id)
+              .is("archived_at", null)
+              .order("created_at", { ascending: false })
+              .limit(200)
+          : { data: [] },
+        ids.length
+          ? supabase
+              .from("app_projections")
+              .select("id, case_id, projection_type, approval_status, effective_from, created_at")
+              .in("case_id", ids)
+              .is("archived_at", null)
+              .order("created_at", { ascending: false })
+              .limit(200)
+          : { data: [] },
+        /*
+          Camada 3 (pesquisa genealógica) é isolamento deliberado — nunca vai
+          ao App Cliente. Aqui é só leitura Desk, por correspondência de nome
+          (não existe cliente_id em genealogical_person_profiles por desenho):
+          mostra a evidência, não funde nem vincula automaticamente.
+        */
+        (cliente.nome_social || cliente.nome || "").trim()
+          ? supabase
+              .from("genealogical_person_profiles")
+              .select("id, nome_completo, status_verificacao")
+              .eq("organization_id", organizationId)
+              .ilike("nome_completo", `%${(cliente.nome_social || cliente.nome).trim()}%`)
+              .is("archived_at", null)
+              .limit(20)
+          : { data: [] },
+      ]);
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
       casos: listaCasos,
       eventos: (eventos ?? []) as Linha[],
       leads: (leads ?? []) as Linha[],
+      nucleoMembros: (nucleoMembros.data ?? []) as Linha[],
+      propostas: (propostas.data ?? []) as Linha[],
+      contratos: (contratos.data ?? []) as Linha[],
+      contractParties: (contractParties.data ?? []) as Linha[],
+      documentos: (documentos.data ?? []) as Linha[],
+      projecoesPublicadas: (projecoes.data ?? []) as Linha[],
+      pesquisaPossivel: (pesquisaPossivel.data ?? []) as Linha[],
     };
   });
