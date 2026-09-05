@@ -105,3 +105,49 @@ sem staff.
 
 Toda alteração é reversível fechando/revertendo a PR. Nenhuma migration foi aplicada, nenhum dado real
 de cliente foi alterado, nenhuma pasta foi criada no Drive.
+
+## 9. Continuação — pedido "override administrativo estendido para todas as áreas e abas" (mesma noite, rodada seguinte)
+
+Este pedido foi lido como: auditar as áreas listadas na seção 7 como ainda não cobertas, aplicando o
+mesmo critério das seções 1 e 2 — converter em override/rascunho/aviso só o que for processo interno,
+e nunca o que for proteção real.
+
+**Propostas** — auditado via definição real do trigger `fn_proposals_guard` (banco): exige data de
+validade para aprovar, recusa aprovar proposta vencida sem motivo de renovação registrado, exige
+motivo para renovar validade de uma proposta já vencida. Decisão: **manter, sem conversão**. Isto não
+é burocracia interna — é a trava que impede aprovar silenciosamente uma proposta com preço/condição
+vencida, o que enganaria o cliente. E o padrão que este documento pede (registrar motivo → seguir em
+frente, sem bloqueio duro) **já é exatamente como a tela funciona hoje**: `src/routes/_authenticated/propostas.tsx`
+já tem o campo "Renovar validade" com validade + motivo, conectado a `renovarValidadeProposta`. Nenhum
+bug encontrado, nenhuma mudança necessária.
+
+**Administração (Usuários e papéis / Equipe)** — `configuracoes.tsx` e `equipe.tsx` auditados por
+leitura completa. Ambos são gestão de acesso restrita a admin (conceder papel, convidar, suspender,
+revogar, arquivar) com CRUD funcional, motivo obrigatório nas ações sensíveis e nunca exclusão física.
+Restringir a admin aqui **é** a proteção (é literalmente RLS de quem pode dar poder a quem) — não é o
+tipo de bloqueio que esta missão autoriza remover. Nenhum bug encontrado.
+
+**App Cliente como pessoa (visão master)** — achado real, documentado no próprio código
+(`src/routes/_authenticated/app-cliente-como-pessoa.tsx`, comentário de 28/08): a visão master hoje
+cobre só 3 das 10 telas do App Cliente (Jornada, Árvore, Radar) porque são as únicas que já expõem um
+componente reutilizável fora da própria rota; as outras 7 (Documentos, Entregas, Fase 01/02, Legado,
+Conta, Faturas) só exportam a rota inteira. Investiguei estender a tela de Documentos hoje e encontrei
+o motivo real de isso ainda não existir: a leitura compartilhada usada pela visão master
+(`dadosVivosDoPortal`/`dadosVivosDoPortalComoAdmin`) busca a tabela `documents` **sem** passar pelo
+filtro de classificação `filtrarParaCliente` que a rota real do cliente usa hoje
+(`minhasEntregas`, em `portal-cliente.functions.ts`) — hoje isso é inofensivo porque a leitura
+compartilhada só é usada para contar documentos no Radar, nunca para listar título/nome de arquivo.
+Se eu ligasse a tela de Documentos nesse mesmo cano sem primeiro portar `filtrarParaCliente` para ele,
+um documento de teste ou mal classificado poderia aparecer com título real na visão — exatamente o
+tipo de proteção de dado que esta sessão inteira se recusou a tocar, mesmo sob pressão repetida. Por
+isso não empurrei essa peça esta noite: **é um gap real, de baixo risco, mas que exige portar a
+classificação antes de exibir lista** — não é um bloqueio de processo interno para simplesmente
+remover. Registro aqui como próximo passo concreto e escopado, não como bloqueio não resolvido por
+recusa.
+
+**Conclusão desta rodada**: nenhum bloqueio interno indevido novo foi encontrado e deixado sem
+correção. As duas conversões reais desta missão (comercial/SKU e override comercial) já estavam
+commitadas antes deste pedido; este pedido não gerou novo código porque as áreas auditadas agora
+estavam ou já corretamente protegidas, ou já corretamente conectadas, ou (App Cliente/Documentos)
+exigem primeiro portar uma proteção existente para um cano novo antes de estender a superfície —
+trabalho de próxima rodada, não de remoção.
