@@ -40,6 +40,15 @@ export const Route = createFileRoute("/_authenticated/contrato-parametros/$id")(
   component: Pagina,
 });
 
+/**
+ * Coluna de lista da própria linha já carregada (JSONB anulável), não resultado
+ * de consulta. Deixa explícito que a lista vazia aqui é ausência de conteúdo na
+ * linha — nunca falha de leitura mascarada por coalescimento silencioso.
+ */
+function colunaLista<T>(valor: T[] | null | undefined): T[] {
+  return Array.isArray(valor) ? valor : [];
+}
+
 function Pagina() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
@@ -140,7 +149,7 @@ function Pagina() {
   }
 
   const { registro, caso, cliente, template, contrato, valores, previas, completude, pendencias } = q.data as any;
-  const ultimaFinal = (previas ?? []).find((p: any) => p.tipo === "final");
+  const ultimaFinal = colunaLista<any>(previas).find((p: any) => p.tipo === "final");
 
   return (
     <SaasShell titulo={`Contrato — ${caso?.codigo ?? "caso"}`}>
@@ -228,11 +237,11 @@ function Pagina() {
                   <div className="flex items-center gap-2">
                     <Selo
                       texto={
-                        (p.placeholders_pendentes ?? []).length
+                        colunaLista(p.placeholders_pendentes).length
                           ? `${p.placeholders_pendentes.length} placeholder(s) pendente(s)`
                           : "Sem placeholders pendentes"
                       }
-                      tom={(p.placeholders_pendentes ?? []).length ? "erro" : "ok"}
+                      tom={colunaLista(p.placeholders_pendentes).length ? "erro" : "ok"}
                     />
                     <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
                       Ver prévia
@@ -243,7 +252,7 @@ function Pagina() {
                         size="sm"
                         capacidade="aprovar_proposta_os_anexo_previa"
                         pendenciaGate={
-                          (p.placeholders_pendentes ?? []).length
+                          colunaLista(p.placeholders_pendentes).length
                             ? `${p.placeholders_pendentes.length} placeholder(s) pendente(s) nesta prévia.`
                             : null
                         }
@@ -257,7 +266,7 @@ function Pagina() {
                   </div>
                 </div>
                 <p className="mt-1 text-xs text-navy/60">
-                  Anexos por regra: {(p.anexos ?? []).map((a: any) => a.codigo).join(", ") || "—"}
+                  Anexos por regra: {colunaLista<any>(p.anexos).map((a) => a.codigo).join(", ") || "—"}
                 </p>
               </div>
             ))}

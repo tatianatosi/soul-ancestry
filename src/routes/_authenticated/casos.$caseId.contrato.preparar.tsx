@@ -67,6 +67,20 @@ const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, re
 
 
 
+/**
+ * Lista opcional de um payload já carregado (campo do registro, coluna JSONB ou
+ * consulta secundária cujo erro a tela já mostra em bloco próprio).
+ *
+ * Existe para não escrever o coalescimento solto para lista vazia: ali a lista
+ * vazia era indistinguível
+ * de falha de leitura. Aqui a intenção fica declarada — falha de carga da
+ * consulta principal já é barrada antes deste ponto, e o erro das consultas
+ * secundárias (`qa`, `qi`) aparece nos painéis de Auditoria e Instância.
+ */
+function listaOpcional<T>(valor: T[] | null | undefined): T[] {
+  return Array.isArray(valor) ? valor : [];
+}
+
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
   head: () => ({
     meta: [
@@ -121,7 +135,7 @@ function Pagina() {
   const mMaterializar = useMutation({
     mutationFn: (confirmar: boolean) => materializar({ data: { id: registroId as string, confirmar } }),
     onSuccess: (r: any) => {
-      setPlanoRevisados((r.plano ?? []) as ItemPlanoMaterializacao[]);
+      setPlanoRevisados(listaOpcional(r.plano) as ItemPlanoMaterializacao[]);
       if (r.simulado) {
         toast.info("Prévia do lote: nada foi gravado ainda.");
         return;
@@ -143,7 +157,7 @@ function Pagina() {
   const mRessincronizar = useMutation({
     mutationFn: (confirmar: boolean) => ressincronizar({ data: { id: registroId as string, confirmar } }),
     onSuccess: (r: any) => {
-      setPlanoRessincronizacao((r.plano ?? []) as any);
+      setPlanoRessincronizacao(listaOpcional(r.plano) as any);
       if (r.simulado) {
         toast.info("Prévia da sincronização: nada foi gravado ainda.");
         return;
@@ -274,13 +288,13 @@ function Pagina() {
   const d = q.data as any;
   const bloqueios = d.bloqueios as { chave: string; motivo: string }[];
   const bloqueado = bloqueios.length > 0;
-  const resolutivos = bloqueiosResolutivos(bloqueios, (d.valores ?? []) as any);
+  const resolutivos = bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any);
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
   const revisaoTravada = temBloqueioImpeditivo(resolutivos);
-  const eventos = agruparAuditoria((qa.data?.eventos ?? []) as any[]);
-  const rascunhoAtual = (d.previas ?? []).find((p: any) => p.estado === "rascunho_editavel");
-  const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.estado === "congelado");
-  const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
+  const eventos = agruparAuditoria(listaOpcional(qa.data?.eventos) as any[]);
+  const rascunhoAtual = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel");
+  const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
+  const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);
 
   // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
   const entradaAnexos = entradaDeValores({
@@ -289,7 +303,7 @@ function Pagina() {
     responsavel: null,
     contratoBaseVersao: CONTRATO_BASE_VERSAO,
     modelo: "MODELO-ESTUDO",
-    valores: (d.valores ?? []) as any[],
+    valores: listaOpcional(d.valores) as any[],
   });
   const anexosGovernados = anexosIaV(entradaAnexos);
   const perfilInstitucional = perfilInstitucionalRenderizado();
@@ -297,7 +311,7 @@ function Pagina() {
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
     perfilInstitucionalAtivo: perfilInstitucional.vigente,
-    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    metodoAssinaturaConfigurado: Boolean(listaOpcional<any>(d.valores).find((v) => v.campo === "forma_assinatura")?.valor),
     revisorHumanoAprovado: Boolean(finalAprovada),
     conflitos: [],
   });
@@ -324,7 +338,7 @@ function Pagina() {
      */
     politicaPrivacidadeVigente: contratoBaseAssinavel(),
     foroConfigurado: contratoBaseAssinavel(),
-    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    metodoAssinaturaConfigurado: Boolean(listaOpcional<any>(d.valores).find((v) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
   });
   const blocosCaso = blocosRenderizados(anexosGovernados);
@@ -335,7 +349,7 @@ function Pagina() {
       status: statusTelaDeAnexo(a),
       modelo: null,
     })),
-    (qi.data ?? []) as any,
+    listaOpcional(qi.data) as any,
   );
   // Autoridade operacional: bloqueio de gate não desabilita controle nem
   // esconde bloco. Vira pendência declarada, preservada na confirmação.
@@ -453,21 +467,25 @@ function Pagina() {
         <div id="coerencia">
         <ConflitoCoerencia
           coerencia={d.coerencia}
-          valorPaisRota={(d.valores ?? []).find((v: any) => v.campo === "pais_rota") ?? null}
+          valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
           aoCorrigir={invalidar}
         />
         </div>
 
         <div id="bloqueios">
-          <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
+          <PainelBloqueios
+            bloqueios={bloqueios}
+            valores={listaOpcional(d.valores)}
+            pendencias={listaOpcional(d.pendencias)}
+          />
         </div>
 
         <div id="anexos" className="space-y-4">
           <AnexosAplicaveis
-            valores={d.valores ?? []}
-            anexosGerados={d.anexos ?? []}
+            valores={listaOpcional(d.valores)}
+            anexosGerados={listaOpcional(d.anexos)}
             aoVerPrevia={(codigo) => {
-              const alvo = rascunhoAtual ?? (d.previas ?? [])[0];
+              const alvo = rascunhoAtual ?? listaOpcional<any>(d.previas)[0];
               if (alvo) mVer.mutate(alvo.id);
               else toast.info(`Gere o rascunho de trabalho para visualizar a instância de ${codigo}.`);
               document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -613,7 +631,7 @@ function Pagina() {
           <GovernancaFicha />
           {BLOCOS_FICHA.map((s) => (
             <Painel key={s.chave} titulo={s.titulo}>
-              <CabecalhoBloco bloco={s} estado={estadoDoBloco((d.valores ?? []) as any[], s.grupos)} />
+              <CabecalhoBloco bloco={s} estado={estadoDoBloco(listaOpcional(d.valores) as any[], s.grupos)} />
               <div className="space-y-3">
                 {s.grupos.flatMap((g) => {
                   const itens = (d.valores as any[]).filter((v) => v.grupo === g);
@@ -707,18 +725,18 @@ function Pagina() {
                     <p className="text-xs text-navy/60">
                       {ROTULO_EVENTO_PREVIA[p.evento ?? ""] ?? "Evento não registrado"} ·{" "}
                       {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")} · autor {p.gerado_por ? "registrado" : "—"} ·{" "}
-                      {(p.anexos ?? []).length} anexo(s) · {(p.conteudo?.valores ?? []).length} parâmetro(s)
+                      {listaOpcional(p.anexos).length} anexo(s) · {listaOpcional(p.conteudo?.valores).length} parâmetro(s)
                     </p>
                     {p.motivo && <p className="text-xs text-navy/60">Motivo: {p.motivo}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <Selo
                       texto={
-                        (p.placeholders_pendentes ?? []).length
+                        listaOpcional(p.placeholders_pendentes).length
                           ? `${p.placeholders_pendentes.length} pendência(s)`
                           : "Sem placeholders"
                       }
-                      tom={(p.placeholders_pendentes ?? []).length ? "erro" : "ok"}
+                      tom={listaOpcional(p.placeholders_pendentes).length ? "erro" : "ok"}
                     />
                     <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
                       Ver prévia

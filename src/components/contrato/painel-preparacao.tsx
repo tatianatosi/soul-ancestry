@@ -83,6 +83,45 @@ const ROTULO_STATUS: Record<string, string> = {
   bloqueado: "Bloqueado",
 };
 
+/**
+ * Leitura de lista sem silenciar falha. Antes o painel coalescia para lista vazia
+ * toda lista vinda da conferência: quando o campo não voltava, a tela mostrava
+ * "nenhum" e a proprietária lia ausência de bloqueio onde havia leitura
+ * incompleta. Agora campo ausente aparece como aviso explícito.
+ */
+function ListaLida<T>({
+  valor,
+  campo,
+  vazio,
+  children,
+}: {
+  valor: unknown;
+  campo: string;
+  vazio: string;
+  children: (itens: T[]) => React.ReactNode;
+}) {
+  if (!Array.isArray(valor)) {
+    return (
+      <p role="alert" className="text-terracotta">
+        Leitura incompleta: o campo “{campo}” não voltou do servidor. Nada aqui é assumido como vazio.
+      </p>
+    );
+  }
+  if (valor.length === 0) return <p>{vazio}</p>;
+  return <>{children(valor as T[])}</>;
+}
+
+/** Texto de lista em linha: campo ausente vira aviso, no lugar de “nenhuma”. */
+function textoLista(valor: unknown, separador: string, vazio: string): string {
+  if (!Array.isArray(valor)) return "leitura incompleta (campo não retornado)";
+  return valor.length ? valor.join(separador) : vazio;
+}
+
+/** Contagem de lista: campo ausente não é zero. */
+function contagemLista(valor: unknown): string {
+  return Array.isArray(valor) ? String(valor.length) : "leitura incompleta";
+}
+
 function Bloco({ n, titulo, children }: { n: number; titulo: string; children: React.ReactNode }) {
   return (
     <section className="rounded border border-navy/15 bg-cream/40 p-3">
@@ -124,7 +163,6 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
 
   const d = q.data as any;
   const r = d.resultado;
-  const gates: AvaliacaoGate[] = r.gates ?? [];
   const san = d.saneamento;
   const contexto = contextoGatesDaConferencia(r);
   const liberadas = ACOES_GATEADAS.filter((a) => podeExecutar(a, contexto));
@@ -155,7 +193,7 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
                 v{d.proposta.versao} · {d.proposta.status} · origem {d.proposta.origem ?? "não registrada"} ·{" "}
                 {d.proposta.origem_referencia ?? "sem referência do deck"}
               </p>
-              <p>Páginas registradas: {(d.proposta.paginas_registradas ?? []).join(", ") || "nenhuma"}</p>
+              <p>Páginas registradas: {textoLista(d.proposta.paginas_registradas, ", ", "nenhuma")}</p>
             </>
           ) : (
             <p>Nenhuma proposta vinculada a este caso.</p>
@@ -174,11 +212,15 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
           <p>
             Fonte aplicada: <strong>{ROTULO_FONTE_CANONICA[d.preco?.fonte] ?? d.preco?.fonte ?? "não determinada"}</strong>
           </p>
-          {(d.preco?.divergencias ?? []).map((x: any) => (
-            <p key={x.fonte} className="text-terracotta">
-              Divergência ({ROTULO_FONTE_CANONICA[x.fonte] ?? x.fonte}): {x.descricao}
-            </p>
-          ))}
+          <ListaLida valor={d.preco?.divergencias} campo="preco.divergencias" vazio="Nenhuma divergência de preço apurada.">
+            {(itens) =>
+              (itens as any[]).map((x) => (
+                <p key={x.fonte} className="text-terracotta">
+                  Divergência ({ROTULO_FONTE_CANONICA[x.fonte] ?? x.fonte}): {x.descricao}
+                </p>
+              ))
+            }
+          </ListaLida>
         </Bloco>
 
         <Bloco n={3} titulo="Escopo, família e despesas de terceiros">
@@ -186,26 +228,30 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
             Núcleo: {d.nucleo?.nome ?? "não registrado"} · {d.membros.length} pessoa(s) vinculadas.
           </p>
           <p>Despesas de terceiros registradas: {d.despesas.length}</p>
-          {(r.conflitos ?? []).length === 0 ? (
-            <p>Nenhum conflito de escopo aberto.</p>
-          ) : (
-            (r.conflitos ?? []).map((c: any) => (
-              <p key={`${c.codigo}-${c.campo}`} className="text-terracotta">
-                {c.campo}: {c.descricao}
-              </p>
-            ))
-          )}
+          <ListaLida valor={r.conflitos} campo="resultado.conflitos" vazio="Nenhum conflito de escopo aberto.">
+            {(itens) =>
+              (itens as any[]).map((c) => (
+                <p key={`${c.codigo}-${c.campo}`} className="text-terracotta">
+                  {c.campo}: {c.descricao}
+                </p>
+              ))
+            }
+          </ListaLida>
         </Bloco>
 
         <Bloco n={4} titulo="Gates de formalização">
-          <ul className="space-y-1">
-            {gates.map((g) => (
-              <li key={g.gate} className={g.ok ? "text-navy/70" : "text-terracotta"}>
-                {g.ok ? "✓" : "✗"} {ROTULO_GATE[g.gate] ?? g.gate}
-                {g.motivo ? ` — ${g.motivo}` : ""}
-              </li>
-            ))}
-          </ul>
+          <ListaLida<AvaliacaoGate> valor={r.gates} campo="resultado.gates" vazio="Nenhum gate avaliado nesta conferência.">
+            {(itens) => (
+              <ul className="space-y-1">
+                {itens.map((g) => (
+                  <li key={g.gate} className={g.ok ? "text-navy/70" : "text-terracotta"}>
+                    {g.ok ? "✓" : "✗"} {ROTULO_GATE[g.gate] ?? g.gate}
+                    {g.motivo ? ` — ${g.motivo}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListaLida>
         </Bloco>
 
         <Bloco n={5} titulo="Ações liberadas">
@@ -214,12 +260,16 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
           ) : (
             <p>Nenhuma ação de formalização liberada até resolver os bloqueios.</p>
           )}
-          {(r.bloqueios ?? []).map((b: any) => (
-            <p key={b.codigo} className="text-terracotta">
-              {b.codigo}: {b.descricao}
-            </p>
-          ))}
-          {(r.bloqueios ?? []).length > 0 && (
+          <ListaLida valor={r.bloqueios} campo="resultado.bloqueios" vazio="Nenhum bloqueio de formalização aberto.">
+            {(itens) =>
+              (itens as any[]).map((b) => (
+                <p key={b.codigo} className="text-terracotta">
+                  {b.codigo}: {b.descricao}
+                </p>
+              ))
+            }
+          </ListaLida>
+          {Array.isArray(r.bloqueios) && r.bloqueios.length > 0 && (
             <div className="mt-2 space-y-1 rounded border border-navy/15 bg-white p-2">
               <p className="text-[11px] text-navy/60">
                 Bloqueio interno — a Proprietária Administradora pode assumir a pendência e seguir. A pendência
@@ -238,50 +288,52 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
         <Bloco n={6} titulo="Campos da proposta Canva (páginas 1–7)">
           <p>
             Deck interno: {d.proposta?.origem_referencia ?? "não registrado"} · páginas usadas:{" "}
-            {(r.paginas_usadas ?? []).join(", ") || "nenhuma"}
+            {textoLista(r.paginas_usadas, ", ", "nenhuma")}
           </p>
-          <p className="mt-1 font-medium text-navy">Extraídos ({(r.campos_extraidos ?? []).length})</p>
-          {(r.campos_extraidos ?? []).length ? (
-            <ul className="space-y-0.5">
-              {(r.campos_extraidos ?? []).map((c: any) => (
-                <li key={c.campo}>
-                  ✓ {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum campo extraído.</p>
-          )}
-          <p className="mt-1 font-medium text-navy">Não localizados ({(r.campos_ausentes ?? []).length})</p>
-          {(r.campos_ausentes ?? []).length ? (
-            <ul className="space-y-0.5">
-              {(r.campos_ausentes ?? []).map((c: any) => (
-                <li key={c.campo} className={c.obrigatorio ? "text-terracotta" : "text-navy/60"}>
-                  {c.obrigatorio ? "✗" : "○"} {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
-                  {c.obrigatorio ? " · obrigatório" : " · opcional, não declarado"}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum campo pendente.</p>
-          )}
-          <p className="mt-1">
-            Anexos afetados: {(r.anexos_afetados ?? []).join(" · ") || "nenhum"}
-          </p>
+          <p className="mt-1 font-medium text-navy">Extraídos ({contagemLista(r.campos_extraidos)})</p>
+          <ListaLida valor={r.campos_extraidos} campo="resultado.campos_extraidos" vazio="Nenhum campo extraído.">
+            {(itens) => (
+              <ul className="space-y-0.5">
+                {(itens as any[]).map((c) => (
+                  <li key={c.campo}>
+                    ✓ {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListaLida>
+          <p className="mt-1 font-medium text-navy">Não localizados ({contagemLista(r.campos_ausentes)})</p>
+          <ListaLida valor={r.campos_ausentes} campo="resultado.campos_ausentes" vazio="Nenhum campo pendente.">
+            {(itens) => (
+              <ul className="space-y-0.5">
+                {(itens as any[]).map((c) => (
+                  <li key={c.campo} className={c.obrigatorio ? "text-terracotta" : "text-navy/60"}>
+                    {c.obrigatorio ? "✗" : "○"} {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
+                    {c.obrigatorio ? " · obrigatório" : " · opcional, não declarado"}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListaLida>
+          <p className="mt-1">Anexos afetados: {textoLista(r.anexos_afetados, " · ", "nenhum")}</p>
           <p className="text-navy/50">Nada é inferido: campo não localizado permanece pendência e mantém o bloqueio.</p>
         </Bloco>
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <Bloco n={7} titulo="Páginas 1–7 — status de extração">
-          <ul className="space-y-0.5">
-            {(san?.paginas ?? []).map((p: any) => (
-              <li key={p.page_number} className={p.bloqueia ? "text-terracotta" : "text-navy/70"}>
-                {p.bloqueia ? "✗" : "✓"} p. {p.page_number} — {p.rotulo}
-                {p.campos_nao_localizados.length ? ` · não localizados: ${p.campos_nao_localizados.join(", ")}` : ""}
-              </li>
-            ))}
-          </ul>
+          <ListaLida valor={san?.paginas} campo="saneamento.paginas" vazio="Nenhuma página avaliada.">
+            {(itens) => (
+              <ul className="space-y-0.5">
+                {(itens as any[]).map((p) => (
+                  <li key={p.page_number} className={p.bloqueia ? "text-terracotta" : "text-navy/70"}>
+                    {p.bloqueia ? "✗" : "✓"} p. {p.page_number} — {p.rotulo}
+                    {p.campos_nao_localizados.length ? ` · não localizados: ${p.campos_nao_localizados.join(", ")}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListaLida>
           <p className="text-navy/50">
             Referência interna do deck: {san?.deck_referencia_interna ?? "não registrada"}. Nenhum link ou conteúdo do Canva é exibido.
           </p>
@@ -292,11 +344,19 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
           {san?.validade?.bloqueia ? (
             <>
               <p className="mt-1 font-medium text-navy">Decisão humana requerida (nenhuma é automática):</p>
-              <ul className="space-y-0.5">
-                {(san.validade.decisoes_humanas ?? []).map((d: any) => (
-                  <li key={d}>○ {ROTULO_DECISAO_VALIDADE[d as keyof typeof ROTULO_DECISAO_VALIDADE] ?? d}</li>
-                ))}
-              </ul>
+              <ListaLida
+                valor={san.validade.decisoes_humanas}
+                campo="saneamento.validade.decisoes_humanas"
+                vazio="Nenhuma decisão humana listada."
+              >
+                {(itens) => (
+                  <ul className="space-y-0.5">
+                    {(itens as any[]).map((dec) => (
+                      <li key={dec}>○ {ROTULO_DECISAO_VALIDADE[dec as keyof typeof ROTULO_DECISAO_VALIDADE] ?? dec}</li>
+                    ))}
+                  </ul>
+                )}
+              </ListaLida>
               <button
                 type="button"
                 onClick={() => mRevalidar.mutate()}
@@ -310,27 +370,31 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
         </Bloco>
 
         <Bloco n={9} titulo="Estado por campo do escopo">
-          <ul className="space-y-0.5">
-            {(san?.campos ?? []).map((c: any) => (
-              <li key={c.campo} className={c.bloqueia ? "text-terracotta" : c.pendencia ? "text-navy/60" : "text-navy/80"}>
-                {c.bloqueia ? "✗" : c.pendencia ? "○" : "✓"} {c.label} — {c.estado_rotulo}
-                <span className="text-navy/50"> · p. {c.paginas.join(", ")}</span>
-              </li>
-            ))}
-          </ul>
+          <ListaLida valor={san?.campos} campo="saneamento.campos" vazio="Nenhum campo avaliado.">
+            {(itens) => (
+              <ul className="space-y-0.5">
+                {(itens as any[]).map((c) => (
+                  <li key={c.campo} className={c.bloqueia ? "text-terracotta" : c.pendencia ? "text-navy/60" : "text-navy/80"}>
+                    {c.bloqueia ? "✗" : c.pendencia ? "○" : "✓"} {c.label} — {c.estado_rotulo}
+                    <span className="text-navy/50"> · p. {c.paginas.join(", ")}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ListaLida>
           <p className="text-navy/50">Campo ausente permanece ausente: nada é preenchido por suposição.</p>
         </Bloco>
 
         <Bloco n={10} titulo="Bloqueios do saneamento">
-          {(san?.bloqueios ?? []).length ? (
-            (san.bloqueios ?? []).map((b: any) => (
-              <p key={b.codigo} className="text-terracotta">
-                {b.codigo}: {b.descricao}
-              </p>
-            ))
-          ) : (
-            <p>Nenhum bloqueio de saneamento aberto.</p>
-          )}
+          <ListaLida valor={san?.bloqueios} campo="saneamento.bloqueios" vazio="Nenhum bloqueio de saneamento aberto.">
+            {(itens) =>
+              (itens as any[]).map((b) => (
+                <p key={b.codigo} className="text-terracotta">
+                  {b.codigo}: {b.descricao}
+                </p>
+              ))
+            }
+          </ListaLida>
         </Bloco>
       </div>
 

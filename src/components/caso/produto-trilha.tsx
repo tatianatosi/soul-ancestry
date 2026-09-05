@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Secao, Selecao, Texto, Rotulo } from "@/components/caso/campos";
+import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo } from "@/components/caso/campos";
 import { salvarCaseService } from "@/lib/caso-canonico.functions";
 import { STATUS_CASE_SERVICE, rotulo } from "@/lib/caso-ficha";
 
@@ -17,14 +17,18 @@ export function AbaProdutoTrilha({
   produtos,
   trilhas,
   servicos,
-  bloqueado,
+  bloqueado: _bloqueado,
   onMudou,
 }: {
   caseId: string;
   produtos: Linha[];
   trilhas: Linha[];
   servicos: Linha[];
-  bloqueado: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: a decisão de escrita é da autoridade operacional.
+   */
+  bloqueado?: boolean;
   onMudou: () => void;
 }) {
   const salvar = useServerFn(salvarCaseService);
@@ -82,7 +86,7 @@ export function AbaProdutoTrilha({
             valor={v("product_catalog_id")}
             opcoes={opcoesProduto}
             onChange={(x) => set("product_catalog_id", x)}
-            desabilitado={bloqueado}
+           
             ajuda="Preço e escopo vêm do catálogo; não são editáveis nesta tela."
           />
           <Selecao
@@ -90,20 +94,20 @@ export function AbaProdutoTrilha({
             valor={v("citizenship_track_id")}
             opcoes={opcoesTrilha}
             onChange={(x) => set("citizenship_track_id", x)}
-            desabilitado={bloqueado}
+           
           />
           <Selecao
             label="Status do serviço"
             valor={v("status") || "draft"}
             opcoes={STATUS_CASE_SERVICE}
             onChange={(x) => set("status", x)}
-            desabilitado={bloqueado}
+           
           />
           <Texto
             label="Composição familiar considerada"
             valor={v("composicao_familiar")}
             onChange={(x) => set("composicao_familiar", x)}
-            desabilitado={bloqueado}
+           
             area
             ajuda="Quem entra no serviço: signatários e dependentes representados."
           />
@@ -111,24 +115,35 @@ export function AbaProdutoTrilha({
             label="Condição comercial aprovada (referência interna)"
             valor={v("condicao_comercial_aprovada")}
             onChange={(x) => set("condicao_comercial_aprovada", x)}
-            desabilitado={bloqueado}
+           
           />
           <Texto
             label="Referência interna do contrato"
             valor={v("contrato_referencia_interna")}
             onChange={(x) => set("contrato_referencia_interna", x)}
-            desabilitado={bloqueado}
+           
           />
-          <Texto label="Observação interna" valor={v("observacao_interna")} onChange={(x) => set("observacao_interna", x)} desabilitado={bloqueado} area />
+          <Texto label="Observação interna" valor={v("observacao_interna")} onChange={(x) => set("observacao_interna", x)} area />
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={() => m.mutate()}
-            disabled={bloqueado || !sujo || m.isPending}
+          <AcaoDeEscrita
+            rotulo={
+              m.isPending ? "Salvando…" : servico ? "Salvar serviço do caso" : "Criar serviço do caso"
+            }
+            faltando={sujo ? null : "Nenhuma alteração para salvar."}
+            capacidade="corrigir_proposta_escopo_preco"
+            pendenciaGate={
+              produto && produto.status_homologacao !== "homologado"
+                ? "Produto-pai selecionado ainda não está homologado no catálogo."
+                : null
+            }
+            efeito="Grava o serviço do caso com o produto-pai e a trilha técnica escolhidos."
             className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
-          >
-            {servico ? "Salvar serviço do caso" : "Criar serviço do caso"}
-          </button>
+            onConfirmar={() => {
+              if (m.isPending) return;
+              m.mutate();
+            }}
+          />
           <span className="text-xs text-navy/55">
             {m.isPending ? "Salvando…" : sujo ? "Alterações não salvas" : salvoEm ? `Salvo às ${salvoEm}` : ""}
           </span>

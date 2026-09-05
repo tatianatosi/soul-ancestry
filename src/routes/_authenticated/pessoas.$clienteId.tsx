@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import {
   evidenciaDeMesmaPessoa,
@@ -162,7 +162,6 @@ type CamposPessoa = {
 
 function Pessoa() {
   const { clienteId } = Route.useParams();
-  const { podeEscrever, somenteLeitura, ehAdmin } = useSaas();
   const qc = useQueryClient();
   const carregar = useServerFn(carregarPessoa);
   const salvar = useServerFn(atualizarPessoa);
@@ -264,64 +263,62 @@ function Pessoa() {
         <section className="rounded-xl border border-navy/10 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-serif text-lg text-navy">Quem é</h2>
-            {podeEscrever && !somenteLeitura ? (
-              editando ? (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditando(false)}
-                    className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={mSalvar.isPending}
-                    onClick={() => mSalvar.mutate(form)}
-                    className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
-                  >
-                    {mSalvar.isPending ? "Salvando…" : "Salvar"}
-                  </button>
-                </div>
-              ) : (
+            {editando ? (
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setForm({
-                      nome: cliente.nome ?? "",
-                      nome_social: cliente.nome_social ?? "",
-                      email: cliente.email ?? "",
-                      telefone: cliente.telefone ?? "",
-                      sexo: cliente.sexo ?? "",
-                      nacionalidade: cliente.nacionalidade ?? "",
-                      profissao: cliente.profissao ?? "",
-                      cpf: cliente.cpf ?? "",
-                      rg_numero: cliente.rg_numero ?? "",
-                      rg_orgao_uf: cliente.rg_orgao_uf ?? "",
-                      endereco_logradouro: cliente.endereco_logradouro ?? "",
-                      endereco_numero: cliente.endereco_numero ?? "",
-                      endereco_complemento: cliente.endereco_complemento ?? "",
-                      endereco_bairro: cliente.endereco_bairro ?? "",
-                      endereco_cidade: cliente.endereco_cidade ?? "",
-                      endereco_uf: cliente.endereco_uf ?? "",
-                      endereco_cep: cliente.endereco_cep ?? "",
-                      endereco_pais: cliente.endereco_pais ?? "",
-                      estado_civil: cliente.estado_civil ?? "",
-                      nome_conjuge: cliente.nome_conjuge ?? "",
-                      data_nascimento: cliente.data_nascimento ?? "",
-                      nome_pai: cliente.nome_pai ?? "",
-                      nome_mae: cliente.nome_mae ?? "",
-                      cidade_nascimento: cliente.cidade_nascimento ?? "",
-                    });
-                    setErroSalvar(null);
-                    setEditando(true);
-                  }}
-                  className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs text-navy hover:bg-gold/20"
+                  onClick={() => setEditando(false)}
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
                 >
-                  Editar
+                  Cancelar
                 </button>
-              )
-            ) : null}
+                <button
+                  type="button"
+                  disabled={mSalvar.isPending}
+                  onClick={() => mSalvar.mutate(form)}
+                  className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+                >
+                  {mSalvar.isPending ? "Salvando…" : "Salvar"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    nome: cliente.nome ?? "",
+                    nome_social: cliente.nome_social ?? "",
+                    email: cliente.email ?? "",
+                    telefone: cliente.telefone ?? "",
+                    sexo: cliente.sexo ?? "",
+                    nacionalidade: cliente.nacionalidade ?? "",
+                    profissao: cliente.profissao ?? "",
+                    cpf: cliente.cpf ?? "",
+                    rg_numero: cliente.rg_numero ?? "",
+                    rg_orgao_uf: cliente.rg_orgao_uf ?? "",
+                    endereco_logradouro: cliente.endereco_logradouro ?? "",
+                    endereco_numero: cliente.endereco_numero ?? "",
+                    endereco_complemento: cliente.endereco_complemento ?? "",
+                    endereco_bairro: cliente.endereco_bairro ?? "",
+                    endereco_cidade: cliente.endereco_cidade ?? "",
+                    endereco_uf: cliente.endereco_uf ?? "",
+                    endereco_cep: cliente.endereco_cep ?? "",
+                    endereco_pais: cliente.endereco_pais ?? "",
+                    estado_civil: cliente.estado_civil ?? "",
+                    nome_conjuge: cliente.nome_conjuge ?? "",
+                    data_nascimento: cliente.data_nascimento ?? "",
+                    nome_pai: cliente.nome_pai ?? "",
+                    nome_mae: cliente.nome_mae ?? "",
+                    cidade_nascimento: cliente.cidade_nascimento ?? "",
+                  });
+                  setErroSalvar(null);
+                  setEditando(true);
+                }}
+                className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs text-navy hover:bg-gold/20"
+              >
+                Editar
+              </button>
+            )}
           </div>
 
           {erroSalvar ? (
@@ -469,15 +466,13 @@ function Pessoa() {
                         .join(" · ")}
                     </p>
                   </Link>
-                  {ehAdmin ? (
-                    <Link
-                      to="/app-cliente-como-pessoa"
-                      search={{ casoId: c.id }}
-                      className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
-                    >
-                      Abrir visão do cliente
-                    </Link>
-                  ) : null}
+                  <Link
+                    to="/app-cliente-como-pessoa"
+                    search={{ casoId: c.id }}
+                    className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+                  >
+                    Abrir visão do cliente
+                  </Link>
                 </li>
               ))}
             </ul>
