@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   DIRECOES_INTERACAO,
   ETAPAS_COMERCIAIS,
@@ -27,9 +29,32 @@ const op = (lista: readonly { id: string; rotulo: string }[]) => lista.map((x) =
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+type DadosFluxo = NonNullable<Awaited<ReturnType<typeof painelCrmFluxo>>>;
+
+/**
+ * Carga do fluxo comercial canônico. A leitura passa por EstadoDados: antes,
+ * `?? []` fazia toda a tela — contadores, listas e saúde comercial — parecer
+ * base vazia quando a consulta falhava.
+ */
 export function FluxoComercialCanonico() {
-  const qc = useQueryClient();
   const carregar = useServerFn(painelCrmFluxo);
+  const q = useQuery({ queryKey: ["crm-fluxo"], queryFn: () => carregar(), retry: false });
+
+  return (
+    <EstadoDados<DadosFluxo>
+      carregando={q.isLoading}
+      erro={q.error}
+      dados={q.data ? [q.data as DadosFluxo] : undefined}
+      aoTentarNovamente={() => void q.refetch()}
+      recurso="o fluxo comercial canônico"
+    >
+      {([dados]) => <ConteudoFluxoCanonico dados={dados} />}
+    </EstadoDados>
+  );
+}
+
+function ConteudoFluxoCanonico({ dados }: { dados: DadosFluxo }) {
+  const qc = useQueryClient();
   const novoContato = useServerFn(registrarContato);
   const salvarOp = useServerFn(salvarOportunidade);
   const novaInteracao = useServerFn(registrarInteracao);
@@ -38,7 +63,6 @@ export function FluxoComercialCanonico() {
   const confirmacaoFormal = useServerFn(registrarConfirmacaoFormal);
   const arquivar = useServerFn(arquivarOportunidade);
 
-  const q = useQuery({ queryKey: ["crm-fluxo"], queryFn: () => carregar(), retry: false });
   const [msg, setMsg] = useState<string | null>(null);
   const [selecionada, setSelecionada] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
@@ -49,12 +73,11 @@ export function FluxoComercialCanonico() {
   const [filtroEtapa, setFiltroEtapa] = useState("");
   const [soPendentes, setSoPendentes] = useState(false);
 
-  const dados = q.data;
-  const contatos = (dados?.contatos ?? []) as Linha[];
-  const oportunidades = (dados?.oportunidades ?? []) as Linha[];
-  const interacoes = (dados?.interacoes ?? []) as Linha[];
-  const eventos = (dados?.eventos ?? []) as Linha[];
-  const discoveries = (dados?.discovery ?? []) as Linha[];
+  const contatos = dados.contatos as Linha[];
+  const oportunidades = dados.oportunidades as Linha[];
+  const interacoes = dados.interacoes as Linha[];
+  const eventos = dados.eventos as Linha[];
+  const discoveries = dados.discovery as Linha[];
 
   const atual = useMemo(() => oportunidades.find((o) => o.id === selecionada) ?? null, [oportunidades, selecionada]);
   const editado = { ...(atual ?? {}), ...rascunho } as Linha;
@@ -155,19 +178,6 @@ export function FluxoComercialCanonico() {
   return (
     <div className="space-y-4">
       {msg ? <p className="rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm text-navy">{msg}</p> : null}
-      {q.isError ? (
-        <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/5 px-4 py-2 text-sm text-terracotta">
-          Não foi possível carregar o fluxo comercial.
-          <button
-            type="button"
-            onClick={() => void q.refetch()}
-            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-          >
-            Tentar novamente
-          </button>
-        </p>
-      ) : null}
-
       <Secao titulo="Saúde comercial" descricao="Disciplina de responsável, próxima ação e prazo.">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
@@ -264,27 +274,34 @@ export function FluxoComercialCanonico() {
                 <Texto label="Resumo interno" valor={val("resumo_interno")} onChange={set("resumo_interno")} area />
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                disabled={mutOp.isPending}
-                onClick={() => mutOp.mutate()}
-              >
-                Salvar oportunidade
-              </button>
+            <div className="mt-3 flex flex-wrap items-start gap-2">
+              <AcaoOperacional
+                rotulo={mutOp.isPending ? "Salvando…" : "Salvar oportunidade"}
+                capacidade="editar_rascunho"
+                efeito="Grava a ficha da oportunidade. Nenhum contrato, cobrança ou envio é criado."
+                onConfirmar={async () => {
+                  try {
+                    await mutOp.mutateAsync();
+                  } catch {
+                    /* falha já exibida na mensagem da tela */
+                  }
+                }}
+              />
               {atual ? (
-                <button
-                  type="button"
-                  className="rounded-lg border border-terracotta/40 px-4 py-2 text-sm text-terracotta disabled:opacity-50"
-                  disabled={mutArquivar.isPending}
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento");
-                    if (motivo?.trim()) mutArquivar.mutate(motivo.trim());
+                <AcaoOperacional
+                  variant="outline"
+                  rotulo={mutArquivar.isPending ? "Arquivando…" : "Arquivar"}
+                  capacidade="editar_rascunho"
+                  pendenciaGate="Arquivamento exige motivo registrado. Não há exclusão física."
+                  efeito="Retira a oportunidade da operação corrente, preservando o registro."
+                  onConfirmar={async (motivo) => {
+                    try {
+                      await mutArquivar.mutateAsync(motivo);
+                    } catch {
+                      /* falha já exibida na mensagem da tela */
+                    }
                   }}
-                >
-                  Arquivar
-                </button>
+                />
               ) : null}
             </div>
           </Secao>
@@ -316,24 +333,36 @@ export function FluxoComercialCanonico() {
                 descricao="São dois momentos distintos. Nenhum deles cria contrato, cobrança, assinatura, onboarding, pesquisa externa ou App Cliente."
               >
                 <div className="grid gap-3 md:grid-cols-2">
-                  <button
-                    type="button"
-                    className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-50"
-                    disabled={mutAceite.isPending}
-                    onClick={() => mutAceite.mutate()}
-                  >
-                    Registrar aceite verbal
-                  </button>
+                  <AcaoOperacional
+                    variant="outline"
+                    rotulo={mutAceite.isPending ? "Registrando…" : "Registrar aceite verbal"}
+                    capacidade="avancar_caso_planejador_tarefa"
+                    efeito="Registra o aceite verbal como evento auditável. Não cria contrato, cobrança nem onboarding."
+                    onConfirmar={async () => {
+                      try {
+                        await mutAceite.mutateAsync();
+                      } catch {
+                        /* falha já exibida na mensagem da tela */
+                      }
+                    }}
+                  />
                   <div className="grid gap-2">
                     <Texto label="Referência interna verificável" valor={referencia} onChange={setReferencia} />
-                    <button
-                      type="button"
-                      className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-                      disabled={mutConfirmacao.isPending}
-                      onClick={() => mutConfirmacao.mutate()}
-                    >
-                      Registrar confirmação formal
-                    </button>
+                    <AcaoOperacional
+                      rotulo={mutConfirmacao.isPending ? "Registrando…" : "Registrar confirmação formal"}
+                      capacidade="avancar_caso_planejador_tarefa"
+                      pendenciaGate={
+                        referencia.trim() ? null : "Confirmação formal sem referência interna verificável informada."
+                      }
+                      efeito="Registra a confirmação formal e libera apenas a preparação interna dos instrumentos."
+                      onConfirmar={async () => {
+                        try {
+                          await mutConfirmacao.mutateAsync();
+                        } catch {
+                          /* falha já exibida na mensagem da tela */
+                        }
+                      }}
+                    />
                   </div>
                 </div>
                 <p className="mt-3 text-xs text-navy/55">

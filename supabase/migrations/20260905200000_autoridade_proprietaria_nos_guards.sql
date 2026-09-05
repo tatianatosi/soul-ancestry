@@ -200,3 +200,24 @@ begin
   end if;
   return NEW;
 end $function$;
+
+-- Segundo beco sem saída: assinatura de anexo recusava sempre, para todos.
+create or replace function public.fn_contract_annexes_guard()
+returns trigger
+language plpgsql
+set search_path to 'public'
+as $function$
+begin
+  if NEW.status = 'not_applicable' and coalesce(trim(NEW.reason_not_applicable),'') = '' then
+    raise exception 'Anexo marcado como nao aplicavel exige motivo.';
+  end if;
+  if NEW.status = 'signed_with_contract'
+     and not public.fn_decisao_proprietaria_ativa(NEW.organization_id, 'contract_annexes', NEW.id::text) then
+    raise exception 'Assinatura de anexo exige confirmacao registrada da proprietaria, com motivo.';
+  end if;
+  return NEW;
+end $function$;
+
+-- Aplicada em produção (projeto zsxpdbhdvbuulwpepemd) em 05/09/2026, com
+-- autorização expressa da proprietária. Verificado após a aplicação:
+--   helpers criados: 2 | becos sem saída restantes: 0 | guards reconhecendo a decisão: 3

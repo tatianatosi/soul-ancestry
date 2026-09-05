@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { Rotulo, Secao, Texto, inputCls } from "@/components/caso/campos";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
   EVENTOS_FUNIL,
   ROTULO_EVENTO,
@@ -20,7 +21,7 @@ type Vinculo = { contactId?: string | null; opportunityId?: string | null; caseI
  * data/hora, referência à conversa/evidência e confirmação humana para
  * eventos sensíveis. Não dispara nenhuma ação externa.
  */
-export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vinculo; podeEscrever: boolean }) {
+export function RegistrarEventoFunil({ vinculo }: { vinculo: Vinculo }) {
   const qc = useQueryClient();
   const registrar = useServerFn(registrarEventoFunil);
 
@@ -140,14 +141,30 @@ export function RegistrarEventoFunil({ vinculo, podeEscrever }: { vinculo: Vincu
 
       {msg ? <p className="mt-3 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
-      <button
-        type="button"
-        className="mt-4 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-40"
-        disabled={!temVinculo || mut.isPending || (sensivel && !confirmado)}
-        onClick={() => mut.mutate()}
-      >
-        {mut.isPending ? "Registrando…" : "Registrar evento"}
-      </button>
+      <div className="mt-4">
+        <AcaoOperacional
+          rotulo={mut.isPending ? "Registrando…" : "Registrar evento"}
+          capacidade="avancar_caso_planejador_tarefa"
+          pendenciaGate={
+            [
+              temVinculo ? null : "Nenhum contato, oportunidade ou caso selecionado para vincular o evento.",
+              sensivel && !confirmado
+                ? `Evento sensível “${ROTULO_EVENTO[tipo]}” sem a confirmação de responsabilidade marcada.`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" ") || null
+          }
+          efeito="Grava o evento de funil com responsável, data e referência interna. Nenhum ato externo é criado."
+          onConfirmar={async () => {
+            try {
+              await mut.mutateAsync();
+            } catch {
+              /* falha já exibida na mensagem da tela */
+            }
+          }}
+        />
+      </div>
     </Secao>
   );
 }

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import {
   ESTADO_EQUIVALENCIA_LABEL,
   MATRIZ_EQUIVALENCIA,
@@ -118,6 +119,13 @@ function Pagina() {
 
         {MATRIZ_EQUIVALENCIA.map((g) => {
           const decisao = decisoes[g.id];
+          /** Lacuna do grupo não bloqueia a decisão: vira gate registrado. */
+          const itensComLacuna = g.linhas.filter(
+            (l) => l.estado === "ausente" || l.estado === "a_confirmar",
+          );
+          const pendenciaGrupo = itensComLacuna.length
+            ? `Itens ausentes ou a confirmar neste grupo: ${itensComLacuna.map((l) => l.mockup).join(", ")}.`
+            : null;
           return (
             <section key={g.id} className="rounded-xl border border-navy/10 bg-white">
               <header className="flex flex-wrap items-center justify-between gap-3 border-b border-navy/10 px-4 py-3">
@@ -143,20 +151,22 @@ function Pagina() {
                       Sem decisão
                     </span>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => registrar(g.id, "aprovado")}
-                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
-                  >
-                    Aprovar grupo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => registrar(g.id, "ajustar")}
-                    className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy"
-                  >
-                    Marcar ajuste
-                  </button>
+                  <AcaoOperacional
+                    size="sm"
+                    rotulo="Aprovar grupo"
+                    capacidade="resolver_divergencia"
+                    pendenciaGate={pendenciaGrupo}
+                    efeito={`Registra a aprovação do grupo ${g.grupo} neste navegador. Nenhum dado, rota ou permissão é alterado.`}
+                    onConfirmar={() => registrar(g.id, "aprovado")}
+                  />
+                  <AcaoOperacional
+                    size="sm"
+                    variant="outline"
+                    rotulo="Marcar ajuste"
+                    capacidade="resolver_divergencia"
+                    efeito={`Marca o grupo ${g.grupo} como pendente de ajuste antes de qualquer consolidação.`}
+                    onConfirmar={() => registrar(g.id, "ajustar")}
+                  />
                 </div>
               </header>
 
