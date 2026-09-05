@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -58,7 +60,9 @@ function HomologacaoSkusPage() {
     retry: false,
   });
 
-  const itens = useMemo(() => itensRevisao((q.data?.skus ?? []) as never[]), [q.data]);
+  // `undefined` aqui significa leitura falha; a lista vazia legítima vem como [].
+  const skus = q.data?.skus as never[] | undefined;
+  const itens = useMemo(() => itensRevisao((skus ?? []) as never[]), [skus]);
   const [decisoes, setDecisoes] = useState<Record<string, DecisaoRevisao>>({});
   const [motivo, setMotivo] = useState("");
   const [confirmado, setConfirmado] = useState(false);
@@ -76,16 +80,21 @@ function HomologacaoSkusPage() {
     return true;
   });
 
+  const entradaAtual = { itens, decisoes, motivo, confirmado };
+  // As pendências continuam visíveis, mas não desabilitam mais o controle:
+  // viram gate de confirmação auditada. A elegíbilidade por SKU segue no servidor,
+  // que devolve os recusados item a item.
+  const pendenciasLote = validarConfirmacaoLote(entradaAtual);
+
   const m = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (motivoConfirmacao: string) => {
       const entrada = { itens, decisoes, motivo, confirmado };
-      const problemas = validarConfirmacaoLote(entrada);
-      if (problemas.length) {
-        setErros(problemas);
-        return null;
-      }
-      setErros([]);
-      return confirmar({ data: { ids: selecaoHomologavel(entrada), motivo: motivo.trim() } });
+      setErros(validarConfirmacaoLote(entrada));
+      const ids = selecaoHomologavel(entrada);
+      if (!ids.length) return null;
+      return confirmar({
+        data: { ids, motivo: motivo.trim() || motivoConfirmacao.trim() },
+      });
     },
     onSuccess: (r) => {
       if (!r) return;
@@ -133,21 +142,17 @@ function HomologacaoSkusPage() {
         </span>
       </section>
 
-      {q.isLoading ? <p className="mt-6 text-sm text-navy/50">Carregando SKUs ativos…</p> : null}
-      {q.isError ? (
-        <p className="mt-6 flex flex-wrap items-center gap-3 text-sm text-terracotta">
-          Não foi possível ler o catálogo. Perfil sem permissão ou leitura indisponível.
-          <button
-            type="button"
-            onClick={() => void q.refetch()}
-            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-          >
-            Tentar novamente
-          </button>
-        </p>
-      ) : null}
-
       <section className="mt-4 space-y-3">
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={skus}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os SKUs ativos do catálogo"
+          vazio="Nenhum SKU ativo aguardando revisão."
+        >
+          {() => (
+            <div className="space-y-3">
         {visiveis.map((i) => {
           const d = decisaoDe(i.id);
           return (
@@ -245,9 +250,12 @@ function HomologacaoSkusPage() {
             </article>
           );
         })}
-        {!visiveis.length && !q.isLoading ? (
+        {!visiveis.length ? (
           <p className="text-sm text-navy/50">Nenhum SKU neste filtro.</p>
         ) : null}
+            </div>
+          )}
+        </EstadoDados>
       </section>
 
       <section className="mt-6 rounded-xl border border-navy/15 bg-white p-4">
@@ -278,10 +286,16 @@ function HomologacaoSkusPage() {
           </ul>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button onClick={() => m.mutate()} disabled={m.isPending}>
-            {m.isPending ? "Confirmando…" : `Confirmar homologação (${resumo.marcados_homologar})`}
-          </Button>
+        <div className="mt-4 flex flex-wrap items-start gap-3">
+          <AcaoOperacional
+            rotulo={`Confirmar homologação (${resumo.marcados_homologar})`}
+            capacidade="homologar_sku"
+            pendenciaGate={pendenciasLote.length ? pendenciasLote.join(" · ") : null}
+            efeito="Homologa os SKUs marcados e elegíveis. Nenhum preço é alterado, nenhuma cobrança ou link é criado."
+            onConfirmar={async (motivoConfirmacao) => {
+              await m.mutateAsync(motivoConfirmacao);
+            }}
+          />
           <span className="text-xs text-navy/55">
             {resumo.nao_revisados} SKU(s) ainda sem decisão registrada.
           </span>

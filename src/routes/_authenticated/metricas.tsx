@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 
 export const Route = createFileRoute("/_authenticated/metricas")({
@@ -56,11 +57,12 @@ function Linhas({ itens, vazio }: { itens: { chave: string; total: number }[]; v
 function Metricas() {
   const buscar = useServerFn(painelHojeDesk);
   const [incluirDemo, setIncluirDemo] = useState(false);
-  const { data, isLoading, isError, refetch } = useQuery({
+  const q = useQuery({
     queryKey: ["metricas-crm", incluirDemo],
     queryFn: () => buscar({ data: { incluirDemo } }),
   });
-  const m = data?.metricas;
+  type Metricas = NonNullable<typeof q.data>["metricas"];
+  const m = q.data?.metricas as Metricas | undefined;
 
   return (
     <SaasShell
@@ -72,22 +74,14 @@ function Metricas() {
         Incluir registros de demonstração/teste (fora das métricas reais por padrão)
       </label>
 
-      {isLoading ? (
-        <p className="text-sm text-navy/60">Calculando métricas…</p>
-      ) : isError || !m ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
-          <p className="text-sm text-terracotta">
-            Não foi possível calcular as métricas. Os números não estão zerados — a leitura falhou.
-          </p>
-          <button
-            type="button"
-            onClick={() => void refetch()}
-            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      ) : (
+      <EstadoDados<Metricas>
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={m ? [m] : undefined}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="as métricas do dia"
+      >
+        {([m]) => (
         <div className="space-y-6">
           {/* Máximo de cinco métricas principais (CA-UX-03 Fase B). */}
           <div data-metricas="principais" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -139,7 +133,8 @@ function Metricas() {
             </div>
           </details>
         </div>
-      )}
+        )}
+      </EstadoDados>
     </SaasShell>
   );
 }

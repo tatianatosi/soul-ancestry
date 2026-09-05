@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -106,8 +108,21 @@ function RelatoriosFase() {
   const set = (campo: string, valor: unknown) =>
     setForm((f) => ({ ...f, [campo]: valor, fase_jornada: campo === "report_type" ? faseDoTipo(String(valor)) : f.fase_jornada }));
 
-  if (painel.isLoading) return <p className="p-6 text-sm text-navy/70">Carregando relatórios de fase…</p>;
-  if (painel.error) return <p className="p-6 text-sm text-terracotta">{(painel.error as Error).message}</p>;
+  // Nada de tela vazia silenciosa: sem leitura concluída, o estado é declarado.
+  if (!dados)
+    return (
+      <div className="p-6">
+        <EstadoDados
+          carregando={painel.isLoading}
+          erro={painel.error}
+          dados={undefined}
+          aoTentarNovamente={() => void painel.refetch()}
+          recurso="os relatórios de fase deste caso"
+        >
+          {() => null}
+        </EstadoDados>
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -271,20 +286,21 @@ function RelatoriosFase() {
           </ul>
         ) : null}
 
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            disabled={salvar.isPending}
-            onClick={() =>
-              salvar.mutate({
+        <div className="mt-4 flex flex-wrap gap-2">
+          <AcaoOperacional
+            rotulo={editandoId ? "Salvar alterações" : "Registrar relatório"}
+            capacidade="avancar_pesquisa_evidencia_microentrega"
+            pendenciaGate={
+              [pendenciaPapel, erros.length ? erros.join(" · ") : null].filter(Boolean).join(" · ") || null
+            }
+            efeito="Grava o relatório de fase no registro interno. Nenhum PDF é gerado, nada é enviado ao cliente nem publicado no App."
+            onConfirmar={async () => {
+              await salvar.mutateAsync({
                 id: editandoId ?? undefined,
                 valores: { ...form, fase_jornada: form.fase_jornada ?? faseDoTipo(String(form.report_type ?? "")) },
-              })
-            }
-            className="rounded bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-          >
-            {editandoId ? "Salvar alterações" : "Registrar relatório"}
-          </button>
+              });
+            }}
+          />
           {editandoId ? (
             <button
               type="button"
@@ -354,16 +370,17 @@ function RelatoriosFase() {
                   >
                     Editar
                   </button>
-                  <button
-                    type="button"
-                    className="rounded border border-terracotta/40 px-3 py-1 text-xs text-terracotta"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo !== null) arquivar.mutate({ id: r.id, motivo });
+                  <AcaoOperacional
+                    rotulo="Arquivar"
+                    acaoExterna="excluir_registro_ou_versao"
+                    pendenciaGate={pendenciaPapel}
+                    efeito="Arquiva este relatório de fase. O registro continua consultável em arquivados."
+                    variant="outline"
+                    size="sm"
+                    onConfirmar={async (motivo) => {
+                      await arquivar.mutateAsync({ id: r.id, motivo });
                     }}
-                  >
-                    Arquivar
-                  </button>
+                  />
                 </div>
               </div>
 
@@ -405,16 +422,28 @@ function RelatoriosFase() {
                         </option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      disabled={!estado.evidenceId}
-                      className="rounded bg-navy px-3 py-1 text-xs text-cream disabled:opacity-50"
-                      onClick={() =>
-                        ligarEvidencia.mutate({ reportId: r.id, evidenceId: estado.evidenceId, relacao: estado.relacao })
+                    <AcaoOperacional
+                      rotulo="Vincular"
+                      capacidade="avancar_pesquisa_evidencia_microentrega"
+                      pendenciaGate={
+                        [
+                          pendenciaPapel,
+                          estado.evidenceId ? null : "Selecione a evidência antes de vincular.",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || null
                       }
-                    >
-                      Vincular
-                    </button>
+                      efeito="Cria o vínculo interno entre relatório e evidência. Nada é publicado no App Cliente."
+                      size="sm"
+                      onConfirmar={async () => {
+                        if (!estado.evidenceId) return;
+                        await ligarEvidencia.mutateAsync({
+                          reportId: r.id,
+                          evidenceId: estado.evidenceId,
+                          relacao: estado.relacao,
+                        });
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -440,14 +469,22 @@ function RelatoriosFase() {
                         </option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      disabled={!estado.micro}
-                      className="rounded border border-navy/20 px-3 py-1 text-xs text-navy disabled:opacity-50"
-                      onClick={() => ligarMicro.mutate({ reportId: r.id, microentregaId: estado.micro })}
-                    >
-                      Vincular à fase
-                    </button>
+                    <AcaoOperacional
+                      rotulo="Vincular à fase"
+                      capacidade="avancar_pesquisa_evidencia_microentrega"
+                      pendenciaGate={
+                        [pendenciaPapel, estado.micro ? null : "Selecione a micro-entrega antes de vincular."]
+                          .filter(Boolean)
+                          .join(" · ") || null
+                      }
+                      efeito="Vincula a micro-entrega ao relatório de fase. Micro-entrega nunca cria relatório novo."
+                      variant="outline"
+                      size="sm"
+                      onConfirmar={async () => {
+                        if (!estado.micro) return;
+                        await ligarMicro.mutateAsync({ reportId: r.id, microentregaId: estado.micro });
+                      }}
+                    />
                   </div>
                   <p className="mt-1 text-[11px] text-navy/60">Micro-entrega nunca cria relatório novo.</p>
                 </div>

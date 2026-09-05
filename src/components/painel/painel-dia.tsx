@@ -8,6 +8,7 @@ import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoAcessoPainel } from "@/lib/painel-hoje-acoes.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
@@ -700,7 +701,21 @@ export function PainelDia() {
         que o Painel já fazia — só passou a trazer o campo `fase`.
       */}
       <section data-painel-bloco="jornada">
-        <JornadaCasos casos={(qCad.data?.casos ?? []) as never} />
+        {/*
+          A jornada é a única leitura de cadência que aparece como lista própria:
+          se a consulta falhar, mostra erro com nova tentativa em vez de uma
+          carteira aparentemente vazia.
+        */}
+        <EstadoDados<Record<string, unknown>>
+          carregando={qCad.isLoading}
+          erro={qCad.error}
+          dados={qCad.data?.casos as Record<string, unknown>[] | undefined}
+          aoTentarNovamente={() => void qCad.refetch()}
+          recurso="a jornada dos casos"
+          vazio="Nenhum caso na carteira para montar a jornada."
+        >
+          {(casos) => <JornadaCasos casos={casos as never} />}
+        </EstadoDados>
       </section>
 
       {/* 3 — Minha fila priorizada */}
