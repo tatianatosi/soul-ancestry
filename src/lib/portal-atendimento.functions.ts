@@ -2,7 +2,8 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoDocumentos, type Sb } from "@/lib/documentos.server";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { contemConteudoInterno } from "@/lib/onboarding-jornada";
 import {
   CLASSIFICACAO_ENTREGA,
   PAPEIS_ENTREGA,
@@ -628,6 +629,98 @@ export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
       quando: new Date().toISOString(),
       papel,
       motivo: texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.",
+    });
+    return { ok: true };
+  });
+
+/**
+ * Publica no App Cliente uma atualização de Jornada ou um registro de Árvore.
+ *
+ * Achado real desta sessão: a policy de leitura do portal (`app_proj_select_portal`)
+ * e o trigger de aprovação (`fn_app_projection_guard`) já existiam e funcionam
+ * — a lacuna era não existir NENHUMA ação de ADMIN no Desk para gravar ali;
+ * a única forma de publicar era SQL direto. Esta ação fecha essa lacuna sem
+ * tocar RLS/trigger algum, só usando o caminho que eles já exigem: caso
+ * elegível, texto cliente-facing (sem termo interno) e aprovação registrada
+ * com autor e data no mesmo instante da publicação.
+ */
+export const publicarProjecaoApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; tipo: "marco" | "arvore"; conteudo: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      throw new Error("Apenas admin e operações publicam conteúdo para o App Cliente.");
+    }
+
+    const conteudo = texto(data.conteudo, 2000);
+    if (!conteudo) throw new Error("Escreva o conteúdo a publicar.");
+    if (contemConteudoInterno(conteudo)) {
+      throw new Error("O texto contém termo interno que não pode ir ao App Cliente. Reescreva em linguagem de cliente.");
+    }
+
+    const caso = await (supabase as any)
+      .from("crm_casos")
+      .select("id")
+      .eq("id", data.caseId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    const agora = new Date().toISOString();
+    const resultado = await inserirComVerificacao({
+      supabase: supabase as any,
+      tabela: "app_projections",
+      organizationId,
+      userId,
+      payload: {
+        case_id: data.caseId,
+        source_entity_type: "case",
+        source_entity_id: data.caseId,
+        projection_type: data.tipo,
+        destination: "app",
+        content_sanitized: conteudo,
+        approval_status: "published",
+        approved_by: userId,
+        approved_at: agora,
+        visibility_scope: "titular",
+        effective_from: agora,
+      },
+    });
+
+    await auditar(organizationId, userId, "projecao_app_publicada", "app_projections", resultado.id, {
+      case_id: data.caseId,
+      tipo: data.tipo,
+      papel,
+      quando: agora,
+    });
+    return { ok: true, id: resultado.id };
+  });
+
+/** Arquiva (nunca apaga) uma projeção publicada — some do App Cliente a partir de agora. */
+export const despublicarProjecaoApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { projecaoId: string; motivo?: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      throw new Error("Apenas admin e operações despublicam conteúdo do App Cliente.");
+    }
+    await gravarComVerificacao({
+      supabase,
+      tabela: "app_projections",
+      id: data.projecaoId,
+      organizationId,
+      userId,
+      payload: { archived_at: new Date().toISOString(), archived_reason: texto(data.motivo ?? null, 600) ?? "Despublicado pela equipe." },
+    });
+    await auditar(organizationId, userId, "projecao_app_despublicada", "app_projections", data.projecaoId, {
+      papel,
+      quando: new Date().toISOString(),
     });
     return { ok: true };
   });

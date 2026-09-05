@@ -477,8 +477,18 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
     if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
 
-    // Conciliação obrigatória: só SKU, preço e condição homologados no
-    // product_catalog sustentam minuta. Escopo insuficiente barra a geração.
+    /*
+      Achado 05/09 (CA-CONTRATO-OS-SEM-BLOQUEIO-SURREAL-011): esta checagem
+      barrava a própria geração do RASCUNHO INTERNO — que a tela já rotula
+      "não enviar/não assinar" — com requisitos que só fazem sentido para um
+      ato externo. Criar/editar minuta interna precisa ser sempre possível;
+      quem realmente barra envio/assinatura é aprovarParaEnvio (re-executa
+      esta mesma conciliação) e tentarEtapaExterna (etapa desabilitada nesta
+      fase, incondicionalmente). Aqui a pendência só passa a ser registrada —
+      no evento de auditoria e devolvida ao chamador — nunca mais lançada como
+      erro que impede salvar o trabalho em andamento.
+    */
+    let pendenciasConciliacao: string[] = [];
     {
       const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
       const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
@@ -489,16 +499,15 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       if (conc) {
         const barra = mensagemBloqueio(conc);
         if (barra) {
+          pendenciasConciliacao = conc.bloqueios;
           await evento(supabase, organizationId, data.contract_id, "render_blocked", {
             motivo: "conciliacao_catalogo",
             bloqueios: conc.bloqueios.length,
+            observacao: "rascunho interno gerado mesmo assim — pendência registrada, não impeditiva",
           });
-          throw new Error(barra);
         }
       } else if (!(escopo.data ?? []).length) {
-        throw new Error(
-          "Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados.",
-        );
+        pendenciasConciliacao = ["Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados."];
       }
     }
 
@@ -610,6 +619,7 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       versao: versao.version_number as number,
       falhaRenderizacao: falha,
       snapshotInstitucional: snapshot,
+      pendenciasConciliacao,
     };
 
   });

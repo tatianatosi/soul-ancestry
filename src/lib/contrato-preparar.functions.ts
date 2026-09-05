@@ -12,6 +12,7 @@ import {
   mapaCoberturaEscopo,
   validarPropostaCanva,
 } from "@/lib/escopo-proposta";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -159,12 +160,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .eq("code", "BASE-GEN-V2")
         .eq("status", "active")
         .maybeSingle(),
-      supabase
-        .from("case_members")
-        .select("id,nome,parentesco,requerente,nacionalidade")
-        .eq("case_id", caso.id)
-        .is("archived_at", null)
-        .order("created_at", { ascending: true }),
+      pessoasDoCasoComFallbackNucleo(supabase, caso.id).then((data) => ({ data })),
     ]);
 
     // Ficha única por caso: reaproveita se já existir, nunca duplica.
