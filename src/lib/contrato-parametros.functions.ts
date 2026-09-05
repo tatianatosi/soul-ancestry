@@ -511,7 +511,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
 
     const { data: linha } = await supabase
       .from("contract_parameter_values")
-      .select("id,campo,valor,organization_id")
+      .select("id,campo,valor,origem,status,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!linha) throw new Error("Parâmetro não encontrado.");
@@ -525,6 +525,13 @@ export const salvarParametro = createServerFn({ method: "POST" })
     });
     if (!check.ok) throw new Error(check.erro);
 
+    // Resalvar o MESMO valor e a mesma origem que já estavam confirmados não
+    // desfaz a validação — só uma mudança real de conteúdo ou origem exige
+    // reconfirmação. Antes disso, "Salvar" derrubava qualquer campo já
+    // "validado" de volta para "a confirmar" mesmo sem edição nenhuma.
+    const inalterado = valor === (linha.valor ?? "") && data.origem === linha.origem;
+    const statusFinal = !valor ? "vazio" : inalterado && linha.status === "validado" ? "validado" : "importado_a_confirmar";
+
     const r = await gravarComVerificacao({
       supabase,
       tabela: "contract_parameter_values",
@@ -536,7 +543,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
         origem: valor ? data.origem : null,
         origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : null,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
-        status: valor ? "importado_a_confirmar" : "vazio",
+        status: statusFinal,
         conflito: [],
       },
     });
