@@ -268,14 +268,27 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    // Fonte única da pré-carga: Planejador Universal homologado.
+    // Identidade da própria contratada: mesma em todo caso, independente do
+    // Planejador (que é específico da rota/país do caso da Ana etc.).
+    const { qualificacaoContratadaTexto } = await import("@/lib/perfil-institucional");
+    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
+      {
+        campo: "contratada_qualificacao",
+        valor: qualificacaoContratadaTexto(),
+        origem: "perfil_institucional",
+        detalhe: "Perfil institucional vigente do Clube Ancestral",
+      },
+    ];
+
+    // Fonte da pré-carga específica do caso: Planejador Universal homologado.
     const planejador = parametrosDoPlanejador(caso.codigo);
     if (!planejador.convencao) {
       throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
     }
 
-    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] =
-      planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe }));
+    candidatos.push(
+      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
+    );
 
     // Exceção controlada (somente domínio comercial): quando o Planejador não
     // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
