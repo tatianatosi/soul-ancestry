@@ -41,7 +41,29 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       .eq("case_id", data.casoId)
       .order("created_at", { ascending: true });
 
+    // 05/09/2026 — a tela mostrava "Requisitos completos" olhando só para o
+    // checklist de auto-atestação (case_activation_pendencias), enquanto o
+    // banco recusa a ativação por até 4 outras fontes reais (consentimento,
+    // onboarding_checklist, quality_issues, e o próprio checklist via outra
+    // função). bloqueiosReais é a projeção de tudo que o banco de fato
+    // verifica; pronto/"Requisitos completos" agora vem dela, não do
+    // checklist clicável sozinho.
+    const bloqueiosReais = await supabase.rpc("case_ativacao_bloqueios_reais", {
+      _case: data.casoId,
+    });
     const pendencias = await supabase.rpc("case_activation_pendencias", { _case: data.casoId });
+
+    // Fonte #4 do bloqueio real (ver migration 20260905120000): tabela
+    // diferente do checklist de 14 itens acima, e — até hoje — sem nenhuma
+    // tela que permitisse completá-la. Carregada aqui para dar uma ação real
+    // a cada item que a bloqueiosReais aponta.
+    const checklistOnboarding = await supabase
+      .from("onboarding_checklist")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.casoId)
+      .is("archived_at", null)
+      .order("ordem", { ascending: true });
 
     const logs = await supabase
       .from("audit_logs")
@@ -69,7 +91,10 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         quando: String(l["created_at"]),
         detalhe:
           l["entidade"] === "case_activation_checks"
-            ? String(listaChecks.find((c) => c.id === l["entidade_id"])?.label ?? "Requisito de ativação")
+            ? String(
+                listaChecks.find((c) => c.id === l["entidade_id"])?.label ??
+                  "Requisito de ativação",
+              )
             : String((l["metadados"] as any)?.["resumo"] ?? "Caso"),
       }));
 
@@ -78,9 +103,91 @@ export const obterOnboarding = createServerFn({ method: "GET" })
       papeis,
       checks: listaChecks,
       pendencias: (pendencias.data ?? []) as { check_key: string; label: string; motivo: string }[],
+      bloqueiosReais: (bloqueiosReais.data ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
+      checklistOnboarding: (checklistOnboarding.data ?? []) as {
+        id: string;
+        item_code: string;
+        label: string;
+        obrigatorio: boolean;
+        status: string;
+        observacao: string | null;
+        concluido_em: string | null;
+      }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
+  });
+
+/**
+ * Marca um item do checklist de onboarding (onboarding_checklist) —
+ * 05/09/2026: até hoje essa tabela existia e era lida por
+ * trg_caso_ativo_guard/case_ativacao_bloqueios_reais, mas nenhuma tela
+ * permitia completá-la. Concluir ou marcar não aplicável exige uma
+ * observação com a evidência real; não é um clique vazio.
+ */
+export const atualizarItemChecklistOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      itemId: string;
+      status: "pendente" | "concluido" | "nao_aplicavel";
+      observacao?: string;
+    }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as SupabaseCliente;
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
+
+    if (data.status !== "pendente" && !data.observacao?.trim()) {
+      return {
+        ok: false,
+        erro: "Informe a evidência real que sustenta esta conclusão — não é permitido marcar sem registrar o que foi verificado.",
+      };
+    }
+
+    const { data: atual } = await supabase
+      .from("onboarding_checklist")
+      .select("id,case_id,label")
+      .eq("id", data.itemId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!atual) return { ok: false, erro: "Item não encontrado." };
+
+    const { data: linhaAtualizada, error } = await supabase
+      .from("onboarding_checklist")
+      .update({
+        status: data.status,
+        observacao: data.observacao?.trim() || null,
+        concluido_em: data.status === "pendente" ? null : new Date().toISOString(),
+        concluido_por: data.status === "pendente" ? null : context.userId,
+      })
+      .eq("id", data.itemId)
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
+    if (error) return { ok: false, erro: error.message };
+    if (!linhaAtualizada?.id)
+      return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do item." };
+
+    await registrar(
+      supabase,
+      organizationId,
+      "onboarding_checklist_item_atualizado",
+      atual.case_id as string,
+      {
+        resumo: `${atual.label as string}: ${data.status}`,
+        observacao: data.observacao ?? null,
+      },
+    );
+
+    return { ok: true, erro: null as string | null };
   });
 
 export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
@@ -134,7 +241,38 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) return { ok: false, erro: error.message };
-    if (!linhaAtualizada?.id) return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do requisito." };
+    if (!linhaAtualizada?.id)
+      return {
+        ok: false,
+        erro: "Nada foi gravado: verifique permissão e identificação do requisito.",
+      };
+
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária: marcar este
+     * requisito "isento" aqui NUNCA satisfazia a trava real de ativação
+     * (guard_consentimento_ativacao → fn_guard_consentimento_ativacao,
+     * migration 20260816202602), porque essa trava lê exclusivamente
+     * consent_records/consent_exceptions — duas tabelas que esta função
+     * nunca escrevia. O caso passava "Requisitos completos" na tela e
+     * mesmo assim era recusado ao tentar ativar de verdade, com a mesma
+     * mensagem de erro do banco, sem nenhuma ação disponível para
+     * resolver. Agora a isenção deste requisito específico grava a
+     * exceção formal real que o banco verifica.
+     */
+    if (data.status === "isento" && check.check_key === "consentimento_registrado") {
+      const { error: erroExcecao } = await supabase.from("consent_exceptions").insert({
+        organization_id: organizationId,
+        case_id: check.case_id,
+        motivo: isencaoMotivo,
+        valido_ate: data.isencaoExpiraEm || null,
+        aprovado_por: context.userId,
+      });
+      if (erroExcecao)
+        return {
+          ok: false,
+          erro: `Isenção registrada, mas a exceção formal falhou: ${erroExcecao.message}`,
+        };
+    }
 
     /*
      * 04/09/2026 — achado real reportado pela Proprietária: marcar este
@@ -189,9 +327,12 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
       return { ok: false, pendencias: ["Somente admin ou operações podem ativar."] };
     }
 
-    // Fonte de verdade: os 14 requisitos obrigatórios avaliados no banco.
-    const bloq = await supabase.rpc("case_activacao_bloqueios", { _case: data.casoId });
-    const lista = ((bloq.data ?? []) as string[]).slice();
+    // Fonte de verdade: as 5 trilhas reais de trava (checklist de 14 itens,
+    // consentimento, checklist de onboarding e inconsistências críticas) —
+    // a mesma projeção que a tela usa para decidir se mostra "Requisitos
+    // completos". Ver 20260905120000_case_ativacao_bloqueios_reais.sql.
+    const bloq = await supabase.rpc("case_ativacao_bloqueios_reais", { _case: data.casoId });
+    const lista = ((bloq.data ?? []) as { motivo: string }[]).map((b) => b.motivo);
     if (bloq.error) lista.push(bloq.error.message);
 
     if (lista.length > 0) {
@@ -258,7 +399,8 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
         .select("id")
         .maybeSingle();
       if (error || !linhaAtualizada?.id) {
-        const motivo = error?.message ?? "Nada foi gravado: verifique permissão e identificação do caso.";
+        const motivo =
+          error?.message ?? "Nada foi gravado: verifique permissão e identificação do caso.";
         await registrar(supabase, organizationId, "ativacao_bloqueada", data.casoId, {
           resumo: `Ativação recusada pelo banco na transição ${statusAtual} → ${proximo}`,
           pendencias: [motivo],
@@ -275,7 +417,6 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
     return { ok: true, pendencias: [] as string[] };
   });
 
-
 export const suspenderCaso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { casoId: string; motivo: string }) => data)
@@ -283,7 +424,8 @@ export const suspenderCaso = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as SupabaseCliente;
     const organizationId = await resolverOrganizacao(supabase, context.userId as string);
     const papeis = await meusPapeis(supabase, organizationId);
-    if (!podeAtivar(papeis)) return { ok: false, erro: "Somente admin ou operações podem suspender." };
+    if (!podeAtivar(papeis))
+      return { ok: false, erro: "Somente admin ou operações podem suspender." };
     const motivo = (data.motivo ?? "").trim() || "Suspensão sem motivo informado.";
 
     const { data: linhaAtualizada, error } = await supabase
@@ -294,7 +436,8 @@ export const suspenderCaso = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) return { ok: false, erro: error.message };
-    if (!linhaAtualizada?.id) return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do caso." };
+    if (!linhaAtualizada?.id)
+      return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do caso." };
 
     await registrar(supabase, organizationId, "caso_suspenso", data.casoId, {
       resumo: "Caso suspenso",

@@ -12,6 +12,7 @@ import {
   liberarEntregaCliente,
   liberarFaturaCliente,
   painelAtendimento,
+  publicarProjecaoApp,
   responderTicketEquipe,
   revisarEnvioCliente,
   ticketInterno,
@@ -88,8 +89,11 @@ export function AtendimentoInterno() {
   const liberarDoc = useServerFn(liberarEntregaCliente);
   const liberarFat = useServerFn(liberarFaturaCliente);
   const confirmarDocsMinimos = useServerFn(confirmarDocumentosMinimos);
+  const publicarProjecao = useServerFn(publicarProjecaoApp);
 
   const [casoId, setCasoId] = useState<string>("");
+  const [publicacaoTipo, setPublicacaoTipo] = useState<"marco" | "arvore">("marco");
+  const [publicacaoTexto, setPublicacaoTexto] = useState("");
   const [form, setForm] = useState({
     titulo: "",
     categoria: "certidao",
@@ -220,6 +224,15 @@ export function AtendimentoInterno() {
     onError: falhar,
   });
 
+  const publicar = useMutation({
+    mutationFn: (p: { caseId: string; tipo: "marco" | "arvore"; conteudo: string }) => publicarProjecao({ data: p }),
+    onSuccess: () => {
+      setPublicacaoTexto("");
+      recarregar();
+    },
+    onError: falhar,
+  });
+
   const formIncompleto =
     !casoId ||
     !!bloqueioSelecionado?.bloqueado ||
@@ -321,6 +334,45 @@ export function AtendimentoInterno() {
           >
             {confirmarDocumentos.isPending ? "Confirmando…" : "Confirmar documentos mínimos deste caso"}
           </button>
+        ) : null}
+        {casoSelecionado ? (
+          <div className="rounded-lg border border-navy/15 bg-cream/40 p-3">
+            <p className="text-xs font-medium text-navy">Publicar no App Cliente</p>
+            <p className="mt-0.5 text-[11px] text-navy/60">
+              Grava uma atualização de Jornada ou um registro de Árvore, aprovado e publicado no mesmo instante — o
+              cliente vê ao recarregar. Escreva já em linguagem de cliente, sem termo interno.
+            </p>
+            <div className="mt-2 flex flex-wrap items-start gap-2">
+              <select
+                value={publicacaoTipo}
+                onChange={(e) => setPublicacaoTipo(e.target.value as "marco" | "arvore")}
+                className="rounded border border-navy/20 px-2 py-1.5 text-xs"
+              >
+                <option value="marco">Jornada (marco)</option>
+                <option value="arvore">Árvore da família</option>
+              </select>
+              <textarea
+                value={publicacaoTexto}
+                onChange={(e) => setPublicacaoTexto(e.target.value)}
+                placeholder={
+                  publicacaoTipo === "marco"
+                    ? "Ex.: A equipe concluiu a análise da certidão de nascimento e avançou para a próxima etapa."
+                    : "Ex.: Confirmado o vínculo entre você e seu bisavô Giuseppe, nascido em 1887 na Itália."
+                }
+                rows={2}
+                className="min-w-[16rem] flex-1 rounded border border-navy/20 px-2 py-1.5 text-xs"
+              />
+              <button
+                type="button"
+                disabled={publicar.isPending || !publicacaoTexto.trim()}
+                onClick={() => publicar.mutate({ caseId: casoSelecionado.id, tipo: publicacaoTipo, conteudo: publicacaoTexto })}
+                className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-50"
+              >
+                {publicar.isPending ? "Publicando…" : "Publicar"}
+              </button>
+            </div>
+            {publicar.isSuccess ? <p className="mt-1 text-[11px] text-navy/60">Publicado.</p> : null}
+          </div>
         ) : null}
         <ul className="grid gap-1.5 md:grid-cols-3">
           {casos.map((c) => {

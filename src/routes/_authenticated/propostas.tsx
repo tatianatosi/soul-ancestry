@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -300,7 +300,18 @@ function PropostasPage() {
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-navy/60">Cliente</dt>
-                <dd>{nomeCliente(detalhe["client_id"])}</dd>
+                <dd>
+                  {nomeCliente(detalhe["client_id"])}
+                  {detalhe["client_id"] ? (
+                    <Link
+                      to="/pessoas/$clienteId"
+                      params={{ clienteId: String(detalhe["client_id"]) }}
+                      className="ml-2 text-xs text-navy underline underline-offset-4"
+                    >
+                      Ver perfil 360
+                    </Link>
+                  ) : null}
+                </dd>
               </div>
               <div>
                 <dt className="text-navy/60">Valor</dt>
