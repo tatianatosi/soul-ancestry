@@ -11,11 +11,13 @@ import {
   NUCLEO_DOSSIE_STATUS,
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
+  encaminharFilaDrive,
   listarClientesParaVinculo,
   listarNucleos,
   salvarDossieNucleo,
   salvarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
+import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
@@ -66,7 +68,15 @@ type Nucleo = {
   link_interno: string | null;
   responsavel_nome: string | null;
   dossie_status: string | null;
-  caso: { id: string; codigo: string | null; titulo: string | null } | null;
+  caso: {
+    id: string;
+    codigo: string | null;
+    titulo: string | null;
+    contrato_assinado: boolean | null;
+    pagamento_confirmado: boolean | null;
+    ativado_em: string | null;
+  } | null;
+  filaDrive: { id: string; status: string; stage_trigger: string; observacao_interna: string | null } | null;
   membros: Membro[];
 };
 
@@ -85,6 +95,7 @@ function NucleosPage() {
   const carregarClientes = useServerFn(listarClientesParaVinculo);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
+  const encaminhar = useServerFn(encaminharFilaDrive);
   const criarTarefa = useServerFn(salvarTarefa);
   const qc = useQueryClient();
 
@@ -190,6 +201,20 @@ function NucleosPage() {
     onError: (e: Error) => setErroMembro(e.message),
   });
 
+  const [erroFila, setErroFila] = useState<Record<string, string>>({});
+
+  const mFilaDrive = useMutation({
+    mutationFn: (data: { nucleoId: string }) => encaminhar({ data }),
+    onSuccess: async (_r, variaveis) => {
+      setErroFila((prev) => {
+        const { [variaveis.nucleoId]: _remover, ...resto } = prev;
+        return resto;
+      });
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+    },
+    onError: (e: Error, variaveis) => setErroFila((prev) => ({ ...prev, [variaveis.nucleoId]: e.message })),
+  });
+
   const mTarefaAcao = useMutation({
     mutationFn: (data: { caseId: string; titulo: string }) =>
       criarTarefa({ data: { valores: { caso_id: data.caseId, titulo: data.titulo, status: "pendente" } } }),
@@ -273,6 +298,46 @@ function NucleosPage() {
                   <p>Responsável: {n.responsavel_nome || "—"}</p>
                 </div>
 
+                {/*
+                 * 04/09/2026 — CA-P0-EXEC-001, critério C: "Dossiê-mãe" acima é
+                 * só um rótulo de texto livre em nucleos_familiares — não tinha
+                 * nenhum vínculo com a fila real de provisionamento
+                 * (drive_provisioning_queue / drive-provisioning.ts). Este bloco
+                 * mostra o estado real da fila e oferece um único CTA seguro:
+                 * encaminhar para revisão. Nunca cria pasta, nunca aprova/executa
+                 * a partir daqui — isso exige decisão humana registrada à parte.
+                 */}
+                <div className="mt-3 rounded-lg border border-navy/10 bg-navy/[0.03] px-3 py-2 text-xs text-navy/70">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/45">Fila de provisionamento do Drive</p>
+                  {n.filaDrive ? (
+                    <p className="mt-1">
+                      Estado atual:{" "}
+                      <span className="font-medium text-navy">
+                        {STATUS_FILA_DRIVE.find((s) => s.valor === n.filaDrive?.status)?.rotulo ??
+                          n.filaDrive.status}
+                      </span>
+                      {n.filaDrive.observacao_interna ? ` — ${n.filaDrive.observacao_interna}` : ""}
+                    </p>
+                  ) : (
+                    <p className="mt-1">Nenhum item na fila ainda. Nada é criado no Drive automaticamente.</p>
+                  )}
+                  {podeEscrever && n.caso ? (
+                    <button
+                      type="button"
+                      disabled={mFilaDrive.isPending}
+                      onClick={() => mFilaDrive.mutate({ nucleoId: n.id })}
+                      className="mt-2 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-navy hover:bg-gold/20 disabled:opacity-50"
+                    >
+                      {mFilaDrive.isPending ? "Avaliando…" : "Encaminhar para revisão"}
+                    </button>
+                  ) : !n.caso ? (
+                    <p className="mt-2 text-[11px] text-navy/45">
+                      Sem caso operacional vinculado — não é possível avaliar gates nem encaminhar à fila.
+                    </p>
+                  ) : null}
+                  {erroFila[n.id] ? <p className="mt-1.5 text-terracotta">{erroFila[n.id]}</p> : null}
+                </div>
+
                 <div className="mt-3">
                   <p className="text-[11px] uppercase tracking-wide text-navy/45">Requerentes e vínculos</p>
                   {n.membros.length === 0 ? (
@@ -340,7 +405,7 @@ function NucleosPage() {
                                 {m2.vinculo ? <p className="text-navy/55">{m2.vinculo}</p> : null}
                                 {m2.processo ? <p className="text-navy/45">{m2.processo}</p> : null}
                               </div>
-                              <div className="flex shrink-0 gap-2">
+                              <div className="flex shrink-0 items-center gap-2">
                                 {m2.cliente_id ? (
                                   <Link
                                     to="/pessoas/$clienteId"
@@ -349,7 +414,18 @@ function NucleosPage() {
                                   >
                                     Ver perfil
                                   </Link>
-                                ) : null}
+                                ) : (
+                                  /*
+                                   * 04/09/2026 — CA-P0-EXEC-001, critério B: quando não há
+                                   * vínculo com a Pessoa Canônica, isso precisa aparecer
+                                   * explicitamente (não silêncio) e apontar como resolver —
+                                   * "Editar" já abre o seletor de vínculo manual, sem apagar
+                                   * nome/vínculo/processo já cadastrados.
+                                   */
+                                  <span className="text-[11px] text-navy/45">
+                                    Sem vínculo com Pessoa Canônica — use "Editar" para vincular
+                                  </span>
+                                )}
                                 {podeEscrever ? (
                                   <button
                                     type="button"
