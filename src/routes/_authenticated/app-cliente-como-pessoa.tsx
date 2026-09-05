@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -35,6 +35,9 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
       { name: "robots", content: "noindex" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    casoId: typeof search["casoId"] === "string" ? search["casoId"] : undefined,
+  }),
   component: AppClienteComoPessoa,
 });
 
@@ -45,9 +48,15 @@ const TELAS = [
 ] as const;
 
 function AppClienteComoPessoa() {
-  const [casoId, setCasoId] = useState<string>("");
+  const { casoId: casoIdDaUrl } = Route.useSearch();
+  const [casoId, setCasoId] = useState<string>(casoIdDaUrl ?? "");
   const [ativa, setAtiva] = useState<(typeof TELAS)[number]["chave"]>("jornada");
   const Tela = TELAS.find((t) => t.chave === ativa)?.Componente ?? PortalJornada;
+
+  // Chegando de "Abrir visão do cliente" (ficha do cliente ou do caso): pré-seleciona o caso.
+  useEffect(() => {
+    if (casoIdDaUrl) setCasoId(casoIdDaUrl);
+  }, [casoIdDaUrl]);
 
   const carregarCasos = useServerFn(listarCasosFicha);
   const casos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });

@@ -162,7 +162,7 @@ type CamposPessoa = {
 
 function Pessoa() {
   const { clienteId } = Route.useParams();
-  const { podeEscrever, somenteLeitura } = useSaas();
+  const { podeEscrever, somenteLeitura, ehAdmin } = useSaas();
   const qc = useQueryClient();
   const carregar = useServerFn(carregarPessoa);
   const salvar = useServerFn(atualizarPessoa);
@@ -452,12 +452,11 @@ function Pessoa() {
           ) : (
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {casos.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    to="/casos/$caseId"
-                    params={{ caseId: c.id }}
-                    className="block rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
-                  >
+                <li
+                  key={c.id}
+                  className="rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
+                >
+                  <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
                     <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
                     <p className="text-sm font-medium text-navy">{c.titulo}</p>
                     <p className="mt-1 text-xs text-navy/55">
@@ -470,6 +469,15 @@ function Pessoa() {
                         .join(" · ")}
                     </p>
                   </Link>
+                  {ehAdmin ? (
+                    <Link
+                      to="/app-cliente-como-pessoa"
+                      search={{ casoId: c.id }}
+                      className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+                    >
+                      Abrir visão do cliente
+                    </Link>
+                  ) : null}
                 </li>
               ))}
             </ul>

@@ -284,7 +284,7 @@ const SECOES = [
 
 function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
-  const { podeEscrever } = useSaas();
+  const { podeEscrever, ehAdmin } = useSaas();
   const carregar = useServerFn(carregarFichaCaso);
   const carregarCanon = useServerFn(carregarCanonico);
   const atualizar = useServerFn(atualizarRegistro);
@@ -435,6 +435,15 @@ function FichaCaso() {
       descricao={`${caso["codigo"] ?? "sem código"} · ficha operacional canônica`}
       acoes={
         <div className="flex items-center gap-3">
+          {ehAdmin ? (
+            <Link
+              to="/app-cliente-como-pessoa"
+              search={{ casoId: String(caso["id"]) }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:bg-navy/5"
+            >
+              Abrir visão do cliente
+            </Link>
+          ) : null}
           <span className="text-xs text-navy/60">
             {mSalvar.isPending
               ? "Salvando…"
