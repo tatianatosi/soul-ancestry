@@ -22,6 +22,8 @@ import {
   type Fonte,
 } from "@/lib/fontes-genealogicas";
 import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -135,14 +137,15 @@ function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) 
           <textarea className={cls} rows={2} value={form.observacao_risco} onChange={(e) => set("observacao_risco", e.target.value)} />
         </label>
       </div>
-      <button
-        type="button"
-        disabled={m.isPending}
-        onClick={() => m.mutate()}
-        className="rounded bg-navy px-3 py-1.5 text-[11px] text-cream disabled:opacity-50"
-      >
-        {m.isPending ? "Salvando…" : "Salvar"}
-      </button>
+      <AcaoOperacional
+        rotulo={m.isPending ? "Salvando…" : "Salvar"}
+        capacidade="editar_rascunho"
+        efeito="Atualiza o catálogo interno desta fonte. Nenhuma consulta externa é disparada."
+        size="sm"
+        onConfirmar={async () => {
+          await m.mutateAsync();
+        }}
+      />
     </div>
   );
 }
@@ -273,19 +276,20 @@ function FontesGenealogicas() {
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
-  if (isPending) return <p className="p-6 text-sm text-navy/60">Carregando catálogo interno…</p>;
-  if (error)
+  // Catálogo não lido nunca aparece como catálogo vazio.
+  if (!data)
     return (
-      <p className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
-        {(error as Error).message}
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+      <div className="p-6">
+        <EstadoDados
+          carregando={isPending}
+          erro={error}
+          dados={undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="o catálogo interno de fontes"
         >
-          Tentar novamente
-        </button>
-      </p>
+          {() => null}
+        </EstadoDados>
+      </div>
     );
 
   const render = (lista: Fonte[]) =>

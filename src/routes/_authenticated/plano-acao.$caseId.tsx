@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 import {
   agruparPlanoAcao,
@@ -177,19 +178,21 @@ function PlanoAcao() {
   const estimativas = (dados?.estimativas ?? []) as Record<string, any>[];
   const nomeInstituicao = (id?: string | null) => instituicoes.find((x) => x.id === id)?.name as string | undefined;
 
-  if (q.isLoading) return <p className="p-6 text-sm text-navy/50">Carregando plano de ação…</p>;
-  if (q.isError)
+  // Sem dado lido não existe plano vazio: carregando, erro e falha de carga
+  // ficam explícitos, com ação de tentar novamente.
+  if (!dados)
     return (
-      <p className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
-        {(q.error as Error).message}
-        <button
-          type="button"
-          onClick={() => void q.refetch()}
-          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+      <div className="p-6">
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="o plano de ação deste caso"
         >
-          Tentar novamente
-        </button>
-      </p>
+          {() => null}
+        </EstadoDados>
+      </div>
     );
 
   const aguardandoAprovacao = estimativas.filter((e) => e.client_approval_status === "aguardando_aprovacao");

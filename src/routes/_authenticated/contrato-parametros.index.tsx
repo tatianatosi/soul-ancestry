@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Painel, Selo } from "@/components/comercial/base";
 import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { garantirParametros, listarParametros } from "@/lib/contrato-parametros.functions";
 
 const TITULO = "Motor contratual parametrizável | Clube Ancestral";
@@ -50,21 +51,17 @@ function Pagina() {
       </Painel>
 
       <Painel titulo="Casos reais">
-        {q.isLoading && <p className="text-sm text-navy/60">Carregando casos…</p>}
-        {q.error ? (
-          <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
-            {(q.error as Error).message}
-            <button
-              type="button"
-              onClick={() => void q.refetch()}
-              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-            >
-              Tentar novamente
-            </button>
-          </p>
-        ) : null}
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.casos as any[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os casos reais"
+          vazio="Nenhum caso real nesta organização."
+        >
+          {(casos) => (
         <div className="space-y-2">
-          {(q.data?.casos ?? []).map((c: any) => (
+          {casos.map((c: any) => (
             <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/15 bg-white p-3">
               <div>
                 <p className="text-sm font-medium text-navy">
@@ -99,10 +96,9 @@ function Pagina() {
               </div>
             </div>
           ))}
-          {q.data && q.data.casos.length === 0 && (
-            <p className="text-sm text-navy/60">Nenhum caso real nesta organização.</p>
-          )}
         </div>
+          )}
+        </EstadoDados>
       </Painel>
     </SaasShell>
   );

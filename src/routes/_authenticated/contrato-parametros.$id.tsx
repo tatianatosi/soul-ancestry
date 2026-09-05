@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { Painel, Selo, inputCls } from "@/components/comercial/base";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell } from "@/components/saas/shell";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
 import {
@@ -236,9 +238,20 @@ function Pagina() {
                       Ver prévia
                     </button>
                     {p.tipo === "final" && !p.aprovado_em && (
-                      <button onClick={() => mAprovar.mutate(p.id)} className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream">
-                        Aprovar com revisão humana
-                      </button>
+                      <AcaoOperacional
+                        rotulo="Aprovar com revisão humana"
+                        size="sm"
+                        capacidade="aprovar_proposta_os_anexo_previa"
+                        pendenciaGate={
+                          (p.placeholders_pendentes ?? []).length
+                            ? `${p.placeholders_pendentes.length} placeholder(s) pendente(s) nesta prévia.`
+                            : null
+                        }
+                        efeito={`Aprova a prévia v${p.versao} com revisão humana registrada.`}
+                        onConfirmar={async () => {
+                          await mAprovar.mutateAsync(p.id);
+                        }}
+                      />
                     )}
                     {p.aprovado_em && <Selo texto="Aprovada" tom="ok" />}
                   </div>
@@ -256,36 +269,43 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Destinos que reutilizam os parâmetros aprovados">
-          {qd.isError ? (
-            <p className="mb-2 flex flex-wrap items-center gap-3 text-sm text-terracotta">
-              Não foi possível carregar os destinos.
-              <button
-                type="button"
-                onClick={() => void qd.refetch()}
-                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-              >
-                Tentar novamente
-              </button>
-            </p>
-          ) : null}
-          <ul className="space-y-1 text-sm text-navy/80">
-            {(qd.data?.destinos ?? []).map((d: any) => (
-              <li key={d.nome}>
-                <strong>{d.nome}</strong> — {d.recebe}{" "}
-                {d.liberado ? <Selo texto="liberado" tom="ok" /> : <Selo texto={d.bloqueio} tom="erro" />}
-              </li>
-            ))}
-          </ul>
+          <EstadoDados
+            carregando={qd.isLoading}
+            erro={qd.error}
+            dados={qd.data?.destinos as any[] | undefined}
+            aoTentarNovamente={() => void qd.refetch()}
+            recurso="os destinos dos parâmetros"
+            vazio="Nenhum destino registrado para estes parâmetros."
+          >
+            {(destinos) => (
+              <ul className="space-y-1 text-sm text-navy/80">
+                {destinos.map((d: any) => (
+                  <li key={d.nome}>
+                    <strong>{d.nome}</strong> — {d.recebe}{" "}
+                    {d.liberado ? <Selo texto="liberado" tom="ok" /> : <Selo texto={d.bloqueio} tom="erro" />}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </EstadoDados>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              onClick={() => mEnviar.mutate()}
-              disabled={mEnviar.isPending || registro.status !== "aprovado"}
-              className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-            >
-              Enviar para assinatura
-            </button>
+            <AcaoOperacional
+              rotulo="Enviar para assinatura"
+              size="sm"
+              acaoExterna="solicitar_assinatura"
+              capacidade="aprovar_proposta_os_anexo_previa"
+              pendenciaGate={
+                registro.status !== "aprovado"
+                  ? `Registro em situação “${registro.status}”: os parâmetros ainda não foram aprovados.`
+                  : null
+              }
+              efeito="Gera contrato, partes e escopo a partir dos parâmetros e encaminha para assinatura."
+              onConfirmar={async () => {
+                await mEnviar.mutateAsync();
+              }}
+            />
           </div>
-          {ultimaFinal?.aprovado_em && (
+          {
             <div className="mt-3 grid gap-2 md:grid-cols-4">
               <input
                 className={inputCls}
@@ -307,15 +327,23 @@ function Pagina() {
                 value={assinatura.referencia}
                 onChange={(e) => setAssinatura({ ...assinatura, referencia: e.target.value })}
               />
-              <button
-                onClick={() => mAssinar.mutate()}
-                disabled={mAssinar.isPending}
-                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80"
-              >
-                Registrar assinatura
-              </button>
+              <AcaoOperacional
+                rotulo="Registrar assinatura"
+                variant="outline"
+                size="sm"
+                capacidade="aprovar_proposta_os_anexo_previa"
+                pendenciaGate={
+                  ultimaFinal?.aprovado_em
+                    ? null
+                    : "Nenhuma prévia final aprovada ainda. A assinatura será registrada sobre parâmetros não aprovados."
+                }
+                efeito="Registra a assinatura do contrato e libera o gate de cobrança."
+                onConfirmar={async () => {
+                  await mAssinar.mutateAsync();
+                }}
+              />
             </div>
-          )}
+          }
         </Painel>
       </div>
     </SaasShell>

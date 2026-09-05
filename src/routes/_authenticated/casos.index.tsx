@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -155,7 +156,13 @@ function BuscaPorCodigo() {
 }
 
 function CasosPage() {
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
   const carregarAtivacao = useServerFn(listarEstadoAtivacao);
   const [mostrarDemo, setMostrarDemo] = useState(false);
   const { fase: faseFiltro } = Route.useSearch();
@@ -238,6 +245,11 @@ function CasosPage() {
         <MatrizPrioridadesConectada />
       </div>
 
+      {pendenciaVinculo ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
       <EntidadeCrud
         entidade="crm_casos"
         titulo="Casos"

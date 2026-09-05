@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
-  AlertaDesk,
   BadgeDesk,
   CardIndicador,
   CarregandoDesk,
@@ -33,7 +33,9 @@ export const Route = createFileRoute("/_authenticated/pesquisa/")({
 function PesquisaIndex() {
   const carregar = useServerFn(listarCasosPesquisa);
   const q = useQuery({ queryKey: ["pesquisa", "casos"], queryFn: () => carregar() });
+  // `undefined` significa leitura não concluída ou falha; lista vazia real vem como [].
   const casos = q.data ?? [];
+  const casosCarregados = q.data;
 
   const casosAtivos = q.data ? casos.filter((c) => c["status"] === "ativo").length : null;
   const semVia = q.data ? casos.filter((c) => !c["via"]).length : null;
@@ -57,22 +59,15 @@ function PesquisaIndex() {
       </div>
 
       {q.isLoading ? <CarregandoDesk linhas={4} rotulo="Carregando casos de pesquisa" /> : null}
-      {q.error ? (
-        <AlertaDesk tom="critico" titulo="Não foi possível carregar os casos">
-          <span className="flex flex-wrap items-center gap-3">
-            {(q.error as Error).message}
-            <button
-              type="button"
-              onClick={() => void q.refetch()}
-              className="rounded-md border border-current px-2 py-1 text-xs font-medium hover:bg-black/5"
-            >
-              Tentar novamente
-            </button>
-          </span>
-        </AlertaDesk>
-      ) : null}
 
-      {!q.isLoading && !q.error ? (
+      <EstadoDados
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={casosCarregados}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="os casos em pesquisa"
+      >
+        {() => (
         <section aria-label="Casos em pesquisa" className="space-y-2">
           {casos.map((c) => (
             <Link
@@ -101,7 +96,8 @@ function PesquisaIndex() {
             />
           ) : null}
         </section>
-      ) : null}
+        )}
+      </EstadoDados>
 
       <div className="mt-6">
         <PendenciasCriticasPesquisa />

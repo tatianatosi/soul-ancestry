@@ -40,7 +40,15 @@ export function VinculoNucleo({
   const carregar = useServerFn(listarNucleos);
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
 
-  const vinculados = ((q.data ?? []) as NucleoLinha[]).filter((n) => n.case_id === caseId);
+  // Falha de leitura não pode virar "sem núcleo vinculado".
+  const listaNucleos = (q.data ?? null) as NucleoLinha[] | null;
+  const falhaNucleos =
+    q.isError || (!q.isLoading && listaNucleos === null)
+      ? q.error instanceof Error
+        ? q.error.message
+        : "A consulta de núcleos não retornou resultado nem erro."
+      : null;
+  const vinculados = (listaNucleos ?? []).filter((n) => n.case_id === caseId);
   const principal = vinculados[0] ?? null;
   const duplicado = vinculados.length > 1;
 
@@ -53,6 +61,21 @@ export function VinculoNucleo({
 
   return (
     <section className="mb-4 rounded-xl border border-gold/40 bg-cream/60 px-4 py-3">
+      {falhaNucleos ? (
+        <div role="alert" className="mb-2 space-y-1 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs">
+          <p className="font-medium text-destructive">
+            Não foi possível carregar o vínculo de núcleo deste caso.
+          </p>
+          <p className="text-navy/80">{falhaNucleos}</p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
         <span className="rounded-full border border-navy/20 bg-white px-2 py-0.5 uppercase tracking-wide text-navy/70">
           {papel}

@@ -5,7 +5,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
@@ -38,7 +39,6 @@ export const Route = createFileRoute("/_authenticated/contratos/")({
 });
 
 function ContratosPage() {
-  const { papeis } = useSaas();
   const navigate = useNavigate();
   const listar = useServerFn(listarContratos);
   const painel = useServerFn(painelContratual);
@@ -57,7 +57,7 @@ function ContratosPage() {
   const qPainel = useQuery({ queryKey: ["contratos-painel"], queryFn: () => painel({}) });
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
-  const podeCriar = papeis.some((p) => ["admin", "operacoes", "comercial", "financeiro"].includes(p));
+  const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
 
   const mCriar = useMutation({
     mutationFn: (dados: any) => criar({ data: dados }),
@@ -70,14 +70,14 @@ function ContratosPage() {
       titulo="Contratos"
       descricao="Instrumentos de trabalho interno. Nada aqui é enviado, cobrado ou assinado automaticamente."
       acoes={
-        podeCriar ? (
+        (
           <button
             onClick={() => setNovo((v) => !v)}
             className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
           >
             Novo instrumento
           </button>
-        ) : null
+        )
       }
     >
       {qPainel.isError ? (
@@ -110,6 +110,7 @@ function ContratosPage() {
       {novo ? (
         <FormNovo
           bases={bases}
+          basesIndisponiveis={basesIndisponiveis}
           erro={erro}
           onCancelar={() => setNovo(false)}
           onCriar={(dados) => mCriar.mutate(dados)}
@@ -142,16 +143,15 @@ function ContratosPage() {
         </select>
       </div>
 
-      {qLista.isLoading ? (
-        <EstadoVazio mensagem="Carregando instrumentos…" />
-      ) : qLista.isError ? (
-        <EstadoVazio
-          mensagem="Não foi possível carregar os instrumentos contratuais."
-          acao={<BotaoTentarNovamente aoClicar={() => void qLista.refetch()} />}
-        />
-      ) : !qLista.data?.contratos.length ? (
-        <EstadoVazio mensagem="Nenhum instrumento contratual nesta organização ainda." />
-      ) : (
+      <EstadoDados
+        carregando={qLista.isLoading}
+        erro={qLista.error}
+        dados={qLista.data?.contratos}
+        aoTentarNovamente={() => void qLista.refetch()}
+        recurso="os instrumentos contratuais"
+        vazio="Nenhum instrumento contratual nesta organização ainda."
+      >
+        {(contratos) => (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
@@ -165,7 +165,7 @@ function ContratosPage() {
               </tr>
             </thead>
             <tbody>
-              {qLista.data.contratos.map((c: any) => (
+              {contratos.map((c: any) => (
                 <tr key={c.id} className="border-t border-navy/10 hover:bg-cream/60">
                   <td className="px-3 py-2 font-mono text-xs">{c.contract_number}</td>
                   <td className="px-3 py-2">
@@ -194,7 +194,8 @@ function ContratosPage() {
             </tbody>
           </table>
         </div>
-      )}
+        )}
+      </EstadoDados>
       <PainelCatalogo />
       <PainelTop30 />
     </SaasShell>
@@ -212,12 +213,14 @@ function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
 
 function FormNovo({
   bases,
+  basesIndisponiveis,
   erro,
   onCriar,
   onCancelar,
   enviando,
 }: {
   bases: any[];
+  basesIndisponiveis: boolean;
   erro: string | null;
   onCriar: (dados: any) => void;
   onCancelar: () => void;
@@ -282,6 +285,12 @@ function FormNovo({
                 </option>
               ))}
             </select>
+            {basesIndisponiveis ? (
+              <span role="alert" className="mt-1 block text-xs text-terracotta">
+                A lista de contratos-base não pôde ser carregada. Está vazia por falha de leitura, não por
+                ausência de instrumentos.
+              </span>
+            ) : null}
           </label>
           <label className="text-sm">
             Referência do contrato-base

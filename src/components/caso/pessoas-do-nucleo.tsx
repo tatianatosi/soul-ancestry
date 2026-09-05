@@ -34,7 +34,28 @@ export function PessoasDoNucleo({ caseId }: { caseId: string }) {
   const carregar = useServerFn(listarNucleos);
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
 
-  const nucleo = ((q.data ?? []) as NucleoLinha[]).find((n) => n.case_id === caseId) ?? null;
+  const listaNucleos = (q.data ?? null) as NucleoLinha[] | null;
+  if (q.isLoading) return <p className="py-6 text-sm text-navy/60" role="status">Carregando a composição familiar…</p>;
+  if (q.isError || listaNucleos === null) {
+    return (
+      <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">Não foi possível carregar a composição familiar do núcleo.</p>
+        <p className="text-navy/80">
+          {q.error instanceof Error
+            ? q.error.message
+            : "A consulta de núcleos não retornou resultado nem erro."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+  const nucleo = listaNucleos.find((n) => n.case_id === caseId) ?? null;
   if (!nucleo) return null;
 
   const membros = nucleo.membros ?? [];

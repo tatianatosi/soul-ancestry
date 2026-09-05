@@ -27,11 +27,34 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   const q = useQuery({ queryKey: ["ficha-piloto", caseId], queryFn: () => carregar({ data: { caseId } }) });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando ficha piloto genealógica…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <Secao titulo="Ficha piloto genealógica" descricao="Preparação interna, sem consulta a fontes.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">Não foi possível carregar a ficha piloto genealógica.</p>
+          <p className="text-navy/80">
+            {q.error instanceof Error
+              ? q.error.message
+              : "A consulta não retornou resultado nem erro. Isso é falha de carga, não ficha ausente."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </Secao>
+    );
+  }
   const p = q.data?.pesquisa ?? null;
   if (!p) {
     return (
       <Secao titulo="Ficha piloto genealógica" descricao="Preparação interna, sem consulta a fontes.">
-        <p className="text-sm text-navy/55">Nenhuma ficha de pesquisa preparada para este caso.</p>
+        <p className="text-sm text-navy/55">
+          Nenhuma ficha de pesquisa preparada para este caso. A consulta foi concluída com sucesso.
+        </p>
       </Secao>
     );
   }

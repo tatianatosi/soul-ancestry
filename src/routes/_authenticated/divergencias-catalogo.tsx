@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
 import { Painel, Selo, inputCls, dataBr } from "@/components/comercial/base";
 import {
@@ -57,12 +59,13 @@ function DivergenciasCatalogoPage() {
       toast.error(e instanceof Error ? e.message : "Não foi possível registrar a observação."),
   });
 
-  const todas = useMemo(() => q.data?.linhas ?? [], [q.data]);
-  const skus = useMemo(() => [...new Set(todas.map((l) => l.sku))].sort(), [todas]);
+  // Sem default silencioso: `undefined` é falha de carga, não base vazia.
+  const todas = q.data?.linhas;
+  const skus = useMemo(() => [...new Set((todas ?? []).map((l) => l.sku))].sort(), [todas]);
 
   const linhas = useMemo(() => {
     const v = vinculo.trim().toLowerCase();
-    return todas.filter((l) => {
+    return (todas ?? []).filter((l) => {
       if (sku && l.sku !== sku) return false;
       if (status === "resolvidas" && !l.resolvido) return false;
       if (status === "bloqueio" && (l.resolvido || l.severidade !== "bloqueio")) return false;
@@ -133,23 +136,18 @@ function DivergenciasCatalogoPage() {
         </Painel>
 
         <Painel titulo={`Divergências (${linhas.length})`}>
-          {q.isLoading ? (
-            <p className="text-sm text-navy/60">Carregando divergências…</p>
-          ) : q.isError ? (
-            <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
-              Não foi possível carregar as divergências.
-              <button
-                type="button"
-                onClick={() => void q.refetch()}
-                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-              >
-                Tentar novamente
-              </button>
-            </p>
-          ) : linhas.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
-
-          ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={todas}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="as divergências de catálogo"
+            vazio="Nenhuma divergência registrada pela conciliação."
+          >
+            {() =>
+              linhas.length === 0 ? (
+                <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
+              ) : (
             <ul className="space-y-3">
               {linhas.map((l) => (
                 <li key={l.id} className="rounded-xl border border-navy/15 bg-white p-4">
@@ -185,24 +183,29 @@ function DivergenciasCatalogoPage() {
                       value={edicao[l.id] ?? ""}
                       onChange={(e) => setEdicao((s) => ({ ...s, [l.id]: e.target.value }))}
                     />
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
-                      disabled={salvar.isPending}
-                      onClick={() =>
-                        salvar.mutate(
-                          { id: l.id, observacao: edicao[l.id] ?? "" },
-                          { onSuccess: () => setEdicao((s) => ({ ...s, [l.id]: "" })) },
-                        )
+                    <AcaoOperacional
+                      rotulo="Registrar"
+                      capacidade="resolver_divergencia"
+                      pendenciaGate={
+                        (edicao[l.id] ?? "").trim()
+                          ? null
+                          : "Escreva a observação de resolução antes de registrar."
                       }
-                    >
-                      Registrar
-                    </button>
+                      efeito="Anexa uma observação de resolução auditada a esta divergência. A divergência continua visível."
+                      onConfirmar={async () => {
+                        const observacao = (edicao[l.id] ?? "").trim();
+                        if (!observacao) return;
+                        await salvar.mutateAsync({ id: l.id, observacao });
+                        setEdicao((s) => ({ ...s, [l.id]: "" }));
+                      }}
+                    />
                   </div>
                 </li>
               ))}
             </ul>
-          )}
+              )
+            }
+          </EstadoDados>
         </Painel>
       </div>
     </SaasShell>

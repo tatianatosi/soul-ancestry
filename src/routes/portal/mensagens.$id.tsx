@@ -29,7 +29,7 @@ function MensagemPage() {
   const responder = useServerFn(responderTicketCliente);
   const [texto, setTexto] = useState("");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["portal-ticket", id],
     queryFn: () => carregar({ data: { ticketId: id } }),
   });
@@ -46,6 +46,22 @@ function MensagemPage() {
     return (
       <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
         <PortalCarregando />
+      </PortalShell>
+    );
+  }
+  if (isError) {
+    return (
+      <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
+        <p className="flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não conseguimos abrir esta conversa agora.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta"
+          >
+            Tentar novamente
+          </button>
+        </p>
       </PortalShell>
     );
   }

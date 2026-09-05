@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -133,10 +134,15 @@ function Pagina() {
     onError: erro,
   });
 
+  const autoridade = useAutoridade();
   const evidencias = data?.evidencias ?? [];
   const projecoes = data?.projecoes ?? [];
   const validacoes = data?.validacoes ?? [];
-  const podeEditar = data?.podeEditar ?? false;
+  // Autoridade operacional: gate de papel do servidor vira pendência declarada.
+  const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaPapel = data && !data.podeEditar
+    ? "O servidor marcou esta biblioteca como somente leitura para o seu vínculo — as ações seguem disponíveis por decisão sua."
+    : null;
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -453,7 +459,6 @@ function FormEvidencia({
       <div className="md:col-span-2">
         {check.erros.length ? <ul className="mb-2 text-[11px] text-terracotta">{check.erros.map((e) => <li key={e}>• {e}</li>)}</ul> : null}
         <button
-          disabled={!check.ok}
           onClick={() => onSalvar(v)}
           className="rounded bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
         >
@@ -524,7 +529,7 @@ function FormValidacao({
       <div className="md:col-span-2">
         {check.erros.length ? <ul className="mb-2 text-[11px] text-terracotta">{check.erros.map((e) => <li key={e}>• {e}</li>)}</ul> : null}
         <button
-          disabled={!selecionada || !check.ok}
+          disabled={!selecionada}
           onClick={() => onRegistrar({ evidenceId: selecionada, estadoNovo, confiancaNova, justificativa })}
           className="rounded bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
         >
@@ -588,7 +593,7 @@ function FormProjecao({
           </ul>
         ) : null}
         <button
-          disabled={!checkTexto.ok || !checkEv.ok}
+
           onClick={() =>
             onCriar({
               case_id: caseId,

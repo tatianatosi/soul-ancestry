@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -179,6 +180,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
   const scan = useServerFn(rodarScanPesquisa);
 
   const chave = ["pesquisa-modulo", researchCaseId];
+  const autoridade = useAutoridade();
   const q = useQuery({ queryKey: chave, queryFn: () => carregar({ data: { researchCaseId } }) });
   const recarregar = () => qc.invalidateQueries({ queryKey: chave });
 
@@ -223,7 +225,12 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
     );
   }
 
-  const podeEditar = d.podeEditar;
+  // Autoridade operacional: papel do servidor não esconde mais ação. Fica
+  // pendência declarada; o servidor revalida.
+  const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaPapel = d.podeEditar
+    ? null
+    : "O servidor não reconhece seu papel como responsável desta pesquisa — as ações seguem disponíveis por decisão sua.";
   const gate = d.gate as any;
 
   const abrirNovo = (bloco: BlocoRg) => setEditando({ bloco });
@@ -289,7 +296,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
             texto={gate?.elegivel ? "Pesquisa externa liberada" : "Pesquisa externa bloqueada"}
             tom={gate?.elegivel ? "ok" : "erro"}
           />
-          {!podeEditar && <Selo texto="Somente leitura" tom="alerta" />}
+          {pendenciaPapel ? <Selo texto="Pendência de papel registrada" tom="alerta" /> : null}
         </div>
         <p className="mt-2 text-sm text-navy/70">{String(d.pesquisa["research_objective"] || "Objetivo não descrito.")}</p>
         <Aviso tom={gate?.elegivel ? "info" : "bloqueio"}>

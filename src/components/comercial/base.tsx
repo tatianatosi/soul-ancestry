@@ -128,6 +128,20 @@ export function Historico({ entidade, id }: { entidade: string; id: string }) {
   });
   const linhas = q.data ?? [];
   if (q.isLoading) return <p className="text-sm text-navy/60">Carregando histórico…</p>;
+  if (q.error)
+    return (
+      <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+        Não foi possível carregar o histórico. A lista está vazia por falha de leitura, não por ausência de
+        eventos.
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
   if (!linhas.length) return <p className="text-sm text-navy/60">Sem eventos registrados até agora.</p>;
   return (
     <ol className="space-y-2 border-l border-navy/15 pl-4">

@@ -5,7 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
-import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
   FiltroStatus,
@@ -59,7 +61,11 @@ type Linha = Record<string, unknown>;
 type Aba = "faturas" | "pagamentos";
 
 function FinanceiroPage() {
-  const { podeFinanceiro } = useSaas();
+  const autoridade = useAutoridade();
+  // Antes: `podeFinanceiro` desligava a tela inteira e ainda desligava as
+  // consultas. Agora só a falta de papel ou de organização bloqueia.
+  const decisaoFinanceiro = autoridade.decidir({ capacidade: "corrigir_condicao_comercial" });
+  const podeFinanceiro = decisaoFinanceiro.decisao !== "bloquear";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
   const vinculos = useServerFn(listarVinculos);
@@ -143,13 +149,14 @@ function FinanceiroPage() {
   if (!podeFinanceiro) {
     return (
       <SaasShell titulo="Financeiro" descricao="Faturas, pagamentos e conciliação.">
-        <EstadoVazio mensagem="Seu papel não inclui acesso financeiro. Solicite a um admin da sua organização." />
+        <EstadoVazio mensagem={decisaoFinanceiro.motivo} />
       </SaasShell>
     );
   }
 
   const clientes = qv.data?.clientes ?? [];
   const casos = qv.data?.casos ?? [];
+  const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const faturas = (qFaturas.data ?? []) as Linha[];
   const linhas = (q.data ?? []) as Linha[];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
@@ -356,14 +363,33 @@ function FinanceiroPage() {
           </p>
         ) : null}
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando…" />
-        ) : q.isError ? (
-          <EstadoVazio
-            mensagem="Não foi possível carregar este filtro."
-            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
-          />
-        ) : !linhas.length ? (
+        {vinculosIndisponiveis ? (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+          >
+            Não foi possível carregar clientes e casos vinculados. As listas de seleção e os nomes exibidos
+            estão vazios por falha de leitura, não por ausência de cadastro.
+            <button
+              type="button"
+              onClick={() => void qv.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data as Linha[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso={aba === "faturas" ? "as faturas" : "os pagamentos"}
+          vazio="Nenhum registro cadastrado ainda."
+        >
+          {() =>
+          !linhas.length ? (
           <EstadoVazio mensagem="Nenhum registro neste filtro." />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
@@ -451,7 +477,9 @@ function FinanceiroPage() {
               </tbody>
             </table>
           </div>
-        )}
+        )
+          }
+        </EstadoDados>
       </div>
 
       {detalhe ? (
@@ -545,16 +573,27 @@ function FinanceiroPage() {
                 >
                   Registrar ajuste
                 </button>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {((qAjustes.data ?? []) as Linha[])
-                    .filter((a) => a["invoice_id"] === detalhe["id"])
-                    .map((a) => (
-                    <li key={String(a["id"])} className="rounded-lg border border-navy/10 px-3 py-2">
-                      {moeda(a["valor"], detalhe["moeda"])} — {String(a["motivo"] ?? "")}{" "}
-                      <span className="text-navy/50">{dataBr(a["created_at"])}</span>
-                    </li>
-                  ))}
-                </ul>
+                <EstadoDados
+                  carregando={qAjustes.isLoading}
+                  erro={qAjustes.error}
+                  dados={qAjustes.data as Linha[] | undefined}
+                  aoTentarNovamente={() => void qAjustes.refetch()}
+                  recurso="os ajustes de fatura"
+                  vazio="Nenhum ajuste registrado."
+                >
+                  {(ajustes) => (
+                    <ul className="mt-4 space-y-2 text-sm">
+                      {ajustes
+                        .filter((a) => a["invoice_id"] === detalhe["id"])
+                        .map((a) => (
+                          <li key={String(a["id"])} className="rounded-lg border border-navy/10 px-3 py-2">
+                            {moeda(a["valor"], detalhe["moeda"])} — {String(a["motivo"] ?? "")}{" "}
+                            <span className="text-navy/50">{dataBr(a["created_at"])}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </EstadoDados>
               </Painel>
             </>
           ) : (

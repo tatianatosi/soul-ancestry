@@ -174,7 +174,12 @@ export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, o
             {erros.map((e) => (
               <p key={e} className="text-xs text-terracotta">{e}</p>
             ))}
-            <button type="submit" className={`${btnCls} mt-2`} disabled={erros.length > 0}>
+            {/*
+              Autoridade operacional: a validação do módulo não desabilita mais o
+              envio. Os erros continuam visíveis acima e a gravação registra a
+              pendência assumida.
+            */}
+            <button type="submit" className={`${btnCls} mt-2`}>
               Gravar registro histórico
             </button>
           </div>

@@ -6,6 +6,7 @@ import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-v
 import { radarSanitizado } from "@/lib/portal-dados-vivos";
 import { garantirEixosCanonicos } from "@/lib/radar-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
@@ -30,17 +31,26 @@ const TEXTO_ESTADO: Record<string, string> = {
 
 export function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
-  const { data, isLoading } = usePortalVivo();
-  // Cards de pontuação e textos seguem exatamente o conjunto e a ordem canônicos.
-  const eixos = garantirEixosCanonicos(
-    radarSanitizado({ projecoes: data?.projecoes ?? [], documentos: data?.documentos ?? [] }),
-  );
+  const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
   return (
     <PortalShell titulo={COPY_TELAS.radar.titulo} descricao={COPY_TELAS.radar.descricao}>
-      {carregando || isLoading ? (
+      {carregando ? (
         <PortalCarregando />
       ) : (
+        <EstadoDados
+          carregando={isLoading}
+          erro={isError ? (error ?? true) : null}
+          dados={data ? [data] : null}
+          aoTentarNovamente={refetch}
+          recurso="o seu radar de países"
+        >
+          {([vivo]) => {
+            // Cards de pontuação e textos seguem exatamente o conjunto e a ordem canônicos.
+            const eixos = garantirEixosCanonicos(
+              radarSanitizado({ projecoes: vivo.projecoes, documentos: vivo.documentos }),
+            );
+            return (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <div className="grid gap-3 sm:grid-cols-2">
             {eixos.map((eixo) => (
@@ -63,6 +73,9 @@ export function PortalRadar() {
             ))}
           </div>
         </BlocoVisibilidade>
+            );
+          }}
+        </EstadoDados>
       )}
     </PortalShell>
   );

@@ -5,7 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
   FiltroStatus,
@@ -52,7 +54,6 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 type Linha = Record<string, unknown>;
 
 function PropostasPage() {
-  const { podeComercial } = useSaas();
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
   const vinculos = useServerFn(listarVinculos);
@@ -148,6 +149,7 @@ function PropostasPage() {
 
   const clientes = qv.data?.clientes ?? [];
   const casos = qv.data?.casos ?? [];
+  const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
   const codigoCaso = (id: unknown) => {
     const c = casos.find((x) => x.id === id);
@@ -172,7 +174,7 @@ function PropostasPage() {
       titulo="CRM Vivo — Propostas"
       descricao="Versões, escopo, condições e validade. Só uma proposta aprovada por cliente."
       acoes={
-        podeComercial ? (
+        (
           <button
             onClick={() => {
               setErro(null);
@@ -182,7 +184,7 @@ function PropostasPage() {
           >
             Nova proposta
           </button>
-        ) : null
+        )
       }
     >
       <div className="space-y-4">
@@ -219,9 +221,33 @@ function PropostasPage() {
           </p>
         ) : null}
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando…" />
-        ) : !linhas.length ? (
+        {vinculosIndisponiveis ? (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+          >
+            Não foi possível carregar clientes e casos vinculados. Nomes e listas de seleção estão vazios por
+            falha de leitura, não por ausência de cadastro.
+            <button
+              type="button"
+              onClick={() => void qv.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data as Linha[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as propostas"
+          vazio="Nenhuma proposta cadastrada ainda."
+        >
+          {() =>
+          !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma proposta neste filtro." />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
@@ -291,7 +317,9 @@ function PropostasPage() {
               </tbody>
             </table>
           </div>
-        )}
+        )
+          }
+        </EstadoDados>
       </div>
 
       {detalhe ? (
@@ -344,11 +372,11 @@ function PropostasPage() {
             </dl>
           </Painel>
 
-          {podeComercial && detalhe["case_id"] ? (
+          {detalhe["case_id"] ? (
             <RegraComercial caseId={String(detalhe["case_id"])} />
           ) : null}
 
-          {podeComercial ? (
+          {(
             <>
               <Painel titulo="Mover status">
                 <div className="flex flex-wrap gap-2">
@@ -460,20 +488,25 @@ function PropostasPage() {
                     ? " Proposta arquivada continua arquivada e recuperável — o ajuste nasce como rascunho novo."
                     : " A proposta atual é marcada como substituída."}
                 </p>
-                <button
-                  disabled={mVersionar.isPending || String(detalhe["status"]) === "substituida"}
-
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do ajuste (opcional)");
-                    if (motivo !== null) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
-                  }}
-                  className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-                >
-                  Criar versão para ajuste
-                </button>
+                <div className="mt-3">
+                  <AcaoOperacional
+                    rotulo="Criar versão para ajuste"
+                    size="sm"
+                    capacidade="criar_versao_derivada"
+                    pendenciaGate={
+                      String(detalhe["status"]) === "substituida"
+                        ? "Esta proposta já foi substituída: o ajuste nasce como rascunho derivado de uma versão que não vale mais."
+                        : null
+                    }
+                    efeito="Duplica a proposta como rascunho editável e marca a atual como substituída."
+                    onConfirmar={async (motivo) => {
+                      await mVersionar.mutateAsync({ id: String(detalhe["id"]), motivo });
+                    }}
+                  />
+                </div>
               </Painel>
             </>
-          ) : null}
+          )}
 
           <Painel titulo="Histórico">
             <Historico entidade="proposals" id={String(detalhe["id"])} />

@@ -32,6 +32,27 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando plano de onboarding…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <Secao titulo="Plano de onboarding" descricao="Preparação interna, sem ativação de cliente.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">Não foi possível carregar o plano de onboarding.</p>
+          <p className="text-navy/80">
+            {q.error instanceof Error
+              ? q.error.message
+              : "A consulta não retornou resultado nem erro. Isso é falha de carga, não plano ausente."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </Secao>
+    );
+  }
   const plano = q.data?.plano ?? null;
   if (!plano) {
     return (

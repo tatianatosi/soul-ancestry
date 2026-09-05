@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA, ROTULO_ORIGEM_PENDENCIA, type PendenciaPiloto } from "@/lib/piloto-ana";
 import { carregarPilotoAna, definirIdCanonicoPiloto, materializarPilotoAna } from "@/lib/piloto-ana.functions";
 
@@ -70,7 +72,10 @@ function PilotoAna() {
   });
 
   const caso = q.data?.caso ?? null;
-  const pendencias = (q.data?.pendencias ?? []) as PendenciaPiloto[];
+  // Sem fallback silencioso: `undefined` significa consulta não resolvida, e
+  // não "nenhuma pendência". A conta abaixo distingue os dois casos.
+  const pendencias = q.data?.pendencias as PendenciaPiloto[] | undefined;
+  const totalPendencias = pendencias?.length ?? 0;
 
   return (
     <SaasShell
@@ -79,6 +84,18 @@ function PilotoAna() {
     >
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando caso-piloto…" />
+      ) : q.isError ? (
+        <div role="alert" className="space-y-2 rounded-xl border border-terracotta/40 bg-terracotta/10 p-5 text-sm text-navy">
+          <p>Não foi possível carregar o caso-piloto. O que aparece abaixo não seria o estado real do banco.</p>
+          <p className="text-xs text-navy/60">{(q.error as Error)?.message ?? "Falha na consulta."}</p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
       ) : (
         <div className="grid gap-4">
           <Bloco titulo="Identificação">
@@ -105,9 +122,9 @@ function PilotoAna() {
                 <p className="text-[11px] uppercase tracking-wide text-navy/40">Status</p>
                 <p className="text-sm text-navy">Formalização em preparação</p>
                 <p className="mt-1 text-xs text-navy/60">
-                  {pendencias.length === 0
+                  {totalPendencias === 0
                     ? "Nenhuma pendência real aberta encontrada no banco para este caso."
-                    : `${pendencias.length} pendência(s) real(is) aberta(s) — ver "Dados técnicos e validações" abaixo.`}
+                    : `${totalPendencias} pendência(s) real(is) aberta(s) — ver "Dados técnicos e validações" abaixo.`}
                 </p>
               </div>
             ) : null}
@@ -166,13 +183,28 @@ function PilotoAna() {
                 onChange={(e) => setDecisor(e.target.value)}
                 placeholder="Quem decide"
               />
+              {/*
+                Autoridade operacional: a ausência do caso materializado é
+                pendência declarada ao lado, não trava do controle.
+              */}
               <button
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
-                disabled={!caso || mId.isPending}
-                onClick={() => caso && mId.mutate(caso.id)}
+                disabled={mId.isPending}
+                onClick={() => {
+                  if (!caso) {
+                    toast.error("Caso-piloto ainda não materializado — use “Localizar ou registrar caso” acima.");
+                    return;
+                  }
+                  mId.mutate(caso.id);
+                }}
               >
                 Registrar decisão
               </button>
+              {!caso ? (
+                <span className="text-xs text-navy/60">
+                  Pendência registrada: caso-piloto ainda não materializado no banco.
+                </span>
+              ) : null}
             </div>
             <p className="mt-2 text-xs text-navy/60">
               Decisão registrada: {caso?.id_canonico_decidido ?? "pendente"}
@@ -205,7 +237,8 @@ function PilotoAna() {
               </tbody>
             </table>
             <p className="mt-3 text-xs text-navy/60">
-              Registrado no Desk: {(q.data?.membros ?? []).length} membro(s) em {(q.data?.nucleos ?? []).length} núcleo(s).
+              Registrado no Desk: {q.data?.membros?.length ?? 0} membro(s) em{" "}
+              {q.data?.nucleos?.length ?? 0} núcleo(s).
             </p>
             {FORA_DE_ESCOPO_PILOTO.map((f) => (
               <p key={f.nome} className="mt-2 rounded-lg bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -215,23 +248,31 @@ function PilotoAna() {
           </Bloco>
 
           <Bloco titulo="Eventos de conversão do caso">
-            {(q.data?.eventos ?? []).length === 0 ? (
-              <EstadoVazio mensagem="Nenhum evento registrado ainda." />
-            ) : (
-              <ul className="space-y-1 text-xs">
-                {(q.data?.eventos ?? []).map((e) => (
-                  <li key={e.id} className="rounded border border-navy/10 px-3 py-2">
-                    {new Date(e.occurred_at).toLocaleString("pt-BR")} — {e.event_type} {e.observacao ? `· ${e.observacao}` : ""}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.eventos}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="os eventos de conversão do caso"
+              vazio="Nenhum evento registrado ainda."
+            >
+              {(eventos) => (
+                <ul className="space-y-1 text-xs">
+                  {eventos.map((e) => (
+                    <li key={e.id} className="rounded border border-navy/10 px-3 py-2">
+                      {new Date(e.occurred_at).toLocaleString("pt-BR")} — {e.event_type}{" "}
+                      {e.observacao ? `· ${e.observacao}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </EstadoDados>
           </Bloco>
 
-          {pendencias.length > 0 ? (
+          {pendencias && pendencias.length > 0 ? (
             <details className="rounded-xl border border-navy/10 bg-white p-5">
               <summary className="cursor-pointer font-serif text-base text-navy">
-                Dados técnicos e validações ({pendencias.length} pendência(s) real(is) aberta(s))
+                Dados técnicos e validações ({totalPendencias} pendência(s) real(is) aberta(s))
               </summary>
               <p className="mt-2 text-[11px] text-navy/50">
                 Consultado direto do banco para este caso — nenhum item fixo. Leitura derivada: não altera dado, não

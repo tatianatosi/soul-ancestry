@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { SaasShell, useSaas } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
 import { FluxoComercialCanonico } from "@/components/crm/fluxo-canonico";
 import { PainelCanonicoCrm } from "@/components/crm/painel-canonico";
 
@@ -33,7 +33,6 @@ export const Route = createFileRoute("/_authenticated/historico/fluxo-comercial-
  * apagado, só deixou de disputar a mesma tela do CRM canônico.
  */
 function HistoricoFluxoComercialCanonico() {
-  const { podeEscrever } = useSaas();
   return (
     <SaasShell
       titulo="Visão histórica — Fluxo comercial canônico"
@@ -61,7 +60,7 @@ function HistoricoFluxoComercialCanonico() {
           Núcleo operacional deste modelo paralelo. Conversas são imutáveis e eventos sensíveis exigem confirmação
           humana e evidência interna. Nada aqui envia mensagem nem gera ato externo.
         </p>
-        <PainelCanonicoCrm podeEscrever={podeEscrever} />
+        <PainelCanonicoCrm />
       </div>
     </SaasShell>
   );

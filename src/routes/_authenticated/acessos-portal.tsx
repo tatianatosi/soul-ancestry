@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { BotaoTentarNovamente, EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   alterarStatusAcessoPortal,
@@ -55,9 +57,6 @@ const STATUS_LABEL = STATUS_ACESSO_LABEL;
 const NIVEL_LABEL_MAP: Record<string, string> = NIVEL_LABEL;
 
 function AcessosPortalPage() {
-  const { papeis } = useSaas();
-  const podeGerir = papeis.includes("admin") || papeis.includes("operacoes");
-
   const queryClient = useQueryClient();
   const listar = useServerFn(listarAcessosPortal);
   const criar = useServerFn(criarConvitePortal);
@@ -168,9 +167,14 @@ function AcessosPortalPage() {
       titulo="Acessos ao portal"
       descricao="Clientes entram apenas por link mágico de uso único, enviado a e-mail previamente autorizado e validado."
     >
-      {!podeGerir ? (
-        <EstadoVazio mensagem="Apenas admin e operações podem gerenciar acessos ao portal." />
-      ) : (
+      <EstadoDados
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={q.data ? [q.data] : undefined}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="os acessos ao portal"
+      >
+        {() => (
         <div className="space-y-8">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <CardIndicador rotulo="Acessos ativos ao portal" valor={acessosAtivos} apoio="Link válido e não revogado" />
@@ -400,7 +404,7 @@ function AcessosPortalPage() {
                   {mostrarBloqueados && grupos.bloqueadas.length > 0 ? (
                     <optgroup label="Bloqueados (sem elegibilidade operacional)">
                       {grupos.bloqueadas.map(({ pessoa, bloqueio }) => (
-                        <option key={pessoa.id} value={pessoa.id} disabled>
+                        <option key={pessoa.id} value={pessoa.id}>
                           {pessoa.nome} — {bloqueio.motivos[0]}
                         </option>
                       ))}
@@ -409,7 +413,7 @@ function AcessosPortalPage() {
                   {incluirDemo && grupos.demo.length > 0 ? (
                     <optgroup label="Demonstração (fora das métricas reais)">
                       {grupos.demo.map(({ pessoa, bloqueio }) => (
-                        <option key={pessoa.id} value={pessoa.id} disabled={bloqueio.bloqueado}>
+                        <option key={pessoa.id} value={pessoa.id}>
                           {pessoa.nome} · demo
                           {bloqueio.bloqueado ? ` — ${bloqueio.motivos[0]}` : ""}
                         </option>
@@ -466,7 +470,7 @@ function AcessosPortalPage() {
                     {casosDoCliente.map((c) => {
                       const b = bloqueioDoCaso(c);
                       return (
-                        <option key={c.id} value={c.id} disabled={b.bloqueado}>
+                        <option key={c.id} value={c.id}>
                           {c.codigo} — {c.titulo}
                           {b.bloqueado ? ` — ${b.motivos[0]}` : ""}
                         </option>
@@ -476,19 +480,30 @@ function AcessosPortalPage() {
                 </label>
               ) : null}
             </div>
-            <button
-              onClick={() => mConvite.mutate()}
-              disabled={
-                !clientId ||
-                !autorizacaoId ||
-                !!bloqueioSelecionado?.bloqueado ||
-                (nivel === "client_workspace" && !casoId) ||
-                mConvite.isPending
-              }
-              className="mt-4 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
-            >
-              {mConvite.isPending ? "Enviando…" : "Criar convite e enviar link"}
-            </button>
+            <div className="mt-4">
+              {!clientId || !autorizacaoId || (nivel === "client_workspace" && !casoId) ? (
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
+                >
+                  Criar convite e enviar link
+                </button>
+              ) : (
+                <AcaoOperacional
+                  rotulo={mConvite.isPending ? "Enviando…" : "Criar convite e enviar link"}
+                  acaoExterna="enviar_email"
+                  capacidade="editar_fila_responsavel_prazo"
+                  pendenciaGate={
+                    bloqueioSelecionado?.bloqueado ? bloqueioSelecionado.motivos.join("; ") : null
+                  }
+                  efeito="Cria o acesso e envia um link mágico de uso único para o e-mail autorizado (validade de 24h)."
+                  onConfirmar={async () => {
+                    await mConvite.mutateAsync();
+                  }}
+                />
+              )}
+            </div>
             {msg ? <p className="mt-3 text-sm text-green-700">{msg}</p> : null}
             {erro ? <p className="mt-3 text-sm text-terracotta">{erro}</p> : null}
           </section>
@@ -502,16 +517,7 @@ function AcessosPortalPage() {
                 reais. Marque “Incluir demonstrações” acima para exibi-los.
               </p>
             ) : null}
-            {q.isLoading ? (
-              <p className="mt-3 text-sm text-navy/60">Carregando…</p>
-            ) : q.isError ? (
-              <div className="mt-3">
-                <EstadoVazio
-                  mensagem="Não foi possível carregar os acessos ao portal."
-                  acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
-                />
-              </div>
-            ) : !acessosVisiveis.length ? (
+            {!acessosVisiveis.length ? (
               <div className="mt-3">
                 <EstadoVazio mensagem="Nenhum acesso ao portal criado ainda." />
               </div>
@@ -698,28 +704,25 @@ function AcessosPortalPage() {
                       {detalhe === a.id ? (
                         <div className="mt-4 border-t border-navy/10 pt-3">
                           <p className="text-xs uppercase tracking-wide text-navy/50">Histórico de acesso</p>
-                          <ul className="mt-2 space-y-1 text-sm text-navy/70">
-                            {(qEventos.data ?? []).map((ev) => (
-                              <li key={ev.id}>
-                                {new Date(ev.occurred_at).toLocaleString("pt-BR")} —{" "}
-                                {EVENTO_LABEL[ev.event_type] ?? ev.event_type}
-
-                              </li>
-                            ))}
-                            {qEventos.data && qEventos.data.length === 0 ? <li>Sem eventos registrados.</li> : null}
-                            {qEventos.isError ? (
-                              <li className="flex flex-wrap items-center gap-3 text-terracotta">
-                                Não foi possível carregar o histórico.
-                                <button
-                                  type="button"
-                                  onClick={() => void qEventos.refetch()}
-                                  className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
-                                >
-                                  Tentar novamente
-                                </button>
-                              </li>
-                            ) : null}
-                          </ul>
+                          <EstadoDados
+                            carregando={qEventos.isLoading}
+                            erro={qEventos.error}
+                            dados={qEventos.data}
+                            aoTentarNovamente={() => void qEventos.refetch()}
+                            recurso="o histórico de acesso"
+                            vazio="Sem eventos registrados."
+                          >
+                            {(evs) => (
+                              <ul className="mt-2 space-y-1 text-sm text-navy/70">
+                                {evs.map((ev) => (
+                                  <li key={ev.id}>
+                                    {new Date(ev.occurred_at).toLocaleString("pt-BR")} —{" "}
+                                    {EVENTO_LABEL[ev.event_type] ?? ev.event_type}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </EstadoDados>
                         </div>
                       ) : null}
                     </div>
@@ -729,7 +732,8 @@ function AcessosPortalPage() {
             )}
           </section>
         </div>
-      )}
+        )}
+      </EstadoDados>
     </SaasShell>
   );
 }

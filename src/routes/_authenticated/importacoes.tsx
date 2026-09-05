@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   CAMPOS_PLACEGO,
   FONTES_LEGADAS,
@@ -226,11 +227,15 @@ function Importacoes() {
         </Cartao>
 
         <Cartao titulo="Lotes de importação">
-          {q.isLoading ? (
-            <EstadoVazio mensagem="Carregando…" />
-          ) : (q.data?.lotes ?? []).length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma importação registrada." />
-          ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data?.lotes}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os lotes de importação"
+            vazio="Nenhuma importação registrada."
+          >
+            {(lotes) => (
             <table className="w-full text-left text-xs">
               <thead className="text-[10px] uppercase text-navy/50">
                 <tr>
@@ -245,7 +250,7 @@ function Importacoes() {
                 </tr>
               </thead>
               <tbody>
-                {(q.data?.lotes ?? []).map((l) => (
+                {lotes.map((l) => (
                   <tr key={l.id} className="border-t border-navy/5">
                     <td className="py-1 pr-3">{l.source_system}</td>
                     <td className="py-1 pr-3">{new Date(l.started_at).toLocaleString("pt-BR")}</td>
@@ -259,15 +264,22 @@ function Importacoes() {
                 ))}
               </tbody>
             </table>
-          )}
+            )}
+          </EstadoDados>
         </Cartao>
 
         <Cartao titulo="Exceções de migração">
-          {(q.data?.excecoes ?? []).length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma exceção registrada." />
-          ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data?.excecoes}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="as exceções de migração"
+            vazio="Nenhuma exceção registrada."
+          >
+            {(excecoes) => (
             <div className="space-y-2">
-              {(q.data?.excecoes ?? []).map((e) => (
+              {excecoes.map((e) => (
                 <div key={e.id} className="rounded-lg border border-navy/10 p-3">
                   <p className="text-sm text-navy">
                     <span className="font-medium">{e.exception_type}</span> — {e.reason}
@@ -290,13 +302,20 @@ function Importacoes() {
                 </div>
               ))}
             </div>
-          )}
+            )}
+          </EstadoDados>
         </Cartao>
 
         <Cartao titulo="Vínculos com registros legados">
-          {(q.data?.vinculos ?? []).length === 0 ? (
-            <EstadoVazio mensagem="Nenhum vínculo legado registrado." />
-          ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data?.vinculos}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os vínculos legados"
+            vazio="Nenhum vínculo legado registrado."
+          >
+            {(vinculos) => (
             <table className="w-full text-left text-xs">
               <thead className="text-[10px] uppercase text-navy/50">
                 <tr>
@@ -308,7 +327,7 @@ function Importacoes() {
                 </tr>
               </thead>
               <tbody>
-                {(q.data?.vinculos ?? []).map((v) => (
+                {vinculos.map((v) => (
                   <tr key={v.id} className="border-t border-navy/5">
                     <td className="py-1 pr-3">{v.entity_type}</td>
                     <td className="py-1 pr-3">{v.legacy_system}</td>
@@ -319,7 +338,8 @@ function Importacoes() {
                 ))}
               </tbody>
             </table>
-          )}
+            )}
+          </EstadoDados>
         </Cartao>
       </div>
     </SaasShell>
