@@ -93,7 +93,25 @@ Organizado nos mesmos blocos que a proprietária descreveu.
 | Nome completo da mãe | texto | Idem |
 | Cidade de nascimento | texto | Só relevante informar quando diferente da cidade de residência — regra de exibição condicional, pedido explícito da proprietária |
 
-## 4. Relação com os 4 cadastros existentes
+### 3.6 Bloco comercial (revisão 01/09/2026 — ficha piloto + auditoria de CRM)
+
+A proprietária pediu para incluir todas as nuances, inclusive o comercial, a partir de três documentos de 10-11/08 que ela enviou (arquivados em `docs/evolucao/recuperados/materiais-crm-2026-09-01/`) — um deles é a matriz "Ficha Piloto → CRM/Desk/App" do caso real da Giovanna. Cruzado com o schema real (migration `20260821122741`, 21/08), parte do que esses documentos propuseram **já foi implementado em código**, mesmo sem UI (ver README do lote arquivado para o de-para completo).
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| Estágio comercial | dropdown (`contato_inicial`/`qualificacao`/`discovery_agendada`/`discovery_realizada`/`proposta_em_preparacao`/`proposta_enviada`/`aceite_verbal`/`confirmacao_formal_pendente`/`confirmacao_formal_recebida`/`formalizacao_em_preparacao`/`caso_ativo`/`perdido`/`arquivada`) | **Já existe de verdade** — `opportunities.etapa_comercial`, sem UI que o leia/escreva ainda |
+| Objetivo declarado | texto | **Já existe** — `opportunities.objetivo_declarado` |
+| País/linha prioritária | texto | **Já existe** — `opportunities.pais_linha_prioritaria` e `discovery_assessments.pais_linha_prioritaria` |
+| Sinal de aderência preliminar | texto/dropdown | **Já existe** — `discovery_assessments.sinal_aderencia_preliminar`, mesma terminologia do CA-04 (nunca é conclusão jurídica) |
+| Origem / canal | texto | **Já existe**, mas duplicado — `leads.origem` e `contacts.origem`/`origem_detalhe`, sem ligação entre si |
+| Responsável comercial | texto/referência | **Já existe**, duplicado — `opportunities.responsavel_nome`/`responsavel_user_id`, `contacts.responsavel_user_id` |
+| Próxima ação + prazo | texto + data | **Já existe** — `opportunities.proxima_acao`/`prazo_proxima_acao` |
+| Consentimentos (contato / armazenamento e uso de dados / gravação / recebimento de documentos — 4 tipos distintos) | 4 dropdowns separados | **Proposto, não implementado.** Nenhuma tabela real tem esses 4 consentimentos como campos distintos hoje — fica registrado aqui como parte do modelo, pendente de decisão de implementação |
+| Nível de acesso ao App | dropdown (Interno/Portal de proposta/Workspace do cliente) | **Parcialmente real** — `crm_casos.app_access_status` existe; o `app_visibility_level`/`app_display_name` propostos nos documentos de 10-11/08 não existem |
+
+**Achado que muda o inventário de tabelas fragmentadas:** `contacts` (criada em 21/08, com `nome`/`email`/`telefone`/`origem`) é uma **sexta** fonte de identidade básica de pessoa, além das 5 já listadas no §4.1 — com o agravante de que `opportunities.contact_id` referencia `contacts`, não `leads` nem `clientes`, então hoje existem três "pontas soltas" de identidade comercial (`leads`, `contacts`, `clientes`) sem nenhuma delas ser a fonte única.
+
+## 4. Relação com os cadastros existentes
 
 Este modelo **não substitui** a finalidade específica de cada tabela — substitui a ausência de uma fonte comum entre elas. Proposta de relação (especificação, não implementação):
 
@@ -103,17 +121,27 @@ pessoas_canonicas (nova, hipotética)
   ← referenciada por nucleo_membros.pessoa_id
   ← referenciada por contract_parties.pessoa_id
   ← referenciada por genealogical_person_profiles.pessoa_id (quando o ancestral pesquisado também é uma pessoa viva do caso, ex.: o próprio requerente)
+  ← referenciada por leads.pessoa_id (revisão 01/09 — ver §4.1)
+  ← referenciada por contacts.pessoa_id (revisão 01/09 — ver §3.6)
 ```
 
 Isso é exatamente o `person_id` compartilhado que falta hoje — já registrado como achado no Mapa de Autoridade Admin. Este documento fecha a lacuna de "que campos exatamente esse cadastro central deveria ter", que antes só existia como pergunta em aberto.
 
-## 5. O que este documento NÃO decide
+### 4.1 Revisão 01/09/2026 — Lead entra no escopo (eram 4 cadastros, agora são 5)
 
-- Não decide se `pessoas_canonicas` é uma tabela nova ou se um dos 4 cadastros existentes (mais provável: `clientes`, por já ser o mais próximo do papel de "pessoa viva") é expandido para assumir esse papel.
-- Não decide a estratégia de migração dos dados já existentes nas 4 tabelas (achados no Mapa: dados reais da Ana já estão consistentes entre `clientes`/`nucleo_membros`/`contract_parties` na prática, mesmo sem `person_id` comum — a migração precisa preservar isso, não recriar).
+A proprietária confirmou o ponto levantado ao revisar o documento CA-04 (CRM Mestre): a Ana foi lead, fez discovery, recebeu proposta, aceitou e só agora está virando cliente — **é a mesma pessoa em cada estágio**, e o modelo de Pessoa Canônica precisa cobrir isso, não só o lado civil. Pedido explícito: "expandir para todos aonde permeiam pessoas, clientes, leads."
+
+Confirmado em schema real (migration `20260816151056`): `leads` tem `nome`, `email`, `telefone`, `origem`, `pais_interesse` — um quinto cadastro fragmentado, sem `person_id`, com os mesmos campos de identidade básica que já se repetem em `clientes`/`contract_parties`. E confirmado também (migration `20260816190336`): `proposals.lead_id` e `proposals.client_id` já são FKs reais — ou seja, a ponte Lead→Proposta→Cliente **já existe estruturalmente**, só falta o `person_id` comum amarrando as pontas.
+
+Isso muda a lista de tabelas fragmentadas de 4 para 5: `clientes`, `nucleo_membros`, `genealogical_person_profiles`, `contract_parties`, `leads`. (Revisão seguinte, §3.6: uma sexta, `contacts`, apareceu na verificação do bloco comercial.)
+
+## 5. O que este documento NÃO decide (revisado 01/09)
+
+- Não decide se `pessoas_canonicas` é uma tabela nova ou se um dos cadastros existentes (mais provável: `clientes`, por já ser o mais próximo do papel de "pessoa viva") é expandido para assumir esse papel.
+- Não decide a estratégia de migração dos dados já existentes — **decisão da proprietária (01/09): antes de qualquer migração real, fazer uma verificação dedicada da jornada da Ana especificamente (lead → discovery → proposta → cliente → caso), confirmando que os dados já consistentes entre `clientes`/`nucleo_membros`/`contract_parties`/`leads` continuam batendo, antes de estender a estratégia para qualquer outra pessoa/caso.**
 - Não decide se "Dependentes" vira lista de referência a outras Pessoas Canônicas ou continua um atributo textual simples.
-- Não decide se o dropdown de país deve usar uma lista fixa curta (visto que o produto é sobre cidadania — provavelmente concentrado em poucos países de destino) ou uma lista internacional completa.
+- **Resolvido (01/09):** o dropdown de país usa lista curta, não internacional completa — os mesmos 10 países já cobertos pelo produto, conforme `País/linha prioritária` do CA-04 (Itália, Portugal, Espanha, Alemanha, Áustria, Polônia, Hungria, Luxemburgo, Croácia, Romênia), com Brasil como país de residência padrão. Não uma lista de todos os países do mundo.
 
 ## 6. Próximo passo
 
-Junto com as 3 decisões abertas no `MOTOR-CONTRATUAL-INVENTARIO-E-DE-PARA-2026-08-31.md`, este modelo de campos fica pronto para aprovação da proprietária antes de qualquer schema novo ou migration.
+Junto com as decisões abertas no `MOTOR-CONTRATUAL-INVENTARIO-E-DE-PARA-2026-08-31.md`, este modelo de campos fica pronto para aprovação da proprietária antes de qualquer schema novo ou migration. Antes de qualquer migração de dado real, a verificação da jornada da Ana (§5) é o próximo passo concreto, não a criação de `pessoas_canonicas`.
