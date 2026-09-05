@@ -95,7 +95,18 @@ function CatalogoPage() {
       </section>
 
       {q.isLoading ? <p className="mt-6 text-sm text-navy/50">Carregando catálogo importado…</p> : null}
-      {q.isError ? <p className="mt-6 text-sm text-terracotta">Não foi possível ler o catálogo importado.</p> : null}
+      {q.isError ? (
+        <p className="mt-6 flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível ler o catálogo importado.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <section className="mt-6 overflow-x-auto rounded-xl border border-navy/10 bg-white">
         <table className="w-full text-left text-xs">

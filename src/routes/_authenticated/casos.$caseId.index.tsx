@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
-import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
@@ -411,6 +411,7 @@ function FichaCaso() {
       <SaasShell titulo="Ficha operacional do caso">
         <EstadoVazio
           mensagem={q.error instanceof Error ? q.error.message : "Caso não encontrado."}
+          acao={q.isError ? <BotaoTentarNovamente aoClicar={() => void q.refetch()} /> : undefined}
         />
       </SaasShell>
     );
