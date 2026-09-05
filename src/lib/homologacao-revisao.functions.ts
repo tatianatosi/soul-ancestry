@@ -41,8 +41,18 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
         recusados.push({ id, sku: id, motivo: "SKU fora do catálogo ativo da organização" });
         continue;
       }
+      // Autoridade operacional (05/09/2026): pendência informa, não impede.
+      //
+      // Antes, cada SKU com pendência era recusado no servidor mesmo depois de
+      // a proprietária ter confirmado e escrito a justificativa na tela. Ela
+      // clicava, preenchia o motivo e nada acontecia — a tela reportava tudo
+      // como "recusado". Era o bloqueio de homologação que ela relatava.
+      //
+      // Agora a pendência é assumida por decisão dela, preservada e registrada
+      // na auditoria de cada item. Para os demais papéis, segue bloqueando.
       const pendencias = pendenciasBloqueantes(sku);
-      if (pendencias.length) {
+      const assumidaPelaProprietaria = pendencias.length > 0 && papel === "admin";
+      if (pendencias.length && !assumidaPelaProprietaria) {
         recusados.push({ id, sku: sku.sku_codigo, motivo: pendencias[0] });
         continue;
       }
@@ -86,6 +96,9 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
           motivo: data.motivo,
           fonte: "revisao_item_a_item_homologacao",
           acao_externa_executada: false,
+          // Liberar não é apagar: a pendência superada fica no registro.
+          pendencias_assumidas: assumidaPelaProprietaria ? pendencias : [],
+          assumida_por_decisao_da_proprietaria: assumidaPelaProprietaria,
         },
       });
 

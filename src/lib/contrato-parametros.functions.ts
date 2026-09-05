@@ -1052,8 +1052,15 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     }
     if (tipo === "final") {
       const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
+      // Autoridade operacional (05/09/2026): pendência de anexo informa, não
+      // impede. A proprietária assume; os demais papéis seguem bloqueados.
       if (anexoBloqueante) {
-        throw new Error(
+        const { contextoInterno } = await import("@/lib/comercial.server");
+        const { assumirOuRecusar } = await import("@/lib/autoridade.server");
+        const { papel } = await contextoInterno(supabase as never, context.userId as string);
+        assumirOuRecusar(
+          papel,
+          anexoBloqueante.pendencias as string[],
           `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
         );
       }
@@ -1153,8 +1160,20 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");
     if (previa.tipo !== "final") throw new Error("Somente a prévia final pode ser aprovada.");
-    if ((previa.placeholders_pendentes ?? []).length > 0) {
-      throw new Error("Há campos obrigatórios em placeholder. Aprovação bloqueada.");
+
+    // Autoridade operacional (05/09/2026): pendência informa, não impede.
+    // Antes, a aprovação da prévia era recusada por placeholder pendente mesmo
+    // com a proprietária confirmando. Era um dos pontos em que ela relatava
+    // não conseguir fazer nada na área de contrato.
+    {
+      const { contextoInterno } = await import("@/lib/comercial.server");
+      const { assumirOuRecusar } = await import("@/lib/autoridade.server");
+      const { papel } = await contextoInterno(supabase as never, context.userId as string);
+      assumirOuRecusar(
+        papel,
+        (previa.placeholders_pendentes ?? []) as string[],
+        "Há campos obrigatórios em placeholder. Aprovação bloqueada.",
+      );
     }
 
     const { data: registroAprovacao } = await supabase
