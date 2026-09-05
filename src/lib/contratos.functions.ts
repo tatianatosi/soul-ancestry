@@ -142,19 +142,24 @@ export const obterContrato = createServerFn({ method: "GET" })
       ? (
           await supabase
             .from("contract_case_parameters")
-            .select("id")
+            .select("id,contract_parameter_values(campo,valor)")
             .eq("organization_id", organizationId)
             .eq("case_id", contrato.data.case_id)
             .is("archived_at", null)
             .maybeSingle()
         ).data
       : null;
+    const valoresParametros = (parametros as any)?.contract_parameter_values as
+      | { campo: string; valor: string | null }[]
+      | undefined;
 
     return {
       papel,
       contrato: contrato.data,
       contratoBase,
       parametrosId: (parametros?.id as string | undefined) ?? null,
+      valorReferencia: valoresParametros?.find((v) => v.campo === "valor_total")?.valor ?? null,
+      prazoReferencia: valoresParametros?.find((v) => v.campo === "vencimentos")?.valor ?? null,
       partes: partes.data ?? [],
       escopo: escopo.data ?? [],
       clausulas: clausulas.data ?? [],
@@ -1126,9 +1131,27 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
       relacionada("contract_versions", "*"),
     ]);
 
+    // Valor total e vencimento não existem em `contracts` — vêm dos
+    // parâmetros do Planejador vinculados (contract_case_parameters.contract_id
+    // → contract_parameter_values), quando o contrato já estiver religado.
+    const { data: parametrosVinculados } = await supabase
+      .from("contract_case_parameters")
+      .select("contract_id,contract_parameter_values(campo,valor)")
+      .eq("organization_id", organizationId)
+      .in("contract_id", ids);
+    const referenciaPorContrato = new Map<string, { valor: string | null; prazo: string | null }>();
+    for (const reg of (parametrosVinculados ?? []) as any[]) {
+      const valores = (reg.contract_parameter_values ?? []) as { campo: string; valor: string | null }[];
+      referenciaPorContrato.set(reg.contract_id, {
+        valor: valores.find((v) => v.campo === "valor_total")?.valor ?? null,
+        prazo: valores.find((v) => v.campo === "vencimentos")?.valor ?? null,
+      });
+    }
+
     const por = (linhas: any[], id: string) => linhas.filter((l) => l.contract_id === id);
 
     const instrumentos = lista.map((c) => {
+      const referencia = referenciaPorContrato.get(c.id);
       const resumo = montarChecklistJuridico({
         contrato: c,
         partes: por(partes, c.id),
@@ -1136,6 +1159,8 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
         clausulas: por(clausulas, c.id),
         anexos: por(anexos, c.id),
         versoes: por(versoes, c.id),
+        valorReferencia: referencia?.valor ?? null,
+        prazoReferencia: referencia?.prazo ?? null,
       });
       return {
         id: c.id as string,

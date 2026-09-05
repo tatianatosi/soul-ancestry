@@ -121,6 +121,8 @@ function ContratoDetalhe() {
     clausulas: d.clausulas as any,
     anexos: d.anexos as any,
     versoes: d.versoes as any,
+    valorReferencia: (d as any).valorReferencia,
+    prazoReferencia: (d as any).prazoReferencia,
   });
   const pendenciaChecklist = checklist.aptoParaRevisaoHumana
     ? null
@@ -840,6 +842,8 @@ function ChecklistJuridico({ dados }: { dados: any }) {
     clausulas: dados.clausulas,
     anexos: dados.anexos,
     versoes: dados.versoes,
+    valorReferencia: dados.valorReferencia,
+    prazoReferencia: dados.prazoReferencia,
   });
   return (
     <section className="space-y-3">
