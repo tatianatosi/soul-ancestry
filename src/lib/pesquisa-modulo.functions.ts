@@ -288,6 +288,11 @@ export const salvarBlocoPesquisa = createServerFn({ method: "POST" })
     const alvo = BLOCOS[data.bloco];
     const dados = limparCamposRg(alvo.campos, data.dados);
 
+    if (data.bloco === "pedidos") {
+      const semTipo = !("requested_document_type" in dados) ? !data.id : dados["requested_document_type"] == null;
+      if (semTipo) throw new Error("Informe o tipo de documento solicitado.");
+    }
+
     if (data.bloco === "evidencias" && dados["evidence_status"] === "validated") {
       dados["validated_by"] = userId;
       dados["reviewed_by"] = userId;
