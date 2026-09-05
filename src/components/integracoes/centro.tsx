@@ -59,7 +59,7 @@ export function CentroIntegracoes() {
   const [confirmacao, setConfirmacao] = useState("");
   const [resultado, setResultado] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
+  const { data, isLoading, isError, refetch } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
 
   const atual = useMemo(
     () => (data?.integracoes ?? []).find((i: any) => i.id === selecionada) ?? null,
@@ -188,6 +188,18 @@ export function CentroIntegracoes() {
       ) : null}
 
       {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isError ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar as integrações.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <ul className="space-y-2">

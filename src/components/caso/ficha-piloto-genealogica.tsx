@@ -87,7 +87,7 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
           <ul className="space-y-1 text-sm text-navy/80">
             {vinculos.map((r) => (
               <li key={r.id}>
-                • {nomePessoa(r.person_a_id)} → {nomePessoa(r.person_b_id)} ({r.relationship_type}) —{" "}
+                • {nomePessoa(r.person_from_id)} → {nomePessoa(r.person_to_id)} ({r.relation_type}) —{" "}
                 <span className="text-xs text-navy/55">
                   {STATUS_VINCULO[String(r.status)]} · {r.supporting_evidence_count} evidência(s)
                 </span>

@@ -266,7 +266,7 @@ function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz
 function FontesGenealogicas() {
   const carregar = useServerFn(painelFontes);
   const qc = useQueryClient();
-  const { data, isPending, error } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
+  const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
   const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
 
   const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
@@ -274,7 +274,19 @@ function FontesGenealogicas() {
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
   if (isPending) return <p className="p-6 text-sm text-navy/60">Carregando catálogo interno…</p>;
-  if (error) return <p className="p-6 text-sm text-terracotta">{(error as Error).message}</p>;
+  if (error)
+    return (
+      <p className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
+        {(error as Error).message}
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
 
   const render = (lista: Fonte[]) =>
     lista.length === 0 ? (

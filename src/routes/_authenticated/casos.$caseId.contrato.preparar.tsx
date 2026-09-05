@@ -41,7 +41,7 @@ import {
 } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
-import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -253,7 +253,18 @@ function Pagina() {
     return (
       <SaasShell titulo="Preparar contrato">
         <Painel titulo="Preparação bloqueada">
-          <p className="text-sm text-terracotta">{(q.error as Error)?.message ?? "Caso indisponível para esta organização."}</p>
+          <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+            {(q.error as Error)?.message ?? "Caso indisponível para esta organização."}
+            {q.error ? (
+              <button
+                type="button"
+                onClick={() => void q.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            ) : null}
+          </p>
         </Painel>
       </SaasShell>
     );
@@ -294,8 +305,24 @@ function Pagina() {
     entradaAnexos,
     anexos: anexosGovernados,
     conflitos: [],
-    politicaPrivacidadeVigente: false,
-    foroConfigurado: false,
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária (pente fino
+     * ponta a ponta na tela de preparação de contrato): estes dois campos
+     * estavam hardcoded `false` para todo caso, sempre — nenhuma tela ou
+     * fluxo jamais os definia como `true`, então a prévia final nunca
+     * conseguia ser liberada (previaFinalLiberada exige zero cláusulas
+     * bloqueantes), mesmo com o contrato-base já vigente. A cláusula H
+     * (retenção/descarte) e a O (foro) do próprio contrato-base
+     * (contrato-base-consolidado.ts, cláusulas 7.3 e 14.2) dizem
+     * textualmente que essas regras "observarão a política institucional
+     * versionada e vigente" — ou seja, já são a mesma vigência do
+     * contrato-base (CONTRATO_BASE_STATUS), revisada nos itens 2 e 4 de
+     * ITENS_REVISAO_JURIDICA antes de `CONTRATO_BASE_STATUS` virar
+     * "vigente". Não era uma segunda aprovação pendente: era um campo que
+     * nunca foi ligado à aprovação que já existia.
+     */
+    politicaPrivacidadeVigente: contratoBaseAssinavel(),
+    foroConfigurado: contratoBaseAssinavel(),
     metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
   });
@@ -535,6 +562,18 @@ function Pagina() {
               nenhum campo é preenchido por inferência.
             </p>
             <div className="mb-3">
+              {qi.isError ? (
+                <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+                  Não foi possível carregar os anexos.
+                  <button
+                    type="button"
+                    onClick={() => void qi.refetch()}
+                    className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+                  >
+                    Tentar novamente
+                  </button>
+                </p>
+              ) : null}
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
               <div className="mt-2">
                 <MaterializarRevisados
@@ -626,7 +665,12 @@ function Pagina() {
                 const motivo = window.prompt("Motivo da versão final (opcional)");
                 if (motivo !== null) mCongelar.mutate({ evento: "aprovacao", motivo });
               }}
-              disabled={mCongelar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
+              disabled={mCongelar.isPending}
+              title={
+                bloqueios.some((b) => b.chave !== "revisao_humana")
+                  ? "Há bloqueios acionáveis abertos — ver seção abaixo. É possível prosseguir; a pendência fica registrada."
+                  : undefined
+              }
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
             >
               Congelar versão final
@@ -704,12 +748,12 @@ function Pagina() {
                 />
                 <button
                   onClick={() => mRevisar.mutate()}
-                  disabled={mRevisar.isPending || !nota.trim() || revisaoTravada}
+                  disabled={mRevisar.isPending || !nota.trim()}
                   title={
                     revisaoTravada
-                      ? `Indisponível: ${impeditivos.length} bloqueio(s) impeditivo(s) — ${impeditivos
+                      ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
                           .map((b) => b.titulo)
-                          .join("; ")}`
+                          .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
                       : "Registra o pedido de revisão humana em auditoria."
                   }
                   className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
@@ -774,6 +818,18 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
+          {qa.isError ? (
+            <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+              Não foi possível carregar a auditoria.
+              <button
+                type="button"
+                onClick={() => void qa.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
           <ul className="space-y-1 text-xs text-navy/70">
             {eventos.map((e) => (
               <li key={e.id}>

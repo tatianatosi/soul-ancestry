@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
-import { bloqueadoParaCliente, filtrarParaCliente } from "@/lib/classificacao-dados";
+import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -35,8 +35,12 @@ export const meusCasos = createServerFn({ method: "GET" })
       porCaso.set(p.case_id, (porCaso.get(p.case_id) ?? 0) + 1);
     }
 
-    // P0.2: só registro classificado como real chega ao cliente autenticado.
-    return filtrarParaCliente((casos.data ?? []) as any[]).map((c) => {
+    // P0.2: fixture/demo nunca chega ao cliente autenticado. portal_casos não
+    // expõe classificacao_dado/data_origin (só crm_casos tem essa coluna) —
+    // usar filtrarParaCliente aqui classificava todo caso real como
+    // "não_classificado" e escondia a lista inteira; semFixtures usa o sinal
+    // que a view realmente carrega (título/código).
+    return semFixtures((casos.data ?? []) as any[]).map((c) => {
       const s = h.statusSimples(c, porCaso.get(c.id) ?? 0);
       return {
         id: c.id as string,
@@ -62,7 +66,9 @@ export const meuCaso = createServerFn({ method: "GET" })
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
 
     const caso = await h.casoAutorizado(supabase, data.casoId);
-    if (caso && bloqueadoParaCliente(caso as any)) return null; // P0.2: não-real nunca é projetado
+    // P0.2: fixture/demo nunca é projetado. Mesma correção da linha acima —
+    // portal_casos não tem data_origin, então o teste certo é o de fixture.
+    if (caso && ehFixtureLinha(caso as any)) return null;
     if (!caso) {
       const portal = await import("./portal.server");
       await portal.registrarEvento({
@@ -83,12 +89,12 @@ export const meuCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase
         .from("documents")
-        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at")
+        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at, is_demo")
         .eq("case_id", data.casoId)
         .order("created_at", { ascending: false }),
       supabase
         .from("invoices")
-        .select("id, numero, descricao, valor, moeda, vencimento, status, valor_pago, paga_em")
+        .select("id, numero, descricao, valor, moeda, vencimento, status, valor_pago, paga_em, dados_teste")
         .eq("case_id", data.casoId)
         .order("vencimento", { ascending: true }),
       supabase
@@ -105,7 +111,10 @@ export const meuCaso = createServerFn({ method: "GET" })
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
     const s = h.statusSimples(caso, pendentes);
-    const docs = filtrarParaCliente((documentos.data ?? []) as any[]);
+    // documents/invoices não têm classificacao_dado nem data_origin — usar o
+    // sinal real de fixture (is_demo/dados_teste), não o filtro P0.2 que
+    // sempre escondia tudo aqui (ver correção acima e no rodapé do arquivo).
+    const docs = semFixtures((documentos.data ?? []) as any[]);
 
     return {
       caso: {
@@ -146,7 +155,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
+      faturas: semFixtures((faturas.data ?? []) as any[]).map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,
@@ -434,12 +443,12 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
+        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo, is_demo")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    const lista = filtrarParaCliente((docs.data ?? []) as any[]);
+    const lista = semFixtures((docs.data ?? []) as any[]);
     return {
       entregas: lista
         .filter((d) => d.liberado_cliente === true)
@@ -475,12 +484,12 @@ export const minhasFaturas = createServerFn({ method: "GET" })
     const [faturas, casos] = await Promise.all([
       supabase
         .from("invoices")
-        .select("id, case_id, numero, descricao, valor, moeda, vencimento, status")
+        .select("id, case_id, numero, descricao, valor, moeda, vencimento, status, dados_teste")
         .order("vencimento", { ascending: true }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    return filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
+    return semFixtures((faturas.data ?? []) as any[]).map((f) => ({
       id: f.id as string,
       numero: f.numero as string | null,
       descricao: f.descricao as string | null,

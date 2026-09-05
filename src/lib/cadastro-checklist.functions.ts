@@ -11,6 +11,30 @@ import {
   type ItemChecklist,
   type PessoaTipo,
 } from "@/lib/cadastro-checklist";
+import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
+import { PERFIL_INSTITUCIONAL } from "@/lib/contrato-base-consolidado";
+
+/*
+ * 04/09/2026 — achado real reportado pela Proprietária: o checklist cadastral
+ * marcava razão social/CNPJ/endereço/e-mail da própria contratada (Clube
+ * Ancestral) como "aguarda fonte societária" em TODO caso novo — mesmo esse
+ * dado já sendo canônico, versionado e conhecido em PERFIL_INSTITUCIONAL
+ * (contrato-base-consolidado.ts). Tratar dado institucional já homologado
+ * como pendência de verificação por caso não fazia sentido e aparecia como
+ * bloqueio vermelho permanente sem ação possível de resolver de verdade
+ * (o valor já é conhecido; não há "fonte societária" nova a declarar por
+ * caso). De-para campo do checklist → campo do perfil institucional:
+ */
+const CAMPO_CONTRATADA_PARA_PERFIL: Record<string, string> = {
+  razao_social: "razao_empresarial",
+  cnpj: "cnpj",
+  endereco: "endereco_institucional",
+  email: "email_oficial",
+  // 04/09/2026 — Proprietária confirmou: dona da firma individual, portanto
+  // representante legal em todos os aspectos do Clube Ancestral. Passou a
+  // ter correspondente canônico em PERFIL_INSTITUCIONAL.
+  representante_legal: "representante_legal",
+};
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -81,7 +105,7 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
 
     const { data: membros } = await supabase
       .from("case_members")
-      .select("id,nome,papel_no_caso,titular,contratante,dependente")
+      .select("id,nome,papel_no_caso,titular,contratante,dependente,cliente_id")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
 
@@ -97,19 +121,32 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
       .select("id,nome")
       .eq("organization_id", caso.organization_id)
       .is("archived_at", null);
-    const clientePorNome = new Map(
-      ((clientes ?? []) as any[]).map((c) => [String(c.nome).trim().toLowerCase(), c.id as string]),
-    );
+    const clientesOrg = (clientes ?? []) as { id: string; nome: string }[];
 
+    /*
+     * 04/09/2026 — achado real (Ana Luiza, Pessoa 360): o vínculo aqui era
+     * calculado apenas para preencher `checklist_cadastral.cliente_id`
+     * (uma linha derivada), e por igualdade exata de nome — o mesmo erro
+     * que deixou `nucleo_membros.cliente_id` nulo para Ana (nome curto no
+     * cadastro em `clientes` vs. nome completo em `case_members`). Agora
+     * usa a mesma regra tolerante do backfill (clienteCorrespondentePorNome)
+     * e também grava o vínculo de volta em `case_members.cliente_id` —
+     * fonte, não só a derivada — para que a próxima leitura de qualquer
+     * tela não dependa de recalcular o match de novo.
+     */
     const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null; tabela: string | null; cliente: string | null }[] = [];
     for (const m of (membros ?? []) as any[]) {
       if (m.dependente) continue;
+      const clienteId = m.cliente_id ?? clienteCorrespondentePorNome(String(m.nome), clientesOrg);
+      if (clienteId && !m.cliente_id) {
+        await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id);
+      }
       pessoas.push({
         tipo: "titular",
         nome: m.nome,
         ref: m.id,
         tabela: "case_members",
-        cliente: clientePorNome.get(String(m.nome).trim().toLowerCase()) ?? null,
+        cliente: clienteId ?? null,
       });
     }
     for (const d of (dependentes ?? []) as any[]) {
@@ -129,9 +166,15 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
         `Checklist por pessoa exige referência por ID. Sem referência: ${semRef.join(", ")}. Nenhuma linha foi criada por nome.`,
       );
 
+    const hoje = new Date().toISOString().slice(0, 10);
     const linhas: any[] = [];
     for (const p of pessoas) {
       camposDoTipo(p.tipo).forEach((c, i) => {
+        const campoPerfil = p.tipo === "contratada" ? CAMPO_CONTRATADA_PARA_PERFIL[c.campo] : null;
+        const valorPerfil = campoPerfil
+          ? PERFIL_INSTITUCIONAL.find((x) => x.campo === campoPerfil)?.valor
+          : null;
+        const resolvidoPeloPerfil = Boolean(valorPerfil && valorPerfil.trim());
         linhas.push({
           organization_id: caso.organization_id,
           case_id: data.caseId,
@@ -143,9 +186,13 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           campo: c.campo,
           campo_rotulo: c.rotulo,
           obrigatorio: true,
-          status: p.tipo === "contratada" ? "aguarda_fonte_societaria" : "pendente",
-          fonte: null,
-          data_verificacao: null,
+          status: resolvidoPeloPerfil
+            ? "verificado"
+            : p.tipo === "contratada"
+              ? "aguarda_fonte_societaria"
+              : "pendente",
+          fonte: resolvidoPeloPerfil ? "fonte_societaria" : null,
+          data_verificacao: resolvidoPeloPerfil ? hoje : null,
           acesso_restrito: true,
           ordem: i,
           created_by: userId,

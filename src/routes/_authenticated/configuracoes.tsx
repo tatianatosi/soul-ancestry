@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { BotaoTentarNovamente, EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
 import { definirPapel, listarUsuarios, type Papel } from "@/lib/saas.functions";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -45,6 +45,11 @@ function ConfiguracoesPage() {
         <EstadoVazio mensagem="Acesso restrito a administradores da organização." />
       ) : q.isLoading ? (
         <EstadoVazio mensagem="Carregando membros…" />
+      ) : q.isError ? (
+        <EstadoVazio
+          mensagem="Não foi possível carregar os membros da organização."
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : (q.data ?? []).length === 0 ? (
         <EstadoVazio mensagem="Nenhum membro nesta organização ainda." />
       ) : (

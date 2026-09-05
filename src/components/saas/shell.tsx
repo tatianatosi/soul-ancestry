@@ -412,10 +412,24 @@ export function SaasShell({
   );
 }
 
-export function EstadoVazio({ mensagem }: { mensagem: string }) {
+export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-10 text-center text-sm text-navy/60">
-      {mensagem}
+      <p>{mensagem}</p>
+      {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>
+  );
+}
+
+/** Ação padrão para EstadoVazio quando o vazio é, na verdade, erro de carregamento. */
+export function BotaoTentarNovamente({ aoClicar }: { aoClicar: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      className="rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+    >
+      Tentar novamente
+    </button>
   );
 }

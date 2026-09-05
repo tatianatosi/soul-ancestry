@@ -121,7 +121,10 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                   </tr>
                 </thead>
                 <tbody>
-                  {lista.map((i) => (
+                  {lista.map((i) => {
+                    const fonteDeclarada = Boolean(i.fonte) && i.fonte !== "nao_declarada";
+                    const faltaParaVerificar = !fonteDeclarada || !i.data_verificacao;
+                    return (
                     <tr key={i.id} className="border-t border-navy/5 align-top">
                       <td className="py-2 pr-3 text-navy">
                         {i.campo_rotulo}
@@ -132,10 +135,23 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                           className={inputCls}
                           value={i.status}
                           disabled={bloqueado}
-                          onChange={(e) => mSalvar.mutate({ id: i.id, status: e.target.value })}
+                          title={
+                            faltaParaVerificar
+                              ? "Defina Fonte e Data de verificação (colunas ao lado) antes de marcar como Verificado."
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            if (e.target.value === "verificado" && faltaParaVerificar) {
+                              setErro("Defina Fonte e Data de verificação (colunas ao lado) antes de marcar como Verificado.");
+                              return;
+                            }
+                            mSalvar.mutate({ id: i.id, status: e.target.value });
+                          }}
                         >
                           {STATUS_CADASTRO.map((s) => (
-                            <option key={s.valor} value={s.valor}>{s.rotulo}</option>
+                            <option key={s.valor} value={s.valor} disabled={s.valor === "verificado" && faltaParaVerificar}>
+                              {s.rotulo}
+                            </option>
                           ))}
                         </select>
                       </td>
@@ -172,7 +188,8 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                         {itemResolvido(i) ? "Resolvido" : `${rotuloStatus(i.status)} · ${rotuloFonte(i.fonte)}`}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

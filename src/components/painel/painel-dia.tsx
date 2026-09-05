@@ -323,7 +323,18 @@ export function PainelDia() {
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data)
-    return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
+    return (
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
+        <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>
+        <button
+          type="button"
+          onClick={() => void qDesk.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
 
   const filas = qDesk.data.filas;
   const hoje = hojeISO();

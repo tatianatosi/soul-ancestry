@@ -46,10 +46,17 @@ describe("P0.2 — classificação de origem", () => {
     expect(fontesProibidasNoCliente()).toHaveLength(0);
   });
 
-  it("3b. as funções do App Cliente aplicam o filtro de classificação", () => {
+  it("3b. as funções do App Cliente aplicam o filtro de fixture/demo", () => {
     const src = readFileSync("src/lib/portal-cliente.functions.ts", "utf8");
-    expect(src).toContain("filtrarParaCliente");
-    expect(src).toContain("bloqueadoParaCliente");
+    // portal_casos/documents/invoices nunca tiveram classificacao_dado/data_origin
+    // (só crm_casos/leads/clientes/tarefas/case_alerts/communication_queue têm essa
+    // coluna) — filtrarParaCliente/bloqueadoParaCliente classificavam toda linha
+    // real dessas tabelas como "nao_classificado" e escondiam tudo sempre.
+    // A exclusão correta de fixture/demo aqui é semFixtures/ehFixtureLinha,
+    // que usa o sinal que essas tabelas realmente carregam (is_demo/dados_teste
+    // /heurística de título).
+    expect(src).toContain("semFixtures");
+    expect(src).toContain("ehFixtureLinha");
     // Nenhuma coluna de origem/classificação é devolvida ao cliente.
     expect(src).not.toMatch(/classificacao_dado:\s*\w/);
     expect(src).not.toMatch(/data_origin:\s*\w/);

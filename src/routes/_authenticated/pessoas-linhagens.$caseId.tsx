@@ -136,7 +136,7 @@ function Pagina() {
   const buscar = useServerFn(painelPessoasLinhagens);
   const queryClient = useQueryClient();
   const chave = ["g02", caseId];
-  const { data, isLoading } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
+  const { data, isLoading, isError, refetch } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
   const [aba, setAba] = useState<AbaId>("perfis");
 
   const salvarFn = useServerFn(salvarRegistroG02);
@@ -213,6 +213,19 @@ function Pagina() {
   const lacunas = useMemo(() => calcularLacunas(perfis, relacoes, eventos, linhagens), [perfis, relacoes, eventos, linhagens]);
 
   if (isLoading) return <div className="p-6 text-sm text-navy/60">Carregando ficha genealógica…</div>;
+  if (isError)
+    return (
+      <div className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
+        Não foi possível carregar a ficha genealógica deste caso.
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
 
   return (
     <div className="space-y-6 p-4 md:p-6">

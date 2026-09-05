@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { BotaoTentarNovamente, EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import {
   alterarStatusAcessoPortal,
@@ -504,6 +504,13 @@ function AcessosPortalPage() {
             ) : null}
             {q.isLoading ? (
               <p className="mt-3 text-sm text-navy/60">Carregando…</p>
+            ) : q.isError ? (
+              <div className="mt-3">
+                <EstadoVazio
+                  mensagem="Não foi possível carregar os acessos ao portal."
+                  acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+                />
+              </div>
             ) : !acessosVisiveis.length ? (
               <div className="mt-3">
                 <EstadoVazio mensagem="Nenhum acesso ao portal criado ainda." />
@@ -700,6 +707,18 @@ function AcessosPortalPage() {
                               </li>
                             ))}
                             {qEventos.data && qEventos.data.length === 0 ? <li>Sem eventos registrados.</li> : null}
+                            {qEventos.isError ? (
+                              <li className="flex flex-wrap items-center gap-3 text-terracotta">
+                                Não foi possível carregar o histórico.
+                                <button
+                                  type="button"
+                                  onClick={() => void qEventos.refetch()}
+                                  className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+                                >
+                                  Tentar novamente
+                                </button>
+                              </li>
+                            ) : null}
                           </ul>
                         </div>
                       ) : null}

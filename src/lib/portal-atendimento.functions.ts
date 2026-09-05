@@ -579,6 +579,59 @@ export const liberarFaturaCliente = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * 05/09/2026 — achado real: `crm_casos.documentos_minimos_ok` é uma das
+ * quatro condições que `portal.functions.ts`/`portal.server.ts` exigem para
+ * liberar o espaço do cliente (client_workspace), mas nenhuma tela ou
+ * função em todo o repositório jamais gravava esse campo como true — só
+ * fixtures de teste. Sem isto, nenhum caso real, por mais que contrato e
+ * pagamento estivessem confirmados, jamais liberava o App Cliente. Espelha
+ * exatamente o padrão de liberarEntregaCliente/liberarFaturaCliente: só
+ * admin/operações, com auditoria, sem alterar nenhuma outra condição do
+ * gate (RLS, consentimento e as demais três continuam exigidas do mesmo jeito).
+ */
+export const confirmarDocumentosMinimos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; motivo?: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId, papel } = await contextoDocumentos(supabase, context.userId as string);
+    const userId = context.userId as string;
+
+    if (!PAPEIS_ENTREGA.includes(papel)) {
+      throw new Error("Apenas admin e operações confirmam documentos mínimos.");
+    }
+
+    const caso = await supabase
+      .from("crm_casos")
+      .select("id, documentos_minimos_ok")
+      .eq("id", data.caseId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+    if (caso.data.documentos_minimos_ok) return { ok: true, jaConfirmado: true };
+
+    try {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "crm_casos",
+        id: data.caseId,
+        organizationId,
+        userId,
+        payload: { documentos_minimos_ok: true },
+      });
+    } catch (erro) {
+      throw new Error(erro instanceof Error ? erro.message : "Não foi possível confirmar os documentos mínimos.");
+    }
+
+    await auditar(organizationId, userId, "documentos_minimos_confirmados", "crm_casos", data.caseId, {
+      quando: new Date().toISOString(),
+      papel,
+      motivo: texto(data.motivo ?? null, 600) ?? "Confirmado pela equipe sem observação adicional.",
+    });
+    return { ok: true };
+  });
+
 export const ticketInterno = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { ticketId: string }) => data)

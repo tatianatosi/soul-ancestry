@@ -45,6 +45,18 @@ export const PERFIL_INSTITUCIONAL: CampoInstitucional[] = [
   { campo: "nome_operacao", rotulo: "Nome de operação", valor: "Clube Ancestral" },
   { campo: "cnpj", rotulo: "CNPJ", valor: "10.448.812/0001-58" },
   {
+    /*
+     * 04/09/2026 — a Proprietária confirmou: como a razão empresarial já é o
+     * nome dela ("TATIANA MELANI TOSI – ME", uma firma individual), ela é a
+     * representante legal em todos os aspectos do Clube Ancestral. Não é dado
+     * novo sendo exposto (o nome completo já está em razao_empresarial acima);
+     * é o mesmo fato, declarado no campo que os checklists/telas perguntam.
+     */
+    campo: "representante_legal",
+    rotulo: "Representante legal",
+    valor: "Tatiana Melani Tosi",
+  },
+  {
     campo: "endereco_institucional",
     rotulo: "Endereço institucional",
     valor: "Rua Nova York, 822, Apt. 142, Brooklin, CEP 04560-001, São Paulo – SP, Brasil",

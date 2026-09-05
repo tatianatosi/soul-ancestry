@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoOps, exigirEscrita, type Sb } from "@/lib/ops.server";
 import { avaliarFechamento, DEFINICOES_FECHAMENTO, type GateFechamento } from "@/lib/fechamento-caso";
 import { calcularCadencia } from "@/lib/jornada-cliente";
+import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -30,15 +31,28 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     if (!caso) throw new Error("Caso não encontrado.");
     const c = caso as any;
 
-    const [checklist, contratos, faturas, nucleos, consentimentos, planos, tarefasAbertas] = await Promise.all([
-      supabase.from("checklist_cadastral").select("status,obrigatorio").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("contracts").select("id,status,signed_at,signature_reference").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("invoices").select("id,status,paga_em,valor_pago,referencia_externa").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("nucleos_familiares").select("id,ambiente,nivel_acesso,dossie_mae").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("consent_records").select("id,status,tipo_consentimento,escopo_compartilhamento").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("onboarding_planos").select("id,estado,checklist_inicial,plano_acao,touchpoints").eq("case_id", data.casoId).is("archived_at", null),
-      supabase.from("tarefas").select("id,titulo,status,tipo,prazo").eq("caso_id", data.casoId).is("archived_at", null).neq("status", "concluida").limit(50),
-    ]);
+    const [checklist, contratos, faturas, nucleos, consentimentos, planos, tarefasAbertas, servicos, entregas, alertasCriticos] =
+      await Promise.all([
+        supabase.from("checklist_cadastral").select("status,obrigatorio").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("contracts").select("id,status,signed_at,signature_reference").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("invoices").select("id,status,paga_em,valor_pago,referencia_externa").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("nucleos_familiares").select("id,ambiente,nivel_acesso,dossie_mae").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("consent_records").select("id,status,tipo_consentimento,escopo_compartilhamento").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("onboarding_planos").select("id,estado,checklist_inicial,plano_acao,touchpoints").eq("case_id", data.casoId).is("archived_at", null),
+        supabase.from("tarefas").select("id,titulo,status,tipo,prazo").eq("caso_id", data.casoId).is("archived_at", null).neq("status", "concluida").limit(50),
+        supabase
+          .from("case_services")
+          .select("id,product_catalog_id,product_catalog:product_catalog_id(estado_catalogo)")
+          .eq("case_id", data.casoId)
+          .is("archived_at", null),
+        supabase.from("client_deliverables").select("approval_status").eq("case_id", data.casoId).is("archived_at", null),
+        supabase
+          .from("case_alerts")
+          .select("id", { count: "exact", head: true })
+          .eq("case_id", data.casoId)
+          .eq("criticidade", "critico")
+          .eq("status", "pending"),
+      ]);
 
     const itens = (checklist.data ?? []) as any[];
     const obrigatorios = itens.filter((i) => i.obrigatorio !== false);
@@ -77,6 +91,17 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     const onboardingMinimoConcluido =
       !!plano && ["concluido", "ativo", "em_execucao"].includes(String(plano.estado ?? "")) && !!plano.plano_acao;
 
+    const servicosLista = (servicos.data ?? []) as any[];
+    const produtoServicoReconciliado = servicosLista.some(
+      (s) => !!s.product_catalog_id && s.product_catalog?.estado_catalogo === "homologado_ativo",
+    );
+    const entregasLista = (entregas.data ?? []) as any[];
+    const conteudoPortalPreparado = entregasLista.some(
+      (d) => d.approval_status === "aprovado" || d.approval_status === "publicado",
+    );
+    const portalAcessoLiberado = c.app_access_status === "liberado";
+    const semBloqueioCritico = (alertasCriticos.count ?? 0) === 0;
+
     const estado = {
       aceiteComercial: !!c.aceite_comercial_em || c.eixo_comercial === "proposta_aceita" || c.eixo_comercial === "formalizacao",
       cadastroCompleto: obrigatorios.length > 0 && pendentesCadastro === 0,
@@ -94,6 +119,11 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
       onboardingIniciado,
       onboardingMinimoConcluido,
       casoAtivo: c.ativacao_operacional === "ativo" || !!c.ativado_em,
+      produtoServicoReconciliado,
+      perfilInstitucionalVigente: perfilInstitucionalRenderizado().vigente,
+      portalAcessoLiberado,
+      conteudoPortalPreparado,
+      semBloqueioCritico,
     };
 
     const fechamento = avaliarFechamento(estado);

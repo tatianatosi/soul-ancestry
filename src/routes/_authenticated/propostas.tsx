@@ -30,6 +30,7 @@ import {
 } from "@/lib/comercial.functions";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import { CAT_ESTADO_PROPOSTA, CAT_FORMA_PAGAMENTO, CAT_MOTIVO_ARQUIVAMENTO } from "@/lib/parametros-catalogos";
+import { RegraComercial } from "@/components/contrato/regra-comercial";
 
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
@@ -331,6 +332,10 @@ function PropostasPage() {
               </div>
             </dl>
           </Painel>
+
+          {podeComercial && detalhe["case_id"] ? (
+            <RegraComercial caseId={String(detalhe["case_id"])} />
+          ) : null}
 
           {podeComercial ? (
             <>

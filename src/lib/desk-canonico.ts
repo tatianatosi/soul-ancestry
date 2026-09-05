@@ -256,7 +256,7 @@ export function avaliarCadencia(diasSemTouchpoint: number, esperaExternaJustific
 
 /** Só entrega publicada chega ao App Cliente. */
 export function visivelNoAppCliente(d: { approval_status?: string | null; archived_at?: string | null }): boolean {
-  return d.approval_status === "published" && !d.archived_at;
+  return d.approval_status === "publicado" && !d.archived_at;
 }
 
 /** Normalização de telefone para deduplicação de contatos (somente dígitos). */

@@ -59,7 +59,16 @@ function PesquisaIndex() {
       {q.isLoading ? <CarregandoDesk linhas={4} rotulo="Carregando casos de pesquisa" /> : null}
       {q.error ? (
         <AlertaDesk tom="critico" titulo="Não foi possível carregar os casos">
-          {(q.error as Error).message}
+          <span className="flex flex-wrap items-center gap-3">
+            {(q.error as Error).message}
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-current px-2 py-1 text-xs font-medium hover:bg-black/5"
+            >
+              Tentar novamente
+            </button>
+          </span>
         </AlertaDesk>
       ) : null}
 

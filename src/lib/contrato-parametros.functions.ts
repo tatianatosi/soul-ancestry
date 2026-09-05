@@ -40,7 +40,8 @@ import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 
-
+/** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
+const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -443,6 +444,32 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
         atual.origem_detalhe = c.detalhe;
         atual.status = "importado_a_confirmar";
       }
+    }
+
+    // Divergência proposta × Planejador: o Planejador já venceu na pré-carga acima
+    // (candidatos só tem o valor do Planejador quando ele existe, linha ~298), mas a
+    // proposta descartada não fica visível em lugar nenhum — some ao fechar o toast
+    // desta ação. Grava a mesma marca de conflito por campo (contract_parameter_values.conflito)
+    // já usada para incoerência de país/rota, para que apareça de forma persistente em
+    // LinhaParametro e possa ser resolvida do mesmo jeito (editar o valor limpa o conflito).
+    for (const cp of conflitosProposta) {
+      const atual = (valores ?? []).find((v: any) => v.campo === cp.campo);
+      if (!atual) continue;
+      await supabase
+        .from("contract_parameter_values")
+        .update({
+          conflito: [
+            {
+              chave: CONFLITO_PROPOSTA_PLANEJADOR,
+              origem: "proposta",
+              detalhe: `Proposta aprovada tem valor diferente do homologado no Planejador (${cp.planejador || "vazio"}).`,
+              valor: cp.proposta,
+              esperado: cp.planejador,
+              detectado_em: new Date().toISOString(),
+            },
+          ],
+        })
+        .eq("id", atual.id);
     }
 
     return {
@@ -866,7 +893,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
     const supabase = context.supabase as Sb;
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: "gerar_versao_final",
@@ -990,7 +1017,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
     if (tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: data.evento === "envio_assinatura" ? "solicitar_assinatura" : "gerar_versao_final",
@@ -1112,11 +1139,14 @@ export const aprovarParametros = createServerFn({ method: "POST" })
 
     const { data: registroAprovacao } = await supabase
       .from("contract_case_parameters")
-      .select("id,case_id,proposal_id")
+      .select("id,case_id,proposal_id,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!registroAprovacao) throw new Error("Registro de parâmetros não encontrado.");
-    await exigirCoerencia(supabase, registroAprovacao);
+    await exigirCoerencia(supabase, registroAprovacao, {
+      userId: context.userId as string,
+      organizationId: registroAprovacao.organization_id,
+    });
 
     const { error: e1 } = await supabase
       .from("contract_parameter_previews")
@@ -1290,6 +1320,12 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     await supabase.from("contract_case_parameters").update({ status: "assinado" }).eq("id", data.id);
+
+    // Propaga a assinatura para o campo que o gate de acesso ao App Cliente
+    // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard).
+    // Sem isto, o contrato fica "assinado" no motor novo sem nunca liberar o portal.
+    await supabase.from("crm_casos").update({ contrato_assinado: true }).eq("id", registro.case_id);
+
     return { ok: true };
   });
 

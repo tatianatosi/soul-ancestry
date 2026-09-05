@@ -136,6 +136,29 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
     if (error) return { ok: false, erro: error.message };
     if (!linhaAtualizada?.id) return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do requisito." };
 
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária: marcar este
+     * requisito "isento" aqui NUNCA satisfazia a trava real de ativação
+     * (guard_consentimento_ativacao → fn_guard_consentimento_ativacao,
+     * migration 20260816202602), porque essa trava lê exclusivamente
+     * consent_records/consent_exceptions — duas tabelas que esta função
+     * nunca escrevia. O caso passava "Requisitos completos" na tela e
+     * mesmo assim era recusado ao tentar ativar de verdade, com a mesma
+     * mensagem de erro do banco, sem nenhuma ação disponível para
+     * resolver. Agora a isenção deste requisito específico grava a
+     * exceção formal real que o banco verifica.
+     */
+    if (data.status === "isento" && check.check_key === "consentimento_registrado") {
+      const { error: erroExcecao } = await supabase.from("consent_exceptions").insert({
+        organization_id: organizationId,
+        case_id: check.case_id,
+        motivo: isencaoMotivo,
+        valido_ate: data.isencaoExpiraEm || null,
+        aprovado_por: context.userId,
+      });
+      if (erroExcecao) return { ok: false, erro: `Isenção registrada, mas a exceção formal falhou: ${erroExcecao.message}` };
+    }
+
     await registrar(
       supabase,
       organizationId,
@@ -220,7 +243,16 @@ export const ativarCasoComChecks = createServerFn({ method: "POST" })
       }
       const { data: linhaAtualizada, error } = await supabase
         .from("crm_casos")
-        .update(proximo === "ativo" ? { status: proximo, ativo: true } : { status: proximo })
+        .update(
+          proximo === "ativo"
+            ? // Propaga para o campo que o gate de acesso ao App Cliente de fato
+              // verifica (portal-elegibilidade.ts/fn_portal_case_access_guard) —
+              // mesma classe de lacuna já corrigida para assinatura de contrato
+              // (contrato-parametros.functions.ts) e pagamento (comercial.functions.ts):
+              // sem isto, um caso ativado aqui nunca conta como "ativado_em" para o portal.
+              { status: proximo, ativo: true, ativado_em: new Date().toISOString() }
+            : { status: proximo },
+        )
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
         .select("id")

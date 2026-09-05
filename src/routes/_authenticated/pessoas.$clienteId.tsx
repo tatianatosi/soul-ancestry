@@ -53,7 +53,24 @@ function Pessoa() {
     );
   }
 
-  if (q.isError || !q.data?.encontrada) {
+  if (q.isError) {
+    return (
+      <SaasShell titulo="Pessoa" descricao="Erro ao carregar">
+        <p className="text-sm text-terracotta">
+          {q.error instanceof Error ? q.error.message : "Não foi possível carregar esta pessoa."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="mt-3 rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+        >
+          Tentar novamente
+        </button>
+      </SaasShell>
+    );
+  }
+
+  if (!q.data?.encontrada) {
     return (
       <SaasShell titulo="Pessoa" descricao="Não encontrada">
         <p className="text-sm text-navy/70">

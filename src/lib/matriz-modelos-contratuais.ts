@@ -335,7 +335,12 @@ export function montarRascunhoModelo(chave: ChaveModelo, dataGeracao = new Date(
     perfil: {
       versao: PERFIL_INSTITUCIONAL_VERSAO,
       status: perfil.status,
-      campos: perfil.campos.map((c) => ({ rotulo: c.rotulo, valor: c.valor })),
+      // representante_legal fica de fora do rascunho: é nome de pessoa física
+      // (a Proprietária), e a prévia não aprovada só pode mostrar o placeholder
+      // neutro abaixo — mesma regra que já valia para CNPJ e endereço.
+      campos: perfil.campos
+        .filter((c) => c.campo !== "representante_legal")
+        .map((c) => ({ rotulo: c.rotulo, valor: c.valor })),
       placeholders: [
         { rotulo: "CNPJ (prévia não aprovada)", valor: PLACEHOLDERS_INSTITUCIONAIS.cnpj },
         { rotulo: "Endereço (prévia não aprovada)", valor: PLACEHOLDERS_INSTITUCIONAIS.endereco },

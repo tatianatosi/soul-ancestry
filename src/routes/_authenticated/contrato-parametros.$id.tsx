@@ -61,10 +61,11 @@ function Pagina() {
   const mImportar = useMutation({
     mutationFn: () => importar({ data: { id } }),
     onSuccess: (r: any) => {
+      const conflitosProposta = r.proposta?.conflitos?.length ?? 0;
       toast.success(
         `${r.importados} parâmetro(s) importados como “a confirmar”${
           r.conflitos.length ? ` · ${r.conflitos.length} conflito(s) sinalizado(s)` : ""
-        }.`,
+        }${conflitosProposta ? ` · ${conflitosProposta} divergência(s) proposta × Planejador (ver campo abaixo)` : ""}.`,
       );
       invalidar();
     },
@@ -120,7 +121,18 @@ function Pagina() {
   if (q.error || !q.data) {
     return (
       <SaasShell titulo="Registro mestre do contrato">
-        <p className="text-sm text-terracotta">{(q.error as Error)?.message ?? "Registro indisponível."}</p>
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {(q.error as Error)?.message ?? "Registro indisponível."}
+          {q.error ? (
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          ) : null}
+        </p>
       </SaasShell>
     );
   }
@@ -244,6 +256,18 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Destinos que reutilizam os parâmetros aprovados">
+          {qd.isError ? (
+            <p className="mb-2 flex flex-wrap items-center gap-3 text-sm text-terracotta">
+              Não foi possível carregar os destinos.
+              <button
+                type="button"
+                onClick={() => void qd.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
           <ul className="space-y-1 text-sm text-navy/80">
             {(qd.data?.destinos ?? []).map((d: any) => (
               <li key={d.nome}>

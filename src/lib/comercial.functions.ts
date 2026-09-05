@@ -580,6 +580,26 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
         conciliacao_status: "conciliado",
       },
     });
+
+    // Propaga a conciliação para o campo que o gate de acesso ao App Cliente
+    // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard),
+    // mesmo padrão já aplicado à assinatura de contrato em
+    // contrato-parametros.functions.ts (registrarAssinatura). Sem isto, um
+    // pagamento conciliado aqui nunca libera o portal — mesma lacuna, campo
+    // diferente. Só propaga quando a fatura está de fato vinculada a um caso.
+    const invoiceId = r.registro["invoice_id"] as string | null | undefined;
+    if (invoiceId) {
+      const { data: fatura } = await supabase
+        .from("invoices")
+        .select("case_id")
+        .eq("id", invoiceId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (fatura?.case_id) {
+        await supabase.from("crm_casos").update({ pagamento_confirmado: true }).eq("id", fatura.case_id);
+      }
+    }
+
     return { conciliacao: (r.registro["conciliacao_status"] ?? "conciliado") as string };
   });
 

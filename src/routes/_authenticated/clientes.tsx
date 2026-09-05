@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, ShieldCheck, Users } from "lucide-react";
 
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente, useSaas } from "@/components/saas/shell";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/clientes.functions";
 import {
@@ -229,6 +229,11 @@ function ClientesPage() {
         </header>
         {q.isLoading ? (
           <p className="px-4 py-6 text-sm text-muted-foreground">Carregando…</p>
+        ) : q.isError ? (
+          <EstadoVazio
+            mensagem="Não foi possível carregar os perfis de cliente."
+            acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+          />
         ) : lista.length === 0 ? (
           <EstadoVazio mensagem="Nenhum perfil elegível neste filtro. Casos em formalização permanecem como pré-cliente." />
         ) : (

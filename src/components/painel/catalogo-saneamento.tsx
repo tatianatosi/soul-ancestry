@@ -65,8 +65,6 @@ export function CatalogoSaneamento() {
     retry: false,
   });
 
-  if (q.isError) return null;
-
   const filas = q.data?.filas;
   const ind = q.data?.indicadores;
 
@@ -98,6 +96,18 @@ export function CatalogoSaneamento() {
 
       {q.isLoading ? (
         <p className="mt-3 text-xs text-navy/50">Carregando saneamento de catálogo…</p>
+      ) : null}
+      {q.isError ? (
+        <p className="mt-3 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+          Não foi possível carregar o saneamento de catálogo.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
       ) : null}
 
       {ind ? (
