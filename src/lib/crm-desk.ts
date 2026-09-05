@@ -626,6 +626,10 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
 
   if (vazio(l.nome)) erros.push({ campo: "nome", motivo: "Nome é obrigatório." });
 
+  if (!vazio(l.email) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(l.email).trim())) {
+    erros.push({ campo: "email", motivo: "E-mail em formato inválido." });
+  }
+
   const ativo = !l.archived_at && !["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial));
   if (ativo) {
     if (vazio(l.area_responsavel)) erros.push({ campo: "area_responsavel", motivo: "Lead ativo exige área responsável." });
