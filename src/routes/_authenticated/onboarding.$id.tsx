@@ -6,6 +6,7 @@ import { useState } from "react";
 import { SaasShell } from "@/components/saas/shell";
 import {
   atualizarCheckAtivacao,
+  atualizarItemChecklistOnboarding,
   ativarCasoComChecks,
   obterOnboarding,
   suspenderCaso,
@@ -59,6 +60,7 @@ function OnboardingPage() {
   const qc = useQueryClient();
   const carregar = useServerFn(obterOnboarding);
   const atualizar = useServerFn(atualizarCheckAtivacao);
+  const atualizarItemOnboarding = useServerFn(atualizarItemChecklistOnboarding);
   const ativar = useServerFn(ativarCasoComChecks);
   const suspender = useServerFn(suspenderCaso);
 
@@ -68,6 +70,12 @@ function OnboardingPage() {
   const [expira, setExpira] = useState("");
   const [motivoSuspensao, setMotivoSuspensao] = useState("");
   const [suspendendo, setSuspendendo] = useState(false);
+  const [itemOnboardingDe, setItemOnboardingDe] = useState<{
+    id: string;
+    label: string;
+    status: "concluido" | "nao_aplicavel";
+  } | null>(null);
+  const [evidenciaOnboarding, setEvidenciaOnboarding] = useState("");
 
   const q = useQuery({
     queryKey: ["onboarding", id],
@@ -90,6 +98,16 @@ function OnboardingPage() {
         r.ok
           ? "Caso ativado. Data de ativação, usuário e evento de auditoria registrados."
           : `Ativação bloqueada: ${r.pendencias.join(" · ")}`,
+      );
+      recarregar();
+    },
+  });
+  const mAtualizarOnboarding = useMutation({
+    mutationFn: (v: Parameters<typeof atualizarItemChecklistOnboarding>[0]["data"]) =>
+      atualizarItemOnboarding({ data: v }),
+    onSuccess: (r) => {
+      setAviso(
+        r.ok ? "Item de onboarding atualizado e registrado em auditoria." : `Bloqueado: ${r.erro}`,
       );
       recarregar();
     },
@@ -122,6 +140,7 @@ function OnboardingPage() {
   // 20260905120000_case_ativacao_bloqueios_reais.sql); só quando ela vem
   // vazia é que a tela pode dizer "completo".
   const bloqueiosReais = dados?.bloqueiosReais ?? [];
+  const checklistOnboarding = dados?.checklistOnboarding ?? [];
   const pronto = bloqueiosReais.length === 0;
   const ativo = Boolean(caso["ativo"]);
 
@@ -328,6 +347,100 @@ function OnboardingPage() {
           </section>
 
           <section className="rounded-xl border border-navy/10 bg-white p-4">
+            <h2 className="text-base font-semibold text-navy">Checklist de onboarding</h2>
+            <p className="mb-3 mt-1 text-xs text-navy/50">
+              Esta tabela existe há semanas e é lida pelo banco (trg_caso_ativo_guard) e pela lista
+              de bloqueios acima, mas nenhuma tela permitia completá-la — os itens abaixo ficaram
+              "pendente" desde a criação do caso, mesmo quando o dado real já existia. Concluir ou
+              marcar não aplicável exige registrar a evidência real; não é um clique vazio.
+            </p>
+            <ul className="divide-y divide-navy/10">
+              {checklistOnboarding.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex flex-wrap items-start justify-between gap-3 py-2.5"
+                >
+                  <div className="min-w-[200px]">
+                    <p className="text-sm font-medium text-navy">{item.label}</p>
+                    {item.observacao ? (
+                      <p className="mt-0.5 whitespace-pre-line text-xs text-navy/55">
+                        {item.observacao}
+                      </p>
+                    ) : null}
+                    {item.concluido_em ? (
+                      <p className="text-xs text-navy/50">
+                        {new Date(item.concluido_em).toLocaleString("pt-BR")}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs ${
+                        item.status === "concluido"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : item.status === "nao_aplicavel"
+                            ? "bg-navy/10 text-navy/60"
+                            : "bg-terracotta/10 text-terracotta"
+                      }`}
+                    >
+                      {item.status === "concluido"
+                        ? "Concluído"
+                        : item.status === "nao_aplicavel"
+                          ? "Não aplicável"
+                          : "Pendente"}
+                    </span>
+                    {item.status !== "concluido" ? (
+                      <button
+                        onClick={() => {
+                          setItemOnboardingDe({
+                            id: item.id,
+                            label: item.label,
+                            status: "concluido",
+                          });
+                          setEvidenciaOnboarding("");
+                        }}
+                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
+                      >
+                        Concluir
+                      </button>
+                    ) : null}
+                    {item.status !== "nao_aplicavel" ? (
+                      <button
+                        onClick={() => {
+                          setItemOnboardingDe({
+                            id: item.id,
+                            label: item.label,
+                            status: "nao_aplicavel",
+                          });
+                          setEvidenciaOnboarding("");
+                        }}
+                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
+                      >
+                        Não aplicável
+                      </button>
+                    ) : null}
+                    {item.status !== "pendente" ? (
+                      <button
+                        onClick={() =>
+                          mAtualizarOnboarding.mutate({ itemId: item.id, status: "pendente" })
+                        }
+                        className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/60 hover:bg-navy/5"
+                      >
+                        Reverter
+                      </button>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+              {!checklistOnboarding.length ? (
+                <li className="py-2.5 text-sm text-navy/55">
+                  Nenhum item de onboarding para este caso.
+                </li>
+              ) : null}
+            </ul>
+          </section>
+
+          <section className="rounded-xl border border-navy/10 bg-white p-4">
             <h2 className="mb-3 text-base font-semibold text-navy">Linha do tempo do onboarding</h2>
             <ol className="space-y-3">
               <li className="border-l-2 border-gold/60 pl-3">
@@ -397,6 +510,50 @@ function OnboardingPage() {
                 className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
               >
                 Autorizar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {itemOnboardingDe ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-4">
+            <h3 className="text-sm font-semibold text-navy">
+              {itemOnboardingDe.status === "concluido" ? "Concluir" : "Marcar não aplicável"} —{" "}
+              {itemOnboardingDe.label}
+            </h3>
+            <p className="mt-1 text-xs text-navy/60">
+              Registre a evidência real que sustenta isto — o que foi verificado, onde e quando. Não
+              é permitido marcar sem essa evidência.
+            </p>
+            <textarea
+              value={evidenciaOnboarding}
+              onChange={(e) => setEvidenciaOnboarding(e.target.value)}
+              className="mt-3 w-full rounded-md border border-navy/15 px-2 py-1 text-sm"
+              rows={3}
+              placeholder="Ex.: contrato assinado em 05/09 (2026-CB-0001); responsável já definido em crm_casos.responsavel_id"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setItemOnboardingDe(null)}
+                className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={mAtualizarOnboarding.isPending || !evidenciaOnboarding.trim()}
+                onClick={() => {
+                  mAtualizarOnboarding.mutate({
+                    itemId: itemOnboardingDe.id,
+                    status: itemOnboardingDe.status,
+                    observacao: evidenciaOnboarding,
+                  });
+                  setItemOnboardingDe(null);
+                }}
+                className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+              >
+                Confirmar
               </button>
             </div>
           </div>

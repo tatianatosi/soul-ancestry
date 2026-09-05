@@ -53,6 +53,18 @@ export const obterOnboarding = createServerFn({ method: "GET" })
     });
     const pendencias = await supabase.rpc("case_activation_pendencias", { _case: data.casoId });
 
+    // Fonte #4 do bloqueio real (ver migration 20260905120000): tabela
+    // diferente do checklist de 14 itens acima, e — até hoje — sem nenhuma
+    // tela que permitisse completá-la. Carregada aqui para dar uma ação real
+    // a cada item que a bloqueiosReais aponta.
+    const checklistOnboarding = await supabase
+      .from("onboarding_checklist")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("case_id", data.casoId)
+      .is("archived_at", null)
+      .order("ordem", { ascending: true });
+
     const logs = await supabase
       .from("audit_logs")
       .select("id,acao,entidade,entidade_id,metadados,created_at")
@@ -99,9 +111,83 @@ export const obterOnboarding = createServerFn({ method: "GET" })
         valor_atual: string;
         cta_tela: string | null;
       }[],
+      checklistOnboarding: (checklistOnboarding.data ?? []) as {
+        id: string;
+        item_code: string;
+        label: string;
+        obrigatorio: boolean;
+        status: string;
+        observacao: string | null;
+        concluido_em: string | null;
+      }[],
       podeAtivar: podeAtivar(papeis),
       timeline,
     };
+  });
+
+/**
+ * Marca um item do checklist de onboarding (onboarding_checklist) —
+ * 05/09/2026: até hoje essa tabela existia e era lida por
+ * trg_caso_ativo_guard/case_ativacao_bloqueios_reais, mas nenhuma tela
+ * permitia completá-la. Concluir ou marcar não aplicável exige uma
+ * observação com a evidência real; não é um clique vazio.
+ */
+export const atualizarItemChecklistOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      itemId: string;
+      status: "pendente" | "concluido" | "nao_aplicavel";
+      observacao?: string;
+    }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as SupabaseCliente;
+    const organizationId = await resolverOrganizacao(supabase, context.userId as string);
+
+    if (data.status !== "pendente" && !data.observacao?.trim()) {
+      return {
+        ok: false,
+        erro: "Informe a evidência real que sustenta esta conclusão — não é permitido marcar sem registrar o que foi verificado.",
+      };
+    }
+
+    const { data: atual } = await supabase
+      .from("onboarding_checklist")
+      .select("id,case_id,label")
+      .eq("id", data.itemId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!atual) return { ok: false, erro: "Item não encontrado." };
+
+    const { data: linhaAtualizada, error } = await supabase
+      .from("onboarding_checklist")
+      .update({
+        status: data.status,
+        observacao: data.observacao?.trim() || null,
+        concluido_em: data.status === "pendente" ? null : new Date().toISOString(),
+        concluido_por: data.status === "pendente" ? null : context.userId,
+      })
+      .eq("id", data.itemId)
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
+    if (error) return { ok: false, erro: error.message };
+    if (!linhaAtualizada?.id)
+      return { ok: false, erro: "Nada foi gravado: verifique permissão e identificação do item." };
+
+    await registrar(
+      supabase,
+      organizationId,
+      "onboarding_checklist_item_atualizado",
+      atual.case_id as string,
+      {
+        resumo: `${atual.label as string}: ${data.status}`,
+        observacao: data.observacao ?? null,
+      },
+    );
+
+    return { ok: true, erro: null as string | null };
   });
 
 export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
