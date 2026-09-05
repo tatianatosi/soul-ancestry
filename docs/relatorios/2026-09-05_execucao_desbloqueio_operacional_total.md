@@ -74,13 +74,19 @@ categoria (item 6 da tabela) foi corrigido nesta sessão.
 - ~~"Assumir exceção comercial" só estava acessível na tela de preparação de contrato~~ — **corrigido
   nesta mesma rodada**: o mesmo componente (`RegraComercial`, sem duplicar nada) agora também aparece
   no detalhe da proposta em `/propostas`, quando a proposta tem caso vinculado.
-- CRM (Leads, Clientes, Pipeline, Timeline, Cadência, Microentregas), Núcleos/Pessoa 360 além do
-  vínculo já corrigido, Pesquisa (fontes/evidências/hipóteses/achados), Marketing e Administração
-  (usuários/papéis/configurações/integrações) foram auditados em rodadas anteriores desta mesma
-  madrugada (ver `docs/relatorios/2026-09-05_desbloqueio_operacional_admin_todas_as_areas.md`, seções
-  3–4 e 9) e não tiveram bloqueio interno indevido encontrado — mas não foram re-testados nesta rodada
-  especificamente à procura do padrão "erro em silêncio" do item acima. Não estou afirmando que estão
-  livres desse padrão especificamente; estou afirmando que não procurei ainda.
+- ~~CRM, Núcleos, Pesquisa, Marketing e Administração não tinham sido re-testados à procura do padrão
+  "erro em silêncio"~~ — **feito nesta mesma rodada, commit `740d0be`**: Leads, Clientes,
+  `EntidadeCrud` (usado por Casos, Evidências e Tarefas — um só arquivo cobre as três telas), Achados
+  genealógicos, Auditoria, Pesquisa (índice, módulo, evidências/cadeia de custódia), Fontes
+  genealógicas, Pessoas e Linhagens e Marketing nunca verificavam `isError` na query principal — um
+  erro de leitura renderizava exatamente como "nenhum registro", sem diferença visível de estar
+  realmente vazio. Todos corrigidos e retestados por `tsc`+suíte+build.
+- Administração → Integrações (`/integracoes`) delega para dois componentes
+  (`MatrizProntidaoIntegracoes`, `CentroIntegracoes`) que ainda não foram abertos para conferir o
+  mesmo padrão. Não verificado ainda — dizendo isso em vez de presumir que está limpo.
+- Dentro de CRM/Núcleos/Pesquisa, o que eu NÃO verifiquei ainda é o inverso do que corrigi agora:
+  se toda ação de criar/editar/vincular realmente persiste e sobrevive a um reload real no navegador
+  (seção 2 explica por que essa prova específica não é possível nesta sessão).
 - Nenhuma migration pendente com impacto nominal em rota/ação foi identificada nesta rodada. Isso não
   é a mesma coisa que "não existe" — é o estado real da varredura feita até agora.
 
