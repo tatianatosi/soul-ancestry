@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -137,7 +137,6 @@ function Pagina() {
   const buscar = useServerFn(painelPessoasLinhagens);
   const queryClient = useQueryClient();
   const chave = ["g02", caseId];
-  const autoridade = useAutoridade();
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
   const [aba, setAba] = useState<AbaId>("perfis");
 
@@ -177,43 +176,68 @@ function Pagina() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const perfis = (data?.perfis ?? []) as unknown as Perfil[];
-  const variantes = (data?.variantes ?? []) as unknown as Variante[];
-  const relacoes = (data?.relacoes ?? []) as unknown as Relacao[];
-  const eventos = (data?.eventos ?? []) as unknown as Evento[];
-  const linhagens = (data?.linhagens ?? []) as unknown as Linhagem[];
-  // Autoridade operacional: o gate de domínio do servidor (`podeEditar`) não
-  // desabilita mais campo nem esconde formulário. Só falta de papel ou de
-  // organização bloqueia; o resto vira pendência declarada na tela.
-  const podeEditar = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  // Leitura explícita: coalescer para lista vazia transformava falha de carga
+  // em "nada cadastrado".
+  // Aqui a ausência do payload é tratada adiante como erro de carga, nunca como
+  // base vazia (ver o bloco `semPayload` antes do render).
+  const perfis = (data ? data.perfis : []) as unknown as Perfil[];
+  const variantes = (data ? data.variantes : []) as unknown as Variante[];
+  const relacoes = (data ? data.relacoes : []) as unknown as Relacao[];
+  const eventos = (data ? data.eventos : []) as unknown as Evento[];
+  const linhagens = (data ? data.linhagens : []) as unknown as Linhagem[];
+  // Autoridade operacional (05/09/2026): o gate de domínio do servidor
+  // (`podeEditar`) deixou de desabilitar campo e de esconder formulário. Os
+  // formulários renderizam sempre; a pendência fica declarada na tela e a
+  // gravação segue auditada.
   const pendenciaFicha =
     data && !data.podeEditar
       ? "O servidor marcou esta ficha genealógica como somente leitura para o seu vínculo."
       : null;
   const pesquisaId = (data?.pesquisas?.[0]?.id as string | undefined) ?? "";
+  const pendenciaPerfis =
+    [
+      pendenciaFicha,
+      pesquisaId
+        ? null
+        : "Este caso ainda não tem registro de pesquisa genealógica: a pessoa será criada sem vínculo de pesquisa.",
+    ]
+      .filter(Boolean)
+      .join(" ") || null;
 
   const pessoasOpcoes = useMemo(
     () => perfis.map((p) => ({ id: p.research_person_id, rotulo: p.nome_completo })),
     [perfis],
   );
   const evidenciaOpcoes = useMemo(
-    () => (data?.evidencias ?? []).map((e: Record<string, unknown>) => ({ id: String(e["id"]), rotulo: String(e["title"] ?? "Evidência") })),
+    () =>
+      (data ? data.evidencias : []).map((e: Record<string, unknown>) => ({
+        id: String(e["id"]),
+        rotulo: String(e["title"] ?? "Evidência"),
+      })),
     [data],
   );
   const fonteOpcoes = useMemo(
-    () => (data?.fontes ?? []).map((f: Record<string, unknown>) => ({ id: String(f["id"]), rotulo: String(f["title"] ?? "Fonte") })),
+    () =>
+      (data ? data.fontes : []).map((f: Record<string, unknown>) => ({
+        id: String(f["id"]),
+        rotulo: String(f["title"] ?? "Fonte"),
+      })),
     [data],
   );
   const trilhaOpcoes = useMemo(
     () =>
-      (data?.trilhas ?? []).map((t: Record<string, unknown>) => ({
+      (data ? data.trilhas : []).map((t: Record<string, unknown>) => ({
         id: String(t["id"]),
         rotulo: `${String(t["code"] ?? "")} — ${String(t["pais"] ?? "")}`,
       })),
     [data],
   );
   const nucleoOpcoes = useMemo(
-    () => (data?.nucleos ?? []).map((n: Record<string, unknown>) => ({ id: String(n["id"]), rotulo: String(n["nome"] ?? "Núcleo") })),
+    () =>
+      (data ? data.nucleos : []).map((n: Record<string, unknown>) => ({
+        id: String(n["id"]),
+        rotulo: String(n["nome"] ?? "Núcleo"),
+      })),
     [data],
   );
 
@@ -230,6 +254,29 @@ function Pagina() {
           type="button"
           onClick={() => void refetch()}
           className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  // Consulta concluída sem erro e sem payload é falha de carga, não base vazia.
+  if (!data)
+    return (
+      <div
+        role="alert"
+        className="m-4 space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm md:m-6"
+      >
+        <p className="font-medium text-destructive">
+          Não foi possível carregar a ficha genealógica deste caso.
+        </p>
+        <p className="text-navy/80">
+          A consulta terminou sem retornar resultado nem erro. Isso é uma falha de carga: não
+          significa que o caso esteja sem pessoas cadastradas.
+        </p>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
         >
           Tentar novamente
         </button>
@@ -285,7 +332,7 @@ function Pagina() {
           eventos={eventos}
           relacoes={relacoes}
           evidencias={evidenciaOpcoes}
-          podeEditar={podeEditar && Boolean(pesquisaId)}
+          pendenciaGate={pendenciaPerfis}
           onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
           onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_person_profiles", id, motivo })}
@@ -329,7 +376,6 @@ function Pagina() {
           pessoas={pessoasOpcoes}
           evidencias={evidenciaOpcoes}
           fontes={fonteOpcoes}
-          podeEditar={podeEditar}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_relationships", id, valores })}
           onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_relationships", id, motivo })}
         />
@@ -341,7 +387,6 @@ function Pagina() {
           pessoas={pessoasOpcoes}
           evidencias={evidenciaOpcoes}
           fontes={fonteOpcoes}
-          podeEditar={podeEditar}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "name_variants", id, valores })}
         />
       ) : null}
@@ -352,7 +397,6 @@ function Pagina() {
           pessoas={pessoasOpcoes}
           evidencias={evidenciaOpcoes}
           fontes={fonteOpcoes}
-          podeEditar={podeEditar}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_events", id, valores })}
         />
       ) : null}
@@ -364,7 +408,6 @@ function Pagina() {
           pessoas={pessoasOpcoes}
           trilhas={trilhaOpcoes}
           nucleos={nucleoOpcoes}
-          podeEditar={podeEditar}
           onSalvar={(id, valores) => salvar.mutate({ tabela: "lineage_paths", id, valores })}
         />
       ) : null}
@@ -375,7 +418,6 @@ function Pagina() {
           pessoas={pessoasOpcoes}
           evidencias={evidenciaOpcoes}
           fontes={fonteOpcoes}
-          podeEditar={podeEditar}
           onSalvar={(tabela, valores) => salvar.mutate({ tabela, valores })}
           onArquivar={(tabela, id, motivo) => arquivar.mutate({ tabela, id, motivo })}
         />
@@ -412,7 +454,7 @@ function AbaPerfis({
   eventos,
   relacoes,
   evidencias,
-  podeEditar,
+  pendenciaGate,
   onCriar,
   onSalvar,
   onArquivar,
@@ -422,7 +464,8 @@ function AbaPerfis({
   eventos: Evento[];
   relacoes: Relacao[];
   evidencias: { id: string; rotulo: string }[];
-  podeEditar: boolean;
+  /** Pendência de domínio: fica visível e pede motivo, nunca desabilita. */
+  pendenciaGate: string | null;
   onCriar: (valores: Record<string, unknown>) => void;
   onSalvar: (id: string, valores: Record<string, unknown>) => void;
   onArquivar: (id: string, motivo: string) => void;
@@ -432,34 +475,40 @@ function AbaPerfis({
 
   const criar = () => {
     const erros = validarPerfil(novo as Partial<Perfil>);
-    if (erros.length) return toast.error(erros.join(" "));
+    if (erros.length) {
+      toast.error(erros.join(" "));
+      return;
+    }
     onCriar({ ...novo, status_verificacao: "pendente" });
     setNovo({ nome_completo: "", nome_nascimento: "", sexo: "", nascimento_data: "" });
   };
 
   return (
     <section className="space-y-4">
-      {podeEditar ? (
-        <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-4">
-          <Campo label="Nome completo">
-            <input className={inputCls} value={novo.nome_completo} onChange={(e) => setNovo({ ...novo, nome_completo: e.target.value })} />
-          </Campo>
-          <Campo label="Nome de nascimento">
-            <input className={inputCls} value={novo.nome_nascimento} onChange={(e) => setNovo({ ...novo, nome_nascimento: e.target.value })} />
-          </Campo>
-          <Campo label="Sexo">
-            <Selecao valor={novo.sexo} onChange={(v) => setNovo({ ...novo, sexo: v })} opcoes={SEXO} vazio="Não informado" />
-          </Campo>
-          <Campo label="Nascimento (data)" ajuda="Deixe vazio se não houver documento.">
-            <input type="date" className={inputCls} value={novo.nascimento_data} onChange={(e) => setNovo({ ...novo, nascimento_data: e.target.value })} />
-          </Campo>
-          <div className="md:col-span-4">
-            <button type="button" className={btnCls} onClick={criar}>
-              Criar pessoa e perfil 360°
-            </button>
-          </div>
+      <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-4">
+        <Campo label="Nome completo">
+          <input className={inputCls} value={novo.nome_completo} onChange={(e) => setNovo({ ...novo, nome_completo: e.target.value })} />
+        </Campo>
+        <Campo label="Nome de nascimento">
+          <input className={inputCls} value={novo.nome_nascimento} onChange={(e) => setNovo({ ...novo, nome_nascimento: e.target.value })} />
+        </Campo>
+        <Campo label="Sexo">
+          <Selecao valor={novo.sexo} onChange={(v) => setNovo({ ...novo, sexo: v })} opcoes={SEXO} vazio="Não informado" />
+        </Campo>
+        <Campo label="Nascimento (data)" ajuda="Deixe vazio se não houver documento.">
+          <input type="date" className={inputCls} value={novo.nascimento_data} onChange={(e) => setNovo({ ...novo, nascimento_data: e.target.value })} />
+        </Campo>
+        <div className="md:col-span-4">
+          <AcaoOperacional
+            rotulo="Criar pessoa e perfil 360°"
+            capacidade="corrigir_pessoas_dependentes_representacao"
+            pendenciaGate={pendenciaGate}
+            efeito="Cria a pessoa e o perfil genealógico 360° deste caso."
+            className={btnCls}
+            onConfirmar={criar}
+          />
         </div>
-      ) : null}
+      </div>
 
       {perfis.map((p) => {
         const e = { ...p, ...(edicao[p.id] ?? {}) };
@@ -506,37 +555,37 @@ function AbaPerfis({
 
             <div className="grid gap-3 md:grid-cols-3">
               <Campo label="Nome completo">
-                <input className={inputCls} value={e.nome_completo ?? ""} disabled={!podeEditar} onChange={(x) => set("nome_completo", x.target.value)} />
+                <input className={inputCls} value={e.nome_completo ?? ""} onChange={(x) => set("nome_completo", x.target.value)} />
               </Campo>
               <Campo label="Nome de nascimento">
-                <input className={inputCls} value={e.nome_nascimento ?? ""} disabled={!podeEditar} onChange={(x) => set("nome_nascimento", x.target.value)} />
+                <input className={inputCls} value={e.nome_nascimento ?? ""} onChange={(x) => set("nome_nascimento", x.target.value)} />
               </Campo>
               <Campo label="Sexo">
                 <Selecao valor={e.sexo ?? ""} onChange={(v) => set("sexo", v)} opcoes={SEXO} vazio="Não informado" />
               </Campo>
               <Campo label="Nascimento (data)">
-                <input type="date" className={inputCls} value={e.nascimento_data ?? ""} disabled={!podeEditar} onChange={(x) => set("nascimento_data", x.target.value)} />
+                <input type="date" className={inputCls} value={e.nascimento_data ?? ""} onChange={(x) => set("nascimento_data", x.target.value)} />
               </Campo>
               <Campo label="Nascimento (aproximado)" ajuda="Ex.: 'entre 1890 e 1893'.">
-                <input className={inputCls} value={e.nascimento_data_aproximada ?? ""} disabled={!podeEditar} onChange={(x) => set("nascimento_data_aproximada", x.target.value)} />
+                <input className={inputCls} value={e.nascimento_data_aproximada ?? ""} onChange={(x) => set("nascimento_data_aproximada", x.target.value)} />
               </Campo>
               <Campo label="Nascimento (localidade)">
-                <input className={inputCls} value={e.nascimento_localidade ?? ""} disabled={!podeEditar} onChange={(x) => set("nascimento_localidade", x.target.value)} />
+                <input className={inputCls} value={e.nascimento_localidade ?? ""} onChange={(x) => set("nascimento_localidade", x.target.value)} />
               </Campo>
               <Campo label="Morte (data)">
-                <input type="date" className={inputCls} value={e.morte_data ?? ""} disabled={!podeEditar} onChange={(x) => set("morte_data", x.target.value)} />
+                <input type="date" className={inputCls} value={e.morte_data ?? ""} onChange={(x) => set("morte_data", x.target.value)} />
               </Campo>
               <Campo label="Morte (aproximada)">
-                <input className={inputCls} value={e.morte_data_aproximada ?? ""} disabled={!podeEditar} onChange={(x) => set("morte_data_aproximada", x.target.value)} />
+                <input className={inputCls} value={e.morte_data_aproximada ?? ""} onChange={(x) => set("morte_data_aproximada", x.target.value)} />
               </Campo>
               <Campo label="Morte (localidade)">
-                <input className={inputCls} value={e.morte_localidade ?? ""} disabled={!podeEditar} onChange={(x) => set("morte_localidade", x.target.value)} />
+                <input className={inputCls} value={e.morte_localidade ?? ""} onChange={(x) => set("morte_localidade", x.target.value)} />
               </Campo>
               <Campo label="Causa da morte">
-                <input className={inputCls} value={e.causa_morte ?? ""} disabled={!podeEditar} onChange={(x) => set("causa_morte", x.target.value)} />
+                <input className={inputCls} value={e.causa_morte ?? ""} onChange={(x) => set("causa_morte", x.target.value)} />
               </Campo>
               <Campo label="Sepultamento (localidade)">
-                <input className={inputCls} value={e.sepultamento_localidade ?? ""} disabled={!podeEditar} onChange={(x) => set("sepultamento_localidade", x.target.value)} />
+                <input className={inputCls} value={e.sepultamento_localidade ?? ""} onChange={(x) => set("sepultamento_localidade", x.target.value)} />
               </Campo>
               <Campo label="Status de verificação">
                 <Selecao valor={e.status_verificacao ?? "pendente"} onChange={(v) => set("status_verificacao", v)} opcoes={STATUS_VERIFICACAO} />
@@ -546,28 +595,26 @@ function AbaPerfis({
               </Campo>
               <div className="md:col-span-2">
                 <Campo label="Notas internas" ajuda="Nunca exibidas ao cliente.">
-                  <textarea className={inputCls} rows={2} value={e.internal_notes ?? ""} disabled={!podeEditar} onChange={(x) => set("internal_notes", x.target.value)} />
+                  <textarea className={inputCls} rows={2} value={e.internal_notes ?? ""} onChange={(x) => set("internal_notes", x.target.value)} />
                 </Campo>
               </div>
             </div>
 
-            {podeEditar ? (
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className={btnCls} onClick={salvar}>
-                  Salvar perfil
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-terracotta/40 px-3 py-2 text-xs font-semibold text-terracotta"
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                    if (motivo !== null) onArquivar(p.id, motivo);
-                  }}
-                >
-                  Arquivar
-                </button>
-              </div>
-            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={btnCls} onClick={salvar}>
+                Salvar perfil
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-terracotta/40 px-3 py-2 text-xs font-semibold text-terracotta"
+                onClick={() => {
+                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                  if (motivo !== null) onArquivar(p.id, motivo);
+                }}
+              >
+                Arquivar
+              </button>
+            </div>
           </article>
         );
       })}
@@ -623,7 +670,6 @@ function AbaRelacoes({
   pessoas,
   evidencias,
   fontes,
-  podeEditar,
   onSalvar,
   onArquivar,
 }: {
@@ -631,7 +677,6 @@ function AbaRelacoes({
   pessoas: { id: string; rotulo: string }[];
   evidencias: { id: string; rotulo: string }[];
   fontes: { id: string; rotulo: string }[];
-  podeEditar: boolean;
   onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
   onArquivar: (id: string, motivo: string) => void;
 }) {
@@ -652,51 +697,49 @@ function AbaRelacoes({
 
   return (
     <section className="space-y-4">
-      {podeEditar ? (
-        <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
-          <Campo label="De (pessoa)">
-            <Selecao valor={nova.person_from_id} onChange={(v) => setNova({ ...nova, person_from_id: v })} opcoes={pessoas} vazio="Selecione" />
-          </Campo>
-          <Campo label="Para (pessoa)">
-            <Selecao valor={nova.person_to_id} onChange={(v) => setNova({ ...nova, person_to_id: v })} opcoes={pessoas} vazio="Selecione" />
-          </Campo>
-          <Campo label="Tipo de relação">
-            <Selecao valor={nova.relation_type} onChange={(v) => setNova({ ...nova, relation_type: v })} opcoes={TIPOS_RELACAO} />
-          </Campo>
-          <Campo label="Data">
-            <input type="date" className={inputCls} value={nova.relation_date} onChange={(e) => setNova({ ...nova, relation_date: e.target.value })} />
-          </Campo>
-          <Campo label="Data aproximada">
-            <input className={inputCls} value={nova.relation_date_aproximada} onChange={(e) => setNova({ ...nova, relation_date_aproximada: e.target.value })} />
-          </Campo>
-          <Campo label="Localidade">
-            <input className={inputCls} value={nova.locality} onChange={(e) => setNova({ ...nova, locality: e.target.value })} />
-          </Campo>
-          <Campo label="Status de pesquisa">
-            <Selecao valor={nova.status_pesquisa} onChange={(v) => setNova({ ...nova, status_pesquisa: v })} opcoes={STATUS_PESQUISA_RELACAO} />
-          </Campo>
-          <Campo label="Evidência">
-            <Selecao valor={nova.evidence_id} onChange={(v) => setNova({ ...nova, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
-          </Campo>
-          <Campo label="Fonte">
-            <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
-          </Campo>
-          <div className="md:col-span-3">
-            <button
-              type="button"
-              className={btnCls}
-              onClick={() => {
-                const erros = validarRelacao(nova as Partial<Relacao>);
-                if (erros.length) return toast.error(erros.join(" "));
-                onSalvar(undefined, nova);
-                setNova(vazia);
-              }}
-            >
-              Registrar relação
-            </button>
-          </div>
+      <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
+        <Campo label="De (pessoa)">
+          <Selecao valor={nova.person_from_id} onChange={(v) => setNova({ ...nova, person_from_id: v })} opcoes={pessoas} vazio="Selecione" />
+        </Campo>
+        <Campo label="Para (pessoa)">
+          <Selecao valor={nova.person_to_id} onChange={(v) => setNova({ ...nova, person_to_id: v })} opcoes={pessoas} vazio="Selecione" />
+        </Campo>
+        <Campo label="Tipo de relação">
+          <Selecao valor={nova.relation_type} onChange={(v) => setNova({ ...nova, relation_type: v })} opcoes={TIPOS_RELACAO} />
+        </Campo>
+        <Campo label="Data">
+          <input type="date" className={inputCls} value={nova.relation_date} onChange={(e) => setNova({ ...nova, relation_date: e.target.value })} />
+        </Campo>
+        <Campo label="Data aproximada">
+          <input className={inputCls} value={nova.relation_date_aproximada} onChange={(e) => setNova({ ...nova, relation_date_aproximada: e.target.value })} />
+        </Campo>
+        <Campo label="Localidade">
+          <input className={inputCls} value={nova.locality} onChange={(e) => setNova({ ...nova, locality: e.target.value })} />
+        </Campo>
+        <Campo label="Status de pesquisa">
+          <Selecao valor={nova.status_pesquisa} onChange={(v) => setNova({ ...nova, status_pesquisa: v })} opcoes={STATUS_PESQUISA_RELACAO} />
+        </Campo>
+        <Campo label="Evidência">
+          <Selecao valor={nova.evidence_id} onChange={(v) => setNova({ ...nova, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
+        </Campo>
+        <Campo label="Fonte">
+          <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
+        </Campo>
+        <div className="md:col-span-3">
+          <button
+            type="button"
+            className={btnCls}
+            onClick={() => {
+              const erros = validarRelacao(nova as Partial<Relacao>);
+              if (erros.length) return toast.error(erros.join(" "));
+              onSalvar(undefined, nova);
+              setNova(vazia);
+            }}
+          >
+            Registrar relação
+          </button>
         </div>
-      ) : null}
+      </div>
 
       {relacoes.filter((r) => !r.archived_at).map((r) => (
         <div key={r.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream p-3">
@@ -709,18 +752,16 @@ function AbaRelacoes({
             tom={r.status_pesquisa === "confirmado" ? "ok" : "alerta"}
           />
           {r.locality ? <span className="text-xs text-navy/60">{r.locality}</span> : null}
-          {podeEditar ? (
-            <button
-              type="button"
-              className="ml-auto text-xs text-terracotta underline"
-              onClick={() => {
-                const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                if (motivo !== null) onArquivar(r.id, motivo);
-              }}
-            >
-              Arquivar
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="ml-auto text-xs text-terracotta underline"
+            onClick={() => {
+              const motivo = window.prompt("Motivo do arquivamento (opcional):");
+              if (motivo !== null) onArquivar(r.id, motivo);
+            }}
+          >
+            Arquivar
+          </button>
         </div>
       ))}
       {relacoes.length === 0 ? <p className="text-sm text-navy/60">Nenhuma relação registrada.</p> : null}
@@ -733,14 +774,12 @@ function AbaVariantes({
   pessoas,
   evidencias,
   fontes,
-  podeEditar,
   onSalvar,
 }: {
   variantes: Variante[];
   pessoas: { id: string; rotulo: string }[];
   evidencias: { id: string; rotulo: string }[];
   fontes: { id: string; rotulo: string }[];
-  podeEditar: boolean;
   onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
 }) {
   const vazia = {
@@ -763,51 +802,49 @@ function AbaVariantes({
       <p className="text-xs text-navy/60">
         Variante de nome nunca cria pessoa nova: ela sempre pertence a uma pessoa já cadastrada.
       </p>
-      {podeEditar ? (
-        <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
-          <Campo label="Pessoa">
-            <Selecao valor={nova.person_id} onChange={(v) => setNova({ ...nova, person_id: v })} opcoes={pessoas} vazio="Selecione" />
-          </Campo>
-          <Campo label="Variante">
-            <input className={inputCls} value={nova.variante} onChange={(e) => setNova({ ...nova, variante: e.target.value })} />
-          </Campo>
-          <Campo label="Tipo">
-            <Selecao valor={nova.tipo} onChange={(v) => setNova({ ...nova, tipo: v })} opcoes={TIPOS_VARIANTE} />
-          </Campo>
-          <Campo label="Período">
-            <input className={inputCls} value={nova.periodo} onChange={(e) => setNova({ ...nova, periodo: e.target.value })} />
-          </Campo>
-          <Campo label="Localidade">
-            <input className={inputCls} value={nova.localidade} onChange={(e) => setNova({ ...nova, localidade: e.target.value })} />
-          </Campo>
-          <Campo label="Estado de validação">
-            <Selecao valor={nova.estado_validacao} onChange={(v) => setNova({ ...nova, estado_validacao: v })} opcoes={ESTADO_VALIDACAO_VARIANTE} />
-          </Campo>
-          <Campo label="Nível de confiança">
-            <Selecao valor={nova.nivel_confianca} onChange={(v) => setNova({ ...nova, nivel_confianca: v })} opcoes={NIVEIS_CONFIANCA} />
-          </Campo>
-          <Campo label="Evidência">
-            <Selecao valor={nova.evidence_id} onChange={(v) => setNova({ ...nova, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
-          </Campo>
-          <Campo label="Fonte">
-            <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
-          </Campo>
-          <div className="md:col-span-3">
-            <button
-              type="button"
-              className={btnCls}
-              onClick={() => {
-                const erros = validarVariante(nova as Partial<Variante>, variantes);
-                if (erros.length) return toast.error(erros.join(" "));
-                onSalvar(undefined, nova);
-                setNova(vazia);
-              }}
-            >
-              Registrar variante
-            </button>
-          </div>
+      <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
+        <Campo label="Pessoa">
+          <Selecao valor={nova.person_id} onChange={(v) => setNova({ ...nova, person_id: v })} opcoes={pessoas} vazio="Selecione" />
+        </Campo>
+        <Campo label="Variante">
+          <input className={inputCls} value={nova.variante} onChange={(e) => setNova({ ...nova, variante: e.target.value })} />
+        </Campo>
+        <Campo label="Tipo">
+          <Selecao valor={nova.tipo} onChange={(v) => setNova({ ...nova, tipo: v })} opcoes={TIPOS_VARIANTE} />
+        </Campo>
+        <Campo label="Período">
+          <input className={inputCls} value={nova.periodo} onChange={(e) => setNova({ ...nova, periodo: e.target.value })} />
+        </Campo>
+        <Campo label="Localidade">
+          <input className={inputCls} value={nova.localidade} onChange={(e) => setNova({ ...nova, localidade: e.target.value })} />
+        </Campo>
+        <Campo label="Estado de validação">
+          <Selecao valor={nova.estado_validacao} onChange={(v) => setNova({ ...nova, estado_validacao: v })} opcoes={ESTADO_VALIDACAO_VARIANTE} />
+        </Campo>
+        <Campo label="Nível de confiança">
+          <Selecao valor={nova.nivel_confianca} onChange={(v) => setNova({ ...nova, nivel_confianca: v })} opcoes={NIVEIS_CONFIANCA} />
+        </Campo>
+        <Campo label="Evidência">
+          <Selecao valor={nova.evidence_id} onChange={(v) => setNova({ ...nova, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
+        </Campo>
+        <Campo label="Fonte">
+          <Selecao valor={nova.source_id} onChange={(v) => setNova({ ...nova, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
+        </Campo>
+        <div className="md:col-span-3">
+          <button
+            type="button"
+            className={btnCls}
+            onClick={() => {
+              const erros = validarVariante(nova as Partial<Variante>, variantes);
+              if (erros.length) return toast.error(erros.join(" "));
+              onSalvar(undefined, nova);
+              setNova(vazia);
+            }}
+          >
+            Registrar variante
+          </button>
         </div>
-      ) : null}
+      </div>
 
       {variantes.filter((v) => !v.archived_at).map((v) => (
         <div key={v.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream p-3">
@@ -828,14 +865,12 @@ function AbaEventos({
   pessoas,
   evidencias,
   fontes,
-  podeEditar,
   onSalvar,
 }: {
   eventos: Evento[];
   pessoas: { id: string; rotulo: string }[];
   evidencias: { id: string; rotulo: string }[];
   fontes: { id: string; rotulo: string }[];
-  podeEditar: boolean;
   onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
 }) {
   const vazio = {
@@ -855,56 +890,54 @@ function AbaEventos({
 
   return (
     <section className="space-y-4">
-      {podeEditar ? (
-        <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
-          <Campo label="Pessoa">
-            <Selecao valor={novo.person_id} onChange={(v) => setNovo({ ...novo, person_id: v })} opcoes={pessoas} vazio="Selecione" />
+      <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
+        <Campo label="Pessoa">
+          <Selecao valor={novo.person_id} onChange={(v) => setNovo({ ...novo, person_id: v })} opcoes={pessoas} vazio="Selecione" />
+        </Campo>
+        <Campo label="Tipo de evento">
+          <Selecao valor={novo.event_type} onChange={(v) => setNovo({ ...novo, event_type: v })} opcoes={TIPOS_EVENTO} />
+        </Campo>
+        <Campo label="Status de validação">
+          <Selecao valor={novo.validation_status} onChange={(v) => setNovo({ ...novo, validation_status: v })} opcoes={STATUS_VALIDACAO_EVENTO} />
+        </Campo>
+        <Campo label="Data inicial">
+          <input type="date" className={inputCls} value={novo.start_date} onChange={(e) => setNovo({ ...novo, start_date: e.target.value })} />
+        </Campo>
+        <Campo label="Data final">
+          <input type="date" className={inputCls} value={novo.end_date} onChange={(e) => setNovo({ ...novo, end_date: e.target.value })} />
+        </Campo>
+        <Campo label="Data aproximada">
+          <input className={inputCls} value={novo.approximate_date} onChange={(e) => setNovo({ ...novo, approximate_date: e.target.value })} />
+        </Campo>
+        <Campo label="Localidade">
+          <input className={inputCls} value={novo.locality} onChange={(e) => setNovo({ ...novo, locality: e.target.value })} />
+        </Campo>
+        <Campo label="Evidência">
+          <Selecao valor={novo.evidence_id} onChange={(v) => setNovo({ ...novo, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
+        </Campo>
+        <Campo label="Fonte">
+          <Selecao valor={novo.source_id} onChange={(v) => setNovo({ ...novo, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
+        </Campo>
+        <div className="md:col-span-3">
+          <Campo label="Descrição interna">
+            <textarea className={inputCls} rows={2} value={novo.description_internal} onChange={(e) => setNovo({ ...novo, description_internal: e.target.value })} />
           </Campo>
-          <Campo label="Tipo de evento">
-            <Selecao valor={novo.event_type} onChange={(v) => setNovo({ ...novo, event_type: v })} opcoes={TIPOS_EVENTO} />
-          </Campo>
-          <Campo label="Status de validação">
-            <Selecao valor={novo.validation_status} onChange={(v) => setNovo({ ...novo, validation_status: v })} opcoes={STATUS_VALIDACAO_EVENTO} />
-          </Campo>
-          <Campo label="Data inicial">
-            <input type="date" className={inputCls} value={novo.start_date} onChange={(e) => setNovo({ ...novo, start_date: e.target.value })} />
-          </Campo>
-          <Campo label="Data final">
-            <input type="date" className={inputCls} value={novo.end_date} onChange={(e) => setNovo({ ...novo, end_date: e.target.value })} />
-          </Campo>
-          <Campo label="Data aproximada">
-            <input className={inputCls} value={novo.approximate_date} onChange={(e) => setNovo({ ...novo, approximate_date: e.target.value })} />
-          </Campo>
-          <Campo label="Localidade">
-            <input className={inputCls} value={novo.locality} onChange={(e) => setNovo({ ...novo, locality: e.target.value })} />
-          </Campo>
-          <Campo label="Evidência">
-            <Selecao valor={novo.evidence_id} onChange={(v) => setNovo({ ...novo, evidence_id: v })} opcoes={evidencias} vazio="Sem evidência" />
-          </Campo>
-          <Campo label="Fonte">
-            <Selecao valor={novo.source_id} onChange={(v) => setNovo({ ...novo, source_id: v })} opcoes={fontes} vazio="Sem fonte" />
-          </Campo>
-          <div className="md:col-span-3">
-            <Campo label="Descrição interna">
-              <textarea className={inputCls} rows={2} value={novo.description_internal} onChange={(e) => setNovo({ ...novo, description_internal: e.target.value })} />
-            </Campo>
-          </div>
-          <div className="md:col-span-3">
-            <button
-              type="button"
-              className={btnCls}
-              onClick={() => {
-                const erros = validarEvento(novo as Partial<Evento>);
-                if (erros.length) return toast.error(erros.join(" "));
-                onSalvar(undefined, novo);
-                setNovo(vazio);
-              }}
-            >
-              Registrar evento
-            </button>
-          </div>
         </div>
-      ) : null}
+        <div className="md:col-span-3">
+          <button
+            type="button"
+            className={btnCls}
+            onClick={() => {
+              const erros = validarEvento(novo as Partial<Evento>);
+              if (erros.length) return toast.error(erros.join(" "));
+              onSalvar(undefined, novo);
+              setNovo(vazio);
+            }}
+          >
+            Registrar evento
+          </button>
+        </div>
+      </div>
 
       {eventos.filter((e) => !e.archived_at).map((e) => (
         <div key={e.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-navy/10 bg-cream p-3">
@@ -925,7 +958,6 @@ function AbaLinhagens({
   pessoas,
   trilhas,
   nucleos,
-  podeEditar,
   onSalvar,
 }: {
   caseId: string;
@@ -933,7 +965,6 @@ function AbaLinhagens({
   pessoas: { id: string; rotulo: string }[];
   trilhas: { id: string; rotulo: string }[];
   nucleos: { id: string; rotulo: string }[];
-  podeEditar: boolean;
   onSalvar: (id: string | undefined, valores: Record<string, unknown>) => void;
 }) {
   const vazia = {
@@ -956,57 +987,55 @@ function AbaLinhagens({
       <p className="text-xs text-navy/60">
         Linha dupla é configuração de análise: o mesmo caso aceita várias linhagens, sem duplicar pessoa nem criar caso novo.
       </p>
-      {podeEditar ? (
-        <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
-          <Campo label="Nome da linha">
-            <input className={inputCls} value={nova.nome_da_linha} onChange={(e) => setNova({ ...nova, nome_da_linha: e.target.value })} />
-          </Campo>
-          <Campo label="Tipo da linha">
-            <Selecao valor={nova.tipo_da_linha} onChange={(v) => setNova({ ...nova, tipo_da_linha: v })} opcoes={TIPOS_LINHA} />
-          </Campo>
-          <Campo label="Pessoa âncora">
-            <Selecao valor={nova.pessoa_ancora_id} onChange={(v) => setNova({ ...nova, pessoa_ancora_id: v })} opcoes={pessoas} vazio="A definir" />
-          </Campo>
-          <Campo label="Núcleo familiar">
-            <Selecao valor={nova.family_id} onChange={(v) => setNova({ ...nova, family_id: v })} opcoes={nucleos} vazio="Não vinculado" />
-          </Campo>
-          <Campo label="Trilha de cidadania">
-            <Selecao valor={nova.citizenship_track_id} onChange={(v) => setNova({ ...nova, citizenship_track_id: v })} opcoes={trilhas} vazio="Não aplicável" />
-          </Campo>
-          <Campo label="Status">
-            <Selecao valor={nova.status} onChange={(v) => setNova({ ...nova, status: v })} opcoes={STATUS_LINHA} />
-          </Campo>
-          <Campo label="Objetivo">
-            <input className={inputCls} value={nova.objetivo} onChange={(e) => setNova({ ...nova, objetivo: e.target.value })} />
-          </Campo>
-          <Campo label="Geração alvo">
-            <input className={inputCls} value={nova.geracao_alvo} onChange={(e) => setNova({ ...nova, geracao_alvo: e.target.value })} />
-          </Campo>
-          <Campo label="Responsável">
-            <input className={inputCls} value={nova.responsavel} onChange={(e) => setNova({ ...nova, responsavel: e.target.value })} />
-          </Campo>
-          <Campo label="Risco principal">
-            <input className={inputCls} value={nova.risco_principal} onChange={(e) => setNova({ ...nova, risco_principal: e.target.value })} />
-          </Campo>
-          <Campo label="Próximo marco">
-            <input className={inputCls} value={nova.proximo_marco} onChange={(e) => setNova({ ...nova, proximo_marco: e.target.value })} />
-          </Campo>
-          <div className="md:col-span-3">
-            <button
-              type="button"
-              className={btnCls}
-              onClick={() => {
-                const erros = validarLinhagem({ ...nova, case_id: caseId } as Partial<Linhagem>, linhagens);
-                if (erros.length) return toast.error(erros.join(" "));
-                onSalvar(undefined, nova);
-                setNova(vazia);
-              }}
-            >
-              Registrar linhagem
-            </button>
-          </div>
+      <div className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3">
+        <Campo label="Nome da linha">
+          <input className={inputCls} value={nova.nome_da_linha} onChange={(e) => setNova({ ...nova, nome_da_linha: e.target.value })} />
+        </Campo>
+        <Campo label="Tipo da linha">
+          <Selecao valor={nova.tipo_da_linha} onChange={(v) => setNova({ ...nova, tipo_da_linha: v })} opcoes={TIPOS_LINHA} />
+        </Campo>
+        <Campo label="Pessoa âncora">
+          <Selecao valor={nova.pessoa_ancora_id} onChange={(v) => setNova({ ...nova, pessoa_ancora_id: v })} opcoes={pessoas} vazio="A definir" />
+        </Campo>
+        <Campo label="Núcleo familiar">
+          <Selecao valor={nova.family_id} onChange={(v) => setNova({ ...nova, family_id: v })} opcoes={nucleos} vazio="Não vinculado" />
+        </Campo>
+        <Campo label="Trilha de cidadania">
+          <Selecao valor={nova.citizenship_track_id} onChange={(v) => setNova({ ...nova, citizenship_track_id: v })} opcoes={trilhas} vazio="Não aplicável" />
+        </Campo>
+        <Campo label="Status">
+          <Selecao valor={nova.status} onChange={(v) => setNova({ ...nova, status: v })} opcoes={STATUS_LINHA} />
+        </Campo>
+        <Campo label="Objetivo">
+          <input className={inputCls} value={nova.objetivo} onChange={(e) => setNova({ ...nova, objetivo: e.target.value })} />
+        </Campo>
+        <Campo label="Geração alvo">
+          <input className={inputCls} value={nova.geracao_alvo} onChange={(e) => setNova({ ...nova, geracao_alvo: e.target.value })} />
+        </Campo>
+        <Campo label="Responsável">
+          <input className={inputCls} value={nova.responsavel} onChange={(e) => setNova({ ...nova, responsavel: e.target.value })} />
+        </Campo>
+        <Campo label="Risco principal">
+          <input className={inputCls} value={nova.risco_principal} onChange={(e) => setNova({ ...nova, risco_principal: e.target.value })} />
+        </Campo>
+        <Campo label="Próximo marco">
+          <input className={inputCls} value={nova.proximo_marco} onChange={(e) => setNova({ ...nova, proximo_marco: e.target.value })} />
+        </Campo>
+        <div className="md:col-span-3">
+          <button
+            type="button"
+            className={btnCls}
+            onClick={() => {
+              const erros = validarLinhagem({ ...nova, case_id: caseId } as Partial<Linhagem>, linhagens);
+              if (erros.length) return toast.error(erros.join(" "));
+              onSalvar(undefined, nova);
+              setNova(vazia);
+            }}
+          >
+            Registrar linhagem
+          </button>
         </div>
-      ) : null}
+      </div>
 
       {linhagens.filter((l) => !l.archived_at).map((l) => (
         <div key={l.id} className="space-y-1 rounded-xl border border-navy/10 bg-cream p-3">

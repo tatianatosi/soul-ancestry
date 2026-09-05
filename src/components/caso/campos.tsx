@@ -1,7 +1,59 @@
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import type { AcaoExterna, Capacidade } from "@/lib/modo-proprietaria";
 import type { Opcao } from "@/lib/caso-ficha";
 
 export const inputCls =
   "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
+
+/**
+ * Ação de escrita com validade de formulário separada da autoridade.
+ *
+ * - `faltando`: campo obrigatório vazio do próprio formulário. Desabilita o
+ *   controle e diz o que falta. Não é trava de autoridade.
+ * - `pendenciaGate`: pendência de domínio. Nunca desabilita: vai para
+ *   `AcaoOperacional`, que decide e registra o motivo.
+ */
+export function AcaoDeEscrita({
+  rotulo,
+  faltando,
+  capacidade,
+  acaoExterna,
+  pendenciaGate,
+  efeito,
+  className,
+  onConfirmar,
+}: {
+  rotulo: string;
+  faltando?: string | null;
+  capacidade?: Capacidade;
+  acaoExterna?: AcaoExterna | string;
+  pendenciaGate?: string | null;
+  efeito?: string;
+  className?: string;
+  onConfirmar: (motivo: string) => void | Promise<void>;
+}) {
+  if (faltando) {
+    return (
+      <span className="inline-flex flex-col gap-1">
+        <button type="button" disabled className={className ?? "rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"}>
+          {rotulo}
+        </button>
+        <span className="text-xs text-navy/70">{faltando}</span>
+      </span>
+    );
+  }
+  return (
+    <AcaoOperacional
+      rotulo={rotulo}
+      capacidade={capacidade}
+      acaoExterna={acaoExterna}
+      pendenciaGate={pendenciaGate ?? null}
+      efeito={efeito}
+      className={className}
+      onConfirmar={onConfirmar}
+    />
+  );
+}
 
 export function Rotulo({ children }: { children: React.ReactNode }) {
   return <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-navy/50">{children}</span>;

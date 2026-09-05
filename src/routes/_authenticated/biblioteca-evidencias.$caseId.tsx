@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAutoridade } from "@/components/saas/autoridade";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -75,10 +74,12 @@ function Pagina() {
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
   const carregar = useServerFn(painelBibliotecaEvidencias);
-  const { data } = useQuery({
+  const consulta = useQuery({
     queryKey: ["g03", caseId],
     queryFn: () => carregar({ data: { caseId } }),
+    retry: false,
   });
+  const { data } = consulta;
 
   const [aba, setAba] = useState<Aba>("evidencias");
   const [selecionada, setSelecionada] = useState<string>("");
@@ -134,15 +135,49 @@ function Pagina() {
     onError: erro,
   });
 
-  const autoridade = useAutoridade();
-  const evidencias = data?.evidencias ?? [];
-  const projecoes = data?.projecoes ?? [];
-  const validacoes = data?.validacoes ?? [];
-  // Autoridade operacional: gate de papel do servidor vira pendência declarada.
-  const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  // Consulta sem payload é falha de carga, não base vazia (ver bloco `!data`).
+  const evidencias = data ? data.evidencias : [];
+  const projecoes = data ? data.projecoes : [];
+  const validacoes = data ? data.validacoes : [];
+  // Autoridade operacional (05/09/2026): o gate de papel do servidor deixou de
+  // esconder as ações da biblioteca. Elas renderizam sempre; o que sobra é
+  // estado do registro (rascunho/em revisão/arquivado), que é regra de negócio.
   const pendenciaPapel = data && !data.podeEditar
     ? "O servidor marcou esta biblioteca como somente leitura para o seu vínculo — as ações seguem disponíveis por decisão sua."
     : null;
+
+  if (consulta.isLoading) {
+    return (
+      <div className="mx-auto max-w-6xl p-6 text-sm text-navy/60" role="status">
+        Carregando a biblioteca de evidências…
+      </div>
+    );
+  }
+  // Consulta sem erro e sem payload é falha de carga, não biblioteca vazia.
+  if (consulta.isError || !data) {
+    return (
+      <div
+        role="alert"
+        className="mx-auto max-w-6xl space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-6 text-sm"
+      >
+        <p className="font-medium text-destructive">
+          Não foi possível carregar a biblioteca de evidências deste caso.
+        </p>
+        <p className="text-navy/80">
+          {consulta.error instanceof Error
+            ? consulta.error.message
+            : "A consulta terminou sem retornar resultado nem erro. Isso é falha de carga: não significa que o caso esteja sem evidências."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void consulta.refetch()}
+          className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -204,29 +239,27 @@ function Pagina() {
               <p className="mt-1 text-[11px] text-navy/60">
                 {evidenciaProjetavel(e).ok ? "Elegível a projeção autorizada." : evidenciaProjetavel(e).erros.join(" ")}
               </p>
-              {podeEditar ? (
-                <div className="mt-2 flex gap-3 text-[11px]">
-                  <button
-                    className="underline decoration-gold"
-                    onClick={() => {
-                      setSelecionada(String(e["id"]));
-                      setAba("validacao");
-                    }}
-                  >
-                    Registrar validação
-                  </button>
-                  <button
-                    className="underline decoration-terracotta text-terracotta"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo !== null)
-                        mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
-                    }}
-                  >
-                    Arquivar
-                  </button>
-                </div>
-              ) : null}
+              <div className="mt-2 flex gap-3 text-[11px]">
+                <button
+                  className="underline decoration-gold"
+                  onClick={() => {
+                    setSelecionada(String(e["id"]));
+                    setAba("validacao");
+                  }}
+                >
+                  Registrar validação
+                </button>
+                <button
+                  className="underline decoration-terracotta text-terracotta"
+                  onClick={() => {
+                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                    if (motivo !== null)
+                      mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
+                  }}
+                >
+                  Arquivar
+                </button>
+              </div>
             </article>
           ))}
         </section>
@@ -257,7 +290,7 @@ function Pagina() {
                 </div>
                 <p className="mt-1 text-xs text-navy/80">{String(p["content_sanitized"])}</p>
                 <p className="mt-1 text-[11px] text-navy/50">{DISCLAIMER_PROJECAO}</p>
-                {podeEditar && ["draft", "in_review"].includes(String(p["approval_status"])) ? (
+                {["draft", "in_review"].includes(String(p["approval_status"])) ? (
                   <div className="mt-2 flex gap-3 text-[11px]">
                     <button className="underline decoration-gold" onClick={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}>
                       Aprovar
@@ -267,7 +300,7 @@ function Pagina() {
                     </button>
                   </div>
                 ) : null}
-                {podeEditar && String(p["approval_status"]) !== "archived" ? (
+                {String(p["approval_status"]) !== "archived" ? (
                   <button
                     className="mt-2 block text-[11px] text-terracotta underline"
                     onClick={() => {
@@ -319,7 +352,8 @@ function FormEvidencia({
   onSalvar,
 }: {
   caseId: string;
-  data: { fontes?: Record<string, unknown>[]; pessoas?: Record<string, unknown>[] } | undefined;
+  /** Payload já carregado: a rota garante presença antes de renderizar. */
+  data: { fontes: Record<string, unknown>[]; pessoas: Record<string, unknown>[] };
   onSalvar: (v: Record<string, unknown>) => void;
 }) {
   const [v, setV] = useState<Record<string, unknown>>({
@@ -392,7 +426,7 @@ function FormEvidencia({
       <Campo label="Fonte vinculada (opcional)">
         <select className={inputCls} value={String(v["source_id"] ?? "")} onChange={(e) => set("source_id", e.target.value || null)}>
           <option value="">—</option>
-          {(data?.fontes ?? []).map((f) => (
+          {data.fontes.map((f) => (
             <option key={String(f["id"])} value={String(f["id"])}>
               {String(f["title"])}
             </option>
@@ -406,7 +440,7 @@ function FormEvidencia({
           onChange={(e) => set("research_person_id", e.target.value || null)}
         >
           <option value="">—</option>
-          {(data?.pessoas ?? []).map((p) => (
+          {data.pessoas.map((p) => (
             <option key={String(p["id"])} value={String(p["id"])}>
               {String(p["canonical_name"])}
             </option>

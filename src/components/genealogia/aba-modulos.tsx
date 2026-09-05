@@ -9,6 +9,7 @@ import {
   validarRegistroModulo,
   type RegistroModulo,
 } from "@/lib/genealogia-modulos";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { rotuloDe, type Opcao } from "@/lib/pessoas-linhagens";
 
 const inputCls =
@@ -30,7 +31,12 @@ export type AbaModulosProps = {
   pessoas: Opcao[];
   evidencias: Opcao[];
   fontes: Opcao[];
-  podeEditar: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: o formulário e o arquivamento renderizam sempre e a decisão de
+   * escrita é da autoridade operacional.
+   */
+  podeEditar?: boolean;
   onSalvar: (tabela: string, valores: Record<string, unknown>) => void;
   onArquivar: (tabela: string, id: string, motivo: string) => void;
 };
@@ -39,10 +45,22 @@ export type AbaModulosProps = {
  * Módulos históricos complementares da ficha piloto. Registro puramente interno:
  * nada aqui pede certidão, contata instituição, cria pasta ou publica ao cliente.
  */
-export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, onSalvar, onArquivar }: AbaModulosProps) {
+export function AbaModulos({
+  modulos,
+  pessoas,
+  evidencias,
+  fontes,
+  podeEditar: _podeEditar,
+  onSalvar,
+  onArquivar,
+}: AbaModulosProps) {
   const [tabela, setTabela] = useState(MODULOS_HISTORICOS[0]!.tabela);
   const modulo = MODULOS_HISTORICOS.find((m) => m.tabela === tabela)!;
-  const registros = (modulos[tabela] ?? []).filter((r) => !r.archived_at);
+  const ativosDe = (t: string) => {
+    const lista = modulos[t];
+    return lista ? lista.filter((r) => !r.archived_at) : [];
+  };
+  const registros = ativosDe(tabela);
 
   const [form, setForm] = useState<Record<string, string>>({
     titulo: "",
@@ -90,35 +108,21 @@ export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, o
               tabela === m.tabela ? "bg-gold text-navy" : "bg-navy/10 text-navy/70"
             }`}
           >
-            {m.rotulo} ({(modulos[m.tabela] ?? []).filter((r) => !r.archived_at).length})
+            {m.rotulo} ({ativosDe(m.tabela).length})
           </button>
         ))}
       </div>
 
       <p className="text-xs text-navy/60">{modulo.descricao} Registro interno, sem ação externa.</p>
 
-      {podeEditar ? (
-        <form
+      {/*
+        Autoridade operacional: o formulário de registro renderiza sempre. Antes
+        ele desaparecia quando `podeEditar` era falso — a tela ficava só leitura
+        sem dizer por quê.
+      */}
+      <form
           className="grid gap-3 rounded-xl border border-navy/10 bg-cream p-4 md:grid-cols-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (erros.length > 0) return;
-            onSalvar(tabela, {
-              titulo: form["titulo"],
-              subtipo: form["subtipo"],
-              person_id: form["person_id"] || null,
-              periodo_inicio: form["periodo_inicio"] || null,
-              periodo_fim: form["periodo_fim"] || null,
-              data_precisao: form["data_precisao"],
-              localidade: form["localidade"],
-              descricao_interna: form["descricao_interna"],
-              evidence_id: form["evidence_id"] || null,
-              source_id: form["source_id"] || null,
-              status_verificacao: form["status_verificacao"],
-              client_visibility: form["client_visibility"],
-            });
-            setForm((f) => ({ ...f, titulo: "", subtipo: "", localidade: "", descricao_interna: "" }));
-          }}
+          onSubmit={(e) => e.preventDefault()}
         >
           <input className={inputCls} placeholder="Título do registro" value={form["titulo"]} onChange={(e) => set("titulo", e.target.value)} />
           <select className={inputCls} value={form["subtipo"]} onChange={(e) => set("subtipo", e.target.value)}>
@@ -179,12 +183,34 @@ export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, o
               envio. Os erros continuam visíveis acima e a gravação registra a
               pendência assumida.
             */}
-            <button type="submit" className={`${btnCls} mt-2`}>
-              Gravar registro histórico
-            </button>
+            <div className="mt-2">
+              <AcaoOperacional
+                rotulo="Gravar registro histórico"
+                capacidade="avancar_pesquisa_evidencia_microentrega"
+                pendenciaGate={erros.length ? erros.join("; ") : null}
+                efeito="Grava um registro histórico interno neste módulo. Nada é pedido a instituição nem publicado ao cliente."
+                className={btnCls}
+                onConfirmar={() => {
+                  onSalvar(tabela, {
+                    titulo: form["titulo"],
+                    subtipo: form["subtipo"],
+                    person_id: form["person_id"] || null,
+                    periodo_inicio: form["periodo_inicio"] || null,
+                    periodo_fim: form["periodo_fim"] || null,
+                    data_precisao: form["data_precisao"],
+                    localidade: form["localidade"],
+                    descricao_interna: form["descricao_interna"],
+                    evidence_id: form["evidence_id"] || null,
+                    source_id: form["source_id"] || null,
+                    status_verificacao: form["status_verificacao"],
+                    client_visibility: form["client_visibility"],
+                  });
+                  setForm((f) => ({ ...f, titulo: "", subtipo: "", localidade: "", descricao_interna: "" }));
+                }}
+              />
+            </div>
           </div>
         </form>
-      ) : null}
 
       <ul className="space-y-2">
         {registros.map((r) => (
@@ -205,18 +231,16 @@ export function AbaModulos({ modulos, pessoas, evidencias, fontes, podeEditar, o
               {r.localidade ? ` · ${r.localidade}` : ""}
             </p>
             {r.descricao_interna ? <p className="mt-1 text-xs text-navy/70">{r.descricao_interna}</p> : null}
-            {podeEditar ? (
-              <button
-                type="button"
-                className="mt-2 text-[11px] text-terracotta underline"
-                onClick={() => {
-                  const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                  if (motivo !== null) onArquivar(tabela, r.id, motivo);
-                }}
-              >
-                Arquivar (sem exclusão física)
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className="mt-2 text-[11px] text-terracotta underline"
+              onClick={() => {
+                const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                if (motivo !== null) onArquivar(tabela, r.id, motivo);
+              }}
+            >
+              Arquivar (sem exclusão física)
+            </button>
           </li>
         ))}
         {registros.length === 0 ? <p className="text-sm text-navy/60">Nenhum registro neste módulo.</p> : null}
