@@ -11,7 +11,7 @@ import {
   type ItemChecklist,
   type PessoaTipo,
 } from "@/lib/cadastro-checklist";
-import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
+import { clienteCorrespondentePorNome, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import { PERFIL_INSTITUCIONAL } from "@/lib/contrato-base-consolidado";
 
 /*
@@ -103,11 +103,7 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
     const userId = (context as any).userId as string;
     const caso = await contexto(supabase, data.caseId);
 
-    const { data: membros } = await supabase
-      .from("case_members")
-      .select("id,nome,papel_no_caso,titular,contratante,dependente,cliente_id")
-      .eq("case_id", data.caseId)
-      .is("archived_at", null);
+    const membros = await pessoasDoCasoComFallbackNucleo(supabase, data.caseId);
 
     const { data: dependentes } = await supabase
       .from("case_dependents")
@@ -135,17 +131,21 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
      * tela não dependa de recalcular o match de novo.
      */
     const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null; tabela: string | null; cliente: string | null }[] = [];
-    for (const m of (membros ?? []) as any[]) {
+    for (const m of membros) {
       if (m.dependente) continue;
       const clienteId = m.cliente_id ?? clienteCorrespondentePorNome(String(m.nome), clientesOrg);
-      if (clienteId && !m.cliente_id) {
+      // Só grava de volta quando a linha é mesmo de case_members — um membro
+      // vindo do fallback de Núcleos (m.id de nucleo_membros) já tem o
+      // cliente_id correto lido de lá; escrever em case_members com esse id
+      // atingiria a linha errada (ou nenhuma).
+      if (clienteId && !m.cliente_id && m.origem === "case_members") {
         await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id);
       }
       pessoas.push({
         tipo: "titular",
         nome: m.nome,
         ref: m.id,
-        tabela: "case_members",
+        tabela: m.origem,
         cliente: clienteId ?? null,
       });
     }

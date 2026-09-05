@@ -10,6 +10,7 @@ import {
   type ItemCriterio,
 } from "@/lib/case-service-consolidacao";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import {
   avaliarCondicao,
   avaliarCriterios,
@@ -82,11 +83,7 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
 
     const conferencia = await montarConferencia(supabase, { caseId: data.caseId }).then((r) => r.resultado).catch(() => null);
 
-    const { data: membros } = await supabase
-      .from("case_members")
-      .select("nome,papel_no_caso,dependente")
-      .eq("case_id", data.caseId)
-      .is("archived_at", null);
+    const membros = await pessoasDoCasoComFallbackNucleo(supabase, data.caseId);
 
     const { data: dependentes } = await supabase
       .from("case_dependents")
