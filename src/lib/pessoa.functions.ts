@@ -117,7 +117,8 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       contractParties,
       documentos,
       projecoes,
-      pesquisaPossivel,
+      perfisGenealogicos,
+      pesquisaCasos,
     ] = await Promise.all([
       supabase
         .from("nucleo_membros")
@@ -164,20 +165,59 @@ export const carregarPessoa = createServerFn({ method: "GET" })
         : { data: [] },
       /*
           Camada 3 (pesquisa genealógica) é isolamento deliberado — nunca vai
-          ao App Cliente. Aqui é só leitura Desk, por correspondência de nome
-          (não existe cliente_id em genealogical_person_profiles por desenho):
-          mostra a evidência, não funde nem vincula automaticamente.
+          ao App Cliente. Aqui é só leitura Desk.
+          05/09/2026 — achado real: esta consulta olhava só para
+          genealogical_person_profiles por correspondência de NOME, uma
+          tabela quase vazia (2 linhas de teste em toda a organização). A
+          ficha genealógica de verdade — a que pessoas-linhagens.$caseId usa,
+          com Ana, Adair, Alice e Felipe já cadastrados — vive em
+          research_people, ligada por research_cases.case_id, não por nome.
+          "Correspondência de nome" nunca tinha achado nada para a Ana porque
+          o registro real dela está em outra tabela e vinculado pelo caso,
+          não pelo texto do nome. Trocado para o vínculo real.
         */
-      (cliente.nome_social || cliente.nome || "").trim()
+      ids.length
         ? supabase
             .from("genealogical_person_profiles")
-            .select("id, nome_completo, status_verificacao")
+            .select("id, nome_completo, status_verificacao, case_id")
             .eq("organization_id", organizationId)
-            .ilike("nome_completo", `%${(cliente.nome_social || cliente.nome).trim()}%`)
+            .in("case_id", ids)
             .is("archived_at", null)
-            .limit(20)
+        : { data: [] },
+      ids.length
+        ? supabase
+            .from("research_cases")
+            .select("id, case_id, status")
+            .eq("organization_id", organizationId)
+            .in("case_id", ids)
+            .is("archived_at", null)
         : { data: [] },
     ]);
+
+    const idsPesquisaDoCaso = (pesquisaCasos.data ?? []).map((p: Linha) => p.id as string);
+    const { data: fichaGenealogica } = idsPesquisaDoCaso.length
+      ? await supabase
+          .from("research_people")
+          .select(
+            "id, canonical_name, preferred_display_name, papel_na_linhagem, geracao, identity_status, birth_date, birth_place, research_case_id",
+          )
+          .eq("organization_id", organizationId)
+          .in("research_case_id", idsPesquisaDoCaso)
+          .is("archived_at", null)
+      : { data: [] as Linha[] };
+
+    const nomeDaPessoa = (cliente.nome_social || cliente.nome || "").trim().toLowerCase();
+    const fichaDestaPessoa = ((fichaGenealogica ?? []) as Linha[]).filter((p) => {
+      const nome = String(p["canonical_name"] ?? p["preferred_display_name"] ?? "").toLowerCase();
+      return (
+        nome &&
+        nomeDaPessoa &&
+        (nome === nomeDaPessoa || nomeDaPessoa.includes(nome) || nome.includes(nomeDaPessoa))
+      );
+    });
+    const outrosDaMesmaPesquisa = ((fichaGenealogica ?? []) as Linha[]).filter(
+      (p) => !fichaDestaPessoa.some((f) => f["id"] === p["id"]),
+    );
 
     return {
       encontrada: true as const,
@@ -191,7 +231,9 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       contractParties: (contractParties.data ?? []) as Linha[],
       documentos: (documentos.data ?? []) as Linha[],
       projecoesPublicadas: (projecoes.data ?? []) as Linha[],
-      pesquisaPossivel: (pesquisaPossivel.data ?? []) as Linha[],
+      perfisGenealogicos: (perfisGenealogicos.data ?? []) as Linha[],
+      fichaGenealogica: fichaDestaPessoa,
+      fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
     };
   });
 

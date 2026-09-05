@@ -38,19 +38,82 @@ const FORCA_ROTULO: Record<EvidenciaDeElo["forca"], string> = {
   apenas_indicio: "Só um indício",
 };
 
-const CAMPOS_FORM: { chave: keyof CamposPessoa; rotulo: string; tipo?: "data" }[] = [
+const UFS = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+];
+
+/*
+  05/09/2026 — achado real reportado pela Proprietária: "sexo" e "estado_civil"
+  tinham input de texto livre no formulário, mas o banco só aceita um conjunto
+  fechado de valores (clientes_sexo_check, clientes_estado_civil_check,
+  clientes_endereco_uf_check). Digitar "Feminino" (maiúsculo) já rejeitava a
+  gravação com um erro de constraint técnico. Os três viram select com os
+  valores exatos que o banco aceita — impossível digitar um valor inválido.
+*/
+const CAMPOS_FORM: {
+  chave: keyof CamposPessoa;
+  rotulo: string;
+  tipo?: "data" | "select";
+  opcoes?: { valor: string; rotulo: string }[];
+}[] = [
   { chave: "nome", rotulo: "Nome completo" },
   { chave: "nome_social", rotulo: "Nome social (se diferente)" },
   { chave: "email", rotulo: "E-mail" },
   { chave: "telefone", rotulo: "Telefone" },
-  { chave: "sexo", rotulo: "Sexo" },
+  {
+    chave: "sexo",
+    rotulo: "Sexo",
+    tipo: "select",
+    opcoes: [
+      { valor: "feminino", rotulo: "Feminino" },
+      { valor: "masculino", rotulo: "Masculino" },
+      { valor: "nao_informado", rotulo: "Não informado" },
+    ],
+  },
   { chave: "nacionalidade", rotulo: "Nacionalidade" },
   { chave: "profissao", rotulo: "Profissão" },
   { chave: "data_nascimento", rotulo: "Data de nascimento", tipo: "data" },
   { chave: "cpf", rotulo: "CPF" },
   { chave: "rg_numero", rotulo: "RG — número" },
   { chave: "rg_orgao_uf", rotulo: "RG — órgão/UF" },
-  { chave: "estado_civil", rotulo: "Estado civil" },
+  {
+    chave: "estado_civil",
+    rotulo: "Estado civil",
+    tipo: "select",
+    opcoes: [
+      { valor: "solteiro", rotulo: "Solteiro(a)" },
+      { valor: "casado", rotulo: "Casado(a)" },
+      { valor: "divorciado", rotulo: "Divorciado(a)" },
+      { valor: "viuvo", rotulo: "Viúvo(a)" },
+      { valor: "uniao_estavel", rotulo: "União estável" },
+    ],
+  },
   { chave: "nome_conjuge", rotulo: "Nome do cônjuge" },
   { chave: "nome_pai", rotulo: "Nome do pai" },
   { chave: "nome_mae", rotulo: "Nome da mãe" },
@@ -60,7 +123,12 @@ const CAMPOS_FORM: { chave: keyof CamposPessoa; rotulo: string; tipo?: "data" }[
   { chave: "endereco_complemento", rotulo: "Endereço — complemento" },
   { chave: "endereco_bairro", rotulo: "Endereço — bairro" },
   { chave: "endereco_cidade", rotulo: "Endereço — cidade" },
-  { chave: "endereco_uf", rotulo: "Endereço — UF" },
+  {
+    chave: "endereco_uf",
+    rotulo: "Endereço — UF",
+    tipo: "select",
+    opcoes: UFS.map((uf) => ({ valor: uf, rotulo: uf })),
+  },
   { chave: "endereco_cep", rotulo: "Endereço — CEP" },
   { chave: "endereco_pais", rotulo: "Endereço — país" },
 ];
@@ -169,7 +237,9 @@ function Pessoa() {
     contractParties,
     documentos,
     projecoesPublicadas,
-    pesquisaPossivel,
+    perfisGenealogicos,
+    fichaGenealogica,
+    fichaGenealogicaEquipe,
   } = q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
@@ -262,17 +332,35 @@ function Pessoa() {
 
           {editando ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {CAMPOS_FORM.map((c) => (
-                <label key={c.chave} className="block text-xs text-navy/60">
-                  {c.rotulo}
-                  <input
-                    type={c.tipo === "data" ? "date" : "text"}
-                    className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
-                    value={form[c.chave] ?? ""}
-                    onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
-                  />
-                </label>
-              ))}
+              {CAMPOS_FORM.map((c) =>
+                c.tipo === "select" ? (
+                  <label key={c.chave} className="block text-xs text-navy/60">
+                    {c.rotulo}
+                    <select
+                      className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
+                      value={form[c.chave] ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
+                    >
+                      <option value="">—</option>
+                      {c.opcoes?.map((o) => (
+                        <option key={o.valor} value={o.valor}>
+                          {o.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label key={c.chave} className="block text-xs text-navy/60">
+                    {c.rotulo}
+                    <input
+                      type={c.tipo === "data" ? "date" : "text"}
+                      className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
+                      value={form[c.chave] ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
+                    />
+                  </label>
+                ),
+              )}
             </div>
           ) : (
             <>
@@ -515,23 +603,77 @@ function Pessoa() {
           )}
         </section>
 
-        {pesquisaPossivel.length > 0 ? (
+        {/*
+          05/09/2026 — achado real reportado pela Proprietária: esta seção só
+          olhava genealogical_person_profiles por correspondência de NOME
+          (uma tabela quase vazia — 2 linhas de teste em toda a organização).
+          A ficha genealógica de verdade — a mesma que /pessoas-linhagens usa,
+          com Ana, Adair, Alice e Felipe já cadastrados — vive em
+          research_people, ligada pelo caso. Corrigido para o vínculo real.
+        */}
+        {fichaGenealogica.length > 0 ||
+        fichaGenealogicaEquipe.length > 0 ||
+        perfisGenealogicos.length > 0 ? (
           <section className="rounded-xl border border-dashed border-navy/20 bg-cream/20 p-5">
-            <h2 className="font-serif text-lg text-navy">
-              Pesquisa genealógica interna (restrita ao Desk)
-            </h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-serif text-lg text-navy">
+                Pesquisa genealógica interna (restrita ao Desk)
+              </h2>
+              {casos[0] ? (
+                <Link
+                  to="/pessoas-linhagens/$caseId"
+                  params={{ caseId: casos[0].id }}
+                  className="text-xs text-navy underline underline-offset-4"
+                >
+                  Abrir ficha completa
+                </Link>
+              ) : null}
+            </div>
             <p className="mt-1 text-xs text-navy/55">
-              Correspondência por nome, não vínculo confirmado — esta camada nunca é exposta ao App
-              Cliente.
+              Vínculo pelo caso, não por nome — esta camada nunca é exposta ao App Cliente.
             </p>
-            <ul className="mt-3 space-y-1">
-              {pesquisaPossivel.map((p) => (
-                <li key={p.id} className="text-sm text-navy/80">
-                  {p.nome_completo}{" "}
-                  <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
-                </li>
-              ))}
-            </ul>
+
+            {fichaGenealogica.length > 0 ? (
+              <ul className="mt-3 space-y-1">
+                {fichaGenealogica.map((p) => (
+                  <li key={p.id} className="text-sm text-navy/80">
+                    {p.canonical_name || p.preferred_display_name}
+                    <span className="text-[11px] text-navy/50">
+                      {" "}
+                      · {p.identity_status}
+                      {p.papel_na_linhagem ? ` · ${p.papel_na_linhagem}` : ""}
+                      {p.geracao ? ` · geração ${p.geracao}` : ""}
+                      {p.birth_place ? ` · nascido(a) em ${p.birth_place}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-navy/60">
+                Esta pessoa não está cadastrada na ficha genealógica do caso ainda.
+              </p>
+            )}
+
+            {perfisGenealogicos.length > 0 ? (
+              <ul className="mt-3 space-y-1 border-t border-navy/10 pt-2">
+                {perfisGenealogicos.map((p) => (
+                  <li key={p.id} className="text-sm text-navy/80">
+                    Perfil 360°: {p.nome_completo}{" "}
+                    <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {fichaGenealogicaEquipe.length > 0 ? (
+              <p className="mt-3 text-xs text-navy/55">
+                Outros membros na mesma pesquisa:{" "}
+                {fichaGenealogicaEquipe
+                  .map((p) => p.canonical_name || p.preferred_display_name)
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            ) : null}
           </section>
         ) : null}
 
