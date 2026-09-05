@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -92,10 +93,8 @@ type Rascunho = {
 
 function NucleosPage() {
   const { podeEscrever: podeEscreverVinculo } = useSaas();
-  const autoridade = useAutoridade();
-  // Autoridade operacional: vínculo somente leitura deixa de travar campos e
-  // botões. Só falta de papel/organização bloqueia; o vínculo vira pendência.
-  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  // Autoridade operacional: vínculo somente leitura não trava campo nem botão.
+  // Vira pendência declarada e a decisão passa por <AcaoOperacional>.
   const pendenciaVinculo = podeEscreverVinculo
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
@@ -129,7 +128,10 @@ function NucleosPage() {
 
   const nucleos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return ((q.data ?? []) as Nucleo[]).filter((n) => {
+    const lista = q.data as Nucleo[] | undefined;
+    // `undefined` preservado de propósito: consulta não resolvida não é "nenhum núcleo".
+    if (!lista) return undefined;
+    return lista.filter((n) => {
       if (filtroStatus && (n.dossie_status ?? "nao_iniciado") !== filtroStatus) return false;
       if (!termo) return true;
       const alvo = [n.nome, n.contratante_nome, n.dossie_mae, n.caso?.codigo, n.caso?.titulo]
@@ -142,14 +144,16 @@ function NucleosPage() {
 
   const casosDuplicados = useMemo(() => {
     const contagem = new Map<string, number>();
-    for (const n of (q.data ?? []) as Nucleo[]) {
+    const lista = q.data as Nucleo[] | undefined;
+    if (!lista) return new Set<string>();
+    for (const n of lista) {
       if (n.caso) contagem.set(n.caso.id, (contagem.get(n.caso.id) ?? 0) + 1);
     }
     return new Set([...contagem.entries()].filter(([, c]) => c > 1).map(([id]) => id));
   }, [q.data]);
 
   const atual = useMemo(
-    () => ((q.data ?? []) as Nucleo[]).find((n) => n.id === selecionado) ?? null,
+    () => (q.data as Nucleo[] | undefined)?.find((n) => n.id === selecionado) ?? null,
     [q.data, selecionado],
   );
 
@@ -251,25 +255,23 @@ function NucleosPage() {
           </div>
         </Secao>
 
-        {q.isLoading ? <p className="text-sm text-navy/60">Carregando núcleos…</p> : null}
-        {q.error ? (
-          <p className="flex flex-wrap items-center gap-3 text-sm text-red-700">
-            {(q.error as Error).message}
-            <button
-              type="button"
-              onClick={() => void q.refetch()}
-              className="rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-            >
-              Tentar novamente
-            </button>
+        {pendenciaVinculo ? (
+          <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada: {pendenciaVinculo}
           </p>
         ) : null}
-        {!q.isLoading && !q.error && nucleos.length === 0 ? (
-          <p className="text-sm text-navy/60">Nenhum núcleo familiar encontrado com os filtros atuais.</p>
-        ) : null}
 
+        <EstadoDados<Nucleo>
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={nucleos}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os núcleos familiares"
+          vazio="Nenhum núcleo familiar encontrado com os filtros atuais. A consulta foi concluída com sucesso."
+        >
+          {(lista) => (
         <div className="grid gap-4 lg:grid-cols-2">
-          {nucleos.map((n: Nucleo) => {
+          {lista.map((n: Nucleo) => {
             const status = n.dossie_status ?? "nao_iniciado";
             return (
               <article key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
@@ -340,20 +342,33 @@ function NucleosPage() {
                   ) : (
                     <p className="mt-1">Nenhum item na fila ainda. Nada é criado no Drive automaticamente.</p>
                   )}
-                  {podeEscrever && n.caso ? (
-                    <button
-                      type="button"
-                      disabled={mFilaDrive.isPending}
-                      onClick={() => mFilaDrive.mutate({ nucleoId: n.id })}
-                      className="mt-2 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-navy hover:bg-gold/20 disabled:opacity-50"
-                    >
-                      {mFilaDrive.isPending ? "Avaliando…" : "Encaminhar para revisão"}
-                    </button>
-                  ) : !n.caso ? (
-                    <p className="mt-2 text-[11px] text-navy/45">
-                      Sem caso operacional vinculado — não é possível avaliar gates nem encaminhar à fila.
-                    </p>
-                  ) : null}
+                  {/*
+                   * A ausência de caso vinculado e o vínculo somente leitura
+                   * viram pendência declarada, não trava do controle. O gate
+                   * real continua sendo avaliado no servidor.
+                   */}
+                  <div className="mt-2">
+                    <AcaoOperacional
+                      rotulo="Encaminhar para revisão"
+                      capacidade="editar_rascunho"
+                      pendenciaGate={
+                        [
+                          n.caso
+                            ? null
+                            : "Núcleo sem caso operacional vinculado — os gates da fila do Drive não podem ser avaliados.",
+                          pendenciaVinculo,
+                        ]
+                          .filter(Boolean)
+                          .join("; ") || null
+                      }
+                      efeito="Coloca este núcleo na fila de revisão de provisionamento do Drive. Nenhuma pasta é criada e nada é aprovado aqui."
+                      size="sm"
+                      variant="outline"
+                      onConfirmar={async () => {
+                        await mFilaDrive.mutateAsync({ nucleoId: n.id });
+                      }}
+                    />
+                  </div>
                   {erroFila[n.id] ? <p className="mt-1.5 text-terracotta">{erroFila[n.id]}</p> : null}
                 </div>
 
@@ -382,17 +397,24 @@ function NucleosPage() {
                                 valor={rascunhoMembro.processo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, processo: v })}
                               />
-                              <Selecao
-                                label="Vincular a pessoa cadastrada"
-                                ajuda={
-                                  qClientes.isError
-                                    ? "Não foi possível carregar as pessoas cadastradas — a lista está incompleta por falha de consulta, não por ausência de registro."
-                                    : "Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
-                                }
-                                valor={rascunhoMembro.clienteId}
-                                opcoes={(qClientes.data ?? []).map((c) => ({ valor: c.id, rotulo: c.nome }))}
-                                onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
-                              />
+                              <EstadoDados
+                                carregando={qClientes.isLoading}
+                                erro={qClientes.error}
+                                dados={qClientes.data}
+                                aoTentarNovamente={() => void qClientes.refetch()}
+                                recurso="as pessoas cadastradas"
+                                vazio="Nenhuma pessoa cadastrada ainda — cadastre em Pessoas para poder vincular este requerente."
+                              >
+                                {(clientes) => (
+                                  <Selecao
+                                    label="Vincular a pessoa cadastrada"
+                                    ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                    valor={rascunhoMembro.clienteId}
+                                    opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                                    onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
+                                  />
+                                )}
+                              </EstadoDados>
                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
                               <div className="flex gap-2 pt-1">
                                 <button
@@ -449,7 +471,7 @@ function NucleosPage() {
                                     Sem vínculo com Pessoa Canônica — use "Editar" para vincular
                                   </span>
                                 )}
-                                {podeEscrever ? (
+                                {/* Abrir o formulário não grava nada: sempre disponível. */}
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -466,7 +488,6 @@ function NucleosPage() {
                                   >
                                     Editar
                                   </button>
-                                ) : null}
                               </div>
                             </div>
                           )}
@@ -528,6 +549,8 @@ function NucleosPage() {
             );
           })}
         </div>
+          )}
+        </EstadoDados>
 
         {atual && rascunho ? (
           <Secao
@@ -539,41 +562,35 @@ function NucleosPage() {
                 label="ID/nome do dossiê-mãe"
                 valor={rascunho.dossie_mae}
                 onChange={(v) => setRascunho({ ...rascunho, dossie_mae: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Ambiente autorizado"
                 valor={rascunho.ambiente}
                 opcoes={opcoes(NUCLEO_AMBIENTES)}
                 onChange={(v) => setRascunho({ ...rascunho, ambiente: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Nível de acesso"
                 valor={rascunho.nivel_acesso}
                 opcoes={opcoes(NUCLEO_NIVEIS_ACESSO)}
                 onChange={(v) => setRascunho({ ...rascunho, nivel_acesso: v })}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Link interno do dossiê"
                 valor={rascunho.link_interno}
                 onChange={(v) => setRascunho({ ...rascunho, link_interno: v })}
-                desabilitado={!podeEscrever}
                 ajuda="URL do ambiente autorizado. Arquivos não são replicados no Desk."
               />
               <Texto
                 label="Responsável nominal"
                 valor={rascunho.responsavel_nome}
                 onChange={(v) => setRascunho({ ...rascunho, responsavel_nome: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Situação do dossiê"
                 valor={rascunho.dossie_status}
                 opcoes={opcoes(NUCLEO_DOSSIE_STATUS)}
                 onChange={(v) => setRascunho({ ...rascunho, dossie_status: v })}
-                desabilitado={!podeEscrever}
               />
             </div>
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA, ROTULO_ORIGEM_PENDENCIA, type PendenciaPiloto } from "@/lib/piloto-ana";
 import { carregarPilotoAna, definirIdCanonicoPiloto, materializarPilotoAna } from "@/lib/piloto-ana.functions";
 
@@ -71,7 +72,10 @@ function PilotoAna() {
   });
 
   const caso = q.data?.caso ?? null;
-  const pendencias = (q.data?.pendencias ?? []) as PendenciaPiloto[];
+  // Sem fallback silencioso: `undefined` significa consulta não resolvida, e
+  // não "nenhuma pendência". A conta abaixo distingue os dois casos.
+  const pendencias = q.data?.pendencias as PendenciaPiloto[] | undefined;
+  const totalPendencias = pendencias?.length ?? 0;
 
   return (
     <SaasShell
@@ -118,9 +122,9 @@ function PilotoAna() {
                 <p className="text-[11px] uppercase tracking-wide text-navy/40">Status</p>
                 <p className="text-sm text-navy">Formalização em preparação</p>
                 <p className="mt-1 text-xs text-navy/60">
-                  {pendencias.length === 0
+                  {totalPendencias === 0
                     ? "Nenhuma pendência real aberta encontrada no banco para este caso."
-                    : `${pendencias.length} pendência(s) real(is) aberta(s) — ver "Dados técnicos e validações" abaixo.`}
+                    : `${totalPendencias} pendência(s) real(is) aberta(s) — ver "Dados técnicos e validações" abaixo.`}
                 </p>
               </div>
             ) : null}
@@ -233,7 +237,8 @@ function PilotoAna() {
               </tbody>
             </table>
             <p className="mt-3 text-xs text-navy/60">
-              Registrado no Desk: {(q.data?.membros ?? []).length} membro(s) em {(q.data?.nucleos ?? []).length} núcleo(s).
+              Registrado no Desk: {q.data?.membros?.length ?? 0} membro(s) em{" "}
+              {q.data?.nucleos?.length ?? 0} núcleo(s).
             </p>
             {FORA_DE_ESCOPO_PILOTO.map((f) => (
               <p key={f.nome} className="mt-2 rounded-lg bg-navy/5 px-3 py-2 text-xs text-navy/70">
@@ -243,23 +248,31 @@ function PilotoAna() {
           </Bloco>
 
           <Bloco titulo="Eventos de conversão do caso">
-            {(q.data?.eventos ?? []).length === 0 ? (
-              <EstadoVazio mensagem="Nenhum evento registrado ainda." />
-            ) : (
-              <ul className="space-y-1 text-xs">
-                {(q.data?.eventos ?? []).map((e) => (
-                  <li key={e.id} className="rounded border border-navy/10 px-3 py-2">
-                    {new Date(e.occurred_at).toLocaleString("pt-BR")} — {e.event_type} {e.observacao ? `· ${e.observacao}` : ""}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.eventos}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="os eventos de conversão do caso"
+              vazio="Nenhum evento registrado ainda."
+            >
+              {(eventos) => (
+                <ul className="space-y-1 text-xs">
+                  {eventos.map((e) => (
+                    <li key={e.id} className="rounded border border-navy/10 px-3 py-2">
+                      {new Date(e.occurred_at).toLocaleString("pt-BR")} — {e.event_type}{" "}
+                      {e.observacao ? `· ${e.observacao}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </EstadoDados>
           </Bloco>
 
-          {pendencias.length > 0 ? (
+          {pendencias && pendencias.length > 0 ? (
             <details className="rounded-xl border border-navy/10 bg-white p-5">
               <summary className="cursor-pointer font-serif text-base text-navy">
-                Dados técnicos e validações ({pendencias.length} pendência(s) real(is) aberta(s))
+                Dados técnicos e validações ({totalPendencias} pendência(s) real(is) aberta(s))
               </summary>
               <p className="mt-2 text-[11px] text-navy/50">
                 Consultado direto do banco para este caso — nenhum item fixo. Leitura derivada: não altera dado, não

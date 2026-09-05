@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -26,9 +27,8 @@ export const Route = createFileRoute("/_authenticated/matriz-juridica")({
 
 function MatrizPage() {
   const { podeEscrever: podeEscreverVinculo } = useSaas();
-  const autoridade = useAutoridade();
-  // Autoridade operacional: vínculo somente leitura vira pendência declarada.
-  const podeEscrever = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca campo ou botão desabilitado. A decisão fica em <AcaoOperacional>.
   const pendenciaVinculo = podeEscreverVinculo
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — o registro de decisão segue disponível por decisão sua.";
@@ -49,8 +49,8 @@ function MatrizPage() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["matriz-juridica"] }),
   });
 
-  const linhas = (q.data ?? []) as LinhaMatriz[];
-  const pendentes = temasBloqueantesPendentes(linhas);
+  const linhas = q.data as LinhaMatriz[] | undefined;
+  const pendentes = linhas ? temasBloqueantesPendentes(linhas) : [];
 
   return (
     <SaasShell
@@ -68,32 +68,30 @@ function MatrizPage() {
           Pendência registrada: {pendenciaVinculo}
         </p>
       ) : null}
-      {q.isError ? (
-        <p role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
-          Não foi possível carregar a matriz jurídica. A lista abaixo está vazia por falha de consulta, não por ausência de tema.
-          <button
-            type="button"
-            onClick={() => void q.refetch()}
-            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-          >
-            Tentar novamente
-          </button>
-        </p>
-      ) : null}
+      <div className="mb-4">
+        <AcaoOperacional
+          rotulo="Consolidar duplicatas (arquivamento auditado, sem exclusão)"
+          capacidade="resolver_divergencia"
+          pendenciaGate={pendenciaVinculo}
+          efeito="Arquiva temas duplicados da matriz com registro auditado. Nenhum tema é excluído."
+          variant="outline"
+          onConfirmar={async () => {
+            await mutConsolidar.mutateAsync();
+          }}
+        />
+      </div>
 
-      {podeEscrever ? (
-        <button
-          type="button"
-          className="mb-4 rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
-          onClick={() => mutConsolidar.mutate()}
-          disabled={mutConsolidar.isPending}
-        >
-          Consolidar duplicatas (arquivamento auditado, sem exclusão)
-        </button>
-      ) : null}
-
+      <EstadoDados<LinhaMatriz>
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={linhas}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="a matriz jurídica"
+        vazio="Nenhum tema jurídico cadastrado ainda."
+      >
+        {(itens) => (
       <div className="space-y-3">
-        {linhas.map((l) => {
+        {itens.map((l) => {
           const e = edicao[l.tema_codigo] ?? {};
           const v = (k: keyof LinhaMatriz | string) => e[k] ?? String((l as Record<string, unknown>)[k] ?? "");
           const set = (k: string) => (val: string) => setEdicao((s) => ({ ...s, [l.tema_codigo]: { ...s[l.tema_codigo], [k]: val } }));
@@ -109,40 +107,38 @@ function MatrizPage() {
                   valor={v("status")}
                   opcoes={STATUS_TEMA.map((s) => ({ valor: s.valor, rotulo: s.rotulo }))}
                   onChange={set("status")}
-                  desabilitado={!podeEscrever}
                 />
                 <Texto
                   label="Versão jurídica aplicável"
                   valor={v("versao_juridica_aplicavel")}
                   onChange={set("versao_juridica_aplicavel")}
                   ajuda="Sem versão aplicável, nenhuma cláusula pode ser gerada para este tema."
-                  desabilitado={!podeEscrever}
                 />
                 <Texto
                   label="Responsável pela revisão"
                   valor={v("responsavel_revisao")}
                   onChange={set("responsavel_revisao")}
-                  desabilitado={!podeEscrever}
                 />
                 <Texto
                   label="Referência da versão"
                   valor={v("referencia_versao")}
                   onChange={set("referencia_versao")}
-                  desabilitado={!podeEscrever}
                 />
                 <div className="md:col-span-2">
-                  <Texto label="Decisão (sem redação de cláusula)" area valor={v("decisao")} onChange={set("decisao")} desabilitado={!podeEscrever} />
+                  <Texto label="Decisão (sem redação de cláusula)" area valor={v("decisao")} onChange={set("decisao")} />
                 </div>
                 <div className="md:col-span-2">
-                  <Texto label="Justificativa interna" area valor={v("justificativa")} onChange={set("justificativa")} desabilitado={!podeEscrever} />
+                  <Texto label="Justificativa interna" area valor={v("justificativa")} onChange={set("justificativa")} />
                 </div>
               </div>
-              {podeEscrever ? (
-                <button
-                  type="button"
-                  className="mt-3 rounded-lg bg-navy px-4 py-2 text-sm text-cream"
-                  onClick={() =>
-                    mut.mutate({
+              <div className="mt-3">
+                <AcaoOperacional
+                  rotulo="Registrar decisão"
+                  capacidade="resolver_divergencia"
+                  pendenciaGate={pendenciaVinculo}
+                  efeito={`Grava a decisão interna do tema “${l.tema}”. Não gera nem publica cláusula.`}
+                  onConfirmar={async () => {
+                    await mut.mutateAsync({
                       tema_codigo: l.tema_codigo,
                       status: v("status"),
                       decisao: v("decisao") || null,
@@ -150,16 +146,16 @@ function MatrizPage() {
                       responsavel_revisao: v("responsavel_revisao") || null,
                       versao_juridica_aplicavel: v("versao_juridica_aplicavel") || null,
                       referencia_versao: v("referencia_versao") || null,
-                    })
-                  }
-                >
-                  Registrar decisão
-                </button>
-              ) : null}
+                    });
+                  }}
+                />
+              </div>
             </Secao>
           );
         })}
       </div>
+        )}
+      </EstadoDados>
     </SaasShell>
   );
 }
