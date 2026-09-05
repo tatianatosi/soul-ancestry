@@ -42,7 +42,11 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     const { data: cliente } = await supabase
       .from("clientes")
       .select(
-        "id, nome, nome_social, email, telefone, documento, origem, pais_interesse, status_comercial, created_at",
+        "id, nome, nome_social, email, telefone, documento, origem, pais_interesse, status_comercial, created_at," +
+          " sexo, nacionalidade, profissao, cpf, rg_numero, rg_orgao_uf," +
+          " endereco_logradouro, endereco_numero, endereco_complemento, endereco_bairro, endereco_cidade, endereco_uf, endereco_cep, endereco_pais," +
+          " estado_civil, nome_conjuge, procurador_cliente_id, procurador_escopo," +
+          " data_nascimento, nome_pai, nome_mae, cidade_nascimento",
       )
       .eq("id", data.clienteId)
       .eq("organization_id", organizationId)

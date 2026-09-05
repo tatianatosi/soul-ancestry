@@ -116,6 +116,61 @@ function Pessoa() {
             <Campo rotulo="Como entrou" valor={cliente.origem} />
             <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
           </dl>
+
+          {/*
+            Pessoa Canônica (dados civis) — os campos já existem no schema
+            real (sexo, nacionalidade, CPF, RG, endereço estruturado, estado
+            civil, filiação, procurador) desde uma rodada anterior, mas o
+            Perfil 360 nunca os lia nem exibia. Corrigido aqui: mesma fonte,
+            sem tabela nova, sem campo inventado — o que estiver nulo aparece
+            como "—", não como valor fabricado.
+          */}
+          <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-navy/50">Dados civis</h3>
+          <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <Campo rotulo="Sexo" valor={cliente.sexo} />
+            <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
+            <Campo rotulo="Profissão" valor={cliente.profissao} />
+            <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
+            <Campo rotulo="CPF" valor={cliente.cpf} />
+            <Campo rotulo="RG" valor={cliente.rg_numero ? `${cliente.rg_numero}${cliente.rg_orgao_uf ? ` (${cliente.rg_orgao_uf})` : ""}` : null} />
+            <Campo rotulo="Estado civil" valor={cliente.estado_civil} />
+            <Campo rotulo="Cônjuge" valor={cliente.nome_conjuge} />
+            <Campo rotulo="Nome do pai" valor={cliente.nome_pai} />
+            <Campo rotulo="Nome da mãe" valor={cliente.nome_mae} />
+            <Campo rotulo="Cidade de nascimento" valor={cliente.cidade_nascimento} />
+          </dl>
+
+          {cliente.endereco_logradouro || cliente.endereco_cidade ? (
+            <>
+              <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-navy/50">Endereço</h3>
+              <p className="mt-2 text-sm text-navy/80">
+                {[
+                  [cliente.endereco_logradouro, cliente.endereco_numero].filter(Boolean).join(", "),
+                  cliente.endereco_complemento,
+                  cliente.endereco_bairro,
+                  [cliente.endereco_cidade, cliente.endereco_uf].filter(Boolean).join(" - "),
+                  cliente.endereco_cep,
+                  cliente.endereco_pais,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "—"}
+              </p>
+            </>
+          ) : null}
+
+          {cliente.procurador_cliente_id ? (
+            <p className="mt-3 text-xs text-navy/60">
+              Representada por procurador(a) —{" "}
+              <Link
+                to="/pessoas/$clienteId"
+                params={{ clienteId: cliente.procurador_cliente_id }}
+                className="text-navy underline underline-offset-4"
+              >
+                ver perfil
+              </Link>
+              {cliente.procurador_escopo ? ` · ${cliente.procurador_escopo}` : ""}
+            </p>
+          ) : null}
         </section>
 
         <section className="rounded-xl border border-navy/10 bg-white p-5">
