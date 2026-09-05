@@ -80,7 +80,9 @@ function ContratoDetalhe() {
       setAviso(
         r.falhaRenderizacao
           ? `Versão ${r.versao} criada, mas a renderização falhou e foi registrada. A versão não está pronta.`
-          : `Versão ${r.versao} gerada como rascunho interno.`,
+          : r.pendenciasConciliacao?.length
+            ? `Versão ${r.versao} gerada como rascunho interno. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
+            : `Versão ${r.versao} gerada como rascunho interno.`,
       ),
     onError: (e: Error) => setAviso(e.message),
   });
