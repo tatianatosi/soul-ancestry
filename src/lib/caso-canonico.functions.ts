@@ -21,7 +21,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases] =
+    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
         eq("citizenship_tracks").is("archived_at", null).order("pais"),
@@ -35,6 +35,8 @@ export const carregarCanonico = createServerFn({ method: "GET" })
         eq("client_deliverables").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
         // Aliases históricos: visíveis apenas no detalhe interno, nunca como chave.
         eq("case_aliases").eq("case_id", data.caseId).order("created_at"),
+        // CRM Vivo — próxima ação prioritária única (PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md, seção 3.4).
+        supabase.rpc("proxima_acao_prioritaria", { _case: data.caseId }),
       ]);
 
 
@@ -56,6 +58,13 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       membrosNucleo: ((membrosNucleo as any).data ?? []) as Linha[],
       entregas: (entregas.data ?? []) as Linha[],
       aliases: (aliases.data ?? []) as Linha[],
+      proximaAcaoPrioritaria: (proximaAcao.data?.[0] ?? null) as {
+        nivel: number;
+        motivo: string;
+        origem_tabela: string | null;
+        origem_id: string | null;
+        prazo: string | null;
+      } | null,
     };
   });
 

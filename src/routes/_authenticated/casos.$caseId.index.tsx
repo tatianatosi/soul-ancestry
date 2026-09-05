@@ -471,6 +471,16 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+      {qc2.data?.proximaAcaoPrioritaria ? (
+        <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-3">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+            Próxima ação prioritária
+          </p>
+          <p className="mt-0.5 text-sm font-medium text-navy">
+            {qc2.data.proximaAcaoPrioritaria.motivo}
+          </p>
+        </div>
+      ) : null}
       <VinculoNucleo
         caseId={String(caso["id"])}
         codigoCaso={(caso["codigo"] as string | null) ?? null}
