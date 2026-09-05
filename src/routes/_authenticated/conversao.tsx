@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   ESCADA,
@@ -123,7 +123,10 @@ function Conversao() {
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando eventos…" />
       ) : q.isError ? (
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."} />
+        <EstadoVazio
+          mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."}
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : (
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-white px-4 py-3 text-xs text-navy/70">

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
 import { carregarMapaEtiquetas } from "@/lib/caso-canonico.functions";
 
 export const Route = createFileRoute("/_authenticated/etiquetas")({
@@ -54,7 +54,10 @@ function Etiquetas() {
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando taxonomia…" />
       ) : q.isError ? (
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."} />
+        <EstadoVazio
+          mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."}
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : (
         <>
           <input

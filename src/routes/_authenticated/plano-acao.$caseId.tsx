@@ -178,7 +178,19 @@ function PlanoAcao() {
   const nomeInstituicao = (id?: string | null) => instituicoes.find((x) => x.id === id)?.name as string | undefined;
 
   if (q.isLoading) return <p className="p-6 text-sm text-navy/50">Carregando plano de ação…</p>;
-  if (q.isError) return <p className="p-6 text-sm text-terracotta">{(q.error as Error).message}</p>;
+  if (q.isError)
+    return (
+      <p className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
+        {(q.error as Error).message}
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
 
   const aguardandoAprovacao = estimativas.filter((e) => e.client_approval_status === "aguardando_aprovacao");
 

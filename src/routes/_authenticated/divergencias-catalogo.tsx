@@ -136,7 +136,16 @@ function DivergenciasCatalogoPage() {
           {q.isLoading ? (
             <p className="text-sm text-navy/60">Carregando divergências…</p>
           ) : q.isError ? (
-            <p className="text-sm text-terracotta">Não foi possível carregar as divergências.</p>
+            <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+              Não foi possível carregar as divergências.
+              <button
+                type="button"
+                onClick={() => void q.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
           ) : linhas.length === 0 ? (
             <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
 

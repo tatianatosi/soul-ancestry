@@ -157,7 +157,18 @@ export function FluxoComercialCanonico() {
   return (
     <div className="space-y-4">
       {msg ? <p className="rounded-lg border border-gold/40 bg-gold/10 px-4 py-2 text-sm text-navy">{msg}</p> : null}
-      {q.isError ? <p className="rounded-lg border border-terracotta/40 bg-terracotta/5 px-4 py-2 text-sm text-terracotta">Não foi possível carregar o fluxo comercial.</p> : null}
+      {q.isError ? (
+        <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/5 px-4 py-2 text-sm text-terracotta">
+          Não foi possível carregar o fluxo comercial.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <Secao titulo="Saúde comercial" descricao="Disciplina de responsável, próxima ação e prazo.">
         <div className="grid gap-3 sm:grid-cols-3">
