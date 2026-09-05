@@ -123,17 +123,24 @@ async function orgDoUsuario(supabase: any, userId: string) {
   return data.organization_id as string;
 }
 
-/** Lista de leads do Desk com validação espelhada e resultado derivado. */
+/**
+ * Lista de leads do Desk com validação espelhada e resultado derivado.
+ *
+ * Lead arquivado nunca aparece na listagem padrão — a mesma trava de "sem
+ * exclusão física" que o resto do app usa (nucleos_familiares, crm_casos):
+ * arquivar não é apagar, mas também não deve continuar poluindo a fila de
+ * trabalho ativa. `incluirArquivados` existe só para quem precisa consultar
+ * o que já foi arquivado.
+ */
 export const listarLeadsDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: { incluirArquivados?: boolean }) => ({ incluirArquivados: d?.incluirArquivados === true }))
+  .handler(async ({ data: input, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1000);
+    let query = supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(1000);
+    if (!input.incluirArquivados) query = query.is("archived_at", null);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     const leads = (data ?? []) as LeadDesk[];
     return leads.map((l) => ({ ...l, pendencias: validarLead(l) }));

@@ -61,6 +61,7 @@ import {
 import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 function MultiSelecao({
   label,
@@ -119,7 +120,12 @@ function LeadsPage() {
   const arquivar = useServerFn(arquivarLeadDesk);
   const qc = useQueryClient();
 
-  const q = useQuery({ queryKey: ["leads-desk"], queryFn: () => carregar(), retry: false });
+  const [mostrarArquivados, setMostrarArquivados] = useState(false);
+  const q = useQuery({
+    queryKey: ["leads-desk", mostrarArquivados],
+    queryFn: () => carregar({ data: { incluirArquivados: mostrarArquivados } }),
+    retry: false,
+  });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [filtroEixo, setFiltroEixo] = useState("");
@@ -224,6 +230,10 @@ function LeadsPage() {
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
               <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
               <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
+              <label className="flex items-center gap-2 text-sm text-navy/70">
+                <input type="checkbox" checked={mostrarArquivados} onChange={(e) => setMostrarArquivados(e.target.checked)} />
+                Mostrar arquivados
+              </label>
               {podeEscrever ? (
                 <button
                   type="button"
@@ -429,7 +439,12 @@ function LeadsPage() {
               <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} desabilitado={!podeEscrever} />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
               <Texto label="E-mail" valor={campo("email")} onChange={set("email")} desabilitado={!podeEscrever} />
-              <Texto label="Telefone" valor={campo("telefone")} onChange={set("telefone")} desabilitado={!podeEscrever} />
+              <Texto
+                label="Telefone"
+                valor={campo("telefone")}
+                onChange={(x) => set("telefone")(formatarTelefone(x))}
+                desabilitado={!podeEscrever}
+              />
               <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} desabilitado={!podeEscrever} />
               <Selecao
                 label="Área responsável"
