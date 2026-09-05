@@ -6,6 +6,53 @@ pr: "#85 (draft, mesma branch)"
 status: execução parcial e honesta — ver seção 5 para o que não foi possível fazer e por quê
 ---
 
+## 10. Execução em lote, rodada de 05/09 ~10h UTC — bug real corrigido no App Cliente
+
+Rotas/abas/ações cobertas nesta rodada: 6/6 (as 6 encontradas com o bug abaixo)
+Bloqueios internos removidos: 0
+Convertidos em rascunho/aviso: 0
+Overrides ADMIN criados ou corrigidos: 0 (nenhum nesta rodada — os de comercial/SKU já estão na seção 3)
+Bugs P0 corrigidos e retestados: 1 causa-raiz, em 6 pontos de código
+Bloqueios duros mantidos: todos (RLS, `portal_caso_permitido`, `liberado_cliente`, consentimento — nenhum tocado)
+Migrations pendentes que realmente bloqueiam fluxos: 0 identificadas nesta rodada
+ADMIN ainda bloqueada: não avaliado nesta rodada (rodada foi 100% CLIENTE — ver seção 11 para o que falta)
+CLIENTE com acesso indevido ou bloqueado indevidamente: 1 bloqueio indevido corrigido (abaixo); 0 identificados como pendentes nesta rodada
+Preview: https://soul-ancestry-git-claude-ancestral-c-e43197-tati-6134s-projects.vercel.app
+Branch / SHA / PR: claude/ancestral-club-desk-intelligence-0gsoeg / `0ad82af` / PR #85 (draft)
+
+### O achado
+
+Não foi auditoria de regra — foi execução de código até a causa raiz. `filtrarParaCliente` (o filtro
+de "só dado real chega ao cliente") depende das colunas `classificacao_dado`/`data_origin`/
+`origem_confirmada`. Essas colunas só existem em 6 tabelas: `crm_casos`, `leads`, `clientes`,
+`tarefas`, `case_alerts`, `communication_queue`. As tabelas que o App Cliente realmente lê para
+mostrar caso, documento e fatura — `portal_casos`, `documents`, `invoices` — **nunca tiveram essa
+coluna**. Resultado: todo caso, documento e fatura real, de qualquer cliente real, sempre caía em
+"não classificado" e era escondido — não por regra de negócio, por bug de wiring.
+
+| # | Área | Rota/função | Bloqueio inicial | Camada causadora | Regra dura ou interna | Solução aplicada | Arquivo | Teste automatizado |
+|---|---|---|---|---|---|---|---|---|
+| 1 | App Cliente | `meusCasos` (Home) | Lista de casos sempre vazia para cliente real | Bug de wiring (filtro aplicado a coluna inexistente) | Nem uma coisa nem outra — bug | Troca para `semFixtures` (usa código/título, que a view tem) | `portal-cliente.functions.ts` | `portal-cliente-fixtures.test.ts` |
+| 2 | App Cliente | `meuCaso` (detalhe do caso) | Tela de caso retornava "não encontrado" para todo caso real | Bug de wiring | Bug | Troca `bloqueadoParaCliente` por `ehFixtureLinha` | idem | idem |
+| 3 | App Cliente | `meuCaso` → entregas/envios | Documentos liberados/enviados nunca apareciam | Bug de wiring (coluna `is_demo` nem era selecionada) | Bug | Seleciona `is_demo`, troca para `semFixtures` | idem | idem |
+| 4 | App Cliente | `meuCaso` → faturas | Faturas nunca apareciam | Bug de wiring (coluna `dados_teste` nem era selecionada) | Bug | Seleciona `dados_teste`, troca para `semFixtures` | idem | idem |
+| 5 | App Cliente | Documentos (`minhasEntregas`) | Mesma tela de fora do detalhe do caso — mesma ausência | Bug de wiring | Bug | Mesma correção | idem | idem |
+| 6 | App Cliente | Faturas (`minhasFaturas`) e Jornada (`escopoDoPortal`, Fase 1) | Faturas globais vazias; Fase 1 da Jornada sempre "em preparação" mesmo com entrega liberada — a consulta ainda selecionava uma coluna (`is_demo` de `portal_casos`) que a view nem tem | Bug de wiring | Bug | Seleciona colunas reais, troca para `semFixtures` | `portal-cliente.functions.ts`, `portal-jornada.functions.ts` | idem |
+
+Validado: `tsc --noEmit` limpo, 1613/1613 testes (167 arquivos), `vite build` concluído. Nenhuma RLS,
+`portal_caso_permitido`, condição `liberado_cliente` ou regra de consentimento foi tocada — a
+autorização de acesso é a mesma; só parou de esconder dado real por engano.
+
+## 11. O que ainda não foi coberto do pedido de execução em lote (sem usar a palavra "pronto")
+
+O pedido mais recente pede cobertura de 9 módulos (Dashboard/Painel, CRM, Comercial, Onboarding/
+Ativação/Documentos, Núcleos/Pessoa 360, Pesquisa, App Cliente, Marketing, Administração), rota por
+rota, aba por aba, com o mesmo tratamento (rascunho/aviso/override/correção de wiring). Esta rodada
+cobriu uma fatia real e verificada do módulo 7 (App Cliente). Não cobri, ainda, os módulos 1–6, 8 e 9
+neste nível de detalhe linha-a-rota. Continuando agora, sem abrir novo documento de auditoria, pela
+mesma técnica desta rodada (abrir o código real, achar onde a tela e o banco divergem, corrigir,
+testar, retestar) — não parando para listar bloqueios para depois.
+
 # Desbloqueio operacional ADMIN — todas as áreas (CA-DESBLOQUEIO-OPERACIONAL-002)
 
 ## 1. O que esta missão pedia, e como foi interpretada
