@@ -274,6 +274,29 @@ export const atualizarCheckAtivacao = createServerFn({ method: "POST" })
         };
     }
 
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária: marcar este
+     * requisito "isento" aqui NUNCA satisfazia a trava real de ativação
+     * (guard_consentimento_ativacao → fn_guard_consentimento_ativacao,
+     * migration 20260816202602), porque essa trava lê exclusivamente
+     * consent_records/consent_exceptions — duas tabelas que esta função
+     * nunca escrevia. O caso passava "Requisitos completos" na tela e
+     * mesmo assim era recusado ao tentar ativar de verdade, com a mesma
+     * mensagem de erro do banco, sem nenhuma ação disponível para
+     * resolver. Agora a isenção deste requisito específico grava a
+     * exceção formal real que o banco verifica.
+     */
+    if (data.status === "isento" && check.check_key === "consentimento_registrado") {
+      const { error: erroExcecao } = await supabase.from("consent_exceptions").insert({
+        organization_id: organizationId,
+        case_id: check.case_id,
+        motivo: isencaoMotivo,
+        valido_ate: data.isencaoExpiraEm || null,
+        aprovado_por: context.userId,
+      });
+      if (erroExcecao) return { ok: false, erro: `Isenção registrada, mas a exceção formal falhou: ${erroExcecao.message}` };
+    }
+
     await registrar(
       supabase,
       organizationId,

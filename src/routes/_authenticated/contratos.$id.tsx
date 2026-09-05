@@ -33,6 +33,7 @@ import {
   tentarEtapaExterna,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
+import { listarEquipe } from "@/lib/equipe.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({
@@ -270,7 +271,16 @@ function Campo({
 function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
   const c = dados.contrato;
   const atualizar = useServerFn(atualizarContrato);
+  const carregarEquipe = useServerFn(listarEquipe);
   const [erro, setErro] = useState<string | null>(null);
+  const equipe = useQuery({ queryKey: ["equipe-revisao"], queryFn: () => carregarEquipe() });
+  const opcoesRevisor = [
+    { valor: "", rotulo: "Não definido" },
+    ...((equipe.data?.membros ?? []) as any[]).map((m) => ({
+      valor: m.id as string,
+      rotulo: (m.full_name as string) || (m.email as string),
+    })),
+  ];
   const salvar = async (patch: Record<string, unknown>) => {
     try {
       await atualizar({ data: { id: c.id, patch } });
@@ -284,7 +294,13 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
     <div className="grid gap-4 sm:grid-cols-2">
       {erro ? <p className="text-sm text-terracotta sm:col-span-2">{erro}</p> : null}
       <Campo rotulo="Título" valor={c.title} onSalvar={(v) => salvar({ title: v })} />
-      <Campo rotulo="Responsável pela revisão (usuário)" valor={c.review_owner_user_id} onSalvar={(v) => salvar({ review_owner_user_id: v || null })} />
+      <Campo
+        rotulo="Responsável pela revisão (usuário)"
+        tipo="select"
+        valor={c.review_owner_user_id ?? ""}
+        opcoes={opcoesRevisor}
+        onSalvar={(v) => salvar({ review_owner_user_id: v || null })}
+      />
       <Campo rotulo="Finalidade" tipo="textarea" valor={c.purpose_summary} onSalvar={(v) => salvar({ purpose_summary: v })} />
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
