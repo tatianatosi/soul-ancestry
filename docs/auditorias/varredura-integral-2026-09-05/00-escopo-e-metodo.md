@@ -1,0 +1,30 @@
+# 00 — Escopo e método desta rodada
+
+Este pacote atende parcialmente à ordem "Varredura integral aba por aba, documento por documento e artefato por artefato". Por honestidade com o critério da própria ordem (seção 0: "Não responda com 'feito'... sem a matriz de evidência exigida"), este documento separa **o que tem evidência real de verificação** do **que é só inventário mecânico** do **que não foi feito**.
+
+## O que tem evidência real (dado lido ao vivo, ou testado, ou corrigido e implantado)
+
+1. **Governança de autoria PR #87/#88** (`09-autoria-e-responsabilidade.md`) — commits reais identificados por e-mail verificado (`tati@pluggedresearch.com`), datas e SHAs confirmados via GitHub API e Vercel.
+2. **Fichas dos contratos 2026-CB-0001 (3 registros), 0002, 0004** (`fichas-contratos-e2.md`) — leitura direta e ao vivo do Supabase de produção: `contracts`, `contract_parties`, `contract_case_parameters`. Achado novo: existem **3** registros com número 2026-CB-0001, não 2 — 2 são fixtures `demo: true`, 1 é o contrato real da Ana. Partes sem documento identificadas nominalmente (Alice, Felipe).
+3. **Taxonomia de etiquetas do caso da Ana** (13 etiquetas ativas checadas uma a uma contra dado real: 3 removidas por contradizerem dado já corrigido — núcleo familiar, serviço do caso, representação de menor —, 9 confirmadas corretas, 1 sinalizada como ambígua — `ESCOPO_PENDENTE` vs. valor já confirmado em `case_services`). Não registrado em arquivo separado desta pasta — já comunicado diretamente à proprietária durante a sessão; ação de banco executada com soft-remove (`removed_at`/`removed_by`), sem exclusão física.
+4. **Correção aplicada e publicada em produção nesta rodada**: tabela de Faturas/Pagamentos (`financeiro.tsx`) usava só `overflow-x-auto` com `min-w-[760px]` — exatamente o padrão que a ordem proíbe (seção 5, "não pode ser apenas overflow-x-auto"). Corrigido para lista de cards abaixo de 640px, mantendo a tabela completa a partir de 640px. `tsc` limpo, suíte de testes própria do repositório (excluindo diretórios de worktree de outras sessões, que já falhavam antes desta mudança e não fazem parte da árvore de trabalho atual) sem novas falhas. Commit `01b6efc`, direto em `main`, deploy `dpl_3eHYCN8oQSAGUvrntYyMzU67diuc` READY em produção.
+5. **Confirmado que a correção anterior do campo "Contratada — qualificação completa"** (commits `48691bb`/`f268cd8`, de mais cedo nesta mesma sessão) está com o valor completo e `status = validado` no banco agora — um print enviado pela proprietária mostrando só o nome e "A confirmar" é de antes dessa correção.
+6. **Confirmado que os rótulos de gate financeiro/pesquisa** (`pending_contract`, `blocked_by_contract`) não aparecem mais crus em nenhum lugar do código de UI — só nas duas listas de definição de enum (`rotulos.tsx`, `contratos.$id.tsx`), que é o lugar certo para eles existirem. Fix já em produção via commit `54b6652`.
+7. **Confirmado que PR #90** ("Servidor para de recusar a decisao da proprietaria", commits reais da proprietária) está mesclada em `main` e é o commit mais recente em produção agora (`4ee6f6d`).
+
+## O que é inventário mecânico (localização/estrutura, não verificação de conteúdo)
+
+- `05-matriz-pr-000-a-090.md` + `dados/inventario-prs-000-a-090.json` — todas as 90 PRs existem (#0 não existe, numeração começa em #1); estado, base/head, autoria de conta, datas e ancestralidade em relação ao SHA de produção atual foram obtidos via API/git. Campos que exigiriam ler o diff de cada uma das 90 PRs individualmente (arquivos por domínio, teste associado, regressão) **não foram coletados** — ver coluna correspondente marcada `nao_coletado_nesta_rodada`.
+- `01-mapa-de-rotas-e-abas.csv` — as 111 rotas do código foram listadas e uma área foi *estimada* por convenção de nome de arquivo. Nenhuma delas foi **aberta e testada ao vivo** nesta rodada (ver bloqueio abaixo).
+- `03-matriz-documento-por-documento.md` — os 332 documentos em `docs/` foram listados e uma classificação foi *estimada* por convenção de caminho (ex.: `evolucao/recuperados/` → arquivamento). **Nenhum dos 332 foi lido linha a linha e confrontado contra o código/banco** nesta rodada — isso é um trabalho de múltiplas sessões, não de uma rodada.
+
+## O que não foi feito, e por quê
+
+1. **Teste ao vivo aba por aba, em 375px/390px/desktop, na sessão autenticada, com screenshot reproduzível** (Fase B completa, seção 11 "mobile validado" para todas as rotas) — não executado. Motivo concreto: esta sessão não tem a sua sessão autenticada nem credenciais de login para abrir o Desk/App Cliente como usuária real; abrir um navegador aqui sem login não reproduz o que você vê. É tecnicamente possível eu logar com uma conta de teste se você me indicar uma, ou eu posso automatizar screenshot via CI se pedir — nenhuma das duas foi solicitada ainda.
+2. **Mapa de fontes de verdade completo (E.1) e mapa de gates completo (E.3)** — não construídos como arquivos separados nesta rodada; o material equivalente já existe em `docs/governanca/MATRIZ_DE_GATES_E_FONTES_DE_VERDADE_v1.0.md` (não confrontado contra o código atual aqui).
+3. **Artefato por artefato (Fase D completa)** — não construído como matriz separada; os testes tocados nesta sessão (`checklist-juridico.test.ts`, `validacao-pessoa.test.ts`) foram auditados individualmente e corrigidos quando testavam o bug em vez do comportamento, mas isso não cobre a totalidade dos artefatos de teste do repositório.
+4. **20 anexos obrigatórios ausentes / 3 OS impedidas / 25 SKUs sem homologação (E-04)** — contagens agregadas não foram abertas e reclassificadas nesta rodada.
+
+## Como ler o pacote
+
+Comece por `fichas-contratos-e2.md` (achado novo sobre 2026-CB-0001) e `09-autoria-e-responsabilidade.md` (correção de autoria pedida na Seção 1). `05-matriz-pr-000-a-090.md` responde "existe / está em main / está em produção" para as 90 PRs. `01-mapa-de-rotas-e-abas.csv` e `03-matriz-documento-por-documento.md` são pontos de partida para uma varredura manual futura, não o resultado dela.
