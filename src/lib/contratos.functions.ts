@@ -487,7 +487,7 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
 
     const { data: partes } = await supabase
       .from("contract_parties")
-      .select("id,person_name,document_type,document_number,client_id")
+      .select("id,person_name,role,document_type,document_number,client_id")
       .eq("contract_id", contrato.id)
       .is("archived_at", null);
 
@@ -499,6 +499,11 @@ export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
     const normalizar = (s: string) => s.replace(/\D/g, "");
 
     const plano = ((partes ?? []) as any[]).map((p) => {
+      // Dependente (ex.: menor sem cadastro próprio) pode ter client_id
+      // apontando para o responsável — nunca herdar o documento de outra
+      // pessoa. Achado real: Felipe (dependente) tem client_id da própria
+      // mãe; sincronizar por engano gravaria o CPF dela como se fosse dele.
+      if (p.role === "dependent") return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
       const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
       if (!cliente?.cpf) return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
       if (p.document_number) {
