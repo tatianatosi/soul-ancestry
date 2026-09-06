@@ -217,8 +217,17 @@ export async function materializarProposta(
   const entrada = entradaDoPlano(plano, caso.id, sku.code);
   const saida = avaliarPlanejador(entrada);
   const libera = planejadorLiberaProposta(saida);
-  if (!libera.ok)
-    throw new Error(`Planejador com pendência: ${libera.motivos.slice(0, 3).join(" · ")}${libera.motivos.length > 3 ? " …" : ""}`);
+  // Autoridade operacional (05/09/2026): pendência do planejador informa, não
+  // impede. Este era o primeiro elo da cadeia comercial e travava tudo adiante.
+  if (!libera.ok) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      libera.motivos,
+      `Planejador com pendência: ${libera.motivos.slice(0, 3).join(" · ")}${libera.motivos.length > 3 ? " …" : ""}`,
+    );
+  }
 
 
   const { data: membros } = await supabase
@@ -381,7 +390,16 @@ export async function aprovarPropostaEstruturada(
   const { data: skuRow } = await supabase.from("product_catalog").select(SELECT_SKU).eq("id", row.product_catalog_id).maybeSingle();
   const sku = skuCanonico(skuRow);
   const bloqueios = bloqueiosAprovacaoProposta(proposta, sku);
-  if (bloqueios.length) throw new Error(`Proposta não pode ser aprovada: ${bloqueios.join(" · ")}`);
+  // Pendência de aprovação informa, não impede. Segundo elo da cadeia.
+  if (bloqueios.length) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      bloqueios,
+      `Proposta não pode ser aprovada: ${bloqueios.join(" · ")}`,
+    );
+  }
 
   const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
 
@@ -575,7 +593,16 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
 
   const conteudo = conteudoOSDaProposta(propostaCanonica(row), condicao.id);
   const bloqueios = bloqueiosOS(conteudo);
-  if (bloqueios.length) throw new Error(`OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`);
+  // Pendência estrutural da OS informa, não impede. Terceiro elo da cadeia.
+  if (bloqueios.length) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      bloqueios,
+      `OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`,
+    );
+  }
 
   // Conciliação obrigatória contra o catálogo homologado: SKU, preço, condição
   // e suficiência de escopo. Divergência bloqueante impede OS e contrato.
