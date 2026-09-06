@@ -14,7 +14,7 @@ Este pacote atende parcialmente à ordem "Varredura integral aba por aba, docume
 
 ## O que é inventário mecânico (localização/estrutura, não verificação de conteúdo)
 
-- `05-matriz-pr-000-a-090.md` + `dados/inventario-prs-000-a-090.json` — todas as 90 PRs existem (#0 não existe, numeração começa em #1); estado, base/head, autoria de conta, datas e ancestralidade em relação ao SHA de produção atual foram obtidos via API/git. Campos que exigiriam ler o diff de cada uma das 90 PRs individualmente (arquivos por domínio, teste associado, regressão) **não foram coletados** — ver coluna correspondente marcada `nao_coletado_nesta_rodada`.
+- `05-matriz-pr-000-a-090.md` — em 06/09 unida com o quadro narrativo de PRs #1-#85 (originado na PR #86, antes em `docs/relatorios/2026-09-05_quadro_completo_prs_1_ate_atual.md`, agora um redirecionamento) e estendida até #90: por PR, o que realmente foi feito (não só título), pendências que a própria PR declara, e contradições entre PRs (ex.: PR #49 credita à PR #48 algo que #48 nunca mesclou). `dados/inventario-prs-000-a-090.json` continua com os campos brutos por API/git (base/head, datas, ancestralidade do SHA de produção).
 - `01-mapa-de-rotas-e-abas.csv` — as 111 rotas do código foram listadas e uma área foi *estimada* por convenção de nome de arquivo. Nenhuma delas foi **aberta e testada ao vivo** nesta rodada (ver bloqueio abaixo).
 - `03-matriz-documento-por-documento.md` — os 332 documentos em `docs/` foram listados e uma classificação foi *estimada* por convenção de caminho (ex.: `evolucao/recuperados/` → arquivamento). **Nenhum dos 332 foi lido linha a linha e confrontado contra o código/banco** nesta rodada — isso é um trabalho de múltiplas sessões, não de uma rodada.
 
