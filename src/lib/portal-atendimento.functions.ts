@@ -440,7 +440,6 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
       if (b.bloqueado) await negar(`Publicação bloqueada: ${b.motivos.join("; ")}.`, "bloqueado");
 
       const versao = texto(data.versao ?? null, 40);
-      if (!versao) throw new Error("Informe a versão da entrega.");
       patch = {
         visibilidade: "cliente_quando_liberado",
         status: "liberado",

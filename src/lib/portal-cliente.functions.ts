@@ -323,9 +323,8 @@ export const abrirTicket = createServerFn({ method: "POST" })
     const caso = await h.casoAutorizado(supabase, data.casoId);
     if (!caso) throw new Error("Caso não disponível para o seu acesso.");
 
-    const assunto = h.texto(data.assunto, 160);
+    const assunto = h.texto(data.assunto, 160) ?? "Mensagem sem assunto";
     const mensagem = h.texto(data.mensagem, 4000);
-    if (!assunto || !mensagem) throw new Error("Informe assunto e mensagem.");
     const categoria = Object.keys(h.CATEGORIAS_TICKET).includes(data.categoria) ? data.categoria : "duvida";
 
     const ticket = await supabase

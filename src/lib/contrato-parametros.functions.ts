@@ -644,7 +644,6 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
       : Promise.resolve({ data: null } as any),
   ]);
 
-  if (!template?.code) throw new Error("Selecione o MODELO ESTUDO ativo antes de gerar a prévia.");
   if (!["MODELO-ESTUDO", "BASE-GEN-V2"].includes(template.code)) {
     throw new Error("Modelo histórico não pode gerar prévia. Use MODELO-ESTUDO + BASE-GEN-V2.");
   }

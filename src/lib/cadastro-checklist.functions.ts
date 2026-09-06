@@ -279,8 +279,6 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
 export const registrarAcaoCadastro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string; prazo: string; pessoa: string }) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data?.prazo ?? ""))) throw new Error("Informe a data da próxima ação.");
-    if (!String(data?.pessoa ?? "").trim()) throw new Error("Informe a pessoa da ação.");
     return { caseId: exigirUuid(data?.caseId, "caseId"), prazo: data.prazo, pessoa: data.pessoa.trim() };
   })
   .handler(async ({ data, context }) => {

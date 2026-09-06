@@ -183,7 +183,6 @@ export const salvarTarefa = createServerFn({ method: "POST" })
     exigirEscrita(ctx);
 
     const valores = limparOps(CAMPOS_TAREFA, data.valores);
-    if (!valores["titulo"]) throw new Error("Informe o título da tarefa.");
 
     if (data.id) {
       await gravarComVerificacao({
@@ -274,7 +273,6 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
     exigirEscrita(ctx);
 
     const valores = limparOps(CAMPOS_MICRO, data.valores);
-    if (!valores["titulo"]) throw new Error("Informe o título da micro-entrega.");
     if (!valores["caso_id"]) throw new Error("Vincule a micro-entrega a um caso.");
 
     if (data.id) {

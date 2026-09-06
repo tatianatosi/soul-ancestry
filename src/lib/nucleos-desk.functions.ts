@@ -183,7 +183,6 @@ export const salvarMembroNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { membroId: string; nome: string; vinculo: string; processo: string; clienteId?: string | null }) => {
     if (!UUID.test(data?.membroId ?? "")) throw new Error("Requerente inválido.");
-    if (!data.nome?.trim()) throw new Error("Nome é obrigatório.");
     if (data.clienteId && !UUID.test(data.clienteId)) throw new Error("Pessoa vinculada inválida.");
     return data;
   })

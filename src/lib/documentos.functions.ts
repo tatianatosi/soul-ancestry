@@ -89,7 +89,6 @@ export const salvarDocumento = createServerFn({ method: "POST" })
       mimeType?: string;
       tamanhoBytes?: number;
     }) => {
-      if (!data?.titulo || data.titulo.trim().length < 2) throw new Error("Informe um título.");
       if (!CATEGORIAS[data.categoria]) throw new Error("Categoria inválida.");
       if (!SENSIBILIDADES[data.sensibilidade]) throw new Error("Classificação de sensibilidade inválida.");
       if (!VISIBILIDADES[data.visibilidade]) throw new Error("Visibilidade inválida.");
@@ -251,8 +250,6 @@ export const registrarConsentimento = createServerFn({ method: "POST" })
       coletadoEm?: string;
     }) => {
       if (!data?.clienteId) throw new Error("Selecione o cliente.");
-      if (!data.versaoTexto?.trim()) throw new Error("Informe a versão do texto aceito.");
-      if (!data.metodoColeta?.trim()) throw new Error("Informe o método de coleta.");
       return data;
     },
   )

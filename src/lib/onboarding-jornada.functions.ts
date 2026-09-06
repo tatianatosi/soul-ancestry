@@ -287,9 +287,6 @@ export const atualizarItemChecklist = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase, context.userId as string);
-    if (data.status === "bloqueado" && !data.bloqueioCodigo?.trim()) {
-      throw new Error("Item bloqueado exige código de bloqueio.");
-    }
     const r = await supabase
       .from("onboarding_checklist")
       .update({
@@ -332,9 +329,6 @@ export const salvarPlanoCaso = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Cliente;
     const org = await resolverOrg(supabase, context.userId as string);
-    if (!data.responsavelUserId || !data.proximaAcao?.trim() || !data.prazoProximaAcao) {
-      throw new Error("Plano exige responsável, próxima ação e prazo.");
-    }
 
     const existente = await supabase
       .from("case_plans")

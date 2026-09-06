@@ -97,7 +97,6 @@ export const registrarInteracao = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
 
-    if (!data.resumoInterno?.trim()) throw new Error("Resumo interno é obrigatório.");
 
     if (data.contaComoTouchpoint) {
       const check = validarTouchpoint(data.touchpoint ?? {});
