@@ -84,6 +84,33 @@ export const PROTECOES_ESCOPO = [
   "Dados comerciais podem ser importados como “importado — a confirmar”; a revisão humana é obrigatória antes da versão final.",
 ];
 
+/**
+ * Funde `proposal_canva_pages` (a extração real, feita em "Preparar contrato" /
+ * CompletudeCanva) no formato que validarPropostaCanva/extrairEscopoDaProposta
+ * esperam. `proposals.escopo_paginas`/`paginas_registradas` são colunas
+ * legadas que nenhuma tela grava mais — usar o valor bruto delas (em vez desta
+ * fusão) torna invisível o que já foi extraído de verdade, ou pior, mantém
+ * visível um "registrado" antigo que não reflete o estado real da extração.
+ * Achado real (06/09/2026): `cadeia-formalizacao.server.ts` já fazia esta
+ * fusão; `contrato-preparar.functions.ts` (a tela que a proprietária de fato
+ * usa) não fazia — a mesma proposta aparecia com escopo diferente em cada
+ * tela. Centralizado aqui para as duas telas usarem a mesma fonte.
+ */
+export function propostaComPaginasCanva(
+  proposta: PropostaCanva | null | undefined,
+  paginasCanva: { page_number: number; extracao_status: string; page_content_structured: unknown }[],
+): PropostaCanva | null | undefined {
+  if (!proposta) return proposta;
+  const escopo_paginas: Record<string, unknown> = {};
+  for (const p of paginasCanva) {
+    if (p?.page_content_structured && typeof p.page_content_structured === "object") {
+      Object.assign(escopo_paginas, p.page_content_structured);
+    }
+  }
+  const paginas_registradas = paginasCanva.filter((p) => p?.extracao_status === "extraida").map((p) => p.page_number);
+  return { ...proposta, escopo_paginas, paginas_registradas };
+}
+
 export type PropostaCanva = {
   id: string;
   case_id: string | null;

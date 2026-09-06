@@ -10,6 +10,7 @@ import {
   bloqueiosDeEscopo,
   extrairEscopoDaProposta,
   mapaCoberturaEscopo,
+  propostaComPaginasCanva,
   validarPropostaCanva,
 } from "@/lib/escopo-proposta";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
@@ -163,6 +164,24 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       pessoasDoCasoComFallbackNucleo(supabase, caso.id).then((data) => ({ data })),
     ]);
 
+    /*
+     * Achado real (06/09/2026): esta tela lia proposals.escopo_paginas/
+     * paginas_registradas direto — colunas legadas que nenhuma tela grava
+     * mais. A extração real acontece em "Preparar contrato" (CompletudeCanva),
+     * que grava em proposal_canva_pages. cadeia-formalizacao.server.ts já
+     * fazia essa fusão; esta tela (a que a proprietária de fato usa) não
+     * fazia, e por isso mostrava um escopo desatualizado/diferente da mesma
+     * proposta em cada tela.
+     */
+    const { data: paginasCanva } = proposta?.id
+      ? await supabase
+          .from("proposal_canva_pages")
+          .select("page_number,extracao_status,page_content_structured")
+          .eq("proposal_id", proposta.id)
+          .is("archived_at", null)
+      : { data: [] as any[] };
+    const propostaEfetiva = propostaComPaginasCanva(proposta as any, (paginasCanva ?? []) as any[]);
+
     // Ficha única por caso: reaproveita se já existir, nunca duplica.
     let { data: registro } = await supabase
       .from("contract_case_parameters")
@@ -274,10 +293,10 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
 
     // Escopo mandatório: proposta Canva vigente aprovada, páginas 1–7.
-    const validadeEscopo = validarPropostaCanva(proposta as any, caso.id);
-    const extraidos = extrairEscopoDaProposta(proposta as any);
+    const validadeEscopo = validarPropostaCanva(propostaEfetiva as any, caso.id);
+    const extraidos = extrairEscopoDaProposta(propostaEfetiva as any);
     const cobertura = mapaCoberturaEscopo({
-      proposta: proposta as any,
+      proposta: propostaEfetiva as any,
       extraidos,
       valores: lista.map((v) => ({ campo: v.campo, valor: v.valor, origem: v.origem, status: v.status })),
     });
@@ -325,7 +344,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       aliasDe,
       cliente: cliente ? { id: cliente.id, nome: cliente.nome, email: cliente.email, telefone: cliente.telefone } : null,
       registro,
-      proposta: proposta ?? null,
+      proposta: (propostaEfetiva ?? null) as any,
       modelo: modelo ?? null,
       base: base ?? null,
       membros: membros ?? [],

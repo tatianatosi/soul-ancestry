@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { extrairEscopoDaProposta, validarPropostaCanva } from "@/lib/escopo-proposta";
+import { extrairEscopoDaProposta, propostaComPaginasCanva, validarPropostaCanva } from "@/lib/escopo-proposta";
 import {
   avaliarCadeia,
   derivarItensDaProposta,
@@ -148,27 +148,6 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
     previaFinal: previaFinal ?? null,
     paginasCanva: (paginasCanva ?? []) as any[],
   };
-}
-
-/**
- * Funde `proposal_canva_pages` (a extração real, feita em "Preparar contrato" /
- * CompletudeCanva) no formato que validarPropostaCanva/extrairEscopoDaProposta
- * esperam. `proposals.escopo_paginas`/`paginas_registradas` nunca são escritos
- * por nenhuma tela — sem isso, o trabalho real de extração ficava invisível
- * para o motor de bloqueio.
- */
-function propostaComPaginasCanva(proposta: any, paginasCanva: any[]) {
-  if (!proposta) return proposta;
-  const escopo_paginas: Record<string, unknown> = {};
-  for (const p of paginasCanva) {
-    if (p?.page_content_structured && typeof p.page_content_structured === "object") {
-      Object.assign(escopo_paginas, p.page_content_structured);
-    }
-  }
-  const paginas_registradas = paginasCanva
-    .filter((p) => p?.extracao_status === "extraida")
-    .map((p) => p.page_number);
-  return { ...proposta, escopo_paginas, paginas_registradas };
 }
 
 export function avaliarContexto(ctx: Awaited<ReturnType<typeof contextoDaCadeia>>): ResultadoCadeia & {
