@@ -9,6 +9,7 @@ import { Painel, Selo, moeda } from "@/components/comercial/base";
 import {
   conferirEscopoProposta,
   painelPreparacaoContratual,
+  registrarCampoEscopoProposta,
   registrarOverrideGateInterno,
   registrarRevalidacaoProposta,
 } from "@/lib/escopo-conferencia.functions";
@@ -83,6 +84,78 @@ function OverrideGateInterno({ caseId, acao, onFeito }: { caseId: string; acao: 
       {motivo.length > 0 && faltam > 0 ? (
         <span className="w-full text-[11px] text-terracotta">Faltam {faltam} caractere(s) no motivo.</span>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Registra o texto de um campo de escopo ausente, transcrito da própria
+ * proposta Canva aprovada (nunca inventado, nunca vindo de outra fonte —
+ * ver regra em escopo-proposta.ts). É a peça que faltava: não existia
+ * nenhuma tela para gravar as páginas 3-7, só a leitura.
+ */
+function RegistrarCampoEscopo({
+  caseId,
+  campo,
+  label,
+  paginas,
+  onFeito,
+}: {
+  caseId: string;
+  campo: string;
+  label: string;
+  paginas: number[];
+  onFeito: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [texto, setTexto] = useState("");
+  const registrar = useServerFn(registrarCampoEscopoProposta);
+  const m = useMutation({
+    mutationFn: () => registrar({ data: { caseId, campo, texto } }),
+    onSuccess: () => {
+      toast.success(`"${label}" registrado (p. ${paginas.join(", ")}).`);
+      setAberto(false);
+      setTexto("");
+      onFeito();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Não foi possível registrar este campo."),
+  });
+
+  if (!aberto) {
+    return (
+      <button type="button" onClick={() => setAberto(true)} className="text-[11px] font-medium text-navy underline">
+        Registrar texto da página {paginas.join(", ")}
+      </button>
+    );
+  }
+  return (
+    <div className="mt-1 space-y-1">
+      <textarea
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        placeholder={`Cole ou digite aqui exatamente o que a página ${paginas.join(", ")} da proposta aprovada declara para "${label}".`}
+        rows={3}
+        className="w-full rounded border border-navy/20 px-2 py-1 text-xs"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            if (texto.trim().length < 3) {
+              toast.error("Escreva o texto da proposta para este campo antes de registrar.");
+              return;
+            }
+            m.mutate();
+          }}
+          disabled={m.isPending}
+          className="rounded bg-navy px-2 py-1 text-[11px] font-medium text-cream disabled:opacity-50"
+        >
+          {m.isPending ? "Registrando…" : "Registrar"}
+        </button>
+        <button type="button" onClick={() => setAberto(false)} className="text-[11px] text-navy/50 underline">
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }
@@ -315,11 +388,20 @@ export function PainelPreparacao({ caseId }: { caseId: string }) {
           <p className="mt-1 font-medium text-navy">Não localizados ({contagemLista(r.campos_ausentes)})</p>
           <ListaLida valor={r.campos_ausentes} campo="resultado.campos_ausentes" vazio="Nenhum campo pendente.">
             {(itens) => (
-              <ul className="space-y-0.5">
+              <ul className="space-y-1.5">
                 {(itens as any[]).map((c) => (
                   <li key={c.campo} className={c.obrigatorio ? "text-terracotta" : "text-navy/60"}>
-                    {c.obrigatorio ? "✗" : "○"} {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
-                    {c.obrigatorio ? " · obrigatório" : " · opcional, não declarado"}
+                    <div>
+                      {c.obrigatorio ? "✗" : "○"} {c.label} <span className="text-navy/50">· p. {c.paginas.join(", ")}</span>
+                      {c.obrigatorio ? " · obrigatório" : " · opcional, não declarado"}
+                    </div>
+                    <RegistrarCampoEscopo
+                      caseId={caseId}
+                      campo={c.campo}
+                      label={c.label}
+                      paginas={c.paginas}
+                      onFeito={() => qc.invalidateQueries({ queryKey: chave })}
+                    />
                   </li>
                 ))}
               </ul>
