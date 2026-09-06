@@ -26,6 +26,7 @@ import {
   type PropostaEstruturada,
   type SkuCanonicoProposta,
 } from "@/lib/cadeia-operacional";
+import { linhas } from "@/lib/linhas";
 
 type Sb = any;
 
@@ -230,12 +231,12 @@ export async function materializarProposta(
   }
 
 
-  const { data: membros } = await supabase
+  const membros = await supabase
     .from("case_members")
     .select("nome,papel,titular,contratante,dependente")
     .eq("case_id", caso.id)
     .is("archived_at", null);
-  const pessoas = ((membros ?? []) as any[]).map((m) => ({
+  const pessoas = linhas<any>(membros, "participantes do caso").map((m) => ({
     nome: m.nome,
     papel: m.papel ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
   }));
@@ -489,7 +490,7 @@ async function sincronizarEscopoContratual(
     itens: ReturnType<typeof itensEscopoDaOS>;
   },
 ) {
-  const { data: atuais } = await supabase
+  const atuais = await supabase
     .from("contract_scope_items")
     .select("id,title,category,archived_at")
     .eq("organization_id", input.org)
@@ -498,7 +499,8 @@ async function sincronizarEscopoContratual(
 
   const chave = (c: string, t: string) => `${c}::${t}`;
   const existentes = new Map<string, any>();
-  for (const r of (atuais ?? []) as any[]) existentes.set(chave(r.category, r.title), r);
+  for (const r of linhas<any>(atuais, "itens de escopo já vinculados ao contrato"))
+    existentes.set(chave(r.category, r.title), r);
 
   let inseridos = 0;
   let atualizados = 0;
@@ -822,23 +824,23 @@ export async function pendenciasCadeiaPainel(
   org: string,
   opcoes?: { incluirTeste?: boolean; limite?: number },
 ) {
-  const { data: planos } = await supabase
+  const planos = await supabase
     .from("case_plans")
     .select("case_id")
     .eq("organization_id", org)
     .is("archived_at", null)
     .limit(opcoes?.limite ?? 100);
 
-  const ids = [...new Set(((planos ?? []) as any[]).map((p) => p.case_id).filter(Boolean))];
+  const ids = [...new Set(linhas<any>(planos, "planos de caso do painel").map((p) => p.case_id).filter(Boolean))];
   if (!ids.length) return [];
 
-  const { data: casos } = await supabase
+  const casos = await supabase
     .from("crm_casos")
     .select("id,codigo,titulo,dados_teste,demo,archived_at,responsavel_principal,prazo_proxima_acao")
     .in("id", ids)
     .is("archived_at", null);
 
-  const elegiveis = ((casos ?? []) as any[]).filter(
+  const elegiveis = linhas<any>(casos, "casos do painel da cadeia operacional").filter(
     (c) => !c.demo && (opcoes?.incluirTeste === true || c.dados_teste !== true),
   );
 

@@ -420,9 +420,15 @@ function FichaCaso() {
     [caso, form],
   );
 
+  // Requisitos de ativação já validados à mão contam como atendidos: são
+  // decisão humana registrada, com autor e data.
+  const checksAtivacao = useMemo(
+    () => ((q.data as any)?.checksAtivacao ?? []) as { check_key: string; status?: string | null }[],
+    [q.data],
+  );
   const derivadoGates = useMemo(
-    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>),
-    [caso],
+    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>, checksAtivacao),
+    [caso, checksAtivacao],
   );
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });

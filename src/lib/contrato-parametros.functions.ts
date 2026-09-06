@@ -1045,27 +1045,44 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         organizationId: registro.organization_id,
       });
     }
-    if (tipo === "final" && previa.placeholdersPendentes.length > 0) {
-      throw new Error(
-        `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
-      );
-    }
+    // Autoridade operacional (05/09/2026): pendência informa, não impede. Tudo
+    // que a proprietária assume aqui é devolvido e gravado em audit_logs junto
+    // com a versão congelada. Para os demais papéis segue bloqueando.
+    const pendenciasAssumidas: string[] = [];
     if (tipo === "final") {
-      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
-      // Autoridade operacional (05/09/2026): pendência de anexo informa, não
-      // impede. A proprietária assume; os demais papéis seguem bloqueados.
-      if (anexoBloqueante) {
-        const { contextoInterno } = await import("@/lib/comercial.server");
-        const { assumirOuRecusar } = await import("@/lib/autoridade.server");
-        const { papel } = await contextoInterno(supabase as never, context.userId as string);
-        assumirOuRecusar(
-          papel,
-          anexoBloqueante.pendencias as string[],
-          `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
+      const { contextoInterno } = await import("@/lib/comercial.server");
+      const { assumirOuRecusar } = await import("@/lib/autoridade.server");
+      const { papel } = await contextoInterno(supabase as never, context.userId as string);
+
+      if (previa.placeholdersPendentes.length > 0) {
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            previa.placeholdersPendentes.map((p) => `${p.label ?? p.campo} (${p.campo}): ${p.status}`),
+            `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
+          ),
         );
       }
+
+      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
+      if (anexoBloqueante) {
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            anexoBloqueante.pendencias as string[],
+            `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
+          ).map((p) => `${anexoBloqueante.codigo}: ${p}`),
+        );
+      }
+
       if (!previa.corpoContratual) {
-        throw new Error("Versão final bloqueada: prévia sem corpo contratual persistido.");
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            ["Prévia sem corpo contratual persistido."],
+            "Versão final bloqueada: prévia sem corpo contratual persistido.",
+          ),
+        );
       }
     }
 
@@ -1126,7 +1143,36 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       anexosInternos,
     });
     await atualizarCompletude(supabase, data.id);
-    return { previaId: nova.id as string, versao: nova.versao as number, duplicada: false, pendentes: previa.placeholdersPendentes, ...sync };
+
+    // Liberar não é apagar: a pendência assumida fica registrada na auditoria
+    // do próprio congelamento.
+    if (pendenciasAssumidas.length > 0) {
+      await supabase.from("audit_logs").insert({
+        organization_id: registro.organization_id,
+        user_id: context.userId,
+        entidade: "contract_parameter_previews",
+        entidade_id: nova.id as string,
+        acao: "versao_final_com_pendencia_assumida",
+        metadados: {
+          parameters_id: registro.id,
+          case_id: registro.case_id,
+          evento: data.evento,
+          versao: nova.versao,
+          pendencias_assumidas: pendenciasAssumidas,
+          decidido_por: "proprietaria_administradora",
+          politica: "pendência informa, não impede",
+        },
+      });
+    }
+
+    return {
+      previaId: nova.id as string,
+      versao: nova.versao as number,
+      duplicada: false,
+      pendentes: previa.placeholdersPendentes,
+      pendenciasAssumidas,
+      ...sync,
+    };
   });
 
 

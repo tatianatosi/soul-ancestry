@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -54,20 +55,22 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
           .eq("status", "pending"),
       ]);
 
-    const itens = (checklist.data ?? []) as any[];
+    const itens = linhas<any>(checklist, "checklist de cadastro do caso");
     const obrigatorios = itens.filter((i) => i.obrigatorio !== false);
     const pendentesCadastro = obrigatorios.filter((i) => i.status !== "validado" && i.status !== "conferido").length;
 
-    const contratoAssinado = !!c.contrato_assinado || (contratos.data ?? []).some((k: any) => !!k.signed_at || k.status === "assinado");
-    const contratoPreparado = (contratos.data ?? []).length > 0;
+    const contratosLista = linhas<any>(contratos, "contratos do caso");
+    const faturasLista = linhas<any>(faturas, "faturas do caso");
+    const contratoAssinado = !!c.contrato_assinado || contratosLista.some((k: any) => !!k.signed_at || k.status === "assinado");
+    const contratoPreparado = contratosLista.length > 0;
     const contratoEnviado =
-      contratoPreparado && ["enviado", "aguardando_assinatura", "assinado"].includes(String((contratos.data ?? [])[0]?.status ?? ""));
+      contratoPreparado && ["enviado", "aguardando_assinatura", "assinado"].includes(String(contratosLista[0]?.status ?? ""));
 
-    const cobrancaCriada = (faturas.data ?? []).length > 0;
+    const cobrancaCriada = faturasLista.length > 0;
     const pagamentoConfirmado =
-      !!c.pagamento_confirmado || (faturas.data ?? []).some((f: any) => !!f.paga_em || f.status === "paga");
+      !!c.pagamento_confirmado || faturasLista.some((f: any) => !!f.paga_em || f.status === "paga");
 
-    const nucleosLista = (nucleos.data ?? []) as any[];
+    const nucleosLista = linhas<any>(nucleos, "núcleos familiares do caso");
     const nucleoId = nucleosLista[0]?.id ?? null;
     let requerentes = false;
     if (nucleoId) {
@@ -82,20 +85,21 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
     const dossieMae = !!c.dossie_mae_referencia || nucleosLista.some((n) => !!n.dossie_mae);
     const ambienteDossie = nucleosLista.some((n) => !!n.ambiente && !!n.nivel_acesso) || !!c.link_origem_interna;
 
-    const autorizacaoPesquisa = (consentimentos.data ?? []).some(
+    const consentimentosLista = linhas<any>(consentimentos, "consentimentos do caso");
+    const autorizacaoPesquisa = consentimentosLista.some(
       (k: any) => k.status === "ativo" && !!String(k.escopo_compartilhamento ?? "").trim(),
     );
 
-    const plano = (planos.data ?? [])[0] as any | undefined;
+    const plano = linhas<any>(planos, "planos de onboarding do caso")[0] as any | undefined;
     const onboardingIniciado = !!plano && plano.estado !== "bloqueado" && plano.estado !== "nao_iniciado";
     const onboardingMinimoConcluido =
       !!plano && ["concluido", "ativo", "em_execucao"].includes(String(plano.estado ?? "")) && !!plano.plano_acao;
 
-    const servicosLista = (servicos.data ?? []) as any[];
+    const servicosLista = linhas<any>(servicos, "serviços do caso");
     const produtoServicoReconciliado = servicosLista.some(
       (s) => !!s.product_catalog_id && s.product_catalog?.estado_catalogo === "homologado_ativo",
     );
-    const entregasLista = (entregas.data ?? []) as any[];
+    const entregasLista = linhas<any>(entregas, "entregas ao cliente do caso");
     const conteudoPortalPreparado = entregasLista.some(
       (d) => d.approval_status === "aprovado" || d.approval_status === "publicado",
     );
@@ -149,12 +153,12 @@ export const carregarFechamentoCaso = createServerFn({ method: "GET" })
       evidencias: {
         cadastroPendentes: pendentesCadastro,
         cadastroTotal: obrigatorios.length,
-        contratos: (contratos.data ?? []).length,
-        faturas: (faturas.data ?? []).length,
+        contratos: contratosLista.length,
+        faturas: faturasLista.length,
         nucleos: nucleosLista.length,
-        consentimentos: (consentimentos.data ?? []).length,
+        consentimentos: consentimentosLista.length,
       },
-      tarefasAbertas: (tarefasAbertas.data ?? []) as any[],
+      tarefasAbertas: linhas<any>(tarefasAbertas, "tarefas abertas do caso"),
       podeEscrever: ctx.podeEscrever,
     };
   });
@@ -231,8 +235,8 @@ export const metricasJornada = createServerFn({ method: "GET" })
         .limit(1000),
     ]);
 
-    const listaCasos = (casos.data ?? []) as any[];
-    const listaEntregas = (entregas.data ?? []) as any[];
+    const listaCasos = linhas<any>(casos, "casos do painel de fechamento");
+    const listaEntregas = linhas<any>(entregas, "entregas ao cliente do painel de fechamento");
     const hoje = hojeISO();
 
     const cadencias = listaCasos.map((c) => ({
@@ -266,7 +270,8 @@ export const metricasJornada = createServerFn({ method: "GET" })
     for (const c of listaCasos) porFase[String(c.fase ?? "sem_fase")] = (porFase[String(c.fase ?? "sem_fase")] ?? 0) + 1;
 
     const porResponsavel: Record<string, number> = {};
-    for (const t of (tarefas.data ?? []) as any[]) {
+    const listaTarefas = linhas<any>(tarefas, "tarefas abertas do painel de fechamento");
+    for (const t of listaTarefas) {
       const k = String(t.responsavel_id ?? "sem_responsavel");
       porResponsavel[k] = (porResponsavel[k] ?? 0) + 1;
     }
@@ -288,10 +293,10 @@ export const metricasJornada = createServerFn({ method: "GET" })
         publicadas: listaEntregas.filter((e) => e.approval_status === "publicado").length,
         visualizadas: listaEntregas.filter((e) => !!e.viewed_at).length,
       },
-      documentosAguardandoCliente: ((docs.data ?? []) as any[]).filter(
+      documentosAguardandoCliente: linhas<any>(docs, "solicitações de documento do painel de fechamento").filter(
         (d) => !d.received_at && ["solicitado", "aguardando_cliente", "pendente"].includes(String(d.status ?? "")),
       ).length,
-      bloqueiosInternos: ((tarefas.data ?? []) as any[]).filter((t) => !!t.bloqueio).length,
+      bloqueiosInternos: listaTarefas.filter((t) => !!t.bloqueio).length,
       bloqueiosExternos: listaCasos.filter((c) => !!c.aguardando_instituicao_externa).length,
       casosPorFase: porFase,
       pendenciasPorResponsavel: porResponsavel,

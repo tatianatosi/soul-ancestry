@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, payloadServico, rascunhoDaAcao, type Linha } from "@/lib/caso-canonico.server";
@@ -40,24 +41,25 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       ]);
 
 
-    const nucleoIds = ((nucleos.data ?? []) as Linha[]).map((n) => n.id);
+    const listaNucleos = linhas<Linha>(nucleos, "núcleos familiares do caso");
+    const nucleoIds = listaNucleos.map((n) => n.id);
     const membrosNucleo = nucleoIds.length
       ? await supabase.from("nucleo_membros").select("*").in("nucleo_id", nucleoIds).is("archived_at", null)
       : { data: [] };
 
     return {
-      produtos: (produtos.data ?? []) as Linha[],
-      trilhas: (trilhas.data ?? []) as Linha[],
-      servicos: (servicos.data ?? []) as Linha[],
-      taxonomia: (taxonomia.data ?? []) as Linha[],
-      etiquetas: (etiquetas.data ?? []) as Linha[],
-      alertas: (alertas.data ?? []) as Linha[],
-      comunicacoes: (comunicacoes.data ?? []) as Linha[],
-      onboarding: (onboarding.data ?? []) as Linha[],
-      nucleos: (nucleos.data ?? []) as Linha[],
-      membrosNucleo: ((membrosNucleo as any).data ?? []) as Linha[],
-      entregas: (entregas.data ?? []) as Linha[],
-      aliases: (aliases.data ?? []) as Linha[],
+      produtos: linhas<Linha>(produtos, "catálogo de produtos"),
+      trilhas: linhas<Linha>(trilhas, "trilhas de cidadania"),
+      servicos: linhas<Linha>(servicos, "serviços do caso"),
+      taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas"),
+      etiquetas: linhas<Linha>(etiquetas, "etiquetas aplicadas ao caso"),
+      alertas: linhas<Linha>(alertas, "alertas do caso"),
+      comunicacoes: linhas<Linha>(comunicacoes, "fila de comunicações do caso"),
+      onboarding: linhas<Linha>(onboarding, "checklist de onboarding do caso"),
+      nucleos: listaNucleos,
+      membrosNucleo: linhas<Linha>(membrosNucleo as any, "membros do núcleo familiar"),
+      entregas: linhas<Linha>(entregas, "entregas ao cliente do caso"),
+      aliases: linhas<Linha>(aliases, "aliases históricos do caso"),
       proximaAcaoPrioritaria: (proximaAcao.data?.[0] ?? null) as {
         nivel: number;
         motivo: string;
@@ -335,8 +337,8 @@ export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
       supabase.from("entity_labels").select("label_id").eq("organization_id", organizationId).is("removed_at", null),
     ]);
     const uso = new Map<string, number>();
-    for (const a of (aplicadas.data ?? []) as Linha[]) uso.set(a.label_id, (uso.get(a.label_id) ?? 0) + 1);
+    for (const a of linhas<Linha>(aplicadas, "etiquetas aplicadas")) uso.set(a.label_id, (uso.get(a.label_id) ?? 0) + 1);
     return {
-      taxonomia: ((taxonomia.data ?? []) as Linha[]).map((l) => ({ ...l, aplicacoes: uso.get(l.id) ?? 0 })),
+      taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas").map((l) => ({ ...l, aplicacoes: uso.get(l.id) ?? 0 })),
     };
   });

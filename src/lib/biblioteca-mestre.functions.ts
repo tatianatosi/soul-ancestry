@@ -422,8 +422,27 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       });
       throw new Error("Item não encontrado nesta organização.");
     }
+    // Autoridade operacional (05/09/2026): pendência informa, não impede.
+    // A homologação de item da Biblioteca Mestre era recusada no servidor por
+    // versão ou responsável ausente mesmo com a proprietária confirmando — era
+    // um dos pontos em que a homologação de SKU do catálogo não saía do lugar.
+    // A proprietária assume a pendência, que fica registrada na auditoria do
+    // próprio fluxo; os demais papéis seguem bloqueados.
+    const pendenciasAssumidas: string[] = [];
     if ((data.estado === "homologado" || data.estado === "vigente") && (!atual.versao || !atual.owner)) {
-      throw new Error("Item sem versão e responsável não pode ser homologado ou tornado vigente.");
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      const faltantes = [
+        !atual.versao ? "Item sem versão registrada." : "",
+        !atual.owner ? "Item sem responsável registrado." : "",
+      ].filter(Boolean);
+      pendenciasAssumidas.push(
+        ...(await assumirOuRecusarComUsuario(
+          supabase,
+          context.userId as string,
+          faltantes,
+          "Item sem versão e responsável não pode ser homologado ou tornado vigente.",
+        )),
+      );
     }
 
     // Sucessor só entra em vigência com o predecessor já encerrado.
@@ -505,6 +524,10 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         para: data.estado,
         criterio: data.criterio ? "registrado" : "nao_informado",
         sucessorId: data.estado === "substituido" ? data.sucessorId : null,
+        // Liberar não é apagar: a pendência assumida fica no histórico.
+        pendencias_assumidas: pendenciasAssumidas,
+        decidido_por: pendenciasAssumidas.length ? "proprietaria_administradora" : null,
+        politica: pendenciasAssumidas.length ? "pendência informa, não impede" : null,
       },
     });
     // Revalidação de dependências: itens que citam o item alterado precisam de

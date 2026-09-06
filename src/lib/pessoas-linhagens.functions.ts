@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -178,7 +179,7 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
     const pesquisas = await org("research_cases")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
-    const pesquisaIds = (pesquisas.data ?? []).map((p: any) => p.id as string);
+    const pesquisaIds = linhas<any>(pesquisas, "pesquisas do caso").map((p: any) => p.id as string);
 
     const pessoas = pesquisaIds.length
       ? await supabase
@@ -191,7 +192,8 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
           .is("archived_at", null)
       : { data: [] as any[] };
 
-    const personIds = (pessoas.data ?? []).map((p: any) => p.id as string);
+    const listaPessoas = linhas<any>(pessoas as any, "pessoas de pesquisa do caso");
+    const personIds = listaPessoas.map((p: any) => p.id as string);
 
     /*
      * 05/09/2026 — achado real reportado pela Proprietária: a aba "Perfil
@@ -205,15 +207,17 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
      * existe — nunca um dado inventado.
      */
     if (personIds.length) {
-      const { data: perfisExistentes } = await supabase
+      const perfisExistentes = await supabase
         .from("genealogical_person_profiles")
         .select("research_person_id")
         .eq("organization_id", organizationId)
         .in("research_person_id", personIds);
       const comPerfil = new Set(
-        (perfisExistentes ?? []).map((p: any) => p.research_person_id as string),
+        linhas<any>(perfisExistentes, "perfis genealógicos já existentes").map(
+          (p: any) => p.research_person_id as string,
+        ),
       );
-      const semPerfil = ((pessoas.data ?? []) as any[]).filter((p) => !comPerfil.has(p.id));
+      const semPerfil = listaPessoas.filter((p) => !comPerfil.has(p.id));
       if (semPerfil.length) {
         await supabase.from("genealogical_person_profiles").insert(
           semPerfil.map((p) => ({
@@ -285,7 +289,7 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
         const r = await org(m.tabela)
           .eq("case_id", data.caseId)
           .order("created_at", { ascending: true });
-        return [m.tabela, ((r as any).data ?? []) as any[]] as const;
+        return [m.tabela, linhas<any>(r as any, `módulo histórico ${m.tabela}`)] as const;
       }),
     );
 
@@ -293,17 +297,17 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
       podeEditar,
       modulos: Object.fromEntries(modulos) as Record<string, any[]>,
       caso: (caso as any).data ?? null,
-      pesquisas: (pesquisas.data ?? []) as any[],
-      pessoas: ((pessoas as any).data ?? []) as any[],
-      perfis: (perfis.data ?? []) as any[],
-      variantes: ((variantes as any).data ?? []) as any[],
-      relacoes: (relacoes.data ?? []) as any[],
-      eventos: (eventos.data ?? []) as any[],
-      linhagens: (linhagens.data ?? []) as any[],
-      evidencias: ((evidencias as any).data ?? []) as any[],
-      fontes: ((fontes as any).data ?? []) as any[],
-      nucleos: (nucleos.data ?? []) as any[],
-      trilhas: ((trilhas as any).data ?? []) as any[],
+      pesquisas: linhas<any>(pesquisas, "pesquisas do caso"),
+      pessoas: listaPessoas,
+      perfis: linhas<any>(perfis, "perfis genealógicos do caso"),
+      variantes: linhas<any>(variantes as any, "variantes de nome do caso"),
+      relacoes: linhas<any>(relacoes, "relações genealógicas do caso"),
+      eventos: linhas<any>(eventos, "eventos genealógicos do caso"),
+      linhagens: linhas<any>(linhagens, "caminhos de linhagem do caso"),
+      evidencias: linhas<any>(evidencias as any, "evidências de pesquisa"),
+      fontes: linhas<any>(fontes as any, "fontes de pesquisa"),
+      nucleos: linhas<any>(nucleos, "núcleos familiares do caso"),
+      trilhas: linhas<any>(trilhas as any, "trilhas de cidadania"),
     };
   });
 
