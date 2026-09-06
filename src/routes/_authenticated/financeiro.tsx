@@ -392,7 +392,80 @@ function FinanceiroPage() {
           !linhas.length ? (
           <EstadoVazio mensagem="Nenhum registro neste filtro." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+          <>
+            {/* Mobile (<640px): cards empilhados — a tabela larga cortava conteúdo e a rolagem
+                horizontal não é aceitável como única saída para um fluxo operacional. */}
+            <div className="grid gap-3 sm:hidden">
+              {linhas.map((l) => (
+                <button
+                  key={String(l["id"])}
+                  type="button"
+                  onClick={() => {
+                    setErro(null);
+                    setDetalhe(l);
+                  }}
+                  className="rounded-xl border border-navy/10 bg-white p-3 text-left text-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium text-navy">
+                      {aba === "faturas" ? String(l["descricao"] ?? "—") : rotuloFatura(l["invoice_id"])}
+                    </span>
+                    <span className="whitespace-nowrap font-medium text-navy">{moeda(l["valor"], l["moeda"])}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-navy/60">
+                    {aba === "faturas" ? nomeCliente(l["client_id"]) : String(l["referencia_externa"] ?? "—")}
+                  </div>
+                  <div className="mt-1 text-xs text-navy/60">
+                    {dataBr(l[aba === "faturas" ? "vencimento" : "pago_em"])}
+                    {(() => {
+                      if (aba !== "faturas") return null;
+                      if (l["status"] === "paga" || l["status"] === "cancelada") return null;
+                      const dias = diasDesde(l["vencimento"]);
+                      const rotulo = rotuloIdade(dias, "em aberto");
+                      if (!rotulo) return null;
+                      return (
+                        <span
+                          className={cn(
+                            "ml-2",
+                            tomIdade(dias) === "alerta" ? "font-semibold text-terracotta" : "text-navy/55",
+                          )}
+                        >
+                          {rotulo}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <Selo
+                      texto={rotulos[String(l["status"])] ?? String(l["status"])}
+                      tom={
+                        l["status"] === "paga" || l["status"] === "confirmado"
+                          ? "ok"
+                          : l["status"] === "vencida" || l["status"] === "cancelada"
+                            ? "alerta"
+                            : "neutro"
+                      }
+                    />
+                    {aba === "pagamentos" ? (
+                      <Selo
+                        texto={ROTULO_CONCILIACAO[String(l["conciliacao_status"])] ?? String(l["conciliacao_status"] ?? "—")}
+                        tom={
+                          l["conciliacao_status"] === "conciliado"
+                            ? "ok"
+                            : l["conciliacao_status"] === "divergente"
+                              ? "erro"
+                              : "neutro"
+                        }
+                      />
+                    ) : null}
+                    {ehDemo(l) ? <Selo texto="DEMO" tom="alerta" /> : null}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop/tablet (≥640px): tabela completa */}
+            <div className="hidden overflow-x-auto rounded-xl border border-navy/10 bg-white sm:block">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
                 <tr>
@@ -476,7 +549,8 @@ function FinanceiroPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )
           }
         </EstadoDados>
