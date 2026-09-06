@@ -680,13 +680,13 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       indicado_por?: string | null;
       confirmarDuplicidade?: boolean;
     }) => {
-      if (!d?.nome?.trim()) throw new Error("Nome completo é obrigatório.");
-      if (!d.email?.trim() && !d.telefone?.trim()) throw new Error("Informe ao menos telefone ou e-mail.");
-      if (!d.origem) throw new Error("Origem é obrigatória.");
-      if (!d.objetivo) throw new Error("Interesse inicial é obrigatório.");
-      if (!d.responsavel_nome?.trim()) throw new Error("Responsável é obrigatório.");
-      if (!d.proxima_acao) throw new Error("Próxima ação é obrigatória.");
-      if (!d.proxima_acao_em) throw new Error("Prazo da próxima ação é obrigatório.");
+      // Campos de conteudo do lead (05/09/2026).
+      //
+      // Antes exigia sete campos ao mesmo tempo para gravar. Faltando um, nada
+      // era salvo e o trabalho se perdia. Agora so o nome e obrigatorio - sem
+      // ele nao ha lead. O que falta vira pendencia visivel no proprio
+      // registro, para completar depois.
+      if (!d?.nome?.trim()) throw new Error("Informe ao menos o nome para criar o lead.");
       return d;
     },
   )
