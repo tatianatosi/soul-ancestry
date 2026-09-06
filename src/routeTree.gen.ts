@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
+import { Route as MockupRouteImport } from './routes/mockup'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
@@ -146,6 +147,11 @@ const AuthRoute = AuthRouteImport.update({
 const DevolutivaRoute = DevolutivaRouteImport.update({
   id: '/devolutiva',
   path: '/devolutiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MockupRoute = MockupRouteImport.update({
+  id: '/mockup',
+  path: '/mockup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalRouteRoute = PortalRouteRouteImport.update({
@@ -757,6 +763,7 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -871,6 +878,7 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -988,6 +996,7 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
+  '/mockup': typeof MockupRoute
   '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
@@ -1105,6 +1114,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/studio-devolutivas'
     | '/acessos-portal'
     | '/app-cliente-como-pessoa'
@@ -1219,6 +1229,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/studio-devolutivas'
     | '/acessos-portal'
     | '/app-cliente-como-pessoa'
@@ -1335,6 +1346,7 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
+    | '/mockup'
     | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/app-cliente-como-pessoa'
@@ -1452,6 +1464,7 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
+  MockupRoute: typeof MockupRoute
   StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
@@ -1500,6 +1513,13 @@ declare module '@tanstack/react-router' {
       path: '/devolutiva'
       fullPath: '/devolutiva'
       preLoaderRoute: typeof DevolutivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mockup': {
+      id: '/mockup'
+      path: '/mockup'
+      fullPath: '/mockup'
+      preLoaderRoute: typeof MockupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal': {
@@ -2524,6 +2544,7 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
+  MockupRoute: MockupRoute,
   StudioDevolutivasRoute: StudioDevolutivasRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,

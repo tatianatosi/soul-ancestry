@@ -89,13 +89,13 @@ describe("superfícies preservadas", () => {
     expect(shell).toContain("GRUPOS_DESK");
   });
 
-  it("o protótipo saiu do runtime e vive apenas no arquivo histórico (CA-UX-04)", () => {
+  it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {
     expect(existsSync("src/components/desk-app.tsx")).toBe(false);
     expect(existsSync("src/components/cliente-app.tsx")).toBe(false);
-    expect(existsSync("src/components/mockup")).toBe(false);
     expect(existsSync("src/routes/prototipo.tsx")).toBe(false);
-    expect(existsSync("src/routes/mockup.tsx")).toBe(false);
     expect(existsSync("src/routes/_authenticated/referencia-mockup-desk.tsx")).toBe(false);
+    // Rota de referencia visual do mockup aprovado, isolada e sem dados.
+    expect(existsSync("src/routes/mockup.tsx")).toBe(true);
     expect(existsSync("archive/mockups/componentes/desk-app.tsx")).toBe(true);
     expect(existsSync("archive/mockups/rotas/prototipo.tsx")).toBe(true);
   });
