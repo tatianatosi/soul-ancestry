@@ -215,7 +215,7 @@ function Pagina() {
       .join(" ") || null;
 
   const pessoasOpcoes = useMemo(
-    () => perfis.map((p) => ({ id: p.research_person_id, rotulo: p.nome_completo })),
+    () => perfis.filter((p) => !p.archived_at).map((p) => ({ id: p.research_person_id, rotulo: p.nome_completo })),
     [perfis],
   );
   const evidenciaOpcoes = useMemo(
@@ -528,7 +528,7 @@ function AbaPerfis({
         </div>
       </div>
 
-      {perfis.map((p) => {
+      {perfis.filter((p) => !p.archived_at).map((p) => {
         const e = { ...p, ...(edicao[p.id] ?? {}) };
         const set = (campo: keyof Perfil, valor: unknown) =>
           setEdicao((a) => ({ ...a, [p.id]: { ...(a[p.id] ?? {}), [campo]: valor } }));
