@@ -340,7 +340,6 @@ export const salvarRegraSla = createServerFn({ method: "POST" })
       ativo?: boolean;
       observacoes?: string;
     }) => {
-      if (!data?.tipoTarefa || !data?.prioridade) throw new Error("Informe tipo e prioridade para configurar o SLA.");
       if (!(data.horasAlvo > 0) || !(data.horasAlerta >= 0)) throw new Error("Horas inválidas.");
       return data;
     },

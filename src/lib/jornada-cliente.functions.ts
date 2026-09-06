@@ -192,8 +192,6 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    if (!data.tituloCliente?.trim() || !data.resumoAprovado?.trim())
-      throw new Error("Título e resumo aprovados pelo cliente são obrigatórios.");
 
     const { data: criada, error } = await supabase
       .from("client_deliverables")
