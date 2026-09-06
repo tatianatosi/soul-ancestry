@@ -14,7 +14,7 @@ export const lerCadeiaOperacional = createServerFn({ method: "GET" })
     const { estadoCadeiaOperacional, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
     const org = await orgDoUsuario(supabase, context.userId as string);
-    return estadoCadeiaOperacional(supabase, org, data.caseId);
+    return estadoCadeiaOperacional(supabase, org, data.caseId, { userId: context.userId as string });
   });
 
 /** Persiste o planejador do caso (idempotente por hash). */

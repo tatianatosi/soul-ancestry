@@ -754,8 +754,22 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
 /* Estado consolidado (leitura)                                        */
 /* ------------------------------------------------------------------ */
 
-export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId: string) {
+export async function estadoCadeiaOperacional(
+  supabase: Sb,
+  org: string,
+  caseId: string,
+  opcoes: { userId?: string } = {},
+) {
   const caso = await casoDaCadeia(supabase, org, caseId);
+
+  const { data: contratoDaCadeia } = await supabase
+    .from("contracts")
+    .select("id,status,contract_number")
+    .eq("case_id", caseId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const [{ data: plano }, { data: proposta }] = await Promise.all([
     supabase.from("case_plans").select("*").eq("case_id", caso.id).is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -835,10 +849,24 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
       fonte: "contract_case_parameters",
       versao: ficha?.status ?? null,
     },
-    assinatura: { motivos: ["Assinatura permanece desabilitada nesta entrega."], fonte: "contracts", versao: null },
+    // A assinatura tinha motivo fixo no codigo e ficava pendente para sempre,
+    // com a cadeia inteira verde ou nao. Passa a refletir o contrato real.
+    assinatura: {
+      motivos: contratoDaCadeia?.status === "signed"
+        ? []
+        : contratoDaCadeia
+          ? [`Contrato ${contratoDaCadeia.contract_number ?? ""} em "${contratoDaCadeia.status}": assinatura ainda nao registrada.`]
+          : ["Nenhum instrumento contratual criado para este caso."],
+      fonte: "contracts",
+      versao: contratoDaCadeia?.status ?? null,
+    },
   };
 
-  const cadeia = consolidarCadeia(motivos);
+  const { proprietariaOperando } = await import("@/lib/autoridade.server");
+  const proprietaria = opcoes.userId
+    ? await proprietariaOperando(supabase as never, opcoes.userId)
+    : false;
+  const cadeia = consolidarCadeia(motivos, { proprietaria });
   return {
     caso: { id: caso.id, codigo: caso.codigo, titulo: caso.titulo, dados_teste: caso.dados_teste === true },
     ...cadeia,
