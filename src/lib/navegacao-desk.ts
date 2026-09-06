@@ -225,12 +225,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     icone: "governanca",
     agrupador: true,
     sub: [
-      { grupo: "Conformidade" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
-      { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade" },
-      { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
-      { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
       { grupo: "Bibliotecas" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -238,19 +234,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal" },
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { grupo: "Registro e risco" },
-      { to: "/auditoria", label: "Auditoria", adminOnly: true },
-      { to: "/governanca/decisoes", label: "Decisões" },
-      { to: "/governanca/indicadores", label: "Indicadores" },
-      { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
-      { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
-      { to: "/governanca/varredura-completude", label: "Completude" },
-      { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      {
-        to: "/governanca/matriz-equivalencia",
-        label: "Matriz de equivalência — rota → dado → estado",
-      },
-      { to: "/governanca/identificadores", label: "Identificadores" },
       { grupo: "Integrações" },
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
@@ -289,6 +272,18 @@ export const MENU_CONTA: {
  * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
  * de src/lib/fechamento-caso.ts). As rotas continuam existindo no
  * repositório, só saíram do menu.
+ *
+ * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
+ * /governanca/corte-vertical, /governanca/decisoes, /governanca/indicadores,
+ * /governanca/inventario-recuperacao, /governanca/inventario-patrimonial,
+ * /governanca/modulos-contextuais, /governanca/matriz-equivalencia,
+ * /governanca/identificadores, /governanca/varredura-completude e /auditoria
+ * removidas desta lista por decisão explícita da proprietária: "remova
+ * todos os gates cerimoniais, não preciso de mais de 700 linhas de
+ * auditoria pra um sistema que é meu". Eram telas de auditoria/diagnóstico
+ * estático, não superfície de trabalho — nenhuma grava ou decide nada sobre
+ * o caso real. As rotas continuam existindo no repositório, só saíram do
+ * menu principal.
  */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
@@ -325,17 +320,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/biblioteca",
   "/biblioteca-mensagens",
   "/matriz-juridica",
-  "/governanca/criterios-aceite",
-  "/governanca/matriz-conformidade",
-  "/governanca/indicadores",
-  "/governanca/decisoes",
-  "/governanca/corte-vertical",
-  "/governanca/inventario-recuperacao",
-  "/governanca/inventario-patrimonial",
-  "/governanca/modulos-contextuais",
-  "/governanca/matriz-equivalencia",
-  "/governanca/identificadores",
-  "/governanca/varredura-completude",
   "/etiquetas",
   "/integracoes",
   "/importacoes",
@@ -343,7 +327,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/acessos-portal",
   "/atendimento",
   "/equipe",
-  "/auditoria",
 ] as const;
 
 /** Todas as rotas com link direto no menu principal ou no menu da conta. */
