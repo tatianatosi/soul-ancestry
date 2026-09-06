@@ -191,6 +191,12 @@ A proprietária pediu para continuar direto na cadência por evento. Antes disso
 
 **Achado real que sobrou, e esse sim genuíno**: o checklist de 12 itens já existente no caso da Ana **não bate** com `CHECKLIST_ONBOARDING_PADRAO` (15 itens) — faltam "participantes", "representação de menor" e "escopo aprovado" no dela, e os nomes de 3 itens finais são diferentes ("grupo_familiar"/"app_cliente"/"micro_entrega_d7" vs "proxima_acao_inicial"/"primeira_microentrega"/"limite_atualizacao"). Ou seja: existe um **terceiro** onboarding, além do meu (revertido) e do `CHECKLIST_ONBOARDING_PADRAO` — o que gerou os 12 itens da Ana não foi nenhum dos dois. Isso ainda não foi investigado; é o próximo passo real antes de tocar em cadência.
 
+## Varredura dos 38 documentos "autoridade admin" — 06/09/2026, 5ª rodada
+
+A proprietária pediu para ler os 38 documentos restantes (dos 39 encontrados com "autoridade"+"admin" no texto) um por um e executar. 26 deles são cópias arquivadas em `docs/evolucao/recuperados/prompts-lovable-2026-08-31/` dos mesmos 12 documentos únicos em `docs/politicas/`/`docs/arquitetura/` — mesmo padrão de pasta-espelho já visto hoje. Dos 12 únicos ainda não lidos nesta sessão, 11 são reconciliação histórica ou decisão de arquitetura ainda em aberto (não bug) — nada executável novo.
+
+**1 achado real, executado agora**: `PENTE-FINO-PENDENCIAS-E-ENTREGAS-2026-09-01.md` (§6.1) registrava 4 bugs reais encontrados em teste; a PR #44 corrigiu 3, e "falta de feedback em Abrir tarefa operacional" nunca foi corrigido. Confirmado no código: `abrirTarefaGate` (`fechamento-caso.functions.ts`) inseria tarefa sem checar duplicata — clicar duas vezes duplicava, mesmo bug do commit `e78cf0a` de hoje mas em outro caminho de código — e a tela (`fechamento.tsx`) só tinha `onSuccess`, sem `onError`/toast, então uma falha de gravação não mostrava nada. Corrigido: idempotência igual à de `salvarTarefa`, mais feedback de sucesso/erro real. Commit `ec1e53b`.
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.
