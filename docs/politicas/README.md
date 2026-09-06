@@ -83,6 +83,11 @@ Este documento ficou parado em 31/08 enquanto o trabalho continuou. Abaixo, só 
 | Taxonomia (`entity_labels`) do caso da Ana | 3 de 13 etiquetas ativas contradiziam dado já corrigido (núcleo familiar pendente, serviço do caso pendente, representação de menor pendente) — removidas (soft, com `removed_at`/`removed_by`). As outras 10 conferem com o dado real; 1 (`ESCOPO_PENDENTE`) ficou como decisão pendente, não removida. | soft-delete no banco, 06/09 |
 | Autoria PR #87/#88 | Registrado formalmente: execução declarada da proprietária como Perplexity Computer; autoria de commit verificável (e-mail real) da própria proprietária em #88/#89/#90. | `docs/auditorias/varredura-integral-2026-09-05/09-autoria-e-responsabilidade.md` |
 
+| Campos obrigatórios de conteúdo | Recontagem honesta dos 259 pontos de campo obrigatório no servidor: 168 validação de identificador (mantidos), 14 motivo de ação irreversível (mantidos), 77 eram só campo de conteúdo travando o salvar. Relaxados em 3 rodadas (259→214→38 gates reais), sempre preservando validação de identificador e conciliação financeira. | commits `8f084df`, `1d1e2c2`, `75a791b` |
+| Paleta de marca | `styles.css` tinha a paleta aprovada sob `[data-paleta="anterior"]`, mas nenhum arquivo do app ativava esse seletor — o produto sempre renderizou com outra paleta, nunca a aprovada. Corrigido no `:root`, conferido pixel a pixel contra o PDF do mockup aprovado. Rota `/mockup` volta como referência visual isolada. | commit `a33e5f2` |
+
+Produção e `main` conferidos ao vivo em 06/09: **mesmo SHA** (`71fe7b8`) nos dois — nada em produção que não esteja no `main`, nada pendente de subir.
+
 Itens acima **não verificados de novo** nesta rodada (P4, P5, P6, P8, P9, P10, P11 e o resto de P1/P3) continuam com o status de 31/08 até serem checados — não foram tocados nem confirmados como ainda válidos.
 
 ## Regra de leitura
