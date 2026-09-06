@@ -215,7 +215,7 @@ export const listarEquipe = createServerFn({ method: "GET" })
     const { data } = await supabase
       .from("staff_access")
       .select(
-        "id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
+        "id, auth_user_id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
       )
       .is("archived_at", null)
       .order("created_at", { ascending: false });

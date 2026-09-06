@@ -368,10 +368,17 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
             valor={c.review_owner_user_id ?? ""}
             opcoes={[
               { valor: "", rotulo: "Não definido" },
-              ...(membros as any[]).map((m) => ({
-                valor: m.id as string,
-                rotulo: (m.full_name as string) || (m.email as string),
-              })),
+              // 06/09/2026: listarEquipe() vem de staff_access, cuja PK (id) NAO
+              // e o auth_user_id real. Usar m.id aqui gravava
+              // review_owner_user_id apontando pra uma linha de staff_access, nao
+              // pra um usuario/profile real - salvava "com sucesso" um id
+              // orfao, sem erro visivel, e sem corresponder a ninguem de verdade.
+              ...(membros as any[])
+                .filter((m) => m.auth_user_id)
+                .map((m) => ({
+                  valor: m.auth_user_id as string,
+                  rotulo: (m.full_name as string) || (m.email as string),
+                })),
             ]}
             onSalvar={(v) => salvar({ review_owner_user_id: v || null })}
           />
