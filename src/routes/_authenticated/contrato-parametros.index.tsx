@@ -5,7 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Painel, Selo } from "@/components/comercial/base";
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { garantirParametros, listarParametros } from "@/lib/contrato-parametros.functions";
 
@@ -29,6 +30,14 @@ export const Route = createFileRoute("/_authenticated/contrato-parametros/")({
 });
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_condicao_comercial" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarParametros);
   const garantir = useServerFn(garantirParametros);
   const navigate = useNavigate();
@@ -42,6 +51,13 @@ function Pagina() {
 
   return (
     <SaasShell titulo="Motor contratual — dados parametrizáveis">
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <Painel titulo="Como funciona">
         <p className="text-sm text-navy/75">
           Cada caso real tem um único registro mestre. Os parâmetros são preenchidos uma vez, com origem declarada, e

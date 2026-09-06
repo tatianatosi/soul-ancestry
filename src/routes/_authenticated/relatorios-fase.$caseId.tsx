@@ -23,6 +23,8 @@ import {
   vincularEvidenciaRelatorio,
   vincularMicroentregaRelatorio,
 } from "@/lib/relatorios-fase.functions";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { useSaas } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -49,6 +51,14 @@ const VAZIO: Record<string, unknown> = {
 };
 
 function RelatoriosFase() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
@@ -140,6 +150,14 @@ function RelatoriosFase() {
         {dados?.caso?.titulo ?? "Caso"}. Registro interno. Nenhum PDF é gerado, nenhum envio ao cliente e nenhuma publicação no App
         nesta entrega.
       </p>
+
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mt-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => (

@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
 
@@ -26,6 +27,10 @@ export const Route = createFileRoute("/_authenticated/matriz-juridica")({
 });
 
 function MatrizPage() {
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
   const { podeEscrever: podeEscreverVinculo } = useSaas();
   // Autoridade operacional: vínculo somente leitura vira pendência declarada,
   // nunca campo ou botão desabilitado. A decisão fica em <AcaoOperacional>.
@@ -63,9 +68,11 @@ function MatrizPage() {
           : "Nenhum tema bloqueante pendente."}
       </div>
 
-      {pendenciaVinculo ? (
+      {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Pendência registrada: {pendenciaVinculo}
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
       <div className="mb-4">

@@ -23,6 +23,7 @@ import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
@@ -97,8 +98,15 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/pre
 });
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
   const { caseId } = Route.useParams();
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const qc = useQueryClient();
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
@@ -368,6 +376,13 @@ function Pagina() {
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-4">
         <Painel titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
           <div className="flex flex-wrap items-center gap-2 text-xs">

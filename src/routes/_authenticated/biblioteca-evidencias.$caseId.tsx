@@ -27,6 +27,9 @@ import {
   salvarEvidencia,
   salvarProjecao,
 } from "@/lib/biblioteca-evidencias.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { useSaas } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
   component: Pagina,
@@ -71,6 +74,14 @@ const inputCls = "mt-1 w-full rounded border border-navy/20 bg-white px-2 py-1.5
 type Aba = "evidencias" | "nova" | "validacao" | "projecoes" | "cadeia";
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
   const carregar = useServerFn(painelBibliotecaEvidencias);
@@ -190,6 +201,14 @@ function Pagina() {
         </p>
       </header>
 
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
+
       <nav className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {(
           [
@@ -291,13 +310,26 @@ function Pagina() {
                 <p className="mt-1 text-xs text-navy/80">{String(p["content_sanitized"])}</p>
                 <p className="mt-1 text-[11px] text-navy/50">{DISCLAIMER_PROJECAO}</p>
                 {["draft", "in_review"].includes(String(p["approval_status"])) ? (
-                  <div className="mt-2 flex gap-3 text-[11px]">
-                    <button className="underline decoration-gold" onClick={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}>
-                      Aprovar
-                    </button>
-                    <button className="underline decoration-gold" onClick={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}>
-                      Aprovar e publicar
-                    </button>
+                  <div className="mt-2 flex flex-wrap items-start gap-3 text-[11px]">
+                    <AcaoOperacional
+                      rotulo="Aprovar"
+                      variant="link"
+                      size="sm"
+                      capacidade="aprovar_projecao_app_cliente"
+                      pendenciaGate={pendenciaVinculo}
+                      efeito="Aprova a projeção internamente. Nada é publicado no App Cliente por esta ação."
+                      onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}
+                    />
+                    <AcaoOperacional
+                      rotulo="Aprovar e publicar"
+                      variant="link"
+                      size="sm"
+                      capacidade="aprovar_projecao_app_cliente"
+                      acaoExterna="publicar_no_app_cliente"
+                      pendenciaGate={pendenciaVinculo}
+                      efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
+                      onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}
+                    />
                   </div>
                 ) : null}
                 {String(p["approval_status"]) !== "archived" ? (

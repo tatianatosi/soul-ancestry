@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { EstadoVazio, SaasShell } from "@/components/saas/shell";
+import { EstadoVazio, SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { CardIndicador } from "@/components/desk/ui-desk";
@@ -57,6 +58,14 @@ const STATUS_LABEL = STATUS_ACESSO_LABEL;
 const NIVEL_LABEL_MAP: Record<string, string> = NIVEL_LABEL;
 
 function AcessosPortalPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "aprovar_projecao_app_cliente" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarAcessosPortal);
   const criar = useServerFn(criarConvitePortal);
@@ -167,6 +176,13 @@ function AcessosPortalPage() {
       titulo="Acessos ao portal"
       descricao="Clientes entram apenas por link mágico de uso único, enviado a e-mail previamente autorizado e validado."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <EstadoDados
         carregando={q.isLoading}
         erro={q.error}

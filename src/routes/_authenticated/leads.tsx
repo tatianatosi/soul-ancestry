@@ -11,7 +11,8 @@ import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
   AREAS_RESPONSAVEIS,
@@ -116,6 +117,14 @@ export const Route = createFileRoute("/_authenticated/leads")({
 type LeadComPendencias = LeadDesk & { pendencias?: ErroValidacao[] };
 
 function LeadsPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_fila_responsavel_prazo" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const arquivar = useServerFn(arquivarLeadDesk);
@@ -216,6 +225,13 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <NovoLeadDialog
         aberto={novoLeadAberto}
         onFechar={() => setNovoLeadAberto(false)}

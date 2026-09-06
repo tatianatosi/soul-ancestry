@@ -24,6 +24,8 @@ import {
 import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { useSaas } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -267,6 +269,14 @@ function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz
 }
 
 function FontesGenealogicas() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(painelFontes);
   const qc = useQueryClient();
   const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
@@ -309,6 +319,14 @@ function FontesGenealogicas() {
           confirmar · {grupos.bloqueadas.length} restritas ou descontinuadas
         </p>
       </header>
+
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
 
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}

@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Archive, ShieldCheck, Users } from "lucide-react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
@@ -88,6 +89,14 @@ function Etiqueta({
 }
 
 function ClientesPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const carregar = useServerFn(listarPessoasCliente);
   const ativar = useServerFn(ativarCliente);
@@ -143,6 +152,13 @@ function ClientesPage() {
       titulo="Clientes"
       descricao="Perfil de cliente só existe após ativação elegível. Pré-clientes, participantes de núcleo e demonstrações ficam fora da lista principal."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       {erro ? (
         <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {erro}

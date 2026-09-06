@@ -9,7 +9,8 @@ import { Painel, Selo, inputCls } from "@/components/comercial/base";
 import { LinhaParametro } from "@/components/contrato/linha-parametro";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { GRUPOS } from "@/lib/contrato-parametros.server";
 import {
   aprovarParametros,
@@ -50,6 +51,14 @@ function colunaLista<T>(valor: T[] | null | undefined): T[] {
 }
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_condicao_comercial" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const invalidar = () => qc.invalidateQueries({ queryKey: ["contrato-parametros", id] });
@@ -153,6 +162,13 @@ function Pagina() {
 
   return (
     <SaasShell titulo={`Contrato — ${caso?.codigo ?? "caso"}`}>
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-4">
         <Painel titulo="Fluxo: Caso → Contrato → Dados → Validar → Prévia → Aprovar → Assinatura → Financeiro">
           <div className="flex flex-wrap items-center gap-2 text-xs">

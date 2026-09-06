@@ -6,7 +6,8 @@ import { toast } from "sonner";
 
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { Painel, Selo, inputCls, dataBr } from "@/components/comercial/base";
 import {
   anotarResolucaoDivergencia,
@@ -38,6 +39,14 @@ export const Route = createFileRoute("/_authenticated/divergencias-catalogo")({
 type Status = "todos" | "bloqueio" | "atencao" | "resolvidas";
 
 function DivergenciasCatalogoPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarDivergenciasCatalogo);
   const anotar = useServerFn(anotarResolucaoDivergencia);
   const qc = useQueryClient();
@@ -90,6 +99,13 @@ function DivergenciasCatalogoPage() {
       titulo="Divergências de catálogo"
       descricao="Divergências registradas pela conciliação contra o catálogo homologado. Aqui só se registra observação de resolução — nada é aprovado, corrigido no catálogo ou desbloqueado."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-6">
         <Painel titulo="Filtros">
           <div className="grid gap-3 sm:grid-cols-3">

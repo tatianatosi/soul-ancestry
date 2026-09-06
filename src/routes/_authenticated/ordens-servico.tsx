@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
@@ -49,6 +50,14 @@ export const Route = createFileRoute("/_authenticated/ordens-servico")({
 type Linha = Record<string, unknown>;
 
 function OrdensPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { caseId } = Route.useSearch();
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
@@ -136,6 +145,13 @@ function OrdensPage() {
         )
       }
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-4">
         {!caseId && <FiltroStatus rotulos={ROTULO_ORDEM} valor={status} aoMudar={setStatus} />}
         {erro ? (

@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FORA_DE_ESCOPO_PILOTO, NUCLEO_PILOTO, PILOTO_ANA, ROTULO_ORIGEM_PENDENCIA, type PendenciaPiloto } from "@/lib/piloto-ana";
 import { carregarPilotoAna, definirIdCanonicoPiloto, materializarPilotoAna } from "@/lib/piloto-ana.functions";
@@ -54,6 +55,14 @@ function LinhaPendencia({ p }: { p: PendenciaPiloto }) {
 }
 
 function PilotoAna() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_caso_planejador_tarefa" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const carregar = useServerFn(carregarPilotoAna);
   const materializar = useServerFn(materializarPilotoAna);

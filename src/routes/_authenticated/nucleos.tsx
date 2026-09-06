@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import {
   NUCLEO_AMBIENTES,
   NUCLEO_DOSSIE_STATUS,
@@ -92,6 +93,10 @@ type Rascunho = {
 };
 
 function NucleosPage() {
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
   const { podeEscrever: podeEscreverVinculo } = useSaas();
   // Autoridade operacional: vínculo somente leitura não trava campo nem botão.
   // Vira pendência declarada e a decisão passa por <AcaoOperacional>.
@@ -255,9 +260,11 @@ function NucleosPage() {
           </div>
         </Secao>
 
-        {pendenciaVinculo ? (
+        {pendenciaVinculo || !podeEscrever ? (
           <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-            Pendência registrada: {pendenciaVinculo}
+            Pendência registrada:{" "}
+            {pendenciaVinculo ??
+              "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
           </p>
         ) : null}
 

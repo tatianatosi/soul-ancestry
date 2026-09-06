@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   CAMPOS_PLACEGO,
@@ -41,6 +42,14 @@ const Cartao = ({ titulo, children }: { titulo: string; children: React.ReactNod
 );
 
 function Importacoes() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const carregar = useServerFn(carregarMigracao);
   const preview = useServerFn(previewImportacaoPlacego);
@@ -79,6 +88,13 @@ function Importacoes() {
       titulo="Importações e migração controlada"
       descricao="Planilhas legadas são somente leitura. O Desk Intelligence é a fonte canônica de todo dado operacional novo."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="grid gap-4">
         <Cartao titulo="Fontes e situação de governança">
           <div className="overflow-x-auto">

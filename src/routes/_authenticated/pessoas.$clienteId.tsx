@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import {
   evidenciaDeMesmaPessoa,
@@ -162,6 +163,14 @@ type CamposPessoa = {
 
 function Pessoa() {
   const { clienteId } = Route.useParams();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca campo ou botão desabilitado.
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
   const qc = useQueryClient();
   const carregar = useServerFn(carregarPessoa);
   const salvar = useServerFn(atualizarPessoa);
@@ -280,6 +289,11 @@ function Pessoa() {
                 >
                   {mSalvar.isPending ? "Salvando…" : "Salvar"}
                 </button>
+                {!podeEscrever ? (
+                  <span className="self-center text-[11px] text-navy/50">
+                    Pendência registrada: {pendenciaVinculo}
+                  </span>
+                ) : null}
               </div>
             ) : (
               <button

@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { Painel, Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
@@ -33,6 +34,14 @@ export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
 });
 
 function Index() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(painelPesquisaModulo);
   const criar = useServerFn(criarPesquisaParaCaso);
   const scan = useServerFn(rodarScanPesquisa);
@@ -68,6 +77,13 @@ function Index() {
       titulo="Pesquisa Genealógica e Evidências"
       descricao="Pesquisas por caso, com pendências, evidências e travas de pesquisa externa."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       {q.isLoading && <p className="text-sm text-navy/60">Carregando painel…</p>}
       {q.error ? (
         <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">

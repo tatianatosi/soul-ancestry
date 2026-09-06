@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,14 @@ const moeda = (v: number | null, m: string) =>
 type Filtro = "todos" | "elegiveis" | "bloqueados" | "nao_revisados";
 
 function HomologacaoSkusPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "homologar_sku" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(lerSaneamentoCatalogo);
   const confirmar = useServerFn(confirmarHomologacaoLote);
   const qc = useQueryClient();
@@ -109,6 +118,13 @@ function HomologacaoSkusPage() {
       titulo="Revisão de SKUs para homologação"
       descricao="Leia e decida item a item antes de confirmar a homologação em lote. Nenhum preço é criado ou alterado aqui, e nenhuma cobrança, link ou envio é executado pela confirmação."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {[
           { r: "SKUs ativos em revisão", v: resumo.total },
