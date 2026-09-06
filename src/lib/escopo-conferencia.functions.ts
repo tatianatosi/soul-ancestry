@@ -5,7 +5,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoInterno } from "@/lib/comercial.server";
 import { auditoriaSanitizada } from "@/lib/escopo-conferencia";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
-import { CAMPOS_ESCOPO_PROPOSTA } from "@/lib/escopo-proposta";
 import { ACOES_GATEADAS_INTERNAS, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { ACAO_REVALIDAR, detalheAcaoRevalidar } from "@/lib/proposta-saneamento";
 
@@ -137,56 +136,6 @@ export const registrarRevalidacaoProposta = createServerFn({ method: "POST" })
     });
 
     return { id: criada.id, criada: true };
-  });
-
-/**
- * 06/09/2026 — achado real: não existia NENHUM caminho de escrita para
- * `proposals.escopo_paginas` em todo o repositório — só leitura. A proprietária
- * tinha que "readequar" o mesmo anexo repetidamente porque a extração das
- * páginas 3-7 do Canva nunca tinha uma tela para acontecer, só a das páginas
- * 1-2 (gravada direto no banco, alguma vez). Este é o formulário que faltava:
- * registra o texto exato de um campo da proposta aprovada, citando a página —
- * transcrição humana do documento real, nunca inferência (a regra de
- * escopo-proposta.ts de nunca substituir por Planejador/CRM continua intacta).
- */
-export const registrarCampoEscopoProposta = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: { caseId: string; campo: string; texto: string }) => d)
-  .handler(async ({ data, context }) => {
-    const supabase = context.supabase as any;
-    const actorId = context.userId as string;
-
-    const definicao = CAMPOS_ESCOPO_PROPOSTA.find((c) => c.campo === data.campo);
-    if (!definicao) throw new Error(`"${data.campo}" não é um campo de escopo da proposta reconhecido.`);
-    const texto = data.texto.trim();
-    if (texto.length < 3) throw new Error("Escreva o texto exato da proposta para este campo antes de registrar.");
-
-    const { dados } = await montarConferencia(supabase, { caseId: data.caseId });
-    if (!dados.proposta?.id) throw new Error("Nenhuma proposta vinculada a este caso para registrar escopo.");
-
-    const escopoAtual = ((dados.proposta as any).escopo_paginas ?? {}) as Record<string, unknown>;
-    const paginasAtuais = new Set<number>(((dados.proposta as any).paginas_registradas ?? []) as number[]);
-    for (const p of definicao.paginas) paginasAtuais.add(p);
-
-    const { error } = await supabase
-      .from("proposals")
-      .update({
-        escopo_paginas: { ...escopoAtual, [data.campo]: texto },
-        paginas_registradas: Array.from(paginasAtuais).sort((a, b) => a - b),
-      })
-      .eq("id", dados.proposta.id);
-    if (error) throw new Error(error.message);
-
-    await supabase.from("audit_logs").insert({
-      organization_id: dados.caso.organization_id,
-      user_id: actorId,
-      acao: "escopo_proposta_campo_registrado",
-      entidade: "proposals",
-      entidade_id: dados.proposta.id,
-      metadados: { campo: data.campo, paginas: definicao.paginas, tamanho_texto: texto.length },
-    });
-
-    return { registrado: true, campo: data.campo };
   });
 
 /**
