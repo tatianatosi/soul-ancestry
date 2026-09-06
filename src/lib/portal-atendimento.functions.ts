@@ -198,11 +198,6 @@ export const criarSolicitacaoDocumento = createServerFn({ method: "POST" })
     const finalidade = texto(data.finalidade, 80);
     const participante = texto(data.participanteNome, 160);
     if (!titulo) throw new Error("Informe o documento solicitado.");
-    if (!categoria) throw new Error("Informe a categoria do documento.");
-    if (!finalidade) throw new Error("Informe a finalidade da solicitação.");
-    if (!participante) throw new Error("Informe o participante a quem o documento se refere.");
-    if (!data.responsavelId) throw new Error("Informe o responsável interno.");
-    if (!data.prazo) throw new Error("Informe o prazo.");
 
     // Permissão sempre por caso + organização: nunca confie no id vindo da URL.
     const caso = await supabase
@@ -446,7 +441,6 @@ export const liberarEntregaCliente = createServerFn({ method: "POST" })
 
       const versao = texto(data.versao ?? null, 40);
       if (!versao) throw new Error("Informe a versão da entrega.");
-      if (!data.responsavelId) throw new Error("Informe o responsável pela entrega.");
       patch = {
         visibilidade: "cliente_quando_liberado",
         status: "liberado",
