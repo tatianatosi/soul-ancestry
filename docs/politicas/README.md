@@ -129,6 +129,32 @@ A proprietária autorizou nesta conversa a Fase 2 de `PROMPT-POLITICA-UNIFICADA-
 
 Itens acima **não verificados de novo** nesta rodada (P4, P5, P6, P8, P9, P10, P11 e o resto de P1/P3) continuam com o status de 31/08 até serem checados — não foram tocados nem confirmados como ainda válidos.
 
+## Correção de um erro meu — 06/09/2026, 2ª rodada
+
+A proprietária reenviou `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` e `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` pela 7ª vez perguntando por que precisa repetir. Reabrindo os dois com consulta direta ao Supabase (não só busca de texto em `src/`), encontrei um erro real nas duas linhas acima marcadas "não iniciado"/"zero":
+
+**O erro**: eu tinha procurado pelos nomes literais propostos nos documentos (`case_participants`, tabela de cadência) e, não encontrando esses nomes exatos, registrei "zero"/"não iniciado". Isso ignorou que o mesmo conceito já existe sob nomes em português, construídos antes desta sessão:
+
+| Pedido do documento | Existe como | Evidência real (consulta direta ao Supabase em 06/09) |
+|---|---|---|
+| `case_participants` (papéis por pessoa no caso) | `case_members` + `case_dependents` | Schema com `cpf`, `rg`, `papel_no_caso`, `requerente`, `contratante`, `titular`, `dependente`, `representante_legal`, `cliente_id` — praticamente campo a campo igual ao proposto |
+| `case_code_aliases` (alias de código legado) | `crm_casos.codigos_legados` + `ids_historicos` + `id_canonico_decidido`, e tabela `case_aliases` à parte | Caso da Ana: `codigos_legados = [CA-AUT-ANALUIZA-FAM-2026-001, CA-2026-ANA-001]`, `id_canonico_decidido = CA-CID-AT-FAM-2026-001` — já resolvido, com histórico preservado |
+| Indicador "casos com código duplicado deve ser zero" | — | **Rodado agora contra os 7 casos reais ativos (excluindo dados de demo/teste): zero duplicidade.** Não é só o caso da Ana — nenhum dos 7 tem código duplicado. |
+| "Próxima ação única por caso" (seção 3.4) | RPC `proxima_acao_prioritaria` | Já registrado na linha do pente fino anterior, confirmado de novo hoje: usado em `carregarCanonico` (`caso-canonico.functions.ts`), exibido em `casos.$caseId.index.tsx` |
+| Cadência por evento → rascunho com aprovação humana (seção 8/11) | `registrarProximaAcao` grava em `case_alerts` (interno) e `communication_queue` (rascunho externo, `status: awaiting_approval`, nunca enviado sem aprovação) | Código real em `caso-canonico.functions.ts`, já em `main` |
+| Onboarding único (seção 7) | `onboarding_checklist` + `onboarding_templates` | Tabelas existem e são lidas por `carregarCanonico`; não verifiquei ainda se cobrem as 13 etapas do documento uma a uma |
+| CRM vivo (lead → cliente → caso) | `leads`, `lead_sources`, `conversion_events` | Tabelas existem; `lead_activities` (histórico de atividade por lead) **não existe** — gap real |
+
+**O que isso muda**: as duas frases "não iniciado" e "Fase 2/3 confirmada como nunca iniciada" (linhas acima, registradas em rodadas anteriores desta mesma conversa) estavam **incompletas** — havia trabalho real feito que minha busca não alcançou. Não eram mentira deliberada, mas eram uma conclusão tirada de um método de busca errado (nome literal do documento, não o schema real), e é exatamente esse tipo de erro que gera a sensação de ter que repetir o mesmo prompt várias vezes: cada vez que eu procurava do jeito errado, respondia "zero" para algo que já existia.
+
+**Achado real e novo, corrigido nesta rodada**: apesar de `case_members` existir e cobrir o conceito de `case_participants`, ele estava **vazio para o caso da Ana** — os 4 membros do núcleo (Ana, Adair, Alice, Felipe) nunca tinham sido espelhados lá, embora estivessem corretos em `nucleo_membros`. As duas tabelas nunca se falavam, mesmo padrão de fonte-paralela-desconectada do resto do dia. Corrigido agora:
+
+- Nova função `sincronizarMembrosDoCaso(caseId)` em `caso-canonico.functions.ts` — genérica, funciona para qualquer caso, não só o da Ana; modo verificar/confirmar, nunca sobrescreve membro já existente.
+- Antes de gravar, simulação pegou o mesmo bug já visto em `sincronizarPessoaDoCaso`: Felipe (dependente) compartilha `cliente_id` com Ana, e uma versão ingênua teria copiado o CPF dela para o registro dele. Corrigido no código antes de qualquer gravação real — dependente nunca herda documento do responsável.
+- Executado para o caso da Ana (piloto): 4 membros criados em `case_members`, com os dados reais que já existiam — CPF da Ana e do Adair preenchidos, Alice e Felipe corretamente sem CPF (ela não tem CPF cadastrado em lugar nenhum; ele é dependente, nunca herda o da mãe). Log em `audit_logs`.
+
+**Continua genuinamente não feito** (sem fingir que está): `case_code_aliases` como tabela separada do documento não foi criada porque `crm_casos` já cobre a mesma necessidade inline — decisão de reaproveitar, não pendência esquecida. Cockpit e Eixo de Comunicação como motor único continuam confirmados como zero (isso não mudou nesta checagem). `lead_activities` não existe. As 13 etapas do onboarding único e os 20 critérios de aceite ponta a ponta da seção 17 do prompt de motores **não foram verificados um a um** nesta rodada — isso exigiria rodar o fluxo completo com dado real, não uma consulta de schema.
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.

@@ -325,6 +325,113 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * Verifica/sincroniza `case_members` a partir de `nucleo_membros` do mesmo
+ * caso. Achado real (Ana Luiza, 06/09): o núcleo familiar já tinha os 4
+ * membros corretos com `cliente_id` vinculado, mas `case_members` — a tabela
+ * que carrega CPF/RG/endereço para contrato e anexos — estava vazia para o
+ * caso dela. As duas tabelas nunca se falavam. Nunca sobrescreve um membro
+ * já registrado; apenas cria o que falta. Funciona para qualquer `caseId`,
+ * não só o da Ana.
+ */
+export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; confirmar?: boolean }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const { data: nucleos } = await supabase
+      .from("nucleos_familiares")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const nucleoIds = ((nucleos ?? []) as Linha[]).map((n) => n.id);
+    if (!nucleoIds.length) return { simulado: !data.confirmar, plano: [], criados: 0 };
+
+    const { data: membrosNucleo } = await supabase
+      .from("nucleo_membros")
+      .select("id,cliente_id,nome,papel,vinculo")
+      .in("nucleo_id", nucleoIds)
+      .is("archived_at", null);
+
+    const { data: membrosCaso } = await supabase
+      .from("case_members")
+      .select("cliente_id")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    const jaVinculados = new Set(((membrosCaso ?? []) as Linha[]).map((m) => m.cliente_id).filter(Boolean));
+
+    const faltantes = ((membrosNucleo ?? []) as Linha[]).filter((m) => m.cliente_id && !jaVinculados.has(m.cliente_id));
+
+    const clienteIds = Array.from(new Set(faltantes.map((m) => m.cliente_id)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select("id,cpf").in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+
+    const plano = faltantes.map((m) => {
+      const texto = `${m.papel ?? ""} ${m.vinculo ?? ""}`.toLowerCase();
+      const dependente = texto.includes("dependente");
+      const cliente = clientePorId.get(m.cliente_id as string);
+      const titular = texto.includes("titular");
+      /*
+       * Achado real (Felipe, caso Ana Luiza): um dependente menor sem
+       * cadastro próprio tem `cliente_id` apontando para o responsável.
+       * Sem esta guarda, o CPF da mãe seria copiado para o registro do
+       * filho só porque os dois compartilham o mesmo `cliente_id` —
+       * mesmo bug já corrigido em `sincronizarPessoaDoCaso`.
+       */
+      const cpf = dependente ? null : ((cliente?.cpf as string | null) ?? null);
+      return {
+        nucleoMembroId: m.id,
+        clienteId: m.cliente_id,
+        nome: m.nome,
+        parentesco: String(m.vinculo ?? m.papel ?? "não informado"),
+        dependente,
+        contratante: texto.includes("contratante"),
+        titular,
+        requerente: titular,
+        cpf,
+        temCpf: Boolean(cpf),
+      };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let criados = 0;
+    for (const item of plano) {
+      const { error } = await supabase.from("case_members").insert({
+        organization_id: organizationId,
+        case_id: data.caseId,
+        cliente_id: item.clienteId,
+        nome: item.nome,
+        parentesco: item.parentesco,
+        dependente: item.dependente,
+        contratante: item.contratante,
+        titular: item.titular,
+        requerente: item.requerente,
+        cpf: item.cpf,
+        status_cadastral: item.temCpf ? "completo" : "pendente",
+        fonte_origem_dado: "sincronizado_de_nucleo_membros",
+      });
+      if (error) throw new Error(`Membro do caso (${item.nome}): ${error.message}`);
+      criados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: "membros_sincronizados_de_nucleo",
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, plano, criados },
+    });
+
+    return { simulado: false, plano, criados };
+  });
+
 /** Taxonomia completa + mapa de equivalência com o Meta Agent (sem sincronizar). */
 export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
