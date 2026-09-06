@@ -179,6 +179,18 @@ A proprietária reenviou os mesmos documentos pela 8ª vez pedindo execução po
 
 Esses cinco itens são reais, específicos, e não foram feitos nesta rodada — dizer o contrário seria a mentira que ela está cobrando. Cada um exige tabela nova + lógica de negócio, não uma correção pontual como as das rodadas anteriores.
 
+## Priorização pedida — 06/09/2026, 4ª rodada: motor de onboarding
+
+A proprietária pediu para priorizar a execução do prompt de motores em vez de ficar só mapeando. Seguindo a própria ordem de implementação do documento (seção 16: item 5, "Onboarding unificado por template", é o primeiro item real da lista ainda não feito — itens 1-4 já estavam cobertos), executei agora:
+
+- **Achado**: `onboarding_templates` já existia (`ONB-PADRAO`, ativo), mas sem nenhuma etapa cadastrada — nada gerava checklist a partir dele. O checklist de 12 itens da Ana foi criado à parte, sem motor por trás. Os outros casos reais (`CA-CID-PT-IND-2026-002`, `CA-CID-IND-2026-001`, `CA-CID-IND-2026-002`) têm **zero** itens de onboarding.
+- **Migration** `20260906143000_onboarding_template_steps.sql`: cria `onboarding_template_steps` e preenche `ONB-PADRAO` com os mesmos 12 itens já validados em produção no caso da Ana — nenhum item novo inventado.
+- **Função nova** `iniciarOnboarding(caseId, templateCodigo?, confirmar)` em `caso-canonico.functions.ts`: genérica, funciona para qualquer caso; idempotente (se o caso já tem qualquer item de onboarding, não faz nada — nunca duplica); modo verificar/confirmar igual ao padrão já usado hoje.
+- **Testado ao vivo**: confirmado que o caso da Ana (já com 12 itens) é corretamente ignorado pela função (idempotência); simulado para `CA-CID-IND-2026-001` (caso real, sem nenhum item ainda) e o motor gerou o plano completo dos 12 itens corretamente — sem escrever nada ainda.
+- **Por que não gravei o onboarding desse terceiro caso de verdade**: ele está em `rascunho`, sem contrato. O próprio documento (seção 10, Política Unificada) manda criar onboarding "quando houver contratação/ativação" — gravar checklist de onboarding num lead que ainda não fechou seria fabricar progresso que não existe, o mesmo erro que ela está cobrando que eu pare de cometer. O motor está pronto e testado; falta o gatilho real (ativação do caso), não código.
+
+Próximo item real da lista, se ela quiser seguir a mesma ordem do documento: item 6, cadência disparada por evento (hoje só existe disparo manual via `registrarProximaAcao`).
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.
