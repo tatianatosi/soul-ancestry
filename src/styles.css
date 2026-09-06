@@ -65,11 +65,11 @@
      A paleta institucional anterior fica preservada e isolada em
      [data-paleta="anterior"] apenas para comparação pontual.
      --------------------------------------------------------------- */
-  --navy: #2F4B6E;
-  --navy-soft: #40628B;
-  --gold: #FCB73A;
-  --gold-soft: #FFD98A;
-  --cream: #ECDFCD;
+  --navy: #1B2B4B;
+  --navy-soft: #2A3D63;
+  --gold: #C9A84C;
+  --gold-soft: #E4CE8A;
+  --cream: #F5F0E8;
   --areia: #ECDFCD;
   --terracotta: #9A3A2F;
   --sage: #6B7B5E;
@@ -158,11 +158,11 @@
    --------------------------------------------------------------- */
 [data-marca="guia"] {
   /* marca */
-  --navy: #2F4B6E;
-  --navy-soft: #40628B;
-  --gold: #FCB73A;
-  --gold-soft: #FFD98A;
-  --cream: #ECDFCD;
+  --navy: #1B2B4B;
+  --navy-soft: #2A3D63;
+  --gold: #C9A84C;
+  --gold-soft: #E4CE8A;
+  --cream: #F5F0E8;
   --areia: #ECDFCD;
   --terracotta: #9A3A2F;
   --preto: #101010;
