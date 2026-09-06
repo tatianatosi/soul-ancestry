@@ -30,7 +30,9 @@ export function CompletudeCanva({
   const carregar = useServerFn(listarPaginasCanva);
   const salvar = useServerFn(salvarPaginaCanva);
   const qc = useQueryClient();
-  const [rascunho, setRascunho] = useState<Record<number, { status?: string; nao_localizados?: string; observacao?: string }>>({});
+  const [rascunho, setRascunho] = useState<
+    Record<number, { status?: string; conteudo?: string; nao_localizados?: string; observacao?: string }>
+  >({});
 
   const q = useQuery({
     queryKey: ["canva-paginas", proposalId],
@@ -83,6 +85,7 @@ export function CompletudeCanva({
           const r = porPagina.get(p);
           const d = rascunho[p] ?? {};
           const naoLocalizados = ((r?.campos_nao_localizados as string[]) ?? []).join(", ");
+          const conteudoAtual = String((r?.page_content_structured as { texto?: string })?.texto ?? "");
           return (
             <div key={p} className="rounded-lg border border-navy/10 p-3">
               <p className="mb-2 text-xs uppercase tracking-wide text-navy/50">
@@ -94,30 +97,49 @@ export function CompletudeCanva({
                   valor={d.status ?? String(r?.extracao_status ?? "")}
                   opcoes={STATUS}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], status: v } }))}
+                  desabilitado={!podeEscrever}
                 />
+              </div>
+              <div className="mt-3">
+                <Texto
+                  label="Conteúdo desta página (transcreva o que está no Canva)"
+                  valor={d.conteudo ?? conteudoAtual}
+                  onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], conteudo: v } }))}
+                  area
+                  desabilitado={!podeEscrever}
+                  ajuda="Transcreva o texto/escopo real da página. Sem isso, marcar como 'Extraída' não registra o conteúdo — só o status."
+                />
+              </div>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <Texto
                   label="Campos não localizados"
                   valor={d.nao_localizados ?? naoLocalizados}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], nao_localizados: v } }))}
+                  desabilitado={!podeEscrever}
                   ajuda="Separe por vírgula. Cada item vira pendência, nunca valor presumido."
                 />
                 <Texto
                   label="Observação interna"
                   valor={d.observacao ?? String(r?.observacao_interna ?? "")}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], observacao: v } }))}
+                  desabilitado={!podeEscrever}
                 />
               </div>
               {(
                 <button
                   type="button"
-                  className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+                  disabled={!podeEscrever}
+                  className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
                   onClick={() =>
                     mut.mutate({
                       proposalId,
                       caseId,
                       page_number: p,
                       extracao_status: d.status ?? String(r?.extracao_status ?? "pendente"),
-                      page_content_structured: (r?.page_content_structured as Record<string, unknown>) ?? {},
+                      page_content_structured: {
+                        ...((r?.page_content_structured as Record<string, unknown>) ?? {}),
+                        texto: d.conteudo ?? conteudoAtual,
+                      },
                       campos_nao_localizados: (d.nao_localizados ?? naoLocalizados)
                         .split(",")
                         .map((x) => x.trim())
