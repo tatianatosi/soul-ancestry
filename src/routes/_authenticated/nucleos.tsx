@@ -14,6 +14,7 @@ import {
   NUCLEO_DOSSIE_STATUS,
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
+  criarNucleo,
   encaminharFilaDrive,
   listarClientesParaVinculo,
   listarNucleos,
@@ -105,6 +106,7 @@ function NucleosPage() {
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarNucleos);
   const carregarClientes = useServerFn(listarClientesParaVinculo);
+  const criar = useServerFn(criarNucleo);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
   const encaminhar = useServerFn(encaminharFilaDrive);
@@ -127,6 +129,22 @@ function NucleosPage() {
     clienteId: string;
   } | null>(null);
   const [erroMembro, setErroMembro] = useState<string | null>(null);
+  const [novoNucleoAberto, setNovoNucleoAberto] = useState(false);
+  const [novoNucleoNome, setNovoNucleoNome] = useState("");
+  const [erroNovoNucleo, setErroNovoNucleo] = useState<string | null>(null);
+
+  const mCriarNucleo = useMutation({
+    mutationFn: (nome: string) => criar({ data: { nome } }),
+    onSuccess: async (criado) => {
+      setNovoNucleoAberto(false);
+      setNovoNucleoNome("");
+      setErroNovoNucleo(null);
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+      setSelecionado((criado as { id: string }).id);
+      toast.success("Núcleo criado.");
+    },
+    onError: (e: Error) => setErroNovoNucleo(e.message),
+  });
   const [sugestaoAcao, setSugestaoAcao] = useState<{ membroId: string; nome: string; caseId: string | null } | null>(
     null,
   );
@@ -257,6 +275,42 @@ function NucleosPage() {
               opcoes={opcoes(NUCLEO_DOSSIE_STATUS)}
               onChange={setFiltroStatus}
             />
+          </div>
+          <div className="mt-3">
+            {novoNucleoAberto ? (
+              <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+                <div className="min-w-[220px] flex-1">
+                  <Texto label="Nome do novo núcleo" valor={novoNucleoNome} onChange={setNovoNucleoNome} />
+                </div>
+                <button
+                  type="button"
+                  disabled={mCriarNucleo.isPending || !novoNucleoNome.trim()}
+                  onClick={() => mCriarNucleo.mutate(novoNucleoNome.trim())}
+                  className="rounded-lg bg-navy px-4 py-2 text-sm text-white disabled:opacity-50"
+                >
+                  {mCriarNucleo.isPending ? "Criando…" : "Criar núcleo"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNovoNucleoAberto(false);
+                    setErroNovoNucleo(null);
+                  }}
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+                >
+                  Cancelar
+                </button>
+                {erroNovoNucleo ? <p className="w-full text-xs text-terracotta">{erroNovoNucleo}</p> : null}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setNovoNucleoAberto(true)}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              >
+                + Novo núcleo
+              </button>
+            )}
           </div>
         </Secao>
 

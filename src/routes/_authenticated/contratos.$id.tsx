@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
@@ -338,8 +339,13 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
       await atualizar({ data: { id: c.id, patch } });
       setErro(null);
       onSalvo();
+      // 06/09/2026: campo salvava por autosave silencioso (só no blur), sem
+      // nenhuma confirmação visível — quem editava não tinha como saber se a
+      // gravação persistiu sem recarregar a página manualmente.
+      toast.success("Salvo.");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao salvar.");
+      toast.error("Não foi possível salvar esta alteração.");
     }
   };
   return (

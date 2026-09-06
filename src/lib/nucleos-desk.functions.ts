@@ -110,6 +110,50 @@ export const listarClientesParaVinculo = createServerFn({ method: "GET" })
     return (data ?? []) as { id: string; nome: string }[];
   });
 
+async function orgDoUsuario(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (!data?.organization_id) throw new Error("Usuário sem organização ativa.");
+  return data.organization_id as string;
+}
+
+/**
+ * Cria um núcleo familiar novo. Só o nome é obrigatório — o resto do cadastro
+ * (dossiê-mãe, ambiente, responsável) se completa depois pelo mesmo formulário
+ * de edição que já existia. 06/09/2026: a tela não tinha nenhum caminho de
+ * criação — só dava para editar o único núcleo já existente.
+ */
+export const criarNucleo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { nome: string; caseId?: string | null }) => {
+    if (!data?.nome?.trim()) throw new Error("Informe o nome do núcleo.");
+    if (data.caseId && !UUID.test(data.caseId)) throw new Error("Caso inválido.");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const supabase = (context as any).supabase;
+    const userId = (context as any).userId as string;
+    const organization_id = await orgDoUsuario(supabase, userId);
+
+    const { data: criado, error } = await supabase
+      .from("nucleos_familiares")
+      .insert({
+        organization_id,
+        nome: data.nome.trim(),
+        case_id: data.caseId || null,
+        created_by: userId,
+        updated_by: userId,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return criado;
+  });
+
 /** Atualiza o cadastro do dossiê-mãe de um núcleo. Campos classificatórios são listas fechadas. */
 export const salvarDossieNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

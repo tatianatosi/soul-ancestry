@@ -13,6 +13,7 @@ export type Divergencia = {
 };
 
 const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+const TIMESTAMP_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
 /** Normaliza para comparação tolerante a tipo de coluna (data, número, texto, lista). */
 export function normalizarValor(valor: unknown): string {
@@ -31,6 +32,16 @@ function equivalente(enviado: unknown, persistido: unknown): boolean {
   // data enviada como YYYY-MM-DD contra timestamp devolvido pelo banco
   if (DATA_ISO.test(a) && b.startsWith(a)) return true;
   if (DATA_ISO.test(b) && a.startsWith(b)) return true;
+  // 06/09/2026 — mesmo instante, formatos diferentes: "...615Z" (enviado pelo
+  // cliente) contra "...615+00:00" (devolvido pelo Postgres). Comparar como
+  // texto sempre falhava e disparava DIVERGENCIA_PERSISTENCIA falsa em toda
+  // acao que grava timestamp com hora (ex.: aprovar revisao). Comparar o
+  // instante real, nao a string.
+  if (TIMESTAMP_ISO.test(a) && TIMESTAMP_ISO.test(b)) {
+    const ta = Date.parse(a);
+    const tb = Date.parse(b);
+    if (Number.isFinite(ta) && Number.isFinite(tb) && ta === tb) return true;
+  }
   // numérico com formatação distinta (ex.: "80" x "80.00")
   const na = Number(a);
   const nb = Number(b);
