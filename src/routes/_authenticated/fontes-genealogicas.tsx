@@ -282,6 +282,25 @@ function FontesGenealogicas() {
   const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
   const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
 
+  // 06/09/2026: salvarFonte() no servidor sempre aceitou criacao (insere
+  // quando `id` vem ausente), mas a tela so chamava com `id` de uma fonte ja
+  // existente — nao havia nenhum caminho para cadastrar fonte nova. Mesmo
+  // padrao encontrado em Nucleos no mesmo dia.
+  const criarFonteFn = useServerFn(salvarFonte);
+  const [novaFonteAberta, setNovaFonteAberta] = useState(false);
+  const [novaFonteNome, setNovaFonteNome] = useState("");
+  const [erroNovaFonte, setErroNovaFonte] = useState<string | null>(null);
+  const mCriarFonte = useMutation({
+    mutationFn: (nome: string) => criarFonteFn({ data: { valores: { nome } } }),
+    onSuccess: () => {
+      setNovaFonteAberta(false);
+      setNovaFonteNome("");
+      setErroNovaFonte(null);
+      void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+    },
+    onError: (e: Error) => setErroNovaFonte(e.message),
+  });
+
   const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
@@ -327,6 +346,48 @@ function FontesGenealogicas() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
+
+      <div>
+        {novaFonteAberta ? (
+          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+            <label className="min-w-[220px] flex-1 text-[10px] uppercase tracking-wide text-navy/50">
+              Nome da nova fonte
+              <input
+                className="mt-1 w-full rounded border border-navy/15 px-2 py-1 text-[11px]"
+                value={novaFonteNome}
+                onChange={(e) => setNovaFonteNome(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={mCriarFonte.isPending || !novaFonteNome.trim()}
+              onClick={() => mCriarFonte.mutate(novaFonteNome.trim())}
+              className="rounded-lg bg-navy px-4 py-2 text-[11px] text-white disabled:opacity-50"
+            >
+              {mCriarFonte.isPending ? "Criando…" : "Criar fonte"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNovaFonteAberta(false);
+                setErroNovaFonte(null);
+              }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy"
+            >
+              Cancelar
+            </button>
+            {erroNovaFonte ? <p className="w-full text-[11px] text-terracotta">{erroNovaFonte}</p> : null}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setNovaFonteAberta(true)}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+          >
+            + Nova fonte
+          </button>
+        )}
+      </div>
 
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}
