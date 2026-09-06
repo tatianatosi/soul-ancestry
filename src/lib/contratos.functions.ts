@@ -458,6 +458,83 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Fase 3 da unificação de pessoa (autorizada pela proprietária, 06/09/2026):
+ * sincroniza documento (CPF) das partes do contrato a partir do cadastro
+ * canônico (clientes), pelo mesmo padrão já em produção em
+ * ressincronizarAnexosDoCaso — "Verificar" (confirmar: false) devolve um
+ * plano, "Sincronizar" (confirmar: true) grava. Só preenche o que está
+ * vazio; um valor diferente já registrado nunca é sobrescrito sozinho,
+ * vira conflito para decisão humana. Nunca mexe em parte de contrato já
+ * assinado.
+ */
+export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string; confirmar?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+
+    const { data: contrato } = await supabase
+      .from("contracts")
+      .select("id,signed_at")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!contrato?.id) throw new Error("Nenhum contrato vinculado a este caso.");
+
+    const { data: partes } = await supabase
+      .from("contract_parties")
+      .select("id,person_name,document_type,document_number,client_id")
+      .eq("contract_id", contrato.id)
+      .is("archived_at", null);
+
+    const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
+    const { data: clientesRaw } = clientIds.length
+      ? await supabase.from("clientes").select("id,nome,cpf").in("id", clientIds)
+      : { data: [] as any[] };
+    const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
+    const normalizar = (s: string) => s.replace(/\D/g, "");
+
+    const plano = ((partes ?? []) as any[]).map((p) => {
+      const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
+      if (!cliente?.cpf) return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+      if (p.document_number) {
+        return normalizar(String(p.document_number)) !== normalizar(String(cliente.cpf))
+          ? { parte: p.person_name, id: p.id, acao: "conflito" as const, atual: p.document_number, canonico: cliente.cpf }
+          : { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+      }
+      return { parte: p.person_name, id: p.id, acao: "preencher" as const, cpf: cliente.cpf as string };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano, contratoAssinado: Boolean(contrato.signed_at) };
+    if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      const { error } = await supabase
+        .from("contract_parties")
+        .update({ document_type: "CPF", document_number: item.cpf })
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "contract_parties",
+      entidade_id: contrato.id,
+      acao: "pessoa_sincronizada_do_cadastro_canonico",
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    return { simulado: false, plano, atualizados };
+  });
+
 export const arquivarItemContrato = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tabela: Filho; contract_id: string; id: string; motivo: string }) => data)
