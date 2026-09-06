@@ -32,3 +32,40 @@ export function assumirOuRecusar(
   if (ehProprietariaAdministradora(papel)) return [...lista];
   throw new Error(mensagem);
 }
+
+/**
+ * Verdadeiro quando quem executa é admin ativo. Para uso onde o papel não está
+ * em escopo e só se tem `supabase` e `userId`.
+ *
+ * Nunca derruba o fluxo: se a leitura falhar, devolve falso e o gate original
+ * segue valendo.
+ */
+export async function proprietariaOperando(
+  supabase: { from: (t: string) => any },
+  userId: string,
+): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from("staff_access")
+      .select("role,status")
+      .eq("auth_user_id", userId)
+      .is("archived_at", null)
+      .maybeSingle();
+    return data?.status === "active" && data?.role === "admin";
+  } catch {
+    return false;
+  }
+}
+
+/** Variante assíncrona de `assumirOuRecusar` quando só se tem supabase e userId. */
+export async function assumirOuRecusarComUsuario(
+  supabase: { from: (t: string) => any },
+  userId: string,
+  pendencias: readonly string[],
+  mensagem: string,
+): Promise<string[]> {
+  const lista = pendencias.filter((p) => Boolean(p && String(p).trim()));
+  if (lista.length === 0) return [];
+  if (await proprietariaOperando(supabase, userId)) return [...lista];
+  throw new Error(mensagem);
+}

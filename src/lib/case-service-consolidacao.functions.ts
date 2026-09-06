@@ -279,8 +279,16 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
         },
       });
       if (!gravacao.permitido) throw new Error(gravacao.erros.join(" "));
-      if (!elegibilidade.elegivel)
-        throw new Error(`Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`);
+      // Autoridade operacional (05/09/2026): pendência informa, não impede.
+      if (!elegibilidade.elegivel) {
+        const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+        await assumirOuRecusarComUsuario(
+          supabase as never,
+          (context as any).userId as string,
+          elegibilidade.motivos,
+          `Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`,
+        );
+      }
       if (!data.homologadoPor?.trim())
         throw new Error("Informe o responsável humano pela homologação da condição comercial.");
     }
