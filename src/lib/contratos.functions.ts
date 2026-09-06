@@ -595,6 +595,27 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
     if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
 
+    // Achado 06/09 (CA-CONTRATO-RASCUNHO-SEM-MODELO-013): o instrumento é
+    // vinculado a um contract_templates.id (contrato.data.template_id) desde a
+    // criação, mas esse ID nunca era lido de volta — só gravado como rótulo em
+    // contract_versions.source_template_id. O modelo real (14 cláusulas
+    // completas, preâmbulo, perfil institucional, em
+    // contract_templates.default_clauses) ficava 100% sem uso: quem editava o
+    // contrato via UI (contract_clause_overrides vazio) sempre via "Cláusulas
+    // indicadas: Pendente de preenchimento", mesmo com o modelo pronto e
+    // aprovado no banco. Buscamos o modelo aqui para servir de piso textual
+    // quando não há cláusula específica sobrescrita para este contrato.
+    let modelo: any = null;
+    if (contrato.data.template_id) {
+      const r = await supabase
+        .from("contract_templates")
+        .select("id,name,default_clauses,status")
+        .eq("organization_id", organizationId)
+        .eq("id", contrato.data.template_id)
+        .maybeSingle();
+      modelo = r.data ?? null;
+    }
+
     /*
       Achado 05/09 (CA-CONTRATO-OS-SEM-BLOQUEIO-SURREAL-011): esta checagem
       barrava a própria geração do RASCUNHO INTERNO — que a tela já rotula
@@ -648,6 +669,8 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
       anexos: linhasDe<any>(anexos, "anexos do instrumento"),
       contratoBase,
+      modeloClausulas: modelo?.default_clauses ?? null,
+      modeloStatus: modelo?.status ?? null,
     });
 
     const proxima = (ultima.data?.version_number ?? 0) + 1;
