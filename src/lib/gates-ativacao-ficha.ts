@@ -40,7 +40,44 @@ const preenchido = (v: unknown) => typeof v === "string" && v.trim().length > 0;
 
 
 /** Os 7 requisitos de ativação, na ordem em que precisam ser cumpridos. */
-export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
+/**
+ * Requisitos de ativação já validados à mão em `case_activation_checks`,
+ * mapeados para o gate correspondente desta ficha.
+ *
+ * Diagnóstico de 05/09/2026, caso CA-CID-AT-FAM-2026-001 (Ana Luiza): os 14
+ * requisitos estavam validados no banco desde 04/09, e a ficha continuava
+ * dizendo "Não elegível — ativação bloqueada". A tela derivava tudo da linha
+ * de `crm_casos` e nunca lia os requisitos validados. Duas fontes de verdade
+ * discordando na mesma tela.
+ */
+const GATE_POR_CHECK: Record<string, string> = {
+  proposta_aprovada_ou_isencao_autorizada: "canva_completo",
+  contrato_assinado_ou_isencao_autorizada: "assinatura",
+  pagamento_confirmado_ou_condicao_financeira_autorizada: "pagamento_confirmado",
+  aprovacao_interna_ativacao: "aprovacao_ativacao",
+  escopo_definido: "escopo_sku_preco",
+  ordem_de_servico_criada: "instrumentos_preparados",
+};
+
+export type CheckValidado = { check_key: string; status?: string | null };
+
+/** Gates satisfeitos por requisito validado à mão. */
+function gatesValidadosPorCheck(checks: readonly CheckValidado[] = []): Set<string> {
+  const satisfeitos = new Set<string>();
+  for (const c of checks) {
+    const status = String(c?.status ?? "").toLowerCase();
+    if (status !== "validado" && status !== "isento" && status !== "ok") continue;
+    const gate = GATE_POR_CHECK[c.check_key];
+    if (gate) satisfeitos.add(gate);
+  }
+  return satisfeitos;
+}
+
+export function gatesAtivacaoFicha(
+  caso: Linha,
+  checksValidados: readonly CheckValidado[] = [],
+): GateAtivacao[] {
+  const porCheck = gatesValidadosPorCheck(checksValidados);
   const escopoConferido = preenchido(caso["condicoes_verificadas_em"]);
   const canvaCompleto =
     preenchido(caso["proposta_referencia_interna"]) &&
@@ -80,11 +117,13 @@ export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
   const g = (chave: string, rotulo: string, ok: boolean, responsavel: string, motivo: string): GateAtivacao => ({
     chave,
     rotulo,
-    ok,
+    // Requisito validado à mão vale como atendido: é decisão humana registrada,
+    // com autor e data, e não pode ser ignorada pela derivação da tela.
+    ok: ok || porCheck.has(chave),
     responsavel,
     categoria: CATEGORIA_POR_GATE[chave] ?? "Operação",
 
-    motivo: ok ? null : motivo,
+    motivo: ok || porCheck.has(chave) ? null : motivo,
     destino: destinos[chave] ?? { rota: `/onboarding/${caseId}`, rotulo: "Abrir requisitos de ativação" },
     evidencia: evidencias[chave] ?? "Evidência documental registrada.",
   });
@@ -142,7 +181,7 @@ export function gatesAtivacaoFicha(caso: Linha): GateAtivacao[] {
   ];
 }
 
-export function resumoGatesAtivacao(caso: Linha): {
+export function resumoGatesAtivacao(caso: Linha, checksValidados: readonly CheckValidado[] = []): {
   itens: GateAtivacao[];
   concluidos: number;
   total: number;
@@ -150,7 +189,7 @@ export function resumoGatesAtivacao(caso: Linha): {
   rotuloBotao: string;
   rotaAcao: string;
 } {
-  const itens = gatesAtivacaoFicha(caso);
+  const itens = gatesAtivacaoFicha(caso, checksValidados);
   const concluidos = itens.filter((i) => i.ok).length;
   const elegivel = concluidos === itens.length;
   return {
@@ -176,8 +215,8 @@ export type BlocoCategoriaGate = {
   estado: "concluida" | "pendente";
 };
 
-export function gatesPorCategoria(caso: Linha): BlocoCategoriaGate[] {
-  const itens = gatesAtivacaoFicha(caso);
+export function gatesPorCategoria(caso: Linha, checksValidados: readonly CheckValidado[] = []): BlocoCategoriaGate[] {
+  const itens = gatesAtivacaoFicha(caso, checksValidados);
   return CATEGORIAS_GATE.map((categoria) => {
     const doGrupo = itens.filter((i) => i.categoria === categoria);
     const concluidos = doGrupo.filter((i) => i.ok).length;
@@ -203,8 +242,8 @@ export type EstadoDerivadoGates = {
   elegivel: boolean;
 };
 
-export function estadoDerivadoPorGates(caso: Linha): EstadoDerivadoGates {
-  const itens = gatesAtivacaoFicha(caso);
+export function estadoDerivadoPorGates(caso: Linha, checksValidados: readonly CheckValidado[] = []): EstadoDerivadoGates {
+  const itens = gatesAtivacaoFicha(caso, checksValidados);
   const pendentes = itens.filter((i) => !i.ok);
   if (pendentes.length === 0) {
     return {

@@ -1,4 +1,6 @@
 import { semCache } from "@/lib/no-store";
+// Alias obrigatório: este arquivo já usa `linhas` como variável local.
+import { linhas as linhasDe } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -55,12 +57,12 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
         .in("status", ["aberta", "reconhecida"]),
     ]);
 
-    const listaCasos = (casos.data ?? []) as Record<string, any>[];
-    const listaPend = (pendencias.data ?? []) as Record<string, any>[];
-    const listaEvid = (evidencias.data ?? []) as Record<string, any>[];
+    const listaCasos = linhasDe<Record<string, any>>(casos, "casos de pesquisa");
+    const listaPend = linhasDe<Record<string, any>>(pendencias, "pendências de pesquisa");
+    const listaEvid = linhasDe<Record<string, any>>(evidencias, "evidências de pesquisa");
     const mapaCaso = new Map(listaCasos.map((c) => [c["id"], c]));
 
-    const linhas = ((pesquisas.data ?? []) as Record<string, any>[]).map((p) => {
+    const linhas = linhasDe<Record<string, any>>(pesquisas, "pesquisas do painel").map((p) => {
       const pend = listaPend.filter(
         (x) => x["research_case_id"] === p["id"] && ["open", "in_progress", "blocked"].includes(x["status"]),
       );
@@ -79,7 +81,7 @@ export const painelPesquisaModulo = createServerFn({ method: "GET" })
     return {
       papel,
       pesquisas: linhas,
-      inconsistencias: (issues.data ?? []) as Record<string, any>[],
+      inconsistencias: linhasDe<Record<string, any>>(issues, "inconsistências de qualidade da pesquisa"),
       casosSemPesquisa: listaCasos.filter(
         (c) => !linhas.some((l) => l["case_id"] === c["id"]),
       ),
@@ -224,8 +226,8 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
         .in("status", ["aberta", "reconhecida"]),
     ]);
 
-    const idsPessoas = ((pessoas.data ?? []) as Record<string, any>[]).map((p) => p["id"]);
-    const idsEvid = ((evidencias.data ?? []) as Record<string, any>[]).map((e) => e["id"]);
+    const idsPessoas = linhasDe<Record<string, any>>(pessoas, "pessoas da pesquisa").map((p) => p["id"]);
+    const idsEvid = linhasDe<Record<string, any>>(evidencias, "evidências da pesquisa").map((e) => e["id"]);
 
     const [variantes, vinculos] = await Promise.all([
       idsPessoas.length
@@ -253,20 +255,20 @@ export const carregarPesquisaModulo = createServerFn({ method: "GET" })
       pesquisa,
       caso,
       gate: (gate as any).data ?? null,
-      pessoas: (pessoas.data ?? []) as Record<string, any>[],
-      variantes: ((variantes as any).data ?? []) as Record<string, any>[],
-      relacoes: (relacoes.data ?? []) as Record<string, any>[],
-      eventos: (eventos.data ?? []) as Record<string, any>[],
-      fontes: (fontes.data ?? []) as Record<string, any>[],
-      evidencias: (evidencias.data ?? []) as Record<string, any>[],
-      vinculos: ((vinculos as any).data ?? []) as Record<string, any>[],
-      hipoteses: (hipoteses.data ?? []) as Record<string, any>[],
-      pedidos: (pedidos.data ?? []) as Record<string, any>[],
-      pendencias: (pendencias.data ?? []) as Record<string, any>[],
-      relatorios: (relatorios.data ?? []) as Record<string, any>[],
-      resumos: (resumos.data ?? []) as Record<string, any>[],
-      auditoria: (auditoria.data ?? []) as Record<string, any>[],
-      inconsistencias: ((issues as any).data ?? []) as Record<string, any>[],
+      pessoas: linhasDe<Record<string, any>>(pessoas, "pessoas da pesquisa"),
+      variantes: linhasDe<Record<string, any>>(variantes as any, "variantes de nome da pesquisa"),
+      relacoes: linhasDe<Record<string, any>>(relacoes, "relações da pesquisa"),
+      eventos: linhasDe<Record<string, any>>(eventos, "eventos da pesquisa"),
+      fontes: linhasDe<Record<string, any>>(fontes, "fontes da pesquisa"),
+      evidencias: linhasDe<Record<string, any>>(evidencias, "evidências da pesquisa"),
+      vinculos: linhasDe<Record<string, any>>(vinculos as any, "vínculos de evidência da pesquisa"),
+      hipoteses: linhasDe<Record<string, any>>(hipoteses, "hipóteses da pesquisa"),
+      pedidos: linhasDe<Record<string, any>>(pedidos, "pedidos de documento da pesquisa"),
+      pendencias: linhasDe<Record<string, any>>(pendencias, "pendências da pesquisa"),
+      relatorios: linhasDe<Record<string, any>>(relatorios, "relatórios da pesquisa"),
+      resumos: linhasDe<Record<string, any>>(resumos, "resumos ao cliente da pesquisa"),
+      auditoria: linhasDe<Record<string, any>>(auditoria, "auditoria da pesquisa"),
+      inconsistencias: linhasDe<Record<string, any>>(issues as any, "inconsistências de qualidade da pesquisa"),
     };
   });
 
@@ -512,23 +514,23 @@ export const gerarRelatorioInterno = createServerFn({ method: "POST" })
     linhas.push(`Caso ${caso["codigo"] ?? "—"} · ${caso["titulo"] ?? "—"}`);
     linhas.push(`Objetivo: ${pesquisa["research_objective"] || "—"}`);
     linhas.push(l("Pessoas"));
-    for (const p of (pessoas.data ?? []) as Record<string, any>[]) {
+    for (const p of linhasDe<Record<string, any>>(pessoas, "pessoas da pesquisa")) {
       linhas.push(`- ${p["canonical_name"]} · ${p["person_status"]} · identidade: ${p["identity_status"]}`);
     }
     linhas.push(l("Relações"));
-    for (const r of (relacoes.data ?? []) as Record<string, any>[]) {
+    for (const r of linhasDe<Record<string, any>>(relacoes, "relações da pesquisa")) {
       linhas.push(`- ${r["relationship_type"]} · situação: ${r["status"]} · confiança: ${r["confidence_level"]}`);
     }
     linhas.push(l("Eventos"));
-    for (const e of (eventos.data ?? []) as Record<string, any>[]) {
+    for (const e of linhasDe<Record<string, any>>(eventos, "eventos da pesquisa")) {
       linhas.push(`- ${e["event_type"]} · ${e["event_date"] ?? "data não confirmada"} · situação: ${e["status"]}`);
     }
     linhas.push(l("Evidências"));
-    for (const e of (evidencias.data ?? []) as Record<string, any>[]) {
+    for (const e of linhasDe<Record<string, any>>(evidencias, "evidências da pesquisa")) {
       linhas.push(`- ${e["title"]} · situação: ${e["evidence_status"]} · confiança: ${e["confidence_level"]}`);
     }
     linhas.push(l("Pendências"));
-    for (const p of (pendencias.data ?? []) as Record<string, any>[]) {
+    for (const p of linhasDe<Record<string, any>>(pendencias, "pendências da pesquisa")) {
       linhas.push(`- [${p["severity"]}] ${p["title"]} · ${p["status"]}`);
     }
     linhas.push(l("Pesquisa externa"));

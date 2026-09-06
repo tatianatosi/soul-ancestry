@@ -2,6 +2,8 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+// Alias obrigatório: este arquivo já usa `linhas` como variável local.
+import { linhas as linhasDe } from "@/lib/linhas";
 
 /**
  * Motor contratual — camada de servidor.
@@ -160,16 +162,16 @@ export const obterContrato = createServerFn({ method: "GET" })
       parametrosId: (parametros?.id as string | undefined) ?? null,
       valorReferencia: valoresParametros?.find((v) => v.campo === "valor_total")?.valor ?? null,
       prazoReferencia: valoresParametros?.find((v) => v.campo === "vencimentos")?.valor ?? null,
-      partes: partes.data ?? [],
-      escopo: escopo.data ?? [],
-      clausulas: clausulas.data ?? [],
-      anexos: anexos.data ?? [],
-      fontes: fontes.data ?? [],
-      versoes: versoes.data ?? [],
-      validacoes: validacoes.data ?? [],
-      eventos: eventos.data ?? [],
-      ordens: ordens.data ?? [],
-      excecoes: excecoes.data ?? [],
+      partes: linhasDe<any>(partes, "partes do instrumento"),
+      escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
+      clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
+      anexos: linhasDe<any>(anexos, "anexos do instrumento"),
+      fontes: linhasDe<any>(fontes, "fontes vinculadas ao instrumento"),
+      versoes: linhasDe<any>(versoes, "versões do instrumento"),
+      validacoes: linhasDe<any>(validacoes, "validações do instrumento"),
+      eventos: linhasDe<any>(eventos, "eventos de revisão do instrumento"),
+      ordens: linhasDe<any>(ordens, "ordens de serviço do instrumento"),
+      excecoes: linhasDe<any>(excecoes, "exceções do instrumento"),
     };
   });
 
@@ -207,12 +209,12 @@ export const painelContratual = createServerFn({ method: "GET" })
       supabase.from("contract_exceptions").select("*").match(org).is("archived_at", null),
     ]);
 
-    const listaContratos = (contratos.data ?? []) as any[];
-    const abertas = (validacoes.data ?? []) as any[];
-    const anexosPendentes = ((anexos.data ?? []) as any[]).filter(
+    const listaContratos = linhasDe<any>(contratos, "instrumentos do painel contratual");
+    const abertas = linhasDe<any>(validacoes, "validações abertas do painel contratual");
+    const anexosPendentes = linhasDe<any>(anexos, "anexos exigidos do painel contratual").filter(
       (a) => !["ready_for_review", "approved", "attached", "not_applicable"].includes(a.status),
     );
-    const ordensImpedidas = ((ordens.data ?? []) as any[]).filter((o) =>
+    const ordensImpedidas = linhasDe<any>(ordens, "ordens de serviço do painel contratual").filter((o) =>
       ["draft", "pending_approval", "approved", "paused"].includes(o.status),
     );
     const agora = Date.now();
@@ -226,10 +228,10 @@ export const painelContratual = createServerFn({ method: "GET" })
       ),
       anexosAusentes: anexosPendentes,
       ordensImpedidas,
-      excecoesExpiradas: ((excecoes.data ?? []) as any[]).filter(
+      excecoesExpiradas: linhasDe<any>(excecoes, "exceções do painel contratual").filter(
         (e) => e.expires_at && new Date(e.expires_at).getTime() < agora,
       ),
-      excecoesVigentes: ((excecoes.data ?? []) as any[]).filter(
+      excecoesVigentes: linhasDe<any>(excecoes, "exceções do painel contratual").filter(
         (e) => !e.revoked_at && (!e.expires_at || new Date(e.expires_at).getTime() >= agora),
       ),
     };
@@ -540,7 +542,7 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
             observacao: "rascunho interno gerado mesmo assim — pendência registrada, não impeditiva",
           });
         }
-      } else if (!(escopo.data ?? []).length) {
+      } else if (!linhasDe<any>(escopo, "itens de escopo do instrumento").length) {
         pendenciasConciliacao = ["Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados."];
       }
     }
@@ -559,10 +561,10 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
 
     const conteudo = helpers.montarRascunho({
       contrato: contrato.data,
-      partes: partes.data ?? [],
-      escopo: escopo.data ?? [],
-      clausulas: clausulas.data ?? [],
-      anexos: anexos.data ?? [],
+      partes: linhasDe<any>(partes, "partes do instrumento"),
+      escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
+      clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
+      anexos: linhasDe<any>(anexos, "anexos do instrumento"),
       contratoBase,
     });
 
@@ -1134,13 +1136,13 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
     // Valor total e vencimento não existem em `contracts` — vêm dos
     // parâmetros do Planejador vinculados (contract_case_parameters.contract_id
     // → contract_parameter_values), quando o contrato já estiver religado.
-    const { data: parametrosVinculados } = await supabase
+    const parametrosVinculados = await supabase
       .from("contract_case_parameters")
       .select("contract_id,contract_parameter_values(campo,valor)")
       .eq("organization_id", organizationId)
       .in("contract_id", ids);
     const referenciaPorContrato = new Map<string, { valor: string | null; prazo: string | null }>();
-    for (const reg of (parametrosVinculados ?? []) as any[]) {
+    for (const reg of linhasDe<any>(parametrosVinculados, "parâmetros do Planejador vinculados aos contratos")) {
       const valores = (reg.contract_parameter_values ?? []) as { campo: string; valor: string | null }[];
       referenciaPorContrato.set(reg.contract_id, {
         valor: valores.find((v) => v.campo === "valor_total")?.valor ?? null,

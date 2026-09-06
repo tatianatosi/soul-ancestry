@@ -34,7 +34,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive] = await Promise.all([
+    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao] = await Promise.all([
       supabase
         .from("case_members")
         .select("*")
@@ -62,6 +62,10 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         .limit(200),
       supabase.from("blueprint_parameters").select("*").eq("case_id", data.id).is("archived_at", null),
       supabase.from("drive_provisioning_queue").select("*").eq("case_id", data.id).is("archived_at", null),
+      // Requisitos de ativação validados à mão. A ficha derivava tudo da linha
+      // do caso e ignorava estes registros: o caso da Ana tinha os 14
+      // validados e a tela continuava dizendo "ativação bloqueada".
+      supabase.from("case_activation_checks").select("check_key,label,status,dominio,obrigatorio").eq("case_id", data.id),
     ]);
 
     // Completude do núcleo por critérios persistidos (ANA-B-01), nunca por existência de linha.
@@ -86,6 +90,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       timeline: (timeline.data ?? []) as Linha[],
       blueprint: (blueprint.data ?? []) as Linha[],
       filaDrive: (filaDrive.data ?? []) as Linha[],
+      checksAtivacao: (checksAtivacao.data ?? []) as Linha[],
     };
   });
 

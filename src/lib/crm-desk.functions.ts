@@ -1,4 +1,6 @@
 import { semCache } from "@/lib/no-store";
+// Alias obrigatório: este arquivo já usa `linhas` como variável local.
+import { linhas as linhasDe } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { semFixtures } from "@/lib/fixtures";
@@ -224,7 +226,7 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const [{ data: leads }, { data: casos }] = await Promise.all([
+    const [leadsRes, casosRes] = await Promise.all([
       supabase.from("leads").select("*").limit(1000),
       supabase
         .from("crm_casos")
@@ -234,8 +236,10 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
     ]);
     // Fixtures de demonstração ficam fora das filas e métricas por padrão;
     // só entram quando o filtro explícito "Incluir demonstrações" é acionado.
-    const listaLeads = (data.incluirDemo ? (leads ?? []) : semFixtures((leads ?? []) as never)) as unknown as LeadDesk[];
-    const listaCasos = ((data.incluirDemo ? (casos ?? []) : semFixtures((casos ?? []) as never)) as any[]).filter(
+    const leads = linhasDe<any>(leadsRes, "leads do Painel Hoje");
+    const casos = linhasDe<any>(casosRes, "casos do Painel Hoje");
+    const listaLeads = (data.incluirDemo ? leads : semFixtures(leads as never)) as unknown as LeadDesk[];
+    const listaCasos = ((data.incluirDemo ? casos : semFixtures(casos as never)) as any[]).filter(
       // Massa TESTE nunca aparece no Painel Hoje padrão.
       (c) => data.incluirDemo || c.dados_teste !== true,
     );
@@ -325,9 +329,10 @@ export const listarMatrizJuridica = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data: rows } = await supabase.from("legal_clause_matrix").select("*").is("archived_at", null);
+    const matrizRes = await supabase.from("legal_clause_matrix").select("*").is("archived_at", null);
+    const rows = linhasDe<any>(matrizRes, "matriz jurídica");
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
-      const l = ((rows ?? []) as any[]).find((r) => r.tema_codigo === t.tema_codigo);
+      const l = rows.find((r) => r.tema_codigo === t.tema_codigo);
       return {
         tema_codigo: t.tema_codigo,
         tema: t.tema,
@@ -418,13 +423,13 @@ export const listarPaginasCanva = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data: rows } = await supabase
+    const paginasRes = await supabase
       .from("proposal_canva_pages")
       .select("*")
       .eq("proposal_id", data.proposalId)
       .is("archived_at", null)
       .order("page_number");
-    return (rows ?? []) as any[];
+    return linhasDe<any>(paginasRes, "páginas da proposta Canva");
   });
 
 /** Registra a extração de uma página 1–7 da proposta Canva. */
@@ -534,7 +539,7 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
         .limit(1),
     ]);
 
-    const rows = (matrizRes.data ?? []) as any[];
+    const rows = linhasDe<any>(matrizRes, "matriz jurídica");
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
       const l = rows.find((r) => canonicalizarTemaCodigo(r.tema_codigo) === t.tema_codigo);
       return {
@@ -555,7 +560,7 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
     const assinatura = avaliarAssinaturaPelaMatriz(linhas);
     const bloqueios = assinatura.bloqueios.map((b) => ({ origem: "matriz_juridica", detalhe: `${b.tema}: ${b.motivo}` }));
 
-    const dependentes = (depRes.data ?? []) as any[];
+    const dependentes = linhasDe<any>(depRes, "dependentes do caso");
     for (const d of dependentes) {
       if (String(d.status_representacao ?? "") !== "documentada") {
         bloqueios.push({
@@ -565,24 +570,24 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
       }
     }
 
-    const checklist = (checkRes.data ?? []) as any[];
+    const checklist = linhasDe<any>(checkRes, "checklist cadastral do caso");
     const checklistPendente = checklist.filter((c) => String(c.status ?? "") !== "completo").length;
     if (checklistPendente) {
       bloqueios.push({ origem: "checklist_cadastral", detalhe: `${checklistPendente} item(ns) cadastrais pendentes.` });
     }
 
-    const servicos = (servRes.data ?? []) as any[];
+    const servicos = linhasDe<any>(servRes, "case services do caso");
     const servicoNaoConsolidado = servicos.filter((s) => !["approved", "contracted"].includes(String(s.status ?? ""))).length;
     if (!servicos.length) bloqueios.push({ origem: "case_service", detalhe: "Nenhum case service registrado." });
     else if (servicoNaoConsolidado)
       bloqueios.push({ origem: "case_service", detalhe: `${servicoNaoConsolidado} case service(s) fora de estado consolidado.` });
 
-    const criterios = (critRes.data ?? []) as any[];
+    const criterios = linhasDe<any>(critRes, "critérios de aceite do caso");
     const criteriosPendentes = criterios.filter((c) => String(c.estado ?? c.status ?? "") !== "aceito").length;
     if (criteriosPendentes)
       bloqueios.push({ origem: "criterios_aceite", detalhe: `${criteriosPendentes} critério(s) de aceite pendentes.` });
 
-    const conferencia = ((confRes.data ?? []) as any[])[0] ?? null;
+    const conferencia = linhasDe<any>(confRes, "conferência de escopo da proposta")[0] ?? null;
     if (!conferencia) bloqueios.push({ origem: "conferencia_canva", detalhe: "Conferência de escopo da proposta não registrada." });
     else if (String(conferencia.status ?? "") !== "aprovado_para_preparacao")
       bloqueios.push({ origem: "conferencia_canva", detalhe: `Conferência de escopo em estado “${conferencia.status}”.` });
@@ -627,8 +632,11 @@ async function buscarDuplicidades(
   supabase: any,
   entrada: { nome: string; email?: string | null; telefone?: string | null },
 ): Promise<PossivelDuplicidade[]> {
-  const { data } = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
-  const linhas = (data ?? []) as Array<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>;
+  const leadsRes = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
+  const linhas = linhasDe<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>(
+    leadsRes,
+    "leads para checagem de duplicidade",
+  );
 
   const email = (entrada.email ?? "").trim().toLowerCase();
   const tel = soDigitos(entrada.telefone ?? "");
