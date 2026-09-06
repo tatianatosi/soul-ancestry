@@ -117,6 +117,16 @@ Completando o pente fino: os outros 20 arquivos deste diretório já estavam cob
 
 **Conclusão desta rodada completa de `docs/politicas/`:** além dos achados já registrados acima, não apareceu nenhum quarto item "nunca iniciado" novo. Os únicos zeros confirmados continuam sendo três: Cockpit, Eixo de Comunicação como motor único, e o motor `case_participants`.
 
+## Autorização registrada em 06/09/2026 — unificação de pessoa e núcleos
+
+A proprietária autorizou nesta conversa a Fase 2 de `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` (unificação de pessoa), que estava pausada desde 30/08 só por falta dessa decisão. Executado, reaproveitando entidades existentes em vez de criar a tabela hipotética `case_participants` do documento original (regra do próprio documento: "reaproveitar entidades existentes antes de criar novas"):
+
+- **Achado**: das 3 fontes reais de pessoa por caso (`contract_parties`, `nucleo_membros`, `genealogical_person_profiles`), só `genealogical_person_profiles` nunca tinha vínculo com `clientes` — as outras duas já usavam `client_id`/`cliente_id` corretamente.
+- **Migration** `20260906134500_unificar_pessoa_genealogica_com_cliente.sql`: adiciona `genealogical_person_profiles.client_id` (nullable, FK para `clientes`, aditiva — nenhuma tabela apagada ou renomeada).
+- **Backfill do caso da Ana**: as 4 pessoas (Ana, Adair, Alice, Felipe) agora têm o mesmo `client_id` nas 3 fontes. `contract_parties.client_id` de Felipe também foi preenchido (estava nulo, único que faltava).
+- **Núcleos duplicados**: detecção real rodada agora (mesmo cliente em mais de um núcleo; nomes de núcleo repetidos na mesma organização) — **zero duplicidade encontrada**, confirmando o resultado já registrado da Fase 1 (PR #36, 31/08). Não havia núcleo para unificar de fato.
+- **Não feito nesta rodada**: estender esse vínculo para outros casos além do da Ana (piloto único, igual ao padrão do dia inteiro); Fase 3 (motor de sincronização automática entre as fontes) segue não iniciada.
+
 Itens acima **não verificados de novo** nesta rodada (P4, P5, P6, P8, P9, P10, P11 e o resto de P1/P3) continuam com o status de 31/08 até serem checados — não foram tocados nem confirmados como ainda válidos.
 
 ## Regra de leitura
