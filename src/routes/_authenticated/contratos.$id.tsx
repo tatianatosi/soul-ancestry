@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
@@ -1063,11 +1064,21 @@ function Revisao({
   const aprovar = useServerFn(aprovarParaEnvio);
   const excecao = useServerFn(criarExcecao);
   const os = useServerFn(salvarOrdemServico);
+  // 06/09/2026: "Aprovar para envio" recusava com "Escopo contratado definido" e
+  // "condicao comercial nao persistida a partir da proposta aprovada", mas quem
+  // corrige isso (derivar o Anexo I da proposta) so existia na tela do caso
+  // (/casos/$caseId/contrato/preparar), sem link nenhum a partir daqui. Trazendo
+  // o motor pra dentro da propria aba de Revisao: zero navegacao, um clique.
+  const autoridadeAnexo = useAutoridade();
+  const podeEscreverAnexo = !autoridadeAnexo.bloqueado({ capacidade: "aprovar_proposta_os_anexo_previa" });
 
   if (!versao) return <p className="text-sm text-navy/60">Gere uma versão de trabalho antes da revisão.</p>;
 
   return (
     <div className="space-y-5">
+      {dados.contrato?.case_id ? (
+        <CadeiaFormalizacao caseId={dados.contrato.case_id} podeEscrever={podeEscreverAnexo} />
+      ) : null}
       <div>
         <p className="text-sm">
           Versão em revisão: <strong>v{versao.version_number}</strong> · decisão atual: {versao.review_decision}
