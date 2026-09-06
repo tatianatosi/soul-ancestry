@@ -155,6 +155,30 @@ A proprietária reenviou `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` e `PROM
 
 **Continua genuinamente não feito** (sem fingir que está): `case_code_aliases` como tabela separada do documento não foi criada porque `crm_casos` já cobre a mesma necessidade inline — decisão de reaproveitar, não pendência esquecida. Cockpit e Eixo de Comunicação como motor único continuam confirmados como zero (isso não mudou nesta checagem). `lead_activities` não existe. As 13 etapas do onboarding único e os 20 critérios de aceite ponta a ponta da seção 17 do prompt de motores **não foram verificados um a um** nesta rodada — isso exigiria rodar o fluxo completo com dado real, não uma consulta de schema.
 
+## 8ª vez — 06/09/2026, 3ª rodada: lista fechada do que falta de verdade nos dois motores
+
+A proprietária reenviou os mesmos documentos pela 8ª vez pedindo execução ponta a ponta "sem gambiarra". Fui direto ao schema de novo (não só busca de texto) para fechar, de uma vez, a lista real do que falta — sem prometer os dois documentos inteiros em uma resposta, porque isso é exatamente a gambiarra que ela está recusando.
+
+**Mais infraestrutura real que eu não tinha visto ainda**, confirmada agora com código lido, não suposição:
+
+- `fontes-canonicas-indicadores.ts` — registro declarativo com **origem única de contagem** por indicador (Vencidos/vence hoje, Sem responsável, Contratos aguardando assinatura, Divergência de catálogo, Pendência documental, Funil comercial, Higiene comercial, Leads aguardando ação), cada um com fórmula, fonte canônica e rota de ação — isto é, quase literalmente a seção 13 ("Indicadores reais") do prompt de motores, já implementada com regra explícita contra números concorrentes/duplicados.
+- `painel-hoje-acoes.functions.ts` — `corrigirFilaCanonica` (corrige responsável/prazo/próxima ação direto nas tabelas canônicas — `leads`, `opportunities`, `crm_casos`, `tarefas`) e `registrarOverrideProprietaria`, os dois com auditoria real em `owner_override_events`, checagem de papel via RLS, e explicitamente **sem** bypass de admin nem service-role no navegador — cobre boa parte da seção 2.2 (segurança) e 10 (persistência/confirmação) do prompt de Cockpit.
+- `onboarding_checklist` já é uma checklist real por caso (12 itens, com status persistido — confirmado no caso da Ana: 2 concluídos, 10 pendentes).
+
+**Executado agora, novo e real — `case_phase_history`:** a seção 10 do prompt de motores e a seção 8 da política unificada pedem que toda mudança de fase do caso gere histórico, "sem depender de auditoria/gate". Isso não existia. Criei a tabela `case_phase_history` e um **trigger** em `crm_casos` (não uma função que cada tela precisa lembrar de chamar — dispara sozinho em qualquer `UPDATE` que mude `fase`, para qualquer caso, presente ou futuro). Testado agora, ao vivo: mudei a fase do caso da Ana duas vezes e as duas ficaram registradas automaticamente, com fase anterior e nova; devolvi a fase ao valor original, sem deixar sujeira. Migration `20260906140000_case_phase_history.sql`.
+
+**Lista fechada do que continua genuinamente não existindo** (verifiquei cada nome no schema, não no texto do prompt):
+
+| Falta real | O que exigiria |
+|---|---|
+| `micro_deliveries` | Tabela nova + regra de quando cada evento gera uma micro-entrega (documento validado, achado, marco) — não existe hoje |
+| `onboarding_runs`/`onboarding_actions` como motor de templates por `service_type`/`country_code`/`route` | `onboarding_checklist` é uma lista fixa de 12 itens por caso, não um motor parametrizado — para virar isso precisaria de `onboarding_templates` com etapas reais (a tabela existe mas está vazia/sem etapas) |
+| `cadence_runs`/`cadence_actions` disparados automaticamente pelos 24 eventos da seção 8 (lead_created, contract_signed, payment_overdue etc.) | Hoje o único disparo real é manual, via `registrarProximaAcao` — não existe um dispatcher que escute os eventos da lista e crie/pare cadência sozinho |
+| `lead_activities` | Não existe; `leads`/`lead_sources`/`conversion_events` existem, histórico de atividade por lead não |
+| Cockpit como as 7 abas reorganizadas (Hoje/Comercial/Casos/Pessoas/Pesquisa/Marketing/Configuração) | O próprio prompt do Cockpit manda não redesenhar tudo de uma vez (seção 11, "Fase 1... Fase 4... Fase 5") — continua zero, mas por ser fase final de um plano faseado, não por recusa |
+
+Esses cinco itens são reais, específicos, e não foram feitos nesta rodada — dizer o contrário seria a mentira que ela está cobrando. Cada um exige tabela nova + lógica de negócio, não uma correção pontual como as das rodadas anteriores.
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.
