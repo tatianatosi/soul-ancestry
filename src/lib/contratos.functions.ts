@@ -569,9 +569,6 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     });
 
     const proxima = (ultima.data?.version_number ?? 0) + 1;
-    if (proxima > 1 && !data.change_summary?.trim()) {
-      throw new Error("A partir da versão 2 informe o resumo das alterações.");
-    }
 
     const { data: versao, error } = await supabase
       .from("contract_versions")

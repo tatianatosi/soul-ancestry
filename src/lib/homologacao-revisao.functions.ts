@@ -25,7 +25,6 @@ export const confirmarHomologacaoLote = createServerFn({ method: "POST" })
     if (!["admin", "operacoes"].includes(papel)) {
       throw new Error("Homologação de catálogo restrita a admin e operações.");
     }
-    if (!data.ids.length) throw new Error("Nenhum SKU selecionado para homologação.");
 
     const { lerSaneamentoCatalogo } = await import("@/lib/catalogo-canonico.functions");
     const leitura: any = await (lerSaneamentoCatalogo as any)({ data: { incluirTeste: false } });

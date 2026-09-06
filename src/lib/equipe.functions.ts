@@ -443,7 +443,6 @@ async function registrarBootstrapNegado(h: typeof import("./equipe.server"), mot
 export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: { email: string; senha: string; nome: string; organizacao: string }) => {
     if (!data.senha || data.senha.length < 10) throw new Error("A senha deve ter ao menos 10 caracteres.");
-    if (!data.organizacao?.trim()) throw new Error("Informe o nome da organização.");
     return data;
   })
   .handler(async ({ data }) => {

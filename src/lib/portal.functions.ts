@@ -450,7 +450,6 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
 
     let caso: any = null;
     if (data.nivel === "client_workspace") {
-      if (!data.casoId) throw new Error("Para acesso ao espaço do cliente é obrigatório associar um caso.");
       if (auth.case_id && auth.case_id !== data.casoId) {
         throw new Error("A autorização é específica de outro caso.");
       }

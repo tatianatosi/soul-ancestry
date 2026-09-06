@@ -325,7 +325,6 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar("genealogical_person_profiles", data.valores);
     const nome = String(valores["nome_completo"] ?? "").trim();
-    if (!nome) throw new Error("Nome completo é obrigatório.");
     if (!data.pesquisaId) {
       throw new Error(
         "Este caso ainda não tem registro de pesquisa. Crie a pesquisa do caso antes de cadastrar pessoas.",

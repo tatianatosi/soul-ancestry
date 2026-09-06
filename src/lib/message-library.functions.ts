@@ -299,9 +299,6 @@ export const salvarTemplate = createServerFn({ method: "POST" })
       variaveisSeguras?: string[];
       variaveisObrigatorias?: string[];
     }) => {
-      if (!data?.categoriaId) throw new Error("Categoria obrigatória.");
-      if (!data.key?.trim()) throw new Error("Chave do modelo é obrigatória.");
-      if (!data.nome?.trim()) throw new Error("Nome do modelo é obrigatório.");
       const problemas = validarConteudoTemplate(data.corpo, data.publico);
       if (problemas.length) throw new Error(problemas.join(" "));
       return {
@@ -368,9 +365,6 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
     if (!STATUS_TEMPLATE.some((s) => s.valor === data.status)) throw new Error("Estado inválido.");
     if (data.status === "arquivado" && (data.motivo ?? "").trim().length < 5) {
       throw new Error("Arquivamento exige motivo com pelo menos 5 caracteres.");
-    }
-    if (data.status === "substituido" && !data.sucessorId) {
-      throw new Error("Substituição exige indicar o modelo sucessor.");
     }
     return {
       id: data.id,

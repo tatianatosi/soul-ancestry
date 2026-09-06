@@ -147,7 +147,6 @@ export const listarVinculos = createServerFn({ method: "GET" })
 export const obterPropostaCanvaDoCliente = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clienteId: string }) => {
-    if (!data?.clienteId) throw new Error("Informe o cliente.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -230,7 +229,6 @@ export const salvarProposta = createServerFn({ method: "POST" })
       });
       return { id: data.id };
     }
-    if (!dados["client_id"] && !dados["lead_id"]) throw new Error("Informe o cliente ou o lead da proposta.");
     const proximaVersao = await supabase
       .from("proposals")
       .select("versao")
@@ -278,7 +276,6 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
 export const renovarValidadeProposta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; validade: string; motivo: string }) => {
-    if (!data.validade) throw new Error("Informe a nova validade.");
     return data;
   })
   .handler(async ({ data, context }) => {

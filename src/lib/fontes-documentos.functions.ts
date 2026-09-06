@@ -58,7 +58,6 @@ function validarDicionarios(valores: Record<string, unknown>) {
   const naoIdent = valores["pessoa_nao_identificada"] === true;
   const pessoa = String(valores["pessoa_ref_id"] ?? "").trim();
   if ("pessoa_ref_id" in valores || "pessoa_nao_identificada" in valores) {
-    if (naoIdent === Boolean(pessoa)) throw new Error("PESSOA_RELACIONADA_OBRIGATORIA");
   }
 }
 
