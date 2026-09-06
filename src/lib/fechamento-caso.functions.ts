@@ -175,12 +175,34 @@ export const abrirTarefaGate = createServerFn({ method: "POST" })
     const def = DEFINICOES_FECHAMENTO.find((d) => d.chave === data.gate);
     if (!def) throw new Error("Gate desconhecido.");
 
+    const titulo = `Fechamento — ${def.rotulo}`;
+
+    /*
+     * Idempotência (achado real, PENTE-FINO-PENDENCIAS-E-ENTREGAS-2026-09-01.md
+     * §6.1, nunca corrigido — PR #44 tratou os outros 3 bugs da mesma rodada,
+     * não este): clicar duas vezes em "Abrir tarefa operacional" criava duas
+     * tarefas para o mesmo gate. Mesma regra já aplicada em salvarTarefa()
+     * (ops.functions.ts) — reaproveita a tarefa aberta em vez de duplicar.
+     */
+    const { data: existente } = await supabase
+      .from("tarefas")
+      .select("id,titulo,status")
+      .eq("organization_id", ctx.organizationId)
+      .eq("caso_id", data.casoId)
+      .eq("titulo", titulo)
+      .not("status", "in", "(concluida,cancelada)")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existente?.id) return { ...existente, reaproveitada: true } as Record<string, any>;
+
     const { data: criada, error } = await supabase
       .from("tarefas")
       .insert({
         organization_id: ctx.organizationId,
         caso_id: data.casoId,
-        titulo: `Fechamento — ${def.rotulo}`,
+        titulo,
         descricao: `${def.acaoDesk}. Condição de avanço: ${def.condicaoAvanco}.`,
         tipo: data.gate === "cobranca" ? "financeiro" : data.gate === "pesquisa" ? "pesquisa" : "geral",
         status: "nao_iniciada",
@@ -193,7 +215,7 @@ export const abrirTarefaGate = createServerFn({ method: "POST" })
       .select("id,titulo,status")
       .single();
     if (error) throw new Error(error.message);
-    return criada as Record<string, any>;
+    return { ...criada, reaproveitada: false } as Record<string, any>;
   });
 
 /** Métricas diárias da jornada — uso interno do Desk. */

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { abrirTarefaGate, carregarFechamentoCaso } from "@/lib/fechamento-caso.functions";
 import type { GateFechamento } from "@/lib/fechamento-caso";
@@ -33,9 +34,11 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
   const tarefa = useMutation({
     mutationFn: (gate: GateFechamento) => abrirTarefa({ data: { casoId, gate } }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      toast.success(r.reaproveitada ? "Tarefa já aberta para este gate." : "Tarefa aberta.");
       void qc.invalidateQueries({ queryKey: ["fechamento-caso", casoId] });
     },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível abrir a tarefa."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando fechamento…</p>;
