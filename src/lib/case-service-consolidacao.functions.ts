@@ -289,8 +289,6 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
           `Condição não pode ser homologada: ${elegibilidade.motivos.join(" ")}`,
         );
       }
-      if (!data.homologadoPor?.trim())
-        throw new Error("Informe o responsável humano pela homologação da condição comercial.");
     }
 
     const { data: existente } = await supabase
@@ -402,8 +400,6 @@ export const decidirCriterioAceite = createServerFn({ method: "POST" })
       throw new Error(
         "Informe a justificativa da decisão — nenhum critério muda de estado sem justificativa registrada.",
       );
-    if (data.status === "aceito" && !data.evidenciaInterna)
-      throw new Error("Informe a evidência interna que sustenta o aceite deste critério.");
 
     const decidido = data.status === "aceito" || data.status === "recusado";
     const { data: linhas, error } = await supabase
