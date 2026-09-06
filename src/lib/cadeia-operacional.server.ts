@@ -199,23 +199,61 @@ export async function materializarProposta(
 ) {
   const caso = await casoDaCadeia(supabase, input.org, input.caseId);
 
-  const { data: plano } = await supabase
-    .from("case_plans")
+  // Fonte do planejador.
+  //
+  // Diagnóstico de 05/09/2026: a lógica migrou para o Planejador Universal,
+  // que persiste em `blueprint_parameters`. `case_plans` ficou vazia — zero
+  // registros em toda a base — e esta função continuava lendo só ela. Por isso
+  // o caso da Ana, que tem blueprint completo, recebia "Sem planejador
+  // persistido" e travava a cadeia inteira no elo 3.
+  //
+  // Passa a ler o blueprint primeiro e cair em `case_plans` só como legado.
+  const { data: blueprint } = await supabase
+    .from("blueprint_parameters")
     .select("*")
     .eq("case_id", caso.id)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!plano) throw new Error("Sem planejador persistido: a proposta não pode ser materializada.");
+
+  const { data: planoLegado } = blueprint
+    ? { data: null }
+    : await supabase
+        .from("case_plans")
+        .select("*")
+        .eq("case_id", caso.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+  const plano = blueprint ?? planoLegado;
+  if (!plano) {
+    throw new Error(
+      "Sem planejador persistido: crie o Planejador Universal do caso antes de materializar a proposta.",
+    );
+  }
 
   const { data: skuRow } = plano.product_catalog_id
     ? await supabase.from("product_catalog").select(SELECT_SKU).eq("id", plano.product_catalog_id).is("archived_at", null).maybeSingle()
     : { data: null };
   const sku = skuCanonico(skuRow);
-  if (!sku) throw new Error("Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.");
+  // O Planejador Universal define escopo, fases, entregas e critérios sem
+  // depender de SKU do catálogo. Exigir SKU aqui era a regra antiga, e travava
+  // caso com blueprint completo. Para a proprietária, a ausência de SKU vira
+  // pendência assumida; para os demais papéis segue bloqueando.
+  if (!sku) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      ["Planejador sem SKU homologado do catálogo (Planilha Mestre)."],
+      "Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.",
+    );
+  }
 
-  const entrada = entradaDoPlano(plano, caso.id, sku.code);
+  const entrada = entradaDoPlano(plano, caso.id, sku?.code ?? "");
   const saida = avaliarPlanejador(entrada);
   const libera = planejadorLiberaProposta(saida);
   // Autoridade operacional (05/09/2026): pendência do planejador informa, não
@@ -260,10 +298,12 @@ export async function materializarProposta(
     escopo: escopo.servicos_incluidos.map((s) => `• ${s}`).join("\n"),
     exclusoes: escopo.exclusoes.map((s) => `• ${s}`).join("\n"),
     escopo_estruturado: escopo,
-    product_catalog_id: sku.id,
-    valor: sku.preco_sugerido,
-    moeda: sku.moeda,
-    preco_fonte_referencia: sku.fonte_referencia,
+    // Sem SKU, o Planejador Universal e a proposta aprovada sao a fonte:
+    // preco vem do blueprint ou da propria proposta, nunca inventado.
+    product_catalog_id: sku?.id ?? null,
+    valor: sku?.preco_sugerido ?? (plano as { preco_comercial_vigente?: number | null }).preco_comercial_vigente ?? null,
+    moeda: sku?.moeda ?? "BRL",
+    preco_fonte_referencia: sku?.fonte_referencia ?? "planejador_universal",
     responsavel_comercial: input.responsavelComercial,
     responsavel_operacional: input.responsavelOperacional,
     dados_teste: caso.dados_teste === true,
@@ -305,7 +345,7 @@ export async function materializarProposta(
     acao: "proposta_estruturada_derivada_do_planejador",
     entidade: "proposals",
     entidadeId: proposalId,
-    metadados: { case_id: caso.id, plan_id: plano.id, versao, sku: sku.code, plano_hash: saida.hash },
+    metadados: { case_id: caso.id, plan_id: plano.id, versao, sku: sku?.code ?? null, fonte_planejador: "blueprint_parameters", plano_hash: saida.hash },
   });
 
   return { proposalId, versao, idempotente: false, escopo };

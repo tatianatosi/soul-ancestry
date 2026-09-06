@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -89,9 +90,14 @@ export const listarParametros = createServerFn({ method: "GET" })
         .is("archived_at", null),
     ]);
 
-    const porCaso = new Map<string, any>((registros.data ?? []).map((r: any) => [r.case_id, r]));
+    const porCaso = new Map<string, any>(
+      linhas<any>(registros, "registros mestres de parâmetros").map((r: any) => [r.case_id, r]),
+    );
     return {
-      casos: (casos.data ?? []).map((c: any) => ({ ...c, parametros: porCaso.get(c.id) ?? null })),
+      casos: linhas<any>(casos, "casos com parâmetros contratuais").map((c: any) => ({
+        ...c,
+        parametros: porCaso.get(c.id) ?? null,
+      })),
     };
   });
 
@@ -197,7 +203,11 @@ export const painelParametros = createServerFn({ method: "GET" })
       ? (await supabase.from("contracts").select("id,contract_number,status,signed_at,signature_reference,signed_source").eq("id", registro.contract_id).maybeSingle()).data
       : null;
 
-    const valoresLista = await preencherQualificacaoContratada(supabase, data.id, (valores.data ?? []) as any[]);
+    const valoresLista = await preencherQualificacaoContratada(
+      supabase,
+      data.id,
+      linhas<any>(valores, "valores dos parâmetros do contrato"),
+    );
 
     return {
       registro,
@@ -206,9 +216,9 @@ export const painelParametros = createServerFn({ method: "GET" })
       template: (template as any).data ?? null,
       contrato,
       valores: valoresLista,
-      previas: previas.data ?? [],
+      previas: linhas<any>(previas, "prévias do registro de parâmetros"),
       completude: completude.data ?? null,
-      pendencias: pendencias.data ?? [],
+      pendencias: linhas<any>(pendencias, "pendências dos parâmetros do contrato"),
     };
   });
 
@@ -322,11 +332,12 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
 
 
 
-    const { data: valores } = await supabase
+    const valoresRes = await supabase
       .from("contract_parameter_values")
       .select("*")
       .eq("parameters_id", data.id)
       .is("archived_at", null);
+    const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
 
     let importados = 0;
     const conflitos: { campo: string; atual: string; origem_atual: string; candidato: string; origem_candidata: string }[] = [];
@@ -339,7 +350,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
     const camposHomologados = new Set(candidatos.map((c) => c.campo));
     const limpos: { campo: string; valor: string }[] = [];
-    for (const v of (valores ?? []) as any[]) {
+    for (const v of valores) {
       if (v.origem !== "planejador" || !v.valor?.trim()) continue;
       if (temCorrecaoHomologada(v)) continue;
       const revogado = !camposHomologados.has(v.campo);
@@ -372,7 +383,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     for (const c of candidatos) {
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
-      const atual = (valores ?? []).find((v: any) => v.campo === c.campo);
+      const atual = valores.find((v: any) => v.campo === c.campo);
       if (!atual) continue;
 
       // Correção humana homologada nunca é sobrescrita pela pré-carga.
@@ -466,7 +477,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     // já usada para incoerência de país/rota, para que apareça de forma persistente em
     // LinhaParametro e possa ser resolvida do mesmo jeito (editar o valor limpa o conflito).
     for (const cp of conflitosProposta) {
-      const atual = (valores ?? []).find((v: any) => v.campo === cp.campo);
+      const atual = valores.find((v: any) => v.campo === cp.campo);
       if (!atual) continue;
       await supabase
         .from("contract_parameter_values")
@@ -619,7 +630,7 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
   const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
   if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 
-  const [{ data: valores }, { data: caso }, { data: template }] = await Promise.all([
+  const [valoresRes, { data: caso }, { data: template }] = await Promise.all([
     supabase
       .from("contract_parameter_values")
       .select("*")
@@ -642,7 +653,8 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
     : null;
 
-  const valoresFicha = ((valores ?? []) as any[]).map((v) => ({
+  const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
+  const valoresFicha = valores.map((v) => ({
     campo: v.campo,
     valor: v.valor,
     origem: v.origem,
@@ -671,7 +683,7 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     cliente,
     templateCode: template.code,
     templateVersion: template.template_version ?? null,
-    valores: (valores ?? []) as any,
+    valores: valores as any,
     corpo,
   });
 
@@ -736,14 +748,14 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
     const todas = instanciasDeAnexos({ anexos: corpo.anexos, internos: [] });
     const doLote = todas.filter((i) => ehAnexoRevisado(i.annex_code));
 
-    const { data: existentes } = await supabase
+    const existentes = await supabase
       .from("contract_annexes")
       .select("annex_code,title,status,annex_version,model_version,file_hash,rendered_html,updated_at,is_test")
       .eq("organization_id", registro.organization_id)
       .eq("case_id", registro.case_id)
       .is("archived_at", null);
 
-    const persistidas = ((existentes ?? []) as any[]).map((l) => ({
+    const persistidas = linhas<any>(existentes, "anexos já persistidos do caso").map((l) => ({
       annex_code: l.annex_code as string,
       title: (l.title ?? "") as string,
       status: (l.status ?? "") as string,
@@ -833,7 +845,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
 
     const instancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
 
-    const { data: existentes } = await supabase
+    const existentes = await supabase
       .from("contract_annexes")
       .select("annex_code,annex_version,file_hash")
       .eq("organization_id", registro.organization_id)
@@ -841,7 +853,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
       .is("archived_at", null);
 
     const vigentePorCodigo = new Map<string, any>();
-    for (const l of (existentes ?? []) as any[]) {
+    for (const l of linhas<any>(existentes, "anexos vigentes do caso")) {
       const atual = vigentePorCodigo.get(l.annex_code);
       if (!atual || l.annex_version > atual.annex_version) vigentePorCodigo.set(l.annex_code, l);
     }
@@ -1280,12 +1292,13 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       organizationId: registro.organization_id,
     });
 
-    const { data: valores } = await supabase
+    const valoresRes = await supabase
       .from("contract_parameter_values")
       .select("*")
       .eq("parameters_id", data.id)
       .is("archived_at", null);
-    const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
+    const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
+    const pegar = (campo: string) => valores.find((v: any) => v.campo === campo)?.valor ?? null;
 
     const { data: caso } = await supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle();
 
@@ -1584,7 +1597,7 @@ export const sincronizarContratoBase = createServerFn({ method: "POST" })
       .select("id,code");
     if (error) throw new Error(error.message);
 
-    const { data: legadas } = await supabase
+    const legadas = await supabase
       .from("contract_parameter_previews")
       .update({ legado_sem_corpo: true })
       .eq("organization_id", org)
@@ -1595,6 +1608,6 @@ export const sincronizarContratoBase = createServerFn({ method: "POST" })
     return {
       modelos: (modelos ?? []).map((m: any) => m.code),
       clausulas: CLAUSULAS_FIXAS.length,
-      previasLegado: (legadas ?? []).length,
+      previasLegado: linhas<any>(legadas, "prévias legadas sem corpo contratual").length,
     };
   });
