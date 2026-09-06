@@ -601,19 +601,33 @@ export function errosBloqueantesAlteracao(
   atual: LeadDesk | null,
   candidato: LeadDesk,
   camposAlterados: Iterable<string>,
+  livre = false,
 ): ErroValidacao[] {
-  const errosCandidato = validarLead(candidato);
+  const errosCandidato = validarLead(candidato, livre);
   if (!atual) return errosCandidato;
 
   const campos = new Set(camposAlterados);
-  const errosAnteriores = new Set(validarLead(atual).map(chaveErroValidacao));
+  const errosAnteriores = new Set(validarLead(atual, livre).map(chaveErroValidacao));
   return errosCandidato.filter(
     (erro) => campos.has(erro.campo) || !errosAnteriores.has(chaveErroValidacao(erro)),
   );
 }
 
-/** Espelha as travas do banco para dar feedback imediato antes de gravar. */
-export function validarLead(l: LeadDesk): ErroValidacao[] {
+/**
+ * Espelha as travas do banco para dar feedback imediato antes de gravar.
+ *
+ * `livre` (06/09/2026): quando true (proprietária operando), pula as
+ * pendências de conteúdo de processo comercial — área responsável,
+ * responsável nominal, próxima ação e prazo, resultado de discovery,
+ * resumo validado, link de proposta/contrato, motivo de perda. Essa mesma
+ * função duplicava, no cliente, uma trava que já havia sido relaxada no
+ * servidor (`crm-desk.functions.ts`) e no banco (`fn_lead_desk_guard`) —
+ * por viver em arquivo separado, continuou bloqueando sozinha até esta
+ * correção. Nome e formato de e-mail continuam obrigatórios mesmo para a
+ * proprietária: sem nome não há lead, e e-mail mal formatado não é
+ * pendência de negócio, é erro de digitação.
+ */
+export function validarLead(l: LeadDesk, livre = false): ErroValidacao[] {
   const erros: ErroValidacao[] = [];
   const vazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
 
@@ -630,7 +644,7 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
     erros.push({ campo: "email", motivo: "E-mail em formato inválido." });
   }
 
-  const ativo = !l.archived_at && !["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial));
+  const ativo = !livre && !l.archived_at && !["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial));
   if (ativo) {
     if (vazio(l.area_responsavel)) erros.push({ campo: "area_responsavel", motivo: "Lead ativo exige área responsável." });
     if (vazio(l.responsavel_nome)) erros.push({ campo: "responsavel_nome", motivo: "Lead ativo exige responsável nominal." });
@@ -638,23 +652,23 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
     if (vazio(l.proxima_acao_em)) erros.push({ campo: "proxima_acao_em", motivo: "Lead ativo exige data da próxima ação." });
   }
 
-  if (["discovery_realizada", "diagnostico_em_elaboracao", "proposta_enviada", "negociacao"].includes(String(l.eixo_comercial))) {
+  if (!livre && ["discovery_realizada", "diagnostico_em_elaboracao", "proposta_enviada", "negociacao"].includes(String(l.eixo_comercial))) {
     if (vazio(l.discovery_resultado)) erros.push({ campo: "discovery_resultado", motivo: "Call realizada exige resultado da Discovery." });
     if (!l.resumo_validado) erros.push({ campo: "resumo_validado", motivo: "Call realizada exige resumo validado." });
     if (vazio(l.proxima_acao_em)) erros.push({ campo: "proxima_acao_em", motivo: "Call realizada exige próxima ação datada." });
   }
 
-  if (["proposta_enviada", "negociacao"].includes(String(l.eixo_comercial))) {
+  if (!livre && ["proposta_enviada", "negociacao"].includes(String(l.eixo_comercial))) {
     if (vazio(l.proposta_link_interno)) erros.push({ campo: "proposta_link_interno", motivo: "Proposta enviada exige link interno da proposta." });
     if (vazio(l.responsavel_nome)) erros.push({ campo: "responsavel_nome", motivo: "Proposta enviada exige responsável nominal." });
   }
 
-  if (l.eixo_comercial === "perdido" && vazio(l.motivo_perda)) {
+  if (!livre && l.eixo_comercial === "perdido" && vazio(l.motivo_perda)) {
     erros.push({ campo: "motivo_perda", motivo: "Perdido exige motivo de perda." });
   }
 
   const formalizados = ["contrato_assinado", "pagamento_inicial_confirmado", "cliente_ativo", "onboarding_iniciado", "caso_ativo"];
-  if (formalizados.includes(String(l.eixo_formalizacao)) && vazio(l.contrato_link_interno)) {
+  if (!livre && formalizados.includes(String(l.eixo_formalizacao)) && vazio(l.contrato_link_interno)) {
     erros.push({ campo: "contrato_link_interno", motivo: "Contrato assinado exige link interno do contrato." });
   }
 
@@ -670,22 +684,22 @@ export function validarLead(l: LeadDesk): ErroValidacao[] {
     erros.push({ campo: "eixo_formalizacao", motivo: "Onboarding não inicia sem pagamento inicial confirmado." });
   }
 
-  if (String(l.status_call) === "realizada") {
+  if (!livre && String(l.status_call) === "realizada") {
     if (vazio(l.discovery_resultado)) erros.push({ campo: "discovery_resultado", motivo: "Call realizada exige resultado da Discovery." });
     if (vazio(l.proxima_acao)) erros.push({ campo: "proxima_acao", motivo: "Call realizada exige próxima ação." });
   }
 
-  if (["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
+  if (!livre && ["forte", "provavel"].includes(String(l.elegibilidade_preliminar))) {
     if (vazio(l.via_juridica_preliminar)) erros.push({ campo: "via_juridica_preliminar", motivo: "Elegibilidade Forte/Provável exige via jurídica preliminar." });
     if (vazio(l.geracao_ascendente)) erros.push({ campo: "geracao_ascendente", motivo: "Elegibilidade Forte/Provável exige geração do ascendente." });
     if (vazio(l.estado_documental_inicial)) erros.push({ campo: "estado_documental_inicial", motivo: "Elegibilidade Forte/Provável exige estado documental inicial." });
   }
 
-  if (!vazio(l.sku_referencia) && (l.produtos_recomendados ?? []).length === 0) {
+  if (!livre && !vazio(l.sku_referencia) && (l.produtos_recomendados ?? []).length === 0) {
     erros.push({ campo: "sku_referencia", motivo: "Referência de SKU só após indicar produtos/serviços recomendados." });
   }
 
-  if (String(l.despesas_terceiros_status) === "aprovadas") {
+  if (!livre && String(l.despesas_terceiros_status) === "aprovadas") {
     if (vazio(l.despesas_terceiros_faixa)) erros.push({ campo: "despesas_terceiros_faixa", motivo: "Despesas aprovadas exigem faixa estimada registrada." });
     if (vazio(l.despesas_terceiros_regra)) erros.push({ campo: "despesas_terceiros_regra", motivo: "Despesas aprovadas exigem a regra de pagamento pelo cliente." });
     if (String(l.despesas_terceiros_regra) === "clube_nao_antecipa") {

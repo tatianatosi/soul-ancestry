@@ -16,6 +16,7 @@ import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
 import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { proprietariaOperando } from "@/lib/autoridade.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -145,7 +146,8 @@ export const listarLeadsDesk = createServerFn({ method: "GET" })
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     const leads = (data ?? []) as LeadDesk[];
-    return leads.map((l) => ({ ...l, pendencias: validarLead(l) }));
+    const livre = await proprietariaOperando(supabase, (context as any).userId as string);
+    return leads.map((l) => ({ ...l, pendencias: validarLead(l, livre) }));
   });
 
 /** Cria ou atualiza um lead. Rejeita valores fora das listas controladas. */
@@ -167,7 +169,8 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     }
 
     const candidato = { ...(atual ?? { nome: "" }), ...patch } as LeadDesk;
-    const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch));
+    const livre = await proprietariaOperando(supabase, userId);
+    const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch), livre);
     if (erros.length) {
       return { ok: false as const, erros, lead: atual };
     }
@@ -715,7 +718,8 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       indicado_por: data.indicado_por?.trim() || null,
     };
 
-    const erros = validarLead(candidato);
+    const livre = await proprietariaOperando(supabase, userId);
+    const erros = validarLead(candidato, livre);
     if (erros.length) return { ok: false as const, duplicidades: [], erros, lead: null };
 
     const organization_id = await orgDoUsuario(supabase, userId);
