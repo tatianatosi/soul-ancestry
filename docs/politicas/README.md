@@ -102,6 +102,21 @@ Pedido explícito da proprietária: não dizer "foi executado", mostrar onde em 
 | `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` | Fase 1 mapear sem modificar (feita, PR #36) + Fase 2/3 motor `case_participants` | **Fase 2/3 confirmada como nunca iniciada** — busquei `case_participants` em todo `src/` e `supabase/migrations/`: zero ocorrências. Segue exatamente como em 31/08, pausada aguardando decisão da proprietária. |
 | `PROMPT-REVISAO-MOTORES-E-CASO-360.md` | Diagnóstico objetivo de Marketing/Financeiro/Onboarding/Planejador/Pesquisa/Contratos/Caso 360 | **Mais coberto do que eu disse mais cedo hoje nesta conversa** — corrigindo isso agora: o próprio Mapa de Autoridade (linha 278) afirma que, ao final, "todas as áreas do pedido original... têm pelo menos um corte de evidência real", incluindo Marketing e Financeiro (linhas 128, 195-202) que uma leitura só do início do documento não mostra. **Planejador especificamente não aparece nomeado** no mapa — não encontrei evidência de que tenha sido auditado. |
 
+## Pente fino — os 6 documentos restantes de `docs/politicas/`
+
+Completando o pente fino: os outros 20 arquivos deste diretório já estavam cobertos nas seções acima (sequência confirmada, P0-P11, reconciliações, históricos). Faltavam estes 6:
+
+| Documento | Classificação real | Situação |
+|---|---|---|
+| `politica-autoridade-operacional.md` | **Política ativa, aprovada, datada de 05/09** — não é um prompt pendente, é a regra em vigor ("pendência informa, não impede"). | Em grande parte já implementada pelos commits de hoje (PR #90, remoções de campo de conteúdo `8f084df`/`1d1e2c2`/`75a791b`) — esses commits são a execução desta política, não itens separados |
+| `TAXONOMIA-CANONICA-MOCKUP-APROVADO.md` (429 linhas) | Fonte de verdade de nomenclatura das 7+7 telas do mockup aprovado | Confirmado: **não implementado**, mas por decisão própria — é para a fase visual (P11), que o Prompt Mestre coloca por último, depois do operacional funcionar |
+| `MATRIZ-AUTORIDADE-PERSISTENCIA-CONTINUIDADE-SEGURANCA-2026-08-31.md` | Diagnóstico ("em revisão"), não um prompt de execução — sintetiza outros documentos | Não reconferido item a item nesta rodada — precisaria de uma passada própria, não coberta aqui |
+| `REGISTRO-PREVIEW-PR35-PRIORIDADES-2026-08-31.md` | Relatório sobre o preview específico da PR #35 | Superado — PR #35 já está mapeada em `05-matriz-pr-000-a-090.md` (mesclada) |
+| `PENTE-FINO-IMPLANTACAO-PENDENCIAS-2026-08-30.md` (380 linhas) | É o pente fino anterior a este, mesma natureza do que a proprietária pediu agora | Já refletido na linha 1 da "Sequência confirmada" acima |
+| `REDESENHO-UNIFICADO-DESK-APP-CLIENTE-PESSOAS-2026-08-31.md` | Já chega arquivado com nota própria de 31/08, corrigindo contradições de 6 documentos anteriores na mesma sequência (ex.: "seis abas" nunca existiu — CA-UX-03 documenta 8 grupos reais) | Já era reconciliação, não pendência nova |
+
+**Conclusão desta rodada completa de `docs/politicas/`:** além dos achados já registrados acima, não apareceu nenhum quarto item "nunca iniciado" novo. Os únicos zeros confirmados continuam sendo três: Cockpit, Eixo de Comunicação como motor único, e o motor `case_participants`.
+
 Itens acima **não verificados de novo** nesta rodada (P4, P5, P6, P8, P9, P10, P11 e o resto de P1/P3) continuam com o status de 31/08 até serem checados — não foram tocados nem confirmados como ainda válidos.
 
 ## Regra de leitura
