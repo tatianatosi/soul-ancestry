@@ -179,6 +179,18 @@ A proprietária reenviou os mesmos documentos pela 8ª vez pedindo execução po
 
 Esses cinco itens são reais, específicos, e não foram feitos nesta rodada — dizer o contrário seria a mentira que ela está cobrando. Cada um exige tabela nova + lógica de negócio, não uma correção pontual como as das rodadas anteriores.
 
+## Correção urgente — 06/09/2026, 4ª rodada: eu duplique um motor que já existia
+
+A proprietária pediu para continuar direto na cadência por evento. Antes disso, construí uma "iniciarOnboarding(caseId)" nova em `caso-canonico.functions.ts` com uma tabela `onboarding_template_steps` — e, minutos depois, ao investigar a cadência, encontrei `src/lib/onboarding-jornada.ts` e `onboarding-jornada.functions.ts`: um motor de onboarding **já existente, mais completo e mais correto**, com:
+
+- `CHECKLIST_ONBOARDING_PADRAO` (15 itens, não 12) e `criarChecklistOnboarding()` — já faz exatamente o que eu tinha acabado de construir de novo.
+- `diagnosticarOnboarding()` com 15 gates reais (contrato assinado, pagamento, responsável, núcleo, participantes, representação de menor, dossiê-mãe, ambiente de acesso, case_service, escopo aprovado, checklist documental, plano de ação, próxima ação, primeira microentrega, limite de atualização) e `podeIniciarOnboarding()` que **bloqueia** o início do onboarding até os gates críticos (contrato + pagamento) estarem batidos — coisa que a minha versão nova não tinha.
+- `avaliarCadencia()` já calcula alertas D7/D10/D14 (microentrega não planejada, sem touchpoint, sem atualização) com suspensão por espera externa — exatamente a "cadência por evento" que eu estava prestes a construir de novo.
+
+**Revertido agora**: commit `f9cef0b` revertido via `git revert` (`892cb04`), e a tabela `onboarding_template_steps` removida do banco (migration `20260906144500_revert_onboarding_template_steps.sql`). Nenhum caso real chegou a usar a versão errada — criada e revertida no mesmo dia, sem escrita real em `onboarding_checklist` originada dela.
+
+**Achado real que sobrou, e esse sim genuíno**: o checklist de 12 itens já existente no caso da Ana **não bate** com `CHECKLIST_ONBOARDING_PADRAO` (15 itens) — faltam "participantes", "representação de menor" e "escopo aprovado" no dela, e os nomes de 3 itens finais são diferentes ("grupo_familiar"/"app_cliente"/"micro_entrega_d7" vs "proxima_acao_inicial"/"primeira_microentrega"/"limite_atualizacao"). Ou seja: existe um **terceiro** onboarding, além do meu (revertido) e do `CHECKLIST_ONBOARDING_PADRAO` — o que gerou os 12 itens da Ana não foi nenhum dos dois. Isso ainda não foi investigado; é o próximo passo real antes de tocar em cadência.
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.
