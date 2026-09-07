@@ -28,6 +28,7 @@ function MensagemPage() {
   const carregar = useServerFn(meuTicket);
   const responder = useServerFn(responderTicketCliente);
   const [texto, setTexto] = useState("");
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["portal-ticket", id],
@@ -37,9 +38,11 @@ function MensagemPage() {
   const enviar = useMutation({
     mutationFn: () => responder({ data: { ticketId: id, mensagem: texto } }),
     onSuccess: () => {
+      setErroEnvio(null);
       setTexto("");
       queryClient.invalidateQueries({ queryKey: ["portal-ticket", id] });
     },
+    onError: (e: Error) => setErroEnvio(e.message || "Não foi possível enviar sua mensagem."),
   });
 
   if (isLoading) {
@@ -96,6 +99,11 @@ function MensagemPage() {
 
       {data.ticket.status !== "fechado" ? (
         <div className="mt-5 rounded-xl border border-navy/10 bg-white p-4">
+          {erroEnvio ? (
+            <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+              {erroEnvio}
+            </p>
+          ) : null}
           <textarea
             value={texto}
             onChange={(e) => setTexto(e.target.value)}

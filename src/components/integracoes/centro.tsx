@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, PlayCircle, Plug, ShieldCheck, TestTube2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAutoridade } from "@/components/saas/autoridade";
 import {
@@ -103,14 +104,20 @@ export function CentroIntegracoes() {
         },
       });
     },
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Configuração salva.");
+      recarregar();
+    },
     onError: falhar,
   });
 
   const mSituacao = useMutation({
     mutationFn: (p: { status: "desligada" | "teste" | "pausada"; motivo?: string }) =>
       situacao({ data: { id: atual.id, ...p } }),
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Situação da integração atualizada.");
+      recarregar();
+    },
     onError: falhar,
   });
 
@@ -144,7 +151,10 @@ export function CentroIntegracoes() {
 
   const mResolver = useMutation({
     mutationFn: (p: { id: string; resolucao: string }) => resolver({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Revisão resolvida e integração desligada.");
+      recarregar();
+    },
     onError: falhar,
   });
 

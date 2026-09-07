@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 
 import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
@@ -46,7 +47,15 @@ function ConfiguracoesPage() {
 
   const m = useMutation({
     mutationFn: (v: { userId: string; papel: Papel; conceder: boolean }) => definir({ data: v }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["saas", "usuarios"] }),
+    onSuccess: (_r, variaveis) => {
+      toast.success(
+        variaveis.conceder
+          ? `Papel ${PAPEL_LABEL[variaveis.papel]} concedido.`
+          : `Papel ${PAPEL_LABEL[variaveis.papel]} removido.`,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["saas", "usuarios"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível atualizar o papel."),
   });
 
   return (

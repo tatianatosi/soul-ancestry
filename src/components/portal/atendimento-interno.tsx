@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Eye, EyeOff, Lock, Plus, Send, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { CardIndicador } from "@/components/desk/ui-desk";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
@@ -137,6 +138,12 @@ export function AtendimentoInterno() {
   function falhar(e: unknown) {
     setErro((e as Error).message);
   }
+  function confirmar(mensagem: string) {
+    return () => {
+      toast.success(mensagem);
+      recarregar();
+    };
+  }
 
   const casosLidos = lista<CasoAtendimento>(data?.casos);
   const casos = casosLidos ? casosLidos : [];
@@ -209,6 +216,7 @@ export function AtendimentoInterno() {
     onSuccess: () => {
       setForm({ ...form, titulo: "", descricao: "", prazo: "" });
       setErro(null);
+      toast.success("Solicitação registrada.");
       recarregar();
     },
     onError: falhar,
@@ -216,13 +224,13 @@ export function AtendimentoInterno() {
 
   const cancelarSolic = useMutation({
     mutationFn: (p: { solicitacaoId: string; motivo: string }) => cancelar({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: confirmar("Solicitação cancelada."),
     onError: falhar,
   });
 
   const revisarEnvio = useMutation({
     mutationFn: (p: { documentoId: string; decisao: "aceito" | "recusado"; motivo?: string }) => revisar({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: confirmar("Documento revisado."),
     onError: falhar,
   });
 
@@ -235,19 +243,19 @@ export function AtendimentoInterno() {
       motivo?: string;
       versaoSubstituta?: string | null;
     }) => liberarDoc({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: confirmar("Liberação do documento atualizada."),
     onError: falhar,
   });
 
   const alternarFatura = useMutation({
     mutationFn: (p: { faturaId: string; liberar: boolean; motivo?: string }) => liberarFat({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: confirmar("Liberação da fatura atualizada."),
     onError: falhar,
   });
 
   const confirmarDocumentos = useMutation({
     mutationFn: (p: { caseId: string; motivo?: string }) => confirmarDocsMinimos({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: confirmar("Documentos mínimos confirmados."),
     onError: falhar,
   });
 
@@ -255,6 +263,7 @@ export function AtendimentoInterno() {
     mutationFn: (p: { caseId: string; tipo: "marco" | "arvore"; conteudo: string }) => publicarProjecao({ data: p }),
     onSuccess: () => {
       setPublicacaoTexto("");
+      toast.success("Projeção publicada.");
       recarregar();
     },
     onError: falhar,
@@ -961,6 +970,7 @@ function Conversa({
     mutationFn: () => responder({ data: { ticketId, mensagem: texto, interna } }),
     onSuccess: () => {
       setTexto("");
+      toast.success(interna ? "Nota interna registrada." : "Resposta enviada.");
       queryClient.invalidateQueries({ queryKey: ["ticket-interno", ticketId] });
       queryClient.invalidateQueries({ queryKey: ["atendimento"] });
     },
@@ -969,7 +979,10 @@ function Conversa({
 
   const status = useMutation({
     mutationFn: (novo: string) => mudarStatus({ data: { ticketId, status: novo } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["atendimento"] }),
+    onSuccess: () => {
+      toast.success("Status do ticket atualizado.");
+      queryClient.invalidateQueries({ queryKey: ["atendimento"] });
+    },
     onError: onErro,
   });
 

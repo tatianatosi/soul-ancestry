@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
@@ -72,7 +73,10 @@ function RegistroVersionado() {
   });
   const mutation = useMutation({
     mutationFn: () => registrar({}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] }),
+    onSuccess: () => {
+      toast.success("Modelo individual registrado.");
+      queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] });
+    },
   });
 
   const modelo = data?.modelo as

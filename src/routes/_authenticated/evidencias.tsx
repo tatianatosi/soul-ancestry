@@ -4,6 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { toast } from "sonner";
+
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { PageHeader, SectionHeader } from "@/components/desk/ui-desk";
@@ -130,8 +132,12 @@ function EvidenciasPage() {
         extra={(linha) => (
           <button
             onClick={async () => {
-              await mRegistrar.mutateAsync(String(linha["id"]));
-              setAcessos(await listar({ data: { evidenciaId: String(linha["id"]) } }));
+              try {
+                await mRegistrar.mutateAsync(String(linha["id"]));
+                setAcessos(await listar({ data: { evidenciaId: String(linha["id"]) } }));
+              } catch (e) {
+                toast.error((e as Error).message || "Não foi possível abrir os acessos.");
+              }
             }}
             className="rounded-md border border-navy/15 px-2 py-1 text-xs text-navy/70 hover:bg-navy/5"
           >
