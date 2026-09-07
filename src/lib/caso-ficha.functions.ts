@@ -34,7 +34,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao] = await Promise.all([
+    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao, historicoFase] = await Promise.all([
       // (bloqueiosReais lido separadamente abaixo, fora do Promise.all de selects
       // simples, porque é uma chamada RPC.)
       supabase
@@ -68,6 +68,15 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       // do caso e ignorava estes registros: o caso da Ana tinha os 14
       // validados e a tela continuava dizendo "ativação bloqueada".
       supabase.from("case_activation_checks").select("check_key,label,status,dominio,obrigatorio").eq("case_id", data.id),
+      // 07/09/2026 — case_phase_history existe desde 06/09 (trigger automático
+      // em crm_casos.fase, PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md seção 10),
+      // mas nenhuma tela lia: a gravação era automática, a leitura nunca foi
+      // ligada. Achado da proprietária.
+      supabase
+        .from("case_phase_history")
+        .select("id,fase_anterior,fase_nova,changed_at,changed_by")
+        .eq("case_id", data.id)
+        .order("changed_at", { ascending: false }),
     ]);
 
     // 07/09/2026 — achado real reportado pela proprietária: esta ficha e a
@@ -114,6 +123,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         valor_atual: string;
         cta_tela: string | null;
       }[],
+      historicoFase: (historicoFase.data ?? []) as Linha[],
     };
   });
 
