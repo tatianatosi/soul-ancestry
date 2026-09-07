@@ -34,13 +34,22 @@ describe("radarSeisDimensoes", () => {
     }
   });
 
-  it("elegibilidade nunca vira percentual, mesmo com dados fartos em tudo mais", () => {
+  it("elegibilidade nunca lê parecer jurídico — é sempre a média dos outros 5 eixos", () => {
     const projecoes = [projecao("arvore"), projecao("achado"), projecao("marco")];
     const documentos: DocumentoPortal[] = [{ id: "1", liberado_cliente: true }];
     const dimensoes = radarSeisDimensoes({ projecoes, documentos });
+    const outros = dimensoes.filter((d) => d.id !== "elegibilidade");
+    const mediaEsperada = Math.round(
+      outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
+    );
     const elegibilidade = dimensoes.find((d) => d.id === "elegibilidade")!;
-    expect(elegibilidade.estado).toBe("em_preparacao");
-    expect(elegibilidade.percentual).toBeNull();
+    expect(elegibilidade.estado).toBe("percentual");
+    expect(elegibilidade.percentual).toBe(mediaEsperada);
+  });
+
+  it("sem nenhum dado publicado, elegibilidade fica em 0 (média de zeros, não em preparação)", () => {
+    const dimensoes = radarSeisDimensoes({ projecoes: [], documentos: [] });
+    expect(dimensoes.find((d) => d.id === "elegibilidade")!.percentual).toBe(0);
   });
 
   it("documentação é a proporção real de documentos liberados, ignorando demo", () => {
