@@ -1,20 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { COPY_ESTADO_TEXTO, COPY_TELAS } from "@/lib/portal-copy";
+import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { radarSanitizado } from "@/lib/portal-dados-vivos";
-import { garantirEixosCanonicos } from "@/lib/radar-eixos";
+import { radarSeisDimensoes } from "@/lib/radar-seis-eixos";
+import { RadarSeisEixos } from "@/components/portal/radar-seis-eixos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 
 export const Route = createFileRoute("/portal/radar")({
   head: () => ({
     meta: [
-      { title: "Radar — Portal Clube Ancestral" },
-      { name: "description", content: "Os quatro eixos de leitura da sua jornada genealógica." },
-      { property: "og:title", content: "Radar — Portal Clube Ancestral" },
-      { property: "og:description", content: "Quatro eixos de acompanhamento do seu caso." },
+      { title: "Radar Ancestral — Portal Clube Ancestral" },
+      { name: "description", content: "Seu equilíbrio nas 6 dimensões da jornada." },
+      { property: "og:title", content: "Radar Ancestral — Portal Clube Ancestral" },
+      { property: "og:description", content: "As 6 dimensões da sua jornada genealógica." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -23,12 +23,14 @@ export const Route = createFileRoute("/portal/radar")({
   component: PortalRadar,
 });
 
-const TEXTO_ESTADO: Record<string, string> = {
-  released: "",
-  available_empty: COPY_ESTADO_TEXTO.available_empty,
-  in_preparation: COPY_ESTADO_TEXTO.in_preparation,
-};
-
+/*
+ * 07/09/2026 — achado direto da proprietária: esta tela nunca teve as 6
+ * dimensões do mockup aprovado (Documentação, Origem, Conexões Familiares,
+ * Elegibilidade, Memória, Legado) — era um radar diferente, de 4 eixos sobre
+ * "próximos passos", com quatro cartões de texto e nenhum gráfico. Ver
+ * src/lib/radar-seis-eixos.ts para a fonte de cada dimensão e por que
+ * Elegibilidade continua sem percentual (decisão institucional, não esquecimento).
+ */
 export function PortalRadar() {
   const { visibilidade, carregando } = useVisibilidade("radar");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
@@ -43,36 +45,37 @@ export function PortalRadar() {
           erro={isError ? (error ?? true) : null}
           dados={data ? [data] : null}
           aoTentarNovamente={refetch}
-          recurso="o seu radar de países"
+          recurso="o seu radar ancestral"
         >
           {([vivo]) => {
-            // Cards de pontuação e textos seguem exatamente o conjunto e a ordem canônicos.
-            const eixos = garantirEixosCanonicos(
-              radarSanitizado({ projecoes: vivo.projecoes, documentos: vivo.documentos }),
-            );
+            const dimensoes = radarSeisDimensoes({ projecoes: vivo.projecoes, documentos: vivo.documentos });
             return (
-        <BlocoVisibilidade visibilidade={visibilidade}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {eixos.map((eixo) => (
-              <article key={eixo.id} className="rounded-lg border border-navy/10 bg-cream/60 p-4">
-                <h2 className="font-serif text-base text-navy">{eixo.titulo}</h2>
-                <p className="mt-1 text-xs text-navy/60">{eixo.resumo}</p>
-                {eixo.itens.length > 0 ? (
-                  <dl className="mt-3 space-y-1">
-                    {eixo.itens.map((i) => (
-                      <div key={i.rotulo} className="flex justify-between text-xs text-navy/70">
-                        <dt>{i.rotulo}</dt>
-                        <dd className="font-medium text-navy">{i.valor}</dd>
-                      </div>
+              <BlocoVisibilidade visibilidade={visibilidade}>
+                <div className="space-y-6">
+                  <RadarSeisEixos dimensoes={dimensoes} />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {dimensoes.map((d) => (
+                      <article key={d.id} className="rounded-lg border border-navy/10 bg-cream/60 p-4">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <h2 className="font-serif text-base text-navy">{d.titulo}</h2>
+                          {d.estado === "percentual" ? (
+                            <span className="font-serif text-2xl text-navy">{d.percentual}%</span>
+                          ) : null}
+                        </div>
+                        {d.estado === "percentual" ? (
+                          <div className="mt-2 h-1.5 w-full rounded-full bg-navy/10">
+                            <div
+                              className="h-1.5 rounded-full bg-gold"
+                              style={{ width: `${d.percentual ?? 0}%` }}
+                            />
+                          </div>
+                        ) : null}
+                        <p className="mt-2 text-xs text-navy/60">{d.legenda}</p>
+                      </article>
                     ))}
-                  </dl>
-                ) : (
-                  <p className="mt-3 text-xs text-navy/50">{TEXTO_ESTADO[eixo.estado]}</p>
-                )}
-              </article>
-            ))}
-          </div>
-        </BlocoVisibilidade>
+                  </div>
+                </div>
+              </BlocoVisibilidade>
             );
           }}
         </EstadoDados>
