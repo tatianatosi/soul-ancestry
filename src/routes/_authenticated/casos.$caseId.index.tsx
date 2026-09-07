@@ -29,7 +29,6 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
-import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
@@ -420,15 +419,21 @@ function FichaCaso() {
     [caso, form],
   );
 
-  // Requisitos de ativação já validados à mão contam como atendidos: são
-  // decisão humana registrada, com autor e data.
-  const checksAtivacao = useMemo(
-    () => ((q.data as any)?.checksAtivacao ?? []) as { check_key: string; status?: string | null }[],
+  // 07/09/2026 — substitui estadoDerivadoPorGates (só lia case_activation_checks,
+  // com valores falso-positivos desde 04/09) pela mesma RPC
+  // case_ativacao_bloqueios_reais que a tela de onboarding já usa — as duas
+  // telas agora sempre concordam sobre o mesmo caso.
+  const bloqueiosReais = useMemo(
+    () =>
+      ((q.data as any)?.bloqueiosReais ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
     [q.data],
-  );
-  const derivadoGates = useMemo(
-    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>, checksAtivacao),
-    [caso, checksAtivacao],
   );
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
@@ -459,7 +464,9 @@ function FichaCaso() {
     [
       !podeEscrever ? "Seu vínculo de equipe está marcado como somente leitura." : null,
       caso["archived_at"] ? "Caso arquivado." : null,
-      derivadoGates.elegivel ? null : `${derivadoGates.rotulo} — ${derivadoGates.explicacao}`,
+      bloqueiosReais.length === 0
+        ? null
+        : `Não elegível para ativação — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}.`,
     ]
       .filter(Boolean)
       .join(" ") || null;
@@ -579,7 +586,7 @@ function FichaCaso() {
       <div
         className={
           "mb-6 rounded-xl border px-4 py-3 " +
-          (derivadoGates.elegivel
+          (bloqueiosReais.length === 0
             ? "border-navy/15 bg-navy/5"
             : "border-terracotta/40 bg-terracotta/10")
         }
@@ -587,11 +594,45 @@ function FichaCaso() {
         <p className="text-[11px] uppercase tracking-wide text-navy/50">
           Estado derivado pelos requisitos de ativação
         </p>
-        <p className="mt-1 text-sm font-medium text-navy">{derivadoGates.rotulo}</p>
-        <p className="mt-1 text-xs text-navy/65">{derivadoGates.explicacao}</p>
-        <p className="mt-1 text-[11px] text-navy/50">
-          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do
-          cliente. As travas são revalidadas no servidor.
+        <p className="mt-1 text-sm font-medium text-navy">
+          {bloqueiosReais.length === 0
+            ? "Elegível — nenhum bloqueio real pendente"
+            : `Não elegível — ativação bloqueada (${bloqueiosReais.length} bloqueio(s) real(is))`}
+        </p>
+        {bloqueiosReais.length ? (
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-terracotta/20 text-left text-navy/60">
+                  <th className="py-1 pr-3 font-medium">Bloqueio</th>
+                  <th className="py-1 pr-3 font-medium">Valor atual</th>
+                  <th className="py-1 font-medium">Resolver</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bloqueiosReais.map((b, i) => (
+                  <tr key={`${b.regra}-${i}`} className="border-b border-terracotta/10 align-top">
+                    <td className="py-1.5 pr-3 text-navy/85">{b.motivo}</td>
+                    <td className="py-1.5 pr-3 text-navy/70">{b.valor_atual}</td>
+                    <td className="py-1.5 text-navy/70">
+                      {b.cta_tela ? (
+                        <a href={b.cta_tela} className="text-navy underline hover:text-gold">
+                          Abrir
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+        <p className="mt-2 text-[11px] text-navy/50">
+          Mesma fonte da tela de onboarding (case_ativacao_bloqueios_reais) — as duas telas agora
+          sempre concordam. Leitura explicável: não altera status, não habilita cobrança, envio ou
+          ambiente do cliente. As travas são revalidadas no servidor.
         </p>
       </div>
 
