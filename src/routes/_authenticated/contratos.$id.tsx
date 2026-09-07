@@ -194,21 +194,18 @@ function ContratoDetalhe() {
             )
           }
         />
-        <AcaoOperacional
-          rotulo="Executar validações"
-          capacidade="editar_rascunho"
-          variant="outline"
-          efeito="Recalcula e registra as validações formais deste instrumento."
-          onConfirmar={() => mValidar.mutate()}
-        />
-        <AcaoOperacional
-          rotulo="Solicitar revisão humana"
-          capacidade="avancar_caso_planejador_tarefa"
-          pendenciaGate={pendenciaChecklist}
-          variant="outline"
-          efeito="Coloca a versão atual na fila de revisão humana."
-          onConfirmar={() => mSolicitar.mutate()}
-        />
+        {/*
+          06/09/2026 — "Executar validações" e "Solicitar revisão humana" foram
+          removidos daqui na execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS
+          e do PROMPT_REVERSAO_EMERGENCIAL_PLATAFORMA_OPERACIONAL, por ordem
+          direta da proprietária. Os dois prompts listam esses botões nome por
+          nome entre o que precisa sair da interface operacional de contrato,
+          que deve conter apenas editar, salvar rascunho, ver prévia e arquivar.
+          A proprietária é quem revisa — pedir revisão humana a si mesma era
+          cerimônia, e a validação formal já roda sozinha no congelamento da
+          versão. As mutações mValidar/mSolicitar seguem existentes para a
+          cadeia de formalização, que é onde essas etapas fazem sentido.
+        */}
         <AcaoOperacional
           rotulo="Enviar ao cliente"
           acaoExterna="enviar_contrato"

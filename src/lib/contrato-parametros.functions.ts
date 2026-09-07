@@ -589,19 +589,46 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!atual) throw new Error("Parâmetro não encontrado.");
 
+    /**
+     * 06/09/2026 — execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS e do
+     * PROMPT_REVERSAO_EMERGENCIAL_PLATAFORMA_OPERACIONAL, por ordem direta da
+     * proprietária. Ambos nomeiam literalmente "confiança mínima 4" e
+     * "confiança mínima como impedimento" entre as barreiras a remover.
+     *
+     * Antes: origem de baixa confiança (ou WhatsApp/transcrição) fazia esta
+     * função LANÇAR, ou seja, a dona não conseguia validar o próprio parâmetro
+     * do próprio contrato de jeito nenhum — sem override, sem decisão, sem
+     * caminho. Agora a pendência continua existindo e é gravada na
+     * justificativa (liberar não é apagar), mas para a proprietária vira
+     * decisão assumida em vez de parede. Para os demais papéis nada muda.
+     *
+     * Parâmetro sem valor continua bloqueado para todos: não é barreira de
+     * processo, é campo vazio — não há o que validar.
+     */
+    let pendenciasAssumidas: string[] = [];
     if (data.status === "validado") {
       if (!atual.valor) throw new Error("Não é possível validar um parâmetro vazio.");
+
+      const pendencias: string[] = [];
       if (["whatsapp", "transcricao"].includes(atual.origem)) {
-        throw new Error(
-          "Dado de WhatsApp/transcrição não pode ser validado diretamente: confirme com documento, proposta ou preenchimento humano.",
+        pendencias.push(
+          `Origem “${atual.origem}” não confirmada por documento, proposta ou preenchimento humano.`,
         );
       }
       const def = definicaoCampo(atual.campo);
       if (confianca(atual.origem) < def.confiancaMinima) {
-        throw new Error(
-          `Confiança insuficiente para validar “${atual.label}”: este campo exige origem de confiança ${def.confiancaMinima} ou superior.`,
+        pendencias.push(
+          `Origem de confiança ${confianca(atual.origem)} abaixo da exigida (${def.confiancaMinima}) para “${atual.label}”.`,
         );
       }
+
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      pendenciasAssumidas = await assumirOuRecusarComUsuario(
+        supabase as never,
+        context.userId as string,
+        pendencias,
+        pendencias.join(" "),
+      );
     }
 
     if (data.status === "bloqueado") exigirTexto(data.justificativa, "justificativa do bloqueio");
@@ -614,7 +641,16 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: {
         status: data.status,
-        justificativa: (data.justificativa ?? "").slice(0, 500) || atual.justificativa,
+        justificativa: (
+          pendenciasAssumidas.length
+            ? [
+                (data.justificativa ?? "").trim(),
+                `Validado por decisão da proprietária com pendência registrada: ${pendenciasAssumidas.join(" ")}`,
+              ]
+                .filter(Boolean)
+                .join(" — ")
+            : (data.justificativa ?? "")
+        ).slice(0, 500) || atual.justificativa,
         conflito: data.status === "validado" ? [] : atual.conflito,
       },
     });
