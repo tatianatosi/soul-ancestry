@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Archive, BookOpen, History, Plus, Save, Scale } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DOMINIOS,
@@ -59,12 +60,36 @@ export function ManifestoResgate() {
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["biblioteca"] });
   const falhar = (e: unknown) => setErro(e instanceof Error ? e.message : "Não foi possível concluir.");
+  const confirmar = (mensagem: string) => () => {
+    toast.success(mensagem);
+    invalidar();
+  };
 
-  const mArtefato = useMutation({ mutationFn: useServerFn(salvarArtefato), onSuccess: invalidar, onError: falhar });
-  const mArquivar = useMutation({ mutationFn: useServerFn(arquivarArtefato), onSuccess: invalidar, onError: falhar });
-  const mItem = useMutation({ mutationFn: useServerFn(salvarItemConhecimento), onSuccess: invalidar, onError: falhar });
-  const mDecisao = useMutation({ mutationFn: useServerFn(salvarDecisao), onSuccess: invalidar, onError: falhar });
-  const mArquivarDecisao = useMutation({ mutationFn: useServerFn(arquivarDecisao), onSuccess: invalidar, onError: falhar });
+  const mArtefato = useMutation({
+    mutationFn: useServerFn(salvarArtefato),
+    onSuccess: confirmar("Artefato salvo."),
+    onError: falhar,
+  });
+  const mArquivar = useMutation({
+    mutationFn: useServerFn(arquivarArtefato),
+    onSuccess: confirmar("Artefato arquivado."),
+    onError: falhar,
+  });
+  const mItem = useMutation({
+    mutationFn: useServerFn(salvarItemConhecimento),
+    onSuccess: confirmar("Item de conhecimento salvo."),
+    onError: falhar,
+  });
+  const mDecisao = useMutation({
+    mutationFn: useServerFn(salvarDecisao),
+    onSuccess: confirmar("Decisão salva."),
+    onError: falhar,
+  });
+  const mArquivarDecisao = useMutation({
+    mutationFn: useServerFn(arquivarDecisao),
+    onSuccess: confirmar("Decisão arquivada."),
+    onError: falhar,
+  });
 
   const artefatos = data?.artefatos as any[] | undefined;
   const ativos = artefatos ? artefatos.filter((a) => !a.archived_at) : [];

@@ -73,11 +73,19 @@ function PilotoAna() {
 
   const mMaterializar = useMutation({
     mutationFn: () => materializar(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["piloto-ana"] }),
+    onSuccess: () => {
+      toast.success("Caso-piloto localizado ou registrado.");
+      queryClient.invalidateQueries({ queryKey: ["piloto-ana"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível materializar o caso-piloto."),
   });
   const mId = useMutation({
     mutationFn: (caseId: string) => definirId({ data: { caseId, idCanonico: escolhido, decididoPor: decisor } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["piloto-ana"] }),
+    onSuccess: () => {
+      toast.success("Identificador canônico registrado.");
+      queryClient.invalidateQueries({ queryKey: ["piloto-ana"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível registrar o identificador."),
   });
 
   const caso = q.data?.caso ?? null;
