@@ -22,9 +22,10 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
+    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
+        eq("planner_catalog_feed").is("archived_at", null),
         eq("citizenship_tracks").is("archived_at", null).order("pais"),
         eq("case_services").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
         eq("label_taxonomy").eq("active", true).order("sort_order"),
@@ -47,8 +48,28 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       ? await supabase.from("nucleo_membros").select("*").in("nucleo_id", nucleoIds).is("archived_at", null)
       : { data: [] };
 
+    // 07/09/2026 — a Selecao de produto-pai mostrava a lista crua do
+    // product_catalog (SKU a SKU, sem agrupar), enquanto a reconciliação
+    // canônica de 04/09 (planner_catalog_feed) que dá o produto-pai real de
+    // cada SKU e sinaliza os que ainda pedem reconciliação (LEGADO_RECONCILIAR,
+    // NAO_USAR_NO_MOTOR etc.) nunca chegava a esta tela — motor construído,
+    // nunca ligado ao formulário que vende o produto.
+    const feedPorCodigo = new Map<string, Linha>();
+    for (const f of linhas<Linha>(catalogoPlanejador, "catálogo do planejador")) {
+      feedPorCodigo.set(String(f.item_id), f);
+      for (const alias of (f.legacy_aliases as string[] | null) ?? []) feedPorCodigo.set(String(alias), f);
+    }
+    const produtosComProdutoPai = linhas<Linha>(produtos, "catálogo de produtos").map((p) => {
+      const f = feedPorCodigo.get(String(p.code));
+      return {
+        ...p,
+        produto_pai: f?.product_parent ?? null,
+        status_reconciliacao: f?.status_dictionary ?? null,
+      };
+    });
+
     return {
-      produtos: linhas<Linha>(produtos, "catálogo de produtos"),
+      produtos: produtosComProdutoPai,
       trilhas: linhas<Linha>(trilhas, "trilhas de cidadania"),
       servicos: linhas<Linha>(servicos, "serviços do caso"),
       taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas"),
