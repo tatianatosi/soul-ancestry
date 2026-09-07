@@ -115,7 +115,19 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
 
   if (painel.isLoading) return <p className="text-sm text-navy/60">Carregando privacidade do caso…</p>;
   if (painel.error) return <p className="text-sm text-terracotta">{(painel.error as Error).message}</p>;
-  if (!painel.data) return null;
+  if (!painel.data)
+    return (
+      <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+        A consulta de privacidade do caso não retornou dado nem erro. Isto é falha de carga, não ausência de caso.
+        <button
+          type="button"
+          onClick={() => void painel.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
 
   const p = painel.data;
   const documentos = (docs.data ?? []) as Linha[];
@@ -228,7 +240,19 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
             </span>
           </div>
           <div className="space-y-2">
-            {documentos.length === 0 && <p className="text-sm text-navy/60">Nenhum documento visível para o seu papel.</p>}
+            {docs.isError ? (
+              <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+                Não foi possível carregar os documentos. Isto é falha de leitura, não ausência de documento.
+                <button
+                  type="button"
+                  onClick={() => void docs.refetch()}
+                  className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+                >
+                  Tentar novamente
+                </button>
+              </p>
+            ) : null}
+            {!docs.isError && documentos.length === 0 && <p className="text-sm text-navy/60">Nenhum documento visível para o seu papel.</p>}
             {documentos.map((d) => (
               <div
                 key={d["id"]}
