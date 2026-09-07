@@ -472,6 +472,21 @@ function CasosPage() {
                   {falta.length ? (
                     <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" />
                   ) : null}
+                  {(() => {
+                    const canonica = estados.get(String(l["id"]))?.proximaAcaoCanonica;
+                    if (!canonica) return null;
+                    const divergente =
+                      canonica.nivel !== 8 &&
+                      String(l["proxima_acao"] ?? "").trim() !== canonica.motivo.trim();
+                    return (
+                      <span
+                        className={`block text-[11px] ${divergente ? "text-terracotta" : "text-navy/55"}`}
+                      >
+                        Fonte canônica (mesma da Ficha 360): {canonica.motivo}
+                        {divergente ? " — diverge do campo manual acima" : ""}
+                      </span>
+                    );
+                  })()}
                 </span>
               );
             },

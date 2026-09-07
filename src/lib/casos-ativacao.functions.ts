@@ -11,11 +11,27 @@ export type EstadoAtivacaoCaso = {
   ativo: boolean;
   /** Motivos específicos do bloqueio, na ordem dos requisitos. */
   motivos: string[];
+  /**
+   * Fonte única de "próxima ação" (RPC proxima_acao_prioritaria_lote,
+   * 07/09/2026) — substitui a leitura crua de crm_casos.proxima_acao nesta
+   * tela. null só quando a RPC não retornou nada para o caso (falha de
+   * leitura, nunca ocultado como "tudo certo").
+   */
+  proximaAcaoCanonica: { nivel: number; motivo: string; prazo: string | null } | null;
 };
 
 type BloqueioReal = { regra: string; motivo: string };
 
-/** Os 14 requisitos obrigatórios (espelho de activation_check_definicoes()). */
+/**
+ * 07/09/2026 — achado real: esta lista de 14 itens e a leitura da coluna
+ * `case_activation_checks.obrigatorio` (por linha) ficaram desatualizadas
+ * quando a Fase B do Cockpit reduziu os requisitos realmente obrigatórios
+ * para 8 (ver docs/politicas/de-para-cockpit-must-have-vs-sobreposicao-07-09.md).
+ * A fonte real de "obrigatório" é `activation_check_definicoes()` (função
+ * de banco, única e org-wide) — a coluna por linha não é lida pelo gate
+ * real. Mantida só como rótulo para os motivos já retornados pela RPC
+ * abaixo; não decide mais total/validados (ver TOTAL_OBRIGATORIOS_HOJE).
+ */
 const REQUISITOS_OBRIGATORIOS: { chave: string; label: string }[] = [
   { chave: "contrato_assinado_ou_isencao_autorizada", label: "Contrato assinado" },
   {
@@ -38,6 +54,14 @@ const REQUISITOS_OBRIGATORIOS: { chave: string; label: string }[] = [
   { chave: "primeira_tarefa_criada", label: "Plano de ação e primeira micro-entrega previstos" },
   { chave: "aprovacao_interna_ativacao", label: "Aprovação interna de ativação registrada" },
 ];
+
+/**
+ * Contagem real de requisitos obrigatórios hoje: os 8 indicadores do Cockpit
+ * (6 em case_activation_checks + app_cliente e micro_entrega_d7 em
+ * onboarding_checklist), todos já cobertos pela RPC case_ativacao_bloqueios_reais.
+ * Não usar REQUISITOS_OBRIGATORIOS.length (14) para nenhuma contagem exibida.
+ */
+const TOTAL_OBRIGATORIOS_HOJE = 8;
 
 /**
  * Estado de ativação por caso, calculado no servidor a partir dos 14 requisitos
@@ -108,11 +132,15 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
 
       resultado.push({
         caseId: c.id,
+        // total/validados provisórios (base nos 14 itens); sobrescritos logo
+        // abaixo com a contagem real de TOTAL_OBRIGATORIOS_HOJE (8) para
+        // todo caso, ativo ou não — nunca exibir "14" na tela.
         total: REQUISITOS_OBRIGATORIOS.length,
         validados,
         pendentes: motivos.length,
         ativo: Boolean(c.ativo),
         motivos,
+        proximaAcaoCanonica: null,
       });
     }
 
@@ -128,15 +156,47 @@ export const listarEstadoAtivacao = createServerFn({ method: "GET" })
      * ativo" e não precisa reavaliar bloqueios.
      */
     await Promise.all(
-      resultado
-        .filter((r) => !r.ativo)
-        .map(async (r) => {
-          const { data } = await supabase.rpc("case_ativacao_bloqueios_reais", { _case: r.caseId });
-          const reais = (data ?? []) as BloqueioReal[];
-          r.motivos = reais.map((b) => b.motivo);
-          r.pendentes = reais.length;
-        }),
+      resultado.map(async (r) => {
+        r.total = TOTAL_OBRIGATORIOS_HOJE;
+        if (r.ativo) {
+          // Caso já ativo passou pelo gate real no banco — não reavalia
+          // bloqueios aqui, mesma convenção já usada na Ficha 360.
+          r.motivos = [];
+          r.pendentes = 0;
+          r.validados = TOTAL_OBRIGATORIOS_HOJE;
+          return;
+        }
+        const { data } = await supabase.rpc("case_ativacao_bloqueios_reais", { _case: r.caseId });
+        const reais = (data ?? []) as BloqueioReal[];
+        r.motivos = reais.map((b) => b.motivo);
+        r.pendentes = reais.length;
+        r.validados = Math.max(0, TOTAL_OBRIGATORIOS_HOJE - reais.length);
+      }),
     );
+
+    /*
+     * 07/09/2026 — achado real: a Lista de Casos mostrava crm_casos.proxima_acao
+     * (texto manual) enquanto a Ficha 360 já usa a RPC proxima_acao_prioritaria
+     * (9 níveis, incluindo bloqueio de ativação real, tarefa vencida, documento
+     * pendente). Hoje os dois concordam porque todos os casos estão em nível 1,
+     * mas divergem assim que um caso tiver, por exemplo, uma tarefa vencida sem
+     * bloqueio de ativação pendente. Adiciona a fonte canônica sem remover o
+     * campo manual — a tela decide como exibir os dois.
+     */
+    const idsNaoAtivos = resultado.filter((r) => !r.ativo).map((r) => r.caseId);
+    if (idsNaoAtivos.length > 0) {
+      const { data: canonicas } = await supabase.rpc("proxima_acao_prioritaria_lote", {
+        _cases: idsNaoAtivos,
+      });
+      const porCasoCanonica = new Map(
+        ((canonicas ?? []) as { case_id: string; nivel: number; motivo: string; prazo: string | null }[]).map(
+          (p) => [p.case_id, { nivel: p.nivel, motivo: p.motivo, prazo: p.prazo }],
+        ),
+      );
+      for (const r of resultado) {
+        r.proximaAcaoCanonica = porCasoCanonica.get(r.caseId) ?? null;
+      }
+    }
 
     return resultado;
   });
