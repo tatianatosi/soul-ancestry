@@ -12,6 +12,8 @@ import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
+import { RadarInternoCaso } from "@/components/caso/radar-interno";
+import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
@@ -719,12 +721,35 @@ function FichaCaso() {
             recurso="os indicadores do caso"
           >
             {([d]) => (
-              <AbaVisaoGeral
-                caso={caso}
-                timeline={d.timeline}
-                blueprint={d.blueprint}
-                filaDrive={d.filaDrive}
-              />
+              <>
+                <AbaVisaoGeral
+                  caso={caso}
+                  timeline={d.timeline}
+                  blueprint={d.blueprint}
+                  filaDrive={d.filaDrive}
+                />
+                {/*
+                  07/09/2026 — "Radar Individual" (micro) do mockup do Desk:
+                  o "Radar Interno" só tinha a Matriz de Prioridade (macro,
+                  todos os casos, em /casos). O toggle para o caso individual
+                  nunca tinha sido construído. Mesma taxonomia do Radar do
+                  cliente (radar-eixos.ts), conteúdo interno.
+                */}
+                <div className="mt-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                    Radar Individual deste caso
+                  </p>
+                  <RadarInternoCaso
+                    eixos={radarInternoDoCaso({
+                      caso,
+                      nucleoCompletude: d.nucleoOk,
+                      nucleoCriterios: d.nucleoCriterios,
+                      checksAtivacao: d.checksAtivacao,
+                      bloqueiosReais: d.bloqueiosReais,
+                    })}
+                  />
+                </div>
+              </>
             )}
           </EstadoDados>
           <div className="mt-5">
