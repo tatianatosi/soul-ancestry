@@ -64,8 +64,8 @@ export const COPY_TELAS = {
   },
   radar: {
     navegacao: "Radar",
-    titulo: "Radar",
-    descricao: "Quatro leituras da sua jornada. Nada aqui é conclusão sobre a sua história.",
+    titulo: "Radar Ancestral",
+    descricao: "Seu equilíbrio nas 6 dimensões da jornada. Nada aqui é conclusão sobre a sua história.",
     vazio: "Estas leituras aparecem assim que houver material preparado para compartilhar.",
   },
   arvore: {
