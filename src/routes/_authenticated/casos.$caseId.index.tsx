@@ -515,6 +515,22 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
+      {caso["ativo"] ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-800">
+              Caso ativo
+            </p>
+            <p className="mt-0.5 text-sm text-emerald-900">
+              {caso["data_ativacao"] || caso["ativado_em"]
+                ? `Ativado em ${new Date(
+                    String(caso["data_ativacao"] ?? caso["ativado_em"]),
+                  ).toLocaleString("pt-BR")}`
+                : "Ativado"}
+            </p>
+          </div>
+        </div>
+      ) : null}
       {qc2.data?.proximaAcaoPrioritaria ? (
         <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
