@@ -7,6 +7,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { ReferenciaCatalogo } from "@/components/catalogo/referencia-catalogo";
 import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
 import { PrecoSugeridoOperacional } from "@/components/catalogo/preco-sugerido-operacional";
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
@@ -180,6 +181,8 @@ function CatalogoPage() {
           )}
         </EstadoDados>
       </section>
+
+      <PlanejadorProdutosPai />
     </SaasShell>
   );
 }
