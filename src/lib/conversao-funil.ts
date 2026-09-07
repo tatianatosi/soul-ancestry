@@ -263,10 +263,22 @@ export type LeadMinimo = {
 
 const ENCERRADOS = ["perdido", "descartado", "arquivado", "convertido", "ganho"];
 
+/**
+ * 07/09/2026 — achado de auditoria: `followupsVencidos` comparava
+ * `prazo_proxima_acao` por TIMESTAMP exato aqui, enquanto o mesmo campo
+ * (`leads.proxima_acao_em`) era comparado por DIA CALENDÁRIO em
+ * `crm-desk.ts` (função `dia()`, usada por /métricas e Painel Hoje). Um
+ * prazo marcado para "hoje às 18h" já aparecia vencido aqui a partir das
+ * 18h, mas só no dia seguinte nas outras telas — duas contagens diferentes
+ * de "follow-ups vencidos" dentro do mesmo dia. Unificado para dia
+ * calendário, que é a convenção já usada no resto do produto para prazo.
+ */
+const soDia = (v: string | number | Date) => new Date(v).toISOString().slice(0, 10);
+
 export function montarSaude(
   estados: EstadoEntidade[],
   leads: LeadMinimo[],
-  agora = Date.now(),
+  agora: number = Date.now(),
   /** Universo completo (inclusive demonstração) — usado para não zerar indicadores existentes. */
   estadosTodos: EstadoEntidade[] = estados,
 ): SaudeFunil {
@@ -300,7 +312,7 @@ export function montarSaude(
       .filter((l) => !ENCERRADOS.includes(String(l.status ?? "").toLowerCase()) && !l.proxima_acao)
       .map((l) => ({ id: l.id, rotulo: l.nome || l.codigo || l.id })),
     followupsVencidos: leads
-      .filter((l) => l.prazo_proxima_acao && new Date(l.prazo_proxima_acao).getTime() < agora)
+      .filter((l) => l.prazo_proxima_acao && soDia(l.prazo_proxima_acao) < soDia(agora))
       .map((l) => ({ id: l.id, rotulo: l.nome || l.codigo || l.id, detalhe: `Prazo ${new Date(l.prazo_proxima_acao as string).toLocaleDateString("pt-BR")}` })),
     propostasSemResposta: ativos
       .filter((e) => e.etapaAtual === "proposta_enviada")
