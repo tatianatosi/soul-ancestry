@@ -134,6 +134,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Operação do caso" },
       { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
+      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados (sugestão)" },
       { to: "/tarefas", label: "Tarefas e entregas internas" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
