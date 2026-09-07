@@ -251,8 +251,16 @@ function FinanceiroPage() {
             não entra como custo do Clube. Indicador sem base declarada aparece como “Sem dados suficientes”.
           </p>
           <p className="mt-1 text-[11px] text-navy/50">
-            Recorte único: caixa, previsão e eficiência de mídia usam o mesmo período de apuração (mês corrente). Mídia e aquisição
-            não são lidas em janela própria.
+            {/*
+              07/09/2026 — achado de auditoria: este texto anunciava "mês
+              corrente" como recorte de apuração, mas o cálculo abaixo soma
+              todo o histórico não arquivado, sem filtro de período nenhum.
+              Corrigido para descrever o que o código realmente faz, em vez
+              de prometer um recorte que não existe. Se quiser recorte por
+              mês de verdade, isso é uma mudança de cálculo à parte.
+            */}
+            Recorte único: caixa, previsão e eficiência de mídia usam a mesma base (acumulado total, sem filtro de período).
+            Não é recorte de mês corrente. Mídia e aquisição não são lidas em janela própria.
           </p>
           {realidadeAberta ? (
             <div className="mt-3 space-y-3">

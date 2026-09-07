@@ -1172,8 +1172,16 @@ export function calcularMetricasCrm(input: {
       (l) => !l.archived_at && !["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial)) && (!l.proxima_acao || !l.proxima_acao_em),
     ).length,
     followupsVencidos: leads.filter((l) => l.proxima_acao_em && dia(l.proxima_acao_em) < hojeStr && !l.archived_at).length,
+    /**
+     * 07/09/2026 — achado de auditoria: esta linha tratava `ativo = null`
+     * como ativo (`c.ativo !== false`), enquanto `/casos`
+     * (`casos-ativacao.functions.ts`) sempre tratou como `Boolean(c.ativo)`
+     * — só conta quando `ativo` é explicitamente `true`. As duas telas
+     * podiam mostrar contagens diferentes de "casos ativos" para o mesmo
+     * caso com `ativo = null`. Unificado para a mesma regra de `/casos`.
+     */
     casosPorNacionalidadeVia: contar(
-      input.casos.filter((c) => c.ativo !== false),
+      input.casos.filter((c) => Boolean(c.ativo)),
       (c) => `${c.pais ?? "país não declarado"} · ${c.via ?? "via não declarada"}`,
     ),
     pendenciasDocumentais: contar(
