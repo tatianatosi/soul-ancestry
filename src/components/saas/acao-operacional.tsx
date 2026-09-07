@@ -132,7 +132,7 @@ export function AcaoOperacional({
           {decisao.exigeMotivo ? (
             <div className="space-y-1">
               <label className="text-xs font-medium uppercase tracking-wide text-navy/60">
-                Motivo da decisão (mínimo {MOTIVO_MINIMO} caracteres)
+                Motivo da decisão
               </label>
               <Textarea
                 value={motivo}
