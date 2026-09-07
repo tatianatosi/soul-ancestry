@@ -122,6 +122,7 @@ export function DeskOperacional() {
       : null;
   const falhasConsulta = [
     refs.isError ? "referências (equipe, casos e regras de SLA)" : null,
+    painel.isError ? "painel de indicadores" : null,
     fila.isError ? "fila de tarefas" : null,
     micro.isError ? "microentregas" : null,
     alertas.isError ? "alertas operacionais" : null,
@@ -187,6 +188,7 @@ export function DeskOperacional() {
             type="button"
             onClick={() => {
               if (refs.isError) void refs.refetch();
+              if (painel.isError) void painel.refetch();
               if (fila.isError) void fila.refetch();
               if (micro.isError) void micro.refetch();
               if (alertas.isError) void alertas.refetch();
