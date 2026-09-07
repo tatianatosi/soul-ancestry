@@ -4,6 +4,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -46,12 +47,20 @@ function MatrizPage() {
 
   const mutConsolidar = useMutation({
     mutationFn: () => consolidar(),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["matriz-juridica"] }),
+    onSuccess: () => {
+      toast.success("Matriz jurídica consolidada.");
+      void qc.invalidateQueries({ queryKey: ["matriz-juridica"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível consolidar a matriz."),
   });
 
   const mut = useMutation({
     mutationFn: (p: Parameters<typeof registrarDecisaoTema>[0]["data"]) => registrar({ data: p }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["matriz-juridica"] }),
+    onSuccess: () => {
+      toast.success("Decisão do tema registrada.");
+      void qc.invalidateQueries({ queryKey: ["matriz-juridica"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível registrar a decisão."),
   });
 
   const linhas = q.data as LinhaMatriz[] | undefined;

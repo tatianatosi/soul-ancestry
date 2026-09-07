@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { Secao } from "@/components/caso/campos";
 import {
@@ -28,7 +29,11 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
 
   const m = useMutation({
     mutationFn: () => recalcular({ data: { caseId } }),
-    onSuccess: () => q.refetch(),
+    onSuccess: () => {
+      toast.success("Estado do plano recalculado.");
+      q.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível recalcular o estado."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando plano de onboarding…</p>;
