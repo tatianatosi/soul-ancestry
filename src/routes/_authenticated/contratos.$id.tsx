@@ -552,7 +552,7 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Adicionar parte"
           capacidade="corrigir_pessoas_dependentes_representacao"
-          pendenciaGate={nome.trim() ? null : "Informe o nome da parte antes de adicionar."}
+          validacaoFormulario={nome.trim() ? null : "Informe o nome da parte antes de adicionar."}
           efeito="Cadastra a parte neste instrumento contratual."
           onConfirmar={async () => {
             if (!nome.trim()) return;
@@ -628,7 +628,7 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Adicionar item"
           capacidade="corrigir_proposta_escopo_preco"
-          pendenciaGate={titulo.trim() ? null : "Informe o título do item de escopo antes de adicionar."}
+          validacaoFormulario={titulo.trim() ? null : "Informe o título do item de escopo antes de adicionar."}
           efeito="Cadastra o item de escopo neste instrumento."
           onConfirmar={async () => {
             if (!titulo.trim()) return;
@@ -700,7 +700,7 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
           <AcaoOperacional
             rotulo="Salvar cláusula"
             capacidade="editar_rascunho"
-            pendenciaGate={form.clause_title.trim() ? null : "Informe o título da cláusula antes de salvar."}
+            validacaoFormulario={form.clause_title.trim() ? null : "Informe o título da cláusula antes de salvar."}
             efeito="Grava a cláusula específica no rascunho deste instrumento."
             onConfirmar={async () => {
               if (!form.clause_title.trim()) return;
@@ -775,7 +775,7 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Adicionar anexo"
           capacidade="corrigir_os_anexos_previa"
-          pendenciaGate={form.title.trim() ? null : "Informe o título do anexo antes de adicionar."}
+          validacaoFormulario={form.title.trim() ? null : "Informe o título do anexo antes de adicionar."}
           efeito="Cadastra o anexo neste instrumento."
           onConfirmar={async () => {
             if (!form.title.trim()) return;
@@ -850,7 +850,7 @@ function Fontes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
         <AcaoOperacional
           rotulo="Vincular fonte"
           capacidade="editar_rascunho"
-          pendenciaGate={ref.trim() ? null : "Informe a referência da fonte antes de vincular."}
+          validacaoFormulario={ref.trim() ? null : "Informe a referência da fonte antes de vincular."}
           efeito="Vincula a referência de fonte ao instrumento. Nenhum conteúdo externo é copiado."
           onConfirmar={async () => {
             if (!ref.trim()) return;
