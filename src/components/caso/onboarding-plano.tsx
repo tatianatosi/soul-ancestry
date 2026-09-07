@@ -9,6 +9,7 @@ import {
 } from "@/lib/onboarding-plano.functions";
 import { CadenciaOnboarding } from "@/components/caso/cadencia-onboarding";
 import { CadenciaD0D30 } from "@/components/caso/cadencia-d0-d30";
+import { CadenciaD31D365 } from "@/components/caso/cadencia-d31-d365";
 import { ESTADO_PLANO, STATUS_DOSSIE, STATUS_GRUPO_FAMILIAR } from "@/lib/onboarding-plano";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -163,6 +164,8 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
       <CadenciaOnboarding plano={plano} />
 
       <CadenciaD0D30 plano={plano} />
+
+      <CadenciaD31D365 plano={plano} />
 
       <Secao
         titulo="Filas de comunicação em rascunho"
