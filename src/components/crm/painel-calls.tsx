@@ -84,7 +84,12 @@ export function PainelCalls() {
   const salvar = useServerFn(salvarLeadDesk);
   const qc = useQueryClient();
 
-  const { data: leads = [], isLoading } = useQuery({
+  const {
+    data: leads = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["leads-desk"],
     queryFn: () => carregar(),
   });
@@ -135,6 +140,22 @@ export function PainelCalls() {
         material para preenchê-lo.
       */}
       <VarreduraWhatsApp />
+
+      {isError ? (
+        <p
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+        >
+          Não foi possível carregar os leads. Isto é falha de leitura, não fila vazia.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <Secao
         titulo="Painel de Calls"
