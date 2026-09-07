@@ -19,6 +19,22 @@
  *    parecer jurídico do caso (legal_clause_matrix é staff-only). Mostrar um
  *    número ali seria inventar dado, exatamente o que a proprietária proibiu.
  *    Fica com estado institucional, igual ao eixo "estrategia" já existente.
+ *
+ *    07/09/2026 — a proprietária confirmou colocar este eixo em espera, mas
+ *    apontou a direção certa para quando for construído: o percentual deve
+ *    vir de um algoritmo combinando completude documental + achados
+ *    confirmados + marcos jurídicos trazidos pela equipe — não um número
+ *    isolado. Registrado aqui para não se perder: falta decidir o peso de
+ *    cada parte e a fonte com RLS de portal para marcos jurídicos (hoje só
+ *    existe em legal_clause_matrix, staff-only).
+ *
+ * 3. Dimensão sem denominador real (quantas "origens" ou "achados de
+ *    memória" um caso PODE ter não tem teto conhecido, ao contrário das
+ *    conexões familiares, que têm teto genealógico) não ganha percentual
+ *    fino fingindo precisão que não existe. Fica em dois degraus honestos:
+ *    0% (nada publicado ainda) ou 100% (a equipe já publicou algo). Só
+ *    Documentação e Conexões Familiares têm denominador real e por isso
+ *    mostram percentual fino.
  */
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import { publicacoesParaCliente, type ProjecaoBruta } from "@/lib/projecoes-cliente";
@@ -57,7 +73,6 @@ export function radarSeisDimensoes(entrada: {
 
   const arvore = publicacoes.filter((p) => p.tipo === "arvore" || p.tipo === "linha_tempo");
   const achados = publicacoes.filter((p) => p.tipo === "achado");
-  const evidencias = publicacoes.filter((p) => p.tipo === "evidencia");
   const marcos = publicacoes.filter((p) => p.tipo === "marco" || p.tipo === "resumo");
 
   return [
@@ -75,10 +90,12 @@ export function radarSeisDimensoes(entrada: {
       id: "origem",
       titulo: "Origem",
       estado: "percentual",
-      // Origem confirmada = publicações de linha/árvore com evidência documental
-      // associada. Sem evidência publicada ainda, o eixo fica em 0 — nunca
-      // estimado por "provavelmente já identificado".
-      percentual: percentual(Math.min(arvore.length, evidencias.length + 1), Math.max(arvore.length, 1)),
+      // Sem teto conhecido de "quantos registros de origem um caso tem" —
+      // dois degraus honestos, não percentual fino fingindo precisão. Usa a
+      // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
+      // só que como presença/ausência em vez de contagem contra um teto —
+      // por isso os dois eixos sobem juntos; não é redundância acidental.
+      percentual: arvore.length > 0 ? 100 : 0,
       legenda:
         arvore.length > 0
           ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
@@ -103,7 +120,7 @@ export function radarSeisDimensoes(entrada: {
       id: "memoria",
       titulo: "Memória",
       estado: "percentual",
-      percentual: achados.length > 0 ? percentual(Math.min(achados.length, 5), 5) : 0,
+      percentual: achados.length > 0 ? 100 : 0,
       legenda:
         achados.length > 0
           ? `${achados.length} achado(s) de memória familiar publicados.`
@@ -113,7 +130,7 @@ export function radarSeisDimensoes(entrada: {
       id: "legado",
       titulo: "Legado",
       estado: "percentual",
-      percentual: marcos.length > 0 ? percentual(Math.min(marcos.length, 5), 5) : 0,
+      percentual: marcos.length > 0 ? 100 : 0,
       legenda:
         marcos.length > 0
           ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
