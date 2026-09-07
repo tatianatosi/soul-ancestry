@@ -57,6 +57,17 @@ export type PedidoAcao = {
   acaoExterna?: AcaoExterna | string;
   /** Pendência de gate de domínio que a tela detectou. */
   pendenciaGate?: string | null;
+  /**
+   * Validação trivial de formulário (ex.: "informe o título") — não é
+   * pendência de processo, é dado ausente que a própria pessoa preenche na
+   * hora. Achado de auditoria em 06/09/2026 (cruzamento com
+   * hotfix_autonomia_operacional_proprietaria.md): tratar campo vazio como
+   * pendenciaGate fazia até a proprietária precisar escrever um motivo
+   * (mínimo de caracteres) só para adicionar uma cláusula com título. Isso
+   * bloqueia sempre, para qualquer papel, sem exigir motivo — porque não é
+   * uma decisão a auditar, é um campo a preencher.
+   */
+  validacaoFormulario?: string | null;
 };
 
 export function ehAcaoExterna(acao: string | null | undefined): boolean {
@@ -105,6 +116,18 @@ export function decidirAcao(
       motivo:
         "Organização ativa não identificada. A escrita depende dela para passar na política do banco.",
       pendencia,
+      porDecisaoDaProprietaria: false,
+      exigeMotivo: false,
+    };
+  }
+
+  // Validação trivial de formulário: bloqueia pra todo mundo, sem motivo,
+  // sem virar pendência auditada. Não é gate de domínio, é campo vazio.
+  if (pedido.validacaoFormulario?.trim()) {
+    return {
+      decisao: "bloquear",
+      motivo: pedido.validacaoFormulario.trim(),
+      pendencia: null,
       porDecisaoDaProprietaria: false,
       exigeMotivo: false,
     };

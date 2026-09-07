@@ -40,6 +40,9 @@ export type AcaoOperacionalProps = Omit<ButtonProps, "onClick" | "disabled"> & {
   acaoExterna?: AcaoExterna | string;
   /** Pendência de gate detectada pela tela — não bloqueia a proprietária. */
   pendenciaGate?: string | null;
+  /** Validação trivial de formulário (campo obrigatório vazio) — bloqueia
+   *  pra todo mundo, sem motivo, sem virar pendência auditada. */
+  validacaoFormulario?: string | null;
   /** Descrição do efeito concreto, mostrada na confirmação. */
   efeito?: string;
   /** Executa a ação. Recebe o motivo quando a confirmação o exigir. */
@@ -52,13 +55,14 @@ export function AcaoOperacional({
   capacidade,
   acaoExterna,
   pendenciaGate = null,
+  validacaoFormulario = null,
   efeito,
   onConfirmar,
   children,
   ...props
 }: AcaoOperacionalProps) {
   const autoridade = useAutoridade();
-  const decisao = autoridade.decidir({ capacidade, acaoExterna, pendenciaGate });
+  const decisao = autoridade.decidir({ capacidade, acaoExterna, pendenciaGate, validacaoFormulario });
   const [aberto, setAberto] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [executando, setExecutando] = useState(false);
