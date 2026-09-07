@@ -35,6 +35,8 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
     const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao, historicoFase] = await Promise.all([
+      // (bloqueiosReais lido separadamente abaixo, fora do Promise.all de selects
+      // simples, porque é uma chamada RPC.)
       supabase
         .from("case_members")
         .select("*")
@@ -77,6 +79,19 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         .order("changed_at", { ascending: false }),
     ]);
 
+    // 07/09/2026 — achado real reportado pela proprietária: esta ficha e a
+    // tela de onboarding (/onboarding/$id) mostravam estados diferentes para
+    // o mesmo caso, porque cada uma calculava "pronto?" com uma lógica
+    // própria (esta ficha só olhava case_activation_checks via
+    // estadoDerivadoPorGates; onboarding usa a função mais completa que
+    // também lê onboarding_checklist, consentimento e qualidade). Passa a
+    // ler a mesma função RPC (case_ativacao_bloqueios_reais) que já é a
+    // fonte confiável da tela de onboarding, para as duas telas finalmente
+    // concordarem.
+    const { data: bloqueiosReaisData } = await supabase.rpc("case_ativacao_bloqueios_reais", {
+      _case: data.id,
+    });
+
     // Completude do núcleo por critérios persistidos (ANA-B-01), nunca por existência de linha.
     const { data: completude } = await supabase.rpc("nucleo_completude", { _case: data.id });
     const nucleoCompletude = (completude ?? { nucleo_id: null, itens: [], completo: false }) as {
@@ -100,6 +115,14 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       blueprint: (blueprint.data ?? []) as Linha[],
       filaDrive: (filaDrive.data ?? []) as Linha[],
       checksAtivacao: (checksAtivacao.data ?? []) as Linha[],
+      bloqueiosReais: (bloqueiosReaisData ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
       historicoFase: (historicoFase.data ?? []) as Linha[],
     };
   });

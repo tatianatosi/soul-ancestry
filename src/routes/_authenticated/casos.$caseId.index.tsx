@@ -29,7 +29,6 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
-import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
@@ -420,15 +419,21 @@ function FichaCaso() {
     [caso, form],
   );
 
-  // Requisitos de ativação já validados à mão contam como atendidos: são
-  // decisão humana registrada, com autor e data.
-  const checksAtivacao = useMemo(
-    () => ((q.data as any)?.checksAtivacao ?? []) as { check_key: string; status?: string | null }[],
+  // 07/09/2026 — substitui estadoDerivadoPorGates (só lia case_activation_checks,
+  // com valores falso-positivos desde 04/09) pela mesma RPC
+  // case_ativacao_bloqueios_reais que a tela de onboarding já usa — as duas
+  // telas agora sempre concordam sobre o mesmo caso.
+  const bloqueiosReais = useMemo(
+    () =>
+      ((q.data as any)?.bloqueiosReais ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
     [q.data],
-  );
-  const derivadoGates = useMemo(
-    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>, checksAtivacao),
-    [caso, checksAtivacao],
   );
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
@@ -459,7 +464,9 @@ function FichaCaso() {
     [
       !podeEscrever ? "Seu vínculo de equipe está marcado como somente leitura." : null,
       caso["archived_at"] ? "Caso arquivado." : null,
-      derivadoGates.elegivel ? null : `${derivadoGates.rotulo} — ${derivadoGates.explicacao}`,
+      bloqueiosReais.length === 0
+        ? null
+        : `Não elegível para ativação — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}.`,
     ]
       .filter(Boolean)
       .join(" ") || null;
@@ -579,20 +586,28 @@ function FichaCaso() {
       <div
         className={
           "mb-6 rounded-xl border px-4 py-3 " +
-          (derivadoGates.elegivel
+          (bloqueiosReais.length === 0
             ? "border-navy/15 bg-navy/5"
             : "border-terracotta/40 bg-terracotta/10")
         }
       >
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">
-          Estado derivado pelos requisitos de ativação
-        </p>
-        <p className="mt-1 text-sm font-medium text-navy">{derivadoGates.rotulo}</p>
-        <p className="mt-1 text-xs text-navy/65">{derivadoGates.explicacao}</p>
-        <p className="mt-1 text-[11px] text-navy/50">
-          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do
-          cliente. As travas são revalidadas no servidor.
-        </p>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado de ativação</p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-navy">
+            {bloqueiosReais.length === 0
+              ? "Elegível — nenhum bloqueio real pendente"
+              : `Não elegível — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
+          </p>
+          <Link
+            to="/onboarding/$id"
+            params={{ id }}
+            className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+          >
+            {bloqueiosReais.length === 0
+              ? "Abrir painel de onboarding e ativação"
+              : "Ver todos os bloqueios e resolver →"}
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-4">
