@@ -13,20 +13,21 @@
  *    — nada de tabela interna sem RLS de portal comprovada (ver
  *    BLOQUEIOS_CA_PORTAL_02 em portal-dados-vivos.ts).
  *
- * 2. "Elegibilidade" NUNCA vira percentual. radar-eixos.ts já proíbe isso
- *    explicitamente ("nunca prometer elegibilidade, cidadania, êxito
- *    jurídico") e não existe hoje nenhuma fonte com RLS de portal para o
- *    parecer jurídico do caso (legal_clause_matrix é staff-only). Mostrar um
- *    número ali seria inventar dado, exatamente o que a proprietária proibiu.
- *    Fica com estado institucional, igual ao eixo "estrategia" já existente.
+ * 2. "Elegibilidade" nunca é um parecer jurídico nem lê legal_clause_matrix
+ *    (staff-only, sem RLS de portal). radar-eixos.ts já proíbe prometer
+ *    elegibilidade/cidadania/êxito jurídico — mostrar aqui um número que
+ *    parecesse vir de análise legal seria romper essa regra.
  *
- *    07/09/2026 — a proprietária confirmou colocar este eixo em espera, mas
- *    apontou a direção certa para quando for construído: o percentual deve
- *    vir de um algoritmo combinando completude documental + achados
- *    confirmados + marcos jurídicos trazidos pela equipe — não um número
- *    isolado. Registrado aqui para não se perder: falta decidir o peso de
- *    cada parte e a fonte com RLS de portal para marcos jurídicos (hoje só
- *    existe em legal_clause_matrix, staff-only).
+ *    07/09/2026 — decisão da proprietária, em duas etapas: primeiro ficou em
+ *    espera (estado institucional, sem número); depois, para simplificar
+ *    esta primeira versão, ela decidiu que Elegibilidade usa o MESMO
+ *    princípio dos outros eixos sem denominador próprio — só que em vez de
+ *    presença/ausência (0/100), é a média dos outros 5 eixos já calculados
+ *    (Documentação, Origem, Conexões Familiares, Memória, Legado). Não é
+ *    juízo jurídico: é só "o quanto do resto da jornada já está pronto",
+ *    reaproveitando números que já existem — nenhum dado novo, nenhuma
+ *    inferência legal. Quando o parecer jurídico do caso ganhar uma fonte
+ *    com RLS de portal, esse número pode ganhar peso próprio na média.
  *
  * 3. Dimensão sem denominador real (quantas "origens" ou "achados de
  *    memória" um caso PODE ter não tem teto conhecido, ao contrário das
@@ -75,66 +76,74 @@ export function radarSeisDimensoes(entrada: {
   const achados = publicacoes.filter((p) => p.tipo === "achado");
   const marcos = publicacoes.filter((p) => p.tipo === "marco" || p.tipo === "resumo");
 
-  return [
-    {
-      id: "documentacao",
-      titulo: "Documentação",
-      estado: "percentual",
-      percentual: percentual(liberados, docs.length),
-      legenda:
-        docs.length > 0
-          ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
-          : "Nenhum documento vinculado ao seu caso ainda.",
-    },
-    {
-      id: "origem",
-      titulo: "Origem",
-      estado: "percentual",
-      // Sem teto conhecido de "quantos registros de origem um caso tem" —
-      // dois degraus honestos, não percentual fino fingindo precisão. Usa a
-      // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
-      // só que como presença/ausência em vez de contagem contra um teto —
-      // por isso os dois eixos sobem juntos; não é redundância acidental.
-      percentual: arvore.length > 0 ? 100 : 0,
-      legenda:
-        arvore.length > 0
-          ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
-          : "Ainda não há registro de origem publicado pela equipe.",
-    },
-    {
-      id: "conexoes",
-      titulo: "Conexões Familiares",
-      estado: "percentual",
-      percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
-      legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
-    },
-    {
-      id: "elegibilidade",
-      titulo: "Elegibilidade",
-      estado: "em_preparacao",
-      percentual: null,
-      legenda:
-        "A análise de elegibilidade é jurídica e não vira percentual aqui — acompanhe pela equipe quando houver parecer.",
-    },
-    {
-      id: "memoria",
-      titulo: "Memória",
-      estado: "percentual",
-      percentual: achados.length > 0 ? 100 : 0,
-      legenda:
-        achados.length > 0
-          ? `${achados.length} achado(s) de memória familiar publicados.`
-          : "Nenhum achado de memória familiar publicado ainda.",
-    },
-    {
-      id: "legado",
-      titulo: "Legado",
-      estado: "percentual",
-      percentual: marcos.length > 0 ? 100 : 0,
-      legenda:
-        marcos.length > 0
-          ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
-          : "Nenhum marco de jornada publicado ainda.",
-    },
-  ];
+  const documentacao: DimensaoRadar = {
+    id: "documentacao",
+    titulo: "Documentação",
+    estado: "percentual",
+    percentual: percentual(liberados, docs.length),
+    legenda:
+      docs.length > 0
+        ? `${liberados} de ${docs.length} documentos do seu caso já liberados para você.`
+        : "Nenhum documento vinculado ao seu caso ainda.",
+  };
+  const origem: DimensaoRadar = {
+    id: "origem",
+    titulo: "Origem",
+    estado: "percentual",
+    // Sem teto conhecido de "quantos registros de origem um caso tem" —
+    // dois degraus honestos, não percentual fino fingindo precisão. Usa a
+    // mesma fonte de "Conexões Familiares" (publicações de árvore/linha),
+    // só que como presença/ausência em vez de contagem contra um teto —
+    // por isso os dois eixos sobem juntos; não é redundância acidental.
+    percentual: arvore.length > 0 ? 100 : 0,
+    legenda:
+      arvore.length > 0
+        ? `${arvore.length} registro(s) de origem/linha publicados pela equipe.`
+        : "Ainda não há registro de origem publicado pela equipe.",
+  };
+  const conexoes: DimensaoRadar = {
+    id: "conexoes",
+    titulo: "Conexões Familiares",
+    estado: "percentual",
+    percentual: percentual(arvore.length, TETO_ANCESTRAIS_G1_G5),
+    legenda: `${arvore.length} de até ${TETO_ANCESTRAIS_G1_G5} ancestrais possíveis em 5 gerações (você, pais, avós, bisavós e trisavós).`,
+  };
+  const memoria: DimensaoRadar = {
+    id: "memoria",
+    titulo: "Memória",
+    estado: "percentual",
+    percentual: achados.length > 0 ? 100 : 0,
+    legenda:
+      achados.length > 0
+        ? `${achados.length} achado(s) de memória familiar publicados.`
+        : "Nenhum achado de memória familiar publicado ainda.",
+  };
+  const legado: DimensaoRadar = {
+    id: "legado",
+    titulo: "Legado",
+    estado: "percentual",
+    percentual: marcos.length > 0 ? 100 : 0,
+    legenda:
+      marcos.length > 0
+        ? `${marcos.length} marco(s)/resumo(s) de jornada publicados.`
+        : "Nenhum marco de jornada publicado ainda.",
+  };
+
+  // Elegibilidade = média dos outros 5 eixos já calculados. Nunca lê parecer
+  // jurídico (sem fonte com RLS de portal): é só "quanto do resto da
+  // jornada já está pronto", reaproveitando número que já existe.
+  const outros = [documentacao, origem, conexoes, memoria, legado];
+  const mediaOutros = Math.round(
+    outros.reduce((soma, d) => soma + (d.percentual ?? 0), 0) / outros.length,
+  );
+  const elegibilidade: DimensaoRadar = {
+    id: "elegibilidade",
+    titulo: "Elegibilidade",
+    estado: "percentual",
+    percentual: mediaOutros,
+    legenda:
+      "Média de completude dos outros 5 eixos — não é parecer jurídico nem promessa de resultado.",
+  };
+
+  return [documentacao, origem, conexoes, elegibilidade, memoria, legado];
 }
