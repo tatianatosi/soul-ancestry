@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
 import { aprovarRascunho, atualizarAlerta, registrarProximaAcao } from "@/lib/caso-canonico.functions";
@@ -65,7 +66,11 @@ export function AbaProximaAcao({
 
   const mAlerta = useMutation({
     mutationFn: (p: { id: string; status: string }) => mudarAlerta({ data: p }),
-    onSuccess: () => onMudou(),
+    onSuccess: () => {
+      toast.success("Alerta atualizado.");
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível atualizar o alerta."),
   });
 
   return (
@@ -202,7 +207,11 @@ function Rascunho({
   const [corpo, setCorpo] = useState(String(item.corpo_rascunho ?? ""));
   const m = useMutation({
     mutationFn: () => aprovar({ data: { id: String(item.id), corpo } }),
-    onSuccess: () => onMudou(),
+    onSuccess: () => {
+      toast.success("Rascunho aprovado.");
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível aprovar o rascunho."),
   });
   const aprovado = item.status === "approved" || item.status === "sent";
 

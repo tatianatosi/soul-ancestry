@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { listarPaginasCanva, salvarPaginaCanva } from "@/lib/crm-desk.functions";
@@ -84,7 +85,15 @@ export function CompletudeCanva({
 
   const mut = useMutation({
     mutationFn: (p: Parameters<typeof salvarPaginaCanva>[0]["data"]) => salvar({ data: p }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["canva-paginas", proposalId] }),
+    onSuccess: (_r, variaveis) => {
+      toast.success(`Página ${variaveis.page_number} registrada.`);
+      setRascunho((s) => {
+        const { [variaveis.page_number]: _descartado, ...resto } = s;
+        return resto;
+      });
+      void qc.invalidateQueries({ queryKey: ["canva-paginas", proposalId] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível registrar a página."),
   });
 
   if (!proposalId) {
@@ -176,7 +185,7 @@ export function CompletudeCanva({
               </div>
               <button
                 type="button"
-                disabled={!podeEscrever}
+                disabled={!podeEscrever || (mut.isPending && mut.variables?.page_number === p)}
                 className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
                 onClick={() =>
                   mut.mutate({
@@ -193,7 +202,7 @@ export function CompletudeCanva({
                   })
                 }
               >
-                Registrar página {p}
+                {mut.isPending && mut.variables?.page_number === p ? "Registrando…" : `Registrar página ${p}`}
               </button>
             </div>
           );

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { listarDependentes, salvarDependente } from "@/lib/crm-desk.functions";
@@ -28,10 +29,12 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
   const mut = useMutation({
     mutationFn: (p: { id?: string | null; valores: Record<string, unknown> }) => salvar({ data: { ...p, caseId } }),
     onSuccess: () => {
+      toast.success("Dependente salvo.");
       setNovo(null);
       setEdicao({});
       void qc.invalidateQueries({ queryKey: ["dependentes", caseId] });
     },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível salvar o dependente."),
   });
 
   const lista = (q.data ?? []) as Dependente[];

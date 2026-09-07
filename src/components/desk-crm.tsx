@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   alternarTarefa,
   alternarVisibilidadeEntrega,
@@ -145,11 +146,40 @@ function CasoCrm({ caseId, onChanged }: { caseId: string; onChanged: () => void 
     qc.invalidateQueries({ queryKey: ["crm", "caso", caseId] });
     onChanged();
   };
+  const falhar = (e: unknown) => toast.error((e as Error).message || "Não foi possível gravar.");
 
-  const mTouchpoint = useMutation({ mutationFn: novoTouchpoint, onSuccess: invalidar });
-  const mTarefa = useMutation({ mutationFn: alternar, onSuccess: invalidar });
-  const mEntrega = useMutation({ mutationFn: alternarEntrega, onSuccess: invalidar });
-  const mCanvas = useMutation({ mutationFn: publicar, onSuccess: invalidar });
+  const mTouchpoint = useMutation({
+    mutationFn: novoTouchpoint,
+    onSuccess: () => {
+      toast.success("Touchpoint registrado.");
+      invalidar();
+    },
+    onError: falhar,
+  });
+  const mTarefa = useMutation({
+    mutationFn: alternar,
+    onSuccess: () => {
+      toast.success("Tarefa atualizada.");
+      invalidar();
+    },
+    onError: falhar,
+  });
+  const mEntrega = useMutation({
+    mutationFn: alternarEntrega,
+    onSuccess: () => {
+      toast.success("Visibilidade da entrega atualizada.");
+      invalidar();
+    },
+    onError: falhar,
+  });
+  const mCanvas = useMutation({
+    mutationFn: publicar,
+    onSuccess: () => {
+      toast.success("Canvas atualizado.");
+      invalidar();
+    },
+    onError: falhar,
+  });
 
   const [canal, setCanal] = useState<string>("whatsapp");
   const [resumo, setResumo] = useState("");
