@@ -2,11 +2,20 @@ import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo } from "@/components/caso/campos";
+import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
 import { salvarCaseService } from "@/lib/caso-canonico.functions";
 import { STATUS_CASE_SERVICE, rotulo } from "@/lib/caso-ficha";
 
 type Linha = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const ROTULO_RECONCILIACAO: Record<string, string> = {
+  ATIVO_HOMOLOGADO: "ativo e homologado",
+  ATIVO_SEM_PRECO_HOMOLOGADO: "ativo, sem preço homologado",
+  ESPECIFICACAO_PENDENTE: "especificação pendente",
+  CONDICIONAL_POR_CASO: "condicional por caso",
+  LEGADO_RECONCILIAR: "legado — ainda pede reconciliação",
+  DUPLICADO_A_CONSOLIDAR: "duplicado a consolidar",
+};
 
 /**
  * Produto-pai + trilha técnica (case service).
@@ -44,16 +53,27 @@ export function AbaProdutoTrilha({
   };
   const set = (k: string, valor: unknown) => setForm((f) => ({ ...f, [k]: valor }));
 
-  const opcoesProduto = useMemo(
-    () =>
-      produtos
-        .filter((p) => p.ativo !== false)
-        .map((p) => ({
-          valor: String(p.id),
-          rotulo: `${p.nome_comercial} (${p.code}) — ${p.status_homologacao === "homologado" ? "homologado" : "não homologado"}`,
-        })),
-    [produtos],
-  );
+  // 07/09/2026 — o produto-pai (planner_catalog_feed, reconciliação de 04/09)
+  // vira grupo do select em vez de lista crua de SKU; NAO_USAR_NO_MOTOR e
+  // ARQUIVADO_DECISAO_PROPRIETARIA saem da lista porque essas duas situações
+  // significam, por definição, "não oferecer este item".
+  const grupos = useMemo(() => {
+    const naoOferecer = new Set(["NAO_USAR_NO_MOTOR", "ARQUIVADO_DECISAO_PROPRIETARIA"]);
+    const porProdutoPai = new Map<string, Linha[]>();
+    for (const p of produtos) {
+      if (p.ativo === false) continue;
+      if (naoOferecer.has(String(p.status_reconciliacao))) continue;
+      const grupo = String(p.produto_pai || "Sem produto-pai definido");
+      if (!porProdutoPai.has(grupo)) porProdutoPai.set(grupo, []);
+      porProdutoPai.get(grupo)!.push(p);
+    }
+    return [...porProdutoPai.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([grupo, itens]) => ({
+        grupo,
+        itens: itens.sort((a, b) => String(a.nome_comercial).localeCompare(String(b.nome_comercial))),
+      }));
+  }, [produtos]);
   const opcoesTrilha = useMemo(
     () => trilhas.map((t) => ({ valor: String(t.id), rotulo: `${t.pais} — ${t.code}` })),
     [trilhas],
@@ -81,14 +101,34 @@ export function AbaProdutoTrilha({
       >
         {erro ? <p className="mb-3 text-sm text-terracotta">{erro}</p> : null}
         <div className="grid gap-4">
-          <Selecao
-            label="Produto-pai (catálogo)"
-            valor={v("product_catalog_id")}
-            opcoes={opcoesProduto}
-            onChange={(x) => set("product_catalog_id", x)}
-           
-            ajuda="Preço e escopo vêm do catálogo; não são editáveis nesta tela."
-          />
+          <label className="block">
+            <Rotulo>Produto-pai (catálogo)</Rotulo>
+            <select
+              className={inputCls}
+              value={v("product_catalog_id")}
+              onChange={(e) => set("product_catalog_id", e.target.value)}
+            >
+              <option value="">— selecionar —</option>
+              {grupos.map(({ grupo, itens }) => (
+                <optgroup key={grupo} label={grupo}>
+                  {itens.map((p) => (
+                    <option key={p.id} value={String(p.id)}>
+                      {p.nome_comercial} ({p.code})
+                      {p.status_reconciliacao && p.status_reconciliacao !== "ATIVO_HOMOLOGADO"
+                        ? ` — ${ROTULO_RECONCILIACAO[p.status_reconciliacao] ?? p.status_reconciliacao}`
+                        : p.status_homologacao === "homologado"
+                          ? " — homologado"
+                          : " — não homologado"}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-navy/50">
+              Preço e escopo vêm do catálogo; não são editáveis nesta tela. Agrupado pelo
+              produto-pai da reconciliação canônica de 04/09.
+            </p>
+          </label>
           <Selecao
             label="Trilha técnica (país/via)"
             valor={v("citizenship_track_id")}
