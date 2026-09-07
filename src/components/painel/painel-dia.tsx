@@ -982,12 +982,6 @@ export function PainelDia() {
             >
               Ver cadência e onboarding em risco
             </Link>
-            <Link
-              to="/governanca/indicadores"
-              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
-            >
-              registro canônico dos indicadores
-            </Link>
           </span>
         </div>
         <SinaisPorGrupo

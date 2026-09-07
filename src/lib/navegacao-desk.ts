@@ -274,7 +274,7 @@ export const MENU_CONTA: {
  * repositório, só saíram do menu.
  *
  * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
- * /governanca/corte-vertical, /governanca/decisoes, /governanca/indicadores,
+ * /governanca/corte-vertical, /governanca/indicadores,
  * /governanca/inventario-recuperacao, /governanca/inventario-patrimonial,
  * /governanca/modulos-contextuais, /governanca/matriz-equivalencia,
  * /governanca/identificadores, /governanca/varredura-completude e /auditoria
@@ -282,8 +282,17 @@ export const MENU_CONTA: {
  * todos os gates cerimoniais, não preciso de mais de 700 linhas de
  * auditoria pra um sistema que é meu". Eram telas de auditoria/diagnóstico
  * estático, não superfície de trabalho — nenhuma grava ou decide nada sobre
- * o caso real. As rotas continuam existindo no repositório, só saíram do
- * menu principal.
+ * o caso real.
+ *
+ * 06/09/2026 (execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS, por
+ * ordem direta e explícita da proprietária, independente do rótulo
+ * "rejeitado" que um agente anterior deu a ele sem manifestação literal
+ * dela) — as 11 rotas acima e /auditoria deixaram de "só sair do menu" e
+ * tiveram o arquivo de rota fisicamente apagado do repositório: eram
+ * exatamente o que o prompt pede pra remover ("não esconder só por CSS ou
+ * navegação — remover renderização"). /governanca/decisoes foi mantida
+ * porque é um link real usado por `referencias-normativas.tsx` (log de
+ * decisões citado em pesquisa), não um card de auditoria isolado.
  */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
