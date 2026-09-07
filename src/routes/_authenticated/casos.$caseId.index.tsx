@@ -1249,6 +1249,42 @@ function FichaCaso() {
         </SecaoAncora>
 
         <SecaoAncora id="log" titulo="Registro de alterações">
+          <div className="space-y-5">
+          {/*
+            07/09/2026 — case_phase_history grava sozinha desde 06/09 (trigger
+            em crm_casos.fase), mas nenhuma tela mostrava esse histórico —
+            achado da proprietária. Escrita automática, leitura nunca ligada.
+          */}
+          <Secao
+            titulo="Histórico de fases do caso"
+            descricao="Cada mudança de fase, registrada automaticamente — nunca depende de quem lembrou de anotar."
+          >
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.historicoFase as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="o histórico de fases"
+              vazio="Nenhuma mudança de fase registrada ainda."
+            >
+              {(linhasFase) => (
+                <ul className="space-y-2 text-sm">
+                  {linhasFase.map((f: Record<string, unknown>) => (
+                    <li key={String(f["id"])} className="rounded-lg border border-navy/10 p-3">
+                      <p className="text-navy">
+                        {f["fase_anterior"] ? String(f["fase_anterior"]) : "(sem fase)"} →{" "}
+                        <span className="font-medium">{String(f["fase_nova"])}</span>
+                      </p>
+                      <p className="mt-1 text-xs text-navy/50">
+                        {new Date(String(f["changed_at"])).toLocaleString("pt-BR")}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </EstadoDados>
+          </Secao>
+
           <Secao
             titulo="Registro de alterações"
             descricao="Quem alterou, quando e o quê. Nada é apagado."
@@ -1295,6 +1331,7 @@ function FichaCaso() {
               )}
             </EstadoDados>
           </Secao>
+          </div>
         </SecaoAncora>
       </div>
 
