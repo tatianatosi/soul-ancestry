@@ -21,7 +21,6 @@ import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authen
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
 import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
-import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedBibliotecaMensagensRouteImport } from './routes/_authenticated/biblioteca-mensagens'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
@@ -88,21 +87,11 @@ import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
-import { Route as AuthenticatedGovernancaCorteVerticalRouteImport } from './routes/_authenticated/governanca.corte-vertical'
-import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaDicionarioCallsCrmRouteImport } from './routes/_authenticated/governanca.dicionario-calls-crm'
-import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './routes/_authenticated/governanca.identificadores'
-import { Route as AuthenticatedGovernancaIndicadoresRouteImport } from './routes/_authenticated/governanca.indicadores'
-import { Route as AuthenticatedGovernancaInventarioPatrimonialRouteImport } from './routes/_authenticated/governanca.inventario-patrimonial'
-import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
-import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
-import { Route as AuthenticatedGovernancaMatrizEquivalenciaRouteImport } from './routes/_authenticated/governanca.matriz-equivalencia'
 import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from './routes/_authenticated/governanca.modelo-familiar-casal'
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
-import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
-import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
 import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
 import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
 import { Route as AuthenticatedHistoricoPainelHojeRouteImport } from './routes/_authenticated/historico.painel-hoje'
@@ -188,11 +177,6 @@ const AuthenticatedAtendimentoRoute =
     path: '/atendimento',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
-  id: '/auditoria',
-  path: '/auditoria',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
   id: '/biblioteca',
   path: '/biblioteca',
@@ -545,18 +529,6 @@ const AuthenticatedGovernancaContratoBaseRoute =
     path: '/governanca/contrato-base',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGovernancaCorteVerticalRoute =
-  AuthenticatedGovernancaCorteVerticalRouteImport.update({
-    id: '/governanca/corte-vertical',
-    path: '/governanca/corte-vertical',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaCriteriosAceiteRoute =
-  AuthenticatedGovernancaCriteriosAceiteRouteImport.update({
-    id: '/governanca/criterios-aceite',
-    path: '/governanca/criterios-aceite',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedGovernancaDecisoesRoute =
   AuthenticatedGovernancaDecisoesRouteImport.update({
     id: '/governanca/decisoes',
@@ -567,42 +539,6 @@ const AuthenticatedGovernancaDicionarioCallsCrmRoute =
   AuthenticatedGovernancaDicionarioCallsCrmRouteImport.update({
     id: '/governanca/dicionario-calls-crm',
     path: '/governanca/dicionario-calls-crm',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaIdentificadoresRoute =
-  AuthenticatedGovernancaIdentificadoresRouteImport.update({
-    id: '/governanca/identificadores',
-    path: '/governanca/identificadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaIndicadoresRoute =
-  AuthenticatedGovernancaIndicadoresRouteImport.update({
-    id: '/governanca/indicadores',
-    path: '/governanca/indicadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaInventarioPatrimonialRoute =
-  AuthenticatedGovernancaInventarioPatrimonialRouteImport.update({
-    id: '/governanca/inventario-patrimonial',
-    path: '/governanca/inventario-patrimonial',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaInventarioRecuperacaoRoute =
-  AuthenticatedGovernancaInventarioRecuperacaoRouteImport.update({
-    id: '/governanca/inventario-recuperacao',
-    path: '/governanca/inventario-recuperacao',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaMatrizConformidadeRoute =
-  AuthenticatedGovernancaMatrizConformidadeRouteImport.update({
-    id: '/governanca/matriz-conformidade',
-    path: '/governanca/matriz-conformidade',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaMatrizEquivalenciaRoute =
-  AuthenticatedGovernancaMatrizEquivalenciaRouteImport.update({
-    id: '/governanca/matriz-equivalencia',
-    path: '/governanca/matriz-equivalencia',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGovernancaModeloFamiliarCasalRoute =
@@ -621,18 +557,6 @@ const AuthenticatedGovernancaModelosContratuaisRoute =
   AuthenticatedGovernancaModelosContratuaisRouteImport.update({
     id: '/governanca/modelos-contratuais',
     path: '/governanca/modelos-contratuais',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaModulosContextuaisRoute =
-  AuthenticatedGovernancaModulosContextuaisRouteImport.update({
-    id: '/governanca/modulos-contextuais',
-    path: '/governanca/modulos-contextuais',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaVarreduraCompletudeRoute =
-  AuthenticatedGovernancaVarreduraCompletudeRouteImport.update({
-    id: '/governanca/varredura-completude',
-    path: '/governanca/varredura-completude',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedHistoricoFluxoComercialCanonicoRoute =
@@ -769,7 +693,6 @@ export interface FileRoutesByFullPath {
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -833,21 +756,11 @@ export interface FileRoutesByFullPath {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
@@ -884,7 +797,6 @@ export interface FileRoutesByTo {
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -948,21 +860,11 @@ export interface FileRoutesByTo {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
@@ -1002,7 +904,6 @@ export interface FileRoutesById {
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
@@ -1066,21 +967,11 @@ export interface FileRoutesById {
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/_authenticated/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/_authenticated/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/_authenticated/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/_authenticated/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/_authenticated/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/_authenticated/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/_authenticated/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
   '/_authenticated/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
@@ -1120,7 +1011,6 @@ export interface FileRouteTypes {
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
-    | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
     | '/calls'
@@ -1184,21 +1074,11 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
-    | '/governanca/corte-vertical'
-    | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
-    | '/governanca/identificadores'
-    | '/governanca/indicadores'
-    | '/governanca/inventario-patrimonial'
-    | '/governanca/inventario-recuperacao'
-    | '/governanca/matriz-conformidade'
-    | '/governanca/matriz-equivalencia'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
-    | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
@@ -1235,7 +1115,6 @@ export interface FileRouteTypes {
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
-    | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
     | '/calls'
@@ -1299,21 +1178,11 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
-    | '/governanca/corte-vertical'
-    | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
-    | '/governanca/identificadores'
-    | '/governanca/indicadores'
-    | '/governanca/inventario-patrimonial'
-    | '/governanca/inventario-recuperacao'
-    | '/governanca/matriz-conformidade'
-    | '/governanca/matriz-equivalencia'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
-    | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
     | '/historico/painel-desk-hoje'
     | '/historico/painel-hoje'
@@ -1352,7 +1221,6 @@ export interface FileRouteTypes {
     | '/_authenticated/app-cliente-como-pessoa'
     | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
-    | '/_authenticated/auditoria'
     | '/_authenticated/biblioteca'
     | '/_authenticated/biblioteca-mensagens'
     | '/_authenticated/calls'
@@ -1416,21 +1284,11 @@ export interface FileRouteTypes {
     | '/_authenticated/contratos/$id'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
-    | '/_authenticated/governanca/corte-vertical'
-    | '/_authenticated/governanca/criterios-aceite'
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/dicionario-calls-crm'
-    | '/_authenticated/governanca/identificadores'
-    | '/_authenticated/governanca/indicadores'
-    | '/_authenticated/governanca/inventario-patrimonial'
-    | '/_authenticated/governanca/inventario-recuperacao'
-    | '/_authenticated/governanca/matriz-conformidade'
-    | '/_authenticated/governanca/matriz-equivalencia'
     | '/_authenticated/governanca/modelo-familiar-casal'
     | '/_authenticated/governanca/modelo-individual'
     | '/_authenticated/governanca/modelos-contratuais'
-    | '/_authenticated/governanca/modulos-contextuais'
-    | '/_authenticated/governanca/varredura-completude'
     | '/_authenticated/historico/fluxo-comercial-canonico'
     | '/_authenticated/historico/painel-desk-hoje'
     | '/_authenticated/historico/painel-hoje'
@@ -1562,13 +1420,6 @@ declare module '@tanstack/react-router' {
       path: '/atendimento'
       fullPath: '/atendimento'
       preLoaderRoute: typeof AuthenticatedAtendimentoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/auditoria': {
-      id: '/_authenticated/auditoria'
-      path: '/auditoria'
-      fullPath: '/auditoria'
-      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/biblioteca': {
@@ -2033,20 +1884,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaContratoBaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/governanca/corte-vertical': {
-      id: '/_authenticated/governanca/corte-vertical'
-      path: '/governanca/corte-vertical'
-      fullPath: '/governanca/corte-vertical'
-      preLoaderRoute: typeof AuthenticatedGovernancaCorteVerticalRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/criterios-aceite': {
-      id: '/_authenticated/governanca/criterios-aceite'
-      path: '/governanca/criterios-aceite'
-      fullPath: '/governanca/criterios-aceite'
-      preLoaderRoute: typeof AuthenticatedGovernancaCriteriosAceiteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/governanca/decisoes': {
       id: '/_authenticated/governanca/decisoes'
       path: '/governanca/decisoes'
@@ -2059,48 +1896,6 @@ declare module '@tanstack/react-router' {
       path: '/governanca/dicionario-calls-crm'
       fullPath: '/governanca/dicionario-calls-crm'
       preLoaderRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/identificadores': {
-      id: '/_authenticated/governanca/identificadores'
-      path: '/governanca/identificadores'
-      fullPath: '/governanca/identificadores'
-      preLoaderRoute: typeof AuthenticatedGovernancaIdentificadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/indicadores': {
-      id: '/_authenticated/governanca/indicadores'
-      path: '/governanca/indicadores'
-      fullPath: '/governanca/indicadores'
-      preLoaderRoute: typeof AuthenticatedGovernancaIndicadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/inventario-patrimonial': {
-      id: '/_authenticated/governanca/inventario-patrimonial'
-      path: '/governanca/inventario-patrimonial'
-      fullPath: '/governanca/inventario-patrimonial'
-      preLoaderRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/inventario-recuperacao': {
-      id: '/_authenticated/governanca/inventario-recuperacao'
-      path: '/governanca/inventario-recuperacao'
-      fullPath: '/governanca/inventario-recuperacao'
-      preLoaderRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/matriz-conformidade': {
-      id: '/_authenticated/governanca/matriz-conformidade'
-      path: '/governanca/matriz-conformidade'
-      fullPath: '/governanca/matriz-conformidade'
-      preLoaderRoute: typeof AuthenticatedGovernancaMatrizConformidadeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/matriz-equivalencia': {
-      id: '/_authenticated/governanca/matriz-equivalencia'
-      path: '/governanca/matriz-equivalencia'
-      fullPath: '/governanca/matriz-equivalencia'
-      preLoaderRoute: typeof AuthenticatedGovernancaMatrizEquivalenciaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/governanca/modelo-familiar-casal': {
@@ -2122,20 +1917,6 @@ declare module '@tanstack/react-router' {
       path: '/governanca/modelos-contratuais'
       fullPath: '/governanca/modelos-contratuais'
       preLoaderRoute: typeof AuthenticatedGovernancaModelosContratuaisRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/modulos-contextuais': {
-      id: '/_authenticated/governanca/modulos-contextuais'
-      path: '/governanca/modulos-contextuais'
-      fullPath: '/governanca/modulos-contextuais'
-      preLoaderRoute: typeof AuthenticatedGovernancaModulosContextuaisRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/varredura-completude': {
-      id: '/_authenticated/governanca/varredura-completude'
-      path: '/governanca/varredura-completude'
-      fullPath: '/governanca/varredura-completude'
-      preLoaderRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/historico/fluxo-comercial-canonico': {
@@ -2293,7 +2074,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppClienteComoPessoaRoute: typeof AuthenticatedAppClienteComoPessoaRoute
   AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
-  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBibliotecaMensagensRoute: typeof AuthenticatedBibliotecaMensagensRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
@@ -2335,21 +2115,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
-  AuthenticatedGovernancaCorteVerticalRoute: typeof AuthenticatedGovernancaCorteVerticalRoute
-  AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaDicionarioCallsCrmRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  AuthenticatedGovernancaIdentificadoresRoute: typeof AuthenticatedGovernancaIdentificadoresRoute
-  AuthenticatedGovernancaIndicadoresRoute: typeof AuthenticatedGovernancaIndicadoresRoute
-  AuthenticatedGovernancaInventarioPatrimonialRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  AuthenticatedGovernancaInventarioRecuperacaoRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  AuthenticatedGovernancaMatrizEquivalenciaRoute: typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   AuthenticatedGovernancaModeloFamiliarCasalRoute: typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
   AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
-  AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
-  AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
   AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
   AuthenticatedHistoricoPainelHojeRoute: typeof AuthenticatedHistoricoPainelHojeRoute
@@ -2378,7 +2148,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAppClienteComoPessoaRoute,
   AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
-  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedBibliotecaMensagensRoute: AuthenticatedBibliotecaMensagensRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
@@ -2425,35 +2194,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaCatalogoOperacional30Route,
   AuthenticatedGovernancaContratoBaseRoute:
     AuthenticatedGovernancaContratoBaseRoute,
-  AuthenticatedGovernancaCorteVerticalRoute:
-    AuthenticatedGovernancaCorteVerticalRoute,
-  AuthenticatedGovernancaCriteriosAceiteRoute:
-    AuthenticatedGovernancaCriteriosAceiteRoute,
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
   AuthenticatedGovernancaDicionarioCallsCrmRoute:
     AuthenticatedGovernancaDicionarioCallsCrmRoute,
-  AuthenticatedGovernancaIdentificadoresRoute:
-    AuthenticatedGovernancaIdentificadoresRoute,
-  AuthenticatedGovernancaIndicadoresRoute:
-    AuthenticatedGovernancaIndicadoresRoute,
-  AuthenticatedGovernancaInventarioPatrimonialRoute:
-    AuthenticatedGovernancaInventarioPatrimonialRoute,
-  AuthenticatedGovernancaInventarioRecuperacaoRoute:
-    AuthenticatedGovernancaInventarioRecuperacaoRoute,
-  AuthenticatedGovernancaMatrizConformidadeRoute:
-    AuthenticatedGovernancaMatrizConformidadeRoute,
-  AuthenticatedGovernancaMatrizEquivalenciaRoute:
-    AuthenticatedGovernancaMatrizEquivalenciaRoute,
   AuthenticatedGovernancaModeloFamiliarCasalRoute:
     AuthenticatedGovernancaModeloFamiliarCasalRoute,
   AuthenticatedGovernancaModeloIndividualRoute:
     AuthenticatedGovernancaModeloIndividualRoute,
   AuthenticatedGovernancaModelosContratuaisRoute:
     AuthenticatedGovernancaModelosContratuaisRoute,
-  AuthenticatedGovernancaModulosContextuaisRoute:
-    AuthenticatedGovernancaModulosContextuaisRoute,
-  AuthenticatedGovernancaVarreduraCompletudeRoute:
-    AuthenticatedGovernancaVarreduraCompletudeRoute,
   AuthenticatedHistoricoFluxoComercialCanonicoRoute:
     AuthenticatedHistoricoFluxoComercialCanonicoRoute,
   AuthenticatedHistoricoPainelDeskHojeRoute:
