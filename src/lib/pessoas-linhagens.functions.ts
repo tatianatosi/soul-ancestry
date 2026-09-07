@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { normalizarNome } from "@/lib/pessoa-identidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -315,6 +316,12 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
 /**
  * Cria a pessoa no registro de pesquisa e o perfil genealógico 360° em um único
  * passo. Nada é inferido: apenas o nome é obrigatório.
+ *
+ * Idempotente por nome dentro da mesma pesquisa: "Ana Luiza Gomes Silveira
+ * Rodrigues" clicado duas vezes (duplo clique, nova tentativa após demora)
+ * não cria uma segunda pessoa nem um segundo perfil — reaproveita o que já
+ * existe. Comparação por nome normalizado (sem acento/pontuação), nunca
+ * decide que são pessoas diferentes por uma vírgula ou maiúscula a mais.
  */
 export const criarPessoaComPerfil = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -332,18 +339,54 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
       );
     }
 
-    const pessoa = await supabase
+    const nomeNormalizado = normalizarNome(nome);
+    const existentes = await supabase
       .from("research_people")
-      .insert({
-        organization_id: organizationId,
-        research_case_id: data.pesquisaId,
-        canonical_name: nome,
-        person_status: "related_person",
-        identity_status: "unreviewed",
-      })
-      .select("id")
+      .select("id,canonical_name")
+      .eq("organization_id", organizationId)
+      .eq("research_case_id", data.pesquisaId)
+      .is("archived_at", null);
+    if (existentes.error) throw new Error(existentes.error.message);
+    const pessoaExistente = (nomeNormalizado
+      ? ((existentes.data ?? []) as any[]).find(
+          (p) => normalizarNome(p.canonical_name) === nomeNormalizado,
+        )
+      : null) as { id: string } | null | undefined;
+
+    let pessoaId: string;
+    if (pessoaExistente) {
+      pessoaId = pessoaExistente.id;
+    } else {
+      const pessoa = await supabase
+        .from("research_people")
+        .insert({
+          organization_id: organizationId,
+          research_case_id: data.pesquisaId,
+          canonical_name: nome,
+          person_status: "related_person",
+          identity_status: "unreviewed",
+        })
+        .select("id")
+        .maybeSingle();
+      if (pessoa.error) throw new Error(pessoa.error.message);
+      pessoaId = pessoa.data.id as string;
+    }
+
+    const perfilExistente = await supabase
+      .from("genealogical_person_profiles")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("research_person_id", pessoaId)
+      .is("archived_at", null)
       .maybeSingle();
-    if (pessoa.error) throw new Error(pessoa.error.message);
+    if (perfilExistente.error) throw new Error(perfilExistente.error.message);
+    if (perfilExistente.data) {
+      return {
+        id: perfilExistente.data.id as string,
+        research_person_id: pessoaId,
+        reaproveitado: true,
+      };
+    }
 
     const perfil = await supabase
       .from("genealogical_person_profiles")
@@ -351,12 +394,16 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
         ...valores,
         case_id: data.caseId,
         organization_id: organizationId,
-        research_person_id: pessoa.data.id,
+        research_person_id: pessoaId,
       })
       .select("*")
       .maybeSingle();
     if (perfil.error) throw new Error(perfil.error.message);
-    return { id: perfil.data.id as string, research_person_id: pessoa.data.id as string };
+    return {
+      id: perfil.data.id as string,
+      research_person_id: pessoaId,
+      reaproveitado: Boolean(pessoaExistente),
+    };
   });
 
 /**

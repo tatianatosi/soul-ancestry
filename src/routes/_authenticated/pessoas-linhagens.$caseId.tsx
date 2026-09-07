@@ -169,8 +169,12 @@ function Pagina() {
   const criarPessoa = useMutation({
     mutationFn: (v: { pesquisaId: string; valores: Record<string, unknown> }) =>
       criarPessoaFn({ data: { caseId, pesquisaId: v.pesquisaId, valores: v.valores } }),
-    onSuccess: () => {
-      toast.success("Pessoa e perfil genealógico criados.");
+    onSuccess: (r: { reaproveitado?: boolean }) => {
+      toast.success(
+        r.reaproveitado
+          ? "Já existe pessoa com este nome nesta pesquisa — reaproveitada, não duplicada."
+          : "Pessoa e perfil genealógico criados.",
+      );
       invalidar();
     },
     onError: (e: Error) => toast.error(e.message),
