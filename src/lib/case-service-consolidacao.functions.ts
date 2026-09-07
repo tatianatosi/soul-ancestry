@@ -93,7 +93,7 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
 
     const { data: dependentes } = await supabase
       .from("case_dependents")
-      .select("nome_completo,status_representacao")
+      .select("nome_completo,status_representacao,participa_do_contrato,possui_acesso_app,anexo_individual_aplicavel")
       .eq("case_id", data.caseId)
       .is("archived_at", null);
 
@@ -120,8 +120,16 @@ export const carregarConsolidacaoCaseService = createServerFn({ method: "GET" })
       nucleo: {
         titulares: (membros ?? []).filter((m: any) => !m.dependente).map((m: any) => m.nome),
         dependentes: (dependentes ?? []).map((d: any) => d.nome_completo),
+        // 07/09/2026 — bug real corrigido: comparava com "confirmada", valor que nunca
+        // existe no enum (pendente | documentada | nao_aplicavel), então TODO dependente
+        // disparava bloqueio aqui, mesmo já documentado ou sem nenhuma participação em
+        // contrato/App/anexo. Alinhado à regra canônica de src/lib/dependentes.ts
+        // (bloqueiosDependentes): a existência do dependente nunca bloqueia sozinha, só
+        // participação em contrato, App ou anexo individual sem representação documentada.
         representacaoPendente: (dependentes ?? []).some(
-          (d: any) => d.status_representacao !== "confirmada",
+          (d: any) =>
+            Boolean(d.participa_do_contrato || d.possui_acesso_app || d.anexo_individual_aplicavel) &&
+            d.status_representacao !== "documentada",
         ),
       },
     });
