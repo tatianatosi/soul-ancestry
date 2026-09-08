@@ -391,11 +391,21 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
       decidido_em: data.status === "pendente_revisao_juridica" ? null : new Date().toISOString(),
       updated_by: userId,
     };
+    // Achado real (08/09/2026): a chave única é (organization_id, tema_codigo) e
+    // NÃO exclui linha arquivada. Um dedupe anterior (07/09) arquivou 11 dos 13
+    // temas desta organização como "duplicata de seed", sem perceber que isso
+    // deixava o tema sem NENHUMA linha ativa — e a busca abaixo, ao ignorar
+    // linhas arquivadas, nunca as encontrava. Resultado: toda tentativa de
+    // registrar decisão nesses temas caía no INSERT e colidia com a própria
+    // linha arquivada, travando a tela com "duplicate key value violates
+    // unique constraint" para a Proprietária. Corrigido: busca por organização
+    // (nunca confia só em RLS para isolar) e independente de arquivamento —
+    // reaproveita a linha existente (arquivada ou não) em vez de tentar duplicar.
     const { data: existente } = await supabase
       .from("legal_clause_matrix")
       .select("id")
+      .eq("organization_id", organization_id)
       .eq("tema_codigo", tema.tema_codigo)
-      .is("archived_at", null)
       .maybeSingle();
     if (existente?.id) {
       await gravarComVerificacao({
@@ -404,7 +414,7 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
         id: existente.id,
         organizationId: organization_id,
         userId,
-        payload: registro,
+        payload: { ...registro, archived_at: null, archived_by: null, archive_motivo: null },
       });
     } else {
       await inserirComVerificacao({
