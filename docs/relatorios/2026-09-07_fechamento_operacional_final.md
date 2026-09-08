@@ -5,8 +5,11 @@ executado nesta rodada: Pacote 1 (sanidade de release) completo; triagem final
 de PRs abertas completa; achado e corrigido um bug concreto de integração
 (micro-entregas reais ausentes da tela de onboarding). Pacotes 2-5 (aceite por
 UI autenticada, ADMIN e CLIENTE, com dados sintéticos) **não puderam ser
-executados nesta sessão** pelo motivo registrado na seção 8 — não é omissão,
-é bloqueio de acesso real, declarado aqui em vez de disfarçado.
+executados por completo nesta rodada** — o bloqueio inicial (sem Supabase, sem
+login) foi removido durante a própria rodada (seção 10), e o Pacote 2 chegou a
+ser iniciado ao vivo com a proprietária antes de a prioridade mudar para uma
+sequência de achados de motor desconectado. Ver seção 10 para o estado real e
+a próxima prioridade.
 
 ## 1. Cabeçalho de evidência
 
@@ -235,3 +238,106 @@ já sincronizada com `main`):
 Nenhum outro commit, nenhuma migration, nenhuma escrita em banco, nenhum
 envio externo foi feito nesta rodada. Nenhum dado sintético foi criado (não
 foi possível — ver seção 8, item 1 e 2).
+
+## 10. Continuação — 07/09 à noite (mesmo dia, depois da seção 1-9)
+
+Os bloqueios da seção 8 (itens 1 e 2) **foram removidos ainda no mesmo dia**:
+a proprietária reautorizou o Supabase MCP e autorizou a criação de um login
+temporário de homologação. Login criado direto no banco (não via convite por
+e-mail): `homologacao.temp.20260907@clubeancestral.test`, papel admin,
+organização Clube Ancestral, `demo: true`. Confirmado funcionando pela
+própria proprietária após uma correção (linhas de `auth.users` com campos de
+token NULL em vez de string vazia — GoTrue exige string vazia).
+
+Com login funcionando, o Pacote 2 (Caso→SKU→Escopo→Condição→Contrato→OS) foi
+**iniciado ao vivo**: identificado o caso de homologação já existente
+(`CA-HOMOLOG-FLUXO-2026-001`), e a proprietária começou a clicar através da
+ficha do caso. Nesse processo ela encontrou um bug real e prioritário —
+não estava na lista de achados prevista, mas era mais urgente:
+
+**Achados corrigidos nesta continuação** (todos com commit, teste e deploy —
+ver `git log` no branch `recovery/operational-authority-all-areas-2026-09-05`
+e em `main` a partir do commit `033da0f`):
+
+1. **Seletor de produto-pai** (`AbaProdutoTrilha`, dentro do Pacote 2) —
+   mostrava lista crua de SKU (`product_catalog`), sem usar a reconciliação
+   canônica de 04/09 (`planner_catalog_feed`, que já tem o produto-pai real
+   de cada SKU). Corrigido: agrupa por produto-pai, sinaliza itens
+   "legado — pede reconciliação", remove os marcados "não usar no motor".
+2. **`case_phase_history`** — trigger automático desde 06/09 gravava sozinho
+   a cada mudança de fase do caso, mas nenhuma tela lia. Agora aparece na
+   aba "Registro de alterações" da ficha do caso.
+3. **Radar do App Cliente (6 dimensões)** — achado grave: a tela real nunca
+   teve as 6 dimensões do mockup aprovado (Documentação, Origem, Conexões
+   Familiares, Elegibilidade, Memória, Legado com gráfico de teia). Era outro
+   radar, 4 eixos sobre "próximos passos", sem gráfico. Reconstruído do zero
+   (`radar-seis-eixos.ts` + `radar-seis-eixos.tsx`), com uma primeira versão
+   que usava percentuais parcialmente inventados (corrigida na revisão
+   seguinte, ver item 4) e SKU/Elegibilidade tratados com cautela jurídica.
+4. **Revisão do Radar (correção de rigor)** — a proprietária pediu revisão
+   "do começo ao fim, sem distração". Achado nessa revisão: Origem, Memória e
+   Legado usavam uma conta arbitrária (mín/máx, teto fixo de 5) só para
+   produzir um número — removido, substituído por dois degraus honestos
+   (0%/100%, presença/ausência). Só Documentação e Conexões Familiares têm
+   denominador real e mostram percentual fino. 9 testes adicionados.
+5. **Elegibilidade ganha percentual** — por decisão explícita da
+   proprietária: não é parecer jurídico, é a **média dos outros 5 eixos**
+   já calculados. Reaproveita número existente, não lê `legal_clause_matrix`
+   (staff-only, sem RLS de portal). Confirmado nos dois: mockup ("Radar de
+   elegibilidade em 6 eixos") e `README.md` do repo (linha 24). Nenhuma
+   documentação passada tinha essa fórmula registrada — é a primeira fonte
+   real do algoritmo. 10 testes.
+6. **Radar Individual (micro) do Desk** — o mockup do "Radar Interno" do
+   Desk sempre teve dois modos: "Matriz de Prioridade" (macro, todos os
+   casos — já real desde 27/08, vive em `/casos`) e "Radar Individual"
+   (micro, um caso por vez) — só o macro existia. Construído reaproveitando
+   a MESMA taxonomia de 4 eixos do Radar do cliente (`radar-eixos.ts`,
+   regra já registrada em `qualidade.tsx`: "para Cliente e Ops nunca
+   divergirem"), com conteúdo interno (hipótese, via, motivo de bloqueio
+   real). Aparece na aba "Indicadores" da ficha do caso. 5 testes.
+
+**Correção de um erro meu, registrada para não se repetir**: durante a
+varredura de "motores desconectados" pedida pela proprietária, uma sessão
+inicial deste relatório havia classificado a tabela `payments`/Financeiro
+como "nunca lida por nenhuma tela" — **isso estava errado**. O Financeiro
+(`/financeiro`, `comercial.functions.ts`: `salvarPagamento`,
+`conciliarPagamento`) já está inteiro construído, com trigger de banco
+(`fn_payments_pos`) recalculando `valor_pago`/status automaticamente. O erro
+veio de um grep que só procurava `.from("payments")` literal e não pegava
+despacho dinâmico por parâmetro (`listarComercial({recurso: "payments"})`).
+Reconferido e corrigido perante a proprietária antes de qualquer código ser
+alterado por engano.
+
+### Placar executivo atualizado (soma da rodada inteira de 07/09)
+
+| Item | N |
+|---|---|
+| Bugs P1 corrigidos (motor construído, nunca ligado a uma tela) | 7 — D31-D365 (outra sessão), micro-entregas, produto-pai, case_phase_history, Radar App Cliente (6 eixos), Elegibilidade (média), Radar Individual (Desk) |
+| Falsos-positivos corrigidos antes de virar retrabalho | 1 (payments/Financeiro, já construído) |
+| Login de homologação criado e confirmado funcionando | 1 |
+| Testes novos adicionados | 24 (9 + 10 + 5) |
+| Pacote 2 (comercial-operacional) | Iniciado ao vivo, não concluído — ver "Próxima prioridade" |
+| Pacotes 3, 4, 5 | Ainda não iniciados nesta rodada |
+
+### Próxima prioridade (retomando a ordem do próprio prompt de fechamento)
+
+O prompt `CA-FECHAMENTO-OPERACIONAL-FINAL-2026-09-07` define a ordem
+Pacote 1 → 2 → 3 → 4 → 5, sem pular etapa. Pacote 1 está fechado. **O Pacote
+2 está em andamento, não fechado** — foi pausado no meio para resolver os
+achados de motor desconectado acima (o mais urgente sinalizado pela própria
+proprietária no momento). A próxima prioridade objetiva é **retomar o
+Pacote 2 exatamente de onde parou**:
+
+1. No caso `CA-HOMOLOG-FLUXO-2026-001` (login de homologação já ativo),
+   selecionar um produto-pai real no seletor corrigido e salvar.
+2. Confirmar persistência com reload.
+3. Preencher escopo mínimo (objetivo, serviços, inclusões/exclusões,
+   pessoas abrangidas).
+4. Gerar condição comercial a partir da proposta.
+5. Gerar rascunho interno de contrato.
+6. Criar Ordem de Serviço.
+7. Abrir Caso 360 e confirmar que proposta/condição/contrato/OS aparecem
+   coerentes.
+
+Só depois disso — não antes — entrar no Pacote 3 (onboarding/elegibilidade
+do portal) e nos demais.
