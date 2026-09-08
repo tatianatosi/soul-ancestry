@@ -332,7 +332,17 @@ export const listarMatrizJuridica = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const matrizRes = await supabase.from("legal_clause_matrix").select("*").is("archived_at", null);
+    // 08/09/2026 — esta leitura não filtrava organização (dependia só de RLS).
+    // O banco tem três organizações com matriz jurídica; sem o filtro, uma
+    // aprovação gravada em outra organização podia ser lida como se fosse
+    // desta, ou o inverso — foi exatamente o que mascarou 7 temas bloqueantes
+    // arquivados na organização operante. Filtro explícito, sem depender de RLS.
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
+    const matrizRes = await supabase
+      .from("legal_clause_matrix")
+      .select("*")
+      .eq("organization_id", organization_id)
+      .is("archived_at", null);
     const rows = linhasDe<any>(matrizRes, "matriz jurídica");
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
       const l = rows.find((r) => r.tema_codigo === t.tema_codigo);
@@ -390,7 +400,7 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
       bloqueia_assinatura: tema.bloqueia_assinatura,
       decidido_em: data.status === "pendente_revisao_juridica" ? null : new Date().toISOString(),
       updated_by: userId,
-    };
+    } as Record<string, unknown>;
     // Achado real (08/09/2026): a chave única é (organization_id, tema_codigo) e
     // NÃO exclui linha arquivada. Um dedupe anterior (07/09) arquivou 11 dos 13
     // temas desta organização como "duplicata de seed", sem perceber que isso
@@ -400,13 +410,23 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
     // linha arquivada, travando a tela com "duplicate key value violates
     // unique constraint" para a Proprietária. Corrigido: busca por organização
     // (nunca confia só em RLS para isolar) e independente de arquivamento —
-    // reaproveita a linha existente (arquivada ou não) em vez de tentar duplicar.
+    // reaproveita a linha existente (arquivada ou não) em vez de tentar duplicar,
+    // e desarquiva ao registrar: registrar decisão é exatamente o ato que torna
+    // o tema vigente de novo.
     const { data: existente } = await supabase
       .from("legal_clause_matrix")
-      .select("id")
+      .select("id,archived_at")
       .eq("organization_id", organization_id)
       .eq("tema_codigo", tema.tema_codigo)
+      .order("archived_at", { ascending: true, nullsFirst: true })
+      .limit(1)
       .maybeSingle();
+    if (existente?.archived_at) {
+      registro.archived_at = null;
+      registro.archive_motivo = null;
+      registro.substituido_por_id = null;
+      registro.substituicao_motivo = null;
+    }
     if (existente?.id) {
       await gravarComVerificacao({
         supabase,
