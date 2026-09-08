@@ -13,9 +13,9 @@ import { CAPACIDADES_PROPRIETARIA, ROTULO_CAPACIDADE } from "@/lib/modo-propriet
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Usuários e papéis — Clube Ancestral" },
+      { title: "Papéis e Modo Proprietária — Clube Ancestral" },
       { name: "description", content: "Administração de membros e papéis dentro da organização." },
-      { property: "og:title", content: "Usuários e papéis — Clube Ancestral" },
+      { property: "og:title", content: "Papéis e Modo Proprietária — Clube Ancestral" },
       { property: "og:description", content: "Administração de acesso no Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -59,7 +59,7 @@ function ConfiguracoesPage() {
   });
 
   return (
-    <SaasShell titulo="Usuários e papéis" descricao="Somente administradores da organização.">
+    <SaasShell titulo="Papéis e Modo Proprietária" descricao="Somente administradores da organização. Gestão de contas da equipe fica em Equipe e papéis.">
       <PainelModoProprietaria
         dados={qModo.data}
         carregando={qModo.isLoading}
