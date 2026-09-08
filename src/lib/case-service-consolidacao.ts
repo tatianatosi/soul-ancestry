@@ -138,12 +138,34 @@ export function consolidarCaseService(e: EntradaConsolidacao): ResultadoConsolid
   comparar("condicao_case_service", e.servico?.preco_acordado ?? null);
 
   if (precoCanonico == null) {
-    divergencias.push({
-      codigo: "PRECO_CANONICO_AUSENTE",
-      origem: "product_catalog",
-      gravidade: "bloqueio",
-      descricao: "Catálogo homologado sem preço comercial vigente — nenhum valor pode ser criado fora dele.",
-    });
+    // 08/09/2026 — achado real: quando o serviço do caso não tem produto-pai
+    // vinculado (`case_services.product_catalog_id` nulo), esta divergencia
+    // dizia "Catálogo homologado sem preço comercial vigente", mandando a
+    // proprietária procurar o preço no catálogo — quando o problema é que
+    // NENHUM catálogo está vinculado. Caso real: Ana Luiza, R$ 9.600,00
+    // gravado em case_services.preco_acordado com product_catalog_id nulo e
+    // condição citando "PROD-DIAG-FAM-MULTI", código que não existe em
+    // product_catalog. As duas causas pedem ações diferentes e agora são
+    // ditas de forma diferente.
+    const valorSemLastro = e.servico?.preco_acordado ?? null;
+    divergencias.push(
+      catalogo
+        ? {
+            codigo: "PRECO_CANONICO_AUSENTE",
+            origem: "product_catalog",
+            gravidade: "bloqueio",
+            descricao: `Produto-pai ${catalogo.code ?? catalogo.id} está vinculado, mas não tem preço comercial vigente no catálogo — nenhum valor pode ser criado fora dele.`,
+          }
+        : {
+            codigo: "SEM_PRODUTO_PAI_VINCULADO",
+            origem: "condicao_case_service",
+            gravidade: "bloqueio",
+            descricao:
+              valorSemLastro != null
+                ? `O serviço deste caso registra ${valorSemLastro.toFixed(2)} sem nenhum produto-pai do catálogo vinculado — o valor não tem origem rastreável. Vincule o produto-pai no Planejador antes de aprovar.`
+                : "O serviço deste caso não tem produto-pai do catálogo vinculado — sem ele não há preço de referência nem escopo rastreável.",
+          },
+    );
   }
 
   if (e.propostaValor == null) {
