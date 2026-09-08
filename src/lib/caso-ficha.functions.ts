@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
@@ -34,9 +35,10 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
 
-    const [membros, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao, historicoFase] = await Promise.all([
+    const [membrosBrutos, log, cliente, nucleos, planos, timeline, blueprint, filaDrive, checksAtivacao, historicoFase] = await Promise.all([
       // (bloqueiosReais lido separadamente abaixo, fora do Promise.all de selects
-      // simples, porque é uma chamada RPC.)
+      // simples, porque é uma chamada RPC. membrosBrutos é só para decidir se
+      // precisa do fallback abaixo — quem alimenta a tela é `membrosComFallback`.)
       supabase
         .from("case_members")
         .select("*")
@@ -79,6 +81,17 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
         .order("changed_at", { ascending: false }),
     ]);
 
+    // 07/09/2026 — achado do cotejo tela a tela: esta ficha lia case_members
+    // cru, sem cair para Núcleos quando faltasse linha — ao contrário de 4
+    // outras telas (contrato, escopo, cadastro, consolidação) que já usam
+    // `pessoasDoCasoComFallbackNucleo`. Funcionava hoje só porque a Ana tem
+    // 4 linhas manuais em case_members; qualquer caso novo sem essa
+    // sincronização manual mostraria a ficha vazia mesmo com núcleo
+    // cadastrado. Passa a usar a mesma função única das outras 4 telas.
+    const membrosComFallback = ((membrosBrutos.data ?? []) as Linha[]).length > 0
+      ? (membrosBrutos.data as Linha[])
+      : await pessoasDoCasoComFallbackNucleo(supabase, data.id);
+
     // 07/09/2026 — achado real reportado pela proprietária: esta ficha e a
     // tela de onboarding (/onboarding/$id) mostravam estados diferentes para
     // o mesmo caso, porque cada uma calculava "pronto?" com uma lógica
@@ -102,7 +115,7 @@ export const carregarFichaCaso = createServerFn({ method: "GET" })
 
     return {
       caso: caso.data as Linha,
-      membros: (membros.data ?? []) as Linha[],
+      membros: membrosComFallback as Linha[],
       log: (log.data ?? []) as Linha[],
       cliente: (cliente as any)?.data ?? null,
       nucleos: (nucleos.data ?? []) as Linha[],
