@@ -200,36 +200,48 @@ export async function materializarProposta(
 ) {
   const caso = await casoDaCadeia(supabase, input.org, input.caseId);
 
-  // Fonte do planejador.
+  // Fonte do planejador — duas tabelas reais coexistem, nenhuma é descartável
+  // por si só (achado de 08/09/2026, prompt "Fechar o elo Planejador →
+  // Proposta → Condição Comercial"):
   //
-  // Diagnóstico de 05/09/2026: a lógica migrou para o Planejador Universal,
-  // que persiste em `blueprint_parameters`. `case_plans` ficou vazia — zero
-  // registros em toda a base — e esta função continuava lendo só ela. Por isso
-  // o caso da Ana, que tem blueprint completo, recebia "Sem planejador
-  // persistido" e travava a cadeia inteira no elo 3.
+  // `case_plans` tem o formulário real e testado (`PlanejadorOperacional`,
+  // ligado desde 28/08 — ver comentário nesse componente) e schema idêntico
+  // a `EntradaPlanejador`/`SaidaPlanejador`, mas está com zero linhas na base
+  // inteira: ninguém ainda salvou por essa tela.
   //
-  // Passa a ler o blueprint primeiro e cair em `case_plans` só como legado.
-  const { data: blueprint } = await supabase
-    .from("blueprint_parameters")
-    .select("*")
-    .eq("case_id", caso.id)
-    .is("archived_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // `blueprint_parameters` tem dado real para casos já preparados (ex.: Ana,
+  // seed de 20/08), mas nenhuma tela do runtime escreve nela — só existe por
+  // inserção direta — e seu schema NÃO é o mesmo de `case_plans` (não tem
+  // objetivo/etapa/composição/marcos/checklist; tem `entregas_previstas` e
+  // `criterios_aceite`, que `entradaDoPlano` também já lê). O diagnóstico de
+  // 05/09 fixou blueprint como sempre preferencial — o que significa que,
+  // quando a proprietária preencher `case_plans` pela tela real de um caso
+  // que já tem blueprint seed antigo, a entrada dela seria ignorada. Corrigido
+  // aqui: vence quem foi atualizado por último, não uma tabela fixa.
+  const [{ data: blueprint }, { data: planoLegado }] = await Promise.all([
+    supabase
+      .from("blueprint_parameters")
+      .select("*")
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("case_plans")
+      .select("*")
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
-  const { data: planoLegado } = blueprint
-    ? { data: null }
-    : await supabase
-        .from("case_plans")
-        .select("*")
-        .eq("case_id", caso.id)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-  const plano = blueprint ?? planoLegado;
+  const plano =
+    !blueprint ? planoLegado
+    : !planoLegado ? blueprint
+    : new Date(planoLegado.updated_at).getTime() > new Date(blueprint.updated_at).getTime() ? planoLegado
+    : blueprint;
   if (!plano) {
     throw new Error(
       "Sem planejador persistido: crie o Planejador Universal do caso antes de materializar a proposta.",
@@ -351,7 +363,17 @@ export async function materializarProposta(
   return { proposalId, versao, idempotente: false, escopo };
 }
 
-function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): EntradaPlanejador {
+/**
+ * Traduz a linha de planejador (case_plans OU blueprint_parameters — schemas
+ * diferentes, ver comentário em `materializarProposta`) para a entrada pura
+ * do motor. Campos que só existem em `case_plans` (objetivo, etapa,
+ * composição, rota, marcos, checklist, perguntas, responsável, próxima ação)
+ * ficam `null`/`[]` quando a origem é `blueprint_parameters` — isso é
+ * pendência real e honesta (o motor não infere o que a fonte não declara),
+ * não um bug a mascarar. `entregas` aceita `entregas_previstas` do blueprint
+ * como equivalente direto (mesmo significado, nome de coluna diferente).
+ */
+export function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): EntradaPlanejador {
   const fontes = Object.entries((plano.fontes ?? {}) as Record<string, any>).map(([chave, v]) => ({
     chave,
     estado: (v?.estado ?? "pendente") as any,
@@ -359,23 +381,23 @@ function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): E
   }));
   return {
     caseId,
-    objetivo: plano.objetivo,
-    etapa: plano.etapa,
-    composicao: plano.composicao,
-    rotaConfirmada: plano.rota_confirmada,
+    objetivo: plano.objetivo ?? null,
+    etapa: plano.etapa ?? null,
+    composicao: plano.composicao ?? null,
+    rotaConfirmada: plano.rota_confirmada ?? null,
     produtoSkuCodigo: skuCodigo,
     dadosDisponiveis: plano.checklist_aplicavel ?? [],
     dependenciasCliente: plano.dependencias_cliente ?? [],
     dependenciasTerceiros: plano.dependencias_terceiros ?? [],
     fontes,
-    responsavelUserId: plano.responsavel_user_id,
-    proximaAcao: plano.proxima_acao,
-    prazoProximaAcao: plano.prazo_proxima_acao,
-    faseJornada: plano.fase_jornada,
+    responsavelUserId: plano.responsavel_user_id ?? null,
+    proximaAcao: plano.proxima_acao ?? null,
+    prazoProximaAcao: plano.prazo_proxima_acao ?? null,
+    faseJornada: plano.fase_jornada ?? null,
     checklist: plano.checklist_aplicavel ?? [],
     perguntas: plano.perguntas ?? [],
     marcos: plano.marcos ?? [],
-    entregas: plano.entregas ?? [],
+    entregas: plano.entregas ?? plano.entregas_previstas ?? [],
     microentregas: plano.microentregas ?? [],
     regrasAnexos: plano.regras_anexos ?? [],
   };
