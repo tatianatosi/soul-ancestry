@@ -185,7 +185,9 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           cliente_id: p.cliente,
           campo: c.campo,
           campo_rotulo: c.rotulo,
-          obrigatorio: true,
+          // 08/09/2026 — antes era `true` para todo campo, gerando 9 travas por
+          // pessoa adulta. Agora respeita a obrigatoriedade declarada no molde.
+          obrigatorio: c.obrigatorio,
           status: resolvidoPeloPerfil
             ? "verificado"
             : p.tipo === "contratada"
