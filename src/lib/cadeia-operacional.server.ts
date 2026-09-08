@@ -27,6 +27,7 @@ import {
   type SkuCanonicoProposta,
 } from "@/lib/cadeia-operacional";
 import { linhas } from "@/lib/linhas";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 type Sb = any;
 
@@ -269,14 +270,13 @@ export async function materializarProposta(
   }
 
 
-  const membros = await supabase
-    .from("case_members")
-    .select("nome,papel,titular,contratante,dependente")
-    .eq("case_id", caso.id)
-    .is("archived_at", null);
-  const pessoas = linhas<any>(membros, "participantes do caso").map((m) => ({
+  // 07/09/2026 — mesmo achado do cotéjo tela a tela aplicado à Ficha 360:
+  // leitura crua de case_members sem fallback para Núcleos. Troca para a
+  // função única já usada por contrato/escopo/cadastro/consolidação.
+  const membrosComFallback = await pessoasDoCasoComFallbackNucleo(supabase as never, caso.id);
+  const pessoas = membrosComFallback.map((m) => ({
     nome: m.nome,
-    papel: m.papel ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
+    papel: (m as { papel_no_caso?: string | null }).papel_no_caso ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
   }));
 
   const escopo = montarEscopoEstruturado({ entrada, saida, planId: plano.id, sku, pessoas });
