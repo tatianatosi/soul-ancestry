@@ -90,25 +90,35 @@ function ContratoDetalhe() {
 
   const mGerar = useMutation({
     mutationFn: (resumo?: string) => gerar({ data: { contract_id: id, change_summary: resumo } }),
-    onSuccess: (r) =>
+    // Achado real (08/09/2026): a versão era criada e o aviso aparecia, mas a
+    // tela nunca recarregava — "Versões" continuava mostrando a lista antiga
+    // até um F5 manual, dando a impressão de que a versão nova não existia.
+    onSuccess: (r) => {
       setAviso(
         r.falhaRenderizacao
           ? `Versão ${r.versao} criada, mas a renderização falhou e foi registrada. A versão não está pronta.`
           : r.pendenciasConciliacao?.length
             ? `Versão ${r.versao} gerada como rascunho interno. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
             : `Versão ${r.versao} gerada como rascunho interno.`,
-      ),
+      );
+      recarregar();
+    },
     onError: (e: Error) => setAviso(e.message),
   });
   const mValidar = useMutation({
     mutationFn: () => validar({ data: { contract_id: id } }),
-    onSuccess: (r) => setAviso(`${r.abertas} pendência(s), sendo ${r.bloqueios} bloqueante(s).`),
+    onSuccess: (r) => {
+      setAviso(`${r.abertas} pendência(s), sendo ${r.bloqueios} bloqueante(s).`);
+      recarregar();
+    },
     onError: (e: Error) => setAviso(e.message),
   });
   const mSolicitar = useMutation({
     mutationFn: () => solicitar({ data: { contract_id: id } }),
-    onSuccess: (r) =>
-      setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`),
+    onSuccess: (r) => {
+      setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`);
+      recarregar();
+    },
     onError: (e: Error) => setAviso(e.message),
   });
 
@@ -214,6 +224,7 @@ function ContratoDetalhe() {
           onConfirmar={async () => {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
+            recarregar();
           }}
         />
         <AcaoOperacional
