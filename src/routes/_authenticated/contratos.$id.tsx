@@ -959,11 +959,48 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
     rascunho: boolean;
     perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
   } | null>(null);
+  // Achado real (08/09/2026): "Ver prévia interna" só existia na coluna
+  // "Ações" da tabela — que tem 640px mínimos e exige rolar para o lado num
+  // celular (~390px de tela). A proprietária aprovava decisões sem nunca ter
+  // visto o texto real do contrato, porque o único jeito de ver o conteúdo
+  // estava fora da área visível sem descobrir que dava para arrastar a
+  // tabela. Botão abaixo abre a prévia da versão mais recente sem depender
+  // de rolagem horizontal nenhuma.
+  const abrirPreviaMaisRecente = async (v: any) => {
+    try {
+      setErro(null);
+      const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
+      setPrevia({
+        html: r.html,
+        versao: r.versao,
+        rascunho: r.rascunho,
+        perfil: r.perfilInstitucional
+          ? {
+              versao: r.perfilInstitucional.versao,
+              status: r.perfilInstitucional.status,
+              capturadoEm: r.perfilInstitucional.capturadoEm,
+            }
+          : null,
+      });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
+    }
+  };
+  const versoesLista = dados.versoes as any[] | undefined;
+  const maisRecente = versoesLista?.[0] ?? null;
   return (
     <div className="space-y-3">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
+      {maisRecente ? (
+        <button
+          onClick={() => abrirPreviaMaisRecente(maisRecente)}
+          className="w-full rounded-lg border-2 border-gold bg-gold/10 px-4 py-3 text-sm font-semibold text-navy hover:bg-gold/20"
+        >
+          Ver o texto real da versão v{maisRecente.version_number} (a mais recente) antes de decidir
+        </button>
+      ) : null}
       <EstadoDados
-        dados={dados.versoes as any[] | undefined}
+        dados={versoesLista}
         recurso="as versões do instrumento"
         vazio="Nenhuma versão gerada ainda. Use “Gerar rascunho interno”."
       >
@@ -979,29 +1016,7 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
             </td>
             <td className="px-3 py-2">
               <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={async () => {
-                    try {
-                      setErro(null);
-                      const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
-                      setPrevia({
-                        html: r.html,
-                        versao: r.versao,
-                        rascunho: r.rascunho,
-                        perfil: r.perfilInstitucional
-                          ? {
-                              versao: r.perfilInstitucional.versao,
-                              status: r.perfilInstitucional.status,
-                              capturadoEm: r.perfilInstitucional.capturadoEm,
-                            }
-                          : null,
-                      });
-                    } catch (e) {
-                      setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
-                    }
-                  }}
-                  className="text-xs underline"
-                >
+                <button onClick={() => abrirPreviaMaisRecente(v)} className="text-xs underline">
                   Ver prévia interna
                 </button>
                 {v.rendered_file_path ? (
