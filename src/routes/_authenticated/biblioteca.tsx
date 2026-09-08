@@ -14,6 +14,7 @@ import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
   ESTADOS_VIGENCIA,
+  homologarTrilhaOuRegra,
   listarBibliotecaMestre,
   listarCatalogoTop30,
   type EstadoVigencia,
@@ -112,6 +113,16 @@ function BibliotecaPage() {
     onError: (e: Error) => setErroVigencia(e.message),
   });
 
+  const [erroHomologacao, setErroHomologacao] = useState<string | null>(null);
+  const homologar = useMutation({
+    mutationFn: (v: { id: string; fonte: "trilhas" | "juridico"; criterio: string; justificativa?: string }) =>
+      homologarTrilhaOuRegra({ data: v }),
+    onSuccess: async () => {
+      setErroHomologacao(null);
+      await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
+    },
+    onError: (e: Error) => setErroHomologacao(e.message),
+  });
 
   const itens = useMemo<ItemBiblioteca[]>(
     () => [...(geral.data?.itens ?? []), ...(catalogo.data?.itens ?? [])],
@@ -424,6 +435,33 @@ function BibliotecaPage() {
 
                       </div>
                     )}
+                    {(i.fonte === "trilhas" || i.fonte === "juridico") && !i.arquivado && (
+                      <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                        <p className="text-foreground">
+                          Homologação atual:{" "}
+                          <strong>{i.homologado ? "Homologada/aprovada" : "Não homologada"}</strong>
+                        </p>
+                        {!i.homologado && (
+                          <FormularioHomologacaoSimples
+                            item={i}
+                            onSalvar={async (v) => {
+                              try {
+                                await homologar.mutateAsync(v);
+                              } catch {
+                                /* falha já exibida em erroHomologacao */
+                              }
+                            }}
+                            salvando={homologar.isPending}
+                            erro={erroHomologacao}
+                          />
+                        )}
+                        <p className="text-muted-foreground">
+                          Homologar exige critério ou evidência registrada e é revalidado no servidor. A trilha ou
+                          regra segue legível e navegável mesmo antes de homologada; homologar não versiona nem altera
+                          nenhum outro campo do registro.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -485,6 +523,67 @@ function BibliotecaPage() {
         {sub === "governanca" && <ManifestoResgate />}
       </div>
     </SaasShell>
+  );
+}
+
+function FormularioHomologacaoSimples({
+  item,
+  onSalvar,
+  salvando,
+  erro,
+}: {
+  item: ItemBiblioteca;
+  onSalvar: (v: { id: string; fonte: "trilhas" | "juridico"; criterio: string; justificativa?: string }) => void | Promise<void>;
+  salvando: boolean;
+  erro: string | null;
+}) {
+  const [criterio, setCriterio] = useState("");
+  const [justificativa, setJustificativa] = useState("");
+  const pendencias: string[] = [];
+  if (!criterio.trim()) pendencias.push("Critério ou evidência de homologação em branco.");
+
+  return (
+    <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
+      <label className="block">
+        <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+        <textarea
+          value={criterio}
+          onChange={(e) => setCriterio(e.target.value)}
+          rows={2}
+          placeholder="Ex.: aprovação jurídica já dada fora do sistema, referência do parecer, decisão registrada"
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+      <label className="block">
+        <span className="text-muted-foreground">Justificativa (opcional)</span>
+        <textarea
+          value={justificativa}
+          onChange={(e) => setJustificativa(e.target.value)}
+          rows={2}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+      {erro && (
+        <p role="alert" className="text-destructive">
+          {erro}
+        </p>
+      )}
+      <AcaoOperacional
+        size="sm"
+        rotulo={salvando ? "Homologando…" : "Homologar"}
+        capacidade="criar_versao_derivada"
+        pendenciaGate={pendencias.length ? pendencias.join(" ") : null}
+        efeito="Marca a trilha ou regra jurídica como homologada/aprovada e grava evento auditado com ator e critério."
+        onConfirmar={async (motivo) => {
+          await onSalvar({
+            id: item.id,
+            fonte: item.fonte as "trilhas" | "juridico",
+            criterio,
+            justificativa: [justificativa, motivo].filter((t) => t.trim()).join(" — ") || undefined,
+          });
+        }}
+      />
+    </form>
   );
 }
 
