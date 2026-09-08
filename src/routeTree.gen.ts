@@ -50,8 +50,6 @@ import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/op
 import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenticated/ops-excecoes'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedPilotoRouteImport } from './routes/_authenticated/piloto'
-import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authenticated/piloto-ana'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
@@ -334,16 +332,6 @@ const AuthenticatedOrdensServicoRoute =
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPilotoRoute = AuthenticatedPilotoRouteImport.update({
-  id: '/piloto',
-  path: '/piloto',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPilotoAnaRoute = AuthenticatedPilotoAnaRouteImport.update({
-  id: '/piloto-ana',
-  path: '/piloto-ana',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
@@ -729,8 +717,6 @@ export interface FileRoutesByFullPath {
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/piloto': typeof AuthenticatedPilotoRoute
-  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
@@ -834,8 +820,6 @@ export interface FileRoutesByTo {
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/piloto': typeof AuthenticatedPilotoRoute
-  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
@@ -942,8 +926,6 @@ export interface FileRoutesById {
   '/_authenticated/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/piloto': typeof AuthenticatedPilotoRoute
-  '/_authenticated/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
@@ -1050,8 +1032,6 @@ export interface FileRouteTypes {
     | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
-    | '/piloto'
-    | '/piloto-ana'
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
@@ -1155,8 +1135,6 @@ export interface FileRouteTypes {
     | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
-    | '/piloto'
-    | '/piloto-ana'
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
@@ -1262,8 +1240,6 @@ export interface FileRouteTypes {
     | '/_authenticated/ops-excecoes'
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
-    | '/_authenticated/piloto'
-    | '/_authenticated/piloto-ana'
     | '/_authenticated/propostas'
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
@@ -1636,20 +1612,6 @@ declare module '@tanstack/react-router' {
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/piloto': {
-      id: '/_authenticated/piloto'
-      path: '/piloto'
-      fullPath: '/piloto'
-      preLoaderRoute: typeof AuthenticatedPilotoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/piloto-ana': {
-      id: '/_authenticated/piloto-ana'
-      path: '/piloto-ana'
-      fullPath: '/piloto-ana'
-      preLoaderRoute: typeof AuthenticatedPilotoAnaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/propostas': {
@@ -2123,8 +2085,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOpsExcecoesRoute: typeof AuthenticatedOpsExcecoesRoute
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedPilotoRoute: typeof AuthenticatedPilotoRoute
-  AuthenticatedPilotoAnaRoute: typeof AuthenticatedPilotoAnaRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
@@ -2199,8 +2159,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOpsExcecoesRoute: AuthenticatedOpsExcecoesRoute,
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedPilotoRoute: AuthenticatedPilotoRoute,
-  AuthenticatedPilotoAnaRoute: AuthenticatedPilotoAnaRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
