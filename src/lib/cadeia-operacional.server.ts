@@ -27,6 +27,7 @@ import {
   type SkuCanonicoProposta,
 } from "@/lib/cadeia-operacional";
 import { linhas } from "@/lib/linhas";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 type Sb = any;
@@ -295,12 +296,45 @@ export async function materializarProposta(
 
   const { data: atual } = await supabase
     .from("proposals")
-    .select("id,versao,status,escopo_estruturado")
+    .select("id,versao,status,escopo_estruturado,origem,plan_id,origem_referencia")
     .eq("case_id", caso.id)
     .is("archived_at", null)
     .order("versao", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Achado real (08/09/2026, prompt "Fechar o elo Planejador → Proposta →
+  // Condição Comercial", parte B): a proposta real da Ana é aprovada, origem
+  // Canva, e nunca passou por este pipeline (plan_id nulo). Sem esta guarda,
+  // clicar "Derivar proposta do planejador" aqui criaria uma v2 e marcaria a
+  // v1 aprovada como substituída — apagando de fato a proposta Canva real
+  // por uma gerada a partir de um Planejador vazio/desatualizado. Regra do
+  // prompt: "a decisão do Planejador deve entrar como origem complementar/
+  // versionada do escopo, jamais apagar metadados de Canva". Corrigido:
+  // proposta Canva já aprovada, sem plan_id, nunca é versionada por aqui —
+  // só recebe o vínculo ao plano (rastreabilidade), sem tocar escopo, valor,
+  // origem ou páginas extraídas.
+  if (atual && atual.origem === "canva" && atual.status !== "rascunho") {
+    if (!atual.plan_id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "proposals",
+        id: atual.id,
+        organizationId: input.org,
+        userId: input.userId,
+        payload: { plan_id: plano.id },
+      });
+      await auditar(supabase, {
+        org: input.org,
+        userId: input.userId,
+        acao: "planejador_vinculado_a_proposta_canva_sem_versionar",
+        entidade: "proposals",
+        entidadeId: atual.id,
+        metadados: { case_id: caso.id, plan_id: plano.id, origem_referencia: atual.origem_referencia },
+      });
+    }
+    return { proposalId: atual.id, versao: atual.versao, idempotente: true, escopo: null, vinculoSomente: true };
+  }
 
   const payload: Record<string, any> = {
     organization_id: input.org,
@@ -837,10 +871,15 @@ export async function estadoCadeiaOperacional(
       motivos: proposta
         ? propostaCanon?.escopo_estruturado
           ? []
-          : ["Proposta sem escopo estruturado derivado do planejador."]
+          : proposta.origem === "canva" && !proposta.plan_id
+            ? [] // proposta Canva vigente: escopo vem do Canva, não do Planejador — informativo, não pendência.
+            : ["Proposta sem escopo estruturado derivado do planejador."]
         : ["Proposta estruturada não materializada."],
-      fonte: "proposals",
-      versao: proposta ? `v${proposta.versao} · ${proposta.status}` : null,
+      fonte: proposta?.origem === "canva" ? "proposals (origem: Canva)" : "proposals",
+      versao: proposta
+        ? `v${proposta.versao} · ${proposta.status}` +
+          (proposta.origem === "canva" ? (proposta.plan_id ? " · Planejador vinculado" : " · Planejador não vinculado") : "")
+        : null,
     },
     catalogo: {
       motivos: sku ? (sku.fonte_referencia ? [] : ["SKU sem referência da Planilha Mestre."]) : ["SKU do catálogo não vinculado à proposta."],
