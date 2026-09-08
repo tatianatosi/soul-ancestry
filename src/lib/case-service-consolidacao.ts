@@ -54,12 +54,18 @@ export function camposInternosPendentes(s: CaseServiceConsolidado | null | undef
 // Divergências entre proposta, catálogo, planejador e condição registrada
 // ---------------------------------------------------------------------------
 
-export type OrigemValor = "proposta_canva" | "product_catalog" | "planejador" | "condicao_case_service";
+export type OrigemValor =
+  | "proposta_canva"
+  | "product_catalog"
+  | "planejador"
+  | "planejador_proposta"
+  | "condicao_case_service";
 
 export const ROTULO_ORIGEM_VALOR: Record<OrigemValor, string> = {
   proposta_canva: "Proposta Canva conferida",
   product_catalog: "Catálogo homologado",
   planejador: "Planejador",
+  planejador_proposta: "Planejador — proposta aprovada e conferida",
   condicao_case_service: "Condição registrada no case service",
 };
 
@@ -95,7 +101,12 @@ export type ResultadoConsolidacao = {
   statusPermitido: Extract<StatusCaseService, "draft" | "approved">;
   motivosBloqueioAprovacao: string[];
   precoReferenciaInterna: number | null;
-  origemPreco: "product_catalog" | null;
+  /**
+   * 08/09/2026 — o Planejador foi criado justamente para o caso NÃO depender de
+   * um SKU. Quando não há produto-pai vinculado mas existe proposta aprovada e
+   * conferida, ela é a origem rastreável do preço.
+   */
+  origemPreco: "product_catalog" | "planejador_proposta" | null;
   financeiroLiberado: false;
   resumoNucleo: string;
 };
@@ -107,11 +118,27 @@ export function consolidarCaseService(e: EntradaConsolidacao): ResultadoConsolid
   const motivos: string[] = [];
 
   const catalogo = e.catalogo;
-  const precoCanonico = catalogo?.preco_comercial_vigente ?? null;
+  const precoCatalogo = catalogo?.preco_comercial_vigente ?? null;
 
-  if (!catalogo) {
-    motivos.push("Serviço sem produto-pai homologado vinculado.");
-  } else if (catalogo.status_homologacao !== "homologado") {
+  // 08/09/2026 — correção de arquitetura. Antes, a ausência de produto-pai era
+  // bloqueio absoluto e o preço só podia vir de `product_catalog`. Isso punha o
+  // SKU como premissa, exatamente o oposto do que o Planejador existe para
+  // fazer: o Planejador carrega trilha de cidadania, família, escopo, fases,
+  // entregas, critérios de aceite e regra de despesas — contexto suficiente
+  // para o caso existir sem SKU. Caso real: Ana Luiza, cujo blueprint está
+  // completo e cuja proposta Canva foi conferida página a página, mas que ficava
+  // travada porque o código PROD-DIAG-FAM-MULTI não existe em product_catalog.
+  //
+  // Regra nova: o catálogo continua sendo a origem preferencial; na falta dele,
+  // a proposta aprovada e conferida é origem rastreável válida. O que NÃO é
+  // aceito é preço sem nenhuma das duas origens.
+  const escopoAprovado = e.escopoConferido?.status === "aprovado_para_preparacao";
+  const precoProposta = escopoAprovado ? (e.propostaValor ?? null) : null;
+  const precoCanonico = precoCatalogo ?? precoProposta;
+  const origemPrecoCanonico: "product_catalog" | "planejador_proposta" | null =
+    precoCatalogo != null ? "product_catalog" : precoProposta != null ? "planejador_proposta" : null;
+
+  if (catalogo && catalogo.status_homologacao !== "homologado") {
     divergencias.push({
       codigo: "CATALOGO_NAO_HOMOLOGADO",
       origem: "product_catalog",
@@ -133,7 +160,9 @@ export function consolidarCaseService(e: EntradaConsolidacao): ResultadoConsolid
     }
   };
 
-  comparar("proposta_canva", e.propostaValor);
+  // Quando a própria proposta é a origem canônica, comparar ela consigo mesma
+  // só produziria ruído.
+  if (origemPrecoCanonico !== "planejador_proposta") comparar("proposta_canva", e.propostaValor);
   comparar("planejador", e.planejadorValor);
   comparar("condicao_case_service", e.servico?.preco_acordado ?? null);
 
@@ -157,13 +186,13 @@ export function consolidarCaseService(e: EntradaConsolidacao): ResultadoConsolid
             descricao: `Produto-pai ${catalogo.code ?? catalogo.id} está vinculado, mas não tem preço comercial vigente no catálogo — nenhum valor pode ser criado fora dele.`,
           }
         : {
-            codigo: "SEM_PRODUTO_PAI_VINCULADO",
+            codigo: "PRECO_SEM_ORIGEM_RASTREAVEL",
             origem: "condicao_case_service",
             gravidade: "bloqueio",
             descricao:
               valorSemLastro != null
-                ? `O serviço deste caso registra ${valorSemLastro.toFixed(2)} sem nenhum produto-pai do catálogo vinculado — o valor não tem origem rastreável. Vincule o produto-pai no Planejador antes de aprovar.`
-                : "O serviço deste caso não tem produto-pai do catálogo vinculado — sem ele não há preço de referência nem escopo rastreável.",
+                ? `O serviço registra ${valorSemLastro.toFixed(2)}, mas nem o catálogo nem a proposta conferida sustentam esse valor. Conclua a conferência da proposta no Planejador — não é necessário vincular SKU.`
+                : "Sem preço de referência: nem produto-pai do catálogo, nem proposta conferida com valor extraído.",
           },
     );
   }
@@ -224,7 +253,7 @@ export function consolidarCaseService(e: EntradaConsolidacao): ResultadoConsolid
     statusPermitido: motivos.length === 0 ? "approved" : "draft",
     motivosBloqueioAprovacao: motivos,
     precoReferenciaInterna: precoCanonico,
-    origemPreco: precoCanonico == null ? null : "product_catalog",
+    origemPreco: origemPrecoCanonico,
     financeiroLiberado: false,
     resumoNucleo,
   };
