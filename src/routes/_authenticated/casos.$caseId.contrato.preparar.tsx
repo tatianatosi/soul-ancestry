@@ -421,7 +421,9 @@ function Pagina() {
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
 
-        <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+        <div id="canva">
+          <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+        </div>
 
         <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
 
