@@ -350,11 +350,16 @@ export const marcarSemNovaAcaoNecessaria = createServerFn({ method: "POST" })
 
 export const atualizarAlerta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string; status: string }) => data)
+  .inputValidator((data: { id: string; status: string; dueAt?: string | null }) => data)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
-    const patch: Record<string, unknown> = { status: data.status };
+    const payload: Record<string, unknown> = { status: data.status };
+    // Reprogramar (CA-CORTE-ALERTAS-ROTA-CANONICA, 09/09/2026): mesmo escritor,
+    // sem criar segunda tabela nem segundo escritor — só um campo a mais no
+    // mesmo update, quando a tela de Alertas pede nova data.
+    if (data.dueAt !== undefined) payload["due_at"] = data.dueAt;
+    const patch: Record<string, unknown> = {};
     if (data.status === "acknowledged") {
       patch["acknowledged_at"] = new Date().toISOString();
       patch["acknowledged_by"] = context.userId;
@@ -366,7 +371,7 @@ export const atualizarAlerta = createServerFn({ method: "POST" })
       id: data.id,
       organizationId,
       userId: context.userId as string,
-      payload: { status: data.status },
+      payload,
       derivados: patch,
     });
     return { ok: true, salvoEm: r.salvoEm };

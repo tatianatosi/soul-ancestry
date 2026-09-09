@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
 import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
@@ -146,6 +147,11 @@ const AuthenticatedAcessosPortalRoute =
     path: '/acessos-portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppClienteComoPessoaRoute =
   AuthenticatedAppClienteComoPessoaRouteImport.update({
     id: '/app-cliente-como-pessoa',
@@ -670,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
@@ -771,6 +778,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
@@ -875,6 +883,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
@@ -979,6 +988,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/acessos-portal'
+    | '/alertas'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
@@ -1080,6 +1090,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/acessos-portal'
+    | '/alertas'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
@@ -1183,6 +1194,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/devolutiva'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
     | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
@@ -1347,6 +1359,13 @@ declare module '@tanstack/react-router' {
       path: '/acessos-portal'
       fullPath: '/acessos-portal'
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/alertas': {
+      id: '/_authenticated/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AuthenticatedAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app-cliente-como-pessoa': {
@@ -2012,6 +2031,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedAppClienteComoPessoaRoute: typeof AuthenticatedAppClienteComoPessoaRoute
   AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
@@ -2084,6 +2104,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedAppClienteComoPessoaRoute:
     AuthenticatedAppClienteComoPessoaRoute,
   AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,

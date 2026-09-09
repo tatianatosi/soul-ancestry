@@ -53,7 +53,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
       { mockup: "Overview / Visão Geral", rota: "/painel", dado: "derivado: casos, tarefas, ops_microentregas, communication_queue", estado: "implementado", nota: "Painel Hoje com ordem canônica e deduplicação." },
       { mockup: "Métricas do topo", rota: "/metricas", dado: "derivado: crm_casos, leads, eventos_financeiros", estado: "implementado" },
       { mockup: "Relatórios", rota: "/relatorios", dado: "case_reports, research_reports", estado: "parcial", nota: "Exportações consolidadas; alguns relatórios ainda manuais." },
-      { mockup: "Alertas", rota: "/painel (Sinais de atenção)", dado: "derivado (alertas-derivados.ts) sobre case_alerts e SLA", estado: "implementado", nota: "Visão derivada, sem segunda fonte de verdade." },
+      { mockup: "Alertas", rota: "/alertas", dado: "case_alerts (mesma fonte lida por /painel para o subconjunto prioritário)", estado: "implementado", nota: "CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026): rota própria com lista completa/filtrável; Painel mostra só o subconjunto pendente mais crítico." },
       { mockup: "Radar interno multi-país", rota: "—", dado: "—", estado: "ausente", nota: "Lacuna real: radar multi-país não tem fonte canônica definida." },
     ],
   },
