@@ -138,6 +138,43 @@ export const listarVinculos = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * Proposta Canva real do cliente do caso (a mais recente não arquivada), com
+ * completude de extração das páginas 1–7. Substitui o antigo campo livre
+ * "Proposta (referência interna)" — só existe conteúdo aqui quando há
+ * proposta real vinculada; nunca texto digitado à mão.
+ */
+export const obterPropostaCanvaDoCliente = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clienteId: string }) => {
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contextoInterno(supabase, context.userId as string);
+    const { data: proposta } = await supabase
+      .from("proposals")
+      .select("id,versao,status,valor,moeda,validade,enviada_em,aprovada_em,created_at")
+      .eq("organization_id", organizationId)
+      .eq("client_id", data.clienteId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!proposta) return { proposta: null, paginasExtraidas: 0 };
+    const { data: paginas } = await supabase
+      .from("proposal_canva_pages")
+      .select("page_number,extracao_status")
+      .eq("organization_id", organizationId)
+      .eq("proposal_id", proposta.id as string)
+      .is("archived_at", null);
+    const extraidas = ((paginas ?? []) as { extracao_status: string }[]).filter(
+      (p) => p.extracao_status === "extraida",
+    ).length;
+    return { proposta, paginasExtraidas: extraidas };
+  });
+
 /** Histórico de auditoria de um registro. */
 export const historicoRegistro = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -192,7 +229,6 @@ export const salvarProposta = createServerFn({ method: "POST" })
       });
       return { id: data.id };
     }
-    if (!dados["client_id"] && !dados["lead_id"]) throw new Error("Informe o cliente ou o lead da proposta.");
     const proximaVersao = await supabase
       .from("proposals")
       .select("versao")
@@ -240,7 +276,6 @@ export const mudarStatusProposta = createServerFn({ method: "POST" })
 export const renovarValidadeProposta = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; validade: string; motivo: string }) => {
-    if (!data.validade) throw new Error("Informe a nova validade.");
     return data;
   })
   .handler(async ({ data, context }) => {
@@ -580,6 +615,26 @@ export const conciliarPagamento = createServerFn({ method: "POST" })
         conciliacao_status: "conciliado",
       },
     });
+
+    // Propaga a conciliação para o campo que o gate de acesso ao App Cliente
+    // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard),
+    // mesmo padrão já aplicado à assinatura de contrato em
+    // contrato-parametros.functions.ts (registrarAssinatura). Sem isto, um
+    // pagamento conciliado aqui nunca libera o portal — mesma lacuna, campo
+    // diferente. Só propaga quando a fatura está de fato vinculada a um caso.
+    const invoiceId = r.registro["invoice_id"] as string | null | undefined;
+    if (invoiceId) {
+      const { data: fatura } = await supabase
+        .from("invoices")
+        .select("case_id")
+        .eq("id", invoiceId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (fatura?.case_id) {
+        await supabase.from("crm_casos").update({ pagamento_confirmado: true }).eq("id", fatura.case_id);
+      }
+    }
+
     return { conciliacao: (r.registro["conciliacao_status"] ?? "conciliado") as string };
   });
 

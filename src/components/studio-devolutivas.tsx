@@ -140,11 +140,7 @@ export function StudioDevolutivas() {
                   onChange={(e) => setWorkflow(e.target.value as WorkflowEstado)}
                 >
                   {WORKFLOW.map((w) => (
-                    <option
-                      key={w.id}
-                      value={w.id}
-                      disabled={w.id === "pronto_diagramacao" && !podeDiagramar}
-                    >
+                    <option key={w.id} value={w.id}>
                       {w.label}
                       {w.id === "pronto_diagramacao" && !podeDiagramar ? " (checklist pendente)" : ""}
                     </option>
@@ -438,7 +434,7 @@ export function StudioDevolutivas() {
           <Secao titulo="Disclaimer obrigatório">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[11.5px] text-navy/60">
-                {disclaimerLiberado ? "Edição interna liberada" : "Bloqueado por padrão"}
+                {disclaimerLiberado ? "Edição interna liberada" : "Texto padrão em uso"}
               </span>
               <button
                 type="button"
@@ -446,16 +442,20 @@ export function StudioDevolutivas() {
                 className="flex items-center gap-2 rounded-full border border-navy/20 px-3 py-1.5 text-[11.5px] text-navy hover:bg-navy/5"
               >
                 {disclaimerLiberado ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                {disclaimerLiberado ? "Bloquear" : "Liberar edição interna"}
+                {disclaimerLiberado ? "Voltar ao texto padrão" : "Liberar edição interna"}
               </button>
             </div>
             <textarea
               rows={3}
-              disabled={!disclaimerLiberado}
-              className={cn(inputCls, "resize-y leading-relaxed disabled:opacity-70")}
+              className={cn(inputCls, "resize-y leading-relaxed")}
               value={dados.disclaimer}
               onChange={(e) => set("disclaimer", e.target.value)}
             />
+            {!disclaimerLiberado ? (
+              <p className="text-[11px] text-navy/50">
+                Texto padrão do disclaimer. Alterações aqui saem na devolutiva enviada ao cliente.
+              </p>
+            ) : null}
           </Secao>
 
           {/* Validação de termos */}

@@ -115,15 +115,34 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
 
   if (painel.isLoading) return <p className="text-sm text-navy/60">Carregando privacidade do caso…</p>;
   if (painel.error) return <p className="text-sm text-terracotta">{(painel.error as Error).message}</p>;
-  if (!painel.data) return null;
+  if (!painel.data)
+    return (
+      <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+        A consulta de privacidade do caso não retornou dado nem erro. Isto é falha de carga, não ausência de caso.
+        <button
+          type="button"
+          onClick={() => void painel.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
 
   const p = painel.data;
   const documentos = (docs.data ?? []) as Linha[];
-  const clienteId = (p.caso["cliente_id"] as string | null) ?? undefined;
+  const clienteContratanteId = (p.caso["cliente_id"] as string | null) ?? undefined;
+  const [categoriaForm, setCategoriaForm] = useState("interno");
+  const categoriaSensivel = CATEGORIAS_SENSIVEIS.includes(categoriaForm);
 
   async function enviarDocumento(form: HTMLFormElement) {
     const fd = new FormData(form);
     const arquivo = fd.get("arquivo") as File | null;
+    // Decisão da Proprietária (09/09/2026) — documento é individual por
+    // padrão: para categoria sensível, o titular é sempre quem foi
+    // escolhido no formulário, nunca o contratante do caso por padrão. O
+    // banco recusa a gravação sem titular explícito nessas categorias.
+    const clienteIdEscolhido = String(fd.get("clienteId") ?? "").trim() || undefined;
     setEnviando(true);
     try {
       let storagePath: string | undefined;
@@ -137,13 +156,14 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
       await salvarDoc({
         data: {
           casoId,
-          clienteId,
+          clienteId: clienteIdEscolhido,
           titulo: String(fd.get("titulo") ?? ""),
           categoria: String(fd.get("categoria") ?? "interno"),
           sensibilidade: String(fd.get("sensibilidade") ?? "normal"),
           visibilidade: String(fd.get("visibilidade") ?? "interno_restrito"),
           status: String(fd.get("status") ?? "pendente"),
           observacoes: String(fd.get("observacoes") ?? ""),
+          finalidade: String(fd.get("finalidade") ?? ""),
           storagePath,
           nomeArquivo: arquivo?.name,
           mimeType: arquivo?.type,
@@ -228,7 +248,19 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
             </span>
           </div>
           <div className="space-y-2">
-            {documentos.length === 0 && <p className="text-sm text-navy/60">Nenhum documento visível para o seu papel.</p>}
+            {docs.isError ? (
+              <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+                Não foi possível carregar os documentos. Isto é falha de leitura, não ausência de documento.
+                <button
+                  type="button"
+                  onClick={() => void docs.refetch()}
+                  className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+                >
+                  Tentar novamente
+                </button>
+              </p>
+            ) : null}
+            {!docs.isError && documentos.length === 0 && <p className="text-sm text-navy/60">Nenhum documento visível para o seu papel.</p>}
             {documentos.map((d) => (
               <div
                 key={d["id"]}
@@ -431,13 +463,33 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
               <input name="titulo" required maxLength={200} className={inputCls} />
             </Campo>
             <Campo rotulo="Categoria">
-              <select name="categoria" className={inputCls} defaultValue="interno">
+              <select
+                name="categoria"
+                className={inputCls}
+                defaultValue="interno"
+                onChange={(e) => setCategoriaForm(e.target.value)}
+              >
                 {Object.entries(CATEGORIAS).map(([v, r]) => (
                   <option key={v} value={v}>
                     {r}
                   </option>
                 ))}
               </select>
+            </Campo>
+            <Campo rotulo="Titular (pessoa a quem o documento pertence)">
+              <select name="clienteId" required={categoriaSensivel} defaultValue="" className={inputCls}>
+                <option value="">{categoriaSensivel ? "Selecione a pessoa…" : "Contratante do caso (padrão)"}</option>
+                {(vinculos.data?.clientes ?? []).map((c: Linha) => (
+                  <option key={c["id"]} value={c["id"]}>
+                    {c["nome"]}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs text-navy/50">
+                {categoriaSensivel
+                  ? "Documento é individual por padrão: sem titular, o banco recusa a gravação."
+                  : "Opcional para esta categoria — sem escolha, fica associado ao contratante do caso."}
+              </span>
             </Campo>
             <Campo rotulo="Classificação de sensibilidade">
               <select name="sensibilidade" className={inputCls} defaultValue="normal">
@@ -470,6 +522,15 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
             </Campo>
             <Campo rotulo="Arquivo (acervo privado, até 25 MB)">
               <input type="file" name="arquivo" className={inputCls} />
+            </Campo>
+            <Campo rotulo="Finalidade (para que este documento foi recebido)">
+              <input
+                name="finalidade"
+                required={categoriaSensivel}
+                maxLength={500}
+                placeholder="Ex.: instrução do processo de cidadania"
+                className={inputCls}
+              />
             </Campo>
             <Campo rotulo="Observações">
               <textarea name="observacoes" maxLength={2000} className={cn(inputCls, "h-24")} />
@@ -515,7 +576,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
             className="space-y-3"
           >
             <Campo rotulo="Cliente">
-              <select name="clienteId" required defaultValue={clienteId ?? ""} className={inputCls}>
+              <select name="clienteId" required defaultValue={clienteContratanteId ?? ""} className={inputCls}>
                 <option value="">Selecione…</option>
                 {(vinculos.data?.clientes ?? []).map((c: Linha) => (
                   <option key={c["id"]} value={c["id"]}>
@@ -574,7 +635,7 @@ export function PrivacidadeCaso({ casoId }: { casoId: string }) {
                 await excecao({
                   data: {
                     casoId,
-                    clienteId,
+                    clienteId: clienteContratanteId,
                     motivo: String(fd.get("motivo") ?? ""),
                     validoAte: String(fd.get("validoAte") ?? ""),
                   },

@@ -59,6 +59,8 @@ const EQUIVALENCIA_SECAO_MATRIZ: Record<number, string[]> = {
   12: ["L"],
   13: ["M"],
   14: ["N", "O", "P"],
+  15: ["Q"],
+  16: ["R"],
 };
 
 /** Cláusulas internas exibidas em cada seção publicada (a 14 consolida 13 e 14). */
@@ -77,6 +79,8 @@ const CLAUSULAS_DA_SECAO: Record<number, number[]> = {
   12: [11],
   13: [12],
   14: [13, 14],
+  15: [15],
+  16: [16],
 };
 
 /**

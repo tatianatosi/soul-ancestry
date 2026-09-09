@@ -162,7 +162,10 @@ function EntrarEquipe() {
     }
   }
 
-  const bloqueado = espera > 0;
+  // Espera por excesso de tentativas de senha. NÃO é trava de autoridade
+  // operacional: é proteção de credencial (rate limit) e deve continuar
+  // desabilitando o envio enquanto o contador não zerar.
+  const emEspera = espera > 0;
   const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
 
   return (
@@ -199,7 +202,7 @@ function EntrarEquipe() {
           />
         </div>
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-        {bloqueado ? (
+        {emEspera ? (
           <p className="text-sm text-navy/70">
             Acesso temporariamente pausado por excesso de tentativas. Liberação em{" "}
             <span className="font-medium text-navy">{rotuloEspera}</span>.
@@ -207,12 +210,12 @@ function EntrarEquipe() {
         ) : null}
         <button
           type="submit"
-          disabled={carregando || !pronto || bloqueado}
+          disabled={carregando || !pronto || emEspera}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {!pronto
             ? "Carregando…"
-            : bloqueado
+            : emEspera
               ? `Aguarde ${rotuloEspera}`
               : carregando
                 ? "Entrando…"

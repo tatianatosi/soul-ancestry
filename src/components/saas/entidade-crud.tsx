@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Archive, Plus, Lock, Pencil } from "lucide-react";
+import { Archive, Plus, Pencil } from "lucide-react";
 
 import {
   arquivarRegistro,
@@ -11,7 +11,7 @@ import {
   type Entidade,
 } from "@/lib/saas.functions";
 import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
-import { EstadoVazio, useSaas } from "./shell";
+import { BotaoTentarNovamente, EstadoVazio } from "./shell";
 import { cn } from "@/lib/utils";
 
 export type Campo = {
@@ -40,7 +40,7 @@ export function EntidadeCrud({
   titulo,
   colunas,
   campos,
-  podeEscrever,
+  podeEscrever: _podeEscrever,
   dominio,
   campoEstado = "status",
   extra,
@@ -53,7 +53,12 @@ export function EntidadeCrud({
   titulo: string;
   colunas: Coluna[];
   campos: Campo[];
-  podeEscrever: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: criar, editar e arquivar renderizam sempre e a decisão de escrita
+   * é da autoridade operacional.
+   */
+  podeEscrever?: boolean;
   dominio?: Dominio;
   campoEstado?: string;
   extra?: (linha: Record<string, unknown>, recarregar: () => void) => React.ReactNode;
@@ -66,7 +71,6 @@ export function EntidadeCrud({
   /** Largura mínima da tabela em px — evita colunas espremidas quando há muitos eixos. */
   larguraMinima?: number;
 }) {
-  const { somenteLeitura } = useSaas();
   const queryClient = useQueryClient();
   const carregar = useServerFn(listarRegistros);
   const criar = useServerFn(criarRegistro);
@@ -133,9 +137,9 @@ export function EntidadeCrud({
     setErro(null);
   };
 
-  const linhaEmEdicao = editandoId
-    ? ((q.data ?? []) as Record<string, unknown>[]).find((l) => String(l["id"]) === editandoId)
-    : undefined;
+  const carregadas = (Array.isArray(q.data) ? q.data : []) as Record<string, unknown>[];
+
+  const linhaEmEdicao = editandoId ? carregadas.find((l) => String(l["id"]) === editandoId) : undefined;
 
   const origens = campos.filter((c) => c.origem);
   const qOrigens = useQueries({
@@ -149,14 +153,15 @@ export function EntidadeCrud({
   const opcoesCampo = (campo: Campo) => {
     if (campo.origem) {
       const idx = origens.findIndex((c) => c.chave === campo.chave);
-      const linhas = (qOrigens[idx]?.data ?? []) as Record<string, unknown>[];
+      const dadosOrigem = qOrigens[idx]?.data;
+      const linhas = (Array.isArray(dadosOrigem) ? dadosOrigem : []) as Record<string, unknown>[];
       return linhas.map((l) => ({
         valor: String(l["id"]),
         rotulo: String(l[campo.origem!.rotuloChave] ?? l["id"]),
       }));
     }
     if (campo.estado && dominio) {
-      if (!editandoId) return (campo.opcoes ?? []).length ? campo.opcoes! : [];
+      if (!editandoId) return campo.opcoes ? campo.opcoes : [];
       const atual = linhaEmEdicao?.[campoEstado];
       const destinos = transicoesDe(dominio, atual);
       const atualStr = typeof atual === "string" ? atual : "";
@@ -165,13 +170,10 @@ export function EntidadeCrud({
         ...destinos,
       ];
     }
-    return campo.opcoes ?? [];
+    return campo.opcoes ? campo.opcoes : [];
   };
 
-
-
-  const todas = (q.data ?? []) as Record<string, unknown>[];
-  const linhas = filtrarLinhas ? todas.filter(filtrarLinhas) : todas;
+  const linhas = filtrarLinhas ? carregadas.filter(filtrarLinhas) : carregadas;
 
   return (
     <div className="space-y-4">
@@ -185,23 +187,20 @@ export function EntidadeCrud({
           Mostrar arquivados
         </label>
         {topo}
-        {podeEscrever ? (
-          <button
-            onClick={() => {
-              setEditandoId(null);
-              setErro(null);
-              setForm({});
-            }}
-            className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
-          >
-            <Plus className="h-4 w-4" /> Novo registro
-          </button>
-        ) : (
-          <span className="inline-flex items-center gap-2 rounded-lg border border-navy/15 px-3 py-2 text-xs text-navy/60">
-            <Lock className="h-3.5 w-3.5" />
-            {somenteLeitura ? "Papel leitura: criação e arquivamento indisponíveis" : "Sem permissão de escrita"}
-          </span>
-        )}
+        {/*
+          Autoridade operacional: criar registro renderiza sempre. O aviso de
+          "papel leitura" que substituía o botão foi removido.
+        */}
+        <button
+          onClick={() => {
+            setEditandoId(null);
+            setErro(null);
+            setForm({});
+          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream hover:bg-navy-soft"
+        >
+          <Plus className="h-4 w-4" /> Novo registro
+        </button>
       </div>
 
       {erro ? (
@@ -212,6 +211,11 @@ export function EntidadeCrud({
 
       {q.isLoading ? (
         <EstadoVazio mensagem="Carregando…" />
+      ) : q.isError ? (
+        <EstadoVazio
+          mensagem={`Não foi possível carregar ${titulo.toLowerCase()}.`}
+          acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
+        />
       ) : linhas.length === 0 ? (
         <EstadoVazio mensagem={`Nenhum registro em ${titulo.toLowerCase()} ainda.`} />
       ) : (
@@ -244,7 +248,7 @@ export function EntidadeCrud({
                           <span className="text-xs text-navy/50">
                             Arquivado — {String(linha["archive_motivo"] ?? "sem motivo")}
                           </span>
-                        ) : podeEscrever ? (
+                        ) : (
                           <div className="flex gap-2">
                             <button
                               onClick={() => abrirEdicao(linha)}
@@ -262,7 +266,7 @@ export function EntidadeCrud({
                               <Archive className="h-3.5 w-3.5" /> Arquivar
                             </button>
                           </div>
-                        ) : null}
+                        )}
 
                       </div>
                     </td>

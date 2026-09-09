@@ -215,7 +215,7 @@ export const listarEquipe = createServerFn({ method: "GET" })
     const { data } = await supabase
       .from("staff_access")
       .select(
-        "id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
+        "id, auth_user_id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
       )
       .is("archived_at", null)
       .order("created_at", { ascending: false });
@@ -443,7 +443,6 @@ async function registrarBootstrapNegado(h: typeof import("./equipe.server"), mot
 export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: { email: string; senha: string; nome: string; organizacao: string }) => {
     if (!data.senha || data.senha.length < 10) throw new Error("A senha deve ter ao menos 10 caracteres.");
-    if (!data.organizacao?.trim()) throw new Error("Informe o nome da organização.");
     return data;
   })
   .handler(async ({ data }) => {

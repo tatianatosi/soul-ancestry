@@ -83,9 +83,6 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; valor: string; origem: string; origemDetalhe?: string; observacao?: string }) => {
     const valor = input.valor.trim();
-    if (valor && !ORIGENS.includes(input.origem as (typeof ORIGENS)[number])) {
-      throw new Error("Selecione uma origem válida para o dado.");
-    }
     if (valor && PLACEHOLDER.test(valor)) {
       throw new Error("Valor contém texto de exemplo. Deixe o campo vazio como pendência.");
     }

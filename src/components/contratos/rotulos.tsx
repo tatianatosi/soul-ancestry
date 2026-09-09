@@ -17,6 +17,43 @@ export const ROTULO_STATUS_CONTRATO: Record<string, string> = {
   archived: "Arquivado",
 };
 
+export const ROTULO_GATE_FINANCEIRO: Record<string, string> = {
+  not_applicable: "Não aplicável",
+  pending_contract: "Aguardando contrato",
+  pending_confirmation: "Aguardando confirmação",
+  confirmed: "Confirmado",
+  blocked: "Bloqueado",
+  exception_authorized: "Exceção autorizada",
+};
+
+export const ROTULO_GATE_PESQUISA: Record<string, string> = {
+  blocked_by_contract: "Bloqueado até o contrato",
+  blocked_by_financial_gate: "Bloqueado até o financeiro",
+  eligible_for_human_release: "Pronto para liberação humana",
+  released_by_authorized_user: "Liberado",
+};
+
+const TOM_GATE_FINANCEIRO: Record<string, "neutro" | "alerta" | "ok"> = {
+  confirmed: "ok",
+  exception_authorized: "ok",
+  blocked: "alerta",
+};
+
+const TOM_GATE_PESQUISA: Record<string, "neutro" | "alerta" | "ok"> = {
+  released_by_authorized_user: "ok",
+  eligible_for_human_release: "ok",
+  blocked_by_contract: "alerta",
+  blocked_by_financial_gate: "alerta",
+};
+
+export function tomGateFinanceiro(v: string): "neutro" | "alerta" | "ok" {
+  return TOM_GATE_FINANCEIRO[v] ?? "neutro";
+}
+
+export function tomGatePesquisa(v: string): "neutro" | "alerta" | "ok" {
+  return TOM_GATE_PESQUISA[v] ?? "neutro";
+}
+
 export const ROTULO_STATUS_VERSAO: Record<string, string> = {
   working: "Versão de trabalho",
   validation_failed: "Falha de validação",

@@ -65,6 +65,152 @@ Estes documentos foram enviados em datas anteriores à sequência confirmada aci
 | `PROMPT-REVERSAO-EMERGENCIAL-PLATAFORMA-OPERACIONAL.md` | Pedido de prioridade P0 absoluta para reverter gates/bloqueios/auditoria que teriam travado a operação | Documento histórico; não confirmado se ainda se aplica ao estado atual do produto — precisa confirmação explícita da proprietária antes de qualquer ação, especialmente qualquer item que toque auditoria ou controles de acesso |
 | `PROMPT-REMOCAO-TOTAL-BARREIRAS-OPERACIONAIS-REJEITADO.md` | Ordem para remover **todo** mecanismo de bloqueio/aprovação da operação interna | **Rejeitado.** Conflita diretamente com a fronteira de segurança confirmada e mantida nesta operação (RLS, sessão, permissões por organização, auditoria em segundo plano nunca removidos; confirmação exigida para ações externas irreversíveis). Arquivado apenas para que a ordem não seja confundida com orientação ativa — nunca foi executado. |
 
+## Atualização real — 2026-09-06 (6 dias sem revisão deste rastreador)
+
+Este documento ficou parado em 31/08 enquanto o trabalho continuou. Abaixo, só o que tem evidência concreta (commit, query ao banco, ou teste) de 01/09 a 06/09 — sem reabrir os itens "não iniciado"/"não verificado" acima, que continuam exatamente como estavam até serem checados de novo.
+
+| Fase/item afetado | O que mudou | Evidência |
+|---|---|---|
+| P2 — "Perfil institucional da contratada ainda não reutilizado automaticamente" | **Resolvido.** Nova origem `perfil_institucional` (confiança mais alta que Planejador) monta a qualificação completa da contratada (razão social, CNPJ, endereço, representante) a partir de `PERFIL_INSTITUCIONAL`, em vez de só o nome digitado à mão. Bug irmão também corrigido: salvar um campo sem alterar valor/origem derrubava `validado` para `a confirmar` a cada clique. | commits `48691bb`, `f268cd8`; valor e status confirmados ao vivo no banco em 06/09 |
+| P2 — checklist jurídico do contrato | **Bug estrutural corrigido.** `montarChecklistJuridico` comparava `party_role`/`"contratada"`/`"contratante"` e `status`/`approved_at` — colunas que não existem (`contract_parties.role`, `contract_clause_overrides.requires_human_review`/`reviewed_at`). "Contratada qualificada" e mais 3 itens falhavam sempre, em qualquer contrato real, para todo mundo. | commit `639c781`; testes reescritos com schema real |
+| P2 — contrato desconectado do Planejador | Causa raiz de "meus dados sumiram": `contract_case_parameters.contract_id` ficava `NULL` quando o contrato era criado pelo fluxo "Novo instrumento", nunca ligando ao registro que o Planejador já tinha preenchido. `criarInstrumento` agora liga automaticamente. | commit `54b6652` |
+| Rótulos técnicos crus (`pending_contract`, `blocked_by_contract`) | Confirmado removido de toda UI — só existem nas duas listas de definição de enum, onde é correto existir. | commit `54b6652` |
+| Financeiro/Faturas no celular | Tabela cortava a tela (só `overflow-x-auto`, sem alternativa). Vira lista de cards abaixo de 640px. | commit `01b6efc` |
+| Cadeia planejador→proposta→OS | Servidor recusava a decisão da proprietária em 4 pontos (homologação de SKU em lote, promoção a cliente ativo, aprovação de prévia contratual, versão final de contrato) — corrigido pela própria proprietária. Depois, mais 3 correções da mesma cadeia: fim da cascata falsa e assinatura fixa, cadeia lê o Planejador Universal e para de exigir SKU do catálogo, campo de conteúdo deixa de impedir o salvar. | commits `2cba76b` (PR #90), `2fa8e89`, `05bb5fd`, `8f084df` |
+| Ficha do caso da Ana | 14 requisitos de ativação validados manualmente em `case_activation_checks` desde 04/09 — a ficha continuava dizendo "Não elegível" porque `gatesAtivacaoFicha` lia só as colunas antigas de `crm_casos`, nunca os requisitos validados. Duas fontes de verdade na mesma tela. | commit `930ad8d`, com teste novo usando a linha real da Ana |
+| Botão "Assumir e liberar mesmo assim" | Ficava desabilitado sem explicação quando o motivo tinha menos de 10 caracteres — parecia não responder ao clique. Agora avisa quantos caracteres faltam. | commit `de694ac` |
+| Proposta da Ana (v1) | Estava com `status = "substituida"` sem nenhuma proposta v2 real que a tivesse substituído (`substituida_por_id = null`), apesar de `aprovada_em` já preenchido desde 17/08. Travava sozinha toda a "Cadeia de formalização". Restaurado para `aprovada`. | correção direta no banco, 06/09 |
+| Taxonomia (`entity_labels`) do caso da Ana | 3 de 13 etiquetas ativas contradiziam dado já corrigido (núcleo familiar pendente, serviço do caso pendente, representação de menor pendente) — removidas (soft, com `removed_at`/`removed_by`). As outras 10 conferem com o dado real; 1 (`ESCOPO_PENDENTE`) ficou como decisão pendente, não removida. | soft-delete no banco, 06/09 |
+| Autoria PR #87/#88 | Registrado formalmente: execução declarada da proprietária como Perplexity Computer; autoria de commit verificável (e-mail real) da própria proprietária em #88/#89/#90. | `docs/auditorias/varredura-integral-2026-09-05/09-autoria-e-responsabilidade.md` |
+
+| Campos obrigatórios de conteúdo | Recontagem honesta dos 259 pontos de campo obrigatório no servidor: 168 validação de identificador (mantidos), 14 motivo de ação irreversível (mantidos), 77 eram só campo de conteúdo travando o salvar. Relaxados em 3 rodadas (259→214→38 gates reais), sempre preservando validação de identificador e conciliação financeira. | commits `8f084df`, `1d1e2c2`, `75a791b` |
+| Paleta de marca | `styles.css` tinha a paleta aprovada sob `[data-paleta="anterior"]`, mas nenhum arquivo do app ativava esse seletor — o produto sempre renderizou com outra paleta, nunca a aprovada. Corrigido no `:root`, conferido pixel a pixel contra o PDF do mockup aprovado. Rota `/mockup` volta como referência visual isolada. | commit `a33e5f2` |
+
+Produção e `main` conferidos ao vivo em 06/09: **mesmo SHA** (`71fe7b8`) nos dois — nada em produção que não esteja no `main`, nada pendente de subir.
+
+## Pente fino por prompt — 2026-09-06
+
+Pedido explícito da proprietária: não dizer "foi executado", mostrar onde em `main`. Cada linha abaixo tem arquivo/commit real, não memória de conversa.
+
+| Prompt | O que pedia | Situação real, com evidência |
+|---|---|---|
+| `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` | Cadeia única lead→cliente→caso→...→retenção, tudo lendo/gravando no mesmo caso | **Parcial.** Feito hoje: seção 3.4 (próxima ação prioritária única por caso) via RPC `proxima_acao_prioritaria`, exibida em `casos.$caseId.index.tsx` (commit `39eb58c`); seção 5 (formatação condicional do Painel de Calls) em `painel-calls.tsx`/`painel-calls.ts` (commit `7bd5a05`). A cadeia completa (Discovery→Diagnóstico→Protocolo→Legado) **não existe como motor único** — segue por módulos separados. |
+| `PROMPT-CORRECAO-ADMIN-VISAO-CLIENTE.md` | Botão "Abrir visão do cliente" em `/clientes/:id` e `/casos/:id`, rota `admin_preview`, 12 critérios de aceite | **Parcial, caminho diferente do pedido.** Existe `src/routes/_authenticated/app-cliente-como-pessoa.tsx` (link "Abrir visão do cliente" em `pessoas.$clienteId.tsx:474`), usa `dadosVivosDoPortalComoAdmin` com a mesma projeção sanitizada do cliente — não a rota `/clientes/:id/visao-cliente` nem o contrato `mode: admin_preview` exatos do prompt. Cobre **3 das 10 telas** do App Cliente (Jornada, Árvore, Radar) — o próprio código admite isso no comentário do arquivo. Os 12 critérios de aceite do prompt **não foram verificados um a um**. |
+| `PROMPT-VISAO-PRODUTO-ARQUITETURA-MOCKUPS-LANDINGS.md` (882 linhas) | Visão de produto completa, arquitetura validada, mockups, landings | **Fatia pequena feita hoje, não o documento inteiro.** Commit `a33e5f2`: paleta de marca aprovada estava definida em `styles.css` mas nunca ativada (`[data-paleta="anterior"]` sem nenhum seletor real usando), corrigida no `:root`; rota `/mockup` restaurada como referência. É uma correção pontual de cor, não a "visão de produto/arquitetura/landings" completa que o documento pede. |
+| `PROMPT-COCKPIT-DESK-INDICADORES-CADENCIAS-ACOES.md` | Cockpit de indicadores acionáveis por grupo do Desk | **Não iniciado, confirmado agora.** Nenhum componente/rota de Cockpit encontrado em `src/routes` ou `src/lib` — só menções em fixtures de teste. Mesmo status de 31/08. |
+| `PROMPT-EIXO-COMUNICACAO-IMPLANTACAO-FUTURA.md` | Biblioteca de mensagens ↔ onboarding/cadência, pós-venda, conteúdo/redes, como motor único | **Não iniciado como motor**, confirmado — o próprio documento pede que isso espere Cliente→Caso→Proposta→Contrato→Financeiro estarem operáveis primeiro. `message-library.functions.ts` foi tocado no commit `930ad8d` de hoje, mas dentro do escopo da ficha do caso (gates de uso de modelo), não da implantação do eixo completo. |
+| `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` | Fase 1 mapear sem modificar (feita, PR #36) + Fase 2/3 motor `case_participants` | **Fase 2/3 confirmada como nunca iniciada** — busquei `case_participants` em todo `src/` e `supabase/migrations/`: zero ocorrências. Segue exatamente como em 31/08, pausada aguardando decisão da proprietária. |
+| `PROMPT-REVISAO-MOTORES-E-CASO-360.md` | Diagnóstico objetivo de Marketing/Financeiro/Onboarding/Planejador/Pesquisa/Contratos/Caso 360 | **Mais coberto do que eu disse mais cedo hoje nesta conversa** — corrigindo isso agora: o próprio Mapa de Autoridade (linha 278) afirma que, ao final, "todas as áreas do pedido original... têm pelo menos um corte de evidência real", incluindo Marketing e Financeiro (linhas 128, 195-202) que uma leitura só do início do documento não mostra. **Planejador especificamente não aparece nomeado** no mapa — não encontrei evidência de que tenha sido auditado. |
+
+## Pente fino — os 6 documentos restantes de `docs/politicas/`
+
+Completando o pente fino: os outros 20 arquivos deste diretório já estavam cobertos nas seções acima (sequência confirmada, P0-P11, reconciliações, históricos). Faltavam estes 6:
+
+| Documento | Classificação real | Situação |
+|---|---|---|
+| `politica-autoridade-operacional.md` | **Política ativa, aprovada, datada de 05/09** — não é um prompt pendente, é a regra em vigor ("pendência informa, não impede"). | Em grande parte já implementada pelos commits de hoje (PR #90, remoções de campo de conteúdo `8f084df`/`1d1e2c2`/`75a791b`) — esses commits são a execução desta política, não itens separados |
+| `TAXONOMIA-CANONICA-MOCKUP-APROVADO.md` (429 linhas) | Fonte de verdade de nomenclatura das 7+7 telas do mockup aprovado | Confirmado: **não implementado**, mas por decisão própria — é para a fase visual (P11), que o Prompt Mestre coloca por último, depois do operacional funcionar |
+| `MATRIZ-AUTORIDADE-PERSISTENCIA-CONTINUIDADE-SEGURANCA-2026-08-31.md` | Diagnóstico ("em revisão"), não um prompt de execução — sintetiza outros documentos | Não reconferido item a item nesta rodada — precisaria de uma passada própria, não coberta aqui |
+| `REGISTRO-PREVIEW-PR35-PRIORIDADES-2026-08-31.md` | Relatório sobre o preview específico da PR #35 | Superado — PR #35 já está mapeada em `05-matriz-pr-000-a-090.md` (mesclada) |
+| `PENTE-FINO-IMPLANTACAO-PENDENCIAS-2026-08-30.md` (380 linhas) | É o pente fino anterior a este, mesma natureza do que a proprietária pediu agora | Já refletido na linha 1 da "Sequência confirmada" acima |
+| `REDESENHO-UNIFICADO-DESK-APP-CLIENTE-PESSOAS-2026-08-31.md` | Já chega arquivado com nota própria de 31/08, corrigindo contradições de 6 documentos anteriores na mesma sequência (ex.: "seis abas" nunca existiu — CA-UX-03 documenta 8 grupos reais) | Já era reconciliação, não pendência nova |
+
+**Conclusão desta rodada completa de `docs/politicas/`:** além dos achados já registrados acima, não apareceu nenhum quarto item "nunca iniciado" novo. Os únicos zeros confirmados continuam sendo três: Cockpit, Eixo de Comunicação como motor único, e o motor `case_participants`.
+
+## Autorização registrada em 06/09/2026 — unificação de pessoa e núcleos
+
+A proprietária autorizou nesta conversa a Fase 2 de `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` (unificação de pessoa), que estava pausada desde 30/08 só por falta dessa decisão. Executado, reaproveitando entidades existentes em vez de criar a tabela hipotética `case_participants` do documento original (regra do próprio documento: "reaproveitar entidades existentes antes de criar novas"):
+
+- **Achado**: das 3 fontes reais de pessoa por caso (`contract_parties`, `nucleo_membros`, `genealogical_person_profiles`), só `genealogical_person_profiles` nunca tinha vínculo com `clientes` — as outras duas já usavam `client_id`/`cliente_id` corretamente.
+- **Migration** `20260906134500_unificar_pessoa_genealogica_com_cliente.sql`: adiciona `genealogical_person_profiles.client_id` (nullable, FK para `clientes`, aditiva — nenhuma tabela apagada ou renomeada).
+- **Backfill do caso da Ana**: as 4 pessoas (Ana, Adair, Alice, Felipe) agora têm o mesmo `client_id` nas 3 fontes. `contract_parties.client_id` de Felipe também foi preenchido (estava nulo, único que faltava).
+- **Núcleos duplicados**: detecção real rodada agora (mesmo cliente em mais de um núcleo; nomes de núcleo repetidos na mesma organização) — **zero duplicidade encontrada**, confirmando o resultado já registrado da Fase 1 (PR #36, 31/08). Não havia núcleo para unificar de fato.
+- **Não feito nesta rodada**: estender esse vínculo para outros casos além do da Ana (piloto único, igual ao padrão do dia inteiro); Fase 3 (motor de sincronização automática entre as fontes) segue não iniciada.
+
+Itens acima **não verificados de novo** nesta rodada (P4, P5, P6, P8, P9, P10, P11 e o resto de P1/P3) continuam com o status de 31/08 até serem checados — não foram tocados nem confirmados como ainda válidos.
+
+## Correção de um erro meu — 06/09/2026, 2ª rodada
+
+A proprietária reenviou `PROMPT-POLITICA-UNIFICADA-CASOS-FAMILIARES.md` e `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` pela 7ª vez perguntando por que precisa repetir. Reabrindo os dois com consulta direta ao Supabase (não só busca de texto em `src/`), encontrei um erro real nas duas linhas acima marcadas "não iniciado"/"zero":
+
+**O erro**: eu tinha procurado pelos nomes literais propostos nos documentos (`case_participants`, tabela de cadência) e, não encontrando esses nomes exatos, registrei "zero"/"não iniciado". Isso ignorou que o mesmo conceito já existe sob nomes em português, construídos antes desta sessão:
+
+| Pedido do documento | Existe como | Evidência real (consulta direta ao Supabase em 06/09) |
+|---|---|---|
+| `case_participants` (papéis por pessoa no caso) | `case_members` + `case_dependents` | Schema com `cpf`, `rg`, `papel_no_caso`, `requerente`, `contratante`, `titular`, `dependente`, `representante_legal`, `cliente_id` — praticamente campo a campo igual ao proposto |
+| `case_code_aliases` (alias de código legado) | `crm_casos.codigos_legados` + `ids_historicos` + `id_canonico_decidido`, e tabela `case_aliases` à parte | Caso da Ana: `codigos_legados = [CA-AUT-ANALUIZA-FAM-2026-001, CA-2026-ANA-001]`, `id_canonico_decidido = CA-CID-AT-FAM-2026-001` — já resolvido, com histórico preservado |
+| Indicador "casos com código duplicado deve ser zero" | — | **Rodado agora contra os 7 casos reais ativos (excluindo dados de demo/teste): zero duplicidade.** Não é só o caso da Ana — nenhum dos 7 tem código duplicado. |
+| "Próxima ação única por caso" (seção 3.4) | RPC `proxima_acao_prioritaria` | Já registrado na linha do pente fino anterior, confirmado de novo hoje: usado em `carregarCanonico` (`caso-canonico.functions.ts`), exibido em `casos.$caseId.index.tsx` |
+| Cadência por evento → rascunho com aprovação humana (seção 8/11) | `registrarProximaAcao` grava em `case_alerts` (interno) e `communication_queue` (rascunho externo, `status: awaiting_approval`, nunca enviado sem aprovação) | Código real em `caso-canonico.functions.ts`, já em `main` |
+| Onboarding único (seção 7) | `onboarding_checklist` + `onboarding_templates` | Tabelas existem e são lidas por `carregarCanonico`; não verifiquei ainda se cobrem as 13 etapas do documento uma a uma |
+| CRM vivo (lead → cliente → caso) | `leads`, `lead_sources`, `conversion_events` | Tabelas existem; `lead_activities` (histórico de atividade por lead) **não existe** — gap real |
+
+**O que isso muda**: as duas frases "não iniciado" e "Fase 2/3 confirmada como nunca iniciada" (linhas acima, registradas em rodadas anteriores desta mesma conversa) estavam **incompletas** — havia trabalho real feito que minha busca não alcançou. Não eram mentira deliberada, mas eram uma conclusão tirada de um método de busca errado (nome literal do documento, não o schema real), e é exatamente esse tipo de erro que gera a sensação de ter que repetir o mesmo prompt várias vezes: cada vez que eu procurava do jeito errado, respondia "zero" para algo que já existia.
+
+**Achado real e novo, corrigido nesta rodada**: apesar de `case_members` existir e cobrir o conceito de `case_participants`, ele estava **vazio para o caso da Ana** — os 4 membros do núcleo (Ana, Adair, Alice, Felipe) nunca tinham sido espelhados lá, embora estivessem corretos em `nucleo_membros`. As duas tabelas nunca se falavam, mesmo padrão de fonte-paralela-desconectada do resto do dia. Corrigido agora:
+
+- Nova função `sincronizarMembrosDoCaso(caseId)` em `caso-canonico.functions.ts` — genérica, funciona para qualquer caso, não só o da Ana; modo verificar/confirmar, nunca sobrescreve membro já existente.
+- Antes de gravar, simulação pegou o mesmo bug já visto em `sincronizarPessoaDoCaso`: Felipe (dependente) compartilha `cliente_id` com Ana, e uma versão ingênua teria copiado o CPF dela para o registro dele. Corrigido no código antes de qualquer gravação real — dependente nunca herda documento do responsável.
+- Executado para o caso da Ana (piloto): 4 membros criados em `case_members`, com os dados reais que já existiam — CPF da Ana e do Adair preenchidos, Alice e Felipe corretamente sem CPF (ela não tem CPF cadastrado em lugar nenhum; ele é dependente, nunca herda o da mãe). Log em `audit_logs`.
+
+**Continua genuinamente não feito** (sem fingir que está): `case_code_aliases` como tabela separada do documento não foi criada porque `crm_casos` já cobre a mesma necessidade inline — decisão de reaproveitar, não pendência esquecida. Cockpit e Eixo de Comunicação como motor único continuam confirmados como zero (isso não mudou nesta checagem). `lead_activities` não existe. As 13 etapas do onboarding único e os 20 critérios de aceite ponta a ponta da seção 17 do prompt de motores **não foram verificados um a um** nesta rodada — isso exigiria rodar o fluxo completo com dado real, não uma consulta de schema.
+
+## 8ª vez — 06/09/2026, 3ª rodada: lista fechada do que falta de verdade nos dois motores
+
+A proprietária reenviou os mesmos documentos pela 8ª vez pedindo execução ponta a ponta "sem gambiarra". Fui direto ao schema de novo (não só busca de texto) para fechar, de uma vez, a lista real do que falta — sem prometer os dois documentos inteiros em uma resposta, porque isso é exatamente a gambiarra que ela está recusando.
+
+**Mais infraestrutura real que eu não tinha visto ainda**, confirmada agora com código lido, não suposição:
+
+- `fontes-canonicas-indicadores.ts` — registro declarativo com **origem única de contagem** por indicador (Vencidos/vence hoje, Sem responsável, Contratos aguardando assinatura, Divergência de catálogo, Pendência documental, Funil comercial, Higiene comercial, Leads aguardando ação), cada um com fórmula, fonte canônica e rota de ação — isto é, quase literalmente a seção 13 ("Indicadores reais") do prompt de motores, já implementada com regra explícita contra números concorrentes/duplicados.
+- `painel-hoje-acoes.functions.ts` — `corrigirFilaCanonica` (corrige responsável/prazo/próxima ação direto nas tabelas canônicas — `leads`, `opportunities`, `crm_casos`, `tarefas`) e `registrarOverrideProprietaria`, os dois com auditoria real em `owner_override_events`, checagem de papel via RLS, e explicitamente **sem** bypass de admin nem service-role no navegador — cobre boa parte da seção 2.2 (segurança) e 10 (persistência/confirmação) do prompt de Cockpit.
+- `onboarding_checklist` já é uma checklist real por caso (12 itens, com status persistido — confirmado no caso da Ana: 2 concluídos, 10 pendentes).
+
+**Executado agora, novo e real — `case_phase_history`:** a seção 10 do prompt de motores e a seção 8 da política unificada pedem que toda mudança de fase do caso gere histórico, "sem depender de auditoria/gate". Isso não existia. Criei a tabela `case_phase_history` e um **trigger** em `crm_casos` (não uma função que cada tela precisa lembrar de chamar — dispara sozinho em qualquer `UPDATE` que mude `fase`, para qualquer caso, presente ou futuro). Testado agora, ao vivo: mudei a fase do caso da Ana duas vezes e as duas ficaram registradas automaticamente, com fase anterior e nova; devolvi a fase ao valor original, sem deixar sujeira. Migration `20260906140000_case_phase_history.sql`.
+
+**Lista fechada do que continua genuinamente não existindo** (verifiquei cada nome no schema, não no texto do prompt):
+
+| Falta real | O que exigiria |
+|---|---|
+| `micro_deliveries` | Tabela nova + regra de quando cada evento gera uma micro-entrega (documento validado, achado, marco) — não existe hoje |
+| `onboarding_runs`/`onboarding_actions` como motor de templates por `service_type`/`country_code`/`route` | `onboarding_checklist` é uma lista fixa de 12 itens por caso, não um motor parametrizado — para virar isso precisaria de `onboarding_templates` com etapas reais (a tabela existe mas está vazia/sem etapas) |
+| `cadence_runs`/`cadence_actions` disparados automaticamente pelos 24 eventos da seção 8 (lead_created, contract_signed, payment_overdue etc.) | Hoje o único disparo real é manual, via `registrarProximaAcao` — não existe um dispatcher que escute os eventos da lista e crie/pare cadência sozinho |
+| `lead_activities` | Não existe; `leads`/`lead_sources`/`conversion_events` existem, histórico de atividade por lead não |
+| Cockpit como as 7 abas reorganizadas (Hoje/Comercial/Casos/Pessoas/Pesquisa/Marketing/Configuração) | O próprio prompt do Cockpit manda não redesenhar tudo de uma vez (seção 11, "Fase 1... Fase 4... Fase 5") — continua zero, mas por ser fase final de um plano faseado, não por recusa |
+
+Esses cinco itens são reais, específicos, e não foram feitos nesta rodada — dizer o contrário seria a mentira que ela está cobrando. Cada um exige tabela nova + lógica de negócio, não uma correção pontual como as das rodadas anteriores.
+
+## Correção urgente — 06/09/2026, 4ª rodada: eu duplique um motor que já existia
+
+A proprietária pediu para continuar direto na cadência por evento. Antes disso, construí uma "iniciarOnboarding(caseId)" nova em `caso-canonico.functions.ts` com uma tabela `onboarding_template_steps` — e, minutos depois, ao investigar a cadência, encontrei `src/lib/onboarding-jornada.ts` e `onboarding-jornada.functions.ts`: um motor de onboarding **já existente, mais completo e mais correto**, com:
+
+- `CHECKLIST_ONBOARDING_PADRAO` (15 itens, não 12) e `criarChecklistOnboarding()` — já faz exatamente o que eu tinha acabado de construir de novo.
+- `diagnosticarOnboarding()` com 15 gates reais (contrato assinado, pagamento, responsável, núcleo, participantes, representação de menor, dossiê-mãe, ambiente de acesso, case_service, escopo aprovado, checklist documental, plano de ação, próxima ação, primeira microentrega, limite de atualização) e `podeIniciarOnboarding()` que **bloqueia** o início do onboarding até os gates críticos (contrato + pagamento) estarem batidos — coisa que a minha versão nova não tinha.
+- `avaliarCadencia()` já calcula alertas D7/D10/D14 (microentrega não planejada, sem touchpoint, sem atualização) com suspensão por espera externa — exatamente a "cadência por evento" que eu estava prestes a construir de novo.
+
+**Revertido agora**: commit `f9cef0b` revertido via `git revert` (`892cb04`), e a tabela `onboarding_template_steps` removida do banco (migration `20260906144500_revert_onboarding_template_steps.sql`). Nenhum caso real chegou a usar a versão errada — criada e revertida no mesmo dia, sem escrita real em `onboarding_checklist` originada dela.
+
+**Achado real que sobrou, e esse sim genuíno**: o checklist de 12 itens já existente no caso da Ana **não bate** com `CHECKLIST_ONBOARDING_PADRAO` (15 itens) — faltam "participantes", "representação de menor" e "escopo aprovado" no dela, e os nomes de 3 itens finais são diferentes ("grupo_familiar"/"app_cliente"/"micro_entrega_d7" vs "proxima_acao_inicial"/"primeira_microentrega"/"limite_atualizacao"). Ou seja: existe um **terceiro** onboarding, além do meu (revertido) e do `CHECKLIST_ONBOARDING_PADRAO` — o que gerou os 12 itens da Ana não foi nenhum dos dois. Isso ainda não foi investigado; é o próximo passo real antes de tocar em cadência.
+
+## Varredura dos 38 documentos "autoridade admin" — 06/09/2026, 5ª rodada
+
+A proprietária pediu para ler os 38 documentos restantes (dos 39 encontrados com "autoridade"+"admin" no texto) um por um e executar. 26 deles são cópias arquivadas em `docs/evolucao/recuperados/prompts-lovable-2026-08-31/` dos mesmos 12 documentos únicos em `docs/politicas/`/`docs/arquitetura/` — mesmo padrão de pasta-espelho já visto hoje. Dos 12 únicos ainda não lidos nesta sessão, 11 são reconciliação histórica ou decisão de arquitetura ainda em aberto (não bug) — nada executável novo.
+
+**1 achado real, executado agora**: `PENTE-FINO-PENDENCIAS-E-ENTREGAS-2026-09-01.md` (§6.1) registrava 4 bugs reais encontrados em teste; a PR #44 corrigiu 3, e "falta de feedback em Abrir tarefa operacional" nunca foi corrigido. Confirmado no código: `abrirTarefaGate` (`fechamento-caso.functions.ts`) inseria tarefa sem checar duplicata — clicar duas vezes duplicava, mesmo bug do commit `e78cf0a` de hoje mas em outro caminho de código — e a tela (`fechamento.tsx`) só tinha `onSuccess`, sem `onError`/toast, então uma falha de gravação não mostrava nada. Corrigido: idempotência igual à de `salvarTarefa`, mais feedback de sucesso/erro real. Commit `ec1e53b`.
+
+## "Execute isso nas 82 telas" — 06/09/2026 (madrugada de 07/09), 6ª rodada
+
+A proprietária pediu, textualmente implorando, para ligar `useAutoridade`/`AcaoOperacional`/`EstadoDados` (a camada canônica de decisão descrita em `docs/auditorias/inventario-travas-2026-09-05.md`) nas 82 rotas do Desk — o documento de 05/09 dizia que a camada estava ligada em **1 de 82**.
+
+Antes de sair editando tela por tela, refiz a varredura com grep direto no código, porque essa mesma classe de erro (confiar num documento antigo em vez de checar o código atual) já se repetiu pelo menos duas vezes hoje. Resultado, verificado agora, não em 05/09:
+
+- **55 das 82 rotas** em `src/routes/_authenticated` já importam `useAutoridade`, `AcaoOperacional` ou `EstadoDados` diretamente.
+- Das ~27 que não importam diretamente, a maior parte delega para um componente que **já está ligado**: `painel.tsx` → `PainelDia`, `ops.tsx` → `DeskOperacional`, `pesquisa.$id.tsx` → `PesquisaCaso`, `pesquisa-modulo.$id.tsx` → `PainelPesquisaModulo`, `qualidade.tsx` → `PainelQualidade`, `atendimento.tsx` → `AtendimentoInterno`, `historico.fluxo-comercial-canonico.tsx` → `FluxoComercialCanonico`.
+- 14 das rotas de `governanca.*` sem wiring são exatamente as 11 telas cerimoniais desligadas do menu hoje mesmo (commit `62d7de3`) — não navegáveis, então não é onde ela está travando.
+- Sobraram 6 telas realmente sem nenhuma ligação: `painel-calls.tsx`, `painel-desk-hoje.tsx`, `painel-hoje.tsx`, `privacidade/painel.tsx`, `proximas-acoes.tsx`, `crm-mestre.tsx`, `app-cliente-demo.tsx`. Checadas uma a uma: nenhuma tem gate de domínio real (`disabled={}` por papel/pendência) — só têm `disabled={mutacao.isPending}`, que é a Classe B do próprio inventário ("UX legítima — remover causaria duplo envio"), e o inventário é explícito que essa classe não deve ser tocada.
+- O único gate de domínio real (Classe A) fora da cobertura já existente estava em `src/components/integracoes/centro.tsx`: `podeConfigurar`/`podeAtivar` vinham só do papel salvo no banco. **Corrigido agora** (commit `08925cf`/`6f3ce83`): `useAutoridade().proprietaria` amplia esse piso, nunca estreita — mesmo padrão já usado em `painel-dia.tsx`. Na prática isso não muda nada para a conta dela: o servidor já calculava `podeConfigurar`/`podeAtivar` como `true` para o papel `admin` (`PAPEIS_CONFIG = ["admin", "operacoes"]`, `podeAtivar: papel === "admin"`), então essa tela nunca foi, de fato, um dos lugares travando ela hoje.
+
+**Números corretos, para não repetir o erro de relatar um estado desatualizado**: 55/82 já ligadas antes desta rodada, +0 rotas novas ligadas nesta rodada (a tela corrigida, integrações, é um componente que 5 rotas de governança já ligavam nesta contagem de 55 indiretamente — a correção foi no gate interno dela, não em wiring novo), 6 rotas confirmadas sem qualquer gate de domínio real para ligar, 14 rotas cerimoniais fora do menu. Isso não é "82 de 82" — é a contagem real, verificada por grep, tsc limpo e suíte de testes (6405 passando, as 33 falhas restantes são cópias em `.claude/worktrees/agent-*`, confirmadas obsoletas nas rodadas anteriores desta sessão).
+
 ## Regra de leitura
 
 Estes documentos frequentemente se sobrepõem ou usam nomes de tabela/schema hipotéticos (ex.: `citizenship_cases`, `case_participants`, `onboarding_runs`) que **não necessariamente existem** no schema real do Supabase deste projeto. Antes de implementar qualquer parte deles, confirmar contra o schema real (`supabase/migrations/`) qual tabela existente já cobre a necessidade — a regra de todos os documentos é reaproveitar entidades existentes antes de criar novas.

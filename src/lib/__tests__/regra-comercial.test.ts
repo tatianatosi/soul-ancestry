@@ -6,7 +6,14 @@ import {
   podeExecutarDespesa,
   type Despesa,
 } from "@/lib/despesas-terceiros";
-import { bloqueiosDePreco, extrairSku, fonteOficialDePreco } from "@/lib/precos-sku";
+import {
+  bloqueiosDePreco,
+  extrairSku,
+  fonteOficialDePreco,
+  MOTIVO_MINIMO_EXCECAO_COMERCIAL,
+  validarExcecaoComercial,
+  type SolicitacaoExcecaoComercial,
+} from "@/lib/precos-sku";
 
 const base: Despesa = {
   id: "1",
@@ -96,5 +103,50 @@ describe("preço de SKU", () => {
       bloqueiosDePreco({ ok: false, motivo: "SKU sem preço/condição homologados." }),
     ).toHaveLength(1);
     expect(bloqueiosDePreco({ ok: true, fonte: "planilha_mestre" })).toEqual([]);
+  });
+});
+
+describe("exceção comercial de preço/SKU (CA-BLOQ-ADMIN-ALL-001)", () => {
+  const validoAteFuturo = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const solicitacao = (over: Partial<SolicitacaoExcecaoComercial> = {}): SolicitacaoExcecaoComercial => ({
+    sku: "CA-CID-AT-001",
+    caseId: "caso-1",
+    motivo: "Preço acertado direto com a cliente antes da homologação formal do SKU.",
+    precoTotal: 4500,
+    condicaoPagamento: "à vista",
+    validoAte: validoAteFuturo,
+    ...over,
+  });
+
+  it("aceita uma solicitação completa e válida", () => {
+    const r = validarExcecaoComercial(solicitacao());
+    expect(r.valida).toBe(true);
+    expect(r.erros).toEqual([]);
+  });
+
+  it("exige motivo específico com tamanho mínimo", () => {
+    const r = validarExcecaoComercial(solicitacao({ motivo: "ok" }));
+    expect(r.valida).toBe(false);
+    expect(r.erros.join(" ")).toMatch(new RegExp(`pelo menos ${MOTIVO_MINIMO_EXCECAO_COMERCIAL}`));
+  });
+
+  it("exige preço total maior que zero", () => {
+    expect(validarExcecaoComercial(solicitacao({ precoTotal: 0 })).valida).toBe(false);
+    expect(validarExcecaoComercial(solicitacao({ precoTotal: -10 })).valida).toBe(false);
+  });
+
+  it("exige condição de pagamento", () => {
+    expect(validarExcecaoComercial(solicitacao({ condicaoPagamento: "" })).valida).toBe(false);
+  });
+
+  it("exige validade futura — nunca aceita uma exceção já expirada", () => {
+    expect(validarExcecaoComercial(solicitacao({ validoAte: "2020-01-01" })).valida).toBe(false);
+    expect(validarExcecaoComercial(solicitacao({ validoAte: "data-invalida" })).valida).toBe(false);
+  });
+
+  it("exige SKU e caso", () => {
+    expect(validarExcecaoComercial(solicitacao({ sku: "" })).valida).toBe(false);
+    expect(validarExcecaoComercial(solicitacao({ caseId: "" })).valida).toBe(false);
   });
 });

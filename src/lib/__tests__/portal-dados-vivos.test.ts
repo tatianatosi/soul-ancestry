@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   arvoreSanitizada,
   jornadaSanitizada,
+  legadoSanitizado,
   radarSanitizado,
   BLOQUEIOS_CA_PORTAL_02,
 } from "@/lib/portal-dados-vivos";
@@ -93,5 +94,21 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
 
   it("fontes sem policy de portal permanecem registradas como bloqueio", () => {
     expect(BLOQUEIOS_CA_PORTAL_02.map((b) => b.fonte)).toContain("public.client_deliverables");
+  });
+
+  it("legado só exibe projeção publicada do tipo legado, mesma fonte segura de jornada/árvore", () => {
+    const itens = legadoSanitizado([
+      { id: "1", projection_type: "legado", content_sanitized: "Livro de memórias entregue à família." },
+      { id: "2", projection_type: "marco", content_sanitized: "Etapa concluída." },
+    ]);
+    expect(itens).toHaveLength(1);
+    expect(itens[0]!.conteudo).toMatch(/Livro de memórias/);
+  });
+
+  it("legado não deixa passar conteúdo com termo interno", () => {
+    const itens = legadoSanitizado([
+      { id: "1", projection_type: "legado", content_sanitized: "Hipótese de vínculo com a linha materna." },
+    ]);
+    expect(itens).toEqual([]);
   });
 });

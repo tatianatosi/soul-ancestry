@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { Secao } from "@/components/caso/campos";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/lib/onboarding-plano.functions";
 import { CadenciaOnboarding } from "@/components/caso/cadencia-onboarding";
 import { CadenciaD0D30 } from "@/components/caso/cadencia-d0-d30";
+import { CadenciaD31D365 } from "@/components/caso/cadencia-d31-d365";
 import { ESTADO_PLANO, STATUS_DOSSIE, STATUS_GRUPO_FAMILIAR } from "@/lib/onboarding-plano";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -28,10 +30,35 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
 
   const m = useMutation({
     mutationFn: () => recalcular({ data: { caseId } }),
-    onSuccess: () => q.refetch(),
+    onSuccess: () => {
+      toast.success("Estado do plano recalculado.");
+      q.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível recalcular o estado."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando plano de onboarding…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <Secao titulo="Plano de onboarding" descricao="Preparação interna, sem ativação de cliente.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">Não foi possível carregar o plano de onboarding.</p>
+          <p className="text-navy/80">
+            {q.error instanceof Error
+              ? q.error.message
+              : "A consulta não retornou resultado nem erro. Isso é falha de carga, não plano ausente."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </Secao>
+    );
+  }
   const plano = q.data?.plano ?? null;
   if (!plano) {
     return (
@@ -46,6 +73,7 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
   const acoes: Linha[] = Array.isArray(plano.plano_acao) ? plano.plano_acao : [];
   const touchpoints: Linha[] = Array.isArray(plano.touchpoints) ? plano.touchpoints : [];
   const rascunhos: Linha[] = (q.data?.rascunhos ?? []) as Linha[];
+  const microentregas: Linha[] = (q.data?.microentregas ?? []) as Linha[];
 
   return (
     <div className="space-y-5">
@@ -137,6 +165,61 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
       <CadenciaOnboarding plano={plano} />
 
       <CadenciaD0D30 plano={plano} />
+
+      <CadenciaD31D365 plano={plano} />
+
+      {/*
+        07/09/2026 — "primeira micro-entrega" acima é só a intenção do plano
+        (D{n} previsto). O registro real (ops_microentregas, o mesmo que
+        conta no Painel Hoje) nunca aparecia na tela do caso: existia motor,
+        existia contagem global, mas nenhuma tela do caso mostrava SE esta
+        micro-entrega específica já tem um registro vivo, e em que fase.
+      */}
+      <Secao
+        titulo="Micro-entregas reais deste caso"
+        descricao="Registro vivo (o mesmo que soma no Painel Hoje) — diferente da intenção do plano acima."
+      >
+        {microentregas.length === 0 ? (
+          <p className="text-sm text-terracotta">
+            Nenhuma micro-entrega registrada para este caso. A intenção do plano
+            (acima) ainda não virou nenhum item real.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {microentregas.map((m) => (
+              <li key={m.id} className="rounded-lg border border-navy/10 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-navy">{m.titulo}</p>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[11px] uppercase tracking-wide ${
+                      m.prazo_status === "atrasada"
+                        ? "bg-terracotta/15 text-terracotta"
+                        : m.prazo_status === "concluido"
+                          ? "bg-navy/8 text-navy/70"
+                          : "bg-gold/15 text-navy"
+                    }`}
+                  >
+                    {m.prazo_status === "concluido"
+                      ? "concluída"
+                      : m.prazo_status === "atrasada"
+                        ? "atrasada"
+                        : m.prazo_status === "em_risco"
+                          ? "vence em breve"
+                          : m.prazo_status === "sem_prazo"
+                            ? "sem prazo"
+                            : "no prazo"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-navy/55">
+                  {m.fase ? `Fase: ${m.fase}` : null}
+                  {m.fase && m.prazo ? " · " : null}
+                  {m.prazo ? `Prazo: ${String(m.prazo).slice(0, 10)}` : null}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Secao>
 
       <Secao
         titulo="Filas de comunicação em rascunho"

@@ -38,6 +38,19 @@ export function PrecoSugeridoOperacional() {
       </p>
 
       {q.isLoading ? <p className="mt-3 text-sm text-navy/60">Carregando…</p> : null}
+      {q.error ? (
+        <p role="alert" className="mt-3 flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível ler o preço sugerido canônico. Totais e divergências abaixo estão vazios por falha de
+          leitura, não por ausência de dado.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
       {q.error ? <p className="mt-3 text-sm text-terracotta">{(q.error as Error).message}</p> : null}
 
       {totais ? (

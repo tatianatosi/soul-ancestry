@@ -95,14 +95,14 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     ).toBe(true);
   });
 
-  it("restringe equipe e auditoria a admin", () => {
+  it("restringe equipe a admin (/auditoria saiu do menu em 06/09, gate cerimonial removido por decisão da proprietária)", () => {
     const restritos = GRUPOS_DESK.flatMap((g) => g.sub)
       .filter((s) => "to" in s && s.adminOnly)
       .map((s) => (s as { to: string }).to);
     const restritosConta = MENU_CONTA.itens
       .filter((s) => "to" in s && (s as { adminOnly?: boolean }).adminOnly)
       .map((s) => (s as { to: string }).to);
-    expect([...restritos, ...restritosConta].sort()).toEqual(["/auditoria", "/equipe"]);
+    expect([...restritos, ...restritosConta].sort()).toEqual(["/equipe"]);
   });
 
   it("não referencia rotas do App Cliente nem do mockup como superfície operacional", () => {

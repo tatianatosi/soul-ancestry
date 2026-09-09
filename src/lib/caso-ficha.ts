@@ -126,6 +126,7 @@ export const PROXIMAS_ACOES: Opcao[] = [
   { valor: "publicar_primeira_micro_entrega", rotulo: "Publicar primeira micro-entrega" },
   { valor: "atualizar_cliente", rotulo: "Atualizar cliente" },
   { valor: "encerrar", rotulo: "Encerrar" },
+  { valor: "sem_nova_acao_necessaria", rotulo: "Sem nova ação necessária" },
   { valor: "outro_justificar", rotulo: "Outro — justificar" },
 ];
 
@@ -429,6 +430,100 @@ export function lacunasProximaAcao(c: ProximaAcaoCampos): string[] {
   if (!preenchido(c.proxima_acao_criterio_conclusao)) falta.push("critério de conclusão");
   return falta;
 }
+
+/**
+ * Corte A (09/09/2026) — próxima ação canônica única.
+ * docs/relatorios/2026-09-09_consolidacao_3_redundancias_criticas_execucao.md
+ *
+ * Achado real: a RPC `proxima_acao_prioritaria` (SQL) já é o motor canônico —
+ * ela verifica bloqueio de ativação, tarefa vencida, tarefa do dia, documento
+ * pendente, proposta/contrato aguardando resposta e pagamento pendente
+ * (níveis 1–6, sempre em primeiro lugar) antes de olhar para o override
+ * manual (`crm_casos.proxima_acao`, nível 8) e só then cai no fallback fixo
+ * (nível 9). Ou seja, a garantia "P0 real nunca fica escondido atrás de ação
+ * manual" já existe na função SQL, por construção — não precisava de motor
+ * novo em TypeScript.
+ *
+ * O que faltava era só a leitura consistente do resultado: as telas liam a
+ * RPC e o campo manual como duas coisas separadas. Esta função só empacota o
+ * retorno da RPC no formato único pedido, com o selo de origem.
+ */
+export type ProximaAcaoCanonica = {
+  caseId: string;
+  acao: string;
+  origem: "automatica" | "manual";
+  prioridade: number | null;
+  motivo: string;
+  responsavel: string | null;
+  prazo: string | null;
+  referenciaEntidade: string | null;
+  podeVoltarAoAutomatico: boolean;
+  /**
+   * Decisão 2 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — dependência e
+   * critério de conclusão (`crm_casos.proxima_acao_dependencia`/
+   * `proxima_acao_criterio_conclusao`) são metadados da mesma ação, não uma
+   * terceira fonte. Antes só apareciam como bloco exclusivo da Lista de
+   * Casos; agora fazem parte da leitura canônica, disponíveis em qualquer
+   * tela que mostre a próxima ação.
+   */
+  dependencia: string | null;
+  criterioConclusao: string | null;
+};
+
+export function obterProximaAcaoCanonica(input: {
+  caseId: string;
+  rpc: { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null } | null;
+  /**
+   * Responsável pela ação. Cada tela tem historicamente um campo diferente
+   * para isto (`responsavel_principal` na Ficha 360,
+   * `proxima_acao_responsavel` na Lista de Casos) — passe o que a tela tiver;
+   * o registro do override manual (registrarProximaAcao) sincroniza os dois.
+   */
+  responsavelPrincipal?: string | null;
+  dependencia?: string | null;
+  criterioConclusao?: string | null;
+}): ProximaAcaoCanonica {
+  const rpc = input.rpc;
+  const dependencia = input.dependencia ?? null;
+  const criterioConclusao = input.criterioConclusao ?? null;
+  if (!rpc) {
+    return {
+      caseId: input.caseId,
+      acao: "Definir próximo passo",
+      origem: "automatica",
+      prioridade: null,
+      motivo: "Definir próximo passo",
+      responsavel: input.responsavelPrincipal ?? null,
+      prazo: null,
+      referenciaEntidade: null,
+      podeVoltarAoAutomatico: false,
+      dependencia,
+      criterioConclusao,
+    };
+  }
+  // Nível 8 é a própria definição da RPC para "override manual sem sinal
+  // automático mais urgente pendente" — não é uma segunda fonte, é o mesmo
+  // resultado que a RPC já decidiu mostrar.
+  const manual = rpc.nivel === 8;
+  return {
+    caseId: input.caseId,
+    acao: rpc.motivo,
+    origem: manual ? "manual" : "automatica",
+    prioridade: rpc.nivel,
+    motivo: rpc.motivo,
+    responsavel: input.responsavelPrincipal ?? null,
+    prazo: rpc.prazo,
+    referenciaEntidade: rpc.origem_tabela,
+    podeVoltarAoAutomatico: manual,
+    dependencia,
+    criterioConclusao,
+  };
+}
+
+export const SELO_PROXIMA_ACAO: Record<ProximaAcaoCanonica["origem"], string> = {
+  automatica: "Sugerida pela operação",
+  manual: "Definida manualmente",
+};
 
 /** Papel do registro na lista: operacional, referência (piloto) ou demonstração. */
 export function papelDoRegistro(linha: { papel_registro?: unknown; demo?: unknown; piloto?: unknown }): {

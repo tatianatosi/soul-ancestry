@@ -36,6 +36,7 @@ export const TIPO_PROJECAO_ROTULO: Record<string, string> = {
   marco: "Marco da jornada",
   resumo: "Resumo do acompanhamento",
   atualizacao: "Atualização da equipe",
+  legado: "Entrega de legado",
 };
 
 export function rotuloTipoProjecao(tipo: string | null | undefined): string {

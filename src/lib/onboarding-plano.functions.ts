@@ -16,7 +16,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
-    const [plano, caso, comunicacoes] = await Promise.all([
+    const [plano, caso, comunicacoes, microentregas] = await Promise.all([
       supabase
         .from("onboarding_planos")
         .select("*")
@@ -37,6 +37,13 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
         .eq("case_id", data.caseId)
         .eq("status", "draft")
         .order("created_at", { ascending: true }),
+      supabase
+        .from("v_ops_microentregas")
+        .select("id,titulo,fase,status,prazo,concluida_em,prazo_status,evidencia_url")
+        .eq("organization_id", organizationId)
+        .eq("caso_id", data.caseId)
+        .is("archived_at", null)
+        .order("prazo", { ascending: true, nullsFirst: false }),
     ]);
 
     const gates = {
@@ -50,6 +57,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
       motivos: motivosBloqueio(gates),
       estadoCalculado: estadoDoPlano(gates, plano.data?.estado ?? null),
       rascunhos: (comunicacoes.data ?? []) as Record<string, any>[],
+      microentregas: (microentregas.data ?? []) as Record<string, any>[],
     };
   });
 

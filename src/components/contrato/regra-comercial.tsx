@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { Painel, Selo, moeda } from "@/components/comercial/base";
@@ -11,7 +12,7 @@ import {
   type EstadoDespesa,
 } from "@/lib/despesas-terceiros";
 import { REGRAS_PRECO_SKU, ROTULO_FONTE_PRECO, fonteOficialDePreco } from "@/lib/precos-sku";
-import { conferirRegraComercial } from "@/lib/regra-comercial.functions";
+import { conferirRegraComercial, registrarExcecaoComercial } from "@/lib/regra-comercial.functions";
 
 function faixa(d: Despesa) {
   if (d.estimativa_min == null && d.estimativa_max == null) return "estimativa não registrada";
@@ -22,10 +23,43 @@ function faixa(d: Despesa) {
 }
 
 export function RegraComercial({ caseId }: { caseId: string }) {
+  const qc = useQueryClient();
   const conferir = useServerFn(conferirRegraComercial);
-  const { data, isLoading } = useQuery({
+  const assumirExcecao = useServerFn(registrarExcecaoComercial);
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["regra-comercial", caseId],
     queryFn: () => conferir({ data: { caseId } }),
+  });
+
+  const [abrirExcecao, setAbrirExcecao] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [precoTotal, setPrecoTotal] = useState("");
+  const [condicaoPagamento, setCondicaoPagamento] = useState("");
+  const [validoAte, setValidoAte] = useState("");
+  const [erroExcecao, setErroExcecao] = useState<string | null>(null);
+
+  const mExcecao = useMutation({
+    mutationFn: (vars: { sku: string }) =>
+      assumirExcecao({
+        data: {
+          caseId,
+          sku: vars.sku,
+          motivo,
+          precoTotal: Number(precoTotal),
+          condicaoPagamento,
+          validoAte,
+        },
+      }),
+    onSuccess: async () => {
+      setErroExcecao(null);
+      setAbrirExcecao(false);
+      setMotivo("");
+      setPrecoTotal("");
+      setCondicaoPagamento("");
+      setValidoAte("");
+      await qc.invalidateQueries({ queryKey: ["regra-comercial", caseId] });
+    },
+    onError: (e: Error) => setErroExcecao(e.message),
   });
 
   const preco = data?.preco ?? null;
@@ -47,7 +81,20 @@ export function RegraComercial({ caseId }: { caseId: string }) {
 
         <div className="mt-3 space-y-2">
           {isLoading && <p className="text-sm text-navy/60">Conferindo…</p>}
-          {!isLoading && despesas.length === 0 && (
+          {error ? (
+            <p role="alert" className="flex flex-wrap items-center gap-2 text-sm text-terracotta">
+              Não foi possível conferir a regra comercial deste caso. Preço, despesas e exceções abaixo estão
+              vazios por falha de leitura, não por ausência de registro.
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
+          {!isLoading && !error && despesas.length === 0 && (
             <p className="text-sm text-navy/60">
               Nenhuma despesa de terceiro registrada neste caso. Estado padrão: “Estimativa pendente” assim que uma despesa
               aplicável for identificada.
@@ -104,9 +151,96 @@ export function RegraComercial({ caseId }: { caseId: string }) {
                 </p>
               </>
             ) : (
-              <p className="rounded border border-terracotta/40 bg-terracotta/10 p-2 text-sm text-terracotta">
-                {preco?.motivo ?? "SKU sem preço/condição homologados."} Valor, cobrança e checkout permanecem bloqueados.
-              </p>
+              <div className="rounded border border-terracotta/40 bg-terracotta/10 p-2 text-sm text-terracotta">
+                <p>
+                  {preco?.motivo ?? "SKU sem preço/condição homologados."} Valor, cobrança e checkout permanecem bloqueados.
+                </p>
+                {/*
+                 * 05/09/2026 — CA-BLOQ-ADMIN-ALL-001, categoria autorizada de
+                 * afrouxamento comercial: catálogo/preço não homologado nunca
+                 * bloqueou por regra de integridade de dado, e sim por
+                 * disciplina de processo interno — a própria tela já previa
+                 * "exceção comercial aprovada" como fonte oficial de preço
+                 * (sku_price_exceptions), mas nenhuma tela chamava essa
+                 * gravação. Isto não muda preço de contrato já assinado nem
+                 * apaga catálogo: cria uma exceção nova, com motivo,
+                 * responsável e validade, exatamente como a regra já exigia.
+                 */}
+                {data?.sku ? (
+                  abrirExcecao ? (
+                    <div className="mt-2 space-y-2 rounded border border-terracotta/30 bg-white p-2 text-navy">
+                      <label className="block text-xs">
+                        Motivo (mínimo 15 caracteres)
+                        <textarea
+                          className="mt-0.5 w-full rounded border border-navy/20 p-1.5 text-sm"
+                          rows={2}
+                          value={motivo}
+                          onChange={(e) => setMotivo(e.target.value)}
+                        />
+                      </label>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <label className="block text-xs">
+                          Preço total (R$)
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="mt-0.5 w-full rounded border border-navy/20 p-1.5 text-sm"
+                            value={precoTotal}
+                            onChange={(e) => setPrecoTotal(e.target.value)}
+                          />
+                        </label>
+                        <label className="block text-xs">
+                          Condição de pagamento
+                          <input
+                            className="mt-0.5 w-full rounded border border-navy/20 p-1.5 text-sm"
+                            value={condicaoPagamento}
+                            onChange={(e) => setCondicaoPagamento(e.target.value)}
+                          />
+                        </label>
+                      </div>
+                      <label className="block text-xs">
+                        Válida até
+                        <input
+                          type="date"
+                          className="mt-0.5 w-full rounded border border-navy/20 p-1.5 text-sm"
+                          value={validoAte}
+                          onChange={(e) => setValidoAte(e.target.value)}
+                        />
+                      </label>
+                      {erroExcecao ? <p className="text-xs text-terracotta">{erroExcecao}</p> : null}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          disabled={mExcecao.isPending}
+                          onClick={() => data?.sku && mExcecao.mutate({ sku: data.sku })}
+                          className="rounded bg-navy px-2 py-1 text-xs text-cream disabled:opacity-50"
+                        >
+                          {mExcecao.isPending ? "Registrando…" : "Confirmar exceção"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAbrirExcecao(false);
+                            setErroExcecao(null);
+                          }}
+                          className="rounded border border-navy/15 px-2 py-1 text-xs text-navy"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAbrirExcecao(true)}
+                      className="mt-2 rounded border border-terracotta/50 bg-white px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+                    >
+                      Assumir exceção comercial
+                    </button>
+                  )
+                ) : null}
+              </div>
             )}
             <ul className="list-disc space-y-1 pl-5 text-xs text-navy/70">
               {REGRAS_PRECO_SKU.map((r) => (

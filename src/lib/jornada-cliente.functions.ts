@@ -97,7 +97,6 @@ export const registrarInteracao = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
 
-    if (!data.resumoInterno?.trim()) throw new Error("Resumo interno é obrigatório.");
 
     if (data.contaComoTouchpoint) {
       const check = validarTouchpoint(data.touchpoint ?? {});
@@ -193,8 +192,6 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    if (!data.tituloCliente?.trim() || !data.resumoAprovado?.trim())
-      throw new Error("Título e resumo aprovados pelo cliente são obrigatórios.");
 
     const { data: criada, error } = await supabase
       .from("client_deliverables")
