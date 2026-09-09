@@ -107,6 +107,10 @@ function LeadsPage() {
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [filtroEixo, setFiltroEixo] = useState("");
   const [filtroArea, setFiltroArea] = useState("");
+  // CA10-MARKETING-CONTEUDO-VIVO (09/09/2026): filtro de origem já existia
+  // como campo do lead, nunca como filtro da lista — Marketing agora abre
+  // esta tela para o usuário aplicar o mesmo recorte que viu no indicador.
+  const [filtroOrigem, setFiltroOrigem] = useState("");
   const [busca, setBusca] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [novoLeadAberto, setNovoLeadAberto] = useState(false);
@@ -181,6 +185,7 @@ function LeadsPage() {
   const visiveis = leads.filter((l) => {
     if (filtroEixo && l.eixo_comercial !== filtroEixo) return false;
     if (filtroArea && l.area_responsavel !== filtroArea) return false;
+    if (filtroOrigem && l.origem !== filtroOrigem) return false;
     if (busca && !`${l.nome} ${l.codigo ?? ""} ${l.email ?? ""}`.toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   });
@@ -216,6 +221,7 @@ function LeadsPage() {
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
               <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
               <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
+              <Selecao label="Origem" valor={filtroOrigem} opcoes={ORIGENS_LEAD} onChange={setFiltroOrigem} />
               <label className="flex items-center gap-2 text-sm text-navy/70">
                 <input type="checkbox" checked={mostrarArquivados} onChange={(e) => setMostrarArquivados(e.target.checked)} />
                 Mostrar arquivados
