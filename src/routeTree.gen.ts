@@ -92,8 +92,6 @@ import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from '
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
 import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
-import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
-import { Route as AuthenticatedHistoricoPainelHojeRouteImport } from './routes/_authenticated/historico.painel-hoje'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedPesquisaEvidenciasCaseIdRouteImport } from './routes/_authenticated/pesquisa-evidencias.$caseId'
 import { Route as AuthenticatedPesquisaModuloIndexRouteImport } from './routes/_authenticated/pesquisa-modulo.index'
@@ -560,18 +558,6 @@ const AuthenticatedHistoricoFluxoComercialCanonicoRoute =
     path: '/historico/fluxo-comercial-canonico',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedHistoricoPainelDeskHojeRoute =
-  AuthenticatedHistoricoPainelDeskHojeRouteImport.update({
-    id: '/historico/painel-desk-hoje',
-    path: '/historico/painel-desk-hoje',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHistoricoPainelHojeRoute =
-  AuthenticatedHistoricoPainelHojeRouteImport.update({
-    id: '/historico/painel-hoje',
-    path: '/historico/painel-hoje',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedOnboardingIdRoute =
   AuthenticatedOnboardingIdRouteImport.update({
     id: '/onboarding/$id',
@@ -756,8 +742,6 @@ export interface FileRoutesByFullPath {
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -859,8 +843,6 @@ export interface FileRoutesByTo {
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -965,8 +947,6 @@ export interface FileRoutesById {
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
   '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/_authenticated/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -1071,8 +1051,6 @@ export interface FileRouteTypes {
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
     | '/historico/fluxo-comercial-canonico'
-    | '/historico/painel-desk-hoje'
-    | '/historico/painel-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1174,8 +1152,6 @@ export interface FileRouteTypes {
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
     | '/historico/fluxo-comercial-canonico'
-    | '/historico/painel-desk-hoje'
-    | '/historico/painel-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1279,8 +1255,6 @@ export interface FileRouteTypes {
     | '/_authenticated/governanca/modelo-individual'
     | '/_authenticated/governanca/modelos-contratuais'
     | '/_authenticated/historico/fluxo-comercial-canonico'
-    | '/_authenticated/historico/painel-desk-hoje'
-    | '/_authenticated/historico/painel-hoje'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-evidencias/$caseId'
     | '/_authenticated/pesquisa-modulo/$id'
@@ -1908,20 +1882,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/historico/painel-desk-hoje': {
-      id: '/_authenticated/historico/painel-desk-hoje'
-      path: '/historico/painel-desk-hoje'
-      fullPath: '/historico/painel-desk-hoje'
-      preLoaderRoute: typeof AuthenticatedHistoricoPainelDeskHojeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/historico/painel-hoje': {
-      id: '/_authenticated/historico/painel-hoje'
-      path: '/historico/painel-hoje'
-      fullPath: '/historico/painel-hoje'
-      preLoaderRoute: typeof AuthenticatedHistoricoPainelHojeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/onboarding/$id': {
       id: '/_authenticated/onboarding/$id'
       path: '/onboarding/$id'
@@ -2102,8 +2062,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
   AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
   AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  AuthenticatedHistoricoPainelHojeRoute: typeof AuthenticatedHistoricoPainelHojeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaEvidenciasCaseIdRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
@@ -2185,9 +2143,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaModelosContratuaisRoute,
   AuthenticatedHistoricoFluxoComercialCanonicoRoute:
     AuthenticatedHistoricoFluxoComercialCanonicoRoute,
-  AuthenticatedHistoricoPainelDeskHojeRoute:
-    AuthenticatedHistoricoPainelDeskHojeRoute,
-  AuthenticatedHistoricoPainelHojeRoute: AuthenticatedHistoricoPainelHojeRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaEvidenciasCaseIdRoute:
     AuthenticatedPesquisaEvidenciasCaseIdRoute,
