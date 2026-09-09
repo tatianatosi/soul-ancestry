@@ -15,6 +15,7 @@ import {
   type Sb,
 } from "@/lib/comercial.server";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { calcularResumoFinanceiroCaso, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -667,4 +668,54 @@ export const arquivarComercial = createServerFn({ method: "POST" })
       payload,
     });
     return { ok: true };
+  });
+
+/**
+ * CA07-FINANCEIRO-SIMPLES (09/09/2026) — leitura financeira única por caso.
+ * Mesmas três fontes de sempre (proposals, invoices, third_party_expenses),
+ * nenhuma nova: valor contratado só de proposals; recebido/saldo só de
+ * invoices.valor_pago (já mantido por trigger a partir de payments
+ * conciliados — nunca resomado aqui). Sem exceção comercial: essa fila
+ * (sku_price_exceptions) já é lida por conferirRegraComercial e não repete
+ * métrica de valor com esta leitura.
+ */
+export const obterResumoFinanceiroCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => {
+    if (!data?.caseId) throw new Error("Selecione um caso.");
+    return data;
+  })
+  .handler(async ({ data, context }): Promise<ResumoFinanceiroCaso> => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contextoInterno(supabase, context.userId as string);
+
+    const [propostas, faturas, despesas] = await Promise.all([
+      supabase
+        .from("proposals")
+        .select("id,status,valor,moeda,forma_pagamento")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("invoices")
+        .select("id,status,valor,valor_pago,moeda,vencimento")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
+      supabase
+        .from("third_party_expenses")
+        .select("id,estado")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
+    ]);
+
+    return calcularResumoFinanceiroCaso(
+      (propostas.data ?? []) as any[],
+      (faturas.data ?? []) as any[],
+      (despesas.data ?? []) as any[],
+      new Date().toISOString().slice(0, 10),
+    );
   });

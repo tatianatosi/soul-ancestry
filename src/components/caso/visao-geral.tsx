@@ -15,6 +15,7 @@ import {
 import { posicionar } from "@/lib/matriz-posicionamento";
 import { ROTULO_SINAL, type SinalPrioridade } from "@/lib/prioridade-matriz";
 import { papelDoRegistro } from "@/lib/caso-ficha";
+import { ROTULO_STATUS_FINANCEIRO_CASO, type ResumoFinanceiroCaso } from "@/lib/financeiro-caso";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -93,16 +94,68 @@ function Evento({ e }: { e: EventoTimeline }) {
   );
 }
 
+function CartaoFinanceiro({ financeiro }: { financeiro: ResumoFinanceiroCaso | null }) {
+  const f = financeiro;
+  const semDados = "Sem dados suficientes";
+  return (
+    <Cartao titulo="Financeiro">
+      <p className="mb-3 text-xs text-navy/55">
+        Leitura, sem ação daqui — registrar pagamento e preparar cobrança ficam no topo da ficha.
+      </p>
+      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="text-navy/55">Valor contratado</dt>
+          <dd>{!f || f.valorContratado == null ? semDados : `${f.moeda} ${f.valorContratado.toFixed(2)}`}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Valor recebido</dt>
+          <dd>{f ? `${f.moeda} ${f.valorRecebido.toFixed(2)}` : "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Saldo aberto</dt>
+          <dd>{!f || f.saldoAberto == null ? semDados : `${f.moeda} ${f.saldoAberto.toFixed(2)}`}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Próxima parcela</dt>
+          <dd>{f?.proximaParcela ? `${f.moeda} ${f.proximaParcela.valor.toFixed(2)} — ${f.proximaParcela.vencimento}` : semDados}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Status</dt>
+          <dd>{f ? ROTULO_STATUS_FINANCEIRO_CASO[f.status] : "—"}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Despesas de terceiros</dt>
+          <dd>
+            {f?.despesasTerceiros
+              ? `${f.despesasTerceiros.total} registrada(s), ${f.despesasTerceiros.aguardandoAprovacao} aguardando aprovação`
+              : semDados}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Condição comercial</dt>
+          <dd>{f?.condicaoComercial ?? semDados}</dd>
+        </div>
+        <div>
+          <dt className="text-navy/55">Próxima ação financeira</dt>
+          <dd>{f?.proximaAcaoFinanceira ?? semDados}</dd>
+        </div>
+      </dl>
+    </Cartao>
+  );
+}
+
 export function AbaVisaoGeral({
   caso,
   timeline,
   blueprint,
   filaDrive,
+  financeiro,
 }: {
   caso: Linha;
   timeline: Linha[];
   blueprint: Linha[];
   filaDrive: Linha[];
+  financeiro: ResumoFinanceiroCaso | null;
 }) {
   const eventos = timeline as EventoTimeline[];
   const t = montarLinhaDoTempo(eventos);
@@ -114,6 +167,8 @@ export function AbaVisaoGeral({
       <div className="lg:col-span-2">
         <FaixaPrioridade caso={caso} />
       </div>
+
+      <CartaoFinanceiro financeiro={financeiro} />
 
       <Cartao titulo="Formalização — sequência com critério de conclusão">
         <ol className="space-y-2 text-sm">
