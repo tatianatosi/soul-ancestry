@@ -113,8 +113,6 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
     [caseId, estado],
   );
 
-  if (!podeEscrever) return null;
-
   if (!aberto) {
     return (
       <Painel titulo="Planejador do caso">
@@ -183,6 +181,12 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
               </option>
             ))}
           </select>
+          {skus.error ? (
+            <span role="alert" className="mt-1 block text-[11px] text-terracotta">
+              Catálogo indisponível: a lista de SKUs está vazia por falha de leitura, não por ausência de
+              cadastro.
+            </span>
+          ) : null}
         </label>
         {campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")}
         <label className="block">

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -15,9 +16,11 @@ import {
   EIXO_FORMALIZACAO,
   HIPOTESE_ELEGIBILIDADE,
   PROXIMAS_ACOES,
+  SELO_PROXIMA_ACAO,
   SITUACAO_FINANCEIRA,
   SITUACAO_OPERACIONAL,
   lacunasProximaAcao,
+  obterProximaAcaoCanonica,
   papelDoRegistro,
   qualificarData,
   rotulo,
@@ -155,7 +158,13 @@ function BuscaPorCodigo() {
 }
 
 function CasosPage() {
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
   const carregarAtivacao = useServerFn(listarEstadoAtivacao);
   const [mostrarDemo, setMostrarDemo] = useState(false);
   const { fase: faseFiltro } = Route.useSearch();
@@ -238,6 +247,11 @@ function CasosPage() {
         <MatrizPrioridadesConectada />
       </div>
 
+      {pendenciaVinculo ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
       <EntidadeCrud
         entidade="crm_casos"
         titulo="Casos"
@@ -438,27 +452,43 @@ function CasosPage() {
             rotulo: "Próxima ação",
             render: (l) => {
               const falta = lacunasProximaAcao(l);
-              const prazo = qualificarData(l["prazo_proxima_acao"]);
+              const prazoManual = qualificarData(l["prazo_proxima_acao"]);
+              // Corte A (09/09/2026) — a RPC (mesma da Ficha 360) é a fonte
+              // única exibida como próxima ação principal; o campo manual e
+              // seus detalhes (dependência, critério de conclusão) aparecem
+              // como o registro que a alimenta quando ela mesma decide usá-lo
+              // (nível 8), não como uma segunda ação concorrente.
+              const rpc = estados.get(String(l["id"]))?.proximaAcaoCanonica ?? null;
+              const canonica = obterProximaAcaoCanonica({
+                caseId: String(l["id"]),
+                rpc: rpc ? { nivel: rpc.nivel, motivo: rpc.motivo, origem_tabela: null, origem_id: null, prazo: rpc.prazo } : null,
+                responsavelPrincipal: (l["proxima_acao_responsavel"] as string) ?? null,
+                dependencia: (l["proxima_acao_dependencia"] as string) ?? null,
+                criterioConclusao: (l["proxima_acao_criterio_conclusao"] as string) ?? null,
+              });
               return (
                 <span className="block space-y-1 text-xs text-navy/75">
-                  <span className="block text-sm text-navy">
-                    {rotulo(PROXIMAS_ACOES, l["proxima_acao"])}
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="block text-sm font-medium text-navy">{canonica.acao}</span>
+                    <span className="rounded-full border border-navy/15 bg-cream px-1.5 py-0.5 text-[10px] text-navy/60">
+                      {SELO_PROXIMA_ACAO[canonica.origem]}
+                    </span>
                   </span>
                   <span className="block">
-                    Responsável: {(l["proxima_acao_responsavel"] as string) || "—"}
+                    Responsável: {canonica.responsavel || "—"}
                   </span>
                   <span className="block">
-                    Prazo: {prazo.texto}
-                    {prazo.condicional ? " · previsão condicional" : ""}
+                    Prazo: {canonica.prazo ? qualificarData(canonica.prazo).texto : prazoManual.texto}
+                    {prazoManual.condicional ? " · previsão condicional" : ""}
                   </span>
-                  <span className="block">
-                    Depende de: {(l["proxima_acao_dependencia"] as string) || "—"}
-                  </span>
-                  <span className="block">
-                    Conclui quando: {(l["proxima_acao_criterio_conclusao"] as string) || "—"}
-                  </span>
-                  {falta.length ? (
-                    <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" />
+                  {canonica.origem === "manual" ? (
+                    <>
+                      <span className="block">Depende de: {canonica.dependencia || "—"}</span>
+                      <span className="block">Conclui quando: {canonica.criterioConclusao || "—"}</span>
+                      {falta.length ? (
+                        <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" />
+                      ) : null}
+                    </>
                   ) : null}
                 </span>
               );

@@ -26,6 +26,9 @@ import {
   type PropostaEstruturada,
   type SkuCanonicoProposta,
 } from "@/lib/cadeia-operacional";
+import { linhas } from "@/lib/linhas";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 type Sb = any;
 
@@ -57,7 +60,7 @@ async function auditar(
 async function casoDaCadeia(supabase: Sb, org: string, caseId: string) {
   const { data: caso } = await supabase
     .from("crm_casos")
-    .select("id,codigo,titulo,organization_id,archived_at,demo,dados_teste,responsavel_id,prazo_proxima_acao")
+    .select("id,codigo,titulo,organization_id,archived_at,demo,dados_teste,responsavel_id,responsavel_principal,prazo_proxima_acao")
     .eq("id", caseId)
     .maybeSingle();
   if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
@@ -192,55 +195,169 @@ export async function sincronizarPlanejador(
 /* Elo 2 — proposta estruturada derivada do planejador                 */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — resolve o nome real
+ * de quem está autenticado (staff_access.full_name/email), nunca um texto
+ * fixo do tipo "Comercial responsável"/"Operações responsável" vindo do
+ * cliente. Sem cadastro na organização, cai no próprio userId — nunca fica
+ * vazio nem inventa nome.
+ */
+export async function nomeResponsavelSessao(supabase: Sb, org: string, userId: string): Promise<string> {
+  const { data: staff } = await supabase
+    .from("staff_access")
+    .select("full_name,email")
+    .eq("organization_id", org)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+  const nome = (staff?.full_name as string | null)?.trim();
+  const email = (staff?.email as string | null)?.trim();
+  return nome || email || userId;
+}
+
 export async function materializarProposta(
   supabase: Sb,
-  input: { org: string; userId: string; caseId: string; responsavelComercial: string; responsavelOperacional: string },
+  input: { org: string; userId: string; caseId: string },
 ) {
   const caso = await casoDaCadeia(supabase, input.org, input.caseId);
+  const responsavelSessao = await nomeResponsavelSessao(supabase, input.org, input.userId);
+  // Responsável operacional real do caso quando já atribuído; sem isso, cai
+  // em quem está materializando a proposta agora — nunca um rótulo fixo.
+  const responsavelOperacional = (caso as { responsavel_principal?: string | null }).responsavel_principal?.trim() || responsavelSessao;
 
-  const { data: plano } = await supabase
-    .from("case_plans")
-    .select("*")
-    .eq("case_id", caso.id)
-    .is("archived_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!plano) throw new Error("Sem planejador persistido: a proposta não pode ser materializada.");
+  // Fonte do planejador — duas tabelas reais coexistem, nenhuma é descartável
+  // por si só (achado de 08/09/2026, prompt "Fechar o elo Planejador →
+  // Proposta → Condição Comercial"):
+  //
+  // `case_plans` tem o formulário real e testado (`PlanejadorOperacional`,
+  // ligado desde 28/08 — ver comentário nesse componente) e schema idêntico
+  // a `EntradaPlanejador`/`SaidaPlanejador`, mas está com zero linhas na base
+  // inteira: ninguém ainda salvou por essa tela.
+  //
+  // `blueprint_parameters` tem dado real para casos já preparados (ex.: Ana,
+  // seed de 20/08), mas nenhuma tela do runtime escreve nela — só existe por
+  // inserção direta — e seu schema NÃO é o mesmo de `case_plans` (não tem
+  // objetivo/etapa/composição/marcos/checklist; tem `entregas_previstas` e
+  // `criterios_aceite`, que `entradaDoPlano` também já lê). O diagnóstico de
+  // 05/09 fixou blueprint como sempre preferencial — o que significa que,
+  // quando a proprietária preencher `case_plans` pela tela real de um caso
+  // que já tem blueprint seed antigo, a entrada dela seria ignorada. Corrigido
+  // aqui: vence quem foi atualizado por último, não uma tabela fixa.
+  const [{ data: blueprint }, { data: planoLegado }] = await Promise.all([
+    supabase
+      .from("blueprint_parameters")
+      .select("*")
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("case_plans")
+      .select("*")
+      .eq("case_id", caso.id)
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const plano =
+    !blueprint ? planoLegado
+    : !planoLegado ? blueprint
+    : new Date(planoLegado.updated_at).getTime() > new Date(blueprint.updated_at).getTime() ? planoLegado
+    : blueprint;
+  if (!plano) {
+    throw new Error(
+      "Sem planejador persistido: crie o Planejador Universal do caso antes de materializar a proposta.",
+    );
+  }
 
   const { data: skuRow } = plano.product_catalog_id
     ? await supabase.from("product_catalog").select(SELECT_SKU).eq("id", plano.product_catalog_id).is("archived_at", null).maybeSingle()
     : { data: null };
   const sku = skuCanonico(skuRow);
-  if (!sku) throw new Error("Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.");
+  // O Planejador Universal define escopo, fases, entregas e critérios sem
+  // depender de SKU do catálogo. Exigir SKU aqui era a regra antiga, e travava
+  // caso com blueprint completo. Para a proprietária, a ausência de SKU vira
+  // pendência assumida; para os demais papéis segue bloqueando.
+  if (!sku) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      ["Planejador sem SKU homologado do catálogo (Planilha Mestre)."],
+      "Planejador sem SKU homologado do catálogo (Planilha Mestre): proposta bloqueada.",
+    );
+  }
 
-  const entrada = entradaDoPlano(plano, caso.id, sku.code);
+  const entrada = entradaDoPlano(plano, caso.id, sku?.code ?? "");
   const saida = avaliarPlanejador(entrada);
   const libera = planejadorLiberaProposta(saida);
-  if (!libera.ok)
-    throw new Error(`Planejador com pendência: ${libera.motivos.slice(0, 3).join(" · ")}${libera.motivos.length > 3 ? " …" : ""}`);
+  // Autoridade operacional (05/09/2026): pendência do planejador informa, não
+  // impede. Este era o primeiro elo da cadeia comercial e travava tudo adiante.
+  if (!libera.ok) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      libera.motivos,
+      `Planejador com pendência: ${libera.motivos.slice(0, 3).join(" · ")}${libera.motivos.length > 3 ? " …" : ""}`,
+    );
+  }
 
 
-  const { data: membros } = await supabase
-    .from("case_members")
-    .select("nome,papel,titular,contratante,dependente")
-    .eq("case_id", caso.id)
-    .is("archived_at", null);
-  const pessoas = ((membros ?? []) as any[]).map((m) => ({
+  // 07/09/2026 — mesmo achado do cotéjo tela a tela aplicado à Ficha 360:
+  // leitura crua de case_members sem fallback para Núcleos. Troca para a
+  // função única já usada por contrato/escopo/cadastro/consolidação.
+  const membrosComFallback = await pessoasDoCasoComFallbackNucleo(supabase as never, caso.id);
+  const pessoas = membrosComFallback.map((m) => ({
     nome: m.nome,
-    papel: m.papel ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
+    papel: (m as { papel_no_caso?: string | null }).papel_no_caso ?? (m.titular ? "titular" : m.contratante ? "contratante" : m.dependente ? "dependente" : "participante"),
   }));
 
   const escopo = montarEscopoEstruturado({ entrada, saida, planId: plano.id, sku, pessoas });
 
   const { data: atual } = await supabase
     .from("proposals")
-    .select("id,versao,status,escopo_estruturado")
+    .select("id,versao,status,escopo_estruturado,origem,plan_id,origem_referencia")
     .eq("case_id", caso.id)
     .is("archived_at", null)
     .order("versao", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Achado real (08/09/2026, prompt "Fechar o elo Planejador → Proposta →
+  // Condição Comercial", parte B): a proposta real da Ana é aprovada, origem
+  // Canva, e nunca passou por este pipeline (plan_id nulo). Sem esta guarda,
+  // clicar "Derivar proposta do planejador" aqui criaria uma v2 e marcaria a
+  // v1 aprovada como substituída — apagando de fato a proposta Canva real
+  // por uma gerada a partir de um Planejador vazio/desatualizado. Regra do
+  // prompt: "a decisão do Planejador deve entrar como origem complementar/
+  // versionada do escopo, jamais apagar metadados de Canva". Corrigido:
+  // proposta Canva já aprovada, sem plan_id, nunca é versionada por aqui —
+  // só recebe o vínculo ao plano (rastreabilidade), sem tocar escopo, valor,
+  // origem ou páginas extraídas.
+  if (atual && atual.origem === "canva" && atual.status !== "rascunho") {
+    if (!atual.plan_id) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "proposals",
+        id: atual.id,
+        organizationId: input.org,
+        userId: input.userId,
+        payload: { plan_id: plano.id },
+      });
+      await auditar(supabase, {
+        org: input.org,
+        userId: input.userId,
+        acao: "planejador_vinculado_a_proposta_canva_sem_versionar",
+        entidade: "proposals",
+        entidadeId: atual.id,
+        metadados: { case_id: caso.id, plan_id: plano.id, origem_referencia: atual.origem_referencia },
+      });
+    }
+    return { proposalId: atual.id, versao: atual.versao, idempotente: true, escopo: null, vinculoSomente: true };
+  }
 
   const payload: Record<string, any> = {
     organization_id: input.org,
@@ -250,12 +367,14 @@ export async function materializarProposta(
     escopo: escopo.servicos_incluidos.map((s) => `• ${s}`).join("\n"),
     exclusoes: escopo.exclusoes.map((s) => `• ${s}`).join("\n"),
     escopo_estruturado: escopo,
-    product_catalog_id: sku.id,
-    valor: sku.preco_sugerido,
-    moeda: sku.moeda,
-    preco_fonte_referencia: sku.fonte_referencia,
-    responsavel_comercial: input.responsavelComercial,
-    responsavel_operacional: input.responsavelOperacional,
+    // Sem SKU, o Planejador Universal e a proposta aprovada sao a fonte:
+    // preco vem do blueprint ou da propria proposta, nunca inventado.
+    product_catalog_id: sku?.id ?? null,
+    valor: sku?.preco_sugerido ?? (plano as { preco_comercial_vigente?: number | null }).preco_comercial_vigente ?? null,
+    moeda: sku?.moeda ?? "BRL",
+    preco_fonte_referencia: sku?.fonte_referencia ?? "planejador_universal",
+    responsavel_comercial: responsavelSessao,
+    responsavel_operacional: responsavelOperacional,
     dados_teste: caso.dados_teste === true,
     updated_by: input.userId,
   };
@@ -295,13 +414,23 @@ export async function materializarProposta(
     acao: "proposta_estruturada_derivada_do_planejador",
     entidade: "proposals",
     entidadeId: proposalId,
-    metadados: { case_id: caso.id, plan_id: plano.id, versao, sku: sku.code, plano_hash: saida.hash },
+    metadados: { case_id: caso.id, plan_id: plano.id, versao, sku: sku?.code ?? null, fonte_planejador: "blueprint_parameters", plano_hash: saida.hash },
   });
 
   return { proposalId, versao, idempotente: false, escopo };
 }
 
-function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): EntradaPlanejador {
+/**
+ * Traduz a linha de planejador (case_plans OU blueprint_parameters — schemas
+ * diferentes, ver comentário em `materializarProposta`) para a entrada pura
+ * do motor. Campos que só existem em `case_plans` (objetivo, etapa,
+ * composição, rota, marcos, checklist, perguntas, responsável, próxima ação)
+ * ficam `null`/`[]` quando a origem é `blueprint_parameters` — isso é
+ * pendência real e honesta (o motor não infere o que a fonte não declara),
+ * não um bug a mascarar. `entregas` aceita `entregas_previstas` do blueprint
+ * como equivalente direto (mesmo significado, nome de coluna diferente).
+ */
+export function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): EntradaPlanejador {
   const fontes = Object.entries((plano.fontes ?? {}) as Record<string, any>).map(([chave, v]) => ({
     chave,
     estado: (v?.estado ?? "pendente") as any,
@@ -309,23 +438,23 @@ function entradaDoPlano(plano: any, caseId: string, skuCodigo: string | null): E
   }));
   return {
     caseId,
-    objetivo: plano.objetivo,
-    etapa: plano.etapa,
-    composicao: plano.composicao,
-    rotaConfirmada: plano.rota_confirmada,
+    objetivo: plano.objetivo ?? null,
+    etapa: plano.etapa ?? null,
+    composicao: plano.composicao ?? null,
+    rotaConfirmada: plano.rota_confirmada ?? null,
     produtoSkuCodigo: skuCodigo,
     dadosDisponiveis: plano.checklist_aplicavel ?? [],
     dependenciasCliente: plano.dependencias_cliente ?? [],
     dependenciasTerceiros: plano.dependencias_terceiros ?? [],
     fontes,
-    responsavelUserId: plano.responsavel_user_id,
-    proximaAcao: plano.proxima_acao,
-    prazoProximaAcao: plano.prazo_proxima_acao,
-    faseJornada: plano.fase_jornada,
+    responsavelUserId: plano.responsavel_user_id ?? null,
+    proximaAcao: plano.proxima_acao ?? null,
+    prazoProximaAcao: plano.prazo_proxima_acao ?? null,
+    faseJornada: plano.fase_jornada ?? null,
     checklist: plano.checklist_aplicavel ?? [],
     perguntas: plano.perguntas ?? [],
     marcos: plano.marcos ?? [],
-    entregas: plano.entregas ?? [],
+    entregas: plano.entregas ?? plano.entregas_previstas ?? [],
     microentregas: plano.microentregas ?? [],
     regrasAnexos: plano.regras_anexos ?? [],
   };
@@ -381,7 +510,16 @@ export async function aprovarPropostaEstruturada(
   const { data: skuRow } = await supabase.from("product_catalog").select(SELECT_SKU).eq("id", row.product_catalog_id).maybeSingle();
   const sku = skuCanonico(skuRow);
   const bloqueios = bloqueiosAprovacaoProposta(proposta, sku);
-  if (bloqueios.length) throw new Error(`Proposta não pode ser aprovada: ${bloqueios.join(" · ")}`);
+  // Pendência de aprovação informa, não impede. Segundo elo da cadeia.
+  if (bloqueios.length) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      bloqueios,
+      `Proposta não pode ser aprovada: ${bloqueios.join(" · ")}`,
+    );
+  }
 
   const condicao = derivarCondicaoComercial(proposta, sku as SkuCanonicoProposta);
 
@@ -471,7 +609,7 @@ async function sincronizarEscopoContratual(
     itens: ReturnType<typeof itensEscopoDaOS>;
   },
 ) {
-  const { data: atuais } = await supabase
+  const atuais = await supabase
     .from("contract_scope_items")
     .select("id,title,category,archived_at")
     .eq("organization_id", input.org)
@@ -480,7 +618,8 @@ async function sincronizarEscopoContratual(
 
   const chave = (c: string, t: string) => `${c}::${t}`;
   const existentes = new Map<string, any>();
-  for (const r of (atuais ?? []) as any[]) existentes.set(chave(r.category, r.title), r);
+  for (const r of linhas<any>(atuais, "itens de escopo já vinculados ao contrato"))
+    existentes.set(chave(r.category, r.title), r);
 
   let inseridos = 0;
   let atualizados = 0;
@@ -543,8 +682,53 @@ async function sincronizarEscopoContratual(
 
 
 
-export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId: string; proposalId: string }) {
-  const { data: row } = await supabase.from("proposals").select("*").eq("id", input.proposalId).maybeSingle();
+/**
+ * Escritor único e idempotente de OS/Anexo I (Corte B, 09/09/2026 —
+ * docs/relatorios/2026-09-09_consolidacao_3_redundancias_criticas_execucao.md).
+ * Antes, o caminho automático (esta função, então chamada `emitirOSAnexoI`) e
+ * o formulário manual (`salvarOrdemServico`, contratos.functions.ts)
+ * escreviam `service_orders` por caminhos incompatíveis — o manual inseria
+ * direto, sem checar OS existente nem preencher proposal_id/commercial_
+ * condition_id/hash. Os dois agora chamam esta função; `origem` só registra
+ * como esta versão nasceu, não cria um segundo motor.
+ *
+ * `proposalId` explícito é o caminho automático (vem do Planejador/Proposta/
+ * Condição já resolvidos). Quando ausente (formulário manual, que só tem
+ * `caseId`), resolve a proposta aprovada mais recente do caso — mesma regra
+ * de "mais recente vence" já usada em `materializarProposta`.
+ */
+export async function emitirOuRecuperarOS(
+  supabase: Sb,
+  input: {
+    org: string;
+    userId: string;
+    origem: "planejador_proposta_condicao" | "manual" | "reabertura_ou_ajuste";
+    proposalId?: string;
+    caseId?: string;
+  },
+) {
+  let proposalId = input.proposalId ?? null;
+  if (!proposalId) {
+    if (!input.caseId) throw new Error("OS/Anexo I exige proposalId ou caseId para localizar a proposta aprovada.");
+    const { data: propostaRecente } = await supabase
+      .from("proposals")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", input.caseId)
+      .eq("status", "aprovada")
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!propostaRecente?.id) {
+      throw new Error(
+        "OS/Anexo I exige proposta aprovada para o caso (Proposta → Condição comercial → OS) — nenhuma encontrada.",
+      );
+    }
+    proposalId = propostaRecente.id;
+  }
+
+  const { data: row } = await supabase.from("proposals").select("*").eq("id", proposalId).maybeSingle();
   if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
   if (row.status !== "aprovada") throw new Error("OS/Anexo I exige proposta aprovada.");
   const caso = await casoDaCadeia(supabase, input.org, row.case_id);
@@ -575,10 +759,24 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
 
   const conteudo = conteudoOSDaProposta(propostaCanonica(row), condicao.id);
   const bloqueios = bloqueiosOS(conteudo);
-  if (bloqueios.length) throw new Error(`OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`);
+  // Pendência estrutural da OS informa, não impede. Terceiro elo da cadeia.
+  if (bloqueios.length) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      bloqueios,
+      `OS/Anexo I bloqueada por pendência estrutural: ${bloqueios.join(" · ")}`,
+    );
+  }
 
-  // Conciliação obrigatória contra o catálogo homologado: SKU, preço, condição
-  // e suficiência de escopo. Divergência bloqueante impede OS e contrato.
+  // Conciliação contra o catálogo homologado: SKU, preço, condição e
+  // suficiência de escopo. 09/09/2026 — mesmo achado já corrigido em
+  // gerarRascunhoInterno (contratos.functions.ts): divergência de catálogo
+  // travava a própria criação da OS em rascunho, quando deveria travar só o
+  // ato externo (protocolo/assinatura). OS nasce em status "draft" — a
+  // pendência informa (mesmo padrão de `bloqueios`/assumirOuRecusarComUsuario
+  // logo acima), nunca impede o registro do rascunho interno.
   const { registrarConciliacao } = await import("@/lib/conciliacao-catalogo.server");
   const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
   const conciliacao = await registrarConciliacao(supabase, {
@@ -586,8 +784,16 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     userId: input.userId,
     proposalId: row.id,
   });
-  const barra = mensagemBloqueio(conciliacao);
-  if (barra) throw new Error(barra);
+  let pendenciasConciliacao: string[] = [];
+  if (mensagemBloqueio(conciliacao)) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    pendenciasConciliacao = await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      conciliacao.bloqueios,
+      `OS/Anexo I registrada com pendência de conciliação de catálogo: ${conciliacao.bloqueios.join(" · ")}`,
+    );
+  }
 
 
   const hash = hashConteudo(conteudo);
@@ -601,7 +807,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     .maybeSingle();
 
   if (osExistente?.conteudo_hash === hash) {
-    return { osId: osExistente.id, versao: osExistente.versao, idempotente: true, conteudo };
+    return { osId: osExistente.id, versao: osExistente.versao, idempotente: true, conteudo, pendenciasConciliacao };
   }
 
   const versao = (osExistente?.versao ?? 0) + 1;
@@ -616,6 +822,11 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
       versao,
       conteudo_hash: hash,
       status: "draft",
+      origem: input.origem,
+      // Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — nunca vazio
+      // nem fictício: responsável real do caso quando atribuído, senão quem
+      // está emitindo a OS agora.
+      responsible_user_id: (caso as { responsavel_id?: string | null }).responsavel_id ?? input.userId,
       start_condition_status: "pending",
       scope_summary: [
         `Objetivo: ${conteudo.objetivo}`,
@@ -666,6 +877,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
       proposal_id: row.id,
       versao,
       hash,
+      origem_os: input.origem,
       condicao_id: condicao.id,
       escopo_inseridos: itensEscopo.inseridos,
       escopo_atualizados: itensEscopo.atualizados,
@@ -678,15 +890,29 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     },
   });
 
-  return { osId: os.id, versao, idempotente: false, conteudo, escopo: itensEscopo };
+  return { osId: os.id, versao, idempotente: false, conteudo, escopo: itensEscopo, pendenciasConciliacao };
 }
 
 /* ------------------------------------------------------------------ */
 /* Estado consolidado (leitura)                                        */
 /* ------------------------------------------------------------------ */
 
-export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId: string) {
+export async function estadoCadeiaOperacional(
+  supabase: Sb,
+  org: string,
+  caseId: string,
+  opcoes: { userId?: string } = {},
+) {
   const caso = await casoDaCadeia(supabase, org, caseId);
+
+  const { data: contratoDaCadeia } = await supabase
+    .from("contracts")
+    .select("id,status,contract_number")
+    .eq("case_id", caseId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const [{ data: plano }, { data: proposta }] = await Promise.all([
     supabase.from("case_plans").select("*").eq("case_id", caso.id).is("archived_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -706,9 +932,9 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
   const { data: previa } = ficha?.id
     ? await supabase
         .from("contract_parameter_previews")
-        .select("id,tipo,gerado_em,aprovado_em")
+        .select("id,tipo,congelado_em,aprovado_em")
         .eq("parameters_id", ficha.id)
-        .order("gerado_em", { ascending: false })
+        .order("congelado_em", { ascending: false })
         .limit(1)
         .maybeSingle()
     : { data: null };
@@ -732,10 +958,15 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
       motivos: proposta
         ? propostaCanon?.escopo_estruturado
           ? []
-          : ["Proposta sem escopo estruturado derivado do planejador."]
+          : proposta.origem === "canva" && !proposta.plan_id
+            ? [] // proposta Canva vigente: escopo vem do Canva, não do Planejador — informativo, não pendência.
+            : ["Proposta sem escopo estruturado derivado do planejador."]
         : ["Proposta estruturada não materializada."],
-      fonte: "proposals",
-      versao: proposta ? `v${proposta.versao} · ${proposta.status}` : null,
+      fonte: proposta?.origem === "canva" ? "proposals (origem: Canva)" : "proposals",
+      versao: proposta
+        ? `v${proposta.versao} · ${proposta.status}` +
+          (proposta.origem === "canva" ? (proposta.plan_id ? " · Planejador vinculado" : " · Planejador não vinculado") : "")
+        : null,
     },
     catalogo: {
       motivos: sku ? (sku.fonte_referencia ? [] : ["SKU sem referência da Planilha Mestre."]) : ["SKU do catálogo não vinculado à proposta."],
@@ -766,10 +997,24 @@ export async function estadoCadeiaOperacional(supabase: Sb, org: string, caseId:
       fonte: "contract_case_parameters",
       versao: ficha?.status ?? null,
     },
-    assinatura: { motivos: ["Assinatura permanece desabilitada nesta entrega."], fonte: "contracts", versao: null },
+    // A assinatura tinha motivo fixo no codigo e ficava pendente para sempre,
+    // com a cadeia inteira verde ou nao. Passa a refletir o contrato real.
+    assinatura: {
+      motivos: contratoDaCadeia?.status === "signed"
+        ? []
+        : contratoDaCadeia
+          ? [`Contrato ${contratoDaCadeia.contract_number ?? ""} em "${contratoDaCadeia.status}": assinatura ainda nao registrada.`]
+          : ["Nenhum instrumento contratual criado para este caso."],
+      fonte: "contracts",
+      versao: contratoDaCadeia?.status ?? null,
+    },
   };
 
-  const cadeia = consolidarCadeia(motivos);
+  const { proprietariaOperando } = await import("@/lib/autoridade.server");
+  const proprietaria = opcoes.userId
+    ? await proprietariaOperando(supabase as never, opcoes.userId)
+    : false;
+  const cadeia = consolidarCadeia(motivos, { proprietaria });
   return {
     caso: { id: caso.id, codigo: caso.codigo, titulo: caso.titulo, dados_teste: caso.dados_teste === true },
     ...cadeia,
@@ -795,23 +1040,23 @@ export async function pendenciasCadeiaPainel(
   org: string,
   opcoes?: { incluirTeste?: boolean; limite?: number },
 ) {
-  const { data: planos } = await supabase
+  const planos = await supabase
     .from("case_plans")
     .select("case_id")
     .eq("organization_id", org)
     .is("archived_at", null)
     .limit(opcoes?.limite ?? 100);
 
-  const ids = [...new Set(((planos ?? []) as any[]).map((p) => p.case_id).filter(Boolean))];
+  const ids = [...new Set(linhas<any>(planos, "planos de caso do painel").map((p) => p.case_id).filter(Boolean))];
   if (!ids.length) return [];
 
-  const { data: casos } = await supabase
+  const casos = await supabase
     .from("crm_casos")
     .select("id,codigo,titulo,dados_teste,demo,archived_at,responsavel_principal,prazo_proxima_acao")
     .in("id", ids)
     .is("archived_at", null);
 
-  const elegiveis = ((casos ?? []) as any[]).filter(
+  const elegiveis = linhas<any>(casos, "casos do painel da cadeia operacional").filter(
     (c) => !c.demo && (opcoes?.incluirTeste === true || c.dados_teste !== true),
   );
 

@@ -35,8 +35,8 @@ describe("corpo contratual persistido", () => {
     for (const campo of PERFIL_INSTITUCIONAL) expect(corpo.html).toContain(campo.rotulo);
   });
 
-  it("renderiza as 14 cláusulas fixas do contrato-base", () => {
-    expect(corpo.estrutura.clausulas).toBe(14);
+  it("renderiza as 16 cláusulas fixas do contrato-base", () => {
+    expect(corpo.estrutura.clausulas).toBe(16);
     for (const c of CLAUSULAS_FIXAS) expect(corpo.html).toContain(`Cláusula ${c.numero}`);
   });
 
@@ -88,7 +88,7 @@ describe("prévia com corpo contratual", () => {
       corpo,
     });
     expect(previa.corpoContratual).toBe(true);
-    expect((previa.conteudo as any).corpo.clausulas).toBe(14);
+    expect((previa.conteudo as any).corpo.clausulas).toBe(16);
     expect((previa.conteudo as any).blocos).toHaveLength(16);
     expect(previa.html).toContain("Contrato-base versionado");
   });

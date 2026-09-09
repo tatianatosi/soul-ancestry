@@ -111,7 +111,15 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
       { grupo: "Relacionamento" },
-      { to: "/clientes", label: "Clientes e núcleos comerciais" },
+      // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
+      // é uma chave mestra" (Proprietária). A página existe desde antes desta
+      // sessão (pessoas.$clienteId.tsx — "Ana Luiza um dia foi lead e depois
+      // virou cliente, mas Ana Luiza continua sendo Ana Luiza") e já era
+      // linkada a partir do nome em /clientes — mas nunca teve o rótulo do
+      // menu dizendo que é isso que ela é. Não tem link de menu genérico
+      // possível (a página exige uma pessoa específica); o rótulo abaixo
+      // deixa explícito que /clientes é a porta de entrada da pessoa 360.
+      { to: "/clientes", label: "Clientes e pessoa 360 (histórico completo por pessoa)" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
     ],
   },
@@ -126,14 +134,13 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Operação do caso" },
       { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
+      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados (sugestão)" },
       { to: "/tarefas", label: "Tarefas e entregas internas" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
       { grupo: "Ativação" },
-      { to: "/piloto", label: "Piloto e go-live" },
-      { to: "/piloto-ana", label: "Caso-piloto Ana Luiza" },
-      { to: "/casos", hash: "onboarding", label: "Onboarding do caso" },
+      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
       { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
     ],
   },
@@ -219,12 +226,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     icone: "governanca",
     agrupador: true,
     sub: [
-      { grupo: "Conformidade" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
-      { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade" },
-      { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
-      { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
       { grupo: "Bibliotecas" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -232,19 +235,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal" },
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { grupo: "Registro e risco" },
-      { to: "/auditoria", label: "Auditoria", adminOnly: true },
-      { to: "/governanca/decisoes", label: "Decisões" },
-      { to: "/governanca/indicadores", label: "Indicadores" },
-      { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
-      { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
-      { to: "/governanca/varredura-completude", label: "Completude" },
-      { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      {
-        to: "/governanca/matriz-equivalencia",
-        label: "Matriz de equivalência — rota → dado → estado",
-      },
-      { to: "/governanca/identificadores", label: "Identificadores" },
       { grupo: "Integrações" },
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
@@ -277,6 +267,33 @@ export const MENU_CONTA: {
 /**
  * Rotas que existiam no menu anterior (7 grupos) e continuam com link direto.
  * Serve de trava de regressão: nenhuma delas pode sumir da navegação.
+ *
+ * 03/09/2026 — /piloto e /piloto-ana removidas desta lista por decisão
+ * explícita da proprietária: o mecanismo de "piloto" da Ana convergiu para
+ * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
+ * de src/lib/fechamento-caso.ts). As rotas continuam existindo no
+ * repositório, só saíram do menu.
+ *
+ * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
+ * /governanca/corte-vertical, /governanca/indicadores,
+ * /governanca/inventario-recuperacao, /governanca/inventario-patrimonial,
+ * /governanca/modulos-contextuais, /governanca/matriz-equivalencia,
+ * /governanca/identificadores, /governanca/varredura-completude e /auditoria
+ * removidas desta lista por decisão explícita da proprietária: "remova
+ * todos os gates cerimoniais, não preciso de mais de 700 linhas de
+ * auditoria pra um sistema que é meu". Eram telas de auditoria/diagnóstico
+ * estático, não superfície de trabalho — nenhuma grava ou decide nada sobre
+ * o caso real.
+ *
+ * 06/09/2026 (execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS, por
+ * ordem direta e explícita da proprietária, independente do rótulo
+ * "rejeitado" que um agente anterior deu a ele sem manifestação literal
+ * dela) — as 11 rotas acima e /auditoria deixaram de "só sair do menu" e
+ * tiveram o arquivo de rota fisicamente apagado do repositório: eram
+ * exatamente o que o prompt pede pra remover ("não esconder só por CSS ou
+ * navegação — remover renderização"). /governanca/decisoes foi mantida
+ * porque é um link real usado por `referencias-normativas.tsx` (log de
+ * decisões citado em pesquisa), não um card de auditoria isolado.
  */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
@@ -293,8 +310,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/tarefas",
   "/ops-excecoes",
   "/qualidade",
-  "/piloto",
-  "/piloto-ana",
   "/pesquisa-modulo",
   "/evidencias",
   "/fontes-genealogicas",
@@ -315,17 +330,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/biblioteca",
   "/biblioteca-mensagens",
   "/matriz-juridica",
-  "/governanca/criterios-aceite",
-  "/governanca/matriz-conformidade",
-  "/governanca/indicadores",
-  "/governanca/decisoes",
-  "/governanca/corte-vertical",
-  "/governanca/inventario-recuperacao",
-  "/governanca/inventario-patrimonial",
-  "/governanca/modulos-contextuais",
-  "/governanca/matriz-equivalencia",
-  "/governanca/identificadores",
-  "/governanca/varredura-completude",
   "/etiquetas",
   "/integracoes",
   "/importacoes",
@@ -333,7 +337,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/acessos-portal",
   "/atendimento",
   "/equipe",
-  "/auditoria",
 ] as const;
 
 /** Todas as rotas com link direto no menu principal ou no menu da conta. */

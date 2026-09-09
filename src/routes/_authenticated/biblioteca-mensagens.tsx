@@ -12,7 +12,10 @@ import {
   CATALOGO_ALIAS_TEMPLATES,
   PRECEDENCIA_TEMPLATES,
 } from "@/lib/consolidacao-catalogos-templates";
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   definirStatusTemplate,
   listarBibliotecaMensagens,
@@ -77,7 +80,31 @@ function preencher(corpo: string, valores: Record<string, string>): string {
   return corpo.replace(/\{([a-z_]+)\}/g, (_m, chave: string) => valores[chave]?.trim() || `[${chave}]`);
 }
 
+/** Filtro de tela, aplicado sobre a lista já carregada com sucesso. */
+function filtrarTemplates(
+  templates: Template[],
+  f: { categoria: string; status: string; busca: string },
+): Template[] {
+  const q = f.busca.trim().toLowerCase();
+  return templates.filter((t) => {
+    if (f.categoria && t.categoriaId !== f.categoria) return false;
+    if (f.status && t.status !== f.status) return false;
+    if (!q) return true;
+    return [t.nome, t.key, t.objetivo, t.etapa, t.canal]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(q));
+  });
+}
+
 function BibliotecaMensagensPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const busca_alerta = Route.useSearch();
   const [categoria, setCategoria] = useState("");
@@ -140,19 +167,7 @@ function BibliotecaMensagensPage() {
     onError: (e: Error) => setErro(e.message),
   });
 
-  const templates = dados.data?.templates ?? [];
-  const categorias = dados.data?.categorias ?? [];
-  const ehAdmin = dados.data?.ehAdmin ?? false;
-
-  const lista = useMemo(() => {
-    const q = busca.trim().toLowerCase();
-    return templates.filter((t) => {
-      if (categoria && t.categoriaId !== categoria) return false;
-      if (status && t.status !== status) return false;
-      if (!q) return true;
-      return [t.nome, t.key, t.objetivo, t.etapa, t.canal].filter(Boolean).some((v) => String(v).toLowerCase().includes(q));
-    });
-  }, [templates, categoria, status, busca]);
+  const templates = dados.data?.templates;
 
   /**
    * CA-OPS-02 — resolução read-only do modelo vigente para o alerta de cadência.
@@ -161,11 +176,12 @@ function BibliotecaMensagensPage() {
   const contextoAlerta = busca_alerta.alerta
     ? contextoSeguro(busca_alerta.alerta, { caseId: busca_alerta.caso ?? null, codigo: busca_alerta.codigo ?? null })
     : null;
-  const resolucao = busca_alerta.alerta ? resolverModeloVigente(busca_alerta.alerta, templates) : null;
+  const resolucao =
+    busca_alerta.alerta && templates ? resolverModeloVigente(busca_alerta.alerta, templates) : null;
   const modeloResolvidoId = resolucao?.modelo?.id ?? null;
 
   useEffect(() => {
-    if (!modeloResolvidoId) return;
+    if (!modeloResolvidoId || !templates) return;
     const alvo = templates.find((t) => t.id === modeloResolvidoId);
     if (alvo) setSelecionado((atual) => atual ?? alvo);
   }, [modeloResolvidoId, templates]);
@@ -180,6 +196,13 @@ function BibliotecaMensagensPage() {
       titulo="Biblioteca de Mensagens e Conteúdos"
       descricao="Modelos internos governados para WhatsApp, e-mail, portal e conteúdo editorial. Uso manual, com versão, vigência e trilha de auditoria."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-6">
         <section data-catalogo="precedencia-templates" className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-sm font-medium text-foreground">Catálogo canônico de modelos</h2>
@@ -257,7 +280,7 @@ function BibliotecaMensagensPage() {
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             <option value="">Todas as categorias</option>
-            {categorias.map((c) => (
+            {dados.data?.categorias?.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -278,13 +301,24 @@ function BibliotecaMensagensPage() {
           </select>
         </section>
 
-        {dados.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando modelos internos…</p>
-        ) : lista.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            Nenhum modelo com os filtros atuais.
-          </p>
-        ) : (
+        <EstadoDados
+          carregando={dados.isLoading}
+          erro={dados.error}
+          dados={dados.data?.templates}
+          aoTentarNovamente={() => void dados.refetch()}
+          recurso="os modelos internos"
+          vazio="Nenhum modelo cadastrado na biblioteca. A consulta foi concluída com sucesso."
+        >
+          {(todos) => {
+            const lista = filtrarTemplates(todos, { categoria, status, busca });
+            if (lista.length === 0) {
+              return (
+                <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                  Nenhum modelo com os filtros atuais.
+                </p>
+              );
+            }
+            return (
           <ul className="grid gap-3 lg:grid-cols-2">
             {lista.map((t) => (
               <li key={t.id} className="rounded-xl border border-border bg-card p-4">
@@ -329,7 +363,9 @@ function BibliotecaMensagensPage() {
               </li>
             ))}
           </ul>
-        )}
+            );
+          }}
+        </EstadoDados>
 
         {selecionado && (
           <section className="space-y-4 rounded-xl border border-border bg-card p-4">
@@ -403,22 +439,23 @@ function BibliotecaMensagensPage() {
               >
                 {validar.isPending ? "Conferindo…" : "Conferir liberação de uso"}
               </button>
-              <button
-                type="button"
-                disabled={registrar.isPending || pendentes.length > 0}
-                onClick={async () => {
+              <AcaoOperacional
+                rotulo={registrar.isPending ? "Registrando…" : "Copiar e registrar uso manual"}
+                capacidade="editar_rascunho"
+                pendenciaGate={
+                  pendentes.length ? `Campos obrigatórios pendentes: ${pendentes.join(", ")}` : null
+                }
+                efeito="Copia o texto para a área de transferência e registra o uso manual do modelo. Nada é enviado ao cliente por esta tela."
+                onConfirmar={async () => {
                   await navigator.clipboard.writeText(texto).catch(() => undefined);
-                  registrar.mutate({
+                  await registrar.mutateAsync({
                     templateId: selecionado.id,
                     casoId: casoId || null,
                     finalidade,
                     variaveis: valores,
                   });
                 }}
-                className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground disabled:opacity-60"
-              >
-                {registrar.isPending ? "Registrando…" : "Copiar e registrar uso manual"}
-              </button>
+              />
               <input
                 value={finalidade}
                 onChange={(e) => setFinalidade(e.target.value)}
@@ -428,73 +465,94 @@ function BibliotecaMensagensPage() {
               />
             </div>
 
-            {ehAdmin && (
-              <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3 text-xs">
-                <p className="text-foreground">Ciclo de vigência (somente administrador)</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["aprovado", "vigente", "suspenso"] as StatusTemplate[]).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => mudarStatus.mutate({ id: selecionado.id, status: s })}
-                      className="rounded-lg border border-border px-2 py-1 text-xs text-foreground"
-                    >
-                      Marcar como {STATUS_TEMPLATE.find((o) => o.valor === s)?.rotulo}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    value={motivoArquivo}
-                    onChange={(e) => setMotivoArquivo(e.target.value)}
-                    placeholder="Motivo do arquivamento"
-                    aria-label="Motivo do arquivamento"
-                    className="min-w-48 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+            <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3 text-xs">
+              <p className="text-foreground">Ciclo de vigência</p>
+              <div className="flex flex-wrap gap-2">
+                {(["aprovado", "vigente", "suspenso"] as StatusTemplate[]).map((s) => (
+                  <AcaoOperacional
+                    key={s}
+                    size="sm"
+                    variant="outline"
+                    rotulo={`Marcar como ${STATUS_TEMPLATE.find((o) => o.valor === s)?.rotulo}`}
+                    capacidade="editar_rascunho"
+                    efeito="Altera o estado de vigência deste modelo na biblioteca interna."
+                    onConfirmar={async () => {
+                      await mudarStatus.mutateAsync({ id: selecionado.id, status: s });
+                    }}
                   />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      mudarStatus.mutate({ id: selecionado.id, status: "arquivado", motivo: motivoArquivo })
-                    }
-                    className="rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground"
-                  >
-                    Arquivar modelo
-                  </button>
-                </div>
-                <p className="text-muted-foreground">
-                  Não há exclusão física: arquivar exige motivo e substituir exige apontar o sucessor.
-                </p>
+                ))}
               </div>
-            )}
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  value={motivoArquivo}
+                  onChange={(e) => setMotivoArquivo(e.target.value)}
+                  placeholder="Motivo do arquivamento"
+                  aria-label="Motivo do arquivamento"
+                  className="min-w-48 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                />
+                <AcaoOperacional
+                  size="sm"
+                  variant="outline"
+                  rotulo="Arquivar modelo"
+                  capacidade="editar_rascunho"
+                  pendenciaGate={motivoArquivo.trim() ? null : "Motivo do arquivamento não preenchido"}
+                  efeito="Arquiva o modelo. O registro continua consultável; nada é excluído fisicamente."
+                  onConfirmar={async (motivo) => {
+                    await mudarStatus.mutateAsync({
+                      id: selecionado.id,
+                      status: "arquivado",
+                      motivo: motivoArquivo.trim() || motivo,
+                    });
+                  }}
+                />
+              </div>
+              <p className="text-muted-foreground">
+                Não há exclusão física: arquivar exige motivo e substituir exige apontar o sucessor.
+              </p>
+            </div>
 
             <div className="grid gap-3 lg:grid-cols-2">
               <div className="rounded-lg border border-border p-3 text-xs">
                 <p className="font-medium text-foreground">Histórico de versões</p>
-                {versoes.data?.versoes?.length ? (
-                  <ul className="mt-1 space-y-1 text-muted-foreground">
-                    {versoes.data.versoes.map((v) => (
-                      <li key={v.id}>
-                        v{v.versao} · {v.status} · {String(v.criadoEm).slice(0, 10)}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-1 text-muted-foreground">Sem versões anteriores registradas.</p>
-                )}
+                <EstadoDados
+                  carregando={versoes.isLoading}
+                  erro={versoes.error}
+                  dados={versoes.data?.versoes}
+                  aoTentarNovamente={() => void versoes.refetch()}
+                  recurso="o histórico de versões"
+                  vazio="Sem versões anteriores registradas."
+                >
+                  {(itens) => (
+                    <ul className="mt-1 space-y-1 text-muted-foreground">
+                      {itens.map((v) => (
+                        <li key={v.id}>
+                          v{v.versao} · {v.status} · {String(v.criadoEm).slice(0, 10)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </EstadoDados>
               </div>
               <div className="rounded-lg border border-border p-3 text-xs">
                 <p className="font-medium text-foreground">Usos registrados (sem disparo)</p>
-                {usos.data?.usos?.length ? (
-                  <ul className="mt-1 space-y-1 text-muted-foreground">
-                    {usos.data.usos.map((u) => (
-                      <li key={u.id}>
-                        v{u.versao} · {u.canal} · {String(u.em).slice(0, 16).replace("T", " ")}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-1 text-muted-foreground">Nenhum uso registrado ainda.</p>
-                )}
+                <EstadoDados
+                  carregando={usos.isLoading}
+                  erro={usos.error}
+                  dados={usos.data?.usos}
+                  aoTentarNovamente={() => void usos.refetch()}
+                  recurso="os usos registrados"
+                  vazio="Nenhum uso registrado ainda."
+                >
+                  {(itens) => (
+                    <ul className="mt-1 space-y-1 text-muted-foreground">
+                      {itens.map((u) => (
+                        <li key={u.id}>
+                          v{u.versao} · {u.canal} · {String(u.em).slice(0, 16).replace("T", " ")}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </EstadoDados>
               </div>
             </div>
           </section>
@@ -505,22 +563,30 @@ function BibliotecaMensagensPage() {
           <p className="mt-1 text-xs text-muted-foreground">
             Pautas e materiais institucionais. Não podem ser vinculados a pessoa, lead ou caso identificável.
           </p>
-          <ul className="mt-3 space-y-2">
-            {(dados.data?.editorial ?? []).map((e) => (
-              <li key={e.id} className="rounded-lg border border-border p-3 text-xs">
-                <div className="font-medium text-foreground">{e.titulo}</div>
-                <div className="mt-1 flex flex-wrap gap-x-4 text-muted-foreground">
-                  <span>{e.tipo}</span>
-                  {e.tema && <span>Tema: {e.tema}</span>}
-                  {e.etapaFunil && <span>Etapa: {e.etapaFunil}</span>}
-                  <span>Estado: {e.status}</span>
-                </div>
-              </li>
-            ))}
-            {(dados.data?.editorial ?? []).length === 0 && (
-              <li className="text-xs text-muted-foreground">Nenhuma pauta registrada.</li>
+          <EstadoDados
+            carregando={dados.isLoading}
+            erro={dados.error}
+            dados={dados.data?.editorial}
+            aoTentarNovamente={() => void dados.refetch()}
+            recurso="os conteúdos editoriais"
+            vazio="Nenhuma pauta registrada."
+          >
+            {(itens) => (
+              <ul className="mt-3 space-y-2">
+                {itens.map((e) => (
+                  <li key={e.id} className="rounded-lg border border-border p-3 text-xs">
+                    <div className="font-medium text-foreground">{e.titulo}</div>
+                    <div className="mt-1 flex flex-wrap gap-x-4 text-muted-foreground">
+                      <span>{e.tipo}</span>
+                      {e.tema && <span>Tema: {e.tema}</span>}
+                      {e.etapaFunil && <span>Etapa: {e.etapaFunil}</span>}
+                      <span>Estado: {e.status}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
-          </ul>
+          </EstadoDados>
         </section>
       </div>
     </SaasShell>

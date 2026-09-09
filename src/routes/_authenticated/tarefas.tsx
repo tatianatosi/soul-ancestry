@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
 import { SaasShell, useSaas } from "@/components/saas/shell";
@@ -20,9 +21,21 @@ export const Route = createFileRoute("/_authenticated/tarefas")({
 });
 
 function TarefasPage() {
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura não trava mais o CRUD.
+  // Só falta de papel ou de organização bloqueia; o servidor revalida.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_fila_responsavel_prazo" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
   return (
     <SaasShell titulo="Tarefas" descricao="Pendências e próximos passos da equipe.">
+      {pendenciaVinculo ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
       <EntidadeCrud
         entidade="tarefas"
         titulo="Tarefas"

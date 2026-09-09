@@ -45,12 +45,12 @@ describe("matriz de modelos contratuais", () => {
   });
 
   it.each(CHAVES)(
-    "rascunho %s contém perfil, 14 cláusulas, matriz, anexos e pendências",
+    "rascunho %s contém perfil, 16 cláusulas, matriz, anexos e pendências",
     (chave) => {
       const r = montarRascunhoModelo(chave, "2026-08-22");
       expect(r.aviso).toBe(AVISO_RASCUNHO_TESTE);
       expect(r.capa.status).toBe("vigente");
-      expect(r.clausulas).toHaveLength(14);
+      expect(r.clausulas).toHaveLength(16);
       expect(r.matriz).toHaveLength(16);
       expect(r.perfil.qualificacao.paragrafos).toEqual(QUALIFICACAO_INSTITUCIONAL_PARAGRAFOS);
       expect(r.anexos.length).toBeGreaterThanOrEqual(10);

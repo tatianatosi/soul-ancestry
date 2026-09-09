@@ -127,15 +127,18 @@ export async function anotarResolucao(
     throw new Error("Divergência não encontrada nesta organização.");
 
   const agora = new Date().toISOString();
-  const { error } = await supabase
+  const { data: atualizada, error } = await supabase
     .from("catalog_source_divergences")
     .update({
       observacao_resolucao: observacao,
       resolucao_registrada_em: agora,
       resolucao_registrada_por: input.userId,
     })
-    .eq("id", input.id);
+    .eq("id", input.id)
+    .select("id")
+    .maybeSingle();
   if (error) throw new Error(error.message);
+  if (!atualizada?.id) throw new Error("Nenhuma linha afetada ao anotar resolução da divergência.");
 
   await supabase.from("audit_logs").insert({
     organization_id: input.org,

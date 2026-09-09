@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { ReferenciaCatalogo } from "@/components/catalogo/referencia-catalogo";
 import { CatalogoSaneamento } from "@/components/painel/catalogo-saneamento";
 import { PrecoSugeridoOperacional } from "@/components/catalogo/preco-sugerido-operacional";
+import { PlanejadorProdutosPai } from "@/components/catalogo/planejador-produtos-pai";
 import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
@@ -45,9 +47,10 @@ function CatalogoPage() {
   const q = useQuery({ queryKey: ["catalogo-importado"], queryFn: () => carregar(), retry: false });
 
   const mapa = mapaFonteMestre();
-  const itens = q.data?.itens ?? [];
-  const divergencias = q.data?.divergencias ?? [];
-  const previa = previaImportacao(itens.map((i) => ({ sku: i.sku, fonte_versao: i.fonte_versao })));
+  // Leitura sem defaults silenciosos: a ausência de dados vira estado explícito na tela.
+  const itens = q.data?.itens;
+  const divergencias = q.data?.divergencias;
+  const previa = previaImportacao((itens ?? []).map((i) => ({ sku: i.sku, fonte_versao: i.fonte_versao })));
 
   return (
     <SaasShell
@@ -68,8 +71,8 @@ function CatalogoPage() {
         {[
           { r: "SKUs na fonte", v: mapa.totais.totalSkus },
           { r: "Top Pareto", v: mapa.totais.topPareto },
-          { r: "Top Pareto ativos importados", v: itens.length },
-          { r: "Divergências abertas", v: divergencias.length },
+          { r: "Top Pareto ativos importados", v: itens ? itens.length : "—" },
+          { r: "Divergências abertas", v: divergencias ? divergencias.length : "—" },
         ].map((c) => (
           <div key={c.r} className="rounded-xl border border-navy/10 bg-white p-4">
             <p className="text-xs uppercase tracking-wide text-navy/50">{c.r}</p>
@@ -94,10 +97,16 @@ function CatalogoPage() {
         </p>
       </section>
 
-      {q.isLoading ? <p className="mt-6 text-sm text-navy/50">Carregando catálogo importado…</p> : null}
-      {q.isError ? <p className="mt-6 text-sm text-terracotta">Não foi possível ler o catálogo importado.</p> : null}
-
       <section className="mt-6 overflow-x-auto rounded-xl border border-navy/10 bg-white">
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={itens}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="o catálogo importado"
+          vazio="Nenhum SKU importado. A leitura foi concluída com sucesso."
+        >
+          {(lista) => (
         <table className="w-full text-left text-xs">
           <thead className="bg-navy/5 text-navy/60">
             <tr>
@@ -113,7 +122,7 @@ function CatalogoPage() {
             </tr>
           </thead>
           <tbody>
-            {itens.map((i) => {
+            {lista.map((i) => {
               const sel = selecionavelEmProposta(i);
               return (
                 <tr key={i.sku} className="border-t border-navy/5 align-top">
@@ -139,36 +148,41 @@ function CatalogoPage() {
                 </tr>
               );
             })}
-            {!itens.length && !q.isLoading ? (
-              <tr>
-                <td className="p-3 text-navy/50" colSpan={9}>
-                  Nenhum SKU importado.
-                </td>
-              </tr>
-            ) : null}
           </tbody>
         </table>
+          )}
+        </EstadoDados>
       </section>
 
       <section className="mt-6">
         <h2 className="font-serif text-xl text-navy">Divergências de reconciliação</h2>
-        <ul className="mt-3 space-y-2">
-          {divergencias.map((d) => (
-            <li key={`${d.sku}-${d.tipo}`} className="rounded-xl border border-navy/10 bg-white p-3 text-xs">
-              <p className="font-medium text-navy/85">
-                {d.sku} — {ROTULO_DIVERGENCIA[d.tipo as TipoDivergencia] ?? d.tipo}
-              </p>
-              <p className="mt-1 text-navy/65">{d.detalhe}</p>
-              <p className="mt-1 text-navy/45">
-                {d.fonte_referencia} · linha {d.fonte_linha ?? "—"}
-              </p>
-            </li>
-          ))}
-          {!divergencias.length && !q.isLoading ? (
-            <li className="text-xs text-navy/50">Nenhuma divergência aberta.</li>
-          ) : null}
-        </ul>
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={divergencias}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as divergências de reconciliação"
+          vazio="Nenhuma divergência aberta."
+        >
+          {(lista) => (
+            <ul className="mt-3 space-y-2">
+              {lista.map((d) => (
+                <li key={`${d.sku}-${d.tipo}`} className="rounded-xl border border-navy/10 bg-white p-3 text-xs">
+                  <p className="font-medium text-navy/85">
+                    {d.sku} — {ROTULO_DIVERGENCIA[d.tipo as TipoDivergencia] ?? d.tipo}
+                  </p>
+                  <p className="mt-1 text-navy/65">{d.detalhe}</p>
+                  <p className="mt-1 text-navy/45">
+                    {d.fonte_referencia} · linha {d.fonte_linha ?? "—"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       </section>
+
+      <PlanejadorProdutosPai />
     </SaasShell>
   );
 }

@@ -5,6 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Archive, ShieldCheck, Users } from "lucide-react";
 
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { arquivarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { ativarCliente, listarPessoasCliente, reclassificarPessoa } from "@/lib/clientes.functions";
 import {
@@ -86,7 +89,14 @@ function Etiqueta({
 }
 
 function ClientesPage() {
-  const { podeEscrever, somenteLeitura } = useSaas();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const carregar = useServerFn(listarPessoasCliente);
   const ativar = useServerFn(ativarCliente);
@@ -96,9 +106,11 @@ function ClientesPage() {
 
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_PADRAO);
   const [erro, setErro] = useState<string | null>(null);
-  const [ativando, setAtivando] = useState<{ pessoa: PessoaLista; justificativa: string } | null>(
-    null,
-  );
+  const [ativando, setAtivando] = useState<{
+    pessoa: PessoaLista;
+    justificativa: string;
+    pendencias: string[];
+  } | null>(null);
   const [arquivando, setArquivando] = useState<{ pessoa: PessoaLista; motivo: string } | null>(
     null,
   );
@@ -140,6 +152,13 @@ function ClientesPage() {
       titulo="Clientes"
       descricao="Perfil de cliente só existe após ativação elegível. Pré-clientes, participantes de núcleo e demonstrações ficam fora da lista principal."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       {erro ? (
         <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {erro}
@@ -187,24 +206,22 @@ function ClientesPage() {
           Incluir demonstrações
         </label>
 
-        {podeEscrever && !somenteLeitura ? (
-          <button
-            type="button"
-            className="ml-auto rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-            onClick={() =>
-              setNovo({
-                nome: "",
-                email: "",
-                telefone: "",
-                origem: "planejador",
-                pais_interesse: "Áustria",
-                status_comercial: "lead",
-              })
-            }
-          >
-            Novo cadastro
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="ml-auto rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+          onClick={() =>
+            setNovo({
+              nome: "",
+              email: "",
+              telefone: "",
+              origem: "planejador",
+              pais_interesse: "Áustria",
+              status_comercial: "lead",
+            })
+          }
+        >
+          Novo cadastro
+        </button>
       </div>
 
       <section className="mb-4 rounded-lg border border-border bg-muted/30 px-4 py-3">
@@ -227,9 +244,16 @@ function ClientesPage() {
         <header className="border-b border-border px-4 py-3 text-sm font-medium">
           Perfis de cliente ({lista.length})
         </header>
-        {q.isLoading ? (
-          <p className="px-4 py-6 text-sm text-muted-foreground">Carregando…</p>
-        ) : lista.length === 0 ? (
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os perfis de cliente"
+          vazio="Nenhuma pessoa cadastrada ainda."
+        >
+          {() =>
+          lista.length === 0 ? (
           <EstadoVazio mensagem="Nenhum perfil elegível neste filtro. Casos em formalização permanecem como pré-cliente." />
         ) : (
           <div className="overflow-x-auto">
@@ -307,26 +331,37 @@ function ClientesPage() {
                           </span>
                         ) : (
                           <div className="flex flex-wrap gap-2">
+                            <Link
+                              to="/pessoas/$clienteId"
+                              params={{ clienteId: p.id }}
+                              className="inline-flex items-center gap-1 rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-xs text-navy hover:bg-gold/20"
+                            >
+                              Ver pessoa 360
+                            </Link>
                             {p.classificacao !== "cliente_ativo" ? (
                               <button
                                 type="button"
-                                disabled={!podeEscrever || somenteLeitura || !eleg.apto}
                                 title={
                                   eleg.apto
                                     ? "Registrar decisão humana de ativação"
                                     : eleg.pendencias.join(" ")
                                 }
-                                onClick={() => setAtivando({ pessoa: p, justificativa: "" })}
-                                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+                                onClick={() =>
+                                  setAtivando({
+                                    pessoa: p,
+                                    justificativa: "",
+                                    pendencias: eleg.apto ? [] : eleg.pendencias,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs"
                               >
                                 <ShieldCheck className="h-3.5 w-3.5" /> Ativar
                               </button>
                             ) : null}
                             <button
                               type="button"
-                              disabled={!podeEscrever || somenteLeitura}
                               onClick={() => setArquivando({ pessoa: p, motivo: "" })}
-                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
+                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs"
                             >
                               <Archive className="h-3.5 w-3.5" /> Arquivar
                             </button>
@@ -346,7 +381,9 @@ function ClientesPage() {
               </tbody>
             </table>
           </div>
-        )}
+        )
+          }
+        </EstadoDados>
       </section>
 
       <section className="mt-6 rounded-lg border border-border">
@@ -362,7 +399,17 @@ function ClientesPage() {
             deles são tratados em Núcleos e dossiês; marque “Incluir participantes de núcleo” para
             conferir o vínculo aqui.
           </p>
-        ) : participantes.length === 0 ? (
+        ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os participantes de núcleo"
+            vazio="Nenhum participante registrado."
+          >
+            {() =>
+          participantes.length === 0 ? (
           <p className="px-4 py-4 text-sm text-muted-foreground">Nenhum participante registrado.</p>
         ) : (
           <ul className="divide-y divide-border">
@@ -384,24 +431,24 @@ function ClientesPage() {
                   </p>
                   <p className="text-[11px] text-muted-foreground">{destinoDoRegistro(p)}</p>
                 </div>
-                <button
-                  type="button"
-                  disabled={!podeEscrever || somenteLeitura}
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo da contratação individual documentada (opcional):");
-                    if (motivo !== null) {
-                      void executar(() =>
-                        reclassificar({ data: { id: p.id, classificacao: "pre_cliente", motivo } }),
-                      );
-                    }
+                <AcaoOperacional
+                  rotulo="Contratação individual"
+                  variant="outline"
+                  size="sm"
+                  capacidade="corrigir_pessoas_dependentes_representacao"
+                  efeito="Reclassifica o participante de núcleo como pré-cliente com contratação individual documentada."
+                  onConfirmar={async (motivo) => {
+                    await executar(() =>
+                      reclassificar({ data: { id: p.id, classificacao: "pre_cliente", motivo } }),
+                    );
                   }}
-                  className="rounded-md border border-border px-2 py-1 text-xs disabled:opacity-40"
-                >
-                  Contratação individual
-                </button>
+                />
               </li>
             ))}
           </ul>
+        )
+            }
+          </EstadoDados>
         )}
       </section>
 
@@ -419,6 +466,15 @@ function ClientesPage() {
             humana de ativação. Marque “Incluir pré-clientes” para vê-los aqui.
           </p>
         ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os pré-clientes"
+            vazio="Nenhum pré-cliente."
+          >
+            {() => (
           <ul className="divide-y divide-border">
             {preClientes.map((p) => (
               <li
@@ -442,6 +498,8 @@ function ClientesPage() {
               <li className="px-4 py-4 text-sm text-muted-foreground">Nenhum pré-cliente.</li>
             ) : null}
           </ul>
+            )}
+          </EstadoDados>
         )}
       </section>
 
@@ -468,15 +526,18 @@ function ClientesPage() {
               >
                 Cancelar
               </button>
-              <button
-                type="button"
-                className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-                onClick={() =>
-                  mAtivar.mutate({ id: ativando.pessoa.id, justificativa: ativando.justificativa })
-                }
-              >
-                Registrar ativação
-              </button>
+              <AcaoOperacional
+                rotulo="Registrar ativação"
+                capacidade="avancar_caso_planejador_tarefa"
+                pendenciaGate={ativando.pendencias.length ? ativando.pendencias.join("; ") : null}
+                efeito={`Marca ${ativando.pessoa.nome} como cliente ativo, com autoria e justificativa registradas.`}
+                onConfirmar={async () => {
+                  await mAtivar.mutateAsync({
+                    id: ativando.pessoa.id,
+                    justificativa: ativando.justificativa,
+                  });
+                }}
+              />
             </div>
           </div>
         </div>
@@ -504,20 +565,20 @@ function ClientesPage() {
               >
                 Cancelar
               </button>
-              <button
-                type="button"
-                className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-                onClick={() => {
+              <AcaoOperacional
+                rotulo="Arquivar"
+                capacidade="editar_rascunho"
+                efeito={`Arquiva ${arquivando.pessoa.nome} preservando histórico, motivo, autor e data. Não há exclusão física.`}
+                onConfirmar={async () => {
                   const alvo = arquivando;
-                  void executar(() =>
+                  await executar(() =>
                     arquivar({
                       data: { entidade: "clientes", id: alvo.pessoa.id, motivo: alvo.motivo },
                     }),
-                  ).then(() => setArquivando(null));
+                  );
+                  setArquivando(null);
                 }}
-              >
-                Arquivar
-              </button>
+              />
             </div>
           </div>
         </div>

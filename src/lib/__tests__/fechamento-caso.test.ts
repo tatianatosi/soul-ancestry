@@ -23,12 +23,17 @@ const base: EstadoFechamento = {
   onboardingIniciado: false,
   onboardingMinimoConcluido: false,
   casoAtivo: false,
+  produtoServicoReconciliado: false,
+  perfilInstitucionalVigente: false,
+  portalAcessoLiberado: false,
+  conteudoPortalPreparado: false,
+  semBloqueioCritico: true,
 };
 
 describe("fechamento do caso", () => {
-  it("declara os nove gates na ordem normativa", () => {
-    expect(DEFINICOES_FECHAMENTO).toHaveLength(9);
-    expect(DEFINICOES_FECHAMENTO.map((d) => d.ordem)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  it("declara os treze gates na ordem normativa", () => {
+    expect(DEFINICOES_FECHAMENTO).toHaveLength(13);
+    expect(DEFINICOES_FECHAMENTO.map((d) => d.ordem)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 
   it("mostra Ana como aceite confirmado e formalização pendente", () => {
@@ -86,9 +91,45 @@ describe("fechamento do caso", () => {
       onboardingIniciado: true,
       onboardingMinimoConcluido: true,
       casoAtivo: true,
+      produtoServicoReconciliado: true,
+      perfilInstitucionalVigente: true,
+      portalAcessoLiberado: true,
+      conteudoPortalPreparado: true,
+      semBloqueioCritico: true,
     });
-    expect(r.concluidos).toBe(9);
+    expect(r.concluidos).toBe(13);
     expect(r.rotuloSituacao).toBe("Caso ativo");
     expect(r.permite.casoAtivo).toBe(true);
+  });
+
+  it("bloqueia caso ativo quando há alerta crítico aberto, mesmo com onboarding concluído", () => {
+    const r = avaliarFechamento({
+      ...base,
+      cadastroCompleto: true,
+      contratoAssinado: true,
+      cobrancaCriada: true,
+      pagamentoInicialConfirmado: true,
+      dossieMae: true,
+      ambienteDossie: true,
+      onboardingIniciado: true,
+      onboardingMinimoConcluido: true,
+      casoAtivo: true,
+      semBloqueioCritico: false,
+    });
+    const por = Object.fromEntries(r.gates.map((g) => [g.chave, g.situacao]));
+    expect(por["sem_bloqueio_critico"]).toBe("pendente");
+    expect(por["caso_ativo"]).not.toBe("concluido");
+    expect(r.permite.casoAtivo).toBe(false);
+  });
+
+  it("gate de conteúdo do portal só cobra entrega preparada quando o acesso está liberado", () => {
+    const semAcesso = avaliarFechamento({ ...base, portalAcessoLiberado: false, conteudoPortalPreparado: false });
+    const comAcessoSemConteudo = avaliarFechamento({ ...base, portalAcessoLiberado: true, conteudoPortalPreparado: false });
+    const comAcessoComConteudo = avaliarFechamento({ ...base, portalAcessoLiberado: true, conteudoPortalPreparado: true });
+    const situacao = (r: ReturnType<typeof avaliarFechamento>) =>
+      Object.fromEntries(r.gates.map((g) => [g.chave, g.situacao]))["conteudo_portal"];
+    expect(situacao(semAcesso)).toBe("concluido");
+    expect(situacao(comAcessoSemConteudo)).not.toBe("concluido");
+    expect(situacao(comAcessoComConteudo)).toBe("concluido");
   });
 });

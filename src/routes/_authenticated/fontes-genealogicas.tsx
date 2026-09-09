@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
@@ -21,7 +21,11 @@ import {
   STATUS_INTEGRACAO,
   type Fonte,
 } from "@/lib/fontes-genealogicas";
-import { painelFontes } from "@/lib/fontes-genealogicas.functions";
+import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { useSaas } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -64,8 +68,93 @@ function Secao({ titulo, subtitulo, children }: { titulo: string; subtitulo?: st
   );
 }
 
-function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; backlog: any[] }) {
+function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) {
+  const [form, setForm] = useState({
+    status_documentacao: fonte.status_documentacao ?? "",
+    status_integracao: fonte.status_integracao ?? "",
+    scraping_status: fonte.scraping_status ?? "",
+    ultima_verificacao: fonte.ultima_verificacao ?? "",
+    responsavel_revisao: fonte.responsavel_revisao ?? "",
+    proxima_acao: fonte.proxima_acao ?? "",
+    observacao_risco: fonte.observacao_risco ?? "",
+  });
+  const [erro, setErro] = useState<string | null>(null);
+  const salvarFn = useServerFn(salvarFonte);
+  const m = useMutation({
+    mutationFn: () => salvarFn({ data: { id: fonte.id, valores: form } }),
+    onSuccess: () => {
+      setErro(null);
+      onSalvo();
+    },
+    onError: (e: Error) => setErro(e.message),
+  });
+  const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const cls = "w-full rounded border border-navy/15 px-2 py-1 text-[11px]";
+
+  return (
+    <div className="sm:col-span-2 space-y-2 rounded border border-gold/40 bg-gold/5 p-3">
+      {erro ? <p className="text-[11px] text-terracotta">{erro}</p> : null}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Documentação
+          <select className={cls} value={form.status_documentacao} onChange={(e) => set("status_documentacao", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(STATUS_DOCUMENTACAO).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Integração
+          <select className={cls} value={form.status_integracao} onChange={(e) => set("status_integracao", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(STATUS_INTEGRACAO).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Scraping
+          <select className={cls} value={form.scraping_status} onChange={(e) => set("scraping_status", e.target.value)}>
+            <option value="">—</option>
+            {Object.entries(SCRAPING_STATUS).map(([valor, rotulo]) => (
+              <option key={valor} value={valor}>{rotulo}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Última verificação
+          <input type="date" className={cls} value={form.ultima_verificacao} onChange={(e) => set("ultima_verificacao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Responsável pela revisão
+          <input className={cls} value={form.responsavel_revisao} onChange={(e) => set("responsavel_revisao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50">
+          Próxima ação
+          <input className={cls} value={form.proxima_acao} onChange={(e) => set("proxima_acao", e.target.value)} />
+        </label>
+        <label className="text-[10px] uppercase tracking-wide text-navy/50 sm:col-span-2">
+          Observação de risco
+          <textarea className={cls} rows={2} value={form.observacao_risco} onChange={(e) => set("observacao_risco", e.target.value)} />
+        </label>
+      </div>
+      <AcaoOperacional
+        rotulo={m.isPending ? "Salvando…" : "Salvar"}
+        capacidade="editar_rascunho"
+        efeito="Atualiza o catálogo interno desta fonte. Nenhuma consulta externa é disparada."
+        size="sm"
+        onConfirmar={async () => {
+          await m.mutateAsync();
+        }}
+      />
+    </div>
+  );
+}
+
+function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz: any[]; backlog: any[]; onSalvo: () => void }) {
   const [aberto, setAberto] = useState(false);
+  const [editando, setEditando] = useState(false);
   const consulta = permiteConsultaAutomatica(fonte);
   const pendencias = pendenciasGovernanca(fonte);
 
@@ -112,6 +201,25 @@ function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; 
           <div className="sm:col-span-2 rounded border border-terracotta/30 bg-terracotta/5 p-2 text-[11px] text-navy/70">
             Consulta automática: indisponível. {consulta.motivo}
           </div>
+
+          <div className="sm:col-span-2">
+            <button
+              type="button"
+              onClick={() => setEditando((v) => !v)}
+              className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy hover:border-gold"
+            >
+              {editando ? "Fechar edição" : "Editar"}
+            </button>
+          </div>
+          {editando ? (
+            <EditarFonte
+              fonte={fonte}
+              onSalvo={() => {
+                setEditando(false);
+                onSalvo();
+              }}
+            />
+          ) : null}
 
           {pendencias.length > 0 && (
             <div className="sm:col-span-2">
@@ -161,21 +269,63 @@ function CartaoFonte({ fonte, matriz, backlog }: { fonte: Fonte; matriz: any[]; 
 }
 
 function FontesGenealogicas() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(painelFontes);
-  const { data, isPending, error } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
+  const qc = useQueryClient();
+  const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
+  const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+
+  // 06/09/2026: salvarFonte() no servidor sempre aceitou criacao (insere
+  // quando `id` vem ausente), mas a tela so chamava com `id` de uma fonte ja
+  // existente — nao havia nenhum caminho para cadastrar fonte nova. Mesmo
+  // padrao encontrado em Nucleos no mesmo dia.
+  const criarFonteFn = useServerFn(salvarFonte);
+  const [novaFonteAberta, setNovaFonteAberta] = useState(false);
+  const [novaFonteNome, setNovaFonteNome] = useState("");
+  const [erroNovaFonte, setErroNovaFonte] = useState<string | null>(null);
+  const mCriarFonte = useMutation({
+    mutationFn: (nome: string) => criarFonteFn({ data: { valores: { nome } } }),
+    onSuccess: () => {
+      setNovaFonteAberta(false);
+      setNovaFonteNome("");
+      setErroNovaFonte(null);
+      void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+    },
+    onError: (e: Error) => setErroNovaFonte(e.message),
+  });
 
   const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
-  if (isPending) return <p className="p-6 text-sm text-navy/60">Carregando catálogo interno…</p>;
-  if (error) return <p className="p-6 text-sm text-terracotta">{(error as Error).message}</p>;
+  // Catálogo não lido nunca aparece como catálogo vazio.
+  if (!data)
+    return (
+      <div className="p-6">
+        <EstadoDados
+          carregando={isPending}
+          erro={error}
+          dados={undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="o catálogo interno de fontes"
+        >
+          {() => null}
+        </EstadoDados>
+      </div>
+    );
 
   const render = (lista: Fonte[]) =>
     lista.length === 0 ? (
       <p className="text-[11px] text-navy/50">Nenhuma fonte nesta lista.</p>
     ) : (
-      lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} />)
+      lista.map((f) => <CartaoFonte key={f.id} fonte={f} matriz={matrizPor(f.id)} backlog={backlogPor(f.id)} onSalvo={onSalvo} />)
     );
 
   return (
@@ -188,6 +338,56 @@ function FontesGenealogicas() {
           confirmar · {grupos.bloqueadas.length} restritas ou descontinuadas
         </p>
       </header>
+
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
+
+      <div>
+        {novaFonteAberta ? (
+          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+            <label className="min-w-[220px] flex-1 text-[10px] uppercase tracking-wide text-navy/50">
+              Nome da nova fonte
+              <input
+                className="mt-1 w-full rounded border border-navy/15 px-2 py-1 text-[11px]"
+                value={novaFonteNome}
+                onChange={(e) => setNovaFonteNome(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={mCriarFonte.isPending || !novaFonteNome.trim()}
+              onClick={() => mCriarFonte.mutate(novaFonteNome.trim())}
+              className="rounded-lg bg-navy px-4 py-2 text-[11px] text-white disabled:opacity-50"
+            >
+              {mCriarFonte.isPending ? "Criando…" : "Criar fonte"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNovaFonteAberta(false);
+                setErroNovaFonte(null);
+              }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy"
+            >
+              Cancelar
+            </button>
+            {erroNovaFonte ? <p className="w-full text-[11px] text-terracotta">{erroNovaFonte}</p> : null}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setNovaFonteAberta(true)}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+          >
+            + Nova fonte
+          </button>
+        )}
+      </div>
 
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}

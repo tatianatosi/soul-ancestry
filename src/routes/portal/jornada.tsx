@@ -3,6 +3,7 @@ import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/jornada")({
@@ -25,14 +26,23 @@ export const Route = createFileRoute("/portal/jornada")({
 
 export function PortalJornada() {
   const { visibilidade, carregando } = useVisibilidade("jornada");
-  const { data, isLoading } = usePortalVivo();
-  const jornada = jornadaSanitizada(data?.projecoes ?? []);
+  const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
   return (
     <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
-      {carregando || isLoading ? (
+      {carregando ? (
         <PortalCarregando />
       ) : (
+        <EstadoDados
+          carregando={isLoading}
+          erro={isError ? (error ?? true) : null}
+          dados={data ? [data] : null}
+          aoTentarNovamente={refetch}
+          recurso="o seu acompanhamento"
+        >
+          {([vivo]) => {
+            const jornada = jornadaSanitizada(vivo.projecoes);
+            return (
         <BlocoVisibilidade visibilidade={visibilidade}>
           <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
             {jornada.proximoPasso}
@@ -58,6 +68,9 @@ export function PortalJornada() {
             </ol>
           )}
         </BlocoVisibilidade>
+            );
+          }}
+        </EstadoDados>
       )}
     </PortalShell>
   );

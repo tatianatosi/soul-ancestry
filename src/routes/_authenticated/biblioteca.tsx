@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
@@ -11,6 +14,7 @@ import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
   ESTADOS_VIGENCIA,
+  homologarTrilhaOuRegra,
   listarBibliotecaMestre,
   listarCatalogoTop30,
   type EstadoVigencia,
@@ -52,6 +56,14 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 });
 
 function BibliotecaPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const [sub, setSub] = useState<SubareaBiblioteca>("acervo");
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState("");
@@ -101,6 +113,16 @@ function BibliotecaPage() {
     onError: (e: Error) => setErroVigencia(e.message),
   });
 
+  const [erroHomologacao, setErroHomologacao] = useState<string | null>(null);
+  const homologar = useMutation({
+    mutationFn: (v: { id: string; fonte: "trilhas" | "juridico"; criterio: string; justificativa?: string }) =>
+      homologarTrilhaOuRegra({ data: v }),
+    onSuccess: async () => {
+      setErroHomologacao(null);
+      await queryClient.invalidateQueries({ queryKey: ["biblioteca-mestre"] });
+    },
+    onError: (e: Error) => setErroHomologacao(e.message),
+  });
 
   const itens = useMemo<ItemBiblioteca[]>(
     () => [...(geral.data?.itens ?? []), ...(catalogo.data?.itens ?? [])],
@@ -146,12 +168,25 @@ function BibliotecaPage() {
 
   const meta = SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub)!;
   const carregando = geral.isLoading || catalogo.isLoading;
+  /**
+   * Leitura em duas consultas. Se qualquer uma falhar, a tela mostra o erro:
+   * lista incompleta nunca passa por acervo vazio.
+   */
+  const erroLeitura = geral.error ?? catalogo.error;
+  const listaCarregada = geral.data && catalogo.data ? lista : undefined;
 
   return (
     <SaasShell
       titulo="Biblioteca Mestre"
       descricao="Base operacional interna do Desk: referências estruturadas que alimentam pesquisa, relatórios e operação. Nada aqui é exposto ao App Cliente."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-6">
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-lg font-medium text-foreground">Da Biblioteca até o App Cliente</h2>
@@ -256,16 +291,20 @@ function BibliotecaPage() {
           </select>
         </section>
 
-        {carregando ? (
-          <p className="text-sm text-muted-foreground">Carregando referências internas…</p>
-        ) : lista.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            Nenhum registro nesta subárea com os filtros atuais. Os itens entram pelas rotinas internas de
-            curadoria e permanecem restritos ao Desk.
-          </p>
-        ) : (
+        <EstadoDados<ItemBiblioteca>
+          carregando={carregando}
+          erro={erroLeitura}
+          dados={listaCarregada}
+          aoTentarNovamente={() => {
+            void geral.refetch();
+            void catalogo.refetch();
+          }}
+          recurso="a Biblioteca Mestre"
+          vazio="Nenhum registro nesta subárea com os filtros atuais. Os itens entram pelas rotinas internas de curadoria e permanecem restritos ao Desk."
+        >
+          {(itensVisiveis) => (
           <ul className="grid gap-3 lg:grid-cols-2">
-            {lista.map((i) => (
+            {itensVisiveis.map((i) => (
               <li key={i.id} className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -363,7 +402,13 @@ function BibliotecaPage() {
                           <FormularioVigencia
                             item={i}
                             candidatos={itens.filter((c) => c.fonte === "acervo" && c.id !== i.id && !c.arquivado)}
-                            onSalvar={(v) => vigencia.mutate(v)}
+                            onSalvar={async (v) => {
+                              try {
+                                await vigencia.mutateAsync(v);
+                              } catch {
+                                /* falha já exibida em erroVigencia */
+                              }
+                            }}
                             salvando={vigencia.isPending}
                             erro={erroVigencia}
                           />
@@ -390,13 +435,41 @@ function BibliotecaPage() {
 
                       </div>
                     )}
+                    {(i.fonte === "trilhas" || i.fonte === "juridico") && !i.arquivado && (
+                      <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                        <p className="text-foreground">
+                          Homologação atual:{" "}
+                          <strong>{i.homologado ? "Homologada/aprovada" : "Não homologada"}</strong>
+                        </p>
+                        {!i.homologado && (
+                          <FormularioHomologacaoSimples
+                            item={i}
+                            onSalvar={async (v) => {
+                              try {
+                                await homologar.mutateAsync(v);
+                              } catch {
+                                /* falha já exibida em erroHomologacao */
+                              }
+                            }}
+                            salvando={homologar.isPending}
+                            erro={erroHomologacao}
+                          />
+                        )}
+                        <p className="text-muted-foreground">
+                          Homologar exige critério ou evidência registrada e é revalidado no servidor. A trilha ou
+                          regra segue legível e navegável mesmo antes de homologada; homologar não versiona nem altera
+                          nenhum outro campo do registro.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
               </li>
             ))}
           </ul>
-        )}
+          )}
+        </EstadoDados>
 
         {aArquivar && (
           <section
@@ -422,15 +495,20 @@ function BibliotecaPage() {
                 {erroArquivo}
               </p>
             )}
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                disabled={arquivar.isPending}
-                onClick={() => arquivar.mutate({ id: aArquivar.id, fonte: aArquivar.fonte, motivo })}
-                className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground disabled:opacity-60"
-              >
-                {arquivar.isPending ? "Arquivando…" : "Confirmar arquivamento"}
-              </button>
+            <div className="mt-3 flex flex-wrap items-start gap-2">
+              <AcaoOperacional
+                size="sm"
+                rotulo={arquivar.isPending ? "Arquivando…" : "Confirmar arquivamento"}
+                capacidade="editar_rascunho"
+                efeito="Torna o item inelegível para novos usos. Nada é excluído: o registro segue legível no Arquivo histórico."
+                onConfirmar={async () => {
+                  try {
+                    await arquivar.mutateAsync({ id: aArquivar.id, fonte: aArquivar.fonte, motivo });
+                  } catch {
+                    /* falha já exibida em erroArquivo */
+                  }
+                }}
+              />
               <button
                 type="button"
                 onClick={() => setAArquivar(null)}
@@ -445,6 +523,67 @@ function BibliotecaPage() {
         {sub === "governanca" && <ManifestoResgate />}
       </div>
     </SaasShell>
+  );
+}
+
+function FormularioHomologacaoSimples({
+  item,
+  onSalvar,
+  salvando,
+  erro,
+}: {
+  item: ItemBiblioteca;
+  onSalvar: (v: { id: string; fonte: "trilhas" | "juridico"; criterio: string; justificativa?: string }) => void | Promise<void>;
+  salvando: boolean;
+  erro: string | null;
+}) {
+  const [criterio, setCriterio] = useState("");
+  const [justificativa, setJustificativa] = useState("");
+  const pendencias: string[] = [];
+  if (!criterio.trim()) pendencias.push("Critério ou evidência de homologação em branco.");
+
+  return (
+    <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
+      <label className="block">
+        <span className="text-muted-foreground">Critério ou evidência de homologação</span>
+        <textarea
+          value={criterio}
+          onChange={(e) => setCriterio(e.target.value)}
+          rows={2}
+          placeholder="Ex.: aprovação jurídica já dada fora do sistema, referência do parecer, decisão registrada"
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+      <label className="block">
+        <span className="text-muted-foreground">Justificativa (opcional)</span>
+        <textarea
+          value={justificativa}
+          onChange={(e) => setJustificativa(e.target.value)}
+          rows={2}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+        />
+      </label>
+      {erro && (
+        <p role="alert" className="text-destructive">
+          {erro}
+        </p>
+      )}
+      <AcaoOperacional
+        size="sm"
+        rotulo={salvando ? "Homologando…" : "Homologar"}
+        capacidade="criar_versao_derivada"
+        pendenciaGate={pendencias.length ? pendencias.join(" ") : null}
+        efeito="Marca a trilha ou regra jurídica como homologada/aprovada e grava evento auditado com ator e critério."
+        onConfirmar={async (motivo) => {
+          await onSalvar({
+            id: item.id,
+            fonte: item.fonte as "trilhas" | "juridico",
+            criterio,
+            justificativa: [justificativa, motivo].filter((t) => t.trim()).join(" — ") || undefined,
+          });
+        }}
+      />
+    </form>
   );
 }
 
@@ -464,7 +603,7 @@ function FormularioVigencia({
     sucessorId?: string | null;
     justificativa?: string;
     motivoSuspensao?: string;
-  }) => void;
+  }) => void | Promise<void>;
   salvando: boolean;
   erro: string | null;
 }) {
@@ -474,14 +613,26 @@ function FormularioVigencia({
   const [justificativa, setJustificativa] = useState("");
   const [motivoSuspensao, setMotivoSuspensao] = useState("");
 
+  /**
+   * Pendências do próprio estado escolhido. Não desabilitam o registro: viram
+   * gate na confirmação, com motivo escrito e auditado.
+   */
+  const pendencias: string[] = [];
+  if ((estado === "homologado" || estado === "vigente") && !criterio.trim()) {
+    pendencias.push("Critério ou evidência de homologação em branco.");
+  }
+  if (estado === "suspenso" && !motivoSuspensao.trim()) {
+    pendencias.push("Motivo da suspensão em branco.");
+  }
+  if (estado === "substituido" && !sucessor) {
+    pendencias.push("Item sucessor não selecionado.");
+  }
+  if (!justificativa.trim()) {
+    pendencias.push("Justificativa da mudança em branco.");
+  }
+
   return (
-    <form
-      className="space-y-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSalvar({ id: item.id, estado, criterio, sucessorId: sucessor || null, justificativa, motivoSuspensao });
-      }}
-    >
+    <form className="space-y-2" onSubmit={(e) => e.preventDefault()}>
       <label className="block">
         <span className="text-muted-foreground">Novo estado de vigência</span>
         <select
@@ -550,13 +701,23 @@ function FormularioVigencia({
           {erro}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={salvando}
-        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60"
-      >
-        {salvando ? "Registrando…" : "Registrar mudança de vigência"}
-      </button>
+      <AcaoOperacional
+        size="sm"
+        rotulo={salvando ? "Registrando…" : "Registrar mudança de vigência"}
+        capacidade="criar_versao_derivada"
+        pendenciaGate={pendencias.length ? pendencias.join(" ") : null}
+        efeito="Grava a nova vigência do item e o evento append-only com ator, data e estado anterior."
+        onConfirmar={async (motivo) => {
+          await onSalvar({
+            id: item.id,
+            estado,
+            criterio,
+            sucessorId: sucessor || null,
+            justificativa: [justificativa, motivo].filter((t) => t.trim()).join(" — "),
+            motivoSuspensao,
+          });
+        }}
+      />
     </form>
   );
 }

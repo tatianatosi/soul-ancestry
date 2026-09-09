@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   CAMADAS_WHATSAPP,
@@ -91,49 +92,31 @@ const Selo = ({ texto }: { texto: string }) => (
   <span className="rounded-full border border-navy/15 bg-cream/60 px-2 py-0.5 text-[11px] text-navy/70">{texto}</span>
 );
 
+/**
+ * Carga já concluída com sucesso: o conteúdo só é montado dentro de
+ * <EstadoDados>, então nenhuma lista aqui pode ser um vazio silencioso vindo
+ * de consulta que falhou.
+ */
+type DadosMarketing = {
+  leadsTodos: any[];
+  eventos: any[];
+  investimentos: any[];
+  campanhas: any[];
+  fontes: any[];
+  atribuicoes: any[];
+  casos: any[];
+};
+
 function Marketing() {
   const carregar = useServerFn(carregarConversao);
   const [incluirDemo, setIncluirDemo] = useState(false);
   const [tecnicoAberto, setTecnicoAberto] = useState(false);
-  const [filtro, setFiltro] = useState<FiltroMarketing>(FILTRO_MARKETING_PADRAO);
 
   const q = useQuery({
     queryKey: ["marketing-aquisicao", incluirDemo],
     queryFn: () => carregar({ data: { incluirDemo } }),
     retry: false,
   });
-
-  const entradaBruta = useMemo(
-    () => ({
-      leads: (q.data?.leadsTodos ?? []) as { origem?: string | null; canal?: string | null }[],
-      eventos: (q.data?.eventos ?? []) as { origem?: string | null; canal?: string | null }[],
-      investimentos: q.data?.investimentos ?? [],
-      campanhas: q.data?.campanhas ?? [],
-      fontes: q.data?.fontes ?? [],
-      atribuicoes: q.data?.atribuicoes ?? [],
-      // Só para checar pagamento confirmado por atribuição — CAC/ROI reais,
-      // nunca contam lead ou proposta como venda, só caso com pagamento
-      // confirmado.
-      casos: (q.data?.casos ?? []) as { id?: string | null; pagamento_confirmado?: boolean | null }[],
-    }),
-    [q.data],
-  );
-
-  const canais = useMemo(() => canaisDisponiveis(entradaBruta), [entradaBruta]);
-  const entrada = useMemo(() => filtrarEntrada(entradaBruta, filtro), [entradaBruta, filtro]);
-  const prontidao = useMemo(() => prontidaoAtribuicao(entrada), [entrada]);
-  const explicacoes = useMemo(
-    () => Object.fromEntries(METRICAS_EXPLICADAS.map((c) => [c, explicarMetrica(c, entrada)])),
-    [entrada],
-  );
-  const totalLinhasCsv = useMemo(() => linhasCsvMarketing(entrada, filtro).length, [entrada, filtro]);
-
-  const origens = useMemo(() => resumoPorOrigem(entrada), [entrada]);
-  const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
-  const { principais, historico } = useMemo(() => separarMetricas(metricas), [metricas]);
-  const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
-  const desempenho = useMemo(() => desempenhoPorCanal(entrada), [entrada]);
-  const aprendizados = useMemo(() => aprendizadosCampanha(entrada), [entrada]);
 
   return (
     <SaasShell
@@ -163,6 +146,97 @@ function Marketing() {
           ))}
         </nav>
 
+        <label className="flex items-center gap-2 text-[12px] text-navy/60">
+          <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
+          Incluir registros de demonstração (fora das métricas reais)
+        </label>
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data ? [q.data] : undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os dados de marketing e aquisição"
+          vazio="A leitura de aquisição retornou sem conteúdo."
+        >
+          {([dados]) => <ConteudoMarketing dados={dados as DadosMarketing} />}
+        </EstadoDados>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <button
+            type="button"
+            onClick={() => setTecnicoAberto((v) => !v)}
+            className="text-[13px] text-navy/70 underline underline-offset-4"
+          >
+            {tecnicoAberto ? "Ocultar detalhes técnicos" : "Detalhes técnicos (mapa de estado e destino)"}
+          </button>
+          {tecnicoAberto && (
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full text-left text-[12px]">
+                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="py-2 pr-3">Item</th>
+                    <th className="py-2 pr-3">Estado</th>
+                    <th className="py-2 pr-3">Lacuna</th>
+                    <th className="py-2">Destino</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/10">
+                  {MAPA_MARKETING.map((l) => (
+                    <tr key={l.item}>
+                      <td className="py-2 pr-3 text-navy">{l.item}</td>
+                      <td className="py-2 pr-3">{l.estado}</td>
+                      <td className="py-2 pr-3 text-navy/60">{l.lacuna}</td>
+                      <td className="py-2 text-navy/60">{l.destino}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </SaasShell>
+  );
+}
+
+function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
+  const [filtro, setFiltro] = useState<FiltroMarketing>(FILTRO_MARKETING_PADRAO);
+
+  const entradaBruta = useMemo(
+    () => ({
+      leads: dados.leadsTodos as { origem?: string | null; canal?: string | null }[],
+      eventos: dados.eventos as { origem?: string | null; canal?: string | null }[],
+      investimentos: dados.investimentos,
+      campanhas: dados.campanhas,
+      fontes: dados.fontes,
+      atribuicoes: dados.atribuicoes,
+      // Só para checar pagamento confirmado por atribuição — CAC/ROI reais,
+      // nunca contam lead ou proposta como venda, só caso com pagamento
+      // confirmado.
+      casos: dados.casos as { id?: string | null; pagamento_confirmado?: boolean | null }[],
+    }),
+    [dados],
+  );
+
+  const canais = useMemo(() => canaisDisponiveis(entradaBruta), [entradaBruta]);
+  const entrada = useMemo(() => filtrarEntrada(entradaBruta, filtro), [entradaBruta, filtro]);
+  const prontidao = useMemo(() => prontidaoAtribuicao(entrada), [entrada]);
+  const explicacoes = useMemo(
+    () => Object.fromEntries(METRICAS_EXPLICADAS.map((c) => [c, explicarMetrica(c, entrada)])),
+    [entrada],
+  );
+  const totalLinhasCsv = useMemo(() => linhasCsvMarketing(entrada, filtro).length, [entrada, filtro]);
+
+  const origens = useMemo(() => resumoPorOrigem(entrada), [entrada]);
+  const metricas = useMemo(() => leituraMetricas(entrada), [entrada]);
+  const { principais, historico } = useMemo(() => separarMetricas(metricas), [metricas]);
+  const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
+  const desempenho = useMemo(() => desempenhoPorCanal(entrada), [entrada]);
+  const aprendizados = useMemo(() => aprendizadosCampanha(entrada), [entrada]);
+
+  return (
+    <div className="space-y-5">
         <section
           data-marketing="filtros"
           className="flex flex-wrap items-end gap-3 rounded-xl border border-navy/10 bg-white p-4"
@@ -347,13 +421,7 @@ function Marketing() {
           titulo="Visão geral de aquisição"
           descricao={SECOES_MARKETING.find((s) => s.hash === "visao-geral")!.descricao}
         >
-          <label className="mb-3 flex items-center gap-2 text-[12px] text-navy/60">
-            <input type="checkbox" checked={incluirDemo} onChange={(e) => setIncluirDemo(e.target.checked)} />
-            Incluir registros de demonstração (fora das métricas reais)
-          </label>
-          {q.isLoading ? (
-            <p className="text-[13px] text-navy/50">Carregando leitura de aquisição…</p>
-          ) : origens.length === 0 ? (
+          {origens.length === 0 ? (
             <EstadoVazio mensagem="Sem entradas de aquisição no recorte: nenhum lead ou evento de conversão disponível para leitura." />
           ) : (
             <ul className="divide-y divide-navy/10">
@@ -534,41 +602,6 @@ function Marketing() {
             A lista de leads pertence a Comercial. Marketing não duplica nem edita lead.
           </p>
         </Bloco>
-
-        <section className="rounded-xl border border-navy/10 bg-white p-5">
-          <button
-            type="button"
-            onClick={() => setTecnicoAberto((v) => !v)}
-            className="text-[13px] text-navy/70 underline underline-offset-4"
-          >
-            {tecnicoAberto ? "Ocultar detalhes técnicos" : "Detalhes técnicos (mapa de estado e destino)"}
-          </button>
-          {tecnicoAberto && (
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full text-left text-[12px]">
-                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
-                  <tr>
-                    <th className="py-2 pr-3">Item</th>
-                    <th className="py-2 pr-3">Estado</th>
-                    <th className="py-2 pr-3">Lacuna</th>
-                    <th className="py-2">Destino</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-navy/10">
-                  {MAPA_MARKETING.map((l) => (
-                    <tr key={l.item}>
-                      <td className="py-2 pr-3 text-navy">{l.item}</td>
-                      <td className="py-2 pr-3">{l.estado}</td>
-                      <td className="py-2 pr-3 text-navy/60">{l.lacuna}</td>
-                      <td className="py-2 text-navy/60">{l.destino}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </div>
-    </SaasShell>
+    </div>
   );
 }

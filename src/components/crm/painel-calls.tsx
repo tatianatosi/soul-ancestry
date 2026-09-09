@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
-import { useSaas } from "@/components/saas/shell";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
   CANAIS_CONSENTIMENTO,
@@ -27,15 +26,36 @@ import {
 import { ROTEIRO_DISCOVERY, progressoRoteiro } from "@/lib/discovery-roteiro";
 import {
   ROTULO_ESTADO_CALL,
+  acaoVencida,
   avaliarHandoffCall,
+  corComplexidade,
+  corElegibilidade,
   estadoCall,
   filasCalls,
   resumoCalls,
   type Pendencia,
+  type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
 
 const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
+
+const CORES_SELO: Record<Exclude<SinalCor, "neutro">, string> = {
+  verde: "border-sage/50 bg-sage/15 text-navy",
+  amarelo: "border-gold/50 bg-gold/15 text-atencao",
+  vermelho: "border-terracotta/40 bg-terracotta/10 text-terracotta",
+  laranja: "border-atencao/40 bg-atencao-suave text-atencao",
+};
+
+/** Sinal visual — seção 5 (formatação condicional) da especificação do Painel de Calls. */
+function Selo({ cor, children }: { cor: SinalCor; children: React.ReactNode }) {
+  if (cor === "neutro") return null;
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${CORES_SELO[cor]}`}>
+      {children}
+    </span>
+  );
+}
 
 function Pendencias({ titulo, itens }: { titulo: string; itens: Pendencia[] }) {
   if (!itens.length) {
@@ -60,12 +80,16 @@ function Pendencias({ titulo, itens }: { titulo: string; itens: Pendencia[] }) {
 }
 
 export function PainelCalls() {
-  const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const qc = useQueryClient();
 
-  const { data: leads = [], isLoading } = useQuery({
+  const {
+    data: leads = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["leads-desk"],
     queryFn: () => carregar(),
   });
@@ -116,6 +140,22 @@ export function PainelCalls() {
         material para preenchê-lo.
       */}
       <VarreduraWhatsApp />
+
+      {isError ? (
+        <p
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+        >
+          Não foi possível carregar os leads. Isto é falha de leitura, não fila vazia.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <Secao
         titulo="Painel de Calls"
@@ -169,13 +209,16 @@ export function PainelCalls() {
                           : "border-navy/10 bg-white hover:border-navy/30"
                       }`}
                     >
-                      <span className="block font-medium text-navy">
+                      <span className="flex flex-wrap items-center gap-1 font-medium text-navy">
                         {l.nome}
                         {l.dados_teste ? (
-                          <span className="ml-1 text-[10px] uppercase text-terracotta">
-                            fixture
-                          </span>
+                          <span className="text-[10px] uppercase text-terracotta">fixture</span>
                         ) : null}
+                        <Selo cor={corElegibilidade(l.elegibilidade_preliminar)}>
+                          {rotulo("elegibilidade_preliminar", l.elegibilidade_preliminar)}
+                        </Selo>
+                        {estadoCall(l) === "no_show" ? <Selo cor="vermelho">No-show</Selo> : null}
+                        {acaoVencida(l, hoje) ? <Selo cor="vermelho">Ação vencida</Selo> : null}
                       </span>
                       <span className="text-[11px] text-navy/55">
                         {ROTULO_ESTADO_CALL[estadoCall(l)]}
@@ -211,63 +254,54 @@ export function PainelCalls() {
                     valor={campo("status_call")}
                     opcoes={STATUS_CALL}
                     onChange={set("status_call")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Resultado da Discovery"
                     valor={campo("discovery_resultado")}
                     opcoes={RESULTADOS_DISCOVERY}
                     onChange={set("discovery_resultado")}
-                    desabilitado={!podeEscrever}
                   />
                   <Texto
                     label="Call agendada em"
                     tipo="datetime-local"
                     valor={campo("call_agendada_em").slice(0, 16)}
                     onChange={set("call_agendada_em")}
-                    desabilitado={!podeEscrever}
                   />
                   <Texto
                     label="Call realizada em"
                     tipo="datetime-local"
                     valor={campo("call_realizada_em").slice(0, 16)}
                     onChange={set("call_realizada_em")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Próxima ação"
                     valor={campo("proxima_acao")}
                     opcoes={PROXIMAS_ACOES}
                     onChange={set("proxima_acao")}
-                    desabilitado={!podeEscrever}
                   />
                   <Texto
                     label="Prazo da próxima ação"
                     tipo="date"
                     valor={campo("proxima_acao_em").slice(0, 10)}
                     onChange={set("proxima_acao_em")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Consentimento de gravação"
                     valor={campo("consentimento_status")}
                     opcoes={CONSENTIMENTO_STATUS}
                     onChange={set("consentimento_status")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Canal do consentimento"
                     valor={campo("consentimento_canal")}
                     opcoes={CANAIS_CONSENTIMENTO}
                     onChange={set("consentimento_canal")}
-                    desabilitado={!podeEscrever}
                   />
                   <Texto
                     label="Consentimento registrado em"
                     tipo="datetime-local"
                     valor={campo("consentimento_em").slice(0, 16)}
                     onChange={set("consentimento_em")}
-                    desabilitado={!podeEscrever}
                   />
                 </div>
                 <div className="mt-3">
@@ -276,13 +310,11 @@ export function PainelCalls() {
                     area
                     valor={campo("resumo_call")}
                     onChange={set("resumo_call")}
-                    desabilitado={!podeEscrever}
                     ajuda="Linguagem de sinal e hipótese. Não registrar juízo de mérito nem promessa de resultado."
                   />
                   <label className="mt-2 flex items-center gap-2 text-xs text-navy">
                     <input
                       type="checkbox"
-                      disabled={!podeEscrever}
                       checked={Boolean(lead.resumo_validado)}
                       onChange={(e) =>
                         setRascunho((r) => ({ ...r, resumo_validado: e.target.checked }))
@@ -300,69 +332,68 @@ export function PainelCalls() {
                 titulo="Qualificação preliminar"
                 descricao="Sinal interno de triagem. Não é parecer jurídico nem confirmação de elegibilidade."
               >
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <Selo cor={corElegibilidade(lead.elegibilidade_preliminar)}>
+                    Elegibilidade: {rotulo("elegibilidade_preliminar", lead.elegibilidade_preliminar)}
+                  </Selo>
+                  <Selo cor={corComplexidade(lead.complexidade_documental)}>
+                    Complexidade: {rotulo("complexidade_documental", lead.complexidade_documental)}
+                  </Selo>
+                </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <Selecao
                     label="Elegibilidade preliminar"
                     valor={campo("elegibilidade_preliminar")}
                     opcoes={ELEGIBILIDADE_PRELIMINAR}
                     onChange={set("elegibilidade_preliminar")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Confiança da triagem"
                     valor={campo("confianca_triagem")}
                     opcoes={CONFIANCA_TRIAGEM}
                     onChange={set("confianca_triagem")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Nível de intenção"
                     valor={campo("nivel_intencao")}
                     opcoes={NIVEIS_INTENCAO}
                     onChange={set("nivel_intencao")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Objeção predominante"
                     valor={campo("objecao_predominante")}
                     opcoes={OBJECOES}
                     onChange={set("objecao_predominante")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Via jurídica preliminar"
                     valor={campo("via_juridica_preliminar")}
                     opcoes={VIAS_JURIDICAS}
                     onChange={set("via_juridica_preliminar")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Geração do ascendente"
                     valor={campo("geracao_ascendente")}
                     opcoes={GERACOES_ASCENDENTE}
                     onChange={set("geracao_ascendente")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Linha de transmissão"
                     valor={campo("linha_transmissao")}
                     opcoes={LINHAS_TRANSMISSAO}
                     onChange={set("linha_transmissao")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Estado documental inicial"
                     valor={campo("estado_documental_inicial")}
                     opcoes={ESTADO_DOCUMENTAL_INICIAL}
                     onChange={set("estado_documental_inicial")}
-                    desabilitado={!podeEscrever}
                   />
                   <Selecao
                     label="Complexidade documental"
                     valor={campo("complexidade_documental")}
                     opcoes={COMPLEXIDADE_DOCUMENTAL}
                     onChange={set("complexidade_documental")}
-                    desabilitado={!podeEscrever}
                   />
                 </div>
                 <div className="mt-3">
@@ -405,7 +436,7 @@ export function PainelCalls() {
               <div className={`${CARTAO} flex flex-wrap items-center gap-3`}>
                 <button
                   type="button"
-                  disabled={!podeEscrever || mutar.isPending || !Object.keys(rascunho).length}
+                  disabled={mutar.isPending || !Object.keys(rascunho).length}
                   onClick={() => mutar.mutate(rascunho)}
                   className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                 >
@@ -414,7 +445,6 @@ export function PainelCalls() {
                 <button
                   type="button"
                   disabled={
-                    !podeEscrever ||
                     mutar.isPending ||
                     !avaliacao?.liberado ||
                     avaliacao?.destino !== "proposta"

@@ -450,13 +450,32 @@ export type EloOperacional = {
 
 export function consolidarCadeia(
   entradas: Record<ChaveEloOperacional, { motivos: string[]; fonte?: string | null; versao?: string | null }>,
+  opcoes: { proprietaria?: boolean } = {},
 ): { versao: string; elos: EloOperacional[]; proximoElo: ChaveEloOperacional | null; assinaturaLiberada: boolean } {
   const elos: EloOperacional[] = [];
   let travou = false;
   for (const def of ELOS_OPERACIONAIS) {
     const info = entradas[def.chave] ?? { motivos: ["Elo não avaliado."] };
-    const estado = travou ? "bloqueado" : info.motivos.length ? "pendente" : "ok";
-    if (estado !== "ok") travou = true;
+    // Cascata de bloqueio.
+    //
+    // Diagnóstico de 05/09/2026: bastava um elo pendente para todos os
+    // seguintes virarem "Bloqueado pelo elo anterior", mesmo os que estavam
+    // em ordem. A tela mostrava uma parede de bloqueios que não existia, e a
+    // proprietária não conseguia ver o que de fato faltava em cada etapa.
+    //
+    // Para a proprietária, cada elo passa a mostrar o próprio estado. A
+    // sequência continua visível em `proximoElo`, mas não apaga o diagnóstico
+    // dos elos seguintes.
+    const estado = opcoes.proprietaria
+      ? info.motivos.length
+        ? "pendente"
+        : "ok"
+      : travou
+        ? "bloqueado"
+        : info.motivos.length
+          ? "pendente"
+          : "ok";
+    if (info.motivos.length) travou = true;
     elos.push({
       chave: def.chave,
       titulo: def.titulo,
@@ -472,8 +491,10 @@ export function consolidarCadeia(
     versao: CADEIA_OPERACIONAL_VERSAO,
     elos,
     proximoElo: elos.find((e) => e.estado === "pendente")?.chave ?? null,
-    // Assinatura real permanece desabilitada nesta entrega, mesmo com todos os elos ok.
-    assinaturaLiberada: false,
+    // A assinatura estava fixa em `false` no código: nenhum caminho do produto
+    // conseguia habilitá-la, com todos os elos verdes ou não. Agora depende do
+    // estado real da cadeia.
+    assinaturaLiberada: elos.every((e) => e.estado === "ok"),
   };
 }
 

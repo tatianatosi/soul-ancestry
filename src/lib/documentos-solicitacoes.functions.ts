@@ -163,5 +163,6 @@ export const arquivarSolicitacaoDocumental = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
     return { ok: true };
   });

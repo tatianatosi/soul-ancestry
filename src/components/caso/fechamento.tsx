@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { abrirTarefaGate, carregarFechamentoCaso } from "@/lib/fechamento-caso.functions";
 import type { GateFechamento } from "@/lib/fechamento-caso";
@@ -18,7 +19,7 @@ const ROTULO_SITUACAO: Record<string, string> = {
 };
 
 /**
- * Fechamento do caso: os nove gates em uma tela única, com checklist, bloqueios
+ * Fechamento do caso: os treze gates em uma tela única, com checklist, bloqueios
  * e a ação que o Desk oferece. Nenhum gate avança automaticamente.
  */
 export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; bloqueado?: boolean }) {
@@ -33,9 +34,11 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
   const tarefa = useMutation({
     mutationFn: (gate: GateFechamento) => abrirTarefa({ data: { casoId, gate } }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      toast.success(r.reaproveitada ? "Tarefa já aberta para este gate." : "Tarefa aberta.");
       void qc.invalidateQueries({ queryKey: ["fechamento-caso", casoId] });
     },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível abrir a tarefa."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando fechamento…</p>;

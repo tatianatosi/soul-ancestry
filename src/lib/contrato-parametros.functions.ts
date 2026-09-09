@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -12,6 +13,7 @@ import {
   montarPrevia,
   type EventoSnapshot,
 } from "@/lib/contrato-parametros.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   CLAUSULAS_FIXAS,
   CONTRATO_BASE_ID,
@@ -39,7 +41,8 @@ import { exigirGate } from "@/lib/escopo-conferencia.server";
 import { definicaoCampo, validarValorCampo } from "@/lib/parametros-dicionario";
 import { candidatosComerciaisDaProposta, propostaAptaParaPrecarga } from "@/lib/proposta-comercial";
 
-
+/** Chave de conflito por campo quando a proposta aprovada diverge do valor homologado no Planejador. */
+const CONFLITO_PROPOSTA_PLANEJADOR = "proposal_planner_value_conflict";
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -87,9 +90,14 @@ export const listarParametros = createServerFn({ method: "GET" })
         .is("archived_at", null),
     ]);
 
-    const porCaso = new Map<string, any>((registros.data ?? []).map((r: any) => [r.case_id, r]));
+    const porCaso = new Map<string, any>(
+      linhas<any>(registros, "registros mestres de parâmetros").map((r: any) => [r.case_id, r]),
+    );
     return {
-      casos: (casos.data ?? []).map((c: any) => ({ ...c, parametros: porCaso.get(c.id) ?? null })),
+      casos: linhas<any>(casos, "casos com parâmetros contratuais").map((c: any) => ({
+        ...c,
+        parametros: porCaso.get(c.id) ?? null,
+      })),
     };
   });
 
@@ -195,7 +203,11 @@ export const painelParametros = createServerFn({ method: "GET" })
       ? (await supabase.from("contracts").select("id,contract_number,status,signed_at,signature_reference,signed_source").eq("id", registro.contract_id).maybeSingle()).data
       : null;
 
-    const valoresLista = await preencherQualificacaoContratada(supabase, data.id, (valores.data ?? []) as any[]);
+    const valoresLista = await preencherQualificacaoContratada(
+      supabase,
+      data.id,
+      linhas<any>(valores, "valores dos parâmetros do contrato"),
+    );
 
     return {
       registro,
@@ -204,9 +216,9 @@ export const painelParametros = createServerFn({ method: "GET" })
       template: (template as any).data ?? null,
       contrato,
       valores: valoresLista,
-      previas: previas.data ?? [],
+      previas: linhas<any>(previas, "prévias do registro de parâmetros"),
       completude: completude.data ?? null,
-      pendencias: pendencias.data ?? [],
+      pendencias: linhas<any>(pendencias, "pendências dos parâmetros do contrato"),
     };
   });
 
@@ -266,14 +278,27 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       : null;
     if (cliente?.demo) throw new Error("Cliente de demonstração não pode alimentar o contrato real.");
 
-    // Fonte única da pré-carga: Planejador Universal homologado.
+    // Identidade da própria contratada: mesma em todo caso, independente do
+    // Planejador (que é específico da rota/país do caso da Ana etc.).
+    const { qualificacaoContratadaTexto } = await import("@/lib/perfil-institucional");
+    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] = [
+      {
+        campo: "contratada_qualificacao",
+        valor: qualificacaoContratadaTexto(),
+        origem: "perfil_institucional",
+        detalhe: "Perfil institucional vigente do Clube Ancestral",
+      },
+    ];
+
+    // Fonte da pré-carga específica do caso: Planejador Universal homologado.
     const planejador = parametrosDoPlanejador(caso.codigo);
     if (!planejador.convencao) {
       throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
     }
 
-    const candidatos: { campo: string; valor: unknown; origem: string; detalhe: string }[] =
-      planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe }));
+    candidatos.push(
+      ...planejador.parametros.map((p) => ({ campo: p.campo, valor: p.valor, origem: "planejador", detalhe: p.detalhe })),
+    );
 
     // Exceção controlada (somente domínio comercial): quando o Planejador não
     // possui parâmetro financeiro homologado para a rota, a proposta vinculada,
@@ -307,11 +332,12 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
 
 
 
-    const { data: valores } = await supabase
+    const valoresRes = await supabase
       .from("contract_parameter_values")
       .select("*")
       .eq("parameters_id", data.id)
       .is("archived_at", null);
+    const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
 
     let importados = 0;
     const conflitos: { campo: string; atual: string; origem_atual: string; candidato: string; origem_candidata: string }[] = [];
@@ -324,7 +350,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     // é limpo, virando pendência — nunca permanece herdado de outra cidadania.
     const camposHomologados = new Set(candidatos.map((c) => c.campo));
     const limpos: { campo: string; valor: string }[] = [];
-    for (const v of (valores ?? []) as any[]) {
+    for (const v of valores) {
       if (v.origem !== "planejador" || !v.valor?.trim()) continue;
       if (temCorrecaoHomologada(v)) continue;
       const revogado = !camposHomologados.has(v.campo);
@@ -357,7 +383,7 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     for (const c of candidatos) {
       const texto = String(c.valor ?? "").trim();
       if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
-      const atual = (valores ?? []).find((v: any) => v.campo === c.campo);
+      const atual = valores.find((v: any) => v.campo === c.campo);
       if (!atual) continue;
 
       // Correção humana homologada nunca é sobrescrita pela pré-carga.
@@ -444,6 +470,32 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
       }
     }
 
+    // Divergência proposta × Planejador: o Planejador já venceu na pré-carga acima
+    // (candidatos só tem o valor do Planejador quando ele existe, linha ~298), mas a
+    // proposta descartada não fica visível em lugar nenhum — some ao fechar o toast
+    // desta ação. Grava a mesma marca de conflito por campo (contract_parameter_values.conflito)
+    // já usada para incoerência de país/rota, para que apareça de forma persistente em
+    // LinhaParametro e possa ser resolvida do mesmo jeito (editar o valor limpa o conflito).
+    for (const cp of conflitosProposta) {
+      const atual = valores.find((v: any) => v.campo === cp.campo);
+      if (!atual) continue;
+      await supabase
+        .from("contract_parameter_values")
+        .update({
+          conflito: [
+            {
+              chave: CONFLITO_PROPOSTA_PLANEJADOR,
+              origem: "proposta",
+              detalhe: `Proposta aprovada tem valor diferente do homologado no Planejador (${cp.planejador || "vazio"}).`,
+              valor: cp.proposta,
+              esperado: cp.planejador,
+              detectado_em: new Date().toISOString(),
+            },
+          ],
+        })
+        .eq("id", atual.id);
+    }
+
     return {
       importados,
       conflitos,
@@ -483,7 +535,7 @@ export const salvarParametro = createServerFn({ method: "POST" })
 
     const { data: linha } = await supabase
       .from("contract_parameter_values")
-      .select("id,campo,valor")
+      .select("id,campo,valor,origem,status,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!linha) throw new Error("Parâmetro não encontrado.");
@@ -497,19 +549,29 @@ export const salvarParametro = createServerFn({ method: "POST" })
     });
     if (!check.ok) throw new Error(check.erro);
 
-    const { error } = await supabase
-      .from("contract_parameter_values")
-      .update({
+    // Resalvar o MESMO valor e a mesma origem que já estavam confirmados não
+    // desfaz a validação — só uma mudança real de conteúdo ou origem exige
+    // reconfirmação. Antes disso, "Salvar" derrubava qualquer campo já
+    // "validado" de volta para "a confirmar" mesmo sem edição nenhuma.
+    const inalterado = valor === (linha.valor ?? "") && data.origem === linha.origem;
+    const statusFinal = !valor ? "vazio" : inalterado && linha.status === "validado" ? "validado" : "importado_a_confirmar";
+
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "contract_parameter_values",
+      id: data.id,
+      organizationId: linha.organization_id,
+      userId: context.userId as string,
+      payload: {
         valor: valor || null,
         origem: valor ? data.origem : null,
         origem_detalhe: valor ? (data.origemDetalhe ?? "").slice(0, 300) : null,
         justificativa: (data.justificativa ?? "").slice(0, 500) || null,
-        status: valor ? "importado_a_confirmar" : "vazio",
+        status: statusFinal,
         conflito: [],
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 
@@ -527,33 +589,72 @@ export const definirStatusParametro = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!atual) throw new Error("Parâmetro não encontrado.");
 
+    /**
+     * 06/09/2026 — execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS e do
+     * PROMPT_REVERSAO_EMERGENCIAL_PLATAFORMA_OPERACIONAL, por ordem direta da
+     * proprietária. Ambos nomeiam literalmente "confiança mínima 4" e
+     * "confiança mínima como impedimento" entre as barreiras a remover.
+     *
+     * Antes: origem de baixa confiança (ou WhatsApp/transcrição) fazia esta
+     * função LANÇAR, ou seja, a dona não conseguia validar o próprio parâmetro
+     * do próprio contrato de jeito nenhum — sem override, sem decisão, sem
+     * caminho. Agora a pendência continua existindo e é gravada na
+     * justificativa (liberar não é apagar), mas para a proprietária vira
+     * decisão assumida em vez de parede. Para os demais papéis nada muda.
+     *
+     * Parâmetro sem valor continua bloqueado para todos: não é barreira de
+     * processo, é campo vazio — não há o que validar.
+     */
+    let pendenciasAssumidas: string[] = [];
     if (data.status === "validado") {
       if (!atual.valor) throw new Error("Não é possível validar um parâmetro vazio.");
+
+      const pendencias: string[] = [];
       if (["whatsapp", "transcricao"].includes(atual.origem)) {
-        throw new Error(
-          "Dado de WhatsApp/transcrição não pode ser validado diretamente: confirme com documento, proposta ou preenchimento humano.",
+        pendencias.push(
+          `Origem “${atual.origem}” não confirmada por documento, proposta ou preenchimento humano.`,
         );
       }
       const def = definicaoCampo(atual.campo);
       if (confianca(atual.origem) < def.confiancaMinima) {
-        throw new Error(
-          `Confiança insuficiente para validar “${atual.label}”: este campo exige origem de confiança ${def.confiancaMinima} ou superior.`,
+        pendencias.push(
+          `Origem de confiança ${confianca(atual.origem)} abaixo da exigida (${def.confiancaMinima}) para “${atual.label}”.`,
         );
       }
+
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      pendenciasAssumidas = await assumirOuRecusarComUsuario(
+        supabase as never,
+        context.userId as string,
+        pendencias,
+        pendencias.join(" "),
+      );
     }
 
     if (data.status === "bloqueado") exigirTexto(data.justificativa, "justificativa do bloqueio");
 
-    const { error } = await supabase
-      .from("contract_parameter_values")
-      .update({
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "contract_parameter_values",
+      id: data.id,
+      organizationId: atual.organization_id,
+      userId: context.userId as string,
+      payload: {
         status: data.status,
-        justificativa: (data.justificativa ?? "").slice(0, 500) || atual.justificativa,
+        justificativa: (
+          pendenciasAssumidas.length
+            ? [
+                (data.justificativa ?? "").trim(),
+                `Validado por decisão da proprietária com pendência registrada: ${pendenciasAssumidas.join(" ")}`,
+              ]
+                .filter(Boolean)
+                .join(" — ")
+            : (data.justificativa ?? "")
+        ).slice(0, 500) || atual.justificativa,
         conflito: data.status === "validado" ? [] : atual.conflito,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+      },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /** Gera uma prévia imutável versionada a partir dos parâmetros. */
@@ -565,7 +666,7 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
   const { data: registro } = await supabase.from("contract_case_parameters").select("*").eq("id", id).maybeSingle();
   if (!registro) throw new Error("Registro de parâmetros não encontrado.");
 
-  const [{ data: valores }, { data: caso }, { data: template }] = await Promise.all([
+  const [valoresRes, { data: caso }, { data: template }] = await Promise.all([
     supabase
       .from("contract_parameter_values")
       .select("*")
@@ -579,7 +680,6 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
       : Promise.resolve({ data: null } as any),
   ]);
 
-  if (!template?.code) throw new Error("Selecione o MODELO ESTUDO ativo antes de gerar a prévia.");
   if (!["MODELO-ESTUDO", "BASE-GEN-V2"].includes(template.code)) {
     throw new Error("Modelo histórico não pode gerar prévia. Use MODELO-ESTUDO + BASE-GEN-V2.");
   }
@@ -588,7 +688,8 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     ? (await supabase.from("clientes").select("nome").eq("id", caso.cliente_id).maybeSingle()).data
     : null;
 
-  const valoresFicha = ((valores ?? []) as any[]).map((v) => ({
+  const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
+  const valoresFicha = valores.map((v) => ({
     campo: v.campo,
     valor: v.valor,
     origem: v.origem,
@@ -617,7 +718,7 @@ async function montarDoRegistro(supabase: Sb, id: string, tipo: "rascunho" | "fi
     cliente,
     templateCode: template.code,
     templateVersion: template.template_version ?? null,
-    valores: (valores ?? []) as any,
+    valores: valores as any,
     corpo,
   });
 
@@ -682,14 +783,14 @@ export const materializarAnexosRevisados = createServerFn({ method: "POST" })
     const todas = instanciasDeAnexos({ anexos: corpo.anexos, internos: [] });
     const doLote = todas.filter((i) => ehAnexoRevisado(i.annex_code));
 
-    const { data: existentes } = await supabase
+    const existentes = await supabase
       .from("contract_annexes")
       .select("annex_code,title,status,annex_version,model_version,file_hash,rendered_html,updated_at,is_test")
       .eq("organization_id", registro.organization_id)
       .eq("case_id", registro.case_id)
       .is("archived_at", null);
 
-    const persistidas = ((existentes ?? []) as any[]).map((l) => ({
+    const persistidas = linhas<any>(existentes, "anexos já persistidos do caso").map((l) => ({
       annex_code: l.annex_code as string,
       title: (l.title ?? "") as string,
       status: (l.status ?? "") as string,
@@ -779,7 +880,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
 
     const instancias = instanciasDeAnexos({ anexos: corpo.anexos, internos: anexosInternos as any });
 
-    const { data: existentes } = await supabase
+    const existentes = await supabase
       .from("contract_annexes")
       .select("annex_code,annex_version,file_hash")
       .eq("organization_id", registro.organization_id)
@@ -787,7 +888,7 @@ export const ressincronizarAnexosDoCaso = createServerFn({ method: "POST" })
       .is("archived_at", null);
 
     const vigentePorCodigo = new Map<string, any>();
-    for (const l of (existentes ?? []) as any[]) {
+    for (const l of linhas<any>(existentes, "anexos vigentes do caso")) {
       const atual = vigentePorCodigo.get(l.annex_code);
       if (!atual || l.annex_version > atual.annex_version) vigentePorCodigo.set(l.annex_code, l);
     }
@@ -859,7 +960,7 @@ export const gerarPrevia = createServerFn({ method: "POST" })
     const supabase = context.supabase as Sb;
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, "rascunho");
     if (data.tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: "gerar_versao_final",
@@ -983,7 +1084,7 @@ export const congelarPrevia = createServerFn({ method: "POST" })
     const tipo = ["aprovacao", "envio_assinatura", "assinatura_registrada"].includes(data.evento) ? "final" : "rascunho";
     const { registro, template, previa, corpo, anexosInternos } = await montarDoRegistro(supabase, data.id, tipo as any);
     if (tipo === "final") {
-      await exigirCoerencia(supabase, registro);
+      await exigirCoerencia(supabase, registro, { userId: context.userId as string, organizationId: registro.organization_id });
       await exigirGate(supabase, {
         caseId: registro.case_id,
         acao: data.evento === "envio_assinatura" ? "solicitar_assinatura" : "gerar_versao_final",
@@ -991,20 +1092,44 @@ export const congelarPrevia = createServerFn({ method: "POST" })
         organizationId: registro.organization_id,
       });
     }
-    if (tipo === "final" && previa.placeholdersPendentes.length > 0) {
-      throw new Error(
-        `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
-      );
-    }
+    // Autoridade operacional (05/09/2026): pendência informa, não impede. Tudo
+    // que a proprietária assume aqui é devolvido e gravado em audit_logs junto
+    // com a versão congelada. Para os demais papéis segue bloqueando.
+    const pendenciasAssumidas: string[] = [];
     if (tipo === "final") {
-      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
-      if (anexoBloqueante) {
-        throw new Error(
-          `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
+      const { contextoInterno } = await import("@/lib/comercial.server");
+      const { assumirOuRecusar } = await import("@/lib/autoridade.server");
+      const { papel } = await contextoInterno(supabase as never, context.userId as string);
+
+      if (previa.placeholdersPendentes.length > 0) {
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            previa.placeholdersPendentes.map((p) => `${p.label ?? p.campo} (${p.campo}): ${p.status}`),
+            `Versão final bloqueada: ${previa.placeholdersPendentes.length} parâmetro(s) obrigatório(s) ainda não validados.`,
+          ),
         );
       }
+
+      const anexoBloqueante = corpo.anexos.find((a) => a.aplicavel && a.obrigatorio && a.pendencias.length > 0);
+      if (anexoBloqueante) {
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            anexoBloqueante.pendencias as string[],
+            `Versão final bloqueada por ${anexoBloqueante.codigo}: ${anexoBloqueante.pendencias[0]}`,
+          ).map((p) => `${anexoBloqueante.codigo}: ${p}`),
+        );
+      }
+
       if (!previa.corpoContratual) {
-        throw new Error("Versão final bloqueada: prévia sem corpo contratual persistido.");
+        pendenciasAssumidas.push(
+          ...assumirOuRecusar(
+            papel,
+            ["Prévia sem corpo contratual persistido."],
+            "Versão final bloqueada: prévia sem corpo contratual persistido.",
+          ),
+        );
       }
     }
 
@@ -1065,7 +1190,36 @@ export const congelarPrevia = createServerFn({ method: "POST" })
       anexosInternos,
     });
     await atualizarCompletude(supabase, data.id);
-    return { previaId: nova.id as string, versao: nova.versao as number, duplicada: false, pendentes: previa.placeholdersPendentes, ...sync };
+
+    // Liberar não é apagar: a pendência assumida fica registrada na auditoria
+    // do próprio congelamento.
+    if (pendenciasAssumidas.length > 0) {
+      await supabase.from("audit_logs").insert({
+        organization_id: registro.organization_id,
+        user_id: context.userId,
+        entidade: "contract_parameter_previews",
+        entidade_id: nova.id as string,
+        acao: "versao_final_com_pendencia_assumida",
+        metadados: {
+          parameters_id: registro.id,
+          case_id: registro.case_id,
+          evento: data.evento,
+          versao: nova.versao,
+          pendencias_assumidas: pendenciasAssumidas,
+          decidido_por: "proprietaria_administradora",
+          politica: "pendência informa, não impede",
+        },
+      });
+    }
+
+    return {
+      previaId: nova.id as string,
+      versao: nova.versao as number,
+      duplicada: false,
+      pendentes: previa.placeholdersPendentes,
+      pendenciasAssumidas,
+      ...sync,
+    };
   });
 
 
@@ -1099,17 +1253,32 @@ export const aprovarParametros = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!previa) throw new Error("Prévia não encontrada.");
     if (previa.tipo !== "final") throw new Error("Somente a prévia final pode ser aprovada.");
-    if ((previa.placeholders_pendentes ?? []).length > 0) {
-      throw new Error("Há campos obrigatórios em placeholder. Aprovação bloqueada.");
+
+    // Autoridade operacional (05/09/2026): pendência informa, não impede.
+    // Antes, a aprovação da prévia era recusada por placeholder pendente mesmo
+    // com a proprietária confirmando. Era um dos pontos em que ela relatava
+    // não conseguir fazer nada na área de contrato.
+    {
+      const { contextoInterno } = await import("@/lib/comercial.server");
+      const { assumirOuRecusar } = await import("@/lib/autoridade.server");
+      const { papel } = await contextoInterno(supabase as never, context.userId as string);
+      assumirOuRecusar(
+        papel,
+        (previa.placeholders_pendentes ?? []) as string[],
+        "Há campos obrigatórios em placeholder. Aprovação bloqueada.",
+      );
     }
 
     const { data: registroAprovacao } = await supabase
       .from("contract_case_parameters")
-      .select("id,case_id,proposal_id")
+      .select("id,case_id,proposal_id,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!registroAprovacao) throw new Error("Registro de parâmetros não encontrado.");
-    await exigirCoerencia(supabase, registroAprovacao);
+    await exigirCoerencia(supabase, registroAprovacao, {
+      userId: context.userId as string,
+      organizationId: registroAprovacao.organization_id,
+    });
 
     const { error: e1 } = await supabase
       .from("contract_parameter_previews")
@@ -1158,12 +1327,13 @@ export const enviarParaAssinatura = createServerFn({ method: "POST" })
       organizationId: registro.organization_id,
     });
 
-    const { data: valores } = await supabase
+    const valoresRes = await supabase
       .from("contract_parameter_values")
       .select("*")
       .eq("parameters_id", data.id)
       .is("archived_at", null);
-    const pegar = (campo: string) => (valores ?? []).find((v: any) => v.campo === campo)?.valor ?? null;
+    const valores = linhas<any>(valoresRes, "valores dos parâmetros do contrato");
+    const pegar = (campo: string) => valores.find((v: any) => v.campo === campo)?.valor ?? null;
 
     const { data: caso } = await supabase.from("crm_casos").select("*").eq("id", registro.case_id).maybeSingle();
 
@@ -1283,6 +1453,12 @@ export const registrarAssinatura = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     await supabase.from("contract_case_parameters").update({ status: "assinado" }).eq("id", data.id);
+
+    // Propaga a assinatura para o campo que o gate de acesso ao App Cliente
+    // de fato verifica (portal-elegibilidade.ts/fn_portal_case_access_guard).
+    // Sem isto, o contrato fica "assinado" no motor novo sem nunca liberar o portal.
+    await supabase.from("crm_casos").update({ contrato_assinado: true }).eq("id", registro.case_id);
+
     return { ok: true };
   });
 
@@ -1456,7 +1632,7 @@ export const sincronizarContratoBase = createServerFn({ method: "POST" })
       .select("id,code");
     if (error) throw new Error(error.message);
 
-    const { data: legadas } = await supabase
+    const legadas = await supabase
       .from("contract_parameter_previews")
       .update({ legado_sem_corpo: true })
       .eq("organization_id", org)
@@ -1467,6 +1643,6 @@ export const sincronizarContratoBase = createServerFn({ method: "POST" })
     return {
       modelos: (modelos ?? []).map((m: any) => m.code),
       clausulas: CLAUSULAS_FIXAS.length,
-      previasLegado: (legadas ?? []).length,
+      previasLegado: linhas<any>(legadas, "prévias legadas sem corpo contratual").length,
     };
   });

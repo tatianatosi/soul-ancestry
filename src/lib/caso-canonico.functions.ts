@@ -1,4 +1,5 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, payloadServico, rascunhoDaAcao, type Linha } from "@/lib/caso-canonico.server";
@@ -21,9 +22,10 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases] =
+    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
+        eq("planner_catalog_feed").is("archived_at", null),
         eq("citizenship_tracks").is("archived_at", null).order("pais"),
         eq("case_services").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
         eq("label_taxonomy").eq("active", true).order("sort_order"),
@@ -35,27 +37,57 @@ export const carregarCanonico = createServerFn({ method: "GET" })
         eq("client_deliverables").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
         // Aliases históricos: visíveis apenas no detalhe interno, nunca como chave.
         eq("case_aliases").eq("case_id", data.caseId).order("created_at"),
+        // CRM Vivo — próxima ação prioritária única (PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md, seção 3.4).
+        supabase.rpc("proxima_acao_prioritaria", { _case: data.caseId }),
       ]);
 
 
-    const nucleoIds = ((nucleos.data ?? []) as Linha[]).map((n) => n.id);
+    const listaNucleos = linhas<Linha>(nucleos, "núcleos familiares do caso");
+    const nucleoIds = listaNucleos.map((n) => n.id);
     const membrosNucleo = nucleoIds.length
       ? await supabase.from("nucleo_membros").select("*").in("nucleo_id", nucleoIds).is("archived_at", null)
       : { data: [] };
 
+    // 07/09/2026 — a Selecao de produto-pai mostrava a lista crua do
+    // product_catalog (SKU a SKU, sem agrupar), enquanto a reconciliação
+    // canônica de 04/09 (planner_catalog_feed) que dá o produto-pai real de
+    // cada SKU e sinaliza os que ainda pedem reconciliação (LEGADO_RECONCILIAR,
+    // NAO_USAR_NO_MOTOR etc.) nunca chegava a esta tela — motor construído,
+    // nunca ligado ao formulário que vende o produto.
+    const feedPorCodigo = new Map<string, Linha>();
+    for (const f of linhas<Linha>(catalogoPlanejador, "catálogo do planejador")) {
+      feedPorCodigo.set(String(f.item_id), f);
+      for (const alias of (f.legacy_aliases as string[] | null) ?? []) feedPorCodigo.set(String(alias), f);
+    }
+    const produtosComProdutoPai = linhas<Linha>(produtos, "catálogo de produtos").map((p) => {
+      const f = feedPorCodigo.get(String(p.code));
+      return {
+        ...p,
+        produto_pai: f?.product_parent ?? null,
+        status_reconciliacao: f?.status_dictionary ?? null,
+      };
+    });
+
     return {
-      produtos: (produtos.data ?? []) as Linha[],
-      trilhas: (trilhas.data ?? []) as Linha[],
-      servicos: (servicos.data ?? []) as Linha[],
-      taxonomia: (taxonomia.data ?? []) as Linha[],
-      etiquetas: (etiquetas.data ?? []) as Linha[],
-      alertas: (alertas.data ?? []) as Linha[],
-      comunicacoes: (comunicacoes.data ?? []) as Linha[],
-      onboarding: (onboarding.data ?? []) as Linha[],
-      nucleos: (nucleos.data ?? []) as Linha[],
-      membrosNucleo: ((membrosNucleo as any).data ?? []) as Linha[],
-      entregas: (entregas.data ?? []) as Linha[],
-      aliases: (aliases.data ?? []) as Linha[],
+      produtos: produtosComProdutoPai,
+      trilhas: linhas<Linha>(trilhas, "trilhas de cidadania"),
+      servicos: linhas<Linha>(servicos, "serviços do caso"),
+      taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas"),
+      etiquetas: linhas<Linha>(etiquetas, "etiquetas aplicadas ao caso"),
+      alertas: linhas<Linha>(alertas, "alertas do caso"),
+      comunicacoes: linhas<Linha>(comunicacoes, "fila de comunicações do caso"),
+      onboarding: linhas<Linha>(onboarding, "checklist de onboarding do caso"),
+      nucleos: listaNucleos,
+      membrosNucleo: linhas<Linha>(membrosNucleo as any, "membros do núcleo familiar"),
+      entregas: linhas<Linha>(entregas, "entregas ao cliente do caso"),
+      aliases: linhas<Linha>(aliases, "aliases históricos do caso"),
+      proximaAcaoPrioritaria: (proximaAcao.data?.[0] ?? null) as {
+        nivel: number;
+        motivo: string;
+        origem_tabela: string | null;
+        origem_id: string | null;
+        prazo: string | null;
+      } | null,
     };
   });
 
@@ -180,7 +212,11 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
     const mapa = mapaDaAcao(c.proxima_acao_codigo);
     const externo = c.target_audience && c.target_audience !== "interno_tatiana";
 
-    await supabase.from("case_alerts").insert({
+    // 09/09/2026 — "próxima ação: apenas uma por caso". Antes, cada clique em
+    // "registrar" empilhava um novo case_alerts pending, mesmo com um já
+    // aberto para o mesmo caso. Reaproveita o alerta pending existente
+    // (atualiza título/detalhe/prazo) em vez de duplicar.
+    const alertaPayload = {
       organization_id: organizationId,
       case_id: data.caseId,
       tipo: "proxima_acao",
@@ -189,7 +225,20 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       detalhe: `Responsável: ${c.responsavel_principal}. Público: ${c.target_audience}. Canal sugerido: ${c.suggested_channel}.`,
       status: "pending",
       due_at: new Date(`${c.prazo_proxima_acao}T12:00:00-03:00`).toISOString(),
-    });
+    };
+    const { data: alertaExistente } = await supabase
+      .from("case_alerts")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("tipo", "proxima_acao")
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+    if (alertaExistente?.id) {
+      await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id);
+    } else {
+      await supabase.from("case_alerts").insert(alertaPayload);
+    }
 
     let comunicacaoId: string | null = null;
     if (externo && mapa.rascunhoWhatsapp) {
@@ -216,19 +265,87 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       comunicacaoId = (q?.id as string) ?? null;
     }
 
-    await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        // 09/09/2026 — achado real: crm_casos.proxima_acao (lido pela RPC
+        // proxima_acao_prioritaria, nível 8, e por Lista de Casos) nunca era
+        // sincronizado com proxima_acao_codigo (escrito pela aba da Ficha
+        // 360) — casos ficavam com os dois campos divergindo de verdade
+        // (confirmado no caso da Ana: "validar_representacao_menor" vs.
+        // "solicitar_dados_cadastrais"). Esta é a causa raiz do "duas
+        // próximas ações", não duas fontes de decisão.
+        proxima_acao: c.proxima_acao_codigo,
+        // Decisão 2 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — mesma lógica:
+        // proxima_acao_responsavel (lido pela Lista de Casos) nunca era
+        // sincronizado com responsavel_principal (escrito por esta aba).
+        // Sincroniza a partir daqui; não apaga nem sobrescreve o histórico
+        // de linhas já gravadas, só converge as próximas gravações.
+        proxima_acao_responsavel: c.responsavel_principal,
         alert_status: "alerted",
         alert_triggered_at: new Date().toISOString(),
         communication_status: comunicacaoId ? "awaiting_approval" : "not_applicable",
         communication_queue_id: comunicacaoId,
-        updated_by: context.userId,
-      })
-      .eq("id", data.caseId)
-      .eq("organization_id", organizationId);
+      },
+    });
 
     return { ok: true, comunicacaoId, rascunhoCriado: Boolean(comunicacaoId) };
+  });
+
+/**
+ * Volta ao cálculo automático: limpa o override manual (proxima_acao e
+ * proxima_acao_codigo), sem exigir a completude de responsável/público/canal
+ * que registrarProximaAcao pede — reverter não é registrar ação nova.
+ */
+export const voltarProximaAcaoAoAutomatico = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        proxima_acao: null,
+        proxima_acao_codigo: null,
+        proxima_acao_justificativa: null,
+      },
+    });
+    return { ok: true };
+  });
+
+/**
+ * Marca explicitamente que não há nova ação necessária agora — estado
+ * terminal distinto de "sem ação definida" (null). Continua sujeito à RPC:
+ * se surgir um sinal automático mais urgente (níveis 1–6), ele prevalece.
+ */
+export const marcarSemNovaAcaoNecessaria = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        proxima_acao: "sem_nova_acao_necessaria",
+        proxima_acao_codigo: "sem_nova_acao_necessaria",
+        proxima_acao_justificativa: null,
+      },
+    });
+    return { ok: true };
   });
 
 export const atualizarAlerta = createServerFn({ method: "POST" })
@@ -312,6 +429,113 @@ export const atualizarItemOnboarding = createServerFn({ method: "POST" })
   });
 
 
+/**
+ * Verifica/sincroniza `case_members` a partir de `nucleo_membros` do mesmo
+ * caso. Achado real (Ana Luiza, 06/09): o núcleo familiar já tinha os 4
+ * membros corretos com `cliente_id` vinculado, mas `case_members` — a tabela
+ * que carrega CPF/RG/endereço para contrato e anexos — estava vazia para o
+ * caso dela. As duas tabelas nunca se falavam. Nunca sobrescreve um membro
+ * já registrado; apenas cria o que falta. Funciona para qualquer `caseId`,
+ * não só o da Ana.
+ */
+export const sincronizarMembrosDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string; confirmar?: boolean }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const { data: nucleos } = await supabase
+      .from("nucleos_familiares")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const nucleoIds = ((nucleos ?? []) as Linha[]).map((n) => n.id);
+    if (!nucleoIds.length) return { simulado: !data.confirmar, plano: [], criados: 0 };
+
+    const { data: membrosNucleo } = await supabase
+      .from("nucleo_membros")
+      .select("id,cliente_id,nome,papel,vinculo")
+      .in("nucleo_id", nucleoIds)
+      .is("archived_at", null);
+
+    const { data: membrosCaso } = await supabase
+      .from("case_members")
+      .select("cliente_id")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    const jaVinculados = new Set(((membrosCaso ?? []) as Linha[]).map((m) => m.cliente_id).filter(Boolean));
+
+    const faltantes = ((membrosNucleo ?? []) as Linha[]).filter((m) => m.cliente_id && !jaVinculados.has(m.cliente_id));
+
+    const clienteIds = Array.from(new Set(faltantes.map((m) => m.cliente_id)));
+    const { data: clientesRaw } = clienteIds.length
+      ? await supabase.from("clientes").select("id,cpf").in("id", clienteIds)
+      : { data: [] };
+    const clientePorId = new Map(((clientesRaw ?? []) as Linha[]).map((c) => [c.id, c]));
+
+    const plano = faltantes.map((m) => {
+      const texto = `${m.papel ?? ""} ${m.vinculo ?? ""}`.toLowerCase();
+      const dependente = texto.includes("dependente");
+      const cliente = clientePorId.get(m.cliente_id as string);
+      const titular = texto.includes("titular");
+      /*
+       * Achado real (Felipe, caso Ana Luiza): um dependente menor sem
+       * cadastro próprio tem `cliente_id` apontando para o responsável.
+       * Sem esta guarda, o CPF da mãe seria copiado para o registro do
+       * filho só porque os dois compartilham o mesmo `cliente_id` —
+       * mesmo bug já corrigido em `sincronizarPessoaDoCaso`.
+       */
+      const cpf = dependente ? null : ((cliente?.cpf as string | null) ?? null);
+      return {
+        nucleoMembroId: m.id,
+        clienteId: m.cliente_id,
+        nome: m.nome,
+        parentesco: String(m.vinculo ?? m.papel ?? "não informado"),
+        dependente,
+        contratante: texto.includes("contratante"),
+        titular,
+        requerente: titular,
+        cpf,
+        temCpf: Boolean(cpf),
+      };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano };
+
+    let criados = 0;
+    for (const item of plano) {
+      const { error } = await supabase.from("case_members").insert({
+        organization_id: organizationId,
+        case_id: data.caseId,
+        cliente_id: item.clienteId,
+        nome: item.nome,
+        parentesco: item.parentesco,
+        dependente: item.dependente,
+        contratante: item.contratante,
+        titular: item.titular,
+        requerente: item.requerente,
+        cpf: item.cpf,
+        status_cadastral: item.temCpf ? "completo" : "pendente",
+        fonte_origem_dado: "sincronizado_de_nucleo_membros",
+      });
+      if (error) throw new Error(`Membro do caso (${item.nome}): ${error.message}`);
+      criados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "case_members",
+      entidade_id: data.caseId,
+      acao: "membros_sincronizados_de_nucleo",
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, plano, criados },
+    });
+
+    return { simulado: false, plano, criados };
+  });
+
 /** Taxonomia completa + mapa de equivalência com o Meta Agent (sem sincronizar). */
 export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -324,8 +548,8 @@ export const carregarMapaEtiquetas = createServerFn({ method: "GET" })
       supabase.from("entity_labels").select("label_id").eq("organization_id", organizationId).is("removed_at", null),
     ]);
     const uso = new Map<string, number>();
-    for (const a of (aplicadas.data ?? []) as Linha[]) uso.set(a.label_id, (uso.get(a.label_id) ?? 0) + 1);
+    for (const a of linhas<Linha>(aplicadas, "etiquetas aplicadas")) uso.set(a.label_id, (uso.get(a.label_id) ?? 0) + 1);
     return {
-      taxonomia: ((taxonomia.data ?? []) as Linha[]).map((l) => ({ ...l, aplicacoes: uso.get(l.id) ?? 0 })),
+      taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas").map((l) => ({ ...l, aplicacoes: uso.get(l.id) ?? 0 })),
     };
   });

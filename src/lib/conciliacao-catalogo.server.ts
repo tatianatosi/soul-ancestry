@@ -70,7 +70,7 @@ export async function conciliarPropostaComCatalogo(
 ): Promise<ResultadoConciliacao & { proposalId: string; produtoId: string | null }> {
   const { data: proposta } = await supabase
     .from("proposals")
-    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor_total,forma_pagamento,origem_preco")
+    .select("id,case_id,organization_id,versao,status,escopo_estruturado,product_catalog_id,valor,forma_pagamento,preco_fonte_referencia")
     .eq("id", input.proposalId)
     .maybeSingle();
   if (!proposta || proposta.organization_id !== input.org)
@@ -97,7 +97,54 @@ export async function conciliarPropostaComCatalogo(
       .maybeSingle();
     produtoRow = data;
   }
-  const produto = produtoHomologado(produtoRow);
+  let produto = produtoHomologado(produtoRow);
+
+  /*
+    Achado 05/09: nenhum SKU em product_catalog cobre a condição particular de
+    um caso (ex.: Ana Luiza, R$ 9.600 — negociação específica, não preço de
+    tabela). O Planejador Universal já registra exatamente esse tipo de
+    condição em price_catalog_rescued (price_status='CONDICAO_PARTICULAR_DE_CASO',
+    case_only=true) desde 04/09 — só nunca foi conectado à conciliação, que só
+    olhava product_catalog. Aqui, e só quando não há produto de catálogo geral
+    (produto null), procura essa condição particular pelo código do caso no
+    texto de source_reference (a tabela não tem case_id próprio) e a trata como
+    âncora válida, explicitamente marcada como condição de caso — nunca como
+    SKU de catálogo genérico.
+  */
+  if (!produto && proposta.case_id) {
+    const { data: caso } = await supabase.from("crm_casos").select("codigo").eq("id", proposta.case_id).maybeSingle();
+    if (caso?.codigo) {
+      const { data: condicaoCaso } = await supabase
+        .from("price_catalog_rescued")
+        .select("id,amount,currency,source_reference,price_status")
+        .eq("organization_id", input.org)
+        .eq("case_only", true)
+        .eq("price_status", "CONDICAO_PARTICULAR_DE_CASO")
+        .is("archived_at", null)
+        .ilike("source_reference", `%${caso.codigo}%`)
+        .maybeSingle();
+      if (condicaoCaso) {
+        produto = {
+          id: condicaoCaso.id,
+          code: `CONDICAO-CASO-${caso.codigo}`,
+          nome: `Condição particular de caso — ${caso.codigo}`,
+          ativo: true,
+          archived_at: null,
+          status_homologacao: "homologado",
+          elegivel_para_proposta: true,
+          preco_comercial_vigente: Number(condicaoCaso.amount),
+          condicao_comercial_padrao: "Condição particular de caso — Planejador Universal",
+          moeda: condicaoCaso.currency ?? "BRL",
+          vigencia_inicio: null,
+          vigencia_fim: null,
+          inclusoes: [],
+          exclusoes: [],
+          entregaveis: [],
+          escopo_aprovado: condicaoCaso.source_reference ?? null,
+        };
+      }
+    }
+  }
 
   const { data: condicao } = await supabase
     .from("commercial_conditions")
@@ -113,11 +160,11 @@ export async function conciliarPropostaComCatalogo(
     precoObservado:
       condicao?.valor_total_referencia !== undefined && condicao?.valor_total_referencia !== null
         ? Number(condicao.valor_total_referencia)
-        : proposta.valor_total !== null && proposta.valor_total !== undefined
-          ? Number(proposta.valor_total)
+        : proposta.valor !== null && proposta.valor !== undefined
+          ? Number(proposta.valor)
           : null,
     condicaoObservada: condicao?.forma_pagamento ?? proposta.forma_pagamento ?? null,
-    origemPreco: condicao?.origem ?? proposta.origem_preco ?? null,
+    origemPreco: condicao?.origem ?? proposta.preco_fonte_referencia ?? null,
     escopo,
     condicaoComercialPersistida: !!condicao?.id,
     hoje: input.hoje,
@@ -181,7 +228,7 @@ export async function registrarConciliacao(
     const existente = atuais.get(k);
     if (existente) {
       if (existente.detalhe !== detalhe || existente.resolvido) {
-        await supabase
+        const { data: atualizada, error: erroUpdate } = await supabase
           .from("catalog_source_divergences")
           .update({
             detalhe,
@@ -191,21 +238,31 @@ export async function registrarConciliacao(
             contract_id: contractId,
             service_order_id: serviceOrderId,
           })
-          .eq("id", existente.id);
+          .eq("id", existente.id)
+          .select("id")
+          .maybeSingle();
+        if (erroUpdate) throw new Error(erroUpdate.message);
+        if (!atualizada?.id) throw new Error(`Nenhuma linha afetada ao atualizar divergência ${existente.id}.`);
       }
     } else {
-      await supabase.from("catalog_source_divergences").insert({
-        organization_id: input.org,
-        sku: d.sku,
-        tipo: d.codigo,
-        detalhe,
-        severidade,
-        case_id: r.caseId ?? null,
-        contract_id: contractId,
-        service_order_id: serviceOrderId,
-        fonte_referencia: `conciliacao:${input.proposalId}`,
-        resolvido: false,
-      });
+      const { data: inserida, error: erroInsert } = await supabase
+        .from("catalog_source_divergences")
+        .insert({
+          organization_id: input.org,
+          sku: d.sku,
+          tipo: d.codigo,
+          detalhe,
+          severidade,
+          case_id: r.caseId ?? null,
+          contract_id: contractId,
+          service_order_id: serviceOrderId,
+          fonte_referencia: `conciliacao:${input.proposalId}`,
+          resolvido: false,
+        })
+        .select("id")
+        .maybeSingle();
+      if (erroInsert) throw new Error(erroInsert.message);
+      if (!inserida?.id) throw new Error(`Falha ao registrar divergência ${d.sku}/${d.codigo}.`);
       registradas += 1;
     }
   }
@@ -214,7 +271,14 @@ export async function registrarConciliacao(
   let resolvidas = 0;
   for (const [k, row] of atuais) {
     if (!desejadas.has(k) && !row.resolvido) {
-      await supabase.from("catalog_source_divergences").update({ resolvido: true }).eq("id", row.id);
+      const { data: resolvida, error: erroResolver } = await supabase
+        .from("catalog_source_divergences")
+        .update({ resolvido: true })
+        .eq("id", row.id)
+        .select("id")
+        .maybeSingle();
+      if (erroResolver) throw new Error(erroResolver.message);
+      if (!resolvida?.id) throw new Error(`Nenhuma linha afetada ao resolver divergência ${row.id}.`);
       resolvidas += 1;
     }
   }

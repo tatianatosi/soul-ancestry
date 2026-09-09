@@ -12,6 +12,8 @@ import {
   limparCampos,
   type Sb,
 } from "@/lib/pesquisa.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -42,14 +44,13 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
       return q;
     };
 
-    const [caso, pessoas, hipoteses, evidencias, eventos, pendencias] = await Promise.all([
+    const [caso, hipoteses, evidencias, eventos, pendencias] = await Promise.all([
       supabase
         .from("crm_casos")
         .select("*")
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
         .maybeSingle(),
-      base("case_members", "case_id"),
       base("research_hypotheses", "case_id"),
       base("evidencias", "caso_id"),
       base("research_events", "case_id"),
@@ -57,6 +58,12 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
     ]);
 
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    // 07/09/2026 — mesmo achado do cotéjo tela a tela: leitura crua de
+    // case_members sem fallback para Núcleos. Arquivados não entram aqui
+    // porque não havia flag `incluirArquivados` equivalente na função de
+    // fallback — mantém o comportamento de sempre mostrar só pessoas ativas.
+    const pessoas = { data: await pessoasDoCasoComFallbackNucleo(supabase, data.casoId) };
 
     const podeEditar =
       papel === "admin" ||
@@ -123,12 +130,14 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { error } = await supabase
-        .from(alvo.nome)
-        .update({ ...dados, updated_by: userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: alvo.nome,
+        id: data.id,
+        organizationId,
+        userId,
+        payload: dados,
+      });
       return { id: data.id };
     }
 
@@ -159,17 +168,18 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoPesquisa(supabase, userId);
     await exigirPesquisaNoCaso(supabase, organizationId, papel, userId, data.casoId);
     const alvo = TABELA[data.bloco];
-    const coluna = alvo.nome === "tarefas" || alvo.nome === "evidencias" ? "archive_motivo" : "archive_motivo";
-    const { error } = await supabase
-      .from(alvo.nome)
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: alvo.nome,
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        [coluna]: (data.motivo ?? "").trim() || "Sem motivo informado.",
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+      },
+    });
     return { ok: true };
   });
 

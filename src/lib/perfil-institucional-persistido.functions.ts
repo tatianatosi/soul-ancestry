@@ -123,7 +123,7 @@ export const registrarSnapshotInstitucional = createServerFn({ method: "POST" })
     if (erroPerfil) throw new Error(erroPerfil.message);
     if (!perfil) return { gravado: false, motivo: "Nenhuma versão institucional persistida para snapshot." };
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("contract_versions")
       .update({
         institutional_profile_id: perfil.id,
@@ -137,8 +137,13 @@ export const registrarSnapshotInstitucional = createServerFn({ method: "POST" })
         },
       })
       .eq("id", data.contractVersionId)
-      .is("institutional_profile_snapshot", null);
+      .is("institutional_profile_snapshot", null)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) {
+      return { gravado: false, motivo: "Snapshot já registrado nesta versão contratual (condição de corrida)." };
+    }
 
     await supabase.from("institutional_profile_events").insert({
       organization_id: versao.organization_id,

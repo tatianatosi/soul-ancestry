@@ -131,6 +131,56 @@ describe("Painel Hoje e métricas", () => {
     expect(m.porOrigem[0].total).toBe(2);
     expect(m.followupsVencidos).toBe(1);
   });
+
+  /*
+   * Decisão 1 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — o Painel Hoje pode
+   * manter seu próprio filtro (aqui, "documento mínimo pendente"), mas o
+   * TEXTO da ação exibida por caso passa a ser o mesmo da RPC
+   * proxima_acao_prioritaria usada por Ficha 360 e Lista de Casos.
+   */
+  it("caso com pendência documental mostra o texto e o selo da RPC canônica, não uma segunda narrativa", () => {
+    const filas = montarFilasHoje({
+      leads: [],
+      casos: [
+        {
+          id: "c1",
+          codigo: "CA-OPS-002",
+          titulo: "Caso com documento pendente",
+          documentos_minimos_ok: false,
+          prazo_proxima_acao: "2026-08-25",
+          responsavel_principal: "Tatiana",
+        },
+      ],
+      proximasAcoes: {
+        c1: { nivel: 3, motivo: "Documento pendente: certidão de nascimento", origem_tabela: "documents", origem_id: null, prazo: "2026-08-22" },
+      },
+      hoje,
+    });
+    const fila = filas.find((f) => f.chave === "casos_pendencia_documental");
+    expect(fila?.itens[0]?.detalhe).toBe("Documento pendente: certidão de nascimento");
+    expect(fila?.itens[0]?.origemAcao).toBe("automatica");
+    expect(fila?.itens[0]?.data).toBe("2026-08-22");
+  });
+
+  it("sem resultado de RPC para o caso, cai no fallback seguro em vez de inventar uma ação", () => {
+    const filas = montarFilasHoje({
+      leads: [],
+      casos: [
+        {
+          id: "c2",
+          codigo: "CA-OPS-003",
+          titulo: "Caso sem RPC calculada",
+          documentos_minimos_ok: false,
+          prazo_proxima_acao: "2026-08-25",
+          responsavel_principal: null,
+        },
+      ],
+      hoje,
+    });
+    const fila = filas.find((f) => f.chave === "casos_pendencia_documental");
+    expect(fila?.itens[0]?.detalhe).toBe("Definir próximo passo");
+    expect(fila?.itens[0]?.origemAcao).toBe("automatica");
+  });
 });
 
 describe("Dependentes", () => {

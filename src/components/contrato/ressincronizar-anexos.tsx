@@ -30,7 +30,7 @@ export function RessincronizarAnexos({
   onSincronizar: () => void;
 }) {
   const pendentes = plano ? plano.filter((p) => p.acao === "materializar").length : 0;
-  const podeGravar = pendentes > 0;
+  const semPendencia = pendentes === 0;
 
   return (
     <section className="rounded-lg border border-navy/15 bg-white p-3">
@@ -55,13 +55,19 @@ export function RessincronizarAnexos({
         </button>
         <button
           type="button"
-          disabled={ocupado || !podeGravar}
+          disabled={ocupado}
           onClick={onSincronizar}
           className="rounded bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-40"
         >
           Sincronizar agora
         </button>
       </div>
+
+      {semPendencia ? (
+        <p className="mt-2 text-xs text-terracotta">
+          Pendência: nenhum anexo está marcado para materializar. Sincronizar agora recalcula sem mudança prevista.
+        </p>
+      ) : null}
 
       {plano && (
         <p className="mt-2 text-xs text-navy/70">

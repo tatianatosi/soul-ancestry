@@ -3,11 +3,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
-import { SaasShell, useSaas, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, useSaas, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
+import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico } from "@/lib/caso-canonico.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
+import { RadarInternoCaso } from "@/components/caso/radar-interno";
+import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
 import { AbaProdutoTrilha } from "@/components/caso/produto-trilha";
 import { ConsolidacaoCaseService } from "@/components/caso/consolidacao-case-service";
 import { AbaProximaAcao } from "@/components/caso/proxima-acao";
@@ -25,7 +31,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
-import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
+import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -50,7 +56,9 @@ import {
   STATUS_VIA,
   VIAS_JURIDICAS,
   derivarStatusCaso,
+  obterProximaAcaoCanonica,
   rotulo,
+  SELO_PROXIMA_ACAO,
   sugestoesJornada,
   sugerirVia,
   type Opcao,
@@ -87,6 +95,20 @@ function Rotulo({ children }: { children: React.ReactNode }) {
 
 const inputCls =
   "w-full rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold disabled:bg-navy/5 disabled:text-navy/50";
+
+/**
+ * Envolve o resultado de uma consulta como payload único para `<EstadoDados>`.
+ *
+ * O motivo: as listas desta tela chegam sempre preenchidas pelo servidor
+ * (`membros`, `timeline`, `taxonomia`… já são arrays). O que falhava em
+ * silêncio era o payload inteiro ausente: coalescer `q.data?.membros` para
+ * lista vazia mostrava
+ * "nenhuma pessoa" quando na verdade a leitura não chegou. Como payload de um
+ * item, `undefined` vira erro de carga na tela e nunca base vazia.
+ */
+function comoPayload<T>(dados: T | null | undefined): T[] | undefined {
+  return dados === null || dados === undefined ? undefined : [dados];
+}
 
 function Texto({
   label,
@@ -283,6 +305,7 @@ const SECOES = [
 function FichaCaso() {
   const { caseId: id } = useParams({ from: "/_authenticated/casos/$caseId/" });
   const { podeEscrever } = useSaas();
+  const autoridade = useAutoridade();
   const carregar = useServerFn(carregarFichaCaso);
   const carregarCanon = useServerFn(carregarCanonico);
   const atualizar = useServerFn(atualizarRegistro);
@@ -297,6 +320,14 @@ function FichaCaso() {
   const qc2 = useQuery({
     queryKey: ["caso-canonico", id],
     queryFn: () => carregarCanon({ data: { caseId: id } }),
+    retry: false,
+  });
+  const carregarProposta = useServerFn(obterPropostaCanvaDoCliente);
+  const clienteId = q.data?.caso?.cliente_id as string | null | undefined;
+  const qProposta = useQuery({
+    queryKey: ["proposta-canva-cliente", clienteId],
+    queryFn: () => carregarProposta({ data: { clienteId: clienteId as string } }),
+    enabled: Boolean(clienteId),
     retry: false,
   });
   const recarregar = () => {
@@ -392,9 +423,21 @@ function FichaCaso() {
     [caso, form],
   );
 
-  const derivadoGates = useMemo(
-    () => estadoDerivadoPorGates((caso ?? {}) as Record<string, unknown>),
-    [caso],
+  // 07/09/2026 — substitui estadoDerivadoPorGates (só lia case_activation_checks,
+  // com valores falso-positivos desde 04/09) pela mesma RPC
+  // case_ativacao_bloqueios_reais que a tela de onboarding já usa — as duas
+  // telas agora sempre concordam sobre o mesmo caso.
+  const bloqueiosReais = useMemo(
+    () =>
+      ((q.data as any)?.bloqueiosReais ?? []) as {
+        regra: string;
+        dominio: string;
+        motivo: string;
+        tabela_campo: string;
+        valor_atual: string;
+        cta_tela: string | null;
+      }[],
+    [q.data],
   );
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
@@ -411,12 +454,26 @@ function FichaCaso() {
       <SaasShell titulo="Ficha operacional do caso">
         <EstadoVazio
           mensagem={q.error instanceof Error ? q.error.message : "Caso não encontrado."}
+          acao={q.isError ? <BotaoTentarNovamente aoClicar={() => void q.refetch()} /> : undefined}
         />
       </SaasShell>
     );
   }
 
-  const bloqueado = !podeEscrever || Boolean(caso["archived_at"]);
+  // Autoridade operacional: só se desabilita controle quando falta papel ou
+  // organização. Papel somente leitura e caso arquivado deixam de travar a
+  // tela — passam a pendência declarada, confirmada com motivo registrado.
+  const bloqueado = autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaCadastro =
+    [
+      !podeEscrever ? "Seu vínculo de equipe está marcado como somente leitura." : null,
+      caso["archived_at"] ? "Caso arquivado." : null,
+      bloqueiosReais.length === 0
+        ? null
+        : `Não elegível para ativação — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}.`,
+    ]
+      .filter(Boolean)
+      .join(" ") || null;
 
   return (
     <SaasShell
@@ -424,6 +481,13 @@ function FichaCaso() {
       descricao={`${caso["codigo"] ?? "sem código"} · ficha operacional canônica`}
       acoes={
         <div className="flex items-center gap-3">
+          <Link
+            to="/app-cliente-como-pessoa"
+            search={{ casoId: String(caso["id"]) }}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:bg-navy/5"
+          >
+            Abrir visão do cliente
+          </Link>
           <span className="text-xs text-navy/60">
             {mSalvar.isPending
               ? "Salvando…"
@@ -435,13 +499,17 @@ function FichaCaso() {
                     ? `Salvo às ${salvoEm}`
                     : "Sem alterações pendentes"}
           </span>
-          <button
-            onClick={() => mSalvar.mutate()}
-            disabled={bloqueado || !sujo || mSalvar.isPending}
+          <AcaoOperacional
+            rotulo="Salvar alterações"
+            capacidade="editar_rascunho"
+            pendenciaGate={pendenciaCadastro}
+            efeito="Grava as alterações desta ficha operacional do caso."
             className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-40"
-          >
-            Salvar alterações
-          </button>
+            onConfirmar={() => {
+              if (!sujo || mSalvar.isPending) return;
+              mSalvar.mutate();
+            }}
+          />
         </div>
       }
     >
@@ -450,6 +518,58 @@ function FichaCaso() {
           {ROTULO_DEMONSTRACAO} — registro de teste. Não entra em Painel Hoje, filas, métricas nem
           App Cliente.
         </p>
+      ) : null}
+      {caso["ativo"] ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-800">
+              Caso ativo
+            </p>
+            <p className="mt-0.5 text-sm text-emerald-900">
+              {caso["data_ativacao"] || caso["ativado_em"]
+                ? `Ativado em ${new Date(
+                    String(caso["data_ativacao"] ?? caso["ativado_em"]),
+                  ).toLocaleString("pt-BR")}`
+                : "Ativado"}
+            </p>
+          </div>
+        </div>
+      ) : null}
+      {qc2.data ? (
+        <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-3">
+          {(() => {
+            const canonica = obterProximaAcaoCanonica({
+              caseId: String(caso["id"]),
+              rpc: qc2.data.proximaAcaoPrioritaria,
+              responsavelPrincipal:
+                (caso["proxima_acao_responsavel"] as string) ??
+                (caso["responsavel_principal"] as string) ??
+                null,
+              dependencia: (caso["proxima_acao_dependencia"] as string) ?? null,
+              criterioConclusao: (caso["proxima_acao_criterio_conclusao"] as string) ?? null,
+            });
+            return (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                    Próxima ação
+                  </p>
+                  <span className="rounded-full border border-navy/15 bg-white px-2 py-0.5 text-[11px] text-navy/70">
+                    {SELO_PROXIMA_ACAO[canonica.origem]}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-sm font-medium text-navy">{canonica.acao}</p>
+                {canonica.origem === "manual" && (canonica.dependencia || canonica.criterioConclusao) ? (
+                  <p className="mt-0.5 text-xs text-navy/60">
+                    {canonica.dependencia ? `Depende de: ${canonica.dependencia}` : null}
+                    {canonica.dependencia && canonica.criterioConclusao ? " · " : null}
+                    {canonica.criterioConclusao ? `Conclui quando: ${canonica.criterioConclusao}` : null}
+                  </p>
+                ) : null}
+              </>
+            );
+          })()}
+        </div>
       ) : null}
       <VinculoNucleo
         caseId={String(caso["id"])}
@@ -469,11 +589,27 @@ function FichaCaso() {
           Conferido no banco após gravar: {camposSalvos.join(", ")}.
         </p>
       ) : null}
-      {bloqueado ? (
+      {pendenciaCadastro ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
-          Edição indisponível:{" "}
-          {caso["archived_at"] ? "caso arquivado." : "seu papel é somente leitura."}
+          Pendência registrada: {pendenciaCadastro} A edição segue disponível por decisão sua e a
+          gravação pede motivo.
         </p>
+      ) : null}
+
+      {qc2.isError ? (
+        <div
+          role="alert"
+          className="mb-4 space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs"
+        >
+          <p className="font-medium text-destructive">
+            Não foi possível carregar o consolidado canônico do caso (aliases, etiquetas, produto,
+            onboarding, núcleos).
+          </p>
+          <p className="text-navy/80">
+            {qc2.error instanceof Error ? qc2.error.message : "Erro desconhecido."}
+          </p>
+          <BotaoTentarNovamente aoClicar={() => void qc2.refetch()} />
+        </div>
       ) : null}
 
       {/* Cabeçalho de estado */}
@@ -496,20 +632,28 @@ function FichaCaso() {
       <div
         className={
           "mb-6 rounded-xl border px-4 py-3 " +
-          (derivadoGates.elegivel
+          (bloqueiosReais.length === 0
             ? "border-navy/15 bg-navy/5"
             : "border-terracotta/40 bg-terracotta/10")
         }
       >
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">
-          Estado derivado pelos requisitos de ativação
-        </p>
-        <p className="mt-1 text-sm font-medium text-navy">{derivadoGates.rotulo}</p>
-        <p className="mt-1 text-xs text-navy/65">{derivadoGates.explicacao}</p>
-        <p className="mt-1 text-[11px] text-navy/50">
-          Leitura explicável: não altera status, não habilita cobrança, envio ou ambiente do
-          cliente. As travas são revalidadas no servidor.
-        </p>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado de ativação</p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-navy">
+            {bloqueiosReais.length === 0
+              ? "Elegível — nenhum bloqueio real pendente"
+              : `Não elegível — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
+          </p>
+          <Link
+            to="/onboarding/$id"
+            params={{ id }}
+            className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
+          >
+            {bloqueiosReais.length === 0
+              ? "Abrir painel de onboarding e ativação"
+              : "Ver todos os bloqueios e resolver →"}
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-4">
@@ -597,23 +741,66 @@ function FichaCaso() {
 
       <div className="space-y-8">
         <SecaoAncora id="visao" titulo="Indicadores">
-          <AbaVisaoGeral
-            caso={caso}
-            timeline={q.data?.timeline ?? []}
-            blueprint={q.data?.blueprint ?? []}
-            filaDrive={q.data?.filaDrive ?? []}
-          />
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={comoPayload(q.data)}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os indicadores do caso"
+          >
+            {([d]) => (
+              <>
+                <AbaVisaoGeral
+                  caso={caso}
+                  timeline={d.timeline}
+                  blueprint={d.blueprint}
+                  filaDrive={d.filaDrive}
+                />
+                {/*
+                  07/09/2026 — "Radar Individual" (micro) do mockup do Desk:
+                  o "Radar Interno" só tinha a Matriz de Prioridade (macro,
+                  todos os casos, em /casos). O toggle para o caso individual
+                  nunca tinha sido construído. Mesma taxonomia do Radar do
+                  cliente (radar-eixos.ts), conteúdo interno.
+                */}
+                <div className="mt-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy/50">
+                    Radar Individual deste caso
+                  </p>
+                  <RadarInternoCaso
+                    eixos={radarInternoDoCaso({
+                      caso,
+                      nucleoCompletude: d.nucleoOk,
+                      nucleoCriterios: d.nucleoCriterios,
+                      checksAtivacao: d.checksAtivacao,
+                      bloqueiosReais: d.bloqueiosReais,
+                    })}
+                  />
+                </div>
+              </>
+            )}
+          </EstadoDados>
           <div className="mt-5">
-            <AbaProximaAcao
-              caseId={id}
-              caso={caso}
-              alertas={qc2.data?.alertas ?? []}
-              comunicacoes={qc2.data?.comunicacoes ?? []}
-              bloqueado={bloqueado}
-              onMudou={recarregar}
-              v={v}
-              set={set}
-            />
+            <EstadoDados
+              carregando={qc2.isLoading}
+              erro={qc2.error}
+              dados={comoPayload(qc2.data)}
+              aoTentarNovamente={() => void qc2.refetch()}
+              recurso="os alertas e a comunicação do caso"
+            >
+              {([c]) => (
+                <AbaProximaAcao
+                  caseId={id}
+                  caso={caso}
+                  alertas={c.alertas}
+                  comunicacoes={c.comunicacoes}
+                  bloqueado={bloqueado}
+                  onMudou={recarregar}
+                  v={v}
+                  set={set}
+                />
+              )}
+            </EstadoDados>
           </div>
 
           {/*
@@ -631,12 +818,11 @@ function FichaCaso() {
                   label="Título do caso"
                   valor={v("titulo")}
                   onChange={(x) => set("titulo", x)}
-                  desabilitado={bloqueado}
                 />
                 <div>
                   <Rotulo>Identificador canônico</Rotulo>
-                  <p className="flex flex-wrap items-center gap-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
-                    {String(caso?.["codigo"] ?? "—")}
+                  <p className="flex flex-wrap items-center gap-2 overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 font-mono text-sm text-navy">
+                    <span className="whitespace-nowrap">{String(caso?.["codigo"] ?? "—")}</span>
                     {ehFixture(caso?.["codigo"] as string | null) && (
                       <span className="rounded-full border border-terracotta/40 bg-terracotta/10 px-2 py-0.5 font-sans text-[10px] uppercase tracking-wide text-terracotta">
                         {ROTULO_FIXTURE}
@@ -651,18 +837,22 @@ function FichaCaso() {
                 </div>
                 <div className="sm:col-span-2">
                   <Rotulo>Identificadores históricos (aliases)</Rotulo>
-                  {(qc2.data?.aliases ?? []).length === 0 ? (
-                    <p className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/60">
-                      Nenhum identificador histórico registrado.
-                    </p>
-                  ) : (
+                  <EstadoDados
+                    carregando={qc2.isLoading}
+                    erro={qc2.error}
+                    dados={qc2.data?.aliases}
+                    aoTentarNovamente={() => void qc2.refetch()}
+                    recurso="os identificadores históricos"
+                    vazio="Nenhum identificador histórico registrado."
+                  >
+                    {(aliases) => (
                     <ul className="space-y-1">
-                      {(qc2.data?.aliases ?? []).map((a) => (
+                      {aliases.map((a) => (
                         <li
                           key={String(a["id"])}
-                          className="rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
+                          className="overflow-x-auto rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-sm text-navy/70"
                         >
-                          <span className="font-mono text-navy">{String(a["alias"])}</span>
+                          <span className="whitespace-nowrap font-mono text-navy">{String(a["alias"])}</span>
                           <span className="ml-2 text-xs text-navy/50">
                             {String(a["alias_type"] ?? "historico")} · origem{" "}
                             {String(a["source"] ?? "—")}
@@ -673,7 +863,8 @@ function FichaCaso() {
                         </li>
                       ))}
                     </ul>
-                  )}
+                    )}
+                  </EstadoDados>
                   <p className="mt-1 text-xs text-navy/50">
                     Somente consulta interna. Alias nunca vira chave do caso e nunca é apagado.
                   </p>
@@ -683,13 +874,11 @@ function FichaCaso() {
                   tipo="date"
                   valor={v("data_entrada_caso")}
                   onChange={(x) => set("data_entrada_caso", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Case service / trilha (ID)"
                   valor={v("citizenship_track_id")}
                   onChange={(x) => set("citizenship_track_id", x)}
-                  desabilitado={bloqueado}
                 />
                 <div>
                   <Rotulo>Cliente vinculado</Rotulo>
@@ -706,19 +895,16 @@ function FichaCaso() {
                   label="Responsável principal"
                   valor={v("responsavel_principal")}
                   onChange={(x) => set("responsavel_principal", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Cargo do responsável"
                   valor={v("cargo_responsavel_principal")}
                   onChange={(x) => set("cargo_responsavel_principal", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Supervisora do caso"
                   valor={v("supervisora_do_caso")}
                   onChange={(x) => set("supervisora_do_caso", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Colaboradores (separados por vírgula)"
@@ -732,7 +918,6 @@ function FichaCaso() {
                         .filter(Boolean),
                     )
                   }
-                  desabilitado={bloqueado}
                 />
               </div>
             </Secao>
@@ -744,13 +929,11 @@ function FichaCaso() {
                   valor={v("proxima_acao_codigo")}
                   opcoes={PROXIMAS_ACOES}
                   onChange={(x) => set("proxima_acao_codigo", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Justificativa / detalhe"
                   valor={v("proxima_acao_justificativa")}
                   onChange={(x) => set("proxima_acao_justificativa", x)}
-                  desabilitado={bloqueado}
                   area
                   ajuda={
                     v("proxima_acao_codigo") === "outro_justificar"
@@ -768,26 +951,22 @@ function FichaCaso() {
                   valor={v("origem_brief")}
                   opcoes={ORIGEM_BRIEF}
                   onChange={(x) => set("origem_brief", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Link de origem interna"
                   valor={v("link_origem_interna")}
                   onChange={(x) => set("link_origem_interna", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Resumo interno"
                   valor={v("resumo_interno")}
                   onChange={(x) => set("resumo_interno", x)}
-                  desabilitado={bloqueado}
                   area
                 />
                 <Texto
                   label="Brief interno"
                   valor={v("brief_interno")}
                   onChange={(x) => set("brief_interno", x)}
-                  desabilitado={bloqueado}
                   area
                 />
               </div>
@@ -813,14 +992,12 @@ function FichaCaso() {
                   valor={v("eixo_comercial")}
                   opcoes={EIXO_COMERCIAL}
                   onChange={(x) => set("eixo_comercial", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Data da confirmação formal da proposta"
                   tipo="date"
                   valor={v("data_confirmacao_formal_proposta")}
                   onChange={(x) => set("data_confirmacao_formal_proposta", x)}
-                  desabilitado={bloqueado}
                 />
               </div>
             </Secao>
@@ -835,7 +1012,6 @@ function FichaCaso() {
                   valor={v("eixo_formalizacao")}
                   opcoes={EIXO_FORMALIZACAO}
                   onChange={(x) => set("eixo_formalizacao", x)}
-                  desabilitado={bloqueado}
                 />
                 <ul className="space-y-1 text-xs text-navy/60">
                   <li>Contrato assinado: {caso["contrato_assinado"] ? "sim" : "não"}</li>
@@ -848,17 +1024,30 @@ function FichaCaso() {
                   <p className="text-xs font-semibold text-navy">
                     Completude do núcleo familiar (critérios persistidos)
                   </p>
-                  <ul className="mt-2 space-y-1 text-xs">
-                    {(q.data?.nucleoCriterios ?? []).map((c) => (
-                      <li key={c.chave} className={c.ok ? "text-navy/60" : "text-terracotta"}>
-                        {c.ok ? "✓" : "•"} {c.rotulo}
-                        {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
-                      </li>
-                    ))}
-                    {(q.data?.nucleoCriterios ?? []).length === 0 ? (
-                      <li className="text-navy/50">Sem critérios avaliados.</li>
-                    ) : null}
-                  </ul>
+                  <div className="mt-2 text-xs">
+                    <EstadoDados
+                      carregando={q.isLoading}
+                      erro={q.error}
+                      dados={q.data?.nucleoCriterios}
+                      aoTentarNovamente={() => void q.refetch()}
+                      recurso="os critérios de completude do núcleo"
+                      vazio="Sem critérios avaliados. A consulta foi concluída com sucesso."
+                    >
+                      {(criterios) => (
+                        <ul className="space-y-1">
+                          {criterios.map((c) => (
+                            <li
+                              key={c.chave}
+                              className={c.ok ? "text-navy/60" : "text-terracotta"}
+                            >
+                              {c.ok ? "✓" : "•"} {c.rotulo}
+                              {c.ok ? "" : ` — ${c.motivo ?? "pendente"}`}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </EstadoDados>
+                  </div>
                 </div>
 
                 <Link
@@ -919,44 +1108,38 @@ function FichaCaso() {
                   valor={v("pais_linha_prioritaria")}
                   opcoes={PAISES_LINHA}
                   onChange={(x) => set("pais_linha_prioritaria", x)}
-                  desabilitado={bloqueado}
                 />
                 <Selecao
                   label="Via jurídica preliminar"
                   valor={v("via_juridica_preliminar")}
                   opcoes={VIAS_JURIDICAS}
                   onChange={(x) => set("via_juridica_preliminar", x)}
-                  desabilitado={bloqueado}
                 />
                 <Selecao
                   label="Status da via"
                   valor={v("status_via")}
                   opcoes={STATUS_VIA}
                   onChange={(x) => set("status_via", x)}
-                  desabilitado={bloqueado}
                 />
                 <Selecao
                   label="Revisão humana jurídica"
                   valor={v("revisao_humana_juridica")}
                   opcoes={REVISAO_JURIDICA}
                   onChange={(x) => set("revisao_humana_juridica", x)}
-                  desabilitado={bloqueado}
                 />
               </div>
               {viaSugerida && viaSugerida !== v("via_juridica_preliminar") ? (
                 <p className="mt-3 text-xs text-navy/60">
                   Sugestão do sistema: {rotulo(VIAS_JURIDICAS, viaSugerida)}.{" "}
-                  {!bloqueado ? (
-                    <button
-                      className="underline"
-                      onClick={() => {
-                        set("via_juridica_preliminar", viaSugerida);
-                        set("status_via", "sugerida");
-                      }}
-                    >
-                      aplicar como sugestão
-                    </button>
-                  ) : null}
+                  <button
+                    className="underline"
+                    onClick={() => {
+                      set("via_juridica_preliminar", viaSugerida);
+                      set("status_via", "sugerida");
+                    }}
+                  >
+                    aplicar como sugestão
+                  </button>
                 </p>
               ) : null}
             </Secao>
@@ -971,14 +1154,12 @@ function FichaCaso() {
                   valor={v("status_radar")}
                   opcoes={STATUS_RADAR}
                   onChange={(x) => set("status_radar", x)}
-                  desabilitado={bloqueado}
                 />
                 <Texto
                   label="Aderência (%)"
                   tipo="number"
                   valor={v("radar_aderencia_percentual")}
                   onChange={(x) => set("radar_aderencia_percentual", x)}
-                  desabilitado={bloqueado}
                   ajuda="Só preencher com cálculo revisado internamente."
                 />
               </div>
@@ -987,7 +1168,6 @@ function FichaCaso() {
                   label="Hipótese de trabalho interna"
                   valor={v("hipotese_trabalho_interna")}
                   onChange={(x) => set("hipotese_trabalho_interna", x)}
-                  desabilitado={bloqueado}
                   area
                 />
               </div>
@@ -1002,7 +1182,6 @@ function FichaCaso() {
                 valores={arr("riscos_identificados")}
                 opcoes={RISCOS}
                 onChange={(x) => set("riscos_identificados", x)}
-                desabilitado={bloqueado}
               />
             </Secao>
 
@@ -1012,98 +1191,86 @@ function FichaCaso() {
 
         <SecaoAncora id="pessoas" titulo="Pessoa e família">
           <div className="space-y-5">
-            <AbaPessoas
-              casoId={id}
-              membros={q.data?.membros ?? []}
-              bloqueado={bloqueado}
-              onMudou={recarregar}
-              atualizar={atualizar}
-              criar={criar}
-            />
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={comoPayload(q.data)}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="as pessoas do caso"
+            >
+              {([d]) => (
+                <AbaPessoas
+                  casoId={id}
+                  membros={d.membros}
+                  onMudou={recarregar}
+                  atualizar={atualizar}
+                  criar={criar}
+                />
+              )}
+            </EstadoDados>
             <AbaCadastro caseId={id} bloqueado={bloqueado} />
 
             {/*
-              27/08/2026 — decisão da Proprietária: "o que é lead e faz parte
-              da pessoa, como contrato, proposta, roteiro discovery, etc,
-              tudo que compõe ela". Referência de proposta era formulário
-              dentro de "Comercial" (agora "Jurídico", enxuto); mudou de
-              lugar, não de forma — histórico comercial compõe a pessoa.
+              01/09/2026 — decisão da Proprietária: aposentado o campo livre de
+              proposta (era texto digitado à mão, nunca ligado à proposta real).
+              Só aparece agora quando a pessoa já tem uma proposta Canva real
+              vinculada (`proposals` + `proposal_canva_pages`) — leitura, não
+              formulário. Sem proposta real, a seção inteira não é exibida.
             */}
-            <Secao
-              titulo="Proposta (referência interna)"
-              descricao="Sem valores expostos aqui; a fonte comercial é a proposta aprovada."
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Texto
-                  label="Referência interna da proposta"
-                  valor={v("proposta_referencia_interna")}
-                  onChange={(x) => set("proposta_referencia_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Data da proposta"
-                  tipo="date"
-                  valor={v("data_proposta")}
-                  onChange={(x) => set("data_proposta", x)}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Link interno da proposta"
-                  valor={v("proposta_url_interna")}
-                  onChange={(x) => set("proposta_url_interna", x)}
-                  desabilitado={bloqueado}
-                />
-                <Selecao
-                  label="Condição comercial interna"
-                  valor={String(
-                    v("condicao_comercial_interna_pendente") === "false" ? "false" : "true",
-                  )}
-                  opcoes={[
-                    { valor: "true", rotulo: "Pendente de homologação" },
-                    { valor: "false", rotulo: "Homologada" },
-                  ]}
-                  onChange={(x) => set("condicao_comercial_interna_pendente", x === "true")}
-                  desabilitado={bloqueado}
-                />
-                <Texto
-                  label="Escopo incluído (resumo)"
-                  valor={v("escopo_incluido_resumido")}
-                  onChange={(x) => set("escopo_incluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-                <Texto
-                  label="Escopo excluído (resumo)"
-                  valor={v("escopo_excluido_resumido")}
-                  onChange={(x) => set("escopo_excluido_resumido", x)}
-                  desabilitado={bloqueado}
-                  area
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs">
-                <Link
-                  to="/propostas"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Propostas
-                </Link>
-                <Link
-                  to="/nucleos"
-                  className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
-                >
-                  Núcleos familiares e dossiê-mãe
-                </Link>
-              </div>
-            </Secao>
+            {qProposta.data?.proposta ? (
+              <Secao
+                titulo="Proposta"
+                descricao="Somente leitura — vem da proposta Canva real vinculada ao cliente."
+              >
+                <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Status</span>
+                    <p className="text-navy">{String(qProposta.data.proposta.status ?? "—")}</p>
+                  </div>
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Versão</span>
+                    <p className="text-navy">{String(qProposta.data.proposta.versao ?? "—")}</p>
+                  </div>
+                  <div>
+                    <span className="text-navy/50 text-xs uppercase tracking-wide">Completude Canva</span>
+                    <p className="text-navy">{qProposta.data.paginasExtraidas}/7 páginas extraídas</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs">
+                  <Link
+                    to="/propostas"
+                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                  >
+                    Ver proposta
+                  </Link>
+                  <Link
+                    to="/nucleos"
+                    className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
+                  >
+                    Núcleos familiares e dossiê-mãe
+                  </Link>
+                </div>
+              </Secao>
+            ) : null}
 
             {/* Etiquetas é metadado leve do caso — junto de quem está nele, não seção própria. */}
-            <AbaEtiquetas
-              caseId={id}
-              taxonomia={qc2.data?.taxonomia ?? []}
-              aplicadas={qc2.data?.etiquetas ?? []}
-              bloqueado={bloqueado}
-              onMudou={recarregar}
-            />
+            <EstadoDados
+              carregando={qc2.isLoading}
+              erro={qc2.error}
+              dados={comoPayload(qc2.data)}
+              aoTentarNovamente={() => void qc2.refetch()}
+              recurso="as etiquetas do caso"
+            >
+              {([c]) => (
+                <AbaEtiquetas
+                  caseId={id}
+                  taxonomia={c.taxonomia}
+                  aplicadas={c.etiquetas}
+                  bloqueado={bloqueado}
+                  onMudou={recarregar}
+                />
+              )}
+            </EstadoDados>
           </div>
         </SecaoAncora>
 
@@ -1120,39 +1287,101 @@ function FichaCaso() {
             <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 
             <div className="space-y-5">
-              <AbaProdutoTrilha
-                caseId={id}
-                produtos={qc2.data?.produtos ?? []}
-                trilhas={qc2.data?.trilhas ?? []}
-                servicos={qc2.data?.servicos ?? []}
-                bloqueado={bloqueado}
-                onMudou={recarregar}
-              />
+              <EstadoDados
+                carregando={qc2.isLoading}
+                erro={qc2.error}
+                dados={comoPayload(qc2.data)}
+                aoTentarNovamente={() => void qc2.refetch()}
+                recurso="o produto e a trilha do caso"
+              >
+                {([c]) => (
+                  <AbaProdutoTrilha
+                    caseId={id}
+                    produtos={c.produtos}
+                    trilhas={c.trilhas}
+                    servicos={c.servicos}
+                    bloqueado={bloqueado}
+                    onMudou={recarregar}
+                  />
+                )}
+              </EstadoDados>
               <ConsolidacaoCaseService caseId={id} />
             </div>
 
-            <AbaOnboarding
-              caso={caso}
-              itens={qc2.data?.onboarding ?? []}
-              nucleos={qc2.data?.nucleos ?? []}
-              membrosNucleo={qc2.data?.membrosNucleo ?? []}
-              planoInicialOk={Boolean(q.data?.planoInicialOk)}
-              bloqueado={bloqueado}
-              onMudou={recarregar}
-            />
+            <EstadoDados
+              carregando={qc2.isLoading}
+              erro={qc2.error}
+              dados={comoPayload(qc2.data)}
+              aoTentarNovamente={() => void qc2.refetch()}
+              recurso="o onboarding do caso"
+            >
+              {([c]) => (
+                <AbaOnboarding
+                  caso={caso}
+                  itens={c.onboarding}
+                  nucleos={c.nucleos}
+                  membrosNucleo={c.membrosNucleo}
+                  planoInicialOk={Boolean(q.data?.planoInicialOk)}
+                  bloqueado={bloqueado}
+                  onMudou={recarregar}
+                />
+              )}
+            </EstadoDados>
 
             <AbaFechamento casoId={id} bloqueado={bloqueado} />
           </div>
         </SecaoAncora>
 
         <SecaoAncora id="log" titulo="Registro de alterações">
+          <div className="space-y-5">
+          {/*
+            07/09/2026 — case_phase_history grava sozinha desde 06/09 (trigger
+            em crm_casos.fase), mas nenhuma tela mostrava esse histórico —
+            achado da proprietária. Escrita automática, leitura nunca ligada.
+          */}
+          <Secao
+            titulo="Histórico de fases do caso"
+            descricao="Cada mudança de fase, registrada automaticamente — nunca depende de quem lembrou de anotar."
+          >
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.historicoFase as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="o histórico de fases"
+              vazio="Nenhuma mudança de fase registrada ainda."
+            >
+              {(linhasFase) => (
+                <ul className="space-y-2 text-sm">
+                  {linhasFase.map((f: Record<string, unknown>) => (
+                    <li key={String(f["id"])} className="rounded-lg border border-navy/10 p-3">
+                      <p className="text-navy">
+                        {f["fase_anterior"] ? String(f["fase_anterior"]) : "(sem fase)"} →{" "}
+                        <span className="font-medium">{String(f["fase_nova"])}</span>
+                      </p>
+                      <p className="mt-1 text-xs text-navy/50">
+                        {new Date(String(f["changed_at"])).toLocaleString("pt-BR")}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </EstadoDados>
+          </Secao>
+
           <Secao
             titulo="Registro de alterações"
             descricao="Quem alterou, quando e o quê. Nada é apagado."
           >
-            {(q.data?.log ?? []).length === 0 ? (
-              <p className="text-sm text-navy/55">Nenhuma alteração registrada ainda.</p>
-            ) : (
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.log as Record<string, unknown>[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="o registro de alterações"
+              vazio="Nenhuma alteração registrada ainda."
+            >
+              {(linhasLog) => (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="text-[11px] uppercase tracking-wide text-navy/50">
@@ -1165,7 +1394,7 @@ function FichaCaso() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(q.data?.log ?? []).map((l: Record<string, unknown>) => (
+                    {linhasLog.map((l: Record<string, unknown>) => (
                       <tr key={String(l["id"])} className="border-t border-navy/10 align-top">
                         <td className="py-2 pr-4 whitespace-nowrap text-navy/70">
                           {new Date(String(l["created_at"])).toLocaleString("pt-BR")}
@@ -1183,8 +1412,10 @@ function FichaCaso() {
                   </tbody>
                 </table>
               </div>
-            )}
+              )}
+            </EstadoDados>
           </Secao>
+          </div>
         </SecaoAncora>
       </div>
 
@@ -1216,7 +1447,7 @@ function FichaCaso() {
               Descartar alterações
             </button>
             <button
-              disabled={bloqueado || mSalvar.isPending}
+              disabled={mSalvar.isPending}
               onClick={async () => {
                 try {
                   await mSalvar.mutateAsync();
@@ -1241,14 +1472,12 @@ function FichaCaso() {
 function AbaPessoas({
   casoId,
   membros,
-  bloqueado,
   onMudou,
   atualizar,
   criar,
 }: {
   casoId: string;
   membros: Record<string, unknown>[];
-  bloqueado: boolean;
   onMudou: () => void;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
@@ -1266,9 +1495,10 @@ function AbaPessoas({
     queryFn: () => carregarNucleos(),
     retry: false,
   });
-  const temNucleo = ((qNucleos.data ?? []) as { case_id: string | null }[]).some(
-    (n) => n.case_id === casoId,
-  );
+  const nucleosCarregados = (qNucleos.data ?? null) as { case_id: string | null }[] | null;
+  const temNucleo = Array.isArray(nucleosCarregados)
+    ? nucleosCarregados.some((n) => n.case_id === casoId)
+    : false;
 
   const mCriar = useMutation({
     mutationFn: () =>
@@ -1284,6 +1514,22 @@ function AbaPessoas({
   // Caso com núcleo vinculado: a composição familiar é somente leitura, projetada de Núcleos e dossiês.
   if (temNucleo) return <PessoasDoNucleo caseId={casoId} />;
 
+  // Sem a lista de núcleos não se sabe qual painel vale: mostra a falha em vez de
+  // supor "caso sem núcleo".
+  if (qNucleos.isError || (!qNucleos.isLoading && nucleosCarregados === null)) {
+    return (
+      <div role="alert" className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">Não foi possível carregar os núcleos do caso.</p>
+        <p className="text-navy/80">
+          {qNucleos.error instanceof Error
+            ? qNucleos.error.message
+            : "A consulta de núcleos não retornou resultado nem erro."}
+        </p>
+        <BotaoTentarNovamente aoClicar={() => void qNucleos.refetch()} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <Secao
@@ -1296,12 +1542,11 @@ function AbaPessoas({
             className={inputCls + " max-w-xs"}
             placeholder="Nome completo da pessoa"
             value={novo}
-            disabled={bloqueado}
             onChange={(e) => setNovo(e.target.value)}
           />
           <button
             onClick={() => mCriar.mutate()}
-            disabled={bloqueado || novo.trim().length < 3 || mCriar.isPending}
+            disabled={novo.trim().length < 3 || mCriar.isPending}
             className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
           >
             Adicionar pessoa
@@ -1316,7 +1561,6 @@ function AbaPessoas({
           <CartaoPessoa
             key={String(m["id"])}
             pessoa={m}
-            bloqueado={bloqueado}
             atualizar={atualizar}
             onMudou={onMudou}
           />
@@ -1328,12 +1572,10 @@ function AbaPessoas({
 
 function CartaoPessoa({
   pessoa,
-  bloqueado,
   atualizar,
   onMudou,
 }: {
   pessoa: Record<string, unknown>;
-  bloqueado: boolean;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
   }) => Promise<unknown>;
@@ -1387,105 +1629,90 @@ function CartaoPessoa({
           valor={v("papel_no_caso")}
           opcoes={PAPEIS_PESSOA}
           onChange={(x) => set("papel_no_caso", x)}
-          desabilitado={bloqueado}
         />
         <Selecao
           label="Status cadastral"
           valor={v("status_cadastral")}
           opcoes={STATUS_CADASTRAL}
           onChange={(x) => set("status_cadastral", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Parentesco"
           valor={v("parentesco")}
           onChange={(x) => set("parentesco", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Data de nascimento"
           tipo="date"
           valor={v("data_nascimento")}
           onChange={(x) => set("data_nascimento", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Local de nascimento"
           valor={v("local_nascimento")}
           onChange={(x) => set("local_nascimento", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Representante legal"
           valor={v("representante_legal")}
           onChange={(x) => set("representante_legal", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="CPF"
           valor={v("cpf")}
-          onChange={(x) => set("cpf", x)}
-          desabilitado={bloqueado}
+          onChange={(x) => set("cpf", formatarCpf(x))}
         />
         <Texto
           label="RG / documento"
           valor={v("rg")}
           onChange={(x) => set("rg", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Estado civil"
           valor={v("estado_civil")}
           onChange={(x) => set("estado_civil", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Profissão"
           valor={v("profissao")}
           onChange={(x) => set("profissao", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Telefone"
           valor={v("telefone")}
-          onChange={(x) => set("telefone", x)}
-          desabilitado={bloqueado}
+          onChange={(x) => set("telefone", formatarTelefone(x))}
+          ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
           label="E-mail"
           valor={v("email")}
           onChange={(x) => set("email", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Endereço"
           valor={v("endereco")}
           onChange={(x) => set("endereco", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="CEP"
           valor={v("cep")}
-          onChange={(x) => set("cep", x)}
-          desabilitado={bloqueado}
+          onChange={(x) => set("cep", formatarCep(x))}
         />
         <Texto
           label="Documentos pendentes"
           valor={v("documentos_pendentes")}
           onChange={(x) => set("documentos_pendentes", x)}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Consentimentos"
           valor={v("consentimentos")}
           onChange={(x) => set("consentimentos", x)}
-          desabilitado={bloqueado}
         />
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button
           onClick={() => m.mutate()}
-          disabled={bloqueado || !sujo || m.isPending}
+          disabled={!sujo || m.isPending}
           className="rounded-lg border border-navy/20 px-3 py-1.5 text-sm text-navy disabled:opacity-40"
         >
           Salvar pessoa

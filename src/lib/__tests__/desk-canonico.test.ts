@@ -167,9 +167,9 @@ describe("cadência e sanitização", () => {
   });
 
   it("somente entrega publicada aparece no App Cliente", () => {
-    expect(visivelNoAppCliente({ approval_status: "approved" })).toBe(false);
-    expect(visivelNoAppCliente({ approval_status: "published" })).toBe(true);
-    expect(visivelNoAppCliente({ approval_status: "published", archived_at: "2026-01-01" })).toBe(
+    expect(visivelNoAppCliente({ approval_status: "aprovado" })).toBe(false);
+    expect(visivelNoAppCliente({ approval_status: "publicado" })).toBe(true);
+    expect(visivelNoAppCliente({ approval_status: "publicado", archived_at: "2026-01-01" })).toBe(
       false,
     );
   });

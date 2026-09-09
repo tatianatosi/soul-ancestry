@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 
-import { SaasShell } from "@/components/saas/shell";
-import { carregarPessoa } from "@/lib/pessoa.functions";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import {
   evidenciaDeMesmaPessoa,
   montarLinhaDoTempoDaPessoa,
@@ -37,12 +39,158 @@ const FORCA_ROTULO: Record<EvidenciaDeElo["forca"], string> = {
   apenas_indicio: "Só um indício",
 };
 
+const UFS = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+];
+
+/*
+  05/09/2026 — achado real reportado pela Proprietária: "sexo" e "estado_civil"
+  tinham input de texto livre no formulário, mas o banco só aceita um conjunto
+  fechado de valores (clientes_sexo_check, clientes_estado_civil_check,
+  clientes_endereco_uf_check). Digitar "Feminino" (maiúsculo) já rejeitava a
+  gravação com um erro de constraint técnico. Os três viram select com os
+  valores exatos que o banco aceita — impossível digitar um valor inválido.
+*/
+const CAMPOS_FORM: {
+  chave: keyof CamposPessoa;
+  rotulo: string;
+  tipo?: "data" | "select";
+  opcoes?: { valor: string; rotulo: string }[];
+}[] = [
+  { chave: "nome", rotulo: "Nome completo" },
+  { chave: "nome_social", rotulo: "Nome social (se diferente)" },
+  { chave: "email", rotulo: "E-mail" },
+  { chave: "telefone", rotulo: "Telefone" },
+  {
+    chave: "sexo",
+    rotulo: "Sexo",
+    tipo: "select",
+    opcoes: [
+      { valor: "feminino", rotulo: "Feminino" },
+      { valor: "masculino", rotulo: "Masculino" },
+      { valor: "nao_informado", rotulo: "Não informado" },
+    ],
+  },
+  { chave: "nacionalidade", rotulo: "Nacionalidade" },
+  { chave: "profissao", rotulo: "Profissão" },
+  { chave: "data_nascimento", rotulo: "Data de nascimento", tipo: "data" },
+  { chave: "cpf", rotulo: "CPF" },
+  { chave: "rg_numero", rotulo: "RG — número" },
+  { chave: "rg_orgao_uf", rotulo: "RG — órgão/UF" },
+  {
+    chave: "estado_civil",
+    rotulo: "Estado civil",
+    tipo: "select",
+    opcoes: [
+      { valor: "solteiro", rotulo: "Solteiro(a)" },
+      { valor: "casado", rotulo: "Casado(a)" },
+      { valor: "divorciado", rotulo: "Divorciado(a)" },
+      { valor: "viuvo", rotulo: "Viúvo(a)" },
+      { valor: "uniao_estavel", rotulo: "União estável" },
+    ],
+  },
+  { chave: "nome_conjuge", rotulo: "Nome do cônjuge" },
+  { chave: "nome_pai", rotulo: "Nome do pai" },
+  { chave: "nome_mae", rotulo: "Nome da mãe" },
+  { chave: "cidade_nascimento", rotulo: "Cidade de nascimento" },
+  { chave: "endereco_logradouro", rotulo: "Endereço — logradouro" },
+  { chave: "endereco_numero", rotulo: "Endereço — número" },
+  { chave: "endereco_complemento", rotulo: "Endereço — complemento" },
+  { chave: "endereco_bairro", rotulo: "Endereço — bairro" },
+  { chave: "endereco_cidade", rotulo: "Endereço — cidade" },
+  {
+    chave: "endereco_uf",
+    rotulo: "Endereço — UF",
+    tipo: "select",
+    opcoes: UFS.map((uf) => ({ valor: uf, rotulo: uf })),
+  },
+  { chave: "endereco_cep", rotulo: "Endereço — CEP" },
+  { chave: "endereco_pais", rotulo: "Endereço — país" },
+];
+
+type CamposPessoa = {
+  nome: string | null;
+  nome_social: string | null;
+  email: string | null;
+  telefone: string | null;
+  sexo: string | null;
+  nacionalidade: string | null;
+  profissao: string | null;
+  cpf: string | null;
+  rg_numero: string | null;
+  rg_orgao_uf: string | null;
+  endereco_logradouro: string | null;
+  endereco_numero: string | null;
+  endereco_complemento: string | null;
+  endereco_bairro: string | null;
+  endereco_cidade: string | null;
+  endereco_uf: string | null;
+  endereco_cep: string | null;
+  endereco_pais: string | null;
+  estado_civil: string | null;
+  nome_conjuge: string | null;
+  data_nascimento: string | null;
+  nome_pai: string | null;
+  nome_mae: string | null;
+  cidade_nascimento: string | null;
+};
+
 function Pessoa() {
   const { clienteId } = Route.useParams();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca campo ou botão desabilitado.
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
+  const qc = useQueryClient();
   const carregar = useServerFn(carregarPessoa);
+  const salvar = useServerFn(atualizarPessoa);
   const q = useQuery({
     queryKey: ["pessoa", clienteId],
     queryFn: () => carregar({ data: { clienteId } }),
+  });
+
+  const [editando, setEditando] = useState(false);
+  const [form, setForm] = useState<Partial<CamposPessoa>>({});
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+
+  const mSalvar = useMutation({
+    mutationFn: (campos: Partial<CamposPessoa>) => salvar({ data: { clienteId, campos } }),
+    onSuccess: () => {
+      setErroSalvar(null);
+      setEditando(false);
+      void qc.invalidateQueries({ queryKey: ["pessoa", clienteId] });
+    },
+    onError: (e: Error) => setErroSalvar(e.message),
   });
 
   if (q.isLoading) {
@@ -53,7 +201,24 @@ function Pessoa() {
     );
   }
 
-  if (q.isError || !q.data?.encontrada) {
+  if (q.isError) {
+    return (
+      <SaasShell titulo="Pessoa" descricao="Erro ao carregar">
+        <p className="text-sm text-terracotta">
+          {q.error instanceof Error ? q.error.message : "Não foi possível carregar esta pessoa."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="mt-3 rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+        >
+          Tentar novamente
+        </button>
+      </SaasShell>
+    );
+  }
+
+  if (!q.data?.encontrada) {
     return (
       <SaasShell titulo="Pessoa" descricao="Não encontrada">
         <p className="text-sm text-navy/70">
@@ -69,7 +234,21 @@ function Pessoa() {
     );
   }
 
-  const { cliente, casos, eventos, leads } = q.data;
+  const {
+    cliente,
+    casos,
+    eventos,
+    leads,
+    nucleoMembros,
+    propostas,
+    contratos,
+    contractParties,
+    documentos,
+    projecoesPublicadas,
+    perfisGenealogicos,
+    fichaGenealogica,
+    fichaGenealogicaEquipe,
+  } = q.data;
 
   const linha = montarLinhaDoTempoDaPessoa(
     casos.map((c) => ({
@@ -91,13 +270,187 @@ function Pessoa() {
     <SaasShell titulo={nome} descricao="A história desta pessoa, reunida de todos os casos dela.">
       <div className="space-y-6">
         <section className="rounded-xl border border-navy/10 bg-white p-5">
-          <h2 className="font-serif text-lg text-navy">Quem é</h2>
-          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <Campo rotulo="E-mail" valor={cliente.email?.trim()} />
-            <Campo rotulo="Telefone" valor={cliente.telefone} />
-            <Campo rotulo="Como entrou" valor={cliente.origem} />
-            <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
-          </dl>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Quem é</h2>
+            {editando ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditando(false)}
+                  className="rounded-md border border-navy/15 px-3 py-1.5 text-xs text-navy/70"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={mSalvar.isPending}
+                  onClick={() => mSalvar.mutate(form)}
+                  className="rounded-md bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
+                >
+                  {mSalvar.isPending ? "Salvando…" : "Salvar"}
+                </button>
+                {!podeEscrever ? (
+                  <span className="self-center text-[11px] text-navy/50">
+                    Pendência registrada: {pendenciaVinculo}
+                  </span>
+                ) : null}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({
+                    nome: cliente.nome ?? "",
+                    nome_social: cliente.nome_social ?? "",
+                    email: cliente.email ?? "",
+                    telefone: cliente.telefone ?? "",
+                    sexo: cliente.sexo ?? "",
+                    nacionalidade: cliente.nacionalidade ?? "",
+                    profissao: cliente.profissao ?? "",
+                    cpf: cliente.cpf ?? "",
+                    rg_numero: cliente.rg_numero ?? "",
+                    rg_orgao_uf: cliente.rg_orgao_uf ?? "",
+                    endereco_logradouro: cliente.endereco_logradouro ?? "",
+                    endereco_numero: cliente.endereco_numero ?? "",
+                    endereco_complemento: cliente.endereco_complemento ?? "",
+                    endereco_bairro: cliente.endereco_bairro ?? "",
+                    endereco_cidade: cliente.endereco_cidade ?? "",
+                    endereco_uf: cliente.endereco_uf ?? "",
+                    endereco_cep: cliente.endereco_cep ?? "",
+                    endereco_pais: cliente.endereco_pais ?? "",
+                    estado_civil: cliente.estado_civil ?? "",
+                    nome_conjuge: cliente.nome_conjuge ?? "",
+                    data_nascimento: cliente.data_nascimento ?? "",
+                    nome_pai: cliente.nome_pai ?? "",
+                    nome_mae: cliente.nome_mae ?? "",
+                    cidade_nascimento: cliente.cidade_nascimento ?? "",
+                  });
+                  setErroSalvar(null);
+                  setEditando(true);
+                }}
+                className="rounded-md border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs text-navy hover:bg-gold/20"
+              >
+                Editar
+              </button>
+            )}
+          </div>
+
+          {erroSalvar ? (
+            <p className="mt-2 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+              {erroSalvar}
+            </p>
+          ) : null}
+
+          {editando ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {CAMPOS_FORM.map((c) =>
+                c.tipo === "select" ? (
+                  <label key={c.chave} className="block text-xs text-navy/60">
+                    {c.rotulo}
+                    <select
+                      className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
+                      value={form[c.chave] ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
+                    >
+                      <option value="">—</option>
+                      {c.opcoes?.map((o) => (
+                        <option key={o.valor} value={o.valor}>
+                          {o.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label key={c.chave} className="block text-xs text-navy/60">
+                    {c.rotulo}
+                    <input
+                      type={c.tipo === "data" ? "date" : "text"}
+                      className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
+                      value={form[c.chave] ?? ""}
+                      onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
+                    />
+                  </label>
+                ),
+              )}
+            </div>
+          ) : (
+            <>
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <Campo rotulo="E-mail" valor={cliente.email?.trim()} />
+                <Campo rotulo="Telefone" valor={cliente.telefone} />
+                <Campo rotulo="Como entrou" valor={cliente.origem} />
+                <Campo rotulo="Na carteira desde" valor={formatarDia(cliente.created_at)} />
+              </dl>
+
+              {/*
+                Pessoa Canônica (dados civis) — os campos já existem no schema
+                real (sexo, nacionalidade, CPF, RG, endereço estruturado, estado
+                civil, filiação, procurador) desde uma rodada anterior. Editar
+                aqui grava na mesma fonte, via atualizarPessoa (05/09/2026) —
+                antes desta data não existia nenhuma tela para editar esses
+                campos em toda a aplicação.
+              */}
+              <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-navy/50">
+                Dados civis
+              </h3>
+              <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <Campo rotulo="Sexo" valor={cliente.sexo} />
+                <Campo rotulo="Nacionalidade" valor={cliente.nacionalidade} />
+                <Campo rotulo="Profissão" valor={cliente.profissao} />
+                <Campo rotulo="Data de nascimento" valor={formatarDia(cliente.data_nascimento)} />
+                <Campo rotulo="CPF" valor={cliente.cpf} />
+                <Campo
+                  rotulo="RG"
+                  valor={
+                    cliente.rg_numero
+                      ? `${cliente.rg_numero}${cliente.rg_orgao_uf ? ` (${cliente.rg_orgao_uf})` : ""}`
+                      : null
+                  }
+                />
+                <Campo rotulo="Estado civil" valor={cliente.estado_civil} />
+                <Campo rotulo="Cônjuge" valor={cliente.nome_conjuge} />
+                <Campo rotulo="Nome do pai" valor={cliente.nome_pai} />
+                <Campo rotulo="Nome da mãe" valor={cliente.nome_mae} />
+                <Campo rotulo="Cidade de nascimento" valor={cliente.cidade_nascimento} />
+              </dl>
+
+              {cliente.endereco_logradouro || cliente.endereco_cidade ? (
+                <>
+                  <h3 className="mt-5 text-xs font-medium uppercase tracking-wide text-navy/50">
+                    Endereço
+                  </h3>
+                  <p className="mt-2 text-sm text-navy/80">
+                    {[
+                      [cliente.endereco_logradouro, cliente.endereco_numero]
+                        .filter(Boolean)
+                        .join(", "),
+                      cliente.endereco_complemento,
+                      cliente.endereco_bairro,
+                      [cliente.endereco_cidade, cliente.endereco_uf].filter(Boolean).join(" - "),
+                      cliente.endereco_cep,
+                      cliente.endereco_pais,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
+                  </p>
+                </>
+              ) : null}
+            </>
+          )}
+
+          {!editando && cliente.procurador_cliente_id ? (
+            <p className="mt-3 text-xs text-navy/60">
+              Representada por procurador(a) —{" "}
+              <Link
+                to="/pessoas/$clienteId"
+                params={{ clienteId: cliente.procurador_cliente_id }}
+                className="text-navy underline underline-offset-4"
+              >
+                ver perfil
+              </Link>
+              {cliente.procurador_escopo ? ` · ${cliente.procurador_escopo}` : ""}
+            </p>
+          ) : null}
         </section>
 
         <section className="rounded-xl border border-navy/10 bg-white p-5">
@@ -110,12 +463,11 @@ function Pessoa() {
           ) : (
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {casos.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    to="/casos/$caseId"
-                    params={{ caseId: c.id }}
-                    className="block rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
-                  >
+                <li
+                  key={c.id}
+                  className="rounded-lg border border-navy/12 bg-cream/25 p-3 transition-colors hover:bg-cream/50"
+                >
+                  <Link to="/casos/$caseId" params={{ caseId: c.id }} className="block">
                     <p className="font-mono text-[11px] text-navy/60">{c.codigo}</p>
                     <p className="text-sm font-medium text-navy">{c.titulo}</p>
                     <p className="mt-1 text-xs text-navy/55">
@@ -128,11 +480,219 @@ function Pessoa() {
                         .join(" · ")}
                     </p>
                   </Link>
+                  <Link
+                    to="/app-cliente-como-pessoa"
+                    search={{ casoId: c.id }}
+                    className="mt-2 inline-block text-xs font-medium text-navy underline underline-offset-4"
+                  >
+                    Abrir visão do cliente
+                  </Link>
                 </li>
               ))}
             </ul>
           )}
         </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Núcleo familiar e papéis</h2>
+            <p className="text-xs text-navy/55">{nucleoMembros.length} vínculo(s)</p>
+          </div>
+          {nucleoMembros.length === 0 ? (
+            <p className="mt-2 text-sm text-navy/60">
+              Esta pessoa não está vinculada a nenhum núcleo familiar.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {nucleoMembros.map((m) => (
+                <li key={m.id} className="rounded-lg border border-navy/12 bg-cream/25 p-3">
+                  <p className="text-sm font-medium text-navy">
+                    {m.papel === "dependente" ? "Dependente" : "Contratante/signatária"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-navy/60">
+                    {m.vinculo}
+                    {m.processo ? ` · ${m.processo}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <h2 className="font-serif text-lg text-navy">Propostas, contratos e documentos</h2>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                Propostas
+              </p>
+              {propostas.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhuma proposta.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {propostas.map((p) => (
+                    <li key={p.id} className="text-sm text-navy/80">
+                      {p.status}
+                      {p.valor ? ` · R$ ${p.valor}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                Contratos
+              </p>
+              {contratos.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhum contrato.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {contratos.map((c) => (
+                    <li key={c.id} className="text-sm text-navy/80">
+                      {c.status}
+                      {c.signed_at ? ` · assinado em ${formatarDia(c.signed_at)}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {contractParties.length > 0 ? (
+                <p className="mt-1 text-[11px] text-navy/50">
+                  Parte em {contractParties.length} instrumento(s) (
+                  {contractParties
+                    .map((p) => p.document_type)
+                    .filter(Boolean)
+                    .join(", ") || "documento não informado"}
+                  )
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                Documentos
+              </p>
+              {documentos.length === 0 ? (
+                <p className="mt-1 text-sm text-navy/55">Nenhum documento vinculado.</p>
+              ) : (
+                <ul className="mt-1 space-y-1">
+                  {documentos.slice(0, 5).map((d) => (
+                    <li key={d.id} className="text-sm text-navy/80">
+                      {d.titulo}{" "}
+                      {d.liberado_cliente ? (
+                        <span className="text-[11px] text-navy/50">· liberado ao cliente</span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-navy/10 bg-white p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-serif text-lg text-navy">Conteúdo publicado para o App Cliente</h2>
+            <p className="text-xs text-navy/55">{projecoesPublicadas.length} projeção(ões)</p>
+          </div>
+          {projecoesPublicadas.length === 0 ? (
+            <p className="mt-2 text-sm text-navy/60">
+              Nada foi publicado para o App Cliente nos casos desta pessoa ainda.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {projecoesPublicadas.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between rounded-lg border border-navy/12 bg-cream/25 p-3 text-sm"
+                >
+                  <span className="text-navy/85">{p.projection_type}</span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[11px] ${
+                      p.approval_status === "published"
+                        ? "bg-gold/15 text-navy"
+                        : "bg-navy/8 text-navy/70"
+                    }`}
+                  >
+                    {p.approval_status === "published" ? "Publicado" : p.approval_status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/*
+          05/09/2026 — achado real reportado pela Proprietária: esta seção só
+          olhava genealogical_person_profiles por correspondência de NOME
+          (uma tabela quase vazia — 2 linhas de teste em toda a organização).
+          A ficha genealógica de verdade — a mesma que /pessoas-linhagens usa,
+          com Ana, Adair, Alice e Felipe já cadastrados — vive em
+          research_people, ligada pelo caso. Corrigido para o vínculo real.
+        */}
+        {fichaGenealogica.length > 0 ||
+        fichaGenealogicaEquipe.length > 0 ||
+        perfisGenealogicos.length > 0 ? (
+          <section className="rounded-xl border border-dashed border-navy/20 bg-cream/20 p-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-serif text-lg text-navy">
+                Pesquisa genealógica interna (restrita ao Desk)
+              </h2>
+              {casos[0] ? (
+                <Link
+                  to="/pessoas-linhagens/$caseId"
+                  params={{ caseId: casos[0].id }}
+                  className="text-xs text-navy underline underline-offset-4"
+                >
+                  Abrir ficha completa
+                </Link>
+              ) : null}
+            </div>
+            <p className="mt-1 text-xs text-navy/55">
+              Vínculo pelo caso, não por nome — esta camada nunca é exposta ao App Cliente.
+            </p>
+
+            {fichaGenealogica.length > 0 ? (
+              <ul className="mt-3 space-y-1">
+                {fichaGenealogica.map((p) => (
+                  <li key={p.id} className="text-sm text-navy/80">
+                    {p.canonical_name || p.preferred_display_name}
+                    <span className="text-[11px] text-navy/50">
+                      {" "}
+                      · {p.identity_status}
+                      {p.papel_na_linhagem ? ` · ${p.papel_na_linhagem}` : ""}
+                      {p.geracao ? ` · geração ${p.geracao}` : ""}
+                      {p.birth_place ? ` · nascido(a) em ${p.birth_place}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-navy/60">
+                Esta pessoa não está cadastrada na ficha genealógica do caso ainda.
+              </p>
+            )}
+
+            {perfisGenealogicos.length > 0 ? (
+              <ul className="mt-3 space-y-1 border-t border-navy/10 pt-2">
+                {perfisGenealogicos.map((p) => (
+                  <li key={p.id} className="text-sm text-navy/80">
+                    Perfil 360°: {p.nome_completo}{" "}
+                    <span className="text-[11px] text-navy/50">· {p.status_verificacao}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {fichaGenealogicaEquipe.length > 0 ? (
+              <p className="mt-3 text-xs text-navy/55">
+                Outros membros na mesma pesquisa:{" "}
+                {fichaGenealogicaEquipe
+                  .map((p) => p.canonical_name || p.preferred_display_name)
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
 
         {/*
           O elo com o lead. `leads.case_id` está nulo em todo o banco, então

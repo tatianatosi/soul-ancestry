@@ -41,11 +41,12 @@ function QualidadePage() {
         hábito de olhar aqui.
       */}
       <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
-        A matriz de prioridades (Elegibilidade × Urgência) agora mora em{" "}
+        A matriz de prioridades (Elegibilidade × Urgência — visão macro, todos os casos) agora mora em{" "}
         <Link to="/casos" className="font-medium text-navy underline">
           Casos 360
         </Link>
-        , junto dos casos que ela posiciona.
+        , junto dos casos que ela posiciona. O Radar Individual de um caso (visão micro) fica na
+        aba "Indicadores" da ficha do próprio caso.
       </p>
       <PainelQualidade />
     </SaasShell>

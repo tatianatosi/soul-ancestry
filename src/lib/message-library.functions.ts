@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /**
  * Biblioteca de Mensagens e Conteúdos — camada interna e governada.
@@ -298,9 +299,6 @@ export const salvarTemplate = createServerFn({ method: "POST" })
       variaveisSeguras?: string[];
       variaveisObrigatorias?: string[];
     }) => {
-      if (!data?.categoriaId) throw new Error("Categoria obrigatória.");
-      if (!data.key?.trim()) throw new Error("Chave do modelo é obrigatória.");
-      if (!data.nome?.trim()) throw new Error("Nome do modelo é obrigatório.");
       const problemas = validarConteudoTemplate(data.corpo, data.publico);
       if (problemas.length) throw new Error(problemas.join(" "));
       return {
@@ -340,8 +338,14 @@ export const salvarTemplate = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      const { error } = await supabase.from("message_templates").update(linha).eq("id", data.id).eq("organization_id", org);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "message_templates",
+        id: data.id,
+        organizationId: org,
+        userId: context.userId as string,
+        payload: linha,
+      });
       return { ok: true, id: data.id };
     }
 
@@ -361,9 +365,6 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
     if (!STATUS_TEMPLATE.some((s) => s.valor === data.status)) throw new Error("Estado inválido.");
     if (data.status === "arquivado" && (data.motivo ?? "").trim().length < 5) {
       throw new Error("Arquivamento exige motivo com pelo menos 5 caracteres.");
-    }
-    if (data.status === "substituido" && !data.sucessorId) {
-      throw new Error("Substituição exige indicar o modelo sucessor.");
     }
     return {
       id: data.id,
@@ -389,8 +390,14 @@ export const definirStatusTemplate = createServerFn({ method: "POST" })
     if (data.status === "substituido") patch["supersedes_template_id"] = data.sucessorId;
     if (data.status === "vigente") patch["effective_from"] = new Date().toISOString();
 
-    const { error } = await supabase.from("message_templates").update(patch).eq("id", data.id).eq("organization_id", org);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "message_templates",
+      id: data.id,
+      organizationId: org,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
   });
 
@@ -457,8 +464,22 @@ export const registrarUsoTemplate = createServerFn({ method: "POST" })
       _case_id: data.casoId,
     });
     if (erroValidacao) throw new Error(erroValidacao.message);
+
+    // Autoridade operacional (05/09/2026): pendência informa, não impede. O
+    // registro de uso do modelo era recusado no servidor pelos bloqueios da
+    // validação, e a proprietária ficava sem conseguir sequer registrar que
+    // copiou o texto. Ela assume os bloqueios, que ficam gravados no próprio
+    // registro de uso; os demais papéis seguem bloqueados.
+    let pendenciasAssumidas: string[] = [];
     if (!validacao?.permitido) {
-      throw new Error(`Uso bloqueado: ${lista(validacao?.bloqueios).join(" ")}`);
+      const bloqueios = lista(validacao?.bloqueios);
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      pendenciasAssumidas = await assumirOuRecusarComUsuario(
+        supabase,
+        context.userId as string,
+        bloqueios.length ? bloqueios : ["Uso do modelo não permitido pela validação vigente."],
+        `Uso bloqueado: ${bloqueios.join(" ")}`,
+      );
     }
 
     const { data: modelo } = await supabase
@@ -482,8 +503,9 @@ export const registrarUsoTemplate = createServerFn({ method: "POST" })
       variables_used: Object.fromEntries(chaves.map((k) => [k, "preenchido"])),
       purpose: data.finalidade,
       external_send_status: "copiado_para_envio_manual",
-      bloqueado: false,
-      bloqueios: [],
+      // Liberar não é apagar: o uso fica marcado com a pendência assumida.
+      bloqueado: pendenciasAssumidas.length > 0,
+      bloqueios: pendenciasAssumidas,
     });
     if (error) throw new Error(error.message);
     return { ok: true };

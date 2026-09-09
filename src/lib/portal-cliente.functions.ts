@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
-import { bloqueadoParaCliente, filtrarParaCliente } from "@/lib/classificacao-dados";
+import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -35,8 +35,12 @@ export const meusCasos = createServerFn({ method: "GET" })
       porCaso.set(p.case_id, (porCaso.get(p.case_id) ?? 0) + 1);
     }
 
-    // P0.2: só registro classificado como real chega ao cliente autenticado.
-    return filtrarParaCliente((casos.data ?? []) as any[]).map((c) => {
+    // P0.2: fixture/demo nunca chega ao cliente autenticado. portal_casos não
+    // expõe classificacao_dado/data_origin (só crm_casos tem essa coluna) —
+    // usar filtrarParaCliente aqui classificava todo caso real como
+    // "não_classificado" e escondia a lista inteira; semFixtures usa o sinal
+    // que a view realmente carrega (título/código).
+    return semFixtures((casos.data ?? []) as any[]).map((c) => {
       const s = h.statusSimples(c, porCaso.get(c.id) ?? 0);
       return {
         id: c.id as string,
@@ -62,7 +66,9 @@ export const meuCaso = createServerFn({ method: "GET" })
     const acesso = await h.acessoDoCliente(supabase, context.userId as string);
 
     const caso = await h.casoAutorizado(supabase, data.casoId);
-    if (caso && bloqueadoParaCliente(caso as any)) return null; // P0.2: não-real nunca é projetado
+    // P0.2: fixture/demo nunca é projetado. Mesma correção da linha acima —
+    // portal_casos não tem data_origin, então o teste certo é o de fixture.
+    if (caso && ehFixtureLinha(caso as any)) return null;
     if (!caso) {
       const portal = await import("./portal.server");
       await portal.registrarEvento({
@@ -83,12 +89,12 @@ export const meuCaso = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true }),
       supabase
         .from("documents")
-        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at")
+        .select("id, titulo, categoria, status, origem, entrega_cliente, liberado_cliente, liberado_em, nome_arquivo, revisao_motivo, created_at, is_demo")
         .eq("case_id", data.casoId)
         .order("created_at", { ascending: false }),
       supabase
         .from("invoices")
-        .select("id, numero, descricao, valor, moeda, vencimento, status, valor_pago, paga_em")
+        .select("id, numero, descricao, valor, moeda, vencimento, status, valor_pago, paga_em, dados_teste")
         .eq("case_id", data.casoId)
         .order("vencimento", { ascending: true }),
       supabase
@@ -105,7 +111,10 @@ export const meuCaso = createServerFn({ method: "GET" })
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
     const s = h.statusSimples(caso, pendentes);
-    const docs = filtrarParaCliente((documentos.data ?? []) as any[]);
+    // documents/invoices não têm classificacao_dado nem data_origin — usar o
+    // sinal real de fixture (is_demo/dados_teste), não o filtro P0.2 que
+    // sempre escondia tudo aqui (ver correção acima e no rodapé do arquivo).
+    const docs = semFixtures((documentos.data ?? []) as any[]);
 
     return {
       caso: {
@@ -146,7 +155,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
+      faturas: semFixtures((faturas.data ?? []) as any[]).map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,
@@ -231,12 +240,18 @@ export const confirmarEnvioDocumento = createServerFn({ method: "POST" })
 
     const portal = await import("./portal.server");
     if (data.solicitacaoId) {
-      await portal.adminClient
+      const atualizado = await portal.adminClient
         .from("portal_document_requests")
         .update({ status: "recebido", document_id: inserido.data.id, motivo_recusa: null })
         .eq("id", data.solicitacaoId)
         .eq("case_id", data.casoId)
-        .eq("organization_id", acesso.organization_id);
+        .eq("organization_id", acesso.organization_id)
+        .select("id")
+        .maybeSingle();
+      if (atualizado.error) throw new Error(atualizado.error.message);
+      if (!atualizado.data?.id) {
+        throw new Error("NENHUMA_LINHA_AFETADA: solicitação de documento não encontrada neste caso.");
+      }
     }
     await portal.adminClient.from("audit_logs").insert({
       organization_id: acesso.organization_id,
@@ -308,9 +323,8 @@ export const abrirTicket = createServerFn({ method: "POST" })
     const caso = await h.casoAutorizado(supabase, data.casoId);
     if (!caso) throw new Error("Caso não disponível para o seu acesso.");
 
-    const assunto = h.texto(data.assunto, 160);
+    const assunto = h.texto(data.assunto, 160) ?? "Mensagem sem assunto";
     const mensagem = h.texto(data.mensagem, 4000);
-    if (!assunto || !mensagem) throw new Error("Informe assunto e mensagem.");
     const categoria = Object.keys(h.CATEGORIAS_TICKET).includes(data.categoria) ? data.categoria : "duvida";
 
     const ticket = await supabase
@@ -428,12 +442,12 @@ export const minhasEntregas = createServerFn({ method: "GET" })
     const [docs, casos] = await Promise.all([
       supabase
         .from("documents")
-        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo")
+        .select("id, case_id, titulo, status, origem, liberado_cliente, liberado_em, created_at, revisao_motivo, nome_arquivo, is_demo")
         .order("created_at", { ascending: false }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    const lista = filtrarParaCliente((docs.data ?? []) as any[]);
+    const lista = semFixtures((docs.data ?? []) as any[]);
     return {
       entregas: lista
         .filter((d) => d.liberado_cliente === true)
@@ -469,12 +483,12 @@ export const minhasFaturas = createServerFn({ method: "GET" })
     const [faturas, casos] = await Promise.all([
       supabase
         .from("invoices")
-        .select("id, case_id, numero, descricao, valor, moeda, vencimento, status")
+        .select("id, case_id, numero, descricao, valor, moeda, vencimento, status, dados_teste")
         .order("vencimento", { ascending: true }),
       supabase.from("portal_casos").select("id, titulo"),
     ]);
     const nome = new Map(((casos.data ?? []) as any[]).map((c) => [c.id, c.titulo]));
-    return filtrarParaCliente((faturas.data ?? []) as any[]).map((f) => ({
+    return semFixtures((faturas.data ?? []) as any[]).map((f) => ({
       id: f.id as string,
       numero: f.numero as string | null,
       descricao: f.descricao as string | null,
@@ -484,4 +498,87 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       vencimento: f.vencimento as string | null,
       statusRotulo: h.STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto",
     }));
+  });
+
+/* ===================== COMPARTILHAMENTO DE ACHADO (LGPD) ===================== */
+
+/**
+ * Decisão da Proprietária (09/09/2026) — "cliente decide se deseja
+ * compartilhar o achado": o próprio titular, autenticado no seu portal,
+ * autoriza um achado sanitizado específico para outro membro da família.
+ * A RLS de app_projection_shares só aceita este insert quando o achado
+ * pertence a este titular (app_projections.titular_client_id = quem está
+ * logado) — nunca compartilha o documento original, só o achado aprovado.
+ */
+export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string; compartilharComClienteId: string }) => {
+    if (!d?.projecaoId || !d?.compartilharComClienteId) {
+      throw new Error("Informe o achado e a pessoa com quem compartilhar.");
+    }
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projection_shares")
+      .insert({
+        organization_id: acesso.organization_id,
+        projection_id: data.projecaoId,
+        compartilhado_com_client_id: data.compartilharComClienteId,
+        autorizado_por: "titular",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) {
+      throw new Error("Não foi possível autorizar: confirme que este achado é seu e que já foi aprovado.");
+    }
+    return { id: r.data.id as string };
+  });
+
+/** O titular revoga uma autorização de compartilhamento que ele mesmo deu. */
+export const revogarCompartilhamentoAchadoPortal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => {
+    if (!d?.id) throw new Error("Informe a autorização de compartilhamento.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    await h.acessoDoCliente(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projection_shares")
+      .update({ revogado_em: new Date().toISOString() })
+      .eq("id", data.id)
+      .is("revogado_em", null)
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) {
+      throw new Error("Não foi possível revogar: confirme que a autorização existe e é sua.");
+    }
+    return { ok: true };
+  });
+
+/** Achados e compartilhamentos deste titular — o que ele autorizou e o que recebeu. */
+export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+    const { data, error } = await supabase
+      .from("app_projection_shares")
+      .select("id, projection_id, compartilhado_com_client_id, autorizado_em, revogado_em")
+      .order("autorizado_em", { ascending: false });
+    if (error) throw new Error(error.message);
+    return {
+      meuClienteId: acesso.client_id as string,
+      compartilhamentos: (data ?? []) as Record<string, any>[],
+    };
   });
