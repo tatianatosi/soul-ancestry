@@ -2,28 +2,33 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
+import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import {
   CANAIS_CONSENTIMENTO,
-  COMPLEXIDADE_DOCUMENTAL,
-  CONFIANCA_TRIAGEM,
+  CATALOGOS,
   CONSENTIMENTO_STATUS,
-  ELEGIBILIDADE_PRELIMINAR,
-  ESTADO_DOCUMENTAL_INICIAL,
-  GERACOES_ASCENDENTE,
-  LINHAS_TRANSMISSAO,
-  NIVEIS_INTENCAO,
-  OBJECOES,
-  PROXIMAS_ACOES,
+  DOCUMENTOS_CHAVE,
+  NACIONALIDADES,
+  PESQUISA_PREVIA_ESCOPO,
   RESULTADOS_DISCOVERY,
   STATUS_CALL,
-  VIAS_JURIDICAS,
   rotulo,
   type LeadDesk,
+  type Opcao,
 } from "@/lib/crm-desk";
-import { ROTEIRO_DISCOVERY, progressoRoteiro } from "@/lib/discovery-roteiro";
+import {
+  META_CAMPO_ROTEIRO,
+  ROTEIRO_DISCOVERY,
+  ROTULO_CAMPO_ROTEIRO,
+  ROTULO_ESTADO_RESPOSTA,
+  estadoResposta,
+  progressoRoteiro,
+  type EstadoRespostaRoteiro,
+} from "@/lib/discovery-roteiro";
 import {
   ROTULO_ESTADO_CALL,
   acaoVencida,
@@ -37,6 +42,21 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
+import type { Achado } from "@/lib/varredura-whatsapp";
+
+/** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
+const CATALOGO_MULTI: Record<string, Opcao[]> = {
+  nacionalidades_interesse: NACIONALIDADES,
+  documentos_chave: DOCUMENTOS_CHAVE,
+  pesquisa_previa_escopo: PESQUISA_PREVIA_ESCOPO,
+};
+
+const CORES_ESTADO_RESPOSTA: Record<EstadoRespostaRoteiro, string> = {
+  confirmado: "border-sage/50 bg-sage/15 text-navy",
+  informado_a_confirmar: "border-gold/50 bg-gold/15 text-atencao",
+  hipotese: "border-atencao/40 bg-atencao-suave text-atencao",
+  pendente: "border-navy/15 bg-navy/5 text-navy/50",
+};
 
 const CARTAO = "rounded-xl border border-navy/10 bg-white p-4";
 
@@ -97,6 +117,18 @@ export function PainelCalls() {
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [aviso, setAviso] = useState<string | null>(null);
+  // CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): achados da varredura de
+  // WhatsApp, vivos só nesta tela (a conversa nunca é persistida). Hipótese
+  // e achado ignorado são por lead+campo para não vazar de um lead a outro.
+  const [achados, setAchados] = useState<Achado[]>([]);
+  const [hipoteses, setHipoteses] = useState<Set<string>>(new Set());
+  const [ignorados, setIgnorados] = useState<Set<string>>(new Set());
+  const chaveLeadCampo = (campo: string) => `${selecionado ?? ""}:${campo}`;
+
+  const carregarTrilhas = useServerFn(listarTrilhasJuridicas);
+  const qTrilhas = useQuery({ queryKey: ["trilhas-juridicas"], queryFn: () => carregarTrilhas(), retry: false });
+  const trilhas = qTrilhas.data?.trilhas ?? [];
+  const marcos = qTrilhas.data?.marcos ?? [];
 
   const hoje = new Date().toISOString();
   const visiveis = useMemo(
@@ -109,6 +141,51 @@ export function PainelCalls() {
   const leadBase = visiveis.find((l) => l.id === selecionado) ?? null;
   const lead = leadBase ? ({ ...leadBase, ...rascunho } as LeadDesk) : null;
   const avaliacao = lead ? avaliarHandoffCall(lead) : null;
+
+  const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
+    valor: t.id,
+    rotulo: `${t.pais ?? "—"} · ${t.track_name ?? t.code ?? "—"} (${rotulo("status_via", t.status_via)})`,
+  }));
+  const opcoesMarcos: Opcao[] = marcos
+    .filter((m: any) => !lead?.trilha_referencia_id || m.track_id === lead.trilha_referencia_id)
+    .map((m: any) => ({ valor: m.id, rotulo: `${m.label} — ${rotulo("status_marco", m.status)}` }));
+  const trilhaSelecionada = trilhas.find((t: any) => t.id === lead?.trilha_referencia_id) ?? null;
+
+  /** Achados de WhatsApp ainda não aplicados a este campo, deste lead. */
+  const achadosDoCampo = (campo: string): Achado[] => {
+    const valorAtual = (lead as unknown as Record<string, unknown>)?.[campo];
+    const jaTem = new Set(Array.isArray(valorAtual) ? valorAtual : valorAtual ? [String(valorAtual)] : []);
+    return achados.filter(
+      (a) => a.campo === campo && !jaTem.has(a.valor) && !ignorados.has(`${chaveLeadCampo(campo)}:${a.valor}`),
+    );
+  };
+
+  const aplicarAchado = (campo: string, valor: string, multi: boolean) => {
+    setRascunho((r) => {
+      if (!multi) return { ...r, [campo]: valor };
+      const atual = ((r[campo] as string[] | undefined) ?? (lead as any)?.[campo] ?? []) as string[];
+      return atual.includes(valor) ? r : { ...r, [campo]: [...atual, valor] };
+    });
+    setHipoteses((s) => {
+      const n = new Set(s);
+      n.delete(chaveLeadCampo(campo));
+      return n;
+    });
+  };
+  const virarHipoteseAchado = (campo: string, valor: string, multi: boolean) => {
+    aplicarAchado(campo, valor, multi);
+    setHipoteses((s) => new Set(s).add(chaveLeadCampo(campo)));
+  };
+  const ignorarAchado = (campo: string, valor: string) =>
+    setIgnorados((s) => new Set(s).add(`${chaveLeadCampo(campo)}:${valor}`));
+  const alternarHipotese = (campo: string) =>
+    setHipoteses((s) => {
+      const n = new Set(s);
+      const chave = chaveLeadCampo(campo);
+      if (n.has(chave)) n.delete(chave);
+      else n.add(chave);
+      return n;
+    });
 
   const mutar = useMutation({
     mutationFn: (valores: Record<string, unknown>) =>
@@ -129,7 +206,150 @@ export function PainelCalls() {
 
   const set = (campo: string) => (v: string | boolean) =>
     setRascunho((r) => ({ ...r, [campo]: v === "" ? null : v }));
+  const setArray = (campo: string) => (v: string[]) => setRascunho((r) => ({ ...r, [campo]: v }));
   const campo = (c: keyof LeadDesk) => String((lead?.[c] as string | null | undefined) ?? "");
+  const campoArray = (c: keyof LeadDesk) => ((lead?.[c] as string[] | null | undefined) ?? []) as string[];
+
+  // Item 6 da missão: só cria/atualiza tarefa quando há consequência real —
+  // responsável + prazo definidos E já existe caso (antes do handoff, a
+  // "próxima ação" do próprio lead já é o registro; tarefa é coisa de caso).
+  const criarTarefaFn = useServerFn(salvarTarefa);
+  const mTarefaProximaAcao = useMutation({
+    mutationFn: () =>
+      criarTarefaFn({
+        data: {
+          valores: {
+            caso_id: lead?.case_id,
+            titulo: `${rotulo("proxima_acao", lead?.proxima_acao)} — ${lead?.nome}`,
+            prazo: lead?.proxima_acao_em,
+            tipo: "discovery",
+          },
+        },
+      }),
+    onSuccess: () => setAviso("Tarefa criada/reaproveitada no caso a partir da próxima ação."),
+    onError: (e: Error) => setAviso(e.message),
+  });
+
+  /**
+   * Um card por campo do roteiro: pergunta (no bloco em volta), por que
+   * importa, contexto/origem (achado de WhatsApp, quando houver), o controle
+   * de resposta, o estado e o destino — a lacuna que a missão pediu para
+   * fechar ("perguntas SPIN sem local evidente para resposta/destino").
+   */
+  function renderCampoRoteiro(campoId: string) {
+    const meta = META_CAMPO_ROTEIRO[campoId];
+    if (!meta || !lead) return null;
+    const rotuloCampo = ROTULO_CAMPO_ROTEIRO[campoId] ?? campoId;
+    const estado = estadoResposta({
+      valorSalvo: (leadBase as unknown as Record<string, unknown> | null)?.[campoId],
+      valorRascunho: (lead as unknown as Record<string, unknown>)[campoId],
+      emRascunho: campoId in rascunho,
+      marcadaComoHipotese: hipoteses.has(chaveLeadCampo(campoId)),
+    });
+    const achadosPendentes = achadosDoCampo(campoId);
+    const multi = meta.tipo === "multi";
+
+    let controle: React.ReactNode;
+    if (meta.tipo === "select") {
+      controle = (
+        <Selecao label={rotuloCampo} valor={campo(campoId as keyof LeadDesk)} opcoes={CATALOGOS[campoId] ?? []} onChange={set(campoId)} />
+      );
+    } else if (meta.tipo === "multi") {
+      controle = (
+        <MultiSelecao
+          label={rotuloCampo}
+          opcoes={CATALOGO_MULTI[campoId] ?? []}
+          valores={campoArray(campoId as keyof LeadDesk)}
+          onChange={setArray(campoId)}
+        />
+      );
+    } else if (meta.tipo === "numero") {
+      controle = (
+        <Texto label={rotuloCampo} tipo="number" valor={campo(campoId as keyof LeadDesk)} onChange={set(campoId)} />
+      );
+    } else if (meta.tipo === "data") {
+      controle = (
+        <Texto label={rotuloCampo} tipo="date" valor={campo(campoId as keyof LeadDesk).slice(0, 10)} onChange={set(campoId)} />
+      );
+    } else if (meta.tipo === "trilha") {
+      controle = <Selecao label={rotuloCampo} valor={campo("trilha_referencia_id")} opcoes={opcoesTrilhas} onChange={set("trilha_referencia_id")} />;
+    } else if (meta.tipo === "marco") {
+      controle = <Selecao label={rotuloCampo} valor={campo("marco_referencia_id")} opcoes={opcoesMarcos} onChange={set("marco_referencia_id")} />;
+    } else {
+      controle = <Texto label={rotuloCampo} valor={campo(campoId as keyof LeadDesk)} onChange={set(campoId)} />;
+    }
+
+    return (
+      <div key={campoId} className="rounded-lg border border-navy/10 bg-white p-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <p className="min-w-0 text-[11px] text-navy/55">{meta.porQueImporta}</p>
+          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${CORES_ESTADO_RESPOSTA[estado]}`}>
+            {ROTULO_ESTADO_RESPOSTA[estado]}
+          </span>
+        </div>
+
+        <div className="mt-2">{controle}</div>
+
+        {(estado === "confirmado" || estado === "hipotese") && meta.tipo !== "trilha" && meta.tipo !== "marco" ? (
+          <button
+            type="button"
+            onClick={() => alternarHipotese(campoId)}
+            className="mt-1 text-[10px] text-navy/50 underline"
+          >
+            {estado === "hipotese" ? "Tratar como confirmado" : "Marcar como hipótese"}
+          </button>
+        ) : null}
+
+        {campoId === "trilha_referencia_id" && trilhaSelecionada ? (
+          <div className="mt-2 rounded-lg border border-navy/10 bg-cream/40 p-2 text-[11px] text-navy/70">
+            <p className="font-medium text-navy">
+              {trilhaSelecionada.pais} · {trilhaSelecionada.track_name} — {rotulo("status_via", trilhaSelecionada.status_via)}
+            </p>
+            {trilhaSelecionada.legal_reference_summary ? <p className="mt-1">{trilhaSelecionada.legal_reference_summary}</p> : null}
+            <p className="mt-1">
+              Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.
+            </p>
+          </div>
+        ) : null}
+
+        {achadosPendentes.map((a) => (
+          <div key={`${a.campo}-${a.valor}`} className="mt-2 rounded-lg border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy">
+            <p>
+              <strong>Informado via WhatsApp — a confirmar:</strong> {a.valor}
+            </p>
+            <p className="mt-1 border-l-2 border-navy/15 pl-2 italic text-navy/65">“{a.trecho}”</p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => aplicarAchado(campoId, a.valor, multi)}
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+              >
+                Confirmar
+              </button>
+              <button
+                type="button"
+                onClick={() => virarHipoteseAchado(campoId, a.valor, multi)}
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+              >
+                Virar hipótese
+              </button>
+              <button
+                type="button"
+                onClick={() => ignorarAchado(campoId, a.valor)}
+                className="rounded border border-navy/20 px-1.5 py-0.5 text-navy hover:bg-white"
+              >
+                Ignorar
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <p className="mt-2 text-[10px] text-navy/45">
+          Vai para: {meta.destino}. {meta.consequencia}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -139,7 +359,7 @@ export function PainelCalls() {
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
-      <VarreduraWhatsApp />
+      <VarreduraWhatsApp onAchadosMudaram={setAchados} />
 
       {isError ? (
         <p
@@ -246,7 +466,7 @@ export function PainelCalls() {
             <>
               <Secao
                 titulo={`Registro da call — ${lead.nome}`}
-                descricao="Grava no lead canônico do CRM. Não cria ficha paralela."
+                descricao="Grava no lead canônico do CRM. Não cria ficha paralela. Próxima ação e prazo ficam no roteiro abaixo, no card 'Decisão e próximo passo'."
               >
                 <div className="grid gap-3 md:grid-cols-2">
                   <Selecao
@@ -272,18 +492,6 @@ export function PainelCalls() {
                     tipo="datetime-local"
                     valor={campo("call_realizada_em").slice(0, 16)}
                     onChange={set("call_realizada_em")}
-                  />
-                  <Selecao
-                    label="Próxima ação"
-                    valor={campo("proxima_acao")}
-                    opcoes={PROXIMAS_ACOES}
-                    onChange={set("proxima_acao")}
-                  />
-                  <Texto
-                    label="Prazo da próxima ação"
-                    tipo="date"
-                    valor={campo("proxima_acao_em").slice(0, 10)}
-                    onChange={set("proxima_acao_em")}
                   />
                   <Selecao
                     label="Consentimento de gravação"
@@ -329,8 +537,8 @@ export function PainelCalls() {
               </Secao>
 
               <Secao
-                titulo="Qualificação preliminar"
-                descricao="Sinal interno de triagem. Não é parecer jurídico nem confirmação de elegibilidade."
+                titulo="Roteiro vivo de Discovery"
+                descricao="Cada pergunta com pergunta, por que importa, contexto/origem, resposta, estado e destino no mesmo card. Não é formulário obrigatório: salvar rascunho não exige o roteiro inteiro."
               >
                 <div className="mb-3 flex flex-wrap gap-2">
                   <Selo cor={corElegibilidade(lead.elegibilidade_preliminar)}>
@@ -340,62 +548,62 @@ export function PainelCalls() {
                     Complexidade: {rotulo("complexidade_documental", lead.complexidade_documental)}
                   </Selo>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Selecao
-                    label="Elegibilidade preliminar"
-                    valor={campo("elegibilidade_preliminar")}
-                    opcoes={ELEGIBILIDADE_PRELIMINAR}
-                    onChange={set("elegibilidade_preliminar")}
-                  />
-                  <Selecao
-                    label="Confiança da triagem"
-                    valor={campo("confianca_triagem")}
-                    opcoes={CONFIANCA_TRIAGEM}
-                    onChange={set("confianca_triagem")}
-                  />
-                  <Selecao
-                    label="Nível de intenção"
-                    valor={campo("nivel_intencao")}
-                    opcoes={NIVEIS_INTENCAO}
-                    onChange={set("nivel_intencao")}
-                  />
-                  <Selecao
-                    label="Objeção predominante"
-                    valor={campo("objecao_predominante")}
-                    opcoes={OBJECOES}
-                    onChange={set("objecao_predominante")}
-                  />
-                  <Selecao
-                    label="Via jurídica preliminar"
-                    valor={campo("via_juridica_preliminar")}
-                    opcoes={VIAS_JURIDICAS}
-                    onChange={set("via_juridica_preliminar")}
-                  />
-                  <Selecao
-                    label="Geração do ascendente"
-                    valor={campo("geracao_ascendente")}
-                    opcoes={GERACOES_ASCENDENTE}
-                    onChange={set("geracao_ascendente")}
-                  />
-                  <Selecao
-                    label="Linha de transmissão"
-                    valor={campo("linha_transmissao")}
-                    opcoes={LINHAS_TRANSMISSAO}
-                    onChange={set("linha_transmissao")}
-                  />
-                  <Selecao
-                    label="Estado documental inicial"
-                    valor={campo("estado_documental_inicial")}
-                    opcoes={ESTADO_DOCUMENTAL_INICIAL}
-                    onChange={set("estado_documental_inicial")}
-                  />
-                  <Selecao
-                    label="Complexidade documental"
-                    valor={campo("complexidade_documental")}
-                    opcoes={COMPLEXIDADE_DOCUMENTAL}
-                    onChange={set("complexidade_documental")}
-                  />
-                </div>
+
+                {(() => {
+                  const jaRenderizado = new Set<string>();
+                  return (
+                    <div className="space-y-4">
+                      {ROTEIRO_DISCOVERY.map((b) => {
+                        const p = progressoRoteiro(lead).find((x) => x.chave === b.chave)!;
+                        const camposDoBloco = b.campos.filter((c) => {
+                          if (jaRenderizado.has(c)) return false;
+                          jaRenderizado.add(c);
+                          return true;
+                        });
+                        return (
+                          <div key={b.chave} className="rounded-xl border border-navy/10 bg-cream/30 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-navy/60">{b.titulo}</p>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                  p.completo ? "bg-sage/30 text-navy" : "bg-navy/10 text-navy/60"
+                                }`}
+                              >
+                                {p.preenchidos}/{p.total}
+                              </span>
+                            </div>
+                            <ul className="mt-1.5 space-y-1 text-xs text-navy/70">
+                              {b.perguntas.map((q) => (
+                                <li key={q}>• {q}</li>
+                              ))}
+                            </ul>
+                            <div className="mt-3 grid gap-2 md:grid-cols-2">
+                              {camposDoBloco.map((c) => renderCampoRoteiro(c))}
+                            </div>
+                            {b.chave === "decisao" ? (
+                              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-navy/10 pt-3">
+                                <button
+                                  type="button"
+                                  disabled={!lead.case_id || !lead.proxima_acao || !lead.proxima_acao_em || mTarefaProximaAcao.isPending}
+                                  onClick={() => mTarefaProximaAcao.mutate()}
+                                  title={
+                                    lead.case_id
+                                      ? "Cria ou reaproveita a tarefa no caso a partir da próxima ação."
+                                      : "Só disponível depois do handoff, quando o lead já tem caso."
+                                  }
+                                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
+                                >
+                                  Criar/atualizar tarefa desta próxima ação
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
                 <div className="mt-3">
                   <Pendencias
                     titulo="Bloqueios da qualificação"
@@ -469,42 +677,6 @@ export function PainelCalls() {
                 {aviso ? <span className="text-xs text-navy/70">{aviso}</span> : null}
               </div>
 
-              <Secao
-                titulo="Roteiro vivo de Discovery"
-                descricao="Guia contextual de perguntas. Progresso calculado do que já foi respondido no registro acima — não é formulário obrigatório e não conclui rota jurídica, prazo ou preço."
-              >
-                <div className="grid gap-3 md:grid-cols-2">
-                  {ROTEIRO_DISCOVERY.map((b) => {
-                    const p = progressoRoteiro(lead).find((x) => x.chave === b.chave)!;
-                    return (
-                      <div
-                        key={b.chave}
-                        className={`rounded-lg border p-3 ${
-                          p.completo ? "border-sage/50 bg-sage/10" : "border-navy/10 bg-cream/40"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-navy/60">
-                            {b.titulo}
-                          </p>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                              p.completo ? "bg-sage/30 text-navy" : "bg-navy/10 text-navy/60"
-                            }`}
-                          >
-                            {p.preenchidos}/{p.total}
-                          </span>
-                        </div>
-                        <ul className="mt-1 space-y-1 text-xs text-navy/70">
-                          {b.perguntas.map((q) => (
-                            <li key={q}>• {q}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Secao>
             </>
           )}
         </div>

@@ -129,3 +129,37 @@ export function Selecao({
     </label>
   );
 }
+
+/** Seleção múltipla por checkbox — mesmo padrão visual de Selecao/Texto. */
+export function MultiSelecao({
+  label,
+  opcoes,
+  valores,
+  onChange,
+  desabilitado,
+}: {
+  label: string;
+  opcoes: Opcao[];
+  valores: string[];
+  onChange: (v: string[]) => void;
+  desabilitado?: boolean;
+}) {
+  return (
+    <div>
+      <Rotulo>{label}</Rotulo>
+      <div className="mt-1 grid gap-1 md:grid-cols-2">
+        {opcoes.map((o) => (
+          <label key={o.valor} className="flex items-center gap-2 text-xs text-navy">
+            <input
+              type="checkbox"
+              disabled={desabilitado}
+              checked={valores.includes(o.valor)}
+              onChange={(e) => onChange(e.target.checked ? [...valores, o.valor] : valores.filter((v) => v !== o.valor))}
+            />
+            {o.rotulo}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
