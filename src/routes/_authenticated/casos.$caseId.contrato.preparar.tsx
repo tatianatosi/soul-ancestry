@@ -42,6 +42,7 @@ import {
   FONTES_APENAS_APOIO,
 } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
 import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
 
@@ -122,6 +123,8 @@ function Pagina() {
   const revisar = useServerFn(solicitarRevisaoHumana);
   const auditoria = useServerFn(auditoriaPreparacao);
   const lerInstancias = useServerFn(instanciasDocumentaisDoCaso);
+  const carregarPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
+  const garantirPerfil = useServerFn(garantirPerfilInstitucionalDaSessao);
 
   const q = useQuery({ queryKey: chave, queryFn: () => abrir({ data: { caseId } }), retry: false });
   const registroId = (q.data as any)?.registro?.id as string | undefined;
@@ -136,6 +139,21 @@ function Pagina() {
     queryKey: [...chave, "instancias-anexos", casoUuid],
     queryFn: () => lerInstancias({ data: { caseId: casoUuid as string } }),
     enabled: Boolean(casoUuid),
+  });
+
+  // CA12-PERFIL (09/09/2026): perfil institucional persistido é a fonte
+  // viva por organização — antes existia sem nenhuma tela consumindo.
+  const qPerfilPersistido = useQuery({
+    queryKey: ["perfil-institucional-persistido"],
+    queryFn: () => carregarPerfilPersistido(),
+  });
+  const mGarantirPerfil = useMutation({
+    mutationFn: () => garantirPerfil(),
+    onSuccess: () => {
+      toast.success("Perfil institucional registrado como fonte viva desta organização.");
+      qc.invalidateQueries({ queryKey: ["perfil-institucional-persistido"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const materializar = useServerFn(materializarAnexosRevisados);
@@ -516,6 +534,37 @@ function Pagina() {
                 Ver contrato-base
               </Link>
             </p>
+            {qPerfilPersistido.data && (
+              <div
+                className={
+                  qPerfilPersistido.data.persistido
+                    ? "mb-2 rounded-lg border border-navy/10 bg-cream/40 p-2 text-[11px] text-navy/70"
+                    : "mb-2 rounded-lg border border-terracotta/40 bg-terracotta/5 p-2 text-[11px] text-terracotta"
+                }
+              >
+                {qPerfilPersistido.data.persistido ? (
+                  <p>
+                    Fonte viva confirmada: perfil institucional persistido (versão{" "}
+                    {qPerfilPersistido.data.payload.versao}) nesta organização.
+                  </p>
+                ) : (
+                  <>
+                    <p>
+                      Pendência: perfil institucional ainda não registrado como fonte viva nesta organização — a
+                      prévia usa a versão de referência do contrato-base até o registro.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => mGarantirPerfil.mutate()}
+                      disabled={mGarantirPerfil.isPending}
+                      className="mt-1 rounded border border-terracotta/50 px-2 py-1 disabled:opacity-60"
+                    >
+                      {mGarantirPerfil.isPending ? "Registrando…" : "Registrar perfil institucional desta organização"}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <PerfilInstitucionalBloco
               campos={perfilInstitucional.campos}
               versao={perfilInstitucional.versao}
