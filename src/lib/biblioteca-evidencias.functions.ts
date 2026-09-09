@@ -312,6 +312,11 @@ export const despublicarProjecao = createServerFn({ method: "POST" })
  * e-mail ou qualquer canal externo. Mesma tabela (`case_alerts`) já usada por
  * `registrarProximaAcao` (caso-canonico.functions.ts), aqui escopada à
  * projeção específica.
+ *
+ * 09/09/2026 — deduplicação: mesmo padrão de `registrarRevalidacaoProposta`
+ * (escopo-conferencia.functions.ts), a única rotina que já evitava alerta
+ * repetido. Um alerta `pending` do mesmo tipo já aberto para o caso é
+ * reaproveitado, nunca duplicado.
  */
 export const prepararAlertaProjecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -319,6 +324,17 @@ export const prepararAlertaProjecao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    const { data: existente } = await supabase
+      .from("case_alerts")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("tipo", "microentrega_pendente")
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+    if (existente?.id) return { id: existente.id as string, criado: false };
+
     const r = await supabase
       .from("case_alerts")
       .insert({
@@ -334,7 +350,7 @@ export const prepararAlertaProjecao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
-    return { id: r.data.id as string };
+    return { id: r.data.id as string, criado: true };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */

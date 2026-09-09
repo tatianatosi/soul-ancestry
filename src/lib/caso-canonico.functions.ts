@@ -212,7 +212,11 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
     const mapa = mapaDaAcao(c.proxima_acao_codigo);
     const externo = c.target_audience && c.target_audience !== "interno_tatiana";
 
-    await supabase.from("case_alerts").insert({
+    // 09/09/2026 — "próxima ação: apenas uma por caso". Antes, cada clique em
+    // "registrar" empilhava um novo case_alerts pending, mesmo com um já
+    // aberto para o mesmo caso. Reaproveita o alerta pending existente
+    // (atualiza título/detalhe/prazo) em vez de duplicar.
+    const alertaPayload = {
       organization_id: organizationId,
       case_id: data.caseId,
       tipo: "proxima_acao",
@@ -221,7 +225,20 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       detalhe: `Responsável: ${c.responsavel_principal}. Público: ${c.target_audience}. Canal sugerido: ${c.suggested_channel}.`,
       status: "pending",
       due_at: new Date(`${c.prazo_proxima_acao}T12:00:00-03:00`).toISOString(),
-    });
+    };
+    const { data: alertaExistente } = await supabase
+      .from("case_alerts")
+      .select("id")
+      .eq("case_id", data.caseId)
+      .eq("tipo", "proxima_acao")
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+    if (alertaExistente?.id) {
+      await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id);
+    } else {
+      await supabase.from("case_alerts").insert(alertaPayload);
+    }
 
     let comunicacaoId: string | null = null;
     if (externo && mapa.rascunhoWhatsapp) {
