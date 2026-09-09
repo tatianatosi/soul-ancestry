@@ -171,6 +171,39 @@ function RelatoriosFase() {
         ))}
       </section>
 
+      {/*
+        CA21-BIBLIOTECA-MESTRE-CONECTADA (09/09/2026): a Biblioteca Mestre já
+        governa "Modelos F1/F2" (master_library_items, categoria=modelos), mas
+        nada aqui apontava para essa referência — quem elabora o relatório não
+        via qual versão de modelo está homologada. case_reports não tem campo
+        de vínculo, então isto é só leitura: mostra o modelo, não grava nada.
+      */}
+      <section className="mt-6 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold text-navy">Modelos F1/F2 homologados (Biblioteca Mestre)</h2>
+          <Link to="/biblioteca" className="text-[11px] text-terracotta underline">
+            Ver Biblioteca Mestre completa
+          </Link>
+        </div>
+        {(dados.modelosBiblioteca ?? []).length === 0 ? (
+          <p className="mt-1 text-xs text-navy/60">
+            Sem dado — nenhum modelo cadastrado na Biblioteca Mestre (subárea Modelos) para esta organização.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1 text-xs text-navy/70">
+            {(dados.modelosBiblioteca ?? []).map((m: any) => (
+              <li key={m.id}>
+                <strong className="text-navy">{m.titulo}</strong> · versão {m.versao} ·{" "}
+                {m.vigencia_estado === "homologado" || m.vigencia_estado === "vigente"
+                  ? "homologado"
+                  : "não homologado"}{" "}
+                ({m.status})
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="mt-8 rounded-xl border border-navy/15 p-4">
         <h2 className="font-serif text-lg text-navy">{editandoId ? "Editar relatório" : "Registrar relatório existente"}</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
