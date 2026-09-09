@@ -17,6 +17,7 @@ import {
 } from "@/lib/comercial.functions";
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
+import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
@@ -383,6 +384,16 @@ function FichaCaso() {
   const qFinanceiro = useQuery({
     queryKey: ["ficha-caso-financeiro", id],
     queryFn: () => carregarFinanceiroFn({ data: { caseId: id } }),
+    retry: false,
+  });
+
+  // CA20-PESQUISA-VIVA (09/09/2026): mesma leitura já usada por
+  // /pesquisa-evidencias/$caseId (cadeiaPesquisaDoCaso) — Caso 360 resume,
+  // nunca copia a base inteira nem conclui cidadania/linhagem sozinho.
+  const carregarPesquisaFn = useServerFn(cadeiaPesquisaDoCaso);
+  const qPesquisa = useQuery({
+    queryKey: ["ficha-caso-pesquisa", id],
+    queryFn: () => carregarPesquisaFn({ data: { caseId: id } }),
     retry: false,
   });
 
@@ -864,7 +875,26 @@ function FichaCaso() {
         </a>
         <div className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
-          <ul className="mt-1 space-y-1 text-xs">
+          {qPesquisa.isLoading ? (
+            <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
+          ) : qPesquisa.isError ? (
+            <p className="mt-1 text-xs text-terracotta">Não foi possível carregar o resumo de pesquisa.</p>
+          ) : (
+            (() => {
+              const c = qPesquisa.data;
+              const evidencias = c?.evidencias ?? [];
+              const comprovadas = evidencias.filter((e: any) => e.workflow_status === "validada_internamente").length;
+              const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido").length;
+              const achados = c?.achados?.length ?? 0;
+              return (
+                <p className="mt-1 text-xs text-navy/70">
+                  {evidencias.length} evidência(s) · {comprovadas} comprovada(s) · {pendencias} pendência(s)/lacuna(s)
+                  aberta(s) · {achados} achado(s)
+                </p>
+              );
+            })()
+          )}
+          <ul className="mt-2 space-y-1 text-xs">
             <li>
               <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
                 Achados genealógicos →
