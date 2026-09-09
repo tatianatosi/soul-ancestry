@@ -31,6 +31,12 @@ const CAMPOS_LEAD = [
   "email",
   "telefone",
   "origem",
+  // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): vínculo ausente — leads.case_id
+  // existia desde sempre mas nenhum escritor gravava nele (leads.case_id era
+  // nulo em todo o banco). Só é preenchido por confirmação humana explícita
+  // (confirmarVinculoLeadPessoa, pessoa.functions.ts), nunca por fusão
+  // automática de nome.
+  "case_id",
   "area_responsavel",
   "responsavel_nome",
   "indicado_por",

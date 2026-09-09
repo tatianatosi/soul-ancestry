@@ -6,11 +6,13 @@ import { useState } from "react";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
+import { salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
   evidenciaDeMesmaPessoa,
   montarLinhaDoTempoDaPessoa,
   type EvidenciaDeElo,
 } from "@/lib/pessoa-identidade";
+import { formatarCep, formatarCpf, formatarTelefone, UFS_BRASIL } from "@/lib/validacao-pessoa";
 
 /**
  * A página de uma pessoa.
@@ -39,35 +41,11 @@ const FORCA_ROTULO: Record<EvidenciaDeElo["forca"], string> = {
   apenas_indicio: "Só um indício",
 };
 
-const UFS = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
+// CA03-PESSOA-UNICA-VINCULOS (09/09/2026): esta lista de UFs vivia
+// hard-coded aqui, separada de `UFS_BRASIL` (validacao-pessoa.ts) — duas
+// fontes da mesma taxonomia fechada, podendo divergir em silêncio. Reusa a
+// existente; não é frente visual nova, o select continua igual.
+const UFS = UFS_BRASIL.map((u) => u.sigla);
 
 /*
   05/09/2026 — achado real reportado pela Proprietária: "sexo" e "estado_civil"
@@ -82,11 +60,15 @@ const CAMPOS_FORM: {
   rotulo: string;
   tipo?: "data" | "select";
   opcoes?: { valor: string; rotulo: string }[];
+  // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): reusa as máscaras já existentes
+  // (validacao-pessoa.ts) neste formulário ativo, que já edita CPF/CEP/
+  // telefone sem nenhuma — não é frente visual nova, só formata o mesmo input.
+  mascara?: (v: string) => string;
 }[] = [
   { chave: "nome", rotulo: "Nome completo" },
   { chave: "nome_social", rotulo: "Nome social (se diferente)" },
   { chave: "email", rotulo: "E-mail" },
-  { chave: "telefone", rotulo: "Telefone" },
+  { chave: "telefone", rotulo: "Telefone", mascara: formatarTelefone },
   {
     chave: "sexo",
     rotulo: "Sexo",
@@ -100,7 +82,7 @@ const CAMPOS_FORM: {
   { chave: "nacionalidade", rotulo: "Nacionalidade" },
   { chave: "profissao", rotulo: "Profissão" },
   { chave: "data_nascimento", rotulo: "Data de nascimento", tipo: "data" },
-  { chave: "cpf", rotulo: "CPF" },
+  { chave: "cpf", rotulo: "CPF", mascara: formatarCpf },
   { chave: "rg_numero", rotulo: "RG — número" },
   { chave: "rg_orgao_uf", rotulo: "RG — órgão/UF" },
   {
@@ -130,7 +112,7 @@ const CAMPOS_FORM: {
     tipo: "select",
     opcoes: UFS.map((uf) => ({ valor: uf, rotulo: uf })),
   },
-  { chave: "endereco_cep", rotulo: "Endereço — CEP" },
+  { chave: "endereco_cep", rotulo: "Endereço — CEP", mascara: formatarCep },
   { chave: "endereco_pais", rotulo: "Endereço — país" },
 ];
 
@@ -174,6 +156,7 @@ function Pessoa() {
   const qc = useQueryClient();
   const carregar = useServerFn(carregarPessoa);
   const salvar = useServerFn(atualizarPessoa);
+  const vincularLead = useServerFn(salvarLeadDesk);
   const q = useQuery({
     queryKey: ["pessoa", clienteId],
     queryFn: () => carregar({ data: { clienteId } }),
@@ -182,6 +165,11 @@ function Pessoa() {
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState<Partial<CamposPessoa>>({});
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+  // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): confirmação humana do vínculo
+  // lead → pessoa. Nunca funde por nome sozinho — só grava quando alguém
+  // escolhe explicitamente a qual caso desta pessoa o lead pertence.
+  const [casoEscolhido, setCasoEscolhido] = useState<Record<string, string>>({});
+  const [erroVinculo, setErroVinculo] = useState<string | null>(null);
 
   const mSalvar = useMutation({
     mutationFn: (campos: Partial<CamposPessoa>) => salvar({ data: { clienteId, campos } }),
@@ -191,6 +179,20 @@ function Pessoa() {
       void qc.invalidateQueries({ queryKey: ["pessoa", clienteId] });
     },
     onError: (e: Error) => setErroSalvar(e.message),
+  });
+
+  const mVincular = useMutation({
+    mutationFn: (v: { leadId: string; caseId: string }) =>
+      vincularLead({ data: { id: v.leadId, valores: { case_id: v.caseId } } }),
+    onSuccess: (r: any) => {
+      if (r?.ok === false) {
+        setErroVinculo(r.erros?.map((e: any) => e.motivo).join(" · ") ?? "Vínculo não aceito.");
+        return;
+      }
+      setErroVinculo(null);
+      void qc.invalidateQueries({ queryKey: ["pessoa", clienteId] });
+    },
+    onError: (e: Error) => setErroVinculo(e.message),
   });
 
   if (q.isLoading) {
@@ -367,7 +369,12 @@ function Pessoa() {
                       type={c.tipo === "data" ? "date" : "text"}
                       className="mt-1 w-full rounded-md border border-navy/15 px-2 py-1.5 text-sm text-navy"
                       value={form[c.chave] ?? ""}
-                      onChange={(e) => setForm((f) => ({ ...f, [c.chave]: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          [c.chave]: c.mascara ? c.mascara(e.target.value) : e.target.value,
+                        }))
+                      }
                     />
                   </label>
                 ),
@@ -695,13 +702,16 @@ function Pessoa() {
         ) : null}
 
         {/*
-          O elo com o lead. `leads.case_id` está nulo em todo o banco, então
-          não há caminho oficial a percorrer — só evidência a mostrar. A tela
-          nunca funde registro: diz o que encontrou e por quê, e a decisão
-          continua sendo de quem lê.
+          O elo com o lead. `leads.case_id` era nulo em todo o banco por falta
+          de escritor — não por regra de negócio. A tela nunca funde registro
+          sozinha: mostra a evidência e só grava o vínculo quando um humano
+          escolhe explicitamente o caso desta pessoa (CA03-PESSOA-UNICA-VINCULOS,
+          09/09/2026). Nome sozinho nunca é motivo suficiente — por isso o
+          botão exige escolher o caso, mesmo quando a evidência já é forte.
         */}
         <section className="rounded-xl border border-navy/10 bg-white p-5">
           <h2 className="font-serif text-lg text-navy">Antes de virar cliente</h2>
+          {erroVinculo ? <p className="mt-2 text-xs text-terracotta">{erroVinculo}</p> : null}
           {candidatos.length === 0 ? (
             <p className="mt-2 text-sm text-navy/65">
               Nenhum lead desta organização tem e-mail, telefone ou nome que bata com esta pessoa.
@@ -736,6 +746,39 @@ function Pessoa() {
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
+                  {lead.case_id ? null : casos.length === 0 ? (
+                    <p className="mt-2 text-[11px] text-navy/45">
+                      Esta pessoa ainda não tem caso — vínculo fica disponível quando houver um.
+                    </p>
+                  ) : podeEscrever ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <select
+                        value={casoEscolhido[lead.id] ?? ""}
+                        onChange={(e) => setCasoEscolhido((s) => ({ ...s, [lead.id]: e.target.value }))}
+                        className="rounded-md border border-navy/20 bg-white px-2 py-1 text-xs text-navy"
+                      >
+                        <option value="">Escolher o caso desta pessoa…</option>
+                        {casos.map((c: any) => (
+                          <option key={c.id} value={c.id}>
+                            {c.codigo ?? c.titulo ?? c.id}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        disabled={!casoEscolhido[lead.id] || mVincular.isPending}
+                        onClick={() => mVincular.mutate({ leadId: lead.id, caseId: casoEscolhido[lead.id] })}
+                        className="rounded-md border border-navy/20 px-2 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-40"
+                        title="Confirmação humana do vínculo — nunca automática. Preserva origem, Discovery e atividades do lead."
+                      >
+                        Confirmar vínculo
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-[11px] text-navy/45">
+                      Pendência registrada: {pendenciaVinculo}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
