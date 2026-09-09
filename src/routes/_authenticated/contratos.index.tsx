@@ -19,6 +19,7 @@ import {
   tomGateFinanceiro,
   tomGatePesquisa,
 } from "@/components/contratos/rotulos";
+import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -120,6 +121,46 @@ function ContratosPage() {
           {qPainel.data.excecoesExpiradas.length} exceção(ões) expirada(s) — os gates voltaram a bloquear.
         </p>
       ) : null}
+
+      <section className="mb-6 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
+          <span className="text-[11px] text-navy/50">Inventário patrimonial · leitura de {INVENTARIO_DATA}</span>
+        </div>
+        <p className="mb-3 text-xs text-navy/60">
+          Ativos preservados: versão, situação e onde cada um realmente está. Somente leitura — nenhum texto
+          jurídico é reescrito ou substituído aqui.{" "}
+          <Link to="/governanca/contrato-base" className="text-terracotta underline">
+            Ver texto do contrato-base
+          </Link>
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px] text-left text-xs">
+            <thead className="text-[10px] uppercase tracking-wide text-navy/45">
+              <tr>
+                <th className="py-1.5 pr-3">Ativo</th>
+                <th className="py-1.5 pr-3">Domínio</th>
+                <th className="py-1.5 pr-3">Versão</th>
+                <th className="py-1.5 pr-3">Situação</th>
+                <th className="py-1.5 pr-3">Fonte de verdade atual</th>
+                <th className="py-1.5">Ação necessária</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-navy/10">
+              {[...itensPorDominio("contrato_base"), ...itensPorDominio("anexos")].map((i) => (
+                <tr key={i.id} className="align-top">
+                  <td className="py-1.5 pr-3 font-medium text-navy">{i.nomeCanonico}</td>
+                  <td className="py-1.5 pr-3 text-navy/60">{ROTULO_DOMINIO[i.dominio]}</td>
+                  <td className="py-1.5 pr-3">{i.versao}</td>
+                  <td className="py-1.5 pr-3">{i.status}</td>
+                  <td className="py-1.5 pr-3 font-mono text-[11px] text-navy/60">{i.fonteDeVerdadeAtual}</td>
+                  <td className="py-1.5 text-navy/60">{i.acaoNecessaria ?? "Nenhuma — manter como leitura."}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <FilaRevisaoJuridica />
 
