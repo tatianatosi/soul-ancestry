@@ -7,6 +7,7 @@ import {
   diagnosticarOnboarding,
   esperaExternaSuspendeAlerta,
 } from "@/lib/onboarding-jornada";
+import { obterProximaAcaoCanonica } from "@/lib/caso-ficha";
 
 /*
  * 09/09/2026 — consolidação de redundâncias (docs/relatorios/
@@ -55,6 +56,29 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
     const listaChecklist = (checklist.data ?? []) as Record<string, any>[];
     const listaEntregas = (entregas.data ?? []) as Record<string, any>[];
 
+    // CA18-PROXIMA-ACAO-CANONICA (09/09/2026) — este painel calculava sua
+    // própria "próxima ação" (diagnosticarOnboarding), uma segunda narrativa
+    // divergente da RPC proxima_acao_prioritaria que Painel Hoje, Lista de
+    // Casos e Caso 360 já usam. Mesma RPC em lote, mesmo texto e prioridade
+    // para o mesmo caso em qualquer superfície.
+    const idsCasos = listaCasos.map((c) => String(c["id"]));
+    let proximasAcoes: Record<
+      string,
+      { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null }
+    > = {};
+    if (idsCasos.length > 0) {
+      const { data: lote } = await (supabase as any).rpc("proxima_acao_prioritaria_lote", { _cases: idsCasos });
+      for (const r of (lote ?? []) as any[]) {
+        proximasAcoes[r.case_id as string] = {
+          nivel: r.nivel,
+          motivo: r.motivo,
+          origem_tabela: r.origem_tabela,
+          origem_id: r.origem_id,
+          prazo: r.prazo,
+        };
+      }
+    }
+
     let bloqueados = 0;
     let semProximaAcao = 0;
     let semMicroentrega = 0;
@@ -93,13 +117,19 @@ export const obterPainelJornada = createServerFn({ method: "GET" })
       if (cadencia.some((a) => a.regra === "D10")) semTouchpoint10 += 1;
       if (cadencia.some((a) => a.regra === "D14")) semAtualizacao14 += 1;
 
+      const canonica = obterProximaAcaoCanonica({
+        caseId: String(caso["id"]),
+        rpc: proximasAcoes[String(caso["id"])] ?? null,
+        responsavelPrincipal: caso["responsavel_principal"] ?? null,
+      });
+
       detalhes.push({
         case_id: String(caso["id"]),
         codigo: caso["codigo"] ?? null,
         estado,
         diagnostico: diag.status,
-        proxima_acao: diag.proxima_acao,
-        prazo: diag.prazo,
+        proxima_acao: canonica.acao,
+        prazo: canonica.prazo ?? diag.prazo,
         alertas: cadencia.map((a) => a.titulo),
       });
     }
