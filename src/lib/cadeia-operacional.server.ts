@@ -702,8 +702,13 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     );
   }
 
-  // Conciliação obrigatória contra o catálogo homologado: SKU, preço, condição
-  // e suficiência de escopo. Divergência bloqueante impede OS e contrato.
+  // Conciliação contra o catálogo homologado: SKU, preço, condição e
+  // suficiência de escopo. 09/09/2026 — mesmo achado já corrigido em
+  // gerarRascunhoInterno (contratos.functions.ts): divergência de catálogo
+  // travava a própria criação da OS em rascunho, quando deveria travar só o
+  // ato externo (protocolo/assinatura). OS nasce em status "draft" — a
+  // pendência informa (mesmo padrão de `bloqueios`/assumirOuRecusarComUsuario
+  // logo acima), nunca impede o registro do rascunho interno.
   const { registrarConciliacao } = await import("@/lib/conciliacao-catalogo.server");
   const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
   const conciliacao = await registrarConciliacao(supabase, {
@@ -711,8 +716,16 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     userId: input.userId,
     proposalId: row.id,
   });
-  const barra = mensagemBloqueio(conciliacao);
-  if (barra) throw new Error(barra);
+  let pendenciasConciliacao: string[] = [];
+  if (mensagemBloqueio(conciliacao)) {
+    const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+    pendenciasConciliacao = await assumirOuRecusarComUsuario(
+      supabase as never,
+      input.userId,
+      conciliacao.bloqueios,
+      `OS/Anexo I registrada com pendência de conciliação de catálogo: ${conciliacao.bloqueios.join(" · ")}`,
+    );
+  }
 
 
   const hash = hashConteudo(conteudo);
@@ -726,7 +739,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     .maybeSingle();
 
   if (osExistente?.conteudo_hash === hash) {
-    return { osId: osExistente.id, versao: osExistente.versao, idempotente: true, conteudo };
+    return { osId: osExistente.id, versao: osExistente.versao, idempotente: true, conteudo, pendenciasConciliacao };
   }
 
   const versao = (osExistente?.versao ?? 0) + 1;
@@ -803,7 +816,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
     },
   });
 
-  return { osId: os.id, versao, idempotente: false, conteudo, escopo: itensEscopo };
+  return { osId: os.id, versao, idempotente: false, conteudo, escopo: itensEscopo, pendenciasConciliacao };
 }
 
 /* ------------------------------------------------------------------ */
