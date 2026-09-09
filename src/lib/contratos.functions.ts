@@ -1007,16 +1007,48 @@ export const salvarOrdemServico = createServerFn({ method: "POST" })
       if (!linhaAtualizada?.id) {
         return { ok: false, mensagem: "Nada foi gravado: ordem de serviço não encontrada nesta organização." };
       }
-    } else {
-      const { error } = await supabase.from("service_orders").insert({
-        ...corpo,
-        organization_id: organizationId,
-        contract_id: data.contract_id,
-        service_order_number: "auto",
-      });
-      if (error) return { ok: false, mensagem: error.message };
+      return { ok: true, mensagem: "Ordem de serviço registrada." };
     }
-    return { ok: true, mensagem: "Ordem de serviço registrada." };
+
+    /*
+     * Corte B (09/09/2026) — escritor único e idempotente. Este formulário
+     * inseria direto em service_orders, sem checar OS existente nem
+     * preencher proposal_id/commercial_condition_id/hash: dois caminhos
+     * podiam criar duas OS para o mesmo caso. Agora chama o mesmo escritor
+     * do caminho automático (emitirOuRecuperarOS), com origem="manual" —
+     * localiza a OS ativa/rascunho do caso antes de inserir, ou explica a
+     * pendência comercial em vez de criar uma OS solta e desvinculada.
+     */
+    let caseId = data.case_id ?? null;
+    if (!caseId) {
+      const { data: contrato } = await supabase
+        .from("contracts")
+        .select("case_id")
+        .eq("organization_id", organizationId)
+        .eq("id", data.contract_id)
+        .maybeSingle();
+      caseId = contrato?.case_id ?? null;
+    }
+    if (!caseId) {
+      return { ok: false, mensagem: "Ordem de serviço exige um caso vinculado ao contrato para localizar a proposta aprovada." };
+    }
+    try {
+      const { emitirOuRecuperarOS } = await import("@/lib/cadeia-operacional.server");
+      const r = await emitirOuRecuperarOS(supabase, {
+        org: organizationId,
+        userId: context.userId as string,
+        origem: "manual",
+        caseId,
+      });
+      return {
+        ok: true,
+        mensagem: r.idempotente
+          ? "Ordem de serviço já existia para este caso — reaproveitada, não duplicada."
+          : "Ordem de serviço registrada.",
+      };
+    } catch (e) {
+      return { ok: false, mensagem: e instanceof Error ? e.message : "Não foi possível registrar a ordem de serviço." };
+    }
   });
 
 export const criarExcecao = createServerFn({ method: "POST" })

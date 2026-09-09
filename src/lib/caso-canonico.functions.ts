@@ -272,6 +272,14 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
       organizationId,
       userId: context.userId as string,
       payload: {
+        // 09/09/2026 — achado real: crm_casos.proxima_acao (lido pela RPC
+        // proxima_acao_prioritaria, nível 8, e por Lista de Casos) nunca era
+        // sincronizado com proxima_acao_codigo (escrito pela aba da Ficha
+        // 360) — casos ficavam com os dois campos divergindo de verdade
+        // (confirmado no caso da Ana: "validar_representacao_menor" vs.
+        // "solicitar_dados_cadastrais"). Esta é a causa raiz do "duas
+        // próximas ações", não duas fontes de decisão.
+        proxima_acao: c.proxima_acao_codigo,
         alert_status: "alerted",
         alert_triggered_at: new Date().toISOString(),
         communication_status: comunicacaoId ? "awaiting_approval" : "not_applicable",
@@ -280,6 +288,58 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
     });
 
     return { ok: true, comunicacaoId, rascunhoCriado: Boolean(comunicacaoId) };
+  });
+
+/**
+ * Volta ao cálculo automático: limpa o override manual (proxima_acao e
+ * proxima_acao_codigo), sem exigir a completude de responsável/público/canal
+ * que registrarProximaAcao pede — reverter não é registrar ação nova.
+ */
+export const voltarProximaAcaoAoAutomatico = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        proxima_acao: null,
+        proxima_acao_codigo: null,
+        proxima_acao_justificativa: null,
+      },
+    });
+    return { ok: true };
+  });
+
+/**
+ * Marca explicitamente que não há nova ação necessária agora — estado
+ * terminal distinto de "sem ação definida" (null). Continua sujeito à RPC:
+ * se surgir um sinal automático mais urgente (níveis 1–6), ele prevalece.
+ */
+export const marcarSemNovaAcaoNecessaria = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { caseId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        proxima_acao: "sem_nova_acao_necessaria",
+        proxima_acao_codigo: "sem_nova_acao_necessaria",
+        proxima_acao_justificativa: null,
+      },
+    });
+    return { ok: true };
   });
 
 export const atualizarAlerta = createServerFn({ method: "POST" })

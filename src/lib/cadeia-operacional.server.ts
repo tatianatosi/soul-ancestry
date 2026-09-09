@@ -659,8 +659,53 @@ async function sincronizarEscopoContratual(
 
 
 
-export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId: string; proposalId: string }) {
-  const { data: row } = await supabase.from("proposals").select("*").eq("id", input.proposalId).maybeSingle();
+/**
+ * Escritor único e idempotente de OS/Anexo I (Corte B, 09/09/2026 —
+ * docs/relatorios/2026-09-09_consolidacao_3_redundancias_criticas_execucao.md).
+ * Antes, o caminho automático (esta função, então chamada `emitirOSAnexoI`) e
+ * o formulário manual (`salvarOrdemServico`, contratos.functions.ts)
+ * escreviam `service_orders` por caminhos incompatíveis — o manual inseria
+ * direto, sem checar OS existente nem preencher proposal_id/commercial_
+ * condition_id/hash. Os dois agora chamam esta função; `origem` só registra
+ * como esta versão nasceu, não cria um segundo motor.
+ *
+ * `proposalId` explícito é o caminho automático (vem do Planejador/Proposta/
+ * Condição já resolvidos). Quando ausente (formulário manual, que só tem
+ * `caseId`), resolve a proposta aprovada mais recente do caso — mesma regra
+ * de "mais recente vence" já usada em `materializarProposta`.
+ */
+export async function emitirOuRecuperarOS(
+  supabase: Sb,
+  input: {
+    org: string;
+    userId: string;
+    origem: "planejador_proposta_condicao" | "manual" | "reabertura_ou_ajuste";
+    proposalId?: string;
+    caseId?: string;
+  },
+) {
+  let proposalId = input.proposalId ?? null;
+  if (!proposalId) {
+    if (!input.caseId) throw new Error("OS/Anexo I exige proposalId ou caseId para localizar a proposta aprovada.");
+    const { data: propostaRecente } = await supabase
+      .from("proposals")
+      .select("id")
+      .eq("organization_id", input.org)
+      .eq("case_id", input.caseId)
+      .eq("status", "aprovada")
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!propostaRecente?.id) {
+      throw new Error(
+        "OS/Anexo I exige proposta aprovada para o caso (Proposta → Condição comercial → OS) — nenhuma encontrada.",
+      );
+    }
+    proposalId = propostaRecente.id;
+  }
+
+  const { data: row } = await supabase.from("proposals").select("*").eq("id", proposalId).maybeSingle();
   if (!row || row.organization_id !== input.org) throw new Error("Proposta não encontrada nesta organização.");
   if (row.status !== "aprovada") throw new Error("OS/Anexo I exige proposta aprovada.");
   const caso = await casoDaCadeia(supabase, input.org, row.case_id);
@@ -754,6 +799,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
       versao,
       conteudo_hash: hash,
       status: "draft",
+      origem: input.origem,
       start_condition_status: "pending",
       scope_summary: [
         `Objetivo: ${conteudo.objetivo}`,
@@ -804,6 +850,7 @@ export async function emitirOSAnexoI(supabase: Sb, input: { org: string; userId:
       proposal_id: row.id,
       versao,
       hash,
+      origem_os: input.origem,
       condicao_id: condicao.id,
       escopo_inseridos: itensEscopo.inseridos,
       escopo_atualizados: itensEscopo.atualizados,
