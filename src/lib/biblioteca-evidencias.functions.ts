@@ -252,6 +252,72 @@ export const salvarProjecao = createServerFn({ method: "POST" })
     return { id: r.data.id as string };
   });
 
+/**
+ * Ponte explícita entre entrega operacional e App Cliente (cadeia canônica,
+ * 09/09/2026): tarefa/onboarding/marco → client_deliverables (quando há
+ * entrega real) → revisão e aprovação → app_projections/portal_projecoes →
+ * conteúdo liberado no App.
+ *
+ * Só projeta uma micro-entrega já "publicado" em `client_deliverables` — o
+ * único estado cuja própria tela promete "aparece no App Cliente"
+ * (achado real: antes dessa ponte, nenhuma rota lia client_deliverables e a
+ * promessa nunca se cumpria). Cria a projeção em rascunho: passa pela MESMA
+ * revisão/aprovação/publicação humana já existente na Biblioteca Mestre
+ * (revisarProjecao/aprovarProjecao) — nunca libera automaticamente. Dedup por
+ * origem: uma micro-entrega nunca gera duas projeções.
+ */
+export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { entregaId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    const entrega = await supabase
+      .from("client_deliverables")
+      .select("id,case_id,deliverable_type,title_client,summary_approved,approval_status,organization_id")
+      .eq("id", data.entregaId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!entrega.data) throw new Error("Micro-entrega não encontrada nesta organização.");
+    if (entrega.data["approval_status"] !== "publicado") {
+      throw new Error("Só uma micro-entrega já publicada internamente pode ser projetada ao App.");
+    }
+
+    const existente = await supabase
+      .from("app_projections")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("source_entity_type", "client_deliverable")
+      .eq("source_entity_id", data.entregaId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (existente.data?.id) return { id: existente.data.id as string, criado: false };
+
+    const conteudo = String(entrega.data["summary_approved"] ?? "");
+    const checagem = conteudoProjetavel(conteudo);
+    if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+
+    const r = await supabase
+      .from("app_projections")
+      .insert({
+        organization_id: organizationId,
+        source_entity_type: "client_deliverable",
+        source_entity_id: data.entregaId,
+        case_id: entrega.data["case_id"],
+        projection_type: entrega.data["deliverable_type"],
+        destination: "app",
+        content_sanitized: conteudo,
+        approval_status: "draft",
+        visibility_scope: "titular",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { id: r.data.id as string, criado: true };
+  });
+
 /** Aprovação humana explícita: sem aprovação automática e sem publicação silenciosa. */
 export const aprovarProjecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

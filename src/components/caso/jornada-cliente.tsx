@@ -13,6 +13,7 @@ import {
   registrarInteracao,
   transicionarMicroentrega,
 } from "@/lib/jornada-cliente.functions";
+import { projetarMicroentregaParaApp } from "@/lib/biblioteca-evidencias.functions";
 import {
   FASES_JORNADA,
   ROTULO_FASE,
@@ -123,6 +124,7 @@ export function AbaJornadaCliente({
   const espera = useServerFn(definirEsperaExterna);
   const criarEntrega = useServerFn(criarMicroentregaCliente);
   const transicionar = useServerFn(transicionarMicroentrega);
+  const projetar = useServerFn(projetarMicroentregaParaApp);
 
   const q = useQuery({
     queryKey: ["jornada-cliente", casoId],
@@ -224,6 +226,19 @@ export function AbaJornadaCliente({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const mProjetar = useMutation({
+    mutationFn: (v: { entregaId: string }) => projetar({ data: v }),
+    onSuccess: (r) => {
+      toast.success(
+        r.criado
+          ? "Projeção criada em rascunho na Biblioteca Mestre. Segue revisão e aprovação por lá antes de liberar ao App."
+          : "Esta micro-entrega já tinha uma projeção — nenhuma duplicada.",
+      );
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const mEspera = useMutation({
     mutationFn: (v: { aguardando: boolean; motivo?: string }) => espera({ data: { casoId, ...v } }),
     onSuccess: () => {
@@ -268,7 +283,7 @@ export function AbaJornadaCliente({
           <div className="rounded-lg border border-navy/10 p-4">
             <p className="text-[11px] uppercase tracking-wide text-navy/50">Micro-entregas publicadas</p>
             <p className="mt-1 font-serif text-2xl text-navy">{publicadas}</p>
-            <p className="mt-1 text-xs text-navy/55">Somente publicadas aparecem no App Cliente.</p>
+            <p className="mt-1 text-xs text-navy/55">Prontas para projetar ao App — chegam ao cliente só após revisão e aprovação na Biblioteca Mestre.</p>
           </div>
         </div>
 
@@ -426,7 +441,7 @@ export function AbaJornadaCliente({
 
       <Secao
         titulo="Micro-entregas ao cliente"
-        descricao="Texto já aprovado para o cliente. Só o status “publicado” aparece no App Cliente."
+        descricao="Texto já aprovado para o cliente. “Publicado” marca pronta — só chega ao App depois de projetada, revisada e aprovada na Biblioteca Mestre."
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <Selecao
@@ -464,7 +479,7 @@ export function AbaJornadaCliente({
           }
           capacidade="editar_rascunho"
           pendenciaGate={pendenciaJornada}
-          efeito="Cria a micro-entrega em rascunho. Nada aparece no App Cliente antes de publicar."
+          efeito="Cria a micro-entrega em rascunho. Nada aparece no App Cliente antes de publicar, projetar, revisar e aprovar na Biblioteca Mestre."
           className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
           onConfirmar={() => {
             if (mEntrega.isPending) return;
@@ -499,13 +514,13 @@ export function AbaJornadaCliente({
                     {(TRANSICOES_ENTREGA[status] || SEM_TRANSICAO).map((p) => (
                       <AcaoOperacional
                         key={p}
-                        rotulo={p === "publicado" ? "Publicar no App Cliente" : `Mover para ${p}`}
+                        rotulo={p === "publicado" ? "Publicar (pronta para o App)" : `Mover para ${p}`}
                         capacidade={p === "publicado" ? undefined : "aprovar_projecao_app_cliente"}
                         acaoExterna={p === "publicado" ? "publicar_no_app_cliente" : undefined}
                         pendenciaGate={pendenciaJornada}
                         efeito={
                           p === "publicado"
-                            ? "Torna esta micro-entrega visível para o cliente no App Cliente."
+                            ? "Marca a micro-entrega como pronta. Ainda precisa ser projetada, revisada e aprovada na Biblioteca Mestre antes de chegar ao App Cliente."
                             : `Move a micro-entrega para o estado ${p}.`
                         }
                         className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
@@ -515,6 +530,19 @@ export function AbaJornadaCliente({
                         }}
                       />
                     ))}
+                    {status === "publicado" ? (
+                      <AcaoOperacional
+                        rotulo="Projetar ao App"
+                        capacidade="aprovar_projecao_app_cliente"
+                        pendenciaGate={pendenciaJornada}
+                        efeito="Cria a projeção correspondente na Biblioteca Mestre, em rascunho. Nada chega ao cliente até revisão e aprovação por lá."
+                        className="rounded-lg border border-gold/60 bg-gold/10 px-3 py-1 text-xs text-navy hover:bg-gold/20 disabled:opacity-50"
+                        onConfirmar={() => {
+                          if (mProjetar.isPending) return;
+                          mProjetar.mutate({ entregaId: String(e['id']) });
+                        }}
+                      />
+                    ) : null}
                   </div>
                 </div>
               );
