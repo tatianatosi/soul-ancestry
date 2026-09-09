@@ -8,7 +8,14 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
-import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
+import {
+  obterPropostaCanvaDoCliente,
+  obterResumoFinanceiroCaso,
+  salvarPagamento,
+  conciliarPagamento,
+  salvarFatura,
+} from "@/lib/comercial.functions";
+import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
@@ -366,6 +373,56 @@ function FichaCaso() {
     queryKey: ["ficha-caso-visao-cliente", id],
     queryFn: () => carregarVisaoClienteFn({ data: { casoId: id } }),
     retry: false,
+  });
+
+  // CA07-FINANCEIRO-SIMPLES (09/09/2026): fontes já existentes (proposals,
+  // invoices, third_party_expenses), nenhuma tabela ou cálculo de preço novo.
+  const carregarFinanceiroFn = useServerFn(obterResumoFinanceiroCaso);
+  const qFinanceiro = useQuery({
+    queryKey: ["ficha-caso-financeiro", id],
+    queryFn: () => carregarFinanceiroFn({ data: { caseId: id } }),
+    retry: false,
+  });
+  const salvarPagamentoFn = useServerFn(salvarPagamento);
+  const conciliarPagamentoFn = useServerFn(conciliarPagamento);
+  const salvarFaturaFn = useServerFn(salvarFatura);
+
+  const mRegistrarPagamento = useMutation({
+    mutationFn: async (v: { invoiceId: string; valor: number; pagoEm: string; referenciaExterna: string }) => {
+      const criado = await salvarPagamentoFn({ data: { dados: { invoice_id: v.invoiceId, valor: v.valor } } });
+      return conciliarPagamentoFn({
+        data: { id: criado.id, pago_em: v.pagoEm, valor: v.valor, referencia_externa: v.referenciaExterna },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Pagamento registrado e conciliado.");
+      void qc.invalidateQueries({ queryKey: ["ficha-caso-financeiro", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mPrepararCobranca = useMutation({
+    mutationFn: (v: { faturaId?: string; valor?: number; vencimento?: string; descricao?: string }) =>
+      v.faturaId
+        ? salvarFaturaFn({ data: { id: v.faturaId, dados: { status: "emitida" } } })
+        : salvarFaturaFn({
+            data: {
+              dados: {
+                case_id: id,
+                client_id: caso?.["cliente_id"],
+                valor: v.valor,
+                moeda: qFinanceiro.data?.moeda ?? "BRL",
+                vencimento: v.vencimento,
+                descricao: v.descricao,
+                status: "rascunho",
+              },
+            },
+          }),
+    onSuccess: () => {
+      toast.success("Cobrança preparada internamente. Nada foi enviado ao cliente.");
+      void qc.invalidateQueries({ queryKey: ["ficha-caso-financeiro", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [form, setForm] = useState<Record<string, unknown>>({});
@@ -872,6 +929,118 @@ function FichaCaso() {
             Preparar, revisar, aprovar, liberar ou despublicar →
           </Link>
         </div>
+        <div id="resumo-financeiro" className="rounded-xl border border-navy/10 bg-white p-4 sm:col-span-2 lg:col-span-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Financeiro</p>
+          {qFinanceiro.isLoading ? (
+            <p className="mt-2 text-xs text-navy/50">Carregando…</p>
+          ) : qFinanceiro.isError ? (
+            <p className="mt-2 text-xs text-terracotta">Não foi possível carregar o financeiro deste caso.</p>
+          ) : (
+            <>
+              <dl className="mt-2 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <dt className="text-navy/50">Valor contratado</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.valorContratado == null
+                      ? "Sem dados suficientes"
+                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.valorContratado.toFixed(2)}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Valor recebido</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.moeda} {qFinanceiro.data?.valorRecebido.toFixed(2)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Saldo aberto</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.saldoAberto == null
+                      ? "Sem dados suficientes"
+                      : `${qFinanceiro.data.moeda} ${qFinanceiro.data.saldoAberto.toFixed(2)}`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Próxima parcela</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.proximaParcela
+                      ? `${qFinanceiro.data.moeda} ${qFinanceiro.data.proximaParcela.valor.toFixed(2)} — ${qFinanceiro.data.proximaParcela.vencimento}`
+                      : "Sem dados suficientes"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Status</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data ? ROTULO_STATUS_FINANCEIRO_CASO[qFinanceiro.data.status] : "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Despesas de terceiros</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.despesasTerceiros
+                      ? `${qFinanceiro.data.despesasTerceiros.total} registrada(s), ${qFinanceiro.data.despesasTerceiros.aguardandoAprovacao} aguardando aprovação`
+                      : "Sem dados suficientes"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Condição comercial</dt>
+                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
+                </div>
+                <div>
+                  <dt className="text-navy/50">Próxima ação financeira</dt>
+                  <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.proximaAcaoFinanceira}</dd>
+                </div>
+              </dl>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={mRegistrarPagamento.isPending || !qFinanceiro.data?.proximaParcela}
+                  onClick={() => {
+                    const parcela = qFinanceiro.data?.proximaParcela;
+                    if (!parcela) return;
+                    const valorStr = prompt("Valor pago:", String(parcela.valor));
+                    if (!valorStr?.trim()) return;
+                    const pagoEm = prompt("Data do pagamento (AAAA-MM-DD):", new Date().toISOString().slice(0, 10));
+                    if (!pagoEm?.trim()) return;
+                    const referencia = prompt("Referência externa do pagamento (comprovante/transação):");
+                    if (!referencia?.trim()) return;
+                    mRegistrarPagamento.mutate({
+                      invoiceId: parcela.faturaId,
+                      valor: Number(valorStr),
+                      pagoEm: pagoEm.trim(),
+                      referenciaExterna: referencia.trim(),
+                    });
+                  }}
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+                  title={qFinanceiro.data?.proximaParcela ? undefined : "Sem parcela em aberto para registrar."}
+                >
+                  Registrar pagamento
+                </button>
+                <button
+                  type="button"
+                  disabled={mPrepararCobranca.isPending}
+                  onClick={() => {
+                    const rascunho = qFinanceiro.data?.faturaRascunhoAberta;
+                    if (rascunho) {
+                      mPrepararCobranca.mutate({ faturaId: rascunho.faturaId });
+                      return;
+                    }
+                    const valorStr = prompt("Valor da cobrança a preparar:");
+                    if (!valorStr?.trim()) return;
+                    const vencimento = prompt("Vencimento (AAAA-MM-DD):");
+                    if (!vencimento?.trim()) return;
+                    const descricao = prompt("Descrição interna da cobrança:") ?? "";
+                    mPrepararCobranca.mutate({ valor: Number(valorStr), vencimento: vencimento.trim(), descricao });
+                  }}
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+                  title="Só prepara internamente. Nenhum link, mensagem ou cobrança é enviado ao cliente."
+                >
+                  Preparar cobrança
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
@@ -972,6 +1141,7 @@ function FichaCaso() {
                   timeline={d.timeline}
                   blueprint={d.blueprint}
                   filaDrive={d.filaDrive}
+                  financeiro={qFinanceiro.data ?? null}
                 />
                 {/*
                   07/09/2026 — "Radar Individual" (micro) do mockup do Desk:
