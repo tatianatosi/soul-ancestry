@@ -60,7 +60,7 @@ async function auditar(
 async function casoDaCadeia(supabase: Sb, org: string, caseId: string) {
   const { data: caso } = await supabase
     .from("crm_casos")
-    .select("id,codigo,titulo,organization_id,archived_at,demo,dados_teste,responsavel_id,prazo_proxima_acao")
+    .select("id,codigo,titulo,organization_id,archived_at,demo,dados_teste,responsavel_id,responsavel_principal,prazo_proxima_acao")
     .eq("id", caseId)
     .maybeSingle();
   if (!caso || caso.organization_id !== org) throw new Error("Caso não encontrado nesta organização.");
@@ -195,11 +195,34 @@ export async function sincronizarPlanejador(
 /* Elo 2 — proposta estruturada derivada do planejador                 */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — resolve o nome real
+ * de quem está autenticado (staff_access.full_name/email), nunca um texto
+ * fixo do tipo "Comercial responsável"/"Operações responsável" vindo do
+ * cliente. Sem cadastro na organização, cai no próprio userId — nunca fica
+ * vazio nem inventa nome.
+ */
+export async function nomeResponsavelSessao(supabase: Sb, org: string, userId: string): Promise<string> {
+  const { data: staff } = await supabase
+    .from("staff_access")
+    .select("full_name,email")
+    .eq("organization_id", org)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+  const nome = (staff?.full_name as string | null)?.trim();
+  const email = (staff?.email as string | null)?.trim();
+  return nome || email || userId;
+}
+
 export async function materializarProposta(
   supabase: Sb,
-  input: { org: string; userId: string; caseId: string; responsavelComercial: string; responsavelOperacional: string },
+  input: { org: string; userId: string; caseId: string },
 ) {
   const caso = await casoDaCadeia(supabase, input.org, input.caseId);
+  const responsavelSessao = await nomeResponsavelSessao(supabase, input.org, input.userId);
+  // Responsável operacional real do caso quando já atribuído; sem isso, cai
+  // em quem está materializando a proposta agora — nunca um rótulo fixo.
+  const responsavelOperacional = (caso as { responsavel_principal?: string | null }).responsavel_principal?.trim() || responsavelSessao;
 
   // Fonte do planejador — duas tabelas reais coexistem, nenhuma é descartável
   // por si só (achado de 08/09/2026, prompt "Fechar o elo Planejador →
@@ -350,8 +373,8 @@ export async function materializarProposta(
     valor: sku?.preco_sugerido ?? (plano as { preco_comercial_vigente?: number | null }).preco_comercial_vigente ?? null,
     moeda: sku?.moeda ?? "BRL",
     preco_fonte_referencia: sku?.fonte_referencia ?? "planejador_universal",
-    responsavel_comercial: input.responsavelComercial,
-    responsavel_operacional: input.responsavelOperacional,
+    responsavel_comercial: responsavelSessao,
+    responsavel_operacional: responsavelOperacional,
     dados_teste: caso.dados_teste === true,
     updated_by: input.userId,
   };
@@ -800,6 +823,10 @@ export async function emitirOuRecuperarOS(
       conteudo_hash: hash,
       status: "draft",
       origem: input.origem,
+      // Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — nunca vazio
+      // nem fictício: responsável real do caso quando atribuído, senão quem
+      // está emitindo a OS agora.
+      responsible_user_id: (caso as { responsavel_id?: string | null }).responsavel_id ?? input.userId,
       start_condition_status: "pending",
       scope_summary: [
         `Objetivo: ${conteudo.objetivo}`,

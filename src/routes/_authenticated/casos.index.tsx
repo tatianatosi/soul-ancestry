@@ -463,6 +463,8 @@ function CasosPage() {
                 caseId: String(l["id"]),
                 rpc: rpc ? { nivel: rpc.nivel, motivo: rpc.motivo, origem_tabela: null, origem_id: null, prazo: rpc.prazo } : null,
                 responsavelPrincipal: (l["proxima_acao_responsavel"] as string) ?? null,
+                dependencia: (l["proxima_acao_dependencia"] as string) ?? null,
+                criterioConclusao: (l["proxima_acao_criterio_conclusao"] as string) ?? null,
               });
               return (
                 <span className="block space-y-1 text-xs text-navy/75">
@@ -473,7 +475,7 @@ function CasosPage() {
                     </span>
                   </span>
                   <span className="block">
-                    Responsável: {(l["proxima_acao_responsavel"] as string) || "—"}
+                    Responsável: {canonica.responsavel || "—"}
                   </span>
                   <span className="block">
                     Prazo: {canonica.prazo ? qualificarData(canonica.prazo).texto : prazoManual.texto}
@@ -481,12 +483,8 @@ function CasosPage() {
                   </span>
                   {canonica.origem === "manual" ? (
                     <>
-                      <span className="block">
-                        Depende de: {(l["proxima_acao_dependencia"] as string) || "—"}
-                      </span>
-                      <span className="block">
-                        Conclui quando: {(l["proxima_acao_criterio_conclusao"] as string) || "—"}
-                      </span>
+                      <span className="block">Depende de: {canonica.dependencia || "—"}</span>
+                      <span className="block">Conclui quando: {canonica.criterioConclusao || "—"}</span>
                       {falta.length ? (
                         <Badge texto={`Incompleta: falta ${falta.join(", ")}`} tom="alerta" />
                       ) : null}

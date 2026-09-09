@@ -458,14 +458,34 @@ export type ProximaAcaoCanonica = {
   prazo: string | null;
   referenciaEntidade: string | null;
   podeVoltarAoAutomatico: boolean;
+  /**
+   * Decisão 2 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — dependência e
+   * critério de conclusão (`crm_casos.proxima_acao_dependencia`/
+   * `proxima_acao_criterio_conclusao`) são metadados da mesma ação, não uma
+   * terceira fonte. Antes só apareciam como bloco exclusivo da Lista de
+   * Casos; agora fazem parte da leitura canônica, disponíveis em qualquer
+   * tela que mostre a próxima ação.
+   */
+  dependencia: string | null;
+  criterioConclusao: string | null;
 };
 
 export function obterProximaAcaoCanonica(input: {
   caseId: string;
   rpc: { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null } | null;
+  /**
+   * Responsável pela ação. Cada tela tem historicamente um campo diferente
+   * para isto (`responsavel_principal` na Ficha 360,
+   * `proxima_acao_responsavel` na Lista de Casos) — passe o que a tela tiver;
+   * o registro do override manual (registrarProximaAcao) sincroniza os dois.
+   */
   responsavelPrincipal?: string | null;
+  dependencia?: string | null;
+  criterioConclusao?: string | null;
 }): ProximaAcaoCanonica {
   const rpc = input.rpc;
+  const dependencia = input.dependencia ?? null;
+  const criterioConclusao = input.criterioConclusao ?? null;
   if (!rpc) {
     return {
       caseId: input.caseId,
@@ -477,6 +497,8 @@ export function obterProximaAcaoCanonica(input: {
       prazo: null,
       referenciaEntidade: null,
       podeVoltarAoAutomatico: false,
+      dependencia,
+      criterioConclusao,
     };
   }
   // Nível 8 é a própria definição da RPC para "override manual sem sinal
@@ -493,6 +515,8 @@ export function obterProximaAcaoCanonica(input: {
     prazo: rpc.prazo,
     referenciaEntidade: rpc.origem_tabela,
     podeVoltarAoAutomatico: manual,
+    dependencia,
+    criterioConclusao,
   };
 }
 

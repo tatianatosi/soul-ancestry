@@ -87,8 +87,6 @@ describe("materializarProposta — não pode apagar proposta Canva real e aprova
       org: "org-1",
       userId: "user-1",
       caseId: "caso-ana",
-      responsavelComercial: "Comercial",
-      responsavelOperacional: "Operações",
     });
 
     expect(r.idempotente).toBe(true);
@@ -117,8 +115,6 @@ describe("materializarProposta — não pode apagar proposta Canva real e aprova
       org: "org-1",
       userId: "user-1",
       caseId: "caso-ana",
-      responsavelComercial: "Comercial",
-      responsavelOperacional: "Operações",
     });
 
     expect(r.idempotente).toBe(true);

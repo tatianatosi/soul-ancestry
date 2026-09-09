@@ -10,6 +10,7 @@ import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
+import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
 import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
@@ -183,7 +184,14 @@ function Linha({
       <p className="mt-0.5">
         <EtiquetaPrioridade item={item} />
       </p>
-      <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
+      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 break-words text-xs text-navy/65">
+        <span>{item.acao}</span>
+        {item.origemAcao ? (
+          <span className="rounded-full border border-navy/15 bg-cream px-1.5 py-0.5 text-[10px] text-navy/60">
+            {SELO_PROXIMA_ACAO[item.origemAcao]}
+          </span>
+        ) : null}
+      </p>
 
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (

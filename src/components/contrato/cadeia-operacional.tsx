@@ -39,8 +39,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
   };
 
   const mGerar = useMutation({
-    mutationFn: () =>
-      gerar({ data: { caseId, responsavelComercial: "Comercial responsável", responsavelOperacional: "Operações responsável" } }),
+    mutationFn: () => gerar({ data: { caseId } }),
     onSuccess: (r: any) => {
       toast.success(r.idempotente ? "Proposta já refletia o planejador vigente." : `Proposta estruturada v${r.versao} derivada do planejador.`);
       invalidar();

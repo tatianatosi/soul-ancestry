@@ -240,7 +240,6 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
       condicao_aplicavel?: string | null;
       observacao_interna?: string | null;
       homologar?: boolean;
-      homologadoPor?: string;
     }) => ({ ...data, caseId: exigirUuid(data?.caseId, "caseId") }),
   )
   .handler(async ({ data, context }) => {
@@ -325,7 +324,15 @@ export const salvarCondicaoComercial = createServerFn({ method: "POST" })
       origem: "decisao_humana_interna",
       data_origin: "decisao_humana_interna",
       status: data.homologar ? "homologada" : "rascunho",
-      homologado_por: data.homologar ? data.homologadoPor!.trim() : null,
+      // Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — quem homologou
+      // é sempre resolvido da sessão real, nunca um nome enviado pelo
+      // cliente (equivalente a um campo de autoria livre).
+      homologado_por: data.homologar
+        ? await (async () => {
+            const { nomeResponsavelSessao } = await import("@/lib/cadeia-operacional.server");
+            return nomeResponsavelSessao(supabase, c.organization_id as string, (context as any).userId as string);
+          })()
+        : null,
       homologado_em: data.homologar ? new Date().toISOString() : null,
       updated_by: (context as any).userId,
     };

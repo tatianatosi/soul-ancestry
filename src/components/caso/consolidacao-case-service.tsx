@@ -64,7 +64,6 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
         data: {
           caseId,
           homologar,
-          homologadoPor: quem,
           forma_pagamento: cond.forma_pagamento ?? q.data?.condicao?.forma_pagamento ?? "",
           parcelas: cond.parcelas ? Number(cond.parcelas) : (q.data?.condicao?.parcelas ?? null),
           valor_parcela: cond.valor_parcela ? Number(cond.valor_parcela) : (q.data?.condicao?.valor_parcela ?? null),

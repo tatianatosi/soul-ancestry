@@ -280,6 +280,12 @@ export const registrarProximaAcao = createServerFn({ method: "POST" })
         // "solicitar_dados_cadastrais"). Esta é a causa raiz do "duas
         // próximas ações", não duas fontes de decisão.
         proxima_acao: c.proxima_acao_codigo,
+        // Decisão 2 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — mesma lógica:
+        // proxima_acao_responsavel (lido pela Lista de Casos) nunca era
+        // sincronizado com responsavel_principal (escrito por esta aba).
+        // Sincroniza a partir daqui; não apaga nem sobrescreve o histórico
+        // de linhas já gravadas, só converge as próximas gravações.
+        proxima_acao_responsavel: c.responsavel_principal,
         alert_status: "alerted",
         alert_triggered_at: new Date().toISOString(),
         communication_status: comunicacaoId ? "awaiting_approval" : "not_applicable",
