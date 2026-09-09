@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { StudioDevolutivas } from "@/components/studio-devolutivas";
 
-export const Route = createFileRoute("/studio-devolutivas")({
+// Corte D (09/09/2026, limpeza pré-Perfil 360) — esta rota vivia fora de
+// _authenticated: qualquer visitante, sem login, alcançava o preview pela
+// URL. Movida para dentro de _authenticated (herda o guard de autenticação
+// de route.tsx); o componente em si não mudou.
+export const Route = createFileRoute("/_authenticated/studio-devolutivas")({
   head: () => ({
     meta: [
       { title: "Studio de Devolutivas — Clube Ancestral" },

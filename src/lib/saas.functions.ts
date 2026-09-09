@@ -466,6 +466,30 @@ export const criarRegistro = createServerFn({ method: "POST" })
     };
     validarEstadoInicial(data.entidade, payload);
     validarRegrasNegocio(data.entidade, payload);
+
+    // Idempotência (achado de 09/09/2026, rodada de limpeza pré-Perfil 360):
+    // este CRUD genérico atende a tela /tarefas sem a proteção que
+    // salvarTarefa (ops.functions.ts) já tem — reabrir um modal ou duas abas
+    // podia criar duas tarefas idênticas. Mesma regra: caso_id + título +
+    // status aberto reaproveita em vez de duplicar.
+    const payloadGenerico = payload as Record<string, unknown>;
+    if (data.entidade === "tarefas" && payloadGenerico["caso_id"] && payloadGenerico["titulo"]) {
+      const janela = new Date(Date.now() - 60_000).toISOString();
+      const { data: existente } = await supabase
+        .from("tarefas")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("caso_id", payloadGenerico["caso_id"] as string)
+        .eq("titulo", payloadGenerico["titulo"] as string)
+        .not("status", "in", "(concluida,cancelada)")
+        .is("archived_at", null)
+        .gte("created_at", janela)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existente?.id) return { id: existente.id as string };
+    }
+
     const { data: linha, error } = await supabase.from(data.entidade).insert(payload).select("id").maybeSingle();
     if (error) throw new Error(error.message);
     return { id: linha?.id as string | undefined };

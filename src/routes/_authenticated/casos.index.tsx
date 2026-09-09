@@ -552,18 +552,6 @@ function CasosPage() {
             ],
           },
           {
-            chave: "eixo_comercial",
-            rotulo: "Fase comercial",
-            tipo: "select",
-            opcoes: EIXO_COMERCIAL,
-          },
-          {
-            chave: "eixo_formalizacao",
-            rotulo: "Fase de formalização",
-            tipo: "select",
-            opcoes: EIXO_FORMALIZACAO,
-          },
-          {
             chave: "situacao_financeira",
             rotulo: "Situação financeira",
             tipo: "select",
@@ -575,7 +563,6 @@ function CasosPage() {
             tipo: "select",
             opcoes: SITUACAO_OPERACIONAL,
           },
-          { chave: "responsavel_principal", rotulo: "Responsável interno" },
           { chave: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: PRIORIDADES },
           { chave: "data_entrada", rotulo: "Data de entrada", tipo: "data" },
           {

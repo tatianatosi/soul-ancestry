@@ -141,6 +141,26 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
       return { id: data.id };
     }
 
+    // Idempotência (achado de 09/09/2026, rodada de limpeza pré-Perfil 360):
+    // "Adicionar pendência" grava em tarefas sem a proteção que salvarTarefa
+    // (ops.functions.ts) já tem — reenviar o formulário podia duplicar.
+    if (data.bloco === "pendencias" && dados["titulo"]) {
+      const janela = new Date(Date.now() - 60_000).toISOString();
+      const { data: existente } = await supabase
+        .from("tarefas")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("caso_id", data.casoId)
+        .eq("titulo", dados["titulo"] as string)
+        .not("status", "in", "(concluida,cancelada)")
+        .is("archived_at", null)
+        .gte("created_at", janela)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existente?.id) return { id: existente.id as string };
+    }
+
     const { data: linha, error } = await supabase
       .from(alvo.nome)
       .insert({

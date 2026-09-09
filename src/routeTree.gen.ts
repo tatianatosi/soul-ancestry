@@ -14,9 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
-import { Route as MockupRouteImport } from './routes/mockup'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
-import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
 import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
@@ -44,6 +42,7 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
+import { Route as AuthenticatedMockupRouteImport } from './routes/_authenticated/mockup'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
 import { Route as AuthenticatedNucleosDuplicidadesRouteImport } from './routes/_authenticated/nucleos-duplicidades'
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
@@ -54,6 +53,7 @@ import { Route as AuthenticatedPropostasRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedStudioDevolutivasRouteImport } from './routes/_authenticated/studio-devolutivas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
@@ -135,19 +135,9 @@ const DevolutivaRoute = DevolutivaRouteImport.update({
   path: '/devolutiva',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MockupRoute = MockupRouteImport.update({
-  id: '/mockup',
-  path: '/mockup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PortalRouteRoute = PortalRouteRouteImport.update({
   id: '/portal',
   path: '/portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
-  id: '/studio-devolutivas',
-  path: '/studio-devolutivas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAcessosPortalRoute =
@@ -299,6 +289,11 @@ const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMockupRoute = AuthenticatedMockupRouteImport.update({
+  id: '/mockup',
+  path: '/mockup',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNucleosRoute = AuthenticatedNucleosRouteImport.update({
   id: '/nucleos',
   path: '/nucleos',
@@ -353,6 +348,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStudioDevolutivasRoute =
+  AuthenticatedStudioDevolutivasRouteImport.update({
+    id: '/studio-devolutivas',
+    path: '/studio-devolutivas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
@@ -668,8 +669,6 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/mockup': typeof MockupRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
@@ -697,6 +696,7 @@ export interface FileRoutesByFullPath {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -707,6 +707,7 @@ export interface FileRoutesByFullPath {
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -769,8 +770,6 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/mockup': typeof MockupRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
@@ -798,6 +797,7 @@ export interface FileRoutesByTo {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
   '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/ops': typeof AuthenticatedOpsRoute
@@ -808,6 +808,7 @@ export interface FileRoutesByTo {
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -873,8 +874,6 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/mockup': typeof MockupRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
@@ -902,6 +901,7 @@ export interface FileRoutesById {
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
+  '/_authenticated/mockup': typeof AuthenticatedMockupRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
   '/_authenticated/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
@@ -912,6 +912,7 @@ export interface FileRoutesById {
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -977,8 +978,6 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/mockup'
-    | '/studio-devolutivas'
     | '/acessos-portal'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
@@ -1006,6 +1005,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
     | '/ops'
@@ -1016,6 +1016,7 @@ export interface FileRouteTypes {
     | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
+    | '/studio-devolutivas'
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1078,8 +1079,6 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/mockup'
-    | '/studio-devolutivas'
     | '/acessos-portal'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
@@ -1107,6 +1106,7 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/mockup'
     | '/nucleos'
     | '/nucleos-duplicidades'
     | '/ops'
@@ -1117,6 +1117,7 @@ export interface FileRouteTypes {
     | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
+    | '/studio-devolutivas'
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1181,8 +1182,6 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/mockup'
-    | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
     | '/_authenticated/app-cliente-como-pessoa'
     | '/_authenticated/app-cliente-demo'
@@ -1210,6 +1209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/marketing'
     | '/_authenticated/matriz-juridica'
     | '/_authenticated/metricas'
+    | '/_authenticated/mockup'
     | '/_authenticated/nucleos'
     | '/_authenticated/nucleos-duplicidades'
     | '/_authenticated/ops'
@@ -1220,6 +1220,7 @@ export interface FileRouteTypes {
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
+    | '/_authenticated/studio-devolutivas'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1285,8 +1286,6 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
-  MockupRoute: typeof MockupRoute
-  StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1336,25 +1335,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevolutivaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mockup': {
-      id: '/mockup'
-      path: '/mockup'
-      fullPath: '/mockup'
-      preLoaderRoute: typeof MockupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/portal': {
       id: '/portal'
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/studio-devolutivas': {
-      id: '/studio-devolutivas'
-      path: '/studio-devolutivas'
-      fullPath: '/studio-devolutivas'
-      preLoaderRoute: typeof StudioDevolutivasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/acessos-portal': {
@@ -1546,6 +1531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMetricasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mockup': {
+      id: '/_authenticated/mockup'
+      path: '/mockup'
+      fullPath: '/mockup'
+      preLoaderRoute: typeof AuthenticatedMockupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/nucleos': {
       id: '/_authenticated/nucleos'
       path: '/nucleos'
@@ -1614,6 +1606,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/studio-devolutivas': {
+      id: '/_authenticated/studio-devolutivas'
+      path: '/studio-devolutivas'
+      fullPath: '/studio-devolutivas'
+      preLoaderRoute: typeof AuthenticatedStudioDevolutivasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tarefas': {
@@ -2039,6 +2038,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
   AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
+  AuthenticatedMockupRoute: typeof AuthenticatedMockupRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
   AuthenticatedNucleosDuplicidadesRoute: typeof AuthenticatedNucleosDuplicidadesRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
@@ -2049,6 +2049,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedStudioDevolutivasRoute: typeof AuthenticatedStudioDevolutivasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
   AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -2111,6 +2112,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
   AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
+  AuthenticatedMockupRoute: AuthenticatedMockupRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
   AuthenticatedNucleosDuplicidadesRoute: AuthenticatedNucleosDuplicidadesRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
@@ -2121,6 +2123,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedStudioDevolutivasRoute: AuthenticatedStudioDevolutivasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,
   AuthenticatedBibliotecaEvidenciasCaseIdRoute:
@@ -2228,8 +2231,6 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
-  MockupRoute: MockupRoute,
-  StudioDevolutivasRoute: StudioDevolutivasRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

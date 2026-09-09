@@ -212,31 +212,20 @@ function ContratoDetalhe() {
         próprio confirm/efeito do AcaoOperacional (ações externas/formais
         continuam pedindo confirmação explícita, só não ficam mais numa
         segunda barra à parte).
+
+        09/09/2026 (Corte D, limpeza pré-Perfil 360) — "Editar contrato",
+        "Adicionar anexo" e "Adicionar cláusula" só trocavam de aba (setAba),
+        sem nenhuma ação própria: duplicavam a navegação que já existe na
+        &lt;nav&gt; de abas logo abaixo, misturada na mesma fileira com botões que
+        de fato mutam. Removidos daqui; a aba correspondente continua
+        acessível pela nav.
       */}
       <div className="mt-4 flex flex-wrap items-start gap-2">
-        <button
-          onClick={() => setAba("Resumo")}
-          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
-        >
-          Editar contrato
-        </button>
         <button
           onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}
           className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
         >
           Salvar rascunho
-        </button>
-        <button
-          onClick={() => setAba("Anexos")}
-          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
-        >
-          Adicionar anexo
-        </button>
-        <button
-          onClick={() => setAba("Cláusulas")}
-          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
-        >
-          Adicionar cláusula
         </button>
         <button
           onClick={() => {
