@@ -1206,6 +1206,7 @@ function FichaCaso() {
                   onMudou={recarregar}
                   atualizar={atualizar}
                   criar={criar}
+                  bloqueado={bloqueado}
                 />
               )}
             </EstadoDados>
@@ -1476,6 +1477,7 @@ function AbaPessoas({
   onMudou,
   atualizar,
   criar,
+  bloqueado,
 }: {
   casoId: string;
   membros: Record<string, unknown>[];
@@ -1486,6 +1488,7 @@ function AbaPessoas({
   criar: (a: {
     data: { entidade: "case_members"; dados: Record<string, unknown> };
   }) => Promise<unknown>;
+  bloqueado: boolean;
 }) {
   const [novo, setNovo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -1564,6 +1567,7 @@ function AbaPessoas({
             pessoa={m}
             atualizar={atualizar}
             onMudou={onMudou}
+            bloqueado={bloqueado}
           />
         ))
       )}
@@ -1575,12 +1579,14 @@ function CartaoPessoa({
   pessoa,
   atualizar,
   onMudou,
+  bloqueado,
 }: {
   pessoa: Record<string, unknown>;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
   }) => Promise<unknown>;
   onMudou: () => void;
+  bloqueado: boolean;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvo, setSalvo] = useState<string | null>(null);
