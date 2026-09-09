@@ -13,6 +13,7 @@ import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
+import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
@@ -354,6 +355,16 @@ function FichaCaso() {
   const qDocumentos = useQuery({
     queryKey: ["ficha-caso-documentos", id],
     queryFn: () => carregarDocumentosFn({ data: { casoId: id } }),
+    retry: false,
+  });
+
+  // CA06-APP-NO-DESK (09/09/2026): mesmo resumo do que o App mostrará —
+  // app_projections/client_portal_access; produção interna (microentregas
+  // ainda não cliente-facing) conta à parte, nunca somada ao publicado.
+  const carregarVisaoClienteFn = useServerFn(resumoVisaoClienteCaso);
+  const qVisaoCliente = useQuery({
+    queryKey: ["ficha-caso-visao-cliente", id],
+    queryFn: () => carregarVisaoClienteFn({ data: { casoId: id } }),
     retry: false,
   });
 
@@ -821,6 +832,45 @@ function FichaCaso() {
               </Link>
             </li>
           </ul>
+        </div>
+        <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
+          <p className="mt-1 text-xs text-navy/60">O que o App Cliente mostra hoje — nunca produção interna.</p>
+          {qVisaoCliente.isLoading ? (
+            <p className="mt-2 text-xs text-navy/50">Carregando…</p>
+          ) : qVisaoCliente.isError ? (
+            <p className="mt-2 text-xs text-terracotta">Não foi possível carregar a visão do cliente.</p>
+          ) : (
+            <ul className="mt-2 space-y-1 text-xs text-navy/80">
+              <li>
+                Acesso: {qVisaoCliente.data?.acesso.liberado ? "liberado" : "não liberado"}
+                {qVisaoCliente.data?.acesso.statusAcesso ? ` (${qVisaoCliente.data.acesso.statusAcesso})` : ""}
+              </li>
+              <li>
+                Última atualização liberada:{" "}
+                {qVisaoCliente.data?.ultimaAtualizacaoLiberada
+                  ? `${qVisaoCliente.data.ultimaAtualizacaoLiberada.tipo} — ${String(qVisaoCliente.data.ultimaAtualizacaoLiberada.em).slice(0, 10)}`
+                  : "nenhuma ainda"}
+              </li>
+              <li>Prontas para revisão/liberação (App): {qVisaoCliente.data?.microentregasProntasParaRevisao ?? 0}</li>
+              <li>Produção interna em revisão (não vai ao App sozinha): {qVisaoCliente.data?.producaoInternaEmRevisao ?? 0}</li>
+              <li>Documentos disponíveis ao titular: {qVisaoCliente.data?.documentosDisponiveis ?? 0}</li>
+              <li>Projeções de árvore publicadas: {qVisaoCliente.data?.projecoesDeArvore ?? 0}</li>
+              <li>Preferências: sem fonte viva homologada</li>
+              <li>
+                Publicação: {qVisaoCliente.data?.estadoPublicacao.publicadas ?? 0} publicada(s),{" "}
+                {qVisaoCliente.data?.estadoPublicacao.pendentes ?? 0} pendente(s),{" "}
+                {qVisaoCliente.data?.estadoPublicacao.arquivadas ?? 0} arquivada(s)
+              </li>
+            </ul>
+          )}
+          <Link
+            to="/biblioteca-evidencias/$caseId"
+            params={{ caseId: id }}
+            className="mt-2 inline-block text-xs text-navy underline decoration-gold underline-offset-4"
+          >
+            Preparar, revisar, aprovar, liberar ou despublicar →
+          </Link>
         </div>
       </div>
 

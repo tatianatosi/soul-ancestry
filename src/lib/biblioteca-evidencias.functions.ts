@@ -258,7 +258,7 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; publicar: boolean }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
 
     // Achado de 09/09/2026 (rodada de limpeza pré-Perfil 360): aprovar/publicar
     // confiava cegamente no que foi salvo antes — não repetia a checagem de
@@ -267,7 +267,7 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
     // conteudoProjetavel. Achado só vira visível ao cliente sanitizado.
     const atual = await supabase
       .from("app_projections")
-      .select("content_sanitized")
+      .select("content_sanitized,case_id,projection_type")
       .eq("id", data.id)
       .maybeSingle();
     if (atual.error) throw new Error(atual.error.message);
@@ -289,8 +289,61 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    // CA06-APP-NO-DESK — aprovada mas ainda não publicada é "pronta para
+    // liberação": o Desk vê em /alertas sem precisar abrir a Biblioteca.
+    // Publicada já resolveu a pendência — nenhum alerta é criado.
+    if (!data.publicar) {
+      await criarOuReaproveitarAlertaProjecao(supabase, organizationId, {
+        id: data.id,
+        caseId: atual.data["case_id"] as string,
+        titulo: `Projeção "${String(atual.data["projection_type"])}" pronta para liberação`,
+      });
+    }
+
     return { ok: true };
   });
+
+/**
+ * Grava/reaproveita (nunca duplica) o alerta interno "microentrega_pendente"
+ * em `case_alerts` para uma projeção — mesma tabela e mesmo padrão de dedup
+ * usados por `registrarProximaAcao`/`registrarRevalidacaoProposta`. Extraído
+ * do corpo de `prepararAlertaProjecao` (CA06-APP-NO-DESK, 09/09/2026) para ser
+ * chamado também automaticamente quando uma projeção entra em revisão ou fica
+ * pronta para liberação — sem criar tarefa nova.
+ */
+async function criarOuReaproveitarAlertaProjecao(
+  supabase: Sb,
+  organizationId: string,
+  input: { id: string; caseId: string; titulo: string; detalhe?: string },
+) {
+  const { data: existente } = await supabase
+    .from("case_alerts")
+    .select("id")
+    .eq("case_id", input.caseId)
+    .eq("tipo", "microentrega_pendente")
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+  if (existente?.id) return { id: existente.id as string, criado: false };
+
+  const r = await supabase
+    .from("case_alerts")
+    .insert({
+      organization_id: organizationId,
+      case_id: input.caseId,
+      tipo: "microentrega_pendente",
+      criticidade: "atencao",
+      titulo: input.titulo,
+      detalhe: input.detalhe ?? `Projeção ${input.id} aguarda revisão/aprovação.`,
+      status: "pending",
+    })
+    .select("id")
+    .maybeSingle();
+  if (r.error) throw new Error(r.error.message);
+  if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+  return { id: r.data.id as string, criado: true };
+}
 
 /** Envia rascunho/aprovada de volta para revisão — nunca pula etapa às cegas. */
 export const revisarProjecao = createServerFn({ method: "POST" })
@@ -298,15 +351,25 @@ export const revisarProjecao = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const r = await supabase
       .from("app_projections")
       .update({ approval_status: "in_review" })
       .eq("id", data.id)
-      .select("id")
+      .select("id,case_id,projection_type")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    // CA06-APP-NO-DESK — entrar em revisão é conteúdo pronto para o Desk
+    // decidir: aparece em /alertas sem exigir clique manual em "Criar alerta
+    // interno" (que continua existindo, dedupado, sem risco de duplicar).
+    await criarOuReaproveitarAlertaProjecao(supabase, organizationId, {
+      id: data.id,
+      caseId: r.data["case_id"] as string,
+      titulo: `Projeção "${String(r.data["projection_type"])}" pronta para revisão`,
+    });
+
     return { ok: true };
   });
 
@@ -349,33 +412,7 @@ export const prepararAlertaProjecao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
-
-    const { data: existente } = await supabase
-      .from("case_alerts")
-      .select("id")
-      .eq("case_id", data.caseId)
-      .eq("tipo", "microentrega_pendente")
-      .eq("status", "pending")
-      .limit(1)
-      .maybeSingle();
-    if (existente?.id) return { id: existente.id as string, criado: false };
-
-    const r = await supabase
-      .from("case_alerts")
-      .insert({
-        organization_id: organizationId,
-        case_id: data.caseId,
-        tipo: "microentrega_pendente",
-        criticidade: "atencao",
-        titulo: data.titulo,
-        detalhe: data.detalhe ?? `Projeção ${data.id} aguarda revisão/aprovação.`,
-        status: "pending",
-      })
-      .select("id")
-      .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
-    return { id: r.data.id as string, criado: true };
+    return criarOuReaproveitarAlertaProjecao(supabase, organizationId, data);
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
