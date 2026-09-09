@@ -16,6 +16,8 @@ import {
   salvarFatura,
 } from "@/lib/comercial.functions";
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
+import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
+import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
 import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
@@ -381,6 +383,16 @@ function FichaCaso() {
   const qFinanceiro = useQuery({
     queryKey: ["ficha-caso-financeiro", id],
     queryFn: () => carregarFinanceiroFn({ data: { caseId: id } }),
+    retry: false,
+  });
+
+  // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
+  // (citizenship_tracks, versioned_legal_rules, legal_reference_milestones,
+  // matriz jurídica de temas), nenhuma tabela ou taxonomia nova.
+  const carregarJuridicoFn = useServerFn(validacaoJuridicaCaso);
+  const qJuridico = useQuery({
+    queryKey: ["ficha-caso-juridico", id],
+    queryFn: () => carregarJuridicoFn({ data: { caseId: id } }),
     retry: false,
   });
   const salvarPagamentoFn = useServerFn(salvarPagamento);
@@ -1448,6 +1460,43 @@ function FichaCaso() {
             </Secao>
 
             <Secao
+              titulo="Validação jurídica deste caso"
+              descricao="Decisão de ato formal, não bloqueio universal — leads, Discovery, pesquisa, tarefas, rascunhos e OS internas seguem sem depender disto."
+            >
+              {qJuridico.isLoading ? (
+                <p className="text-xs text-navy/50">Carregando…</p>
+              ) : qJuridico.isError ? (
+                <p className="text-xs text-terracotta">Não foi possível carregar a validação jurídica.</p>
+              ) : qJuridico.data?.semRotaAplicavel && !qJuridico.data.rota ? (
+                <p className="text-xs text-navy/60">
+                  Sem rota de cidadania vinculada a este caso ainda — nenhum marco/regra para avaliar.
+                  {qJuridico.data.pendencias.length ? " Ainda há pendência de tema contratual ou representação abaixo." : ""}
+                </p>
+              ) : (
+                <p className="text-xs text-navy/70">
+                  Rota: {qJuridico.data?.rota?.trackName ?? qJuridico.data?.rota?.pais ?? "—"} ·{" "}
+                  {qJuridico.data?.rota?.viaPreliminar ?? "via não registrada"} · estado:{" "}
+                  {qJuridico.data?.rota?.lifecycleStatus}
+                </p>
+              )}
+              {(qJuridico.data?.pendencias.length ?? 0) === 0 ? (
+                <p className="mt-2 text-xs text-navy/60">Nenhuma pendência jurídica para este caso.</p>
+              ) : (
+                <ul className="mt-2 space-y-2 text-xs">
+                  {qJuridico.data!.pendencias.map((p, i) => (
+                    <li key={i} className="rounded-lg border border-navy/10 bg-white/60 p-2">
+                      <p className="font-medium text-navy">{p.rotulo}</p>
+                      <p className="text-navy/60">Estado: {p.estado}</p>
+                      <p className="text-navy/60">Decisão necessária: {p.decisaoHumanaNecessaria}</p>
+                      {p.documentoOuEvidencia ? <p className="text-navy/60">Evidência: {p.documentoOuEvidencia}</p> : null}
+                      <p className="mt-1 text-terracotta">Afeta: {ROTULO_ATO_FORMAL[p.atoAfetado]}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Secao>
+
+            <Secao
               titulo="Motor e matriz de contrato"
               descricao="Vive em Contratos, não é duplicado aqui — esta é a ponte."
             >
@@ -1469,7 +1518,7 @@ function FichaCaso() {
                   to="/matriz-juridica"
                   className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/70 hover:bg-navy/5"
                 >
-                  Validação jurídica (bloqueios)
+                  Validação jurídica — temas contratuais
                 </Link>
                 <Link
                   to="/ordens-servico"
