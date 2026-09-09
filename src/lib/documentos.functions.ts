@@ -9,6 +9,7 @@ import {
   VISIBILIDADES,
   caminhoArquivo,
   contextoDocumentos,
+  exigirTitularEFinalidadeSensivel,
   limparTexto,
   podeBaixarDocumento,
   podeVerDocumento,
@@ -70,7 +71,16 @@ export const prepararUploadDocumento = createServerFn({ method: "POST" })
     return { path, token: assinado.data.token, signedUrl: assinado.data.signedUrl };
   });
 
-/** Cria ou atualiza o registro do documento (as travas do banco validam consentimento e liberação). */
+/**
+ * Cria ou atualiza o registro do documento (as travas do banco validam
+ * titular, consentimento e liberação).
+ *
+ * Decisão da Proprietária (09/09/2026) — "documento é individual por
+ * padrão": categoria sensível (identificação/certidão/documento
+ * civil/financeiro) exige a pessoa titular explícita — nunca é inferida do
+ * contratante do caso. Sem isso o documento de um dependente virava
+ * visível, por padrão, no portal do contratante.
+ */
 export const salvarDocumento = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -84,6 +94,7 @@ export const salvarDocumento = createServerFn({ method: "POST" })
       visibilidade: string;
       status: string;
       observacoes?: string;
+      finalidade?: string;
       storagePath?: string;
       nomeArquivo?: string;
       mimeType?: string;
@@ -93,6 +104,11 @@ export const salvarDocumento = createServerFn({ method: "POST" })
       if (!SENSIBILIDADES[data.sensibilidade]) throw new Error("Classificação de sensibilidade inválida.");
       if (!VISIBILIDADES[data.visibilidade]) throw new Error("Visibilidade inválida.");
       if (!STATUS_DOCUMENTO[data.status]) throw new Error("Status inválido.");
+      exigirTitularEFinalidadeSensivel({
+        categoria: data.categoria,
+        clienteId: data.clienteId,
+        finalidade: data.finalidade,
+      });
       return data;
     },
   )
@@ -109,6 +125,7 @@ export const salvarDocumento = createServerFn({ method: "POST" })
       visibilidade: data.visibilidade,
       status: data.status,
       observacoes: limparTexto(data.observacoes),
+      finalidade: limparTexto(data.finalidade, 500),
     };
     if (data.storagePath) {
       corpo["storage_path"] = data.storagePath;
