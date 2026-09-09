@@ -34,7 +34,7 @@ describe("CA07-FINANCEIRO-SIMPLES — os oito campos aparecem no Caso 360 e na V
   });
 
   it("só existem dois botões de ação financeira interna: Registrar pagamento e Preparar cobrança", () => {
-    const bloco = caso360.slice(caso360.indexOf('id="resumo-financeiro"'), caso360.indexOf('id="resumo-financeiro"') + 6000);
+    const bloco = caso360.slice(caso360.indexOf('id="resumo-financeiro"'), caso360.indexOf('id="resumo-financeiro"') + 6800);
     expect(bloco).toContain("Registrar pagamento");
     expect(bloco).toContain("Preparar cobrança");
   });

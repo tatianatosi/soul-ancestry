@@ -31,6 +31,14 @@ export type DespesaBruta = {
   estado: string;
 };
 
+export type PagamentoBruto = {
+  id: string;
+  invoice_id: string | null;
+  status: string;
+  valor: number | null;
+  moeda: string | null;
+};
+
 export type StatusFinanceiroCaso =
   | "sem_dados_suficientes"
   | "sem_cobranca_emitida"
@@ -57,6 +65,8 @@ export type ResumoFinanceiroCaso = {
   proximaParcela: { faturaId: string; valor: number; vencimento: string } | null;
   status: StatusFinanceiroCaso;
   despesasTerceiros: { total: number; aguardandoAprovacao: number; aprovadasOuPagas: number } | null;
+  /** Pagamentos estornados deste caso — já excluídos de valorRecebido pelo trigger, mas nunca antes visíveis. */
+  reembolsos: { total: number; valor: number } | null;
   proximaAcaoFinanceira: string;
   faturaRascunhoAberta: { faturaId: string } | null;
 };
@@ -74,6 +84,7 @@ export function calcularResumoFinanceiroCaso(
   faturas: readonly FaturaBruta[],
   despesas: readonly DespesaBruta[],
   hojeISO: string,
+  pagamentos: readonly PagamentoBruto[] = [],
 ): ResumoFinanceiroCaso {
   const proposta = propostaDeReferencia(propostas);
   const valorContratado = proposta ? Number(proposta.valor ?? 0) : null;
@@ -118,6 +129,15 @@ export function calcularResumoFinanceiroCaso(
       }
     : null;
 
+  // CA16-FINANCEIRO-E-CAMPANHAS (09/09/2026): payments.status='estornado' já
+  // existe e já é excluído de valorRecebido pelo trigger fn_payments_pos —
+  // mas nenhuma leitura mostrava que o estorno aconteceu. Nunca é receita,
+  // custo ou despesa de terceiro: é sua própria classificação.
+  const estornados = pagamentos.filter((p) => p.status === "estornado");
+  const reembolsos = estornados.length
+    ? { total: estornados.length, valor: estornados.reduce((soma, p) => soma + Number(p.valor ?? 0), 0) }
+    : null;
+
   return {
     valorContratado,
     moeda,
@@ -127,6 +147,7 @@ export function calcularResumoFinanceiroCaso(
     proximaParcela,
     status,
     despesasTerceiros,
+    reembolsos,
     proximaAcaoFinanceira,
     faturaRascunhoAberta: faturaRascunho ? { faturaId: faturaRascunho.id } : null,
   };
