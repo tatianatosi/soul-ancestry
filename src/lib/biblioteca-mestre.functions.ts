@@ -109,7 +109,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
       supabase
         .from("genealogical_sources_catalog")
         .select(
-          "id,nome,pais_eixo,tipo_de_acervo,acesso,restricoes:observacao_risco,cobertura_geografica,url_referencia_interna,responsavel_revisao,ultima_verificacao,archived_at,archive_motivo",
+          "id,nome,pais_eixo,tipo_de_acervo,acesso,restricoes:observacao_risco,cobertura_geografica,url_referencia_interna,responsavel_revisao,ultima_verificacao,proxima_acao,citizenship_track_id,archived_at,archive_motivo",
         ),
       supabase
         .from("controlled_taxonomies")
@@ -179,6 +179,13 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
           ...det("Cobertura", r.cobertura_geografica),
           ...det("Restrições e risco", r.restricoes),
           ...det("Referência interna", r.url_referencia_interna),
+          // CA11-CENTRO-INTELIGENCIA (09/09/2026): proxima_acao e
+          // citizenship_track_id já existiam em genealogical_sources_catalog
+          // e eram gravados em /fontes-genealogicas, mas nunca apareciam
+          // aqui — a Biblioteca Mestre mostrava a base sem dizer o que fazer
+          // com ela nem a qual trilha ela está vinculada.
+          ...det("Próxima ação", r.proxima_acao),
+          ...det("Trilha vinculada", r.citizenship_track_id),
         ],
       });
     }
