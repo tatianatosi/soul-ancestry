@@ -238,11 +238,6 @@ function ContratoDetalhe() {
         </button>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-2">
-        <Acao onClick={() => mValidar.mutate()}>Executar validações</Acao>
-        <Acao onClick={() => mSolicitar.mutate()}>Solicitar revisão humana</Acao>
-        <Acao
-          onClick={async () => {
       <div className="mt-4 flex flex-wrap items-start gap-2">
         <AcaoOperacional
           rotulo="Gerar rascunho interno"
