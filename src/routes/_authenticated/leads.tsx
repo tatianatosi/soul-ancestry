@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
@@ -65,39 +65,6 @@ import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro"
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
-
-function MultiSelecao({
-  label,
-  opcoes,
-  valores,
-  onChange,
-  desabilitado,
-}: {
-  label: string;
-  opcoes: Opcao[];
-  valores: string[];
-  onChange: (v: string[]) => void;
-  desabilitado?: boolean;
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-navy/60">{label}</p>
-      <div className="grid gap-1 md:grid-cols-2">
-        {opcoes.map((o) => (
-          <label key={o.valor} className="flex items-center gap-2 text-xs text-navy">
-            <input
-              type="checkbox"
-              disabled={desabilitado}
-              checked={valores.includes(o.valor)}
-              onChange={(e) => onChange(e.target.checked ? [...valores, o.valor] : valores.filter((v) => v !== o.valor))}
-            />
-            {o.rotulo}
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
