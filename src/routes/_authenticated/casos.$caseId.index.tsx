@@ -10,7 +10,9 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { atualizarRegistro, criarRegistro } from "@/lib/saas.functions";
 import { obterPropostaCanvaDoCliente } from "@/lib/comercial.functions";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
-import { carregarCanonico } from "@/lib/caso-canonico.functions";
+import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
+import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
+import { listarDocumentos } from "@/lib/documentos.functions";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
@@ -300,7 +302,11 @@ const SECOES = [
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoa e família" },
   { id: "jornada", rotulo: "Jornada" },
-  { id: "log", rotulo: "Registro de alterações" },
+  // CA04-CASO360-SIMPLES (09/09/2026): rótulo atualizado para o conteúdo que
+  // passou a viver aqui (histórico de fases, registro de alterações e mapa de
+  // persistência) — a seção em si não foi removida nem fundida, só recolhida
+  // por padrão.
+  { id: "log", rotulo: "Dados técnicos e validações" },
 ] as const;
 
 function FichaCaso() {
@@ -335,6 +341,21 @@ function FichaCaso() {
     void qc.invalidateQueries({ queryKey: ["ficha-caso", id] });
     void qc.invalidateQueries({ queryKey: ["caso-canonico", id] });
   };
+
+  // CA04-CASO360-SIMPLES (09/09/2026): fontes já existentes (tarefas,
+  // documentos), só filtradas por este caso — nenhuma tabela nova.
+  const carregarTarefasFn = useServerFn(listarFilaOps);
+  const qTarefas = useQuery({
+    queryKey: ["ficha-caso-tarefas", id],
+    queryFn: () => carregarTarefasFn({ data: { casoId: id } }),
+    retry: false,
+  });
+  const carregarDocumentosFn = useServerFn(listarDocumentos);
+  const qDocumentos = useQuery({
+    queryKey: ["ficha-caso-documentos", id],
+    queryFn: () => carregarDocumentosFn({ data: { casoId: id } }),
+    retry: false,
+  });
 
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvoEm, setSalvoEm] = useState<string | null>(null);
@@ -397,6 +418,60 @@ function FichaCaso() {
     },
   });
 
+  /*
+   * CA04-CASO360-SIMPLES (09/09/2026): os seis CTAs acima da dobra chamam os
+   * escritores canônicos já existentes — nenhum escritor novo. "Concluir"
+   * reusa marcarSemNovaAcaoNecessaria (mesma função de AbaProximaAcao, mais
+   * abaixo nesta página); "Reprogramar" e "Registrar atualização" gravam em
+   * crm_casos pelo mesmo atualizarRegistro do "Salvar alterações", só que com
+   * payload próprio (não dependem do form/sujo da ficha inteira); "Criar
+   * tarefa" reusa salvarTarefa, já deduplicado por caso+título+status aberto.
+   */
+  const concluirFn = useServerFn(marcarSemNovaAcaoNecessaria);
+  const mConcluir = useMutation({
+    mutationFn: () => concluirFn({ data: { caseId: id } }),
+    onSuccess: () => {
+      toast.success("Próxima ação concluída — sem nova ação necessária por ora.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível concluir", { description: e.message }),
+  });
+
+  const mReprogramar = useMutation({
+    mutationFn: (novoPrazo: string) =>
+      atualizar({ data: { entidade: "crm_casos", id, dados: { prazo_proxima_acao: novoPrazo } } }),
+    onSuccess: () => {
+      toast.success("Novo prazo gravado.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível reprogramar", { description: e.message }),
+  });
+
+  const mRegistrarAtualizacao = useMutation({
+    mutationFn: (texto: string) => {
+      const anterior = String(caso?.["resumo_interno"] ?? "").trim();
+      const linha = `${new Date().toLocaleString("pt-BR")} — ${texto}`;
+      const novo = anterior ? `${anterior}\n${linha}` : linha;
+      return atualizar({ data: { entidade: "crm_casos", id, dados: { resumo_interno: novo } } });
+    },
+    onSuccess: () => {
+      toast.success("Atualização registrada no resumo interno do caso.");
+      recarregar();
+    },
+    onError: (e: Error) => toast.error("Não foi possível registrar", { description: e.message }),
+  });
+
+  const criarTarefaFn = useServerFn(salvarTarefa);
+  const mCriarTarefa = useMutation({
+    mutationFn: (titulo: string) =>
+      criarTarefaFn({ data: { valores: { caso_id: id, titulo, tipo: "caso" } } }),
+    onSuccess: () => {
+      toast.success("Tarefa criada/reaproveitada no caso.");
+      void qc.invalidateQueries({ queryKey: ["ficha-caso-tarefas", id] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível criar a tarefa", { description: e.message }),
+  });
+
   const derivado = useMemo(
     () =>
       derivarStatusCaso({
@@ -443,6 +518,21 @@ function FichaCaso() {
 
   const viaSugerida = sugerirVia({ pais: v("pais_linha_prioritaria") });
 
+  // CA04-CASO360-SIMPLES (09/09/2026): hoisted para fora da JSX — o hero
+  // compacto e o antigo bloco de próxima ação usavam o mesmo cálculo duas
+  // vezes; agora é uma fonte só.
+  const canonica = useMemo(() => {
+    if (!qc2.data || !caso) return null;
+    return obterProximaAcaoCanonica({
+      caseId: String(caso["id"]),
+      rpc: qc2.data.proximaAcaoPrioritaria,
+      responsavelPrincipal:
+        (caso["proxima_acao_responsavel"] as string) ?? (caso["responsavel_principal"] as string) ?? null,
+      dependencia: (caso["proxima_acao_dependencia"] as string) ?? null,
+      criterioConclusao: (caso["proxima_acao_criterio_conclusao"] as string) ?? null,
+    });
+  }, [qc2.data, caso]);
+
   if (q.isLoading) {
     return (
       <SaasShell titulo="Ficha operacional do caso">
@@ -482,13 +572,8 @@ function FichaCaso() {
       descricao={`${caso["codigo"] ?? "sem código"} · ficha operacional canônica`}
       acoes={
         <div className="flex items-center gap-3">
-          <Link
-            to="/app-cliente-como-pessoa"
-            search={{ casoId: String(caso["id"]) }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm font-medium text-navy hover:bg-navy/5"
-          >
-            Abrir visão do cliente
-          </Link>
+          {/* CA04-CASO360-SIMPLES (09/09/2026): este botão morava aqui e
+              também no hero — duplicava a mesma ação. Só no hero agora. */}
           <span className="text-xs text-navy/60">
             {mSalvar.isPending
               ? "Salvando…"
@@ -520,65 +605,118 @@ function FichaCaso() {
           App Cliente.
         </p>
       ) : null}
-      {caso["ativo"] ? (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+      {/*
+        CA04-CASO360-SIMPLES (09/09/2026) — mockup aprovado define a primeira
+        superfície: Situação hoje/Próxima ação/Responsável/Prazo/Motivo/
+        Impacto e seis ações, acima da dobra. Nada do que existia foi perdido:
+        eixos comerciais completos, estado de ativação e os links de pesquisa
+        continuam abaixo, nos quatro resumos; gates/logs/histórico foram para
+        "Dados técnicos e validações", recolhida, no fim da página.
+      */}
+      <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 p-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-800">
-              Caso ativo
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Situação hoje</p>
+            <p className="mt-0.5 text-sm font-medium text-navy">
+              {caso["ativo"] ? "Caso ativo" : rotulo(STATUS_DERIVADO, derivado.valor)}
             </p>
-            <p className="mt-0.5 text-sm text-emerald-900">
-              {caso["data_ativacao"] || caso["ativado_em"]
-                ? `Ativado em ${new Date(
-                    String(caso["data_ativacao"] ?? caso["ativado_em"]),
-                  ).toLocaleString("pt-BR")}`
-                : "Ativado"}
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Próxima ação</p>
+            <p className="mt-0.5 text-sm font-medium text-navy">{canonica?.acao ?? "—"}</p>
+            {canonica ? (
+              <span className="mt-0.5 inline-block rounded-full border border-navy/15 bg-white px-2 py-0.5 text-[10px] text-navy/70">
+                {SELO_PROXIMA_ACAO[canonica.origem]}
+              </span>
+            ) : null}
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Responsável</p>
+            <p className="mt-0.5 text-sm font-medium text-navy">{canonica?.responsavel || "Sem responsável"}</p>
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Prazo</p>
+            <p className="mt-0.5 text-sm font-medium text-navy">
+              {canonica?.prazo ? new Date(String(canonica.prazo)).toLocaleDateString("pt-BR") : "Sem prazo definido"}
+            </p>
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Motivo</p>
+            <p className="mt-0.5 text-sm text-navy/85">{derivado.motivo}</p>
+          </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-navy/55">Impacto</p>
+            <p className="mt-0.5 text-sm text-navy/85">
+              {bloqueiosReais.length === 0
+                ? "Nenhum bloqueio real — elegível para ativação"
+                : `Ativação bloqueada — ${bloqueiosReais.length} pendência(s), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
             </p>
           </div>
         </div>
-      ) : null}
-      {qc2.data ? (
-        <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-3">
-          {(() => {
-            const canonica = obterProximaAcaoCanonica({
-              caseId: String(caso["id"]),
-              rpc: qc2.data.proximaAcaoPrioritaria,
-              responsavelPrincipal:
-                (caso["proxima_acao_responsavel"] as string) ??
-                (caso["responsavel_principal"] as string) ??
-                null,
-              dependencia: (caso["proxima_acao_dependencia"] as string) ?? null,
-              criterioConclusao: (caso["proxima_acao_criterio_conclusao"] as string) ?? null,
-            });
-            return (
-              <>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
-                    Próxima ação
-                  </p>
-                  <span className="rounded-full border border-navy/15 bg-white px-2 py-0.5 text-[11px] text-navy/70">
-                    {SELO_PROXIMA_ACAO[canonica.origem]}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-sm font-medium text-navy">{canonica.acao}</p>
-                {canonica.origem === "manual" && (canonica.dependencia || canonica.criterioConclusao) ? (
-                  <p className="mt-0.5 text-xs text-navy/60">
-                    {canonica.dependencia ? `Depende de: ${canonica.dependencia}` : null}
-                    {canonica.dependencia && canonica.criterioConclusao ? " · " : null}
-                    {canonica.criterioConclusao ? `Conclui quando: ${canonica.criterioConclusao}` : null}
-                  </p>
-                ) : null}
-              </>
-            );
-          })()}
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={mConcluir.isPending || !canonica}
+            onClick={() => mConcluir.mutate()}
+            title="Marca a próxima ação como concluída — sem nova ação necessária por ora."
+            className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream disabled:opacity-40"
+          >
+            Concluir
+          </button>
+          <button
+            type="button"
+            disabled={mReprogramar.isPending}
+            onClick={() => {
+              const atual = canonica?.prazo ? String(canonica.prazo).slice(0, 10) : "";
+              const novo = prompt("Novo prazo (AAAA-MM-DD):", atual);
+              if (!novo?.trim()) return;
+              mReprogramar.mutate(novo.trim());
+            }}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+          >
+            Reprogramar
+          </button>
+          <button
+            type="button"
+            disabled={mCriarTarefa.isPending}
+            onClick={() => {
+              const titulo = prompt("Título da tarefa:");
+              if (!titulo?.trim()) return;
+              mCriarTarefa.mutate(titulo.trim());
+            }}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+          >
+            Criar tarefa
+          </button>
+          <button
+            type="button"
+            disabled={mRegistrarAtualizacao.isPending}
+            onClick={() => {
+              const texto = prompt("O que aconteceu de novo neste caso?");
+              if (!texto?.trim()) return;
+              mRegistrarAtualizacao.mutate(texto.trim());
+            }}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+          >
+            Registrar atualização
+          </button>
+          <a
+            href="#secao-jornada"
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+            title="Abre a seção Jornada, onde a microentrega é preparada e enviada à revisão."
+          >
+            Preparar microentrega
+          </a>
+          <Link
+            to="/app-cliente-como-pessoa"
+            search={{ casoId: String(caso["id"]) }}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+          >
+            Abrir visão do cliente
+          </Link>
         </div>
-      ) : null}
-      <VinculoNucleo
-        caseId={String(caso["id"])}
-        codigoCaso={(caso["codigo"] as string | null) ?? null}
-        papelRegistro={(caso["papel_registro"] as string | null) ?? null}
-        finalidade={(caso["finalidade_registro"] as string | null) ?? null}
-        estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
-      />
+      </div>
 
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
@@ -613,116 +751,144 @@ function FichaCaso() {
         </div>
       ) : null}
 
-      {/* Cabeçalho de estado */}
-      <div className="mb-6 grid gap-3 md:grid-cols-4">
-        {[
-          { t: "Eixo comercial", d: rotulo(EIXO_COMERCIAL, v("eixo_comercial")) },
-          { t: "Formalização e operação", d: rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao")) },
-          { t: "Status derivado (calculado)", d: rotulo(STATUS_DERIVADO, derivado.valor) },
-          { t: "Responsável principal", d: v("responsavel_principal") || "—" },
-        ].map((c) => (
-          <div key={c.t} className="rounded-xl border border-navy/10 bg-white p-4">
-            <p className="text-[11px] uppercase tracking-wide text-navy/50">{c.t}</p>
-            <p className="mt-1 text-sm font-medium text-navy">{c.d}</p>
-          </div>
-        ))}
-      </div>
-      <p className="-mt-4 mb-3 text-xs text-navy/55">
-        Motivo do status derivado: {derivado.motivo}
-      </p>
-      <div
-        className={
-          "mb-6 rounded-xl border px-4 py-3 " +
-          (bloqueiosReais.length === 0
-            ? "border-navy/15 bg-navy/5"
-            : "border-terracotta/40 bg-terracotta/10")
-        }
-      >
-        <p className="text-[11px] uppercase tracking-wide text-navy/50">Estado de ativação</p>
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-medium text-navy">
+      {/* Quatro resumos acionáveis — cada um leva à seção completa, já preservada abaixo. */}
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <a href="#secao-jornada" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Jornada/onboarding</p>
+          <p className="mt-1 text-sm font-medium text-navy">
             {bloqueiosReais.length === 0
-              ? "Elegível — nenhum bloqueio real pendente"
-              : `Não elegível — ${bloqueiosReais.length} bloqueio(s) real(is), primeiro: ${bloqueiosReais[0]?.motivo ?? "—"}`}
+              ? "Elegível — onboarding liberado"
+              : `${bloqueiosReais.length} bloqueio(s) de ativação`}
           </p>
-          <Link
-            to="/onboarding/$id"
-            params={{ id }}
-            className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-          >
-            {bloqueiosReais.length === 0
-              ? "Abrir painel de onboarding e ativação"
-              : "Ver todos os bloqueios e resolver →"}
-          </Link>
-        </div>
-      </div>
-
-      <div className="mb-6 flex flex-wrap gap-4">
-        <Link
-          to="/achados/$caseId"
-          params={{ caseId: id }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Achados genealógicos e encontros de linhagem →
-        </Link>
-        <Link
-          to="/pessoas-linhagens/$caseId"
-          params={{ caseId: id }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Pessoas e linhagens (ficha genealógica interna) →
-        </Link>
-        <Link
-          to="/biblioteca-evidencias/$caseId"
-          params={{ caseId: id }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Biblioteca de evidências e projeções autorizadas →
-        </Link>
-        <Link
-          to="/pesquisa-evidencias/$caseId"
-          params={{ caseId: id }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Pesquisa genealógica e evidências (documentos e solicitações) →
-        </Link>
-        <Link
-          to="/plano-acao/$caseId"
-          params={{ caseId: id }}
-          search={{ foco: undefined }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Pesquisa e Evidências → Plano de Ação de Pesquisa →
-        </Link>
-        <Link
-          to="/fontes-genealogicas"
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Pesquisa e Evidências → Fontes e Integrações Genealógicas (catálogo interno) →
-        </Link>
-        <Link
-          to="/relatorios-fase/$caseId"
-          params={{ caseId: id }}
-          className="text-xs font-medium text-navy underline decoration-gold underline-offset-4"
-        >
-          Relatórios de fase (F1 a F5 e memória de legado) →
-        </Link>
-      </div>
-
-      {sugestoes.length ? (
-        <div className="mb-6 rounded-xl border border-gold/40 bg-gold/10 p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy">
-            Sugestões de jornada (não executam ação)
+          {sugestoes.length ? (
+            <p className="mt-1 text-xs text-navy/60">{sugestoes[0].titulo}</p>
+          ) : null}
+        </a>
+        <a href="#secao-pessoas" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pessoas/família</p>
+          <p className="mt-1 text-sm font-medium text-navy">
+            {(q.data?.membros ?? []).length} pessoa(s) no caso
           </p>
-          <ul className="space-y-1 text-sm text-navy/80">
-            {sugestoes.map((s) => (
-              <li key={s.titulo}>
-                <span className="font-medium">{s.titulo}</span> — {s.detalhe}
-              </li>
-            ))}
+          <VinculoNucleo
+            caseId={String(caso["id"])}
+            codigoCaso={(caso["codigo"] as string | null) ?? null}
+            papelRegistro={(caso["papel_registro"] as string | null) ?? null}
+            finalidade={(caso["finalidade_registro"] as string | null) ?? null}
+            estadoDerivado={(caso["status_caso_derivado"] as string | null) ?? null}
+          />
+        </a>
+        <a href="#secao-comercial" className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold/60">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Comercial/formalização</p>
+          <p className="mt-1 text-sm font-medium text-navy">{rotulo(EIXO_COMERCIAL, v("eixo_comercial"))}</p>
+          <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
+        </a>
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
+          <ul className="mt-1 space-y-1 text-xs">
+            <li>
+              <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                Achados genealógicos →
+              </Link>
+            </li>
+            <li>
+              <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                Biblioteca de evidências →
+              </Link>
+            </li>
+            <li>
+              <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                Pesquisa e documentos →
+              </Link>
+            </li>
+            <li>
+              <Link to="/pessoas-linhagens/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                Pessoas e linhagens →
+              </Link>
+            </li>
+            <li>
+              <Link to="/plano-acao/$caseId" params={{ caseId: id }} search={{ foco: undefined }} className="text-navy underline decoration-gold underline-offset-4">
+                Plano de ação de pesquisa →
+              </Link>
+            </li>
+            <li>
+              <Link to="/relatorios-fase/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                Relatórios de fase →
+              </Link>
+            </li>
+            <li>
+              <Link to="/fontes-genealogicas" className="text-navy underline decoration-gold underline-offset-4">
+                Fontes e integrações →
+              </Link>
+            </li>
           </ul>
         </div>
-      ) : null}
+      </div>
+
+      {/* No máximo: três tarefas, três atualizações, documentos prioritários, microentregas recentes e alertas críticos. */}
+      <div className="mb-6 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Tarefas</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+            {(qTarefas.data?.tarefas ?? []).slice(0, 3).map((t: any) => (
+              <li key={t.id}>
+                {t.titulo} <span className="text-xs text-navy/50">— {t.status}</span>
+              </li>
+            ))}
+            {!(qTarefas.data?.tarefas ?? []).length ? <li className="text-navy/50">Nenhuma tarefa aberta.</li> : null}
+          </ul>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Atualizações recentes</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+            {((q.data?.timeline ?? []) as any[]).slice(0, 3).map((e) => (
+              <li key={e.id}>
+                {e.title ?? "Evento"}{" "}
+                <span className="text-xs text-navy/50">
+                  — {new Date(String(e.occurred_at ?? e.created_at)).toLocaleDateString("pt-BR")}
+                </span>
+              </li>
+            ))}
+            {!((q.data?.timeline ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma atualização registrada.</li> : null}
+          </ul>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Documentos prioritários</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+            {((qDocumentos.data ?? []) as any[])
+              .filter((d) => d.status !== "liberado")
+              .slice(0, 3)
+              .map((d) => (
+                <li key={d.id}>
+                  {d.titulo} <span className="text-xs text-navy/50">— {d.status}</span>
+                </li>
+              ))}
+            {!((qDocumentos.data ?? []) as any[]).length ? <li className="text-navy/50">Nenhum documento registrado.</li> : null}
+          </ul>
+        </div>
+        <div className="rounded-xl border border-navy/10 bg-white p-4">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Microentregas recentes</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+            {((qc2.data?.entregas ?? []) as any[]).slice(0, 3).map((m) => (
+              <li key={m.id}>{m.title_client ?? "Microentrega"}</li>
+            ))}
+            {!((qc2.data?.entregas ?? []) as any[]).length ? <li className="text-navy/50">Nenhuma microentrega registrada.</li> : null}
+          </ul>
+        </div>
+        <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-4 lg:col-span-2">
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Alertas críticos</p>
+          <ul className="mt-2 space-y-1.5 text-sm text-navy/80">
+            {((qc2.data?.alertas ?? []) as any[])
+              .filter((a) => a.criticidade === "critica" && a.status !== "completed")
+              .slice(0, 3)
+              .map((a) => (
+                <li key={a.id}>{a.titulo}</li>
+              ))}
+            {!((qc2.data?.alertas ?? []) as any[]).some((a) => a.criticidade === "critica" && a.status !== "completed") ? (
+              <li className="text-navy/50">Nenhum alerta crítico.</li>
+            ) : null}
+          </ul>
+        </div>
+      </div>
 
       {/* Índice: leva à seção sem esconder as outras. */}
       <nav
@@ -1334,8 +1500,17 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="log" titulo="Registro de alterações">
-          <div className="space-y-5">
+        {/*
+          CA04-CASO360-SIMPLES (09/09/2026): gates, auditoria, logs, versões e
+          diagnósticos (histórico de fases, registro de alterações e o mapa
+          de persistência campo→tabela) recolhidos por padrão — nada foi
+          apagado, "secao-log" continua sendo o alvo do índice fixo.
+        */}
+        <details id="secao-log" className="scroll-mt-16 rounded-xl border border-navy/10 bg-white p-5">
+          <summary className="cursor-pointer font-serif text-lg text-navy">
+            Dados técnicos e validações
+          </summary>
+          <div className="mt-4 space-y-5">
           {/*
             07/09/2026 — case_phase_history grava sozinha desde 06/09 (trigger
             em crm_casos.fase), mas nenhuma tela mostrava esse histórico —
@@ -1417,11 +1592,10 @@ function FichaCaso() {
               )}
             </EstadoDados>
           </Secao>
+          <MapaPersistenciaCaso />
           </div>
-        </SecaoAncora>
+        </details>
       </div>
-
-      <MapaPersistenciaCaso />
 
       <AlertDialog open={bloqueio.status === "blocked"}>
         <AlertDialogContent>

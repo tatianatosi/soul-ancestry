@@ -1,38 +1,45 @@
-# Fonte de Verdade — Design e Execução
+# Política — Fonte de Verdade de Design e Execução
 
-1. Mockup aprovado de 17 páginas
-É a fonte de verdade para nomes, taxonomia, propósito, navegação, composição
-visual, hierarquia e identidade do App Cliente e Desk Intelligence.
+- Status: aprovado
+- Versão: v1.0
+- Data: 2026-09-09
+- Responsável pela decisão: Proprietária do Clube Ancestral
+- Fonte: conversa, GitHub, mockup, relatório
+- Substitui: versão anterior do mesmo arquivo
 
-2. Mockup-auditoria de 47 páginas
-É diagnóstico de divergências. Não substitui o mockup aprovado, não cria
-taxonomia, não autoriza novas telas nem mudança de navegação.
+## Escopo
 
-3. Políticas e decisões posteriores aprovadas
-Definem regras de dados, privacidade, pessoa canônica, Planejador,
-Produtos-Pai, documentos, RLS, aprovação e ações externas.
+Esta política define a fonte de verdade para decisões de design e execução no produto Clube Ancestral, assegurando coerência entre a experiência aprovada, os requisitos funcionais, a implementação e a validação operacional.
 
-4. Código, migrations, commits, PRs e testes
-São evidência do que existe; não são fonte para mudar mockup/taxonomia.
-Se divergirem da fonte aprovada, devem ser corrigidos ou classificados.
+## Fonte de verdade
 
-5. Ordem de precedência
-Mockup aprovado
-→ política/decisão aprovada mais recente
-→ arquitetura canônica
-→ código e schema atuais
-→ auditorias/de-paras
-→ prompts antigos
-→ dados demo, layouts antigos e hipóteses
+1. O mockup ou tela explicitamente aprovado pela Proprietária é a referência visual e comportamental prioritária.
+2. As políticas, decisões de arquitetura e contratos validados no repositório são a referência normativa e técnica complementar.
+3. O estado persistido e verificável nos sistemas integrados é a referência para dados operacionais; não deve ser substituído por estado simulado quando houver integração aplicável.
+4. Em caso de divergência, prevalece a seguinte ordem: decisão explícita e mais recente da Proprietária; política aprovada; arquitetura aprovada; mockup aprovado; implementação existente; hipótese de trabalho.
 
-6. Regras práticas
-- Não renomear, fundir, expandir ou substituir as sete telas do App ou Desk.
-- Não criar nova tela/aba/taxonomia por causa de auditoria ou código legado.
-- Não restaurar dados demo, CaseData local, rota piloto ou card sem fonte viva.
-- Não usar Planilha Mestre como fonte operacional.
-- Não usar SKU como bloqueio interno.
-- App só usa conteúdo sanitizado e autorizado.
-- Documento sensível é individual por padrão.
-- Jurídico/financeiro bloqueiam apenas o ato externo correspondente.
-- Dado real já comprovado satisfaz check automaticamente.
-- Pendência não essencial não bloqueia rascunho interno.
+## Regras de execução
+
+- Nenhuma tela, fluxo ou comportamento é considerado concluído somente por aparência visual. Deve haver evidência verificável de persistência, integração ou regra de negócio correspondente, quando aplicável.
+- Mockups aprovados não autorizam alterações silenciosas em contratos, modelos de dados, permissões, status de caso ou regras jurídicas.
+- Alterações que afetem dados, autoridade operacional, visibilidade do cliente, contratos ou validação jurídica exigem revisão das políticas e da arquitetura relacionadas antes da implementação.
+- Estado local, dados de demonstração e placeholders devem ser identificados como tal e não podem ser apresentados como produção.
+- Toda divergência entre mockup aprovado e implementação deve ser registrada, justificada e submetida à decisão da Proprietária quando alterar comportamento, informação exibida ou prioridade operacional.
+
+## Evidência mínima
+
+Para cada entrega relevante, registrar: objetivo da mudança; fonte de verdade consultada; arquivos e integrações afetados; evidência de persistência ou teste; limitações conhecidas; e decisão necessária, se houver.
+
+## Limites
+
+Esta política não substitui revisão jurídica especializada, requisitos de segurança, controle de acesso, proteção de dados pessoais ou validação de produção. Esses temas continuam sujeitos às políticas e aos responsáveis específicos.
+
+## Próximos passos
+
+- Manter referências cruzadas desta política nas decisões de arquitetura e nos briefings de implementação.
+- Exigir evidência visível de backend e persistência em entregas que alterem dados ou fluxos operacionais.
+- Revisar esta política sempre que houver mudança na autoridade decisória, nas integrações centrais ou no processo de aprovação.
+
+## Critério de aceite
+
+Uma entrega atende a esta política quando sua fonte de verdade está identificada, a implementação respeita a ordem de precedência definida, eventuais dados simulados estão claramente rotulados e há evidência verificável para os comportamentos que dependem de backend ou regra operacional.
