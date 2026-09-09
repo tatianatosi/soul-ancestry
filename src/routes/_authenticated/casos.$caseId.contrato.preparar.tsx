@@ -44,6 +44,7 @@ import {
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
+import { modeloAplicavelAoCaso } from "@/lib/matriz-modelos-contratuais";
 import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
 
 import {
@@ -321,6 +322,11 @@ function Pagina() {
   const rascunhoAtual = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel");
   const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
   const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);
+  // CA14-MATRIZES-DE-COMPOSICAO (09/09/2026): individual/casal/núcleo são
+  // variações do mesmo contrato-base — aplicadas à composição real do caso
+  // (titular/dependente já resolvidos por pessoasDoCasoComFallbackNucleo),
+  // nunca por suposição nem por um segundo checklist jurídico.
+  const composicaoCaso = modeloAplicavelAoCaso(listaOpcional(d.membros) as { titular: boolean; dependente: boolean }[]);
 
   // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
   const entradaAnexos = entradaDeValores({
@@ -477,6 +483,19 @@ function Pagina() {
             </li>
             <li>
               <strong>Anexos pelas regras existentes:</strong> {d.anexos.map((a: any) => a.codigo).join(", ") || "—"}
+            </li>
+            <li>
+              <strong>Composição contratual (matriz aplicável):</strong>{" "}
+              {composicaoCaso.estado === "sem_dados" ? (
+                <span className="text-terracotta">Sem dados suficientes — {composicaoCaso.motivo}</span>
+              ) : (
+                <>
+                  {composicaoCaso.modelo.nome} — {composicaoCaso.motivo}
+                  <span className="ml-2 text-navy/50">
+                    Anexos aplicáveis: {composicaoCaso.modelo.anexos.map((a) => a.codigo).join(", ")}
+                  </span>
+                </>
+              )}
             </li>
             <li>
               <strong>Cadastro CRM:</strong> {d.cliente ? [d.cliente.email, d.cliente.telefone].filter(Boolean).join(" · ") || "sem contato" : "—"}
