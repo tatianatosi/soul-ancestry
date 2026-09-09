@@ -82,6 +82,18 @@ const Bloco = ({
   </section>
 );
 
+// CA17-MARKETING-E-INDICADORES-VIVOS (09/09/2026): indicador publicado
+// exige drill-down — os 5 principais só tinham fonte e período (filtro já
+// aplicado antes de chegar aqui); nenhum abria o detalhe correspondente.
+// Âncoras da própria página, sem consulta nova nem rota nova.
+const ANCORA_DRILLDOWN: Record<string, string> = {
+  leads_por_origem: "atribuicao",
+  conversoes_por_canal: "funil-aquisicao",
+  investimento_por_canal: "canais-campanhas",
+  cac: "desempenho-canal",
+  roi: "desempenho-canal",
+};
+
 const CONFIANCA_ROTULO: Record<Confianca, string> = {
   alta: "confiança alta",
   media: "confiança média",
@@ -312,7 +324,12 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
             {principais.map((m) => (
               <div key={m.chave} className="rounded-xl border border-navy/10 bg-cream/30 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] uppercase tracking-wide text-navy/50">{m.nome}</span>
+                  <a
+                    href={`#${ANCORA_DRILLDOWN[m.chave] ?? "indicadores"}`}
+                    className="text-[11px] uppercase tracking-wide text-navy/50 underline-offset-2 hover:underline"
+                  >
+                    {m.nome}
+                  </a>
                   <Selo texto={CONFIANCA_ROTULO[m.confianca]} />
                 </div>
                 <p className="mt-1 font-serif text-lg text-navy">{m.valor}</p>
@@ -349,7 +366,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
 
           {desempenho.length > 0 && (
-            <div data-marketing="desempenho-canal" className="mt-4 overflow-x-auto">
+            <div id="desempenho-canal" data-marketing="desempenho-canal" className="mt-4 scroll-mt-24 overflow-x-auto">
               <h3 className="font-serif text-base text-navy">Desempenho por canal</h3>
               <table className="mt-2 w-full text-left text-[13px]">
                 <thead className="text-[11px] uppercase tracking-wide text-navy/50">
