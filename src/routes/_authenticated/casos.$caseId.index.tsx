@@ -56,7 +56,9 @@ import {
   STATUS_VIA,
   VIAS_JURIDICAS,
   derivarStatusCaso,
+  obterProximaAcaoCanonica,
   rotulo,
+  SELO_PROXIMA_ACAO,
   sugestoesJornada,
   sugerirVia,
   type Opcao,
@@ -533,14 +535,28 @@ function FichaCaso() {
           </div>
         </div>
       ) : null}
-      {qc2.data?.proximaAcaoPrioritaria ? (
+      {qc2.data ? (
         <div className="mb-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-3">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
-            Próxima ação prioritária
-          </p>
-          <p className="mt-0.5 text-sm font-medium text-navy">
-            {qc2.data.proximaAcaoPrioritaria.motivo}
-          </p>
+          {(() => {
+            const canonica = obterProximaAcaoCanonica({
+              caseId: String(caso["id"]),
+              rpc: qc2.data.proximaAcaoPrioritaria,
+              responsavelPrincipal: (caso["responsavel_principal"] as string) ?? null,
+            });
+            return (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-navy/55">
+                    Próxima ação
+                  </p>
+                  <span className="rounded-full border border-navy/15 bg-white px-2 py-0.5 text-[11px] text-navy/70">
+                    {SELO_PROXIMA_ACAO[canonica.origem]}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-sm font-medium text-navy">{canonica.acao}</p>
+              </>
+            );
+          })()}
         </div>
       ) : null}
       <VinculoNucleo

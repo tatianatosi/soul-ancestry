@@ -82,9 +82,14 @@ export const emitirOSCadeia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { proposalId: string }) => ({ proposalId: String(d.proposalId) }))
   .handler(async ({ data, context }) => {
-    const { emitirOSAnexoI, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
+    const { emitirOuRecuperarOS, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
     const userId = context.userId as string;
     const org = await orgDoUsuario(supabase, userId);
-    return emitirOSAnexoI(supabase, { org, userId, proposalId: data.proposalId });
+    return emitirOuRecuperarOS(supabase, {
+      org,
+      userId,
+      origem: "planejador_proposta_condicao",
+      proposalId: data.proposalId,
+    });
   });

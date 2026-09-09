@@ -4,7 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
-import { aprovarRascunho, atualizarAlerta, registrarProximaAcao } from "@/lib/caso-canonico.functions";
+import {
+  aprovarRascunho,
+  atualizarAlerta,
+  marcarSemNovaAcaoNecessaria,
+  registrarProximaAcao,
+  voltarProximaAcaoAoAutomatico,
+} from "@/lib/caso-canonico.functions";
 import {
   ALERT_STATUS,
   COMMUNICATION_STATUS,
@@ -49,6 +55,8 @@ export function AbaProximaAcao({
   set: (k: string, valor: unknown) => void;
 }) {
   const registrar = useServerFn(registrarProximaAcao);
+  const voltarAutomatico = useServerFn(voltarProximaAcaoAoAutomatico);
+  const semNovaAcao = useServerFn(marcarSemNovaAcaoNecessaria);
   const mudarAlerta = useServerFn(atualizarAlerta);
   const aprovar = useServerFn(aprovarRascunho);
   const [erro, setErro] = useState<string | null>(null);
@@ -62,6 +70,24 @@ export function AbaProximaAcao({
       onMudou();
     },
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao registrar a próxima ação."),
+  });
+
+  const mVoltarAutomatico = useMutation({
+    mutationFn: () => voltarAutomatico({ data: { caseId } }),
+    onSuccess: () => {
+      setErro(null);
+      onMudou();
+    },
+    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao voltar à sugestão automática."),
+  });
+
+  const mSemNovaAcao = useMutation({
+    mutationFn: () => semNovaAcao({ data: { caseId } }),
+    onSuccess: () => {
+      setErro(null);
+      onMudou();
+    },
+    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao marcar sem nova ação necessária."),
   });
 
   const mAlerta = useMutation({
@@ -115,9 +141,9 @@ export function AbaProximaAcao({
             Salve as alterações do caso antes de registrar. O registro cria alerta interno e, quando previsto, rascunho de comunicação —
             nunca um envio externo.
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             <AcaoDeEscrita
-              rotulo={mRegistrar.isPending ? "Registrando…" : "Registrar próxima ação e alerta"}
+              rotulo={mRegistrar.isPending ? "Registrando…" : "Assumir próxima ação manual"}
               faltando={
                 v("proxima_acao_codigo") === "outro_justificar" && !v("proxima_acao_justificativa").trim()
                   ? "Justificativa obrigatória quando a ação é 'Outro'."
@@ -129,6 +155,26 @@ export function AbaProximaAcao({
               onConfirmar={() => {
                 if (mRegistrar.isPending) return;
                 mRegistrar.mutate();
+              }}
+            />
+            <AcaoDeEscrita
+              rotulo={mVoltarAutomatico.isPending ? "Revertendo…" : "Voltar à sugestão automática"}
+              capacidade="editar_fila_responsavel_prazo"
+              efeito="Limpa o override manual. A próxima ação volta a ser calculada pela régua automática (bloqueios, tarefas, documentos, pagamentos)."
+              className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-40"
+              onConfirmar={() => {
+                if (mVoltarAutomatico.isPending) return;
+                mVoltarAutomatico.mutate();
+              }}
+            />
+            <AcaoDeEscrita
+              rotulo={mSemNovaAcao.isPending ? "Marcando…" : "Marcar sem nova ação necessária"}
+              capacidade="editar_fila_responsavel_prazo"
+              efeito="Registra que não há nova ação pendente agora. Se surgir um bloqueio real (tarefa vencida, documento pendente etc.), ele volta a aparecer."
+              className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-40"
+              onConfirmar={() => {
+                if (mSemNovaAcao.isPending) return;
+                mSemNovaAcao.mutate();
               }}
             />
           </div>
