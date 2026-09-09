@@ -31,6 +31,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
@@ -1205,6 +1206,7 @@ function FichaCaso() {
                   onMudou={recarregar}
                   atualizar={atualizar}
                   criar={criar}
+                  bloqueado={bloqueado}
                 />
               )}
             </EstadoDados>
@@ -1475,6 +1477,7 @@ function AbaPessoas({
   onMudou,
   atualizar,
   criar,
+  bloqueado,
 }: {
   casoId: string;
   membros: Record<string, unknown>[];
@@ -1485,6 +1488,7 @@ function AbaPessoas({
   criar: (a: {
     data: { entidade: "case_members"; dados: Record<string, unknown> };
   }) => Promise<unknown>;
+  bloqueado: boolean;
 }) {
   const [novo, setNovo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -1563,6 +1567,7 @@ function AbaPessoas({
             pessoa={m}
             atualizar={atualizar}
             onMudou={onMudou}
+            bloqueado={bloqueado}
           />
         ))
       )}
@@ -1574,12 +1579,14 @@ function CartaoPessoa({
   pessoa,
   atualizar,
   onMudou,
+  bloqueado,
 }: {
   pessoa: Record<string, unknown>;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
   }) => Promise<unknown>;
   onMudou: () => void;
+  bloqueado: boolean;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [salvo, setSalvo] = useState<string | null>(null);
@@ -1661,6 +1668,7 @@ function CartaoPessoa({
           label="CPF"
           valor={v("cpf")}
           onChange={(x) => set("cpf", formatarCpf(x))}
+          desabilitado={bloqueado}
         />
         <Texto
           label="RG / documento"
@@ -1681,6 +1689,7 @@ function CartaoPessoa({
           label="Telefone"
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
+          desabilitado={bloqueado}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
@@ -1697,6 +1706,7 @@ function CartaoPessoa({
           label="CEP"
           valor={v("cep")}
           onChange={(x) => set("cep", formatarCep(x))}
+          desabilitado={bloqueado}
         />
         <Texto
           label="Documentos pendentes"

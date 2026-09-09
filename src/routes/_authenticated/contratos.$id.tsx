@@ -39,6 +39,7 @@ import {
   tentarEtapaExterna,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
 import { listarEquipe } from "@/lib/equipe.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
@@ -59,8 +60,8 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
   component: ContratoDetalhe,
 });
 
-const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos", "Versões", "Revisão"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações"] as const;
+const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos"] as const;
+const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as const;
 const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -119,6 +120,13 @@ function ContratoDetalhe() {
       setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`);
       recarregar();
     },
+    onError: (e: Error) => setAviso(e.message),
+  });
+  const criarTarefaFn = useServerFn(salvarTarefa);
+  const mTarefa = useMutation({
+    mutationFn: (v: { titulo: string; caso_id: string | null }) =>
+      criarTarefaFn({ data: { valores: { titulo: v.titulo, caso_id: v.caso_id, tipo: "contrato" } } }),
+    onSuccess: () => setAviso("Tarefa criada."),
     onError: (e: Error) => setAviso(e.message),
   });
 
@@ -192,6 +200,44 @@ function ContratoDetalhe() {
         <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">{aviso}</p>
       ) : null}
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setAba("Resumo")}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+        >
+          Editar contrato
+        </button>
+        <button
+          onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+        >
+          Salvar rascunho
+        </button>
+        <button
+          onClick={() => setAba("Anexos")}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+        >
+          Adicionar anexo
+        </button>
+        <button
+          onClick={() => setAba("Cláusulas")}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+        >
+          Adicionar cláusula
+        </button>
+        <button
+          onClick={() => {
+            const titulo = prompt("Título da tarefa:");
+            if (!titulo?.trim()) return;
+            mTarefa.mutate({ titulo: titulo.trim(), caso_id: (c.case_id as string | null) ?? null });
+          }}
+          disabled={mTarefa.isPending}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+        >
+          Criar tarefa
+        </button>
+      </div>
+
       <div className="mt-4 flex flex-wrap items-start gap-2">
         <AcaoOperacional
           rotulo="Gerar rascunho interno"
@@ -252,7 +298,7 @@ function ContratoDetalhe() {
         ))}
         <details className="relative ml-auto shrink-0">
           <summary className="cursor-pointer list-none rounded-t-lg px-3 py-2 text-sm text-navy/50 hover:text-navy/70">
-            Mais opções ▾
+            Dados técnicos ▾
           </summary>
           <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-white p-1 shadow-lg">
             {ABAS_AVANCADAS.map((a) => (
