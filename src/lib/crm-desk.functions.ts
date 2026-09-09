@@ -14,6 +14,7 @@ import {
 } from "@/lib/crm-desk";
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
+import { avaliarValidacaoJuridicaCaso } from "@/lib/validacao-juridica-caso";
 import type { Dependente } from "@/lib/dependentes";
 import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 import { proprietariaOperando } from "@/lib/autoridade.server";
@@ -663,6 +664,79 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
       },
       nenhuma_acao_externa: true,
     };
+  });
+
+/**
+ * Validação Jurídica por caso (CA08-JURIDICO-PROPORCIONAL, 09/09/2026):
+ * rota/marco aplicável, estado, decisão humana necessária, documento/evidência
+ * pendente e qual ato formal é afetado. Mesmas fontes de sempre
+ * (citizenship_tracks, versioned_legal_rules, legal_reference_milestones via
+ * case_services.citizenship_track_id, legal_clause_matrix, case_dependents) —
+ * nenhuma tabela ou taxonomia nova. Só diagnostica: nenhuma ação externa.
+ */
+export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => ({ caseId: exigirUuid(d?.caseId, "caseId") }))
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+
+    const [servRes, matrizRes, depRes] = await Promise.all([
+      supabase
+        .from("case_services")
+        .select("citizenship_track_id")
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .not("citizenship_track_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+      supabase.from("case_dependents").select("nome,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
+    ]);
+
+    const trackId = linhasDe<any>(servRes, "case services do caso")[0]?.citizenship_track_id as string | undefined;
+
+    const [trackRes, marcosRes, regrasRes] = trackId
+      ? await Promise.all([
+          supabase.from("citizenship_tracks").select("*").eq("id", trackId).is("archived_at", null).maybeSingle(),
+          supabase.from("legal_reference_milestones").select("*").eq("track_id", trackId).is("archived_at", null),
+          supabase.from("versioned_legal_rules").select("*").eq("track_id", trackId).is("archived_at", null),
+        ])
+      : [{ data: null }, { data: [] }, { data: [] }];
+
+    const trackRow = (trackRes as any).data as Record<string, any> | null;
+    const track = trackRow
+      ? {
+          trackId: trackRow.id as string,
+          pais: trackRow.pais ?? null,
+          nacionalidade: trackRow.nacionalidade ?? null,
+          viaPreliminar: trackRow.via_preliminar ?? null,
+          statusVia: trackRow.status_via ?? null,
+          trackName: trackRow.track_name ?? null,
+          lifecycleStatus: trackRow.lifecycle_status ?? "rascunho",
+          revisaoHumanaJuridica: trackRow.revisao_humana_juridica ?? null,
+        }
+      : null;
+
+    const matrizRows = linhasDe<any>(matrizRes, "matriz jurídica");
+    const temasMatriz = TEMAS_JURIDICOS.map((t) => {
+      const l = matrizRows.find((r) => canonicalizarTemaCodigo(r.tema_codigo) === t.tema_codigo);
+      return {
+        tema_codigo: t.tema_codigo,
+        tema: t.tema,
+        status: l?.status ?? "pendente_revisao_juridica",
+        bloqueia_assinatura: l?.bloqueia_assinatura ?? t.bloqueia_assinatura,
+        versao_juridica_aplicavel: l?.versao_juridica_aplicavel ?? null,
+      };
+    });
+
+    return avaliarValidacaoJuridicaCaso({
+      track,
+      marcos: ((marcosRes as any).data ?? []) as any[],
+      regras: ((regrasRes as any).data ?? []) as any[],
+      temasMatriz,
+      dependentes: linhasDe<any>(depRes, "dependentes do caso"),
+    });
   });
 
 /* ————— Cadastro manual de lead (Comercial → Leads → Novo lead) ————— */
