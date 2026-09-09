@@ -49,6 +49,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     sub: [
       { to: "/painel", label: "Painel Hoje" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
+      { to: "/alertas", label: "Alertas" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
       { to: "/relatorios", label: "Relatórios" },
     ],

@@ -11,7 +11,8 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
-import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
+import { CardIndicador, BadgeDesk, CarregandoDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { listarAlertas } from "@/lib/alertas.functions";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
@@ -834,7 +835,13 @@ export function PainelDia() {
         <FilaSlaOperacional />
       </section>
 
-      {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
+      {/*
+        3 — Alertas prioritários (CA-CORTE-ALERTAS-ROTA-CANONICA, 09/09/2026):
+        mesma fonte (case_alerts, via listarAlertas) da rota /alertas — aqui só
+        o subconjunto pendente mais crítico de hoje, nunca a lista completa.
+        Abrir/reconhecer/reprogramar vive em /alertas; aqui é só contagem e link.
+      */}
+      <AlertasPrioritariosDoPainel />
 
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
@@ -1045,5 +1052,56 @@ export function PainelDia() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+const TOM_CRITICIDADE_PAINEL: Record<string, TomEstado> = {
+  critica: "bloqueio",
+  alta: "critico",
+  atencao: "atencao",
+};
+
+/**
+ * CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026) — subconjunto prioritário de
+ * hoje, mesma fonte (case_alerts, via listarAlertas) da rota /alertas. Só
+ * conta e linka: reconhecer/reprogramar/abrir tarefa vivem na rota completa.
+ */
+function AlertasPrioritariosDoPainel() {
+  const carregar = useServerFn(listarAlertas);
+  const q = useQuery({
+    queryKey: ["alertas-prioritarios-painel"],
+    queryFn: () => carregar({ data: { status: "pending", limite: 5 } }),
+  });
+  const linhas = q.data ?? [];
+
+  return (
+    <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de hoje</h2>
+        <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
+          Ver todos os alertas
+        </Link>
+      </div>
+      <p className="mt-1 text-xs text-navy/50">
+        Sinal sem duplicar tarefa. Só os pendentes mais críticos; a lista completa e filtrável fica
+        em Alertas.
+      </p>
+      {q.isLoading ? (
+        <CarregandoDesk linhas={2} />
+      ) : linhas.length === 0 ? (
+        <p className="mt-3 text-sm text-navy/60">Nenhum alerta pendente agora.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {linhas.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <Link to="/casos/$caseId" params={{ caseId: a.caseId }} className="text-navy underline underline-offset-2">
+                {a.titulo} — {a.caseCodigo ?? a.caseTitulo ?? a.caseId}
+              </Link>
+              <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
