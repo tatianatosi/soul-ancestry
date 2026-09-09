@@ -155,7 +155,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     sub: [
       { grupo: "Investigação" },
       { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
-      { to: "/pesquisa", label: "Plano de ação e ficha genealógica" },
+      // CA11-CENTRO-INTELIGENCIA (09/09/2026): /pesquisa é um dossiê paralelo
+      // e mais antigo (tabela pesquisa, desconectado de research_cases/
+      // evidences/genealogical_findings que /pesquisa-modulo usa) — o rótulo
+      // anterior ("Plano de ação e ficha genealógica") prometia telas que na
+      // verdade são /plano-acao/$caseId e /pessoas-linhagens/$caseId. Rótulo
+      // corrigido para não apresentar o dossiê legado como equivalente ao
+      // atual; a rota não foi removida nem reativada, só nomeada com precisão.
+      { to: "/pesquisa", label: "Dossiê de pesquisa (sistema anterior, desconectado)" },
       { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
@@ -165,7 +172,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/qualidade", hash: "pesquisa", label: "Validação e pendências" },
       { to: "/relatorios", label: "Achados, microentregas e relatórios F1/F2" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
-      { to: "/pesquisa", hash: "historico", label: "Alertas e histórico de pesquisa" },
     ],
   },
   {

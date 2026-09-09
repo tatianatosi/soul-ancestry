@@ -9,7 +9,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
-import { SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
+import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
@@ -188,6 +188,36 @@ function BibliotecaPage() {
         </p>
       ) : null}
       <div className="space-y-6">
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="text-lg font-medium text-foreground">Centro de Inteligência</h2>
+          <p className="mb-3 mt-1 text-sm text-muted-foreground">
+            As nove áreas do Centro de Inteligência e onde cada uma mora hoje. Nenhum dado é movido ou copiado por
+            este mapa: ele só declara a casa de cada núcleo e nomeia a fonte concorrente onde ela existe de fato.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-3">Área</th>
+                  <th className="py-2 pr-3">Casa</th>
+                  <th className="py-2 pr-3">Fonte</th>
+                  <th className="py-2">Nota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {MAPA_CENTRO_INTELIGENCIA.map((l) => (
+                  <tr key={l.area}>
+                    <td className="py-2 pr-3 font-medium text-foreground">{l.area}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{l.casa}</td>
+                    <td className="py-2 pr-3 font-mono text-[11px] text-muted-foreground">{l.fonte}</td>
+                    <td className="py-2 text-muted-foreground">{l.nota}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-lg font-medium text-foreground">Da Biblioteca até o App Cliente</h2>
           <p className="mb-3 mt-1 text-sm text-muted-foreground">
