@@ -35,7 +35,14 @@ describe("Caso 360 como página única", () => {
     //  - "produto", "onboarding" e "fechamento" → dentro de "jornada", porque
     //    produto e ciclo de vida são parte do processo do cliente, não algo
     //    à parte (decisão explícita da Proprietária).
-    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"/g)].map((m) => m[1]);
+    //
+    // CA04-CASO360-SIMPLES (09/09/2026): "log" (histórico de fases, registro
+    // de alterações, mapa de persistência) virou <details id="secao-log">
+    // recolhida por padrão — mesma seção, mesmo conteúdo, só não é mais
+    // literalmente uma <SecaoAncora>. O regex passa a casar as duas formas.
+    const secoes = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+      (m) => m[1] ?? m[2],
+    );
     expect(secoes).toHaveLength(6);
     for (const fundida of ["acao", "caso", "cadastro", "etiquetas", "produto", "onboarding", "fechamento"]) {
       expect(secoes, `"${fundida}" deveria ter se fundido, não sumido nem sobrado solto`).not.toContain(fundida);
@@ -74,12 +81,16 @@ describe("Caso 360 como página única", () => {
   it("o índice segue a mesma ordem em que a página rola", () => {
     // Índice numa ordem e DOM em outra confunde quem rola.
     const doIndice = [...pagina.matchAll(/\{ id: "(\w+)", rotulo:/g)].map((m) => m[1]);
-    const doDom = [...pagina.matchAll(/<SecaoAncora id="(\w+)"/g)].map((m) => m[1]);
+    const doDom = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+      (m) => m[1] ?? m[2],
+    );
     expect(doIndice).toEqual(doDom);
   });
 
   it("cada seção tem âncora alcançável pelo índice", () => {
-    const ids = [...pagina.matchAll(/<SecaoAncora id="(\w+)"/g)].map((m) => m[1]);
+    const ids = [...pagina.matchAll(/<SecaoAncora id="(\w+)"|<details id="secao-(\w+)"/g)].map(
+      (m) => m[1] ?? m[2],
+    );
     expect(pagina).toContain("href={`#secao-${a.id}`}");
     expect(pagina).toContain("id={`secao-${id}`}");
     expect(ids.length).toBeGreaterThan(0);
