@@ -249,8 +249,27 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
     const { orgDoUsuario, pendenciasCadeiaPainel } = await import("@/lib/cadeia-operacional.server");
     const org = await orgDoUsuario(supabase, (context as any).userId);
     const cadeia = await pendenciasCadeiaPainel(supabase, org, { incluirTeste: data.incluirDemo });
+    // Decisão 1 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — mesma RPC
+    // canônica de Ficha 360/Lista de Casos, em lote, para que o TEXTO da
+    // ação exibida no Painel Hoje nunca seja uma segunda narrativa.
+    const idsComPendenciaDocumental = listaCasos
+      .filter((c) => c.documentos_minimos_ok === false)
+      .map((c) => c.id as string);
+    let proximasAcoes: Record<string, { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null }> = {};
+    if (idsComPendenciaDocumental.length > 0) {
+      const { data: lote } = await supabase.rpc("proxima_acao_prioritaria_lote", { _cases: idsComPendenciaDocumental });
+      for (const r of (lote ?? []) as any[]) {
+        proximasAcoes[r.case_id as string] = {
+          nivel: r.nivel,
+          motivo: r.motivo,
+          origem_tabela: r.origem_tabela,
+          origem_id: r.origem_id,
+          prazo: r.prazo,
+        };
+      }
+    }
     return {
-      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia }),
+      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia, proximasAcoes }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
     };
   });

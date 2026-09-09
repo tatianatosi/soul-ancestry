@@ -8,6 +8,8 @@
  * livre aqui — o CRM guarda apenas referência de proposta/documento.
  */
 
+import { obterProximaAcaoCanonica } from "@/lib/caso-ficha";
+
 export type Opcao = { valor: string; rotulo: string };
 
 export const AREAS_RESPONSAVEIS: Opcao[] = [
@@ -816,6 +818,14 @@ export type ItemFila = {
   area: string | null;
   responsavel: string | null;
   etapa: string | null;
+  /**
+   * Decisão 1 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — quando o item é um
+   * caso, o selo de origem (automática/manual) da mesma RPC
+   * `proxima_acao_prioritaria` usada por Ficha 360 e Lista de Casos. A fila
+   * em si (o filtro que trouxe o item para o Painel Hoje) continua própria
+   * do Painel; só o TEXTO da ação exibida passa a ser o canônico.
+   */
+  origemAcao?: "automatica" | "manual";
 };
 export type Fila = { chave: string; rotulo: string; criticidade: number; itens: ItemFila[] };
 
@@ -823,9 +833,11 @@ const dia = (d: string | Date) => new Date(d).toISOString().slice(0, 10);
 
 export function montarFilasHoje(input: {
   leads: LeadDesk[];
-  casos: { id: string; codigo: string | null; titulo: string | null; documentos_minimos_ok: boolean | null; prazo_proxima_acao: string | null }[];
+  casos: { id: string; codigo: string | null; titulo: string | null; documentos_minimos_ok: boolean | null; prazo_proxima_acao: string | null; responsavel_principal: string | null }[];
   /** Pendências já derivadas da cadeia operacional (planejador → prévia). */
   cadeia?: ItemFila[];
+  /** Resultado em lote de `proxima_acao_prioritaria_lote`, por case_id. */
+  proximasAcoes?: Record<string, { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null } | undefined>;
   hoje?: Date;
 }): Fila[] {
   const hojeStr = dia(input.hoje ?? new Date());
@@ -901,18 +913,31 @@ export function montarFilasHoje(input: {
     },
     {
       chave: "casos_pendencia_documental",
+      // O FILTRO que traz o caso para esta fila continua sendo "documento
+      // mínimo pendente" (visão própria do Painel Hoje); o TEXTO exibido
+      // como ação passa a ser o mesmo da RPC proxima_acao_prioritaria usada
+      // por Ficha 360 e Lista de Casos — nunca uma segunda narrativa.
       itens: input.casos
         .filter((c) => c.documentos_minimos_ok === false)
-        .map((c) => ({
-          id: c.id,
-          rotulo: `${c.codigo ?? "caso"} · ${c.titulo ?? "sem título"}`,
-          detalhe: "Documentos aguardados — pendência documental",
-          data: c.prazo_proxima_acao,
-          tipo: "caso" as const,
-          area: "operacoes",
-          responsavel: null,
-          etapa: "caso_ativo",
-        })),
+        .map((c) => {
+          const rpc = input.proximasAcoes?.[c.id] ?? null;
+          const canonica = obterProximaAcaoCanonica({
+            caseId: c.id,
+            rpc,
+            responsavelPrincipal: c.responsavel_principal,
+          });
+          return {
+            id: c.id,
+            rotulo: `${c.codigo ?? "caso"} · ${c.titulo ?? "sem título"}`,
+            detalhe: canonica.acao,
+            data: canonica.prazo ?? c.prazo_proxima_acao,
+            tipo: "caso" as const,
+            area: "operacoes",
+            responsavel: canonica.responsavel,
+            etapa: "caso_ativo",
+            origemAcao: canonica.origem,
+          };
+        }),
     },
   ].map((f) => ({
     ...f,

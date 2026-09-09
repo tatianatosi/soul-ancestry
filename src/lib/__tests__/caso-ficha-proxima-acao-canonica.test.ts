@@ -47,4 +47,30 @@ describe("obterProximaAcaoCanonica", () => {
     expect(c.acao).toBe("Definir próximo passo");
     expect(c.origem).toBe("automatica");
   });
+
+  /*
+   * Decisão 2 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — dependência e
+   * critério de conclusão são metadados da mesma ação canônica, não um
+   * bloco paralelo exclusivo da Lista de Casos.
+   */
+  it("dependência e critério de conclusão chegam como metadados da mesma ação, não como bloco à parte", () => {
+    const c = obterProximaAcaoCanonica({
+      caseId: "caso-1",
+      rpc: { nivel: 8, motivo: "solicitar_dados_cadastrais", origem_tabela: "crm_casos", origem_id: "caso-1", prazo: "2026-09-10" },
+      responsavelPrincipal: "Tatiana",
+      dependencia: "Cliente enviar certidão de nascimento",
+      criterioConclusao: "Certidão anexada e conferida",
+    });
+    expect(c.dependencia).toBe("Cliente enviar certidão de nascimento");
+    expect(c.criterioConclusao).toBe("Certidão anexada e conferida");
+  });
+
+  it("sem dependência/critério informados, os campos vêm null (nunca undefined ou string vazia silenciosa)", () => {
+    const c = obterProximaAcaoCanonica({
+      caseId: "caso-1",
+      rpc: { nivel: 2, motivo: "Tarefa vencida", origem_tabela: "tarefas", origem_id: "t1", prazo: null },
+    });
+    expect(c.dependencia).toBeNull();
+    expect(c.criterioConclusao).toBeNull();
+  });
 });

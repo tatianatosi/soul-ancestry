@@ -48,16 +48,23 @@ export const listarSkusPlanejador = createServerFn({ method: "GET" })
     return { skus: (data ?? []) as { id: string; code: string; nome_comercial: string | null }[] };
   });
 
-/** Materializa a proposta estruturada a partir do planejador + SKU do catálogo. */
+/**
+ * Materializa a proposta estruturada a partir do planejador + SKU do catálogo.
+ *
+ * Decisão 5 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — responsável comercial
+ * e operacional nunca vêm do cliente (antes chegavam como texto fixo
+ * "Comercial responsável"/"Operações responsável" da UI); são resolvidos no
+ * servidor a partir da sessão real e do responsável já atribuído ao caso.
+ */
 export const gerarPropostaEstruturada = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { caseId: string; responsavelComercial: string; responsavelOperacional: string }) => d)
+  .inputValidator((d: { caseId: string }) => ({ caseId: String(d.caseId) }))
   .handler(async ({ data, context }) => {
     const { materializarProposta, orgDoUsuario } = await import("@/lib/cadeia-operacional.server");
     const supabase = (context as any).supabase;
     const userId = context.userId as string;
     const org = await orgDoUsuario(supabase, userId);
-    return materializarProposta(supabase, { org, userId, ...data });
+    return materializarProposta(supabase, { org, userId, caseId: data.caseId });
   });
 
 /** Aprova a proposta e persiste a condição comercial derivada (sem cobrança). */

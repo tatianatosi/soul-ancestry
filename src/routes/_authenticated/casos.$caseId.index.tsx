@@ -541,7 +541,12 @@ function FichaCaso() {
             const canonica = obterProximaAcaoCanonica({
               caseId: String(caso["id"]),
               rpc: qc2.data.proximaAcaoPrioritaria,
-              responsavelPrincipal: (caso["responsavel_principal"] as string) ?? null,
+              responsavelPrincipal:
+                (caso["proxima_acao_responsavel"] as string) ??
+                (caso["responsavel_principal"] as string) ??
+                null,
+              dependencia: (caso["proxima_acao_dependencia"] as string) ?? null,
+              criterioConclusao: (caso["proxima_acao_criterio_conclusao"] as string) ?? null,
             });
             return (
               <>
@@ -554,6 +559,13 @@ function FichaCaso() {
                   </span>
                 </div>
                 <p className="mt-0.5 text-sm font-medium text-navy">{canonica.acao}</p>
+                {canonica.origem === "manual" && (canonica.dependencia || canonica.criterioConclusao) ? (
+                  <p className="mt-0.5 text-xs text-navy/60">
+                    {canonica.dependencia ? `Depende de: ${canonica.dependencia}` : null}
+                    {canonica.dependencia && canonica.criterioConclusao ? " · " : null}
+                    {canonica.criterioConclusao ? `Conclui quando: ${canonica.criterioConclusao}` : null}
+                  </p>
+                ) : null}
               </>
             );
           })()}
