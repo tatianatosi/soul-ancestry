@@ -4,6 +4,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { ConferenciaPreco } from "@/lib/precos-sku";
 import { validarExcecaoComercial } from "@/lib/precos-sku";
+import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/planejador-produtos-pai";
+import { conflitoPlanejadorProposta } from "@/lib/perfil-institucional";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -93,12 +95,44 @@ export const conferirRegraComercial = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(10);
 
+    // CA15-COMERCIAL-E-FONTE-VIVA (09/09/2026) — produto-pai (CA09) e
+    // conflitoPlanejadorProposta (já existiam, sem nenhum leitor) passam a
+    // conciliar preço homologado do SKU × valor declarado na proposta ativa
+    // do caso. Nenhum valor é sobrescrito: a divergência só fica visível.
+    const { data: catalogoPlanejador } = await supabase
+      .from("planner_catalog_feed")
+      .select("item_id,product_parent,status_dictionary,legacy_aliases")
+      .eq("organization_id", org)
+      .is("archived_at", null);
+    const mapaProdutoPai = construirMapaProdutoPaiPorCodigo((catalogoPlanejador ?? []) as any);
+    const produtoPai = codigo ? produtoPaiDoCodigo(codigo, mapaProdutoPai) : { produto_pai: null, status_reconciliacao: null };
+
+    const { data: propostaAtiva } = await supabase
+      .from("proposals")
+      .select("id,versao,valor,moeda,forma_pagamento,status")
+      .eq("organization_id", org)
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("versao", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const conflitoValor = conflitoPlanejadorProposta({
+      campo: "valor total",
+      planejador: preco?.ok ? String(preco.preco_total) : null,
+      proposta: propostaAtiva?.valor != null ? String(propostaAtiva.valor) : null,
+    });
+
     return {
       despesas: despesasRaw ?? [],
       sku: codigo,
       skuOrigem: origemSku,
+      produtoPai: produtoPai.produto_pai,
+      produtoPaiStatusReconciliacao: produtoPai.status_reconciliacao,
       preco,
       excecoes: excecoes ?? [],
+      proposta: propostaAtiva ?? null,
+      conflitoValor,
     };
   });
 

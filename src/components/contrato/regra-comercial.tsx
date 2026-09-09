@@ -134,9 +134,26 @@ export function RegraComercial({ caseId }: { caseId: string }) {
         {!isLoading && (
           <div className="space-y-2 text-sm text-navy/80">
             <p>
-              <strong>SKU do caso:</strong> {data?.sku ?? <span className="text-terracotta">não parametrizado</span>}
+              <strong>Produto-pai:</strong>{" "}
+              {data?.produtoPai ?? <span className="text-terracotta">sem reconciliação — pede conferência</span>}
+              {data?.produtoPaiStatusReconciliacao ? ` · ${data.produtoPaiStatusReconciliacao}` : ""}
+            </p>
+            <p>
+              <strong>SKU do caso (técnico):</strong>{" "}
+              {data?.sku ?? <span className="text-terracotta">não parametrizado</span>}
               {data?.skuOrigem ? ` · origem do parâmetro: ${data.skuOrigem}` : ""}
             </p>
+            {data?.conflitoValor?.conflito ? (
+              <div className="rounded border border-terracotta/40 bg-terracotta/10 p-2 text-xs text-terracotta">
+                <p className="font-semibold">Conciliação proposta × preço homologado</p>
+                <p className="mt-1">{data.conflitoValor.motivo}</p>
+                <p className="mt-1 text-navy/70">
+                  Proposta v{data?.proposta?.versao ?? "?"}: {moeda(data?.proposta?.valor, data?.proposta?.moeda ?? "BRL")} · SKU
+                  homologado:{" "}
+                  {preco?.ok ? moeda(preco.preco_total, preco.moeda ?? "BRL") : "—"}
+                </p>
+              </div>
+            ) : null}
             {preco?.ok ? (
               <>
                 <p>
