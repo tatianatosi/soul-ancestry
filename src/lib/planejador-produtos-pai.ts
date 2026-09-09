@@ -106,3 +106,40 @@ export const ROTULO_PAIS: Record<string, string> = {
 export function rotuloPais(codigo: string): string {
   return ROTULO_PAIS[codigo] ?? codigo;
 }
+
+export type EnriquecimentoProdutoPai = {
+  produto_pai: string | null;
+  status_reconciliacao: string | null;
+};
+
+/**
+ * CA09-CATALOGO-PRODUTOS-PAI (09/09/2026) — mapa único código→produto-pai,
+ * extraído de `caso-canonico.functions.ts` para que Caso e Catálogo leiam o
+ * mesmo enriquecimento, nunca dois cálculos separados. `item_id` e
+ * `legacy_aliases` cobrem tanto o código vigente quanto códigos antigos do
+ * mesmo item na lista-alimento (`planner_catalog_feed`).
+ */
+export function construirMapaProdutoPaiPorCodigo(
+  feed: ReadonlyArray<{
+    item_id: string;
+    product_parent: string | null;
+    status_dictionary: string | null;
+    legacy_aliases?: readonly string[] | null;
+  }>,
+): Map<string, EnriquecimentoProdutoPai> {
+  const mapa = new Map<string, EnriquecimentoProdutoPai>();
+  for (const item of feed) {
+    const valor = { produto_pai: item.product_parent ?? null, status_reconciliacao: item.status_dictionary ?? null };
+    mapa.set(String(item.item_id), valor);
+    for (const alias of item.legacy_aliases ?? []) mapa.set(String(alias), valor);
+  }
+  return mapa;
+}
+
+/** Produto-pai + status de reconciliação de um código, ou ambos nulos se o código não está na lista-alimento. */
+export function produtoPaiDoCodigo(
+  codigo: string | null | undefined,
+  mapa: Map<string, EnriquecimentoProdutoPai>,
+): EnriquecimentoProdutoPai {
+  return mapa.get(String(codigo ?? "")) ?? { produto_pai: null, status_reconciliacao: null };
+}

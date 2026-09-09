@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useMemo } from "react";
 
 import { SaasShell } from "@/components/saas/shell";
 import { EstadoDados } from "@/components/saas/estado-dados";
@@ -12,9 +13,10 @@ import { lerCatalogoImportado } from "@/lib/catalogo-importacao.functions";
 import {
   ROTULO_DIVERGENCIA,
   ROTULO_LINK_FONTE,
+  elegivelParaPropostaReal,
   mapaFonteMestre,
   previaImportacao,
-  selecionavelEmProposta,
+  type ItemCatalogoImportado,
   type TipoDivergencia,
 } from "@/lib/catalogo-importacao";
 
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/catalogo")({
       {
         name: "description",
         content:
-          "Área proprietária de catálogo: SKUs Top 30 Pareto importados da planilha mestre, com preço sugerido oficial, referência de fonte e divergências de reconciliação.",
+          "Área proprietária de catálogo: produto-pai, contexto e status de condição do Top 30 Pareto, com origem e divergências de reconciliação. Planilha Mestre é só origem histórica, nunca fonte operacional.",
       },
       { property: "og:title", content: "Catálogo comercial — Clube Ancestral Desk" },
       {
@@ -52,10 +54,24 @@ function CatalogoPage() {
   const divergencias = q.data?.divergencias;
   const previa = previaImportacao((itens ?? []).map((i) => ({ sku: i.sku, fonte_versao: i.fonte_versao })));
 
+  // CA09-CATALOGO-PRODUTOS-PAI (09/09/2026): produto-pai é a taxonomia de
+  // oferta — agrupa a mesma leitura que já existe, nunca lista SKU cru como
+  // decisão. Planilha Mestre (mapa/previa acima) fica só como origem
+  // histórica de auditoria, nunca fonte operacional de preço/status.
+  const grupos = useMemo(() => {
+    const porProdutoPai = new Map<string, ItemCatalogoImportado[]>();
+    for (const item of itens ?? []) {
+      const chave = item.produto_pai ?? "Sem produto-pai (pede reconciliação)";
+      if (!porProdutoPai.has(chave)) porProdutoPai.set(chave, []);
+      porProdutoPai.get(chave)!.push(item);
+    }
+    return [...porProdutoPai.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [itens]);
+
   return (
     <SaasShell
       titulo="Catálogo comercial"
-      descricao="Leitura do catálogo já saneado. Preço, status, categoria e Pareto vêm da planilha mestre. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
+      descricao="Produto-pai, contexto e status de condição do catálogo já saneado. Origem (Planilha Mestre) é rastreabilidade, não decisão. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
     >
 
       <div className="mb-6">
@@ -97,60 +113,64 @@ function CatalogoPage() {
         </p>
       </section>
 
-      <section className="mt-6 overflow-x-auto rounded-xl border border-navy/10 bg-white">
+      <section className="mt-6 space-y-4">
         <EstadoDados
           carregando={q.isLoading}
           erro={q.error}
           dados={itens}
           aoTentarNovamente={() => void q.refetch()}
           recurso="o catálogo importado"
-          vazio="Nenhum SKU importado. A leitura foi concluída com sucesso."
+          vazio="Nenhum item no catálogo. A leitura foi concluída com sucesso."
         >
-          {(lista) => (
-        <table className="w-full text-left text-xs">
-          <thead className="bg-navy/5 text-navy/60">
-            <tr>
-              <th className="p-3">SKU</th>
-              <th className="p-3">Produto</th>
-              <th className="p-3">Categoria</th>
-              <th className="p-3">Pareto</th>
-              <th className="p-3">Preço sugerido (fonte)</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Asaas (reconciliação)</th>
-              <th className="p-3">Referência da fonte</th>
-              <th className="p-3">Proposta</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lista.map((i) => {
-              const sel = selecionavelEmProposta(i);
-              return (
-                <tr key={i.sku} className="border-t border-navy/5 align-top">
-                  <td className="p-3 font-medium text-navy/85">{i.sku}</td>
-                  <td className="p-3 text-navy/70">{i.produto}</td>
-                  <td className="p-3 text-navy/60">{i.categoria ?? "—"}</td>
-                  <td className="p-3 text-navy/60">{i.faixa ?? i.pareto ?? "—"}</td>
-                  <td className="p-3 text-navy/85">{moedaBR(i.preco_sugerido, i.moeda)}</td>
-                  <td className="p-3 text-navy/60">{i.status_fonte ?? i.status_produto}</td>
-                  <td className="p-3 text-navy/60">
-                    {ROTULO_LINK_FONTE[i.status_link_asaas_fonte ?? ""] ?? i.status_link_asaas_fonte ?? "—"}
-                  </td>
-                  <td className="p-3 text-navy/50">
-                    {i.fonte_versao ?? "—"} · linha {i.fonte_linha ?? "—"}
-                  </td>
-                  <td className="p-3">
-                    {sel.permitido ? (
-                      <span className="text-gold">Selecionável</span>
-                    ) : (
-                      <span className="text-terracotta">{sel.motivo}</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-          )}
+          {() =>
+            grupos.map(([produtoPai, lista]) => (
+              <div key={produtoPai} className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+                <p className="border-b border-navy/10 bg-navy/5 p-3 text-sm font-medium text-navy">
+                  {produtoPai}
+                </p>
+                <table className="w-full text-left text-xs">
+                  <thead className="text-navy/60">
+                    <tr>
+                      <th className="p-3">Produto</th>
+                      <th className="p-3">Contexto</th>
+                      <th className="p-3">Status de condição</th>
+                      <th className="p-3">Origem</th>
+                      <th className="p-3">Asaas (reconciliação)</th>
+                      <th className="p-3">SKU (técnico)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lista.map((i) => {
+                      const sel = elegivelParaPropostaReal(i);
+                      return (
+                        <tr key={i.sku} className="border-t border-navy/5 align-top">
+                          <td className="p-3 text-navy/85">
+                            {i.produto}
+                            <p className="mt-1 text-[11px] text-navy/50">{moedaBR(i.preco_sugerido, i.moeda)}</p>
+                          </td>
+                          <td className="p-3 text-navy/60">{i.tipo_oferta}</td>
+                          <td className="p-3">
+                            {sel.permitido ? (
+                              <span className="text-gold">Elegível para proposta</span>
+                            ) : (
+                              <span className="text-terracotta">{sel.motivo}</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-navy/50">
+                            Planilha Mestre {i.fonte_versao ?? "—"} · linha {i.fonte_linha ?? "—"}
+                          </td>
+                          <td className="p-3 text-navy/60">
+                            {ROTULO_LINK_FONTE[i.status_link_asaas_fonte ?? ""] ?? i.status_link_asaas_fonte ?? "—"}
+                          </td>
+                          <td className="p-3 font-mono text-navy/45">{i.sku}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          }
         </EstadoDados>
       </section>
 
