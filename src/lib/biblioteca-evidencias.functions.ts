@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
 
@@ -234,6 +235,10 @@ export const salvarProjecao = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     recusarNaoMapeado(CAMPOS_PROJECAO, data.valores);
     const valores = filtrar(CAMPOS_PROJECAO, data.valores);
+    if ("content_sanitized" in valores) {
+      const checagem = conteudoProjetavel(String(valores["content_sanitized"] ?? ""));
+      if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+    }
 
     const r = data.id
       ? await supabase.from("app_projections").update(valores).eq("id", data.id).select("id").maybeSingle()
@@ -254,6 +259,22 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     await autorizarEscrita(supabase, context.userId as string);
+
+    // Achado de 09/09/2026 (rodada de limpeza pré-Perfil 360): aprovar/publicar
+    // confiava cegamente no que foi salvo antes — não repetia a checagem de
+    // conteúdo. Uma projeção gravada fora da UI (ou salva antes desta função
+    // existir) podia ser aprovada e publicada sem nunca passar por
+    // conteudoProjetavel. Achado só vira visível ao cliente sanitizado.
+    const atual = await supabase
+      .from("app_projections")
+      .select("content_sanitized")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (atual.error) throw new Error(atual.error.message);
+    if (!atual.data) throw new Error("Projeção não encontrada ou sem permissão de acesso.");
+    const checagem = conteudoProjetavel(String(atual.data.content_sanitized ?? ""));
+    if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+
     const agora = new Date().toISOString();
     const r = await supabase
       .from("app_projections")

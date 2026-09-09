@@ -238,7 +238,10 @@ const GRUPOS_INDICADOR = [
     chave: "integridade" as const,
     titulo: "Integridade",
     resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
-    rota: "/auditoria" as const,
+    // Corte D (09/09/2026): /auditoria foi removida — o Radar Interno em
+    // /qualidade já cobre este conteúdo (ver qualidade.tsx). O card tinha CTA
+    // morto (404).
+    rota: "/qualidade" as const,
     acao: "Abrir auditoria e integridade",
   },
   {

@@ -4,7 +4,11 @@ import { useState } from "react";
 import { ClienteMockup } from "@/components/mockup/cliente-mockup";
 import { DeskMockup } from "@/components/mockup/desk-mockup";
 
-export const Route = createFileRoute("/mockup")({
+// Corte D (09/09/2026, limpeza pré-Perfil 360) — esta rota vivia fora de
+// _authenticated: qualquer visitante, sem login, alcançava o mockup pela URL.
+// Movida para dentro de _authenticated (herda o guard de autenticação de
+// route.tsx); o componente em si não mudou.
+export const Route = createFileRoute("/_authenticated/mockup")({
   head: () => ({
     meta: [
       { title: "Mockup v2 — App Cliente e Desk Intelligence | Clube Ancestral" },

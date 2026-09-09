@@ -84,6 +84,11 @@ function AppClienteComoPessoa() {
           sanitizada que a pessoa veria, nunca dado bruto do Desk. Somente leitura: nada aqui envia,
           publica ou altera qualquer registro.
         </p>
+        <p className="mt-2 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy/80">
+          Cobre hoje 3 das 10 telas do App Cliente (Jornada, Árvore da família, Radar de países).
+          Documentos, Entregas, Fase 01/02, Legado, Conta e Faturas ainda não estão disponíveis
+          nesta visão master — para vê-las, abra a sessão de portal real do cliente.
+        </p>
 
         <div className="mt-4 max-w-sm">
           <EstadoDados<Record<string, unknown>>
