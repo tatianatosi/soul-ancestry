@@ -46,6 +46,10 @@ const CAMPOS_PROJECAO = [
   "approved_at",
   "visibility_scope",
   "effective_from",
+  // Decisão da Proprietária (09/09/2026) — "achado é compartilhável apenas
+  // quando sanitizado e autorizado": quando visibility_scope='titular',
+  // titular_client_id é a pessoa (clientes.id) que vê o achado por padrão.
+  "titular_client_id",
 ];
 
 function filtrar(campos: string[], entrada: Record<string, unknown>) {
@@ -375,4 +379,90 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
       payload: patch,
     });
     return { ok: true };
+  });
+
+/* ===================== COMPARTILHAMENTO DE ACHADO (LGPD) ===================== */
+
+/**
+ * Decisão da Proprietária (09/09/2026) — "achado é compartilhável apenas
+ * quando sanitizado e autorizado": registra que o TITULAR autorizou
+ * (por telefone, presencialmente etc. — a equipe registra em nome dele,
+ * deixando explícito quem autorizou) o compartilhamento de UM achado
+ * sanitizado com UM outro membro da família. Nunca compartilha o documento
+ * original — só o `content_sanitized` já aprovado/publicado da projeção.
+ */
+export const registrarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string; compartilharComClienteId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    const { data: projecao } = await supabase
+      .from("app_projections")
+      .select("id,organization_id,titular_client_id,approval_status")
+      .eq("id", data.projecaoId)
+      .maybeSingle();
+    if (!projecao || projecao.organization_id !== organizationId) {
+      throw new Error("Achado não encontrado nesta organização.");
+    }
+    if (!projecao.titular_client_id) {
+      throw new Error("Este achado não tem titular definido — associe o titular antes de compartilhar.");
+    }
+    if (projecao.approval_status !== "approved" && projecao.approval_status !== "published") {
+      throw new Error("Só um achado já aprovado pode ser compartilhado.");
+    }
+
+    const r = await supabase
+      .from("app_projection_shares")
+      .insert({
+        organization_id: organizationId,
+        projection_id: data.projecaoId,
+        compartilhado_com_client_id: data.compartilharComClienteId,
+        autorizado_por: "equipe_interna",
+        autorizado_por_user_id: context.userId as string,
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    return { id: r.data?.id as string };
+  });
+
+/** Revoga uma autorização de compartilhamento — nunca exclusão física. */
+export const revogarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; motivo?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "app_projection_shares",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        revogado_em: new Date().toISOString(),
+        revogado_por_user_id: context.userId as string,
+        revogado_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+      },
+    });
+    return { ok: true };
+  });
+
+/** Lista as autorizações de compartilhamento de um achado. */
+export const listarCompartilhamentosAchado = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    await autorizarEscrita(supabase, context.userId as string);
+    const { data: linhas, error } = await supabase
+      .from("app_projection_shares")
+      .select("*")
+      .eq("projection_id", data.projecaoId)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (linhas ?? []) as Record<string, any>[];
   });

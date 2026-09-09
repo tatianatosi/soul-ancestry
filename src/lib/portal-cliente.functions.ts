@@ -499,3 +499,86 @@ export const minhasFaturas = createServerFn({ method: "GET" })
       statusRotulo: h.STATUS_FATURA_SIMPLES[f.status] ?? "Em aberto",
     }));
   });
+
+/* ===================== COMPARTILHAMENTO DE ACHADO (LGPD) ===================== */
+
+/**
+ * Decisão da Proprietária (09/09/2026) — "cliente decide se deseja
+ * compartilhar o achado": o próprio titular, autenticado no seu portal,
+ * autoriza um achado sanitizado específico para outro membro da família.
+ * A RLS de app_projection_shares só aceita este insert quando o achado
+ * pertence a este titular (app_projections.titular_client_id = quem está
+ * logado) — nunca compartilha o documento original, só o achado aprovado.
+ */
+export const autorizarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string; compartilharComClienteId: string }) => {
+    if (!d?.projecaoId || !d?.compartilharComClienteId) {
+      throw new Error("Informe o achado e a pessoa com quem compartilhar.");
+    }
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projection_shares")
+      .insert({
+        organization_id: acesso.organization_id,
+        projection_id: data.projecaoId,
+        compartilhado_com_client_id: data.compartilharComClienteId,
+        autorizado_por: "titular",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) {
+      throw new Error("Não foi possível autorizar: confirme que este achado é seu e que já foi aprovado.");
+    }
+    return { id: r.data.id as string };
+  });
+
+/** O titular revoga uma autorização de compartilhamento que ele mesmo deu. */
+export const revogarCompartilhamentoAchadoPortal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => {
+    if (!d?.id) throw new Error("Informe a autorização de compartilhamento.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    await h.acessoDoCliente(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projection_shares")
+      .update({ revogado_em: new Date().toISOString() })
+      .eq("id", data.id)
+      .is("revogado_em", null)
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) {
+      throw new Error("Não foi possível revogar: confirme que a autorização existe e é sua.");
+    }
+    return { ok: true };
+  });
+
+/** Achados e compartilhamentos deste titular — o que ele autorizou e o que recebeu. */
+export const meusCompartilhamentosDeAchado = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    semCache();
+    const h = await import("./portal-cliente.server");
+    const supabase = context.supabase as any;
+    const acesso = await h.acessoDoCliente(supabase, context.userId as string);
+    const { data, error } = await supabase
+      .from("app_projection_shares")
+      .select("id, projection_id, compartilhado_com_client_id, autorizado_em, revogado_em")
+      .order("autorizado_em", { ascending: false });
+    if (error) throw new Error(error.message);
+    return {
+      meuClienteId: acesso.client_id as string,
+      compartilhamentos: (data ?? []) as Record<string, any>[],
+    };
+  });
