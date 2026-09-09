@@ -13,17 +13,23 @@ import {
   FLUXO_EVIDENCIA,
   NATUREZAS,
   NIVEIS_ACESSO,
+  ROTULO_ESTADO_MICROENTREGA,
   cadeiaDaEvidencia,
   conteudoProjetavel,
+  estadoMicroentrega,
   evidenciaProjetavel,
+  marcoJuridicoProjetavel,
   validarElevacaoConfianca,
   validarEvidencia,
 } from "@/lib/biblioteca-evidencias";
 import {
   aprovarProjecao,
   arquivarRegistroG03,
+  despublicarProjecao,
   painelBibliotecaEvidencias,
+  prepararAlertaProjecao,
   registrarValidacaoEvidencia,
+  revisarProjecao,
   salvarEvidencia,
   salvarProjecao,
 } from "@/lib/biblioteca-evidencias.functions";
@@ -99,6 +105,9 @@ function Pagina() {
   const validarEv = useServerFn(registrarValidacaoEvidencia);
   const salvarProj = useServerFn(salvarProjecao);
   const aprovarProj = useServerFn(aprovarProjecao);
+  const revisarProj = useServerFn(revisarProjecao);
+  const despublicarProj = useServerFn(despublicarProjecao);
+  const alertaProj = useServerFn(prepararAlertaProjecao);
   const arquivar = useServerFn(arquivarRegistroG03);
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["g03", caseId] });
@@ -133,6 +142,30 @@ function Pagina() {
     mutationFn: (v: { id: string; publicar: boolean }) => aprovarProj({ data: v }),
     onSuccess: () => {
       toast.success("Projeção atualizada.");
+      invalidar();
+    },
+    onError: erro,
+  });
+  const mRevisar = useMutation({
+    mutationFn: (v: { id: string }) => revisarProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Projeção enviada para revisão.");
+      invalidar();
+    },
+    onError: erro,
+  });
+  const mDespublicar = useMutation({
+    mutationFn: (v: { id: string }) => despublicarProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Projeção despublicada — some do App Cliente, continua aprovada.");
+      invalidar();
+    },
+    onError: erro,
+  });
+  const mAlerta = useMutation({
+    mutationFn: (v: { id: string; caseId: string; titulo: string }) => alertaProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Alerta interno registrado. Nada foi enviado ao cliente.");
       invalidar();
     },
     onError: erro,
@@ -297,41 +330,84 @@ function Pagina() {
 
       {aba === "projecoes" ? (
         <section className="space-y-4">
-          <FormProjecao caseId={caseId} evidencias={evidencias} onCriar={(v) => mProj.mutate(v)} />
+          <FormProjecao
+            caseId={caseId}
+            evidencias={evidencias}
+            marcosJuridicos={data.marcosJuridicos}
+            onCriar={(v) => mProj.mutate(v)}
+          />
           <div className="space-y-3">
-            {projecoes.map((p) => (
+            {projecoes.map((p) => {
+              const estado = estadoMicroentrega({
+                approval_status: p["approval_status"] as string,
+                effective_from: p["effective_from"] as string | null,
+              });
+              return (
               <article key={String(p["id"])} className="rounded border border-navy/15 bg-white p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-navy">{String(p["projection_type"])}</h3>
                   <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
-                    {rotulo(DESTINOS, p["destination"])} · {rotulo(APROVACOES, p["approval_status"])}
+                    {rotulo(DESTINOS, p["destination"])} · {ROTULO_ESTADO_MICROENTREGA[estado]}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-navy/80">{String(p["content_sanitized"])}</p>
                 <p className="mt-1 text-[11px] text-navy/50">{DISCLAIMER_PROJECAO}</p>
-                {["draft", "in_review"].includes(String(p["approval_status"])) ? (
-                  <div className="mt-2 flex flex-wrap items-start gap-3 text-[11px]">
+                <div className="mt-2 flex flex-wrap items-start gap-3 text-[11px]">
+                  {p["approval_status"] === "draft" ? (
+                    <button className="underline decoration-gold" onClick={() => mRevisar.mutate({ id: String(p["id"]) })}>
+                      Enviar para revisão
+                    </button>
+                  ) : null}
+                  {["draft", "in_review"].includes(String(p["approval_status"])) ? (
+                    <>
+                      <AcaoOperacional
+                        rotulo="Aprovar"
+                        variant="link"
+                        size="sm"
+                        capacidade="aprovar_projecao_app_cliente"
+                        pendenciaGate={pendenciaVinculo}
+                        efeito="Aprova a projeção internamente. Nada é publicado no App Cliente por esta ação."
+                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}
+                      />
+                      <AcaoOperacional
+                        rotulo="Aprovar e publicar"
+                        variant="link"
+                        size="sm"
+                        capacidade="aprovar_projecao_app_cliente"
+                        acaoExterna="publicar_no_app_cliente"
+                        pendenciaGate={pendenciaVinculo}
+                        efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
+                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}
+                      />
+                    </>
+                  ) : null}
+                  {estado === "publicada" || estado === "liberada" ? (
                     <AcaoOperacional
-                      rotulo="Aprovar"
+                      rotulo="Despublicar"
                       variant="link"
                       size="sm"
                       capacidade="aprovar_projecao_app_cliente"
+                      acaoExterna="despublicar_no_app_cliente"
                       pendenciaGate={pendenciaVinculo}
-                      efeito="Aprova a projeção internamente. Nada é publicado no App Cliente por esta ação."
-                      onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}
+                      efeito="Remove a projeção do App Cliente imediatamente. A projeção continua aprovada, editável e pode ser republicada."
+                      onConfirmar={() => mDespublicar.mutate({ id: String(p["id"]) })}
                     />
-                    <AcaoOperacional
-                      rotulo="Aprovar e publicar"
-                      variant="link"
-                      size="sm"
-                      capacidade="aprovar_projecao_app_cliente"
-                      acaoExterna="publicar_no_app_cliente"
-                      pendenciaGate={pendenciaVinculo}
-                      efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
-                      onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}
-                    />
-                  </div>
-                ) : null}
+                  ) : null}
+                  {estado !== "arquivada" ? (
+                    <button
+                      className="underline decoration-navy/40"
+                      onClick={() =>
+                        mAlerta.mutate({
+                          id: String(p["id"]),
+                          caseId,
+                          titulo: `Microentrega "${String(p["projection_type"])}" aguarda atenção`,
+                        })
+                      }
+                    >
+                      Criar alerta interno
+                    </button>
+                  ) : null}
+                </div>
                 {String(p["approval_status"]) !== "archived" ? (
                   <button
                     className="mt-2 block text-[11px] text-terracotta underline"
@@ -345,7 +421,8 @@ function Pagina() {
                   </button>
                 ) : null}
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
       ) : null}
@@ -609,32 +686,78 @@ function FormValidacao({
 function FormProjecao({
   caseId,
   evidencias,
+  marcosJuridicos,
   onCriar,
 }: {
   caseId: string;
   evidencias: Record<string, unknown>[];
+  marcosJuridicos: Record<string, unknown>[];
   onCriar: (v: Record<string, unknown>) => void;
 }) {
+  const [origemTipo, setOrigemTipo] = useState<"evidence" | "legal_rule">("evidence");
   const [origem, setOrigem] = useState("");
   const [tipo, setTipo] = useState("marco_de_pesquisa");
   const [destino, setDestino] = useState("app");
   const [conteudo, setConteudo] = useState("");
   const evidencia = evidencias.find((e) => e["id"] === origem);
+  const regra = marcosJuridicos.find((r) => r["id"] === origem);
   const checkTexto = conteudoProjetavel(conteudo);
-  const checkEv = evidencia ? evidenciaProjetavel(evidencia) : { ok: false, erros: ["Selecione a evidência de origem."] };
+  const checkOrigem =
+    origemTipo === "evidence"
+      ? evidencia
+        ? evidenciaProjetavel(evidencia)
+        : { ok: false, erros: ["Selecione a evidência de origem."] }
+      : regra
+        ? marcoJuridicoProjetavel(regra as { status?: string | null; archived_at?: string | null })
+        : { ok: false, erros: ["Selecione o marco jurídico de origem."] };
+  const checkEv = checkOrigem;
 
   return (
     <section className="grid gap-3 rounded border border-navy/15 bg-white p-4 md:grid-cols-2">
-      <Campo label="Evidência de origem">
-        <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
-          <option value="">Selecione…</option>
-          {evidencias.map((e) => (
-            <option key={String(e["id"])} value={String(e["id"])}>
-              {String(e["title_internal"])}
-            </option>
-          ))}
+      <Campo label="Tipo de origem">
+        <select
+          className={inputCls}
+          value={origemTipo}
+          onChange={(e) => {
+            setOrigemTipo(e.target.value as "evidence" | "legal_rule");
+            setOrigem("");
+          }}
+        >
+          <option value="evidence">Evidência de pesquisa</option>
+          <option value="legal_rule">Marco/regra jurídica do caso</option>
         </select>
       </Campo>
+      {origemTipo === "evidence" ? (
+        <Campo label="Evidência de origem">
+          <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
+            <option value="">Selecione…</option>
+            {evidencias.map((e) => (
+              <option key={String(e["id"])} value={String(e["id"])}>
+                {String(e["title_internal"])}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      ) : (
+        <Campo
+          label="Marco/regra jurídica de origem"
+          ajuda="Só regra jurídica aprovada aparece aqui — mesma trava de evidência restrita."
+        >
+          <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
+            <option value="">Selecione…</option>
+            {marcosJuridicos.length === 0 ? (
+              <option value="" disabled>
+                Nenhuma regra jurídica aprovada para este caso
+              </option>
+            ) : null}
+            {marcosJuridicos.map((r) => (
+              <option key={String(r["id"])} value={String(r["id"])}>
+                {String(r["tema"])} ({String(r["fonte_referencia"] ?? "sem fonte")})
+              </option>
+            ))}
+          </select>
+        </Campo>
+      )}
       <Campo label="Tipo de projeção">
         <input className={inputCls} value={tipo} onChange={(e) => setTipo(e.target.value)} />
       </Campo>
@@ -663,7 +786,7 @@ function FormProjecao({
           onClick={() =>
             onCriar({
               case_id: caseId,
-              source_entity_type: "evidence",
+              source_entity_type: origemTipo,
               source_entity_id: origem,
               projection_type: tipo,
               destination: destino,

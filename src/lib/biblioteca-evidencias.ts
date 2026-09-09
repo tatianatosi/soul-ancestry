@@ -72,6 +72,50 @@ export const APROVACOES: { id: Aprovacao; rotulo: string }[] = [
   { id: "archived", rotulo: "Arquivada" },
 ];
 
+/**
+ * Vocabulário único de estados da microentrega (marco jurídico/achado →
+ * caso → microentrega → App Cliente), pedido pela proprietária em 09/09/2026.
+ * `app_projections.approval_status` é o único escritor/leitor ativo — não
+ * migra dado nem renomeia coluna, só normaliza para exibição/relatório.
+ * "planejada" nunca é produzida hoje: o fluxo real começa direto em rascunho
+ * (não existe estado "planejada mas não iniciada" na Biblioteca de Evidências).
+ * "liberada" e "publicada" são o mesmo `approval_status = "published"`,
+ * diferenciados por `effective_from` (futuro/nulo = liberada; já vigente =
+ * publicada) — reaproveita a coluna que já existe, sem campo novo.
+ */
+export type EstadoMicroentrega =
+  | "planejada"
+  | "em_producao"
+  | "em_revisao"
+  | "aprovada"
+  | "liberada"
+  | "publicada"
+  | "arquivada";
+
+export function estadoMicroentrega(
+  p: { approval_status?: string | null; effective_from?: string | null },
+  hoje = new Date(),
+): EstadoMicroentrega {
+  const status = p.approval_status ?? "draft";
+  if (status === "archived") return "arquivada";
+  if (status === "in_review") return "em_revisao";
+  if (status === "approved") return "aprovada";
+  if (status === "published") {
+    return p.effective_from && new Date(p.effective_from) <= hoje ? "publicada" : "liberada";
+  }
+  return "em_producao";
+}
+
+export const ROTULO_ESTADO_MICROENTREGA: Record<EstadoMicroentrega, string> = {
+  planejada: "Planejada",
+  em_producao: "Em produção",
+  em_revisao: "Em revisão",
+  aprovada: "Aprovada",
+  liberada: "Liberada",
+  publicada: "Publicada",
+  arquivada: "Arquivada",
+};
+
 export const DISCLAIMER_PROJECAO =
   "Registro documental do trabalho de pesquisa. Não constitui parecer jurídico, reconhecimento de cidadania nem garantia de resultado.";
 
@@ -152,6 +196,23 @@ export function evidenciaProjetavel(ev: Record<string, unknown>): ResultadoValid
   if (!["aprovada_para_entrega", "publicada"].includes(String(ev["workflow_status"])))
     erros.push("Somente evidência aprovada para entrega pode ser projetada.");
   if (ev["archived_at"]) erros.push("Evidência arquivada não pode ser projetada.");
+  return { ok: erros.length === 0, erros };
+}
+
+/**
+ * Marco jurídico elegível a projeção: mesma trava que evidência, mas a favor
+ * da regra jurídica vinculada (`versioned_legal_rules.status = "aprovado"`),
+ * não do marco em si — o marco (`legal_reference_milestones`) é só a citação;
+ * quem garante revisão humana é a regra. Fecha o elo pedido em 09/09/2026:
+ * marco jurídico/achado aprovado → microentrega.
+ */
+export function marcoJuridicoProjetavel(regra: {
+  status?: string | null;
+  archived_at?: string | null;
+}): ResultadoValidacao {
+  const erros: string[] = [];
+  if (regra.archived_at) erros.push("Regra jurídica arquivada não pode ser projetada.");
+  if (regra.status !== "aprovado") erros.push("Somente regra jurídica aprovada pode virar projeção ao cliente.");
   return { ok: erros.length === 0, erros };
 }
 

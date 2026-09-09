@@ -33,12 +33,9 @@ export const BLOQUEIOS_CA_PORTAL_02: BloqueioFonte[] = [
     tela: "Entregas da Jornada",
     fonte: "public.client_deliverables",
     motivo:
-      "SELECT apenas por is_org_member(organization_id): não existe policy de portal do cliente. Conteúdo permanece bloqueado.",
-  },
-  {
-    tela: "Legado",
-    fonte: "public.knowledge_items / client_deliverables",
-    motivo: "Sem estado `released_to_client` com policy de portal comprovada no banco.",
+      "SELECT apenas por is_org_member(organization_id): não existe policy de portal do cliente. Conteúdo permanece bloqueado. " +
+      "09/09/2026: fechamento da cadeia de microentregas usou app_projections/portal_projecoes (já com policy de portal " +
+      "comprovada) para Legado, não esta tabela — sem alterar RLS nesta rodada. client_deliverables segue sem uso real.",
   },
   {
     tela: "Árvore (pessoas)",
@@ -165,5 +162,19 @@ export function radarSanitizado(entrada: {
 export function arvoreSanitizada(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
   return publicacoesParaCliente(projecoes)
     .filter((p) => p.tipo === "arvore")
+    .filter((p) => !contemConteudoInterno(p.conteudo));
+}
+
+/* ------------------------------------------------------------------- legado */
+
+/**
+ * Legado do cliente: só publicações autorizadas do tipo `legado`, mesma fonte
+ * portal-segura de jornada/árvore (`portal_projecoes`, sem policy nova).
+ * Fecha o bloqueio de CA-PORTAL-02 sem tocar `client_deliverables`/
+ * `knowledge_items` (sem policy de portal comprovada) — 09/09/2026.
+ */
+export function legadoSanitizado(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
+  return publicacoesParaCliente(projecoes)
+    .filter((p) => p.tipo === "legado")
     .filter((p) => !contemConteudoInterno(p.conteudo));
 }

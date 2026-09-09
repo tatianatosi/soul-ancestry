@@ -36,6 +36,8 @@ const CAMPOS_PROJECAO = [
   "source_entity_type",
   "source_entity_id",
   "case_id",
+  "pessoa_id",
+  "due_at",
   "projection_type",
   "destination",
   "content_sanitized",
@@ -73,7 +75,7 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a biblioteca de evidências.");
 
-    const [evidencias, projecoes, fontes, pessoas, caso] = await Promise.all([
+    const [evidencias, projecoes, fontes, pessoas, caso, casoServicos] = await Promise.all([
       supabase
         .from("evidences")
         .select("*")
@@ -97,7 +99,27 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
         .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
+      supabase
+        .from("case_services")
+        .select("citizenship_track_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
     ]);
+
+    // Elo marco jurídico -> caso: trilha(s) do caso (case_services) já ligam a
+    // regra jurídica aprovada e ao marco/citação (consolidado em 08-09/09/2026).
+    // Só regra `aprovado` e não arquivada vira opção de origem de projeção —
+    // mesma trava de evidenciaProjetavel, aplicada à regra (marcoJuridicoProjetavel).
+    const trackIds = [...new Set((casoServicos.data ?? []).map((s: any) => s.citizenship_track_id).filter(Boolean))];
+    const marcosJuridicos = trackIds.length
+      ? await supabase
+          .from("versioned_legal_rules")
+          .select("id,track_id,tema,status,archived_at,fonte_referencia")
+          .in("track_id", trackIds)
+          .is("archived_at", null)
+          .eq("status", "aprovado")
+      : { data: [] as any[] };
 
     const ids = (evidencias.data ?? []).map((e: any) => e.id);
     const validacoes = ids.length
@@ -118,6 +140,7 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
       projecoes: (projecoes.data ?? []) as any[],
       fontes: (fontes.data ?? []) as any[],
       pessoas: (pessoas.data ?? []) as any[],
+      marcosJuridicos: (marcosJuridicos.data ?? []) as any[],
     };
   });
 
@@ -242,6 +265,76 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
     return { ok: true };
+  });
+
+/** Envia rascunho/aprovada de volta para revisão — nunca pula etapa às cegas. */
+export const revisarProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    await autorizarEscrita(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projections")
+      .update({ approval_status: "in_review" })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { ok: true };
+  });
+
+/**
+ * Despublica sem arquivar: some do App Cliente (a view portal_projecoes exige
+ * approval_status = published), mas continua editável como aprovada — ação
+ * reversível, distinta de arquivar (que exige motivo e é definitiva).
+ */
+export const despublicarProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    await autorizarEscrita(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projections")
+      .update({ approval_status: "approved", effective_from: null })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { ok: true };
+  });
+
+/**
+ * Rascunho de alerta interno sobre a microentrega — nunca envia WhatsApp,
+ * e-mail ou qualquer canal externo. Mesma tabela (`case_alerts`) já usada por
+ * `registrarProximaAcao` (caso-canonico.functions.ts), aqui escopada à
+ * projeção específica.
+ */
+export const prepararAlertaProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; caseId: string; titulo: string; detalhe?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    const r = await supabase
+      .from("case_alerts")
+      .insert({
+        organization_id: organizationId,
+        case_id: data.caseId,
+        tipo: "microentrega_pendente",
+        criticidade: "atencao",
+        titulo: data.titulo,
+        detalhe: data.detalhe ?? `Projeção ${data.id} aguarda revisão/aprovação.`,
+        status: "pending",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { id: r.data.id as string };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
