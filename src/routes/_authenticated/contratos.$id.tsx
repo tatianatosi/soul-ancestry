@@ -200,7 +200,20 @@ function ContratoDetalhe() {
         <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">{aviso}</p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      {/*
+        09/09/2026 — achado real: a fusão da PR #28 ("5 ações principais em
+        destaque") com o main deixou DUAS barras de botão, uma embaixo da
+        outra — a nova ("Salvar rascunho") e a antiga ("Gerar rascunho
+        interno"), que chamam exatamente a mesma mutação (mGerar). É a causa
+        do "contrato continua confuso": duas fileiras de botão para a mesma
+        ação. Consolidado numa fileira só; "Gerar rascunho interno" (redundante)
+        foi removido, e "Enviar ao cliente"/"Arquivar" — que não tinham
+        equivalente na barra nova — entraram na mesma fileira, mantendo o
+        próprio confirm/efeito do AcaoOperacional (ações externas/formais
+        continuam pedindo confirmação explícita, só não ficam mais numa
+        segunda barra à parte).
+      */}
+      <div className="mt-4 flex flex-wrap items-start gap-2">
         <button
           onClick={() => setAba("Resumo")}
           className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
@@ -236,20 +249,6 @@ function ContratoDetalhe() {
         >
           Criar tarefa
         </button>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-start gap-2">
-        <AcaoOperacional
-          rotulo="Gerar rascunho interno"
-          capacidade="criar_versao_derivada"
-          variant="outline"
-          efeito="Cria uma nova versão de trabalho do instrumento. Nada é enviado ao cliente."
-          onConfirmar={(motivo) =>
-            mGerar.mutate(
-              (d.versoes as any[]).length ? motivo || "Nova versão de trabalho." : undefined,
-            )
-          }
-        />
         {/*
           06/09/2026 — "Executar validações" e "Solicitar revisão humana" foram
           removidos daqui na execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS
