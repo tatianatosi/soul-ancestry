@@ -31,6 +31,7 @@ import { ehFixtureLinha, ROTULO_DEMONSTRACAO } from "@/lib/fixtures";
 import { classificarErroPersistencia } from "@/lib/persistencia-erros";
 import { toast } from "sonner";
 import { MapaPersistenciaCaso } from "@/components/caso/mapa-persistencia";
+import { estadoDerivadoPorGates } from "@/lib/gates-ativacao-ficha";
 import { formatarCep, formatarCpf, formatarTelefone } from "@/lib/validacao-pessoa";
 import {
   AlertDialog,
@@ -1661,6 +1662,7 @@ function CartaoPessoa({
           label="CPF"
           valor={v("cpf")}
           onChange={(x) => set("cpf", formatarCpf(x))}
+          desabilitado={bloqueado}
         />
         <Texto
           label="RG / documento"
@@ -1681,6 +1683,7 @@ function CartaoPessoa({
           label="Telefone"
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
+          desabilitado={bloqueado}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
@@ -1697,6 +1700,7 @@ function CartaoPessoa({
           label="CEP"
           valor={v("cep")}
           onChange={(x) => set("cep", formatarCep(x))}
+          desabilitado={bloqueado}
         />
         <Texto
           label="Documentos pendentes"
