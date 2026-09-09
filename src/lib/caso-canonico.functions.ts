@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, payloadServico, rascunhoDaAcao, type Linha } from "@/lib/caso-canonico.server";
 import { mapaDaAcao } from "@/lib/caso-ficha";
+import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/planejador-produtos-pai";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -54,19 +55,13 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     // cada SKU e sinaliza os que ainda pedem reconciliação (LEGADO_RECONCILIAR,
     // NAO_USAR_NO_MOTOR etc.) nunca chegava a esta tela — motor construído,
     // nunca ligado ao formulário que vende o produto.
-    const feedPorCodigo = new Map<string, Linha>();
-    for (const f of linhas<Linha>(catalogoPlanejador, "catálogo do planejador")) {
-      feedPorCodigo.set(String(f.item_id), f);
-      for (const alias of (f.legacy_aliases as string[] | null) ?? []) feedPorCodigo.set(String(alias), f);
-    }
-    const produtosComProdutoPai = linhas<Linha>(produtos, "catálogo de produtos").map((p) => {
-      const f = feedPorCodigo.get(String(p.code));
-      return {
-        ...p,
-        produto_pai: f?.product_parent ?? null,
-        status_reconciliacao: f?.status_dictionary ?? null,
-      };
-    });
+    // 09/09/2026 (CA09-CATALOGO-PRODUTOS-PAI) — enriquecimento extraído para
+    // planejador-produtos-pai.ts, reusado também pela leitura do Catálogo.
+    const mapaProdutoPai = construirMapaProdutoPaiPorCodigo(linhas<Linha>(catalogoPlanejador, "catálogo do planejador") as any);
+    const produtosComProdutoPai = linhas<Linha>(produtos, "catálogo de produtos").map((p) => ({
+      ...p,
+      ...produtoPaiDoCodigo(p.code, mapaProdutoPai),
+    }));
 
     return {
       produtos: produtosComProdutoPai,
