@@ -14,6 +14,7 @@ import {
   SECOES_MARKETING,
   VAZIOS_MARKETING,
   aprendizadosCampanha,
+  casosPorOrigem,
   desempenhoPorCanal,
   distribuicaoOrigens,
   formatarIndicador,
@@ -213,8 +214,14 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
       atribuicoes: dados.atribuicoes,
       // Só para checar pagamento confirmado por atribuição — CAC/ROI reais,
       // nunca contam lead ou proposta como venda, só caso com pagamento
-      // confirmado.
-      casos: dados.casos as { id?: string | null; pagamento_confirmado?: boolean | null }[],
+      // confirmado. titulo/codigo entram só para rotular o caso quando ele
+      // aparece em "Casos por origem" (CA10-MARKETING-CONTEUDO-VIVO).
+      casos: dados.casos as {
+        id?: string | null;
+        pagamento_confirmado?: boolean | null;
+        titulo?: string | null;
+        codigo?: string | null;
+      }[],
     }),
     [dados],
   );
@@ -234,6 +241,7 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
   const origensCatalogo = useMemo(() => distribuicaoOrigens(entrada.leads), [entrada.leads]);
   const desempenho = useMemo(() => desempenhoPorCanal(entrada), [entrada]);
   const aprendizados = useMemo(() => aprendizadosCampanha(entrada), [entrada]);
+  const casosOrigem = useMemo(() => casosPorOrigem(entrada), [entrada]);
 
   return (
     <div className="space-y-5">
@@ -427,7 +435,9 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
             <ul className="divide-y divide-navy/10">
               {origens.map((o) => (
                 <li key={o.rotulo} className="flex items-center justify-between py-2">
-                  <span className="text-navy">{o.rotulo}</span>
+                  <Link to="/leads" className="text-navy underline-offset-2 hover:underline">
+                    {o.rotulo}
+                  </Link>
                   <span className="text-[12px] text-navy/60">
                     {o.leads} lead(s) · {o.eventos} evento(s)
                   </span>
@@ -457,6 +467,41 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
               {VAZIOS_MARKETING.investimento}
             </p>
           )}
+
+          {entrada.campanhas.length > 0 && (
+            <div data-marketing="lista-campanhas" className="mt-4 overflow-x-auto">
+              <h3 className="font-serif text-base text-navy">Campanhas registradas</h3>
+              <table className="mt-2 w-full text-left text-[13px]">
+                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="py-2 pr-3">Nome</th>
+                    <th className="py-2 pr-3">Canal</th>
+                    <th className="py-2 pr-3">Status</th>
+                    <th className="py-2">Período</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/10">
+                  {(entrada.campanhas as { id?: string; nome?: string; canal?: string; status?: string; inicio?: string | null; fim?: string | null }[]).map(
+                    (c) => (
+                      <tr key={c.id}>
+                        <td className="py-2 pr-3 text-navy">{c.nome ?? "—"}</td>
+                        <td className="py-2 pr-3">{c.canal ?? "—"}</td>
+                        <td className="py-2 pr-3">{c.status ?? "—"}</td>
+                        <td className="py-2 text-navy/60">
+                          {c.inicio ? String(c.inicio).slice(0, 10) : "—"} – {c.fim ? String(c.fim).slice(0, 10) : "em curso"}
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+              <p className="mt-1 text-[11px] text-navy/50">
+                Cada campanha já aparece por inteiro aqui — não existe uma tela própria de detalhe de campanha no
+                Desk; abrir a campanha é ver a linha completa acima.
+              </p>
+            </div>
+          )}
+
           <p className="mt-3 text-[12px] text-navy/55">
             Nenhuma campanha, anúncio ou conexão de mídia é criada, alterada ou conectada por esta tela. Desempenho
             por canal (investimento, CAC, ROI) está no bloco Indicadores, no topo.
@@ -506,10 +551,47 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
             <ul data-marketing="catalogo-origens" className="mt-2 divide-y divide-navy/10">
               {origensCatalogo.map((o) => (
                 <li key={o.canonico} className="flex items-center justify-between py-2">
-                  <span className="text-navy">
+                  <Link to="/leads" className="text-navy underline-offset-2 hover:underline">
                     {o.rotulo} <code className="text-[11px] text-navy/50">{o.canonico}</code>
-                  </span>
+                  </Link>
                   <span className="text-[12px] text-navy/60">{o.total} lead(s)</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h3 className="mt-4 font-serif text-base text-navy">Casos por origem</h3>
+          <p className="mt-1 text-[12px] text-navy/55">
+            Só conta caso ligado por atribuição real (attribution_records.case_id + lead_source_id) a uma origem
+            catalogada. Sem esse vínculo gravado, a origem não aparece aqui — nenhuma correspondência é inferida.
+          </p>
+          {casosOrigem.length === 0 ? (
+            <p data-marketing-vazio="casos-origem" className="mt-2 text-[13px] text-navy/70">
+              {SEM_DADOS}: nenhum caso está ligado a uma origem catalogada por atribuição neste recorte.
+            </p>
+          ) : (
+            <ul data-marketing="casos-por-origem" className="mt-2 space-y-2">
+              {casosOrigem.map((o) => (
+                <li key={o.origemId} className="rounded-lg border border-navy/10 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-navy">{o.rotulo}</span>
+                    <span className="text-[12px] text-navy/60">
+                      {o.casos.length} caso(s) · {o.pagamentosConfirmados} pagamento(s) confirmado(s)
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {o.casos.map((c) => (
+                      <Link
+                        key={c.id}
+                        to="/casos/$caseId"
+                        params={{ caseId: c.id }}
+                        className="rounded-full border border-navy/15 px-2 py-0.5 text-[11px] text-navy hover:border-gold"
+                      >
+                        {c.rotulo}
+                        {c.pagamentoConfirmado ? " · pago" : ""}
+                      </Link>
+                    ))}
+                  </div>
                 </li>
               ))}
             </ul>

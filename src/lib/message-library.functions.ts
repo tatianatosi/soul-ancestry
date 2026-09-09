@@ -107,7 +107,55 @@ export interface ConteudoEditorial {
   planejadoPara: string | null;
   publicadoEm: string | null;
   arquivado: boolean;
+  responsavel: string | null;
+  proximaAcao: string;
+  vinculos: VinculoEditorial[];
 }
+
+export interface VinculoEditorial {
+  linkType: string;
+  entidadeTipo: string;
+  entidadeId: string;
+}
+
+/** Rótulo dos 8 estados de editorial_content_items — nenhum é omitido nem simplificado. */
+export const STATUS_EDITORIAL: { valor: string; rotulo: string }[] = [
+  { valor: "ideia", rotulo: "Ideia" },
+  { valor: "pauta_aprovada", rotulo: "Pauta aprovada" },
+  { valor: "rascunho", rotulo: "Rascunho" },
+  { valor: "em_revisao", rotulo: "Em revisão" },
+  { valor: "aprovado", rotulo: "Aprovado" },
+  { valor: "agendado", rotulo: "Agendado" },
+  { valor: "publicado", rotulo: "Publicado" },
+  { valor: "arquivado", rotulo: "Arquivado" },
+];
+
+export function rotuloStatusEditorial(status: string): string {
+  return STATUS_EDITORIAL.find((s) => s.valor === status)?.rotulo ?? status;
+}
+
+const PROXIMA_ACAO_EDITORIAL: Record<string, string> = {
+  ideia: "Aprovar pauta",
+  pauta_aprovada: "Produzir rascunho",
+  rascunho: "Enviar para revisão",
+  em_revisao: "Aprovar conteúdo",
+  aprovado: "Agendar publicação",
+  agendado: "Publicar",
+  publicado: "Nenhuma ação pendente — publicado",
+  arquivado: "Nenhuma ação — arquivado",
+};
+
+/** Próxima ação derivada do estado do conteúdo — nunca uma lista morta sem ação. */
+export function proximaAcaoEditorial(status: string): string {
+  return PROXIMA_ACAO_EDITORIAL[status] ?? "Sem próxima ação definida para este estado.";
+}
+
+export const ROTULO_LINK_EDITORIAL: Record<string, string> = {
+  referencia: "Referência",
+  derivado_de: "Derivado de",
+  reutiliza_template: "Reutiliza modelo",
+  relacionado_a: "Relacionado a",
+};
 
 /** Termos vetados em texto cliente-facing (mérito, promessa, cobrança, dado sensível). */
 const TERMOS_VETADOS = [
@@ -179,7 +227,7 @@ export const listarBibliotecaMensagens = createServerFn({ method: "GET" })
       const org = await resolverOrg(supabase, context.userId as string);
       const meus = await papeis(supabase, org);
 
-      const [cats, tpls, edit] = await Promise.all([
+      const [cats, tpls, edit, links] = await Promise.all([
         supabase
           .from("message_template_categories")
           .select("id,key,name,description,sort_order")
@@ -195,10 +243,43 @@ export const listarBibliotecaMensagens = createServerFn({ method: "GET" })
           .order("name"),
         supabase
           .from("editorial_content_items")
-          .select("id,title,content_type,theme,funnel_stage,target_audience,status,planned_for,published_at,archived_at")
+          .select("id,title,content_type,theme,funnel_stage,target_audience,status,planned_for,published_at,archived_at,owner_id")
           .eq("organization_id", org)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("editorial_content_links")
+          .select("editorial_content_item_id,linked_entity_type,linked_entity_id,link_type")
+          .eq("organization_id", org)
+          .is("archived_at", null),
       ]);
+
+      // CA10-MARKETING-CONTEUDO-VIVO (09/09/2026): owner_id e
+      // editorial_content_links existem desde a migração original mas nunca
+      // tinham sido lidos por nenhuma tela — "motor pronto, nunca ligado".
+      // Nome do responsável vem de staff_access (fonte real de identidade
+      // interna), nunca de texto livre. Vínculo é sempre entidade-a-entidade
+      // (campanha/fonte/modelo etc.) — nunca pessoa, lead ou caso, conforme a
+      // regra editorial já vigente nesta tela.
+      const ownerIds = [...new Set(((edit.data ?? []) as any[]).map((e) => e.owner_id).filter(Boolean))];
+      const staffRows = ownerIds.length
+        ? (
+            await supabase
+              .from("staff_access")
+              .select("auth_user_id,full_name,email")
+              .eq("organization_id", org)
+              .in("auth_user_id", ownerIds)
+          ).data
+        : [];
+      const nomePorOwner = new Map(
+        ((staffRows ?? []) as any[]).map((s) => [s.auth_user_id, (s.full_name ?? "").trim() || (s.email ?? "").trim() || null]),
+      );
+
+      const vinculosPorItem = new Map<string, VinculoEditorial[]>();
+      for (const l of (links.data ?? []) as any[]) {
+        const arr = vinculosPorItem.get(l.editorial_content_item_id) ?? [];
+        arr.push({ linkType: l.link_type, entidadeTipo: l.linked_entity_type, entidadeId: l.linked_entity_id });
+        vinculosPorItem.set(l.editorial_content_item_id, arr);
+      }
 
       const categorias: Categoria[] = (cats.data ?? []).map((c: any) => ({
         id: c.id,
@@ -247,6 +328,9 @@ export const listarBibliotecaMensagens = createServerFn({ method: "GET" })
         planejadoPara: e.planned_for ?? null,
         publicadoEm: e.published_at ?? null,
         arquivado: !!e.archived_at,
+        responsavel: e.owner_id ? (nomePorOwner.get(e.owner_id) ?? null) : null,
+        proximaAcao: proximaAcaoEditorial(e.status),
+        vinculos: vinculosPorItem.get(e.id) ?? [],
       }));
 
       return { categorias, templates, editorial, ehAdmin: meus.includes("admin"), papeis: meus };

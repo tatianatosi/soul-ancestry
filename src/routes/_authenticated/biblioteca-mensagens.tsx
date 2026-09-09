@@ -22,6 +22,8 @@ import {
   listarUsosTemplate,
   listarVersoesTemplate,
   registrarUsoTemplate,
+  ROTULO_LINK_EDITORIAL,
+  rotuloStatusEditorial,
   STATUS_TEMPLATE,
   validarUsoTemplate,
   type StatusTemplate,
@@ -580,7 +582,23 @@ function BibliotecaMensagensPage() {
                       <span>{e.tipo}</span>
                       {e.tema && <span>Tema: {e.tema}</span>}
                       {e.etapaFunil && <span>Etapa: {e.etapaFunil}</span>}
-                      <span>Estado: {e.status}</span>
+                      <span>Estado: {rotuloStatusEditorial(e.status)}</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+                      <span>Responsável: {e.responsavel ?? "Sem responsável definido"}</span>
+                      <span>Próxima ação: {e.proximaAcao}</span>
+                    </div>
+                    <div className="mt-1 text-muted-foreground">
+                      {e.vinculos.length === 0 ? (
+                        <span>Sem vínculo aplicável registrado.</span>
+                      ) : (
+                        <span>
+                          Vínculo:{" "}
+                          {e.vinculos
+                            .map((v) => `${ROTULO_LINK_EDITORIAL[v.linkType] ?? v.linkType} · ${v.entidadeTipo}`)
+                            .join(" · ")}
+                        </span>
+                      )}
                     </div>
                   </li>
                 ))}
