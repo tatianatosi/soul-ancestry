@@ -132,6 +132,14 @@ function CartaoFinanceiro({ financeiro }: { financeiro: ResumoFinanceiroCaso | n
           </dd>
         </div>
         <div>
+          <dt className="text-navy/55">Reembolsos (pagamentos estornados)</dt>
+          <dd>
+            {f?.reembolsos
+              ? `${f.reembolsos.total} estorno(s) — ${f.moeda} ${f.reembolsos.valor.toFixed(2)}`
+              : semDados}
+          </dd>
+        </div>
+        <div>
           <dt className="text-navy/55">Condição comercial</dt>
           <dd>{f?.condicaoComercial ?? semDados}</dd>
         </div>

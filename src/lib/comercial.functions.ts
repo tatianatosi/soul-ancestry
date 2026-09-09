@@ -712,10 +712,24 @@ export const obterResumoFinanceiroCaso = createServerFn({ method: "GET" })
         .is("archived_at", null),
     ]);
 
+    // CA16-FINANCEIRO-E-CAMPANHAS (09/09/2026): payments.status='estornado'
+    // nunca era lido nesta leitura — o trigger fn_payments_pos já excluía o
+    // estorno de valor_pago, mas nada mostrava que o reembolso aconteceu.
+    const idsFaturas = ((faturas.data ?? []) as any[]).map((f) => f.id);
+    const pagamentos = idsFaturas.length
+      ? await supabase
+          .from("payments")
+          .select("id,invoice_id,status,valor,moeda")
+          .eq("organization_id", organizationId)
+          .in("invoice_id", idsFaturas)
+          .is("archived_at", null)
+      : { data: [] as any[] };
+
     return calcularResumoFinanceiroCaso(
       (propostas.data ?? []) as any[],
       (faturas.data ?? []) as any[],
       (despesas.data ?? []) as any[],
       new Date().toISOString().slice(0, 10),
+      (pagamentos.data ?? []) as any[],
     );
   });

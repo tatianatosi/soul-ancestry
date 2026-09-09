@@ -995,6 +995,14 @@ function FichaCaso() {
                   </dd>
                 </div>
                 <div>
+                  <dt className="text-navy/50">Reembolsos (pagamentos estornados)</dt>
+                  <dd className="mt-0.5 text-sm text-navy">
+                    {qFinanceiro.data?.reembolsos
+                      ? `${qFinanceiro.data.reembolsos.total} estorno(s) — ${qFinanceiro.data.moeda} ${qFinanceiro.data.reembolsos.valor.toFixed(2)}`
+                      : "Sem dados suficientes"}
+                  </dd>
+                </div>
+                <div>
                   <dt className="text-navy/50">Condição comercial</dt>
                   <dd className="mt-0.5 text-sm text-navy">{qFinanceiro.data?.condicaoComercial ?? "Sem dados suficientes"}</dd>
                 </div>
