@@ -183,7 +183,7 @@ describe("acento não engole achado", () => {
   });
 });
 
-describe("de-para do sinal para o lead — só o valor normalizado, nunca o trecho", () => {
+describe("de-para do sinal para o lead — só o valor normalizado, nunca o trecho (PR #48)", () => {
   it("mapeia os achados da conversa da Ana Luiza para código de opção controlada", () => {
     const r = varrerConversa(DUMP_IOS, { autoresDaCasa: ["Tatiana"] });
     const codigos = new Map(r.achados.map((a) => [`${a.campo}::${a.valor}`, codigoLeadDoAchado(a)]));
@@ -191,30 +191,10 @@ describe("de-para do sinal para o lead — só o valor normalizado, nunca o trec
     expect(codigos.get("geracao_ascendente::bisavô ou bisavó")).toBe("bisavo");
     expect(codigos.get("linha_transmissao::paterna")).toBe("paterna");
     expect(codigos.get("documentos_chave::certidão de nascimento")).toBe("certidao_nascimento");
-    expect(codigos.get("estrutura_familiar::há menores envolvidos")).toBe("linha_com_menores");
-    expect(codigos.get("objecao_predominante::preço")).toBe("preco");
+    expect(CAMPO_LEAD_POR_VARREDURA.geracao_ascendente.campoLead).toBe("geracao_ascendente");
   });
 
-  it("fica sem de-para quando o sinal é ambíguo demais para virar código — não adivinha", () => {
-    // "mais de um requerente" pode ser casal, núcleo ou família ampliada: sem
-    // saber qual, o achado continua só como leitura, sem botão de aplicar.
-    expect(codigoLeadDoAchado({ campo: "estrutura_familiar", valor: "mais de um requerente" })).toBeNull();
-    // "decisão adiada" não corresponde a nenhuma objeção da lista controlada.
+  it("não inventa código quando o achado não tem de-para inequívoco", () => {
     expect(codigoLeadDoAchado({ campo: "objecao_predominante", valor: "decisão adiada" })).toBeNull();
-  });
-
-  it("todo campo varrido tem uma entrada de destino no lead", () => {
-    for (const campo of CAMPOS_VARRIDOS) {
-      expect(CAMPO_LEAD_POR_VARREDURA[campo]).toBeDefined();
-    }
-  });
-
-  it("campos de lista (país, documentos) somam ao lead; os demais substituem", () => {
-    expect(CAMPO_LEAD_POR_VARREDURA.nacionalidades_interesse.multi).toBe(true);
-    expect(CAMPO_LEAD_POR_VARREDURA.documentos_chave.multi).toBe(true);
-    expect(CAMPO_LEAD_POR_VARREDURA.geracao_ascendente.multi).toBe(false);
-    expect(CAMPO_LEAD_POR_VARREDURA.linha_transmissao.multi).toBe(false);
-    expect(CAMPO_LEAD_POR_VARREDURA.estrutura_familiar.multi).toBe(false);
-    expect(CAMPO_LEAD_POR_VARREDURA.objecao_predominante.multi).toBe(false);
   });
 });

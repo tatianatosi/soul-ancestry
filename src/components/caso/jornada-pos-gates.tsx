@@ -25,6 +25,12 @@ export function PainelJornadaPosGates({
     queryFn: () => carregar({ data: { caseId } }),
   });
 
+  const falhaFicha =
+    q.isError || (!q.isLoading && !q.data)
+      ? q.error instanceof Error
+        ? q.error.message
+        : "A consulta da ficha de pesquisa não retornou resultado nem erro."
+      : null;
   const pesquisa: any = q.data?.pesquisa ?? null;
   const fontes: any[] = (q.data?.fontes ?? []) as any[];
   const validadas = fontes.filter((f) => String(f.status ?? "") === "validated").length;
@@ -46,6 +52,21 @@ export function PainelJornadaPosGates({
       descricao="Regras de preparação. Nenhuma etapa executa, envia ou publica nesta entrega."
     >
       {q.isLoading ? <p className="text-sm text-navy/55">Carregando estado da pesquisa…</p> : null}
+      {falhaFicha ? (
+        <div role="alert" className="mb-3 space-y-1 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs">
+          <p className="font-medium text-destructive">
+            Não foi possível carregar o estado da pesquisa. As regras abaixo estão incompletas.
+          </p>
+          <p className="text-navy/80">{falhaFicha}</p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded border border-navy/20 px-2 py-1 text-[11px] text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
 
       <ul className="space-y-2">
         {regras.map((r) => (

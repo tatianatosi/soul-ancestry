@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  META_CAMPO_ROTEIRO,
   ROTEIRO_DISCOVERY,
+  ROTULO_CAMPO_ROTEIRO,
+  estadoResposta,
   marcoUsavelExternamente,
   pesquisaExternaPermitida,
   progressoRoteiro,
   sinaisQualidadeLead,
 } from "@/lib/discovery-roteiro";
-import { validarLead, type LeadDesk } from "@/lib/crm-desk";
+import { CATALOGOS, validarLead, type LeadDesk } from "@/lib/crm-desk";
 
 const base: LeadDesk = { nome: "Teste" } as LeadDesk;
 
@@ -79,5 +82,71 @@ describe("Roteiro vivo de Discovery", () => {
     const s = sinaisQualidadeLead({ ...base, elegibilidade_preliminar: "forte" });
     const sinal = s.find((x) => x.chave === "triagem_incompleta");
     expect(sinal?.motivo).toContain("preliminar");
+  });
+});
+
+// CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): "formulário sobre formulário e
+// perguntas SPIN sem local evidente para resposta/destino" — cada campo do
+// roteiro precisa ter card completo (por que importa, destino, consequência)
+// e um controle real. Estes testes garantem que nenhuma pergunta fica órfã.
+describe("card por pergunta (CA02-CRM-VIVO-PAINEL-CALLS)", () => {
+  const todosOsCampos = [...new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos))];
+
+  it("todo campo do roteiro tem metadado de card (por que importa, destino, consequência)", () => {
+    for (const c of todosOsCampos) {
+      expect(META_CAMPO_ROTEIRO[c], `campo sem metadado: ${c}`).toBeDefined();
+      expect(META_CAMPO_ROTEIRO[c].porQueImporta.length).toBeGreaterThan(5);
+      expect(META_CAMPO_ROTEIRO[c].destino.length).toBeGreaterThan(3);
+      expect(META_CAMPO_ROTEIRO[c].consequencia.length).toBeGreaterThan(5);
+    }
+  });
+
+  it("todo campo do roteiro tem rótulo humano para o card", () => {
+    for (const c of todosOsCampos) expect(ROTULO_CAMPO_ROTEIRO[c], `campo sem rótulo: ${c}`).toBeDefined();
+  });
+
+  it("todo campo do tipo select tem catálogo real de opções (nunca controle sem opções)", () => {
+    for (const c of todosOsCampos) {
+      if (META_CAMPO_ROTEIRO[c].tipo === "select") {
+        expect(CATALOGOS[c]?.length, `select sem catálogo: ${c}`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("elegibilidade_preliminar (síntese da call) agora tem card — não fica fora do roteiro", () => {
+    const decisao = ROTEIRO_DISCOVERY.find((b) => b.chave === "decisao")!;
+    expect(decisao.campos).toContain("elegibilidade_preliminar");
+  });
+});
+
+describe("estadoResposta — confirmado/informado a confirmar/hipótese/pendente", () => {
+  it("sem valor e sem achado é pendente", () => {
+    expect(estadoResposta({ valorSalvo: null, valorRascunho: null, emRascunho: false, marcadaComoHipotese: false })).toBe(
+      "pendente",
+    );
+  });
+
+  it("valor só em rascunho (digitado ou de achado aplicado) é informado — a confirmar", () => {
+    expect(
+      estadoResposta({ valorSalvo: null, valorRascunho: "Itália", emRascunho: true, marcadaComoHipotese: false }),
+    ).toBe("informado_a_confirmar");
+  });
+
+  it("valor já gravado no lead canônico é confirmado", () => {
+    expect(
+      estadoResposta({ valorSalvo: "Itália", valorRascunho: null, emRascunho: false, marcadaComoHipotese: false }),
+    ).toBe("confirmado");
+  });
+
+  it("marcado como hipótese nunca vira confirmado automaticamente, mesmo já salvo", () => {
+    expect(
+      estadoResposta({ valorSalvo: "Itália", valorRascunho: null, emRascunho: false, marcadaComoHipotese: true }),
+    ).toBe("hipotese");
+  });
+
+  it("array vazio (multi-seleção) conta como não preenchido", () => {
+    expect(
+      estadoResposta({ valorSalvo: [], valorRascunho: null, emRascunho: false, marcadaComoHipotese: false }),
+    ).toBe("pendente");
   });
 });

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
 import { abrirTarefaGate, carregarFechamentoCaso } from "@/lib/fechamento-caso.functions";
 import type { GateFechamento } from "@/lib/fechamento-caso";
@@ -18,10 +19,20 @@ const ROTULO_SITUACAO: Record<string, string> = {
 };
 
 /**
- * Fechamento do caso: os nove gates em uma tela única, com checklist, bloqueios
+ * Fechamento do caso: os treze gates em uma tela única, com checklist, bloqueios
  * e a ação que o Desk oferece. Nenhum gate avança automaticamente.
  */
-export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; bloqueado?: boolean }) {
+export function AbaFechamento({
+  casoId,
+  bloqueado: _bloqueado = false,
+}: {
+  casoId: string;
+  /**
+   * Mantida só por compatibilidade com quem chama. Pendência informa;
+   * não esconde a ação de abrir tarefa.
+   */
+  bloqueado?: boolean;
+}) {
   const carregar = useServerFn(carregarFechamentoCaso);
   const abrirTarefa = useServerFn(abrirTarefaGate);
   const qc = useQueryClient();
@@ -33,9 +44,11 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
   const tarefa = useMutation({
     mutationFn: (gate: GateFechamento) => abrirTarefa({ data: { casoId, gate } }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      toast.success(r.reaproveitada ? "Tarefa já aberta para este gate." : "Tarefa aberta.");
       void qc.invalidateQueries({ queryKey: ["fechamento-caso", casoId] });
     },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível abrir a tarefa."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando fechamento…</p>;
@@ -43,7 +56,6 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
   const dados = q.data!;
   const f = dados.fechamento;
-  const podeAgir = dados.podeEscrever && !bloqueado;
 
   return (
     <div className="space-y-5">
@@ -124,7 +136,7 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
               {g.motivo ? <p className="mt-2 text-xs text-terracotta">{g.motivo}</p> : null}
 
-              {g.situacao !== "concluido" && podeAgir ? (
+              {g.situacao !== "concluido" ? (
                 <button
                   type="button"
                   onClick={() => tarefa.mutate(g.chave)}

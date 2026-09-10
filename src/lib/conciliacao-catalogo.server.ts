@@ -97,7 +97,54 @@ export async function conciliarPropostaComCatalogo(
       .maybeSingle();
     produtoRow = data;
   }
-  const produto = produtoHomologado(produtoRow);
+  let produto = produtoHomologado(produtoRow);
+
+  /*
+    Achado 05/09: nenhum SKU em product_catalog cobre a condição particular de
+    um caso (ex.: Ana Luiza, R$ 9.600 — negociação específica, não preço de
+    tabela). O Planejador Universal já registra exatamente esse tipo de
+    condição em price_catalog_rescued (price_status='CONDICAO_PARTICULAR_DE_CASO',
+    case_only=true) desde 04/09 — só nunca foi conectado à conciliação, que só
+    olhava product_catalog. Aqui, e só quando não há produto de catálogo geral
+    (produto null), procura essa condição particular pelo código do caso no
+    texto de source_reference (a tabela não tem case_id próprio) e a trata como
+    âncora válida, explicitamente marcada como condição de caso — nunca como
+    SKU de catálogo genérico.
+  */
+  if (!produto && proposta.case_id) {
+    const { data: caso } = await supabase.from("crm_casos").select("codigo").eq("id", proposta.case_id).maybeSingle();
+    if (caso?.codigo) {
+      const { data: condicaoCaso } = await supabase
+        .from("price_catalog_rescued")
+        .select("id,amount,currency,source_reference,price_status")
+        .eq("organization_id", input.org)
+        .eq("case_only", true)
+        .eq("price_status", "CONDICAO_PARTICULAR_DE_CASO")
+        .is("archived_at", null)
+        .ilike("source_reference", `%${caso.codigo}%`)
+        .maybeSingle();
+      if (condicaoCaso) {
+        produto = {
+          id: condicaoCaso.id,
+          code: `CONDICAO-CASO-${caso.codigo}`,
+          nome: `Condição particular de caso — ${caso.codigo}`,
+          ativo: true,
+          archived_at: null,
+          status_homologacao: "homologado",
+          elegivel_para_proposta: true,
+          preco_comercial_vigente: Number(condicaoCaso.amount),
+          condicao_comercial_padrao: "Condição particular de caso — Planejador Universal",
+          moeda: condicaoCaso.currency ?? "BRL",
+          vigencia_inicio: null,
+          vigencia_fim: null,
+          inclusoes: [],
+          exclusoes: [],
+          entregaveis: [],
+          escopo_aprovado: condicaoCaso.source_reference ?? null,
+        };
+      }
+    }
+  }
 
   const { data: condicao } = await supabase
     .from("commercial_conditions")

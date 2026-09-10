@@ -48,7 +48,7 @@ export const painelRelatoriosFase = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa os relatórios de fase.");
 
-    const [caso, relatorios, vinculos, microVinculos, evidencias, microentregas, equipe] = await Promise.all([
+    const [caso, relatorios, vinculos, microVinculos, evidencias, microentregas, equipe, modelos] = await Promise.all([
       supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
       supabase
         .from("case_reports")
@@ -71,6 +71,17 @@ export const painelRelatoriosFase = createServerFn({ method: "GET" })
         .eq("caso_id", data.caseId)
         .order("created_at", { ascending: false }),
       supabase.from("profiles").select("id,nome").limit(200),
+      // CA21-BIBLIOTECA-MESTRE-CONECTADA (09/09/2026): mesma tabela já usada por
+      // listarBibliotecaMestre (Biblioteca Mestre → subárea "Modelos F1/F2"),
+      // filtrada para o que interessa aqui. Só leitura de referência — nenhum
+      // vínculo é gravado em case_reports, que não tem campo para isso.
+      supabase
+        .from("master_library_items")
+        .select("id,titulo,versao,status,vigencia_estado,archived_at")
+        .eq("organization_id", organizationId)
+        .eq("categoria", "modelos")
+        .is("archived_at", null)
+        .order("titulo", { ascending: true }),
     ]);
 
     const ids = new Set((relatorios.data ?? []).map((r: any) => r.id));
@@ -84,6 +95,7 @@ export const painelRelatoriosFase = createServerFn({ method: "GET" })
       evidencias: (evidencias.data ?? []) as any[],
       microentregas: (microentregas.data ?? []) as any[],
       equipe: (equipe.data ?? []) as any[],
+      modelosBiblioteca: (modelos.data ?? []) as any[],
     };
   });
 

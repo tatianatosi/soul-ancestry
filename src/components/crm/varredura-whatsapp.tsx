@@ -15,22 +15,16 @@
  */
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  ROTULO_CAMPO,
-  codigoLeadDoAchado,
-  varrerConversa,
-  type Achado,
-  type CampoVarrido,
-} from "@/lib/varredura-whatsapp";
+import { ROTULO_CAMPO, varrerConversa, type Achado, type CampoVarrido } from "@/lib/varredura-whatsapp";
 
-export function VarreduraWhatsApp({
-  leadNome,
-  onAplicar,
-}: {
-  /** Nome do lead selecionado no Painel — habilita o botão "Usar no lead". */
-  leadNome?: string | null;
-  onAplicar?: (achado: Achado, codigo: string) => void;
-}) {
+/**
+ * CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): `onAchadosMudaram` deixa o Painel
+ * de Calls mostrar cada achado dentro do card da pergunta correspondente do
+ * roteiro, com confirmar/corrigir/virar hipótese/ignorar — em vez de uma
+ * lista solta sem ligação com o formulário. A varredura em si não muda:
+ * continua sem ler banco, sem gravar, sem persistir a conversa.
+ */
+export function VarreduraWhatsApp({ onAchadosMudaram }: { onAchadosMudaram?: (achados: Achado[]) => void }) {
   const [bruto, setBruto] = useState("");
   const [casa, setCasa] = useState("");
   const [avisoArquivo, setAvisoArquivo] = useState<string | null>(null);
@@ -74,6 +68,11 @@ export function VarreduraWhatsApp({
       mapa.set(a.campo, atual);
     }
     return mapa;
+  }, [resultado]);
+
+  useEffect(() => {
+    onAchadosMudaram?.(resultado?.achados ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultado]);
 
   return (

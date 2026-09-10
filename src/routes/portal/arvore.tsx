@@ -5,6 +5,7 @@ import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell"
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { arvoreSanitizada } from "@/lib/portal-dados-vivos";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 export const Route = createFileRoute("/portal/arvore")({
   head: () => ({
@@ -23,14 +24,23 @@ export const Route = createFileRoute("/portal/arvore")({
 
 export function PortalArvore() {
   const { visibilidade, carregando } = useVisibilidade("arvore");
-  const { data, isLoading } = usePortalVivo();
-  const itens = arvoreSanitizada(data?.projecoes ?? []);
+  const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
   return (
     <PortalShell titulo={COPY_TELAS.arvore.titulo} descricao={COPY_TELAS.arvore.descricao}>
-      {carregando || isLoading ? (
+      {carregando ? (
         <PortalCarregando />
       ) : (
+        <EstadoDados
+          carregando={isLoading}
+          erro={isError ? (error ?? true) : null}
+          dados={data ? [data] : null}
+          aoTentarNovamente={refetch}
+          recurso="a sua árvore"
+        >
+          {([vivo]) => {
+            const itens = arvoreSanitizada(vivo.projecoes);
+            return (
         <BlocoVisibilidade visibilidade={visibilidade}>
           {itens.length === 0 ? (
             <p className="rounded-lg border border-dashed border-navy/20 bg-cream/60 p-6 text-center text-sm text-navy/60">
@@ -49,6 +59,9 @@ export function PortalArvore() {
             </ul>
           )}
         </BlocoVisibilidade>
+            );
+          }}
+        </EstadoDados>
       )}
     </PortalShell>
   );

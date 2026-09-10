@@ -366,15 +366,11 @@ export const ROTULO_CAMPO: Record<CampoVarrido, string> = {
 };
 
 /**
- * De-para do valor normalizado do achado (rótulo em português, lido da
- * conversa) para o código de opção controlada do lead (`crm-desk.ts`).
+ * De-para do valor normalizado do achado para o código de opção controlada
+ * do lead (`crm-desk.ts`). Arquitetura da PR #48 / P8 — o sinal entra no
+ * campo; o trecho da conversa nunca persiste.
  *
- * Só entra aqui o que tem correspondência inequívoca — na dúvida, fica de
- * fora e o achado continua só como sinal para leitura humana, sem botão de
- * aplicar. Confiança acima de cobertura, mesmo critério do resto do módulo.
- *
- * Os campos de lista (`nacionalidades_interesse`, `documentos_chave`) somam
- * ao que já existe no lead; os demais substituem o valor único do campo.
+ * Só entra o que tem correspondência inequívoca. Na dúvida, `null`.
  */
 export const CAMPO_LEAD_POR_VARREDURA: Record<CampoVarrido, { campoLead: string; multi: boolean }> = {
   nacionalidades_interesse: { campoLead: "nacionalidades_interesse", multi: true },
@@ -386,22 +382,18 @@ export const CAMPO_LEAD_POR_VARREDURA: Record<CampoVarrido, { campoLead: string;
 };
 
 const CODIGO_POR_CHAVE: Record<string, string> = {
-  // nacionalidades_interesse
   "nacionalidades_interesse::Itália": "italiana",
   "nacionalidades_interesse::Portugal": "portuguesa",
   "nacionalidades_interesse::Espanha": "espanhola",
   "nacionalidades_interesse::Alemanha": "alema",
   "nacionalidades_interesse::Áustria": "austriaca",
   "nacionalidades_interesse::Polônia": "polonesa",
-  // geracao_ascendente
   "geracao_ascendente::trisavô ou tataravô": "trisavo",
   "geracao_ascendente::bisavô ou bisavó": "bisavo",
   "geracao_ascendente::avô ou avó": "avo",
   "geracao_ascendente::pai ou mãe": "pai_mae",
-  // linha_transmissao
   "linha_transmissao::paterna": "paterna",
   "linha_transmissao::materna": "materna",
-  // documentos_chave
   "documentos_chave::certidão de nascimento": "certidao_nascimento",
   "documentos_chave::certidão de casamento": "certidao_casamento",
   "documentos_chave::certidão de óbito": "certidao_obito",
@@ -409,9 +401,7 @@ const CODIGO_POR_CHAVE: Record<string, string> = {
   "documentos_chave::passaporte": "passaporte",
   "documentos_chave::registro de batismo": "registro_religioso",
   "documentos_chave::registro de imigração": "registro_imigracao",
-  // estrutura_familiar
   "estrutura_familiar::há menores envolvidos": "linha_com_menores",
-  // objecao_predominante
   "objecao_predominante::preço": "preco",
   "objecao_predominante::prazo": "prazo",
 };

@@ -109,8 +109,34 @@ export type Pendencia = {
 };
 
 export type DecisaoEdicao =
-  | { permitido: true; efeito: "editar_rascunho" | "criar_versao_derivada"; mensagem: string }
+  | {
+      permitido: true;
+      efeito: "editar_rascunho" | "criar_versao_derivada" | "avanco_por_decisao_proprietaria";
+      mensagem: string;
+      /** Pendências preservadas mesmo quando o avanço é liberado. */
+      pendencias?: Pendencia[];
+      /** Avanço externo/irreversível: exige aceite explícito na tela. */
+      exigeConfirmacao?: boolean;
+    }
   | { permitido: false; motivo: "sem_permissao" | "gate_de_avanco"; mensagem: string; pendencias: Pendencia[] };
+
+/**
+ * Papel da proprietária administradora. Para ela, pendência de gate deixa de
+ * ser bloqueio e passa a ser decisão auditada: a pendência continua visível e
+ * registrada, mas não impede o avanço interno.
+ */
+function ehProprietaria(papel: string): boolean {
+  return papel === "admin" || papel === "proprietaria_administradora";
+}
+
+/** Avanços que tocam o cliente ou o mundo externo: liberados, porém confirmados. */
+const AVANCOS_EXTERNOS: readonly string[] = [
+  "solicitar_assinatura",
+  "liberar_financeiro",
+  "liberar_pesquisa_externa",
+  "ato_em_nome_do_cliente",
+  "publicar_app_cliente",
+];
 
 function listaPendencias(pendencias: Pendencia[]): string {
   return pendencias.map((p) => `${p.campo} (fonte: ${p.fonte} · resolve: ${p.responsavel} · próxima ação: ${p.proximaAcao})`).join("; ");
@@ -162,6 +188,30 @@ export function decidirEdicao(input: {
 
   // Operação de avanço.
   const relevantes = pendencias.filter((p) => p.gate === operacao);
+  const estadoTravado =
+    estado === "bloqueado_por_pendencia" || estado === "legado" || estado === "arquivado";
+
+  // Proprietária administradora: nenhuma pendência de gate e nenhum estado
+  // travado impedem o avanço. A pendência é preservada e o avanço fica
+  // auditado. Avanço externo continua existindo — mas como confirmação, não
+  // como bloqueio.
+  if (ehProprietaria(papel)) {
+    const externo = AVANCOS_EXTERNOS.includes(operacao);
+    const observacoes: string[] = [];
+    if (relevantes.length > 0) observacoes.push(`pendências preservadas: ${listaPendencias(relevantes)}`);
+    if (estadoTravado) observacoes.push(`estado atual do registro: ${estado}`);
+    const sufixo = observacoes.length ? ` Registrado com ${observacoes.join(" · ")}.` : "";
+    return {
+      permitido: true,
+      efeito: "avanco_por_decisao_proprietaria",
+      mensagem: externo
+        ? `Avanço externo liberado por decisão sua. Confirme para executar.${sufixo}`
+        : `Avanço liberado por decisão sua.${sufixo}`,
+      pendencias: relevantes,
+      exigeConfirmacao: externo || relevantes.length > 0 || estadoTravado,
+    };
+  }
+
   if (relevantes.length > 0) {
     return {
       permitido: false,
@@ -170,7 +220,7 @@ export function decidirEdicao(input: {
       pendencias: relevantes,
     };
   }
-  if (estado === "bloqueado_por_pendencia" || estado === "legado" || estado === "arquivado") {
+  if (estadoTravado) {
     return {
       permitido: false,
       motivo: "gate_de_avanco",

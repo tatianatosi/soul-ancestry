@@ -272,7 +272,7 @@ export const MATRIZ_PENDENCIAS: LinhaPendencia[] = [
     evidencia:
       "Decisão da Proprietária Administradora em 22/08/2026: CA-CID-AT-FAM-2026-001 é o único identificador canônico; CA-AUT-ANALUIZA-FAM-2026-001 permanece como referência legada resolvida para o mesmo caso.",
     risco: "Nenhum. Não há segundo caso, e a referência legada resolve para o caso canônico.",
-    efeitoInterno: "Telas exibem apenas o código canônico, com 'Piloto real' como selo.",
+    efeitoInterno: "Telas exibem apenas o código canônico, com 'Primeira cliente' como selo.",
     efeitoExterno: "Nenhum ato externo executado ou pendente por este item.",
     responsavel: "Proprietária administradora",
     proximaAcao: "Nenhuma. Item encerrado por decisão registrada; não entra em go-live, Painel Hoje nem aprovações.",
@@ -566,7 +566,7 @@ export const CONSOLIDADO_ANA = {
   justificativaId:
     "Decisão aplicada: CA-CID-AT-FAM-2026-001 é o identificador canônico único; CA-AUT-ANALUIZA-FAM-2026-001 fica exclusivamente como referência legada, resolvida para o mesmo caso.",
   itens: [
-    { rotulo: "Identificador canônico", situacao: "Resolvido por decisão da proprietária: CA-CID-AT-FAM-2026-001 (Projeto familiar — Ana Luiza, Piloto real)." },
+    { rotulo: "Identificador canônico", situacao: "Resolvido por decisão da proprietária: CA-CID-AT-FAM-2026-001 (Projeto familiar — Ana Luiza, primeira cliente)." },
     { rotulo: "Pessoa, núcleo e participantes", situacao: "Núcleo familiar registrado; Alice com cadastro incompleto." },
     { rotulo: "Representação de Felipe", situacao: "Sem instrumento vinculado; estado de representação pendente." },
     { rotulo: "Preço, escopo, SKU e condição", situacao: "Divergência entre proposta Canva e Planilha Mestre." },

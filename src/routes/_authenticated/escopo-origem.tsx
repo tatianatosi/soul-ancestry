@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Painel, Selo, inputCls } from "@/components/comercial/base";
 import { origemEscopoContratual } from "@/lib/escopo-origem.functions";
 import {
@@ -60,10 +61,11 @@ function OrigemEscopoPage() {
   const [mostrarFixture, setMostrarFixture] = useState(false);
   const [busca, setBusca] = useState("");
 
-  const todas: LinhaOrigem[] = useMemo(() => q.data?.linhas ?? [], [q.data]);
+  // Sem default silencioso: `undefined` é falha de leitura, não base vazia.
+  const todas = q.data?.linhas as LinhaOrigem[] | undefined;
   const linhas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return todas.filter(
+    return (todas ?? []).filter(
       (l) =>
         (mostrarFixture || !l.fixture) &&
         (!somenteLacunas || !l.cadeia_completa) &&
@@ -84,7 +86,11 @@ function OrigemEscopoPage() {
       acoes={
         <button
           onClick={() => baixarCsvOrigemEscopo(linhas)}
-          disabled={!linhas.length}
+          title={
+            linhas.length
+              ? undefined
+              : "Nenhuma linha no filtro atual — o CSV sai apenas com o cabeçalho."
+          }
           className="rounded-md border border-gold/60 px-3 py-1.5 text-sm text-navy hover:bg-gold/10 disabled:opacity-40"
         >
           Exportar CSV
@@ -155,13 +161,18 @@ function OrigemEscopoPage() {
           <span className="ml-auto text-xs text-navy/50">{linhas.length} item(ns) exibido(s)</span>
         </div>
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando a cadeia de origem…" />
-        ) : q.error ? (
-          <EstadoVazio mensagem={(q.error as Error).message} />
-        ) : !linhas.length ? (
-          <EstadoVazio mensagem="Nenhum item de escopo para os filtros escolhidos." />
-        ) : (
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={todas}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="a cadeia de origem do escopo"
+          vazio="Nenhum item de escopo contratual registrado nesta organização."
+        >
+          {() =>
+            !linhas.length ? (
+              <EstadoVazio mensagem="Nenhum item de escopo para os filtros escolhidos." />
+            ) : (
           <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
             <table className="w-full text-left text-sm">
               <thead className="bg-cream/60 text-xs uppercase tracking-wide text-navy/60">
@@ -221,7 +232,9 @@ function OrigemEscopoPage() {
               </tbody>
             </table>
           </div>
-        )}
+            )
+          }
+        </EstadoDados>
       </div>
     </SaasShell>
   );

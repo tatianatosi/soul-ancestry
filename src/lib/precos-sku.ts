@@ -61,6 +61,41 @@ export function bloqueiosDePreco(c: ConferenciaPreco | null): string[] {
   return [c.motivo ?? "SKU sem preço/condição homologados: valor, cobrança e checkout bloqueados."];
 }
 
+export type SolicitacaoExcecaoComercial = {
+  sku: string;
+  caseId: string;
+  motivo: string;
+  precoTotal: number;
+  condicaoPagamento: string;
+  validoAte: string;
+};
+
+export const MOTIVO_MINIMO_EXCECAO_COMERCIAL = 15;
+
+/**
+ * Validação pura da exceção comercial de preço/SKU, espelhando exatamente o
+ * que `fn_sku_price_exception_guard` (trigger em `sku_price_exceptions`)
+ * exige para aceitar uma exceção já aprovada: motivo, preço/condição e
+ * validade futura. Só o banco decide de fato — isto só evita uma viagem ao
+ * servidor para um erro já previsível na tela.
+ */
+export function validarExcecaoComercial(s: SolicitacaoExcecaoComercial): { valida: boolean; erros: string[] } {
+  const erros: string[] = [];
+  if (!s.sku?.trim()) erros.push("SKU obrigatório.");
+  if (!s.caseId?.trim()) erros.push("Caso obrigatório.");
+  if ((s.motivo ?? "").trim().length < MOTIVO_MINIMO_EXCECAO_COMERCIAL) {
+    erros.push(`Motivo obrigatório e específico, com pelo menos ${MOTIVO_MINIMO_EXCECAO_COMERCIAL} caracteres.`);
+  }
+  if (!(s.precoTotal > 0)) erros.push("Preço total deve ser maior que zero.");
+  if (!s.condicaoPagamento?.trim()) erros.push("Condição de pagamento obrigatória.");
+  if (!s.validoAte?.trim() || Number.isNaN(Date.parse(s.validoAte))) {
+    erros.push("Validade obrigatória e válida.");
+  } else if (new Date(s.validoAte).getTime() < Date.now()) {
+    erros.push("Validade da exceção precisa ser uma data futura.");
+  }
+  return { valida: erros.length === 0, erros };
+}
+
 export const REGRAS_PRECO_SKU = [
   "Proposta, contrato e checkout só podem usar preço/condição homologados da Planilha Mestre para SKU ativo.",
   "Planejador, WhatsApp, transcrição, template, proposta antiga ou dado manual não são fontes oficiais de preço.",

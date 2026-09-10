@@ -52,6 +52,14 @@ export interface ItemCatalogoImportado {
   fonte_versao: string | null;
   fonte_linha: number | null;
   importado_em: string | null;
+  /** Contexto de oferta (produto_pai/complemento/contextual) — já existe em product_catalog. */
+  tipo_oferta: string;
+  /** Status de condição real (o mesmo que Caso usa) — não confundir com status_fonte (Planilha Mestre). */
+  status_homologacao: string | null;
+  elegivel_para_proposta: boolean;
+  /** Produto-pai canônico (PP-01–09) e estado de reconciliação, do planner_catalog_feed. */
+  produto_pai: string | null;
+  status_reconciliacao: string | null;
 }
 
 /** Mapa somente-leitura da fonte canônica, antes de qualquer gravação. */
@@ -121,7 +129,28 @@ export function divergenciasDaFonte(s: SkuFonteMestre): { tipo: TipoDivergencia;
   return out;
 }
 
-/** Seleção em proposta/condição comercial: somente SKU existente, ativo e com preço na fonte. */
+/**
+ * CA09-CATALOGO-PRODUTOS-PAI (09/09/2026) — o gate real de proposta/condição
+ * comercial é `product_catalog.status_homologacao`/`elegivel_para_proposta`
+ * (o mesmo que `catalogo-desk.ts`/`AbaProdutoTrilha` já usam no Caso), nunca
+ * os campos importados da Planilha Mestre (`status_fonte`/`status_produto`,
+ * ver `selecionavelEmProposta` abaixo — mantida só como leitura de
+ * auditoria da fonte, nunca mais como decisão exibida).
+ */
+export function elegivelParaPropostaReal(
+  item: Pick<ItemCatalogoImportado, "status_homologacao" | "elegivel_para_proposta">,
+): { permitido: boolean; motivo: string | null } {
+  if (item.status_homologacao !== "homologado")
+    return { permitido: false, motivo: `Produto com status “${item.status_homologacao ?? "não homologado"}”.` };
+  if (!item.elegivel_para_proposta) return { permitido: false, motivo: "Produto marcado como não elegível para proposta." };
+  return { permitido: true, motivo: null };
+}
+
+/**
+ * Auditoria da fonte importada (Planilha Mestre): não é mais a decisão
+ * mostrada em tela — ver `elegivelParaPropostaReal`. Mantida para o
+ * histórico de divergência entre o que a fonte dizia e o catálogo real.
+ */
 export function selecionavelEmProposta(
   item: Pick<ItemCatalogoImportado, "sku" | "status_fonte" | "status_produto" | "preco_sugerido"> | undefined,
 ): { permitido: boolean; motivo: string | null } {

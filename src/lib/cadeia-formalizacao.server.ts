@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { extrairEscopoDaProposta, validarPropostaCanva } from "@/lib/escopo-proposta";
+import { extrairEscopoDaProposta, propostaComPaginasCanva, validarPropostaCanva } from "@/lib/escopo-proposta";
 import {
   avaliarCadeia,
   derivarItensDaProposta,
@@ -94,7 +94,7 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
         .maybeSingle(),
     ]);
 
-  const [{ data: itensEscopo }, { data: valores }, { data: previaFinal }] = await Promise.all([
+  const [{ data: itensEscopo }, { data: valores }, { data: previaFinal }, { data: paginasCanva }] = await Promise.all([
     contrato?.id
       ? supabase
           .from("contract_scope_items")
@@ -121,6 +121,18 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
           .limit(1)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    // 06/09/2026 — achado real: a proprietária já usa a tela "Preparar contrato"
+    // (CompletudeCanva) para registrar a extração página a página, gravando em
+    // proposal_canva_pages. Esta cadeia lia proposals.escopo_paginas, um campo
+    // paralelo que NUNCA foi escrito por nenhuma tela — resultado, o trabalho
+    // real de extração ficava invisível aqui e pedia para ser "refeito".
+    proposta?.id
+      ? supabase
+          .from("proposal_canva_pages")
+          .select("page_number,extracao_status,page_content_structured")
+          .eq("proposal_id", proposta.id)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   return {
@@ -134,6 +146,7 @@ export async function contextoDaCadeia(supabase: Sb, org: string, caseId: string
     itensEscopo: (itensEscopo ?? []) as any[],
     valores: (valores ?? []) as any[],
     previaFinal: previaFinal ?? null,
+    paginasCanva: (paginasCanva ?? []) as any[],
   };
 }
 
@@ -144,8 +157,9 @@ export function avaliarContexto(ctx: Awaited<ReturnType<typeof contextoDaCadeia>
   contrato: any;
   itensEscopo: any[];
 } {
-  const validade = validarPropostaCanva(ctx.proposta, ctx.caso.id);
-  const extraidos = extrairEscopoDaProposta(ctx.proposta);
+  const propostaEfetiva = propostaComPaginasCanva(ctx.proposta, (ctx as any).paginasCanva ?? []);
+  const validade = validarPropostaCanva(propostaEfetiva, ctx.caso.id);
+  const extraidos = extrairEscopoDaProposta(propostaEfetiva);
   const perfil = perfilInstitucionalRenderizado();
 
   const entradaAnexos = entradaDeValores({
@@ -205,11 +219,12 @@ export async function persistirAnexoI(
   input: { org: string; userId: string; caseId: string },
 ) {
   const ctx = await contextoDaCadeia(supabase, input.org, input.caseId);
-  const validade = validarPropostaCanva(ctx.proposta, ctx.caso.id);
+  const propostaEfetiva = propostaComPaginasCanva(ctx.proposta, (ctx as any).paginasCanva ?? []);
+  const validade = validarPropostaCanva(propostaEfetiva, ctx.caso.id);
   if (!validade.valida) throw new Error(`Proposta não habilita o Anexo I: ${validade.motivos[0]}`);
   if (!ctx.contrato?.id) throw new Error("Nenhum instrumento contratual do caso para receber o Anexo I.");
 
-  const extraidos = extrairEscopoDaProposta(ctx.proposta);
+  const extraidos = extrairEscopoDaProposta(propostaEfetiva);
   const { itens, faltantes } = derivarItensDaProposta({
     extraidos,
     exclusoesTexto: ctx.proposta?.exclusoes ?? null,

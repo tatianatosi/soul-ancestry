@@ -28,8 +28,11 @@ import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
   GRUPOS_DESK,
   MENU_CONTA,
+  grupoNavAtivo,
+  itemNavAtivo,
   naturezaDaBiblioteca,
   origemDoAtalho,
+  rotaAtendeDestino,
   type GrupoDesk,
   type ItemNav,
 } from "@/lib/navegacao-desk";
@@ -129,9 +132,19 @@ export function SaasShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rota = useRouterState({ select: (s) => s.location.pathname });
+  const hash = useRouterState({ select: (s) => s.location.hash });
   const [aberto, setAberto] = useState(false);
-  const [secaoAberta, setSecaoAberta] = useState<string | null>(null);
+  const [abertosManuais, setAbertosManuais] = useState<Record<string, boolean>>({});
+  const [desktop, setDesktop] = useState(false);
   const registrarSaida = useServerFn(registrarLogoutEquipe);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   // Só sai da área protegida quando o servidor responde e a autorização não
   // existe. Erro de rede/token com sessão válida apenas refaz a consulta —
@@ -177,10 +190,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha abas novas: os módulos administrativos entram como
-  // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
-  // Contadores reais no menu: apenas números já existentes no banco (SLA de tarefas
-  // e microentregas). Sem dado, nenhum badge é exibido — nunca estimamos.
+  // Admin não ganha abas novas: os módulos administrativos entram no menu da
+  // conta. O Desk mantém exatamente 8 grupos para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -210,65 +221,51 @@ export function SaasShell({
         <div className="px-2 pb-6">
           <BrandLogo size={34} variant="client-dark" className="items-center" />
           <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
-            Gestão de pesquisa
+            Desk · menu enxuto
           </p>
         </div>
 
         <nav className="flex-1 space-y-1">
           {itens.map((item) => {
-            const { to, label, icon: Icon, sub, agrupador, descricao: descricaoGrupo } = item;
-            const links = sub.filter(
-              (s): s is { to: string; label: string; hash?: string } => "to" in s,
-            );
-            const rotaAtiva = rota === to || links.some((s) => rota.startsWith(s.to));
-            const expandida = rotaAtiva || secaoAberta === to;
+            const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
+            const ativo = grupoNavAtivo(rota, hash, item);
+            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
             return (
               <div key={to}>
-                {agrupador ? (
-                  <button
-                    type="button"
-                    title={descricaoGrupo}
-                    onClick={() => setSecaoAberta((v) => (v === to ? null : to))}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                      rotaAtiva
-                        ? "bg-cream/15 text-cream font-medium"
-                        : "text-cream/80 hover:bg-cream/10",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{label}</span>
-                    {badgeDe(to) > 0 ? (
-                      <span
-                        title={`${badgeDe(to)} item(ns) com prazo vencido`}
-                        className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
-                      >
-                        {badgeDe(to)}
-                      </span>
-                    ) : null}
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                    />
-                  </button>
-                ) : (
-                  <Link
-                    to={to}
-                    title={descricaoGrupo}
-                    onClick={() => {
-                      setAberto(false);
-                      setSecaoAberta(to);
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                      rota === to
-                        ? "bg-gold text-navy font-medium"
-                        : "text-cream/80 hover:bg-cream/10",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </Link>
-                )}
+                <button
+                  type="button"
+                  title={descricaoGrupo}
+                  onClick={() => {
+                    if (ativo) {
+                      setAbertosManuais((v) => ({
+                        ...v,
+                        [to]: !(to in v ? v[to] : desktop && ativo),
+                      }));
+                      return;
+                    }
+                    setAbertosManuais((v) => ({ ...v, [to]: true }));
+                    void navigate({ to: to as never });
+                    setAberto(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1">{label}</span>
+                  {badgeDe(to) > 0 ? (
+                    <span
+                      title={`${badgeDe(to)} item(ns) com prazo vencido`}
+                      className="rounded-full bg-terracotta px-1.5 py-0.5 text-[10px] font-semibold text-cream"
+                    >
+                      {badgeDe(to)}
+                    </span>
+                  ) : null}
+                  <ChevronDown
+                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                  />
+                </button>
                 {expandida && sub.length ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
                     {sub.map((s, i) =>
@@ -287,7 +284,7 @@ export function SaasShell({
                           onClick={() => setAberto(false)}
                           className={cn(
                             "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                            rota.startsWith(s.to)
+                            itemNavAtivo(rota, hash, s)
                               ? "bg-cream/15 text-cream font-medium"
                               : "text-cream/65 hover:bg-cream/10",
                           )}
@@ -338,7 +335,7 @@ export function SaasShell({
                 onClick={() => setAberto(false)}
                 className={cn(
                   "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                  rota.startsWith(s.to)
+                  rotaAtendeDestino(rota, s.to)
                     ? "bg-cream/15 text-cream font-medium"
                     : "text-cream/65 hover:bg-cream/10",
                 )}
@@ -412,10 +409,24 @@ export function SaasShell({
   );
 }
 
-export function EstadoVazio({ mensagem }: { mensagem: string }) {
+export function EstadoVazio({ mensagem, acao }: { mensagem: string; acao?: ReactNode }) {
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-white/60 p-10 text-center text-sm text-navy/60">
-      {mensagem}
+      <p>{mensagem}</p>
+      {acao ? <div className="mt-3 flex justify-center">{acao}</div> : null}
     </div>
+  );
+}
+
+/** Ação padrão para EstadoVazio quando o vazio é, na verdade, erro de carregamento. */
+export function BotaoTentarNovamente({ aoClicar }: { aoClicar: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      className="rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5"
+    >
+      Tentar novamente
+    </button>
   );
 }

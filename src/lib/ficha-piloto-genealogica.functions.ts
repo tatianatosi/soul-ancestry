@@ -39,7 +39,19 @@ export const carregarFichaPiloto = createServerFn({ method: "GET" })
 
     const [pessoas, vinculos, hipoteses, lacunas, fontes, solicitacoes] = await Promise.all([
       supabase.from("research_people").select("*").eq("research_case_id", rid).is("archived_at", null).order("created_at"),
-      supabase.from("research_relationships").select("*").eq("research_case_id", rid).is("archived_at", null),
+      /*
+       * 04/09/2026 — reapontado de research_relationships (ficha piloto, só
+       * leitura, migration de 16/08) para genealogical_relationships (módulo
+       * real de Pessoas e Linhagens, editável, migration de 20/08). Um
+       * vínculo criado pela tela real de Pessoas e Linhagens não aparecia
+       * aqui antes desta correção. person_from_id/person_to_id/relation_type
+       * substituem person_a_id/person_b_id/relationship_type — mesmo
+       * conceito, nomes da tabela real (docs/auditorias/2026-09-04-nucleos-pessoa-360-contrato-acesso-app-cliente.md,
+       * seção 5.1). confidence_level/status/directionality/
+       * supporting_evidence_count migrados para genealogical_relationships
+       * na mesma rodada (migration 20260904190000).
+       */
+      supabase.from("genealogical_relationships").select("*").eq("case_id", data.caseId).is("archived_at", null),
       supabase.from("research_hypotheses").select("*").eq("case_id", data.caseId).is("archived_at", null).order("created_at"),
       supabase.from("research_pending_items").select("*").eq("research_case_id", rid).is("archived_at", null).order("severity"),
       supabase.from("research_sources").select("*").eq("research_case_id", rid).is("archived_at", null).order("created_at"),

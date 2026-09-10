@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
 import { meusCasos } from "@/lib/portal-cliente.functions";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -23,22 +24,32 @@ export const Route = createFileRoute("/portal/")({
 
 function PortalHome() {
   const carregar = useServerFn(meusCasos);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-meus-casos"], queryFn: () => carregar({}) });
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["portal-meus-casos"],
+    queryFn: () => carregar({}),
+  });
 
   return (
-    <PortalShell titulo={COPY_TELAS.casos.titulo} descricao={COPY_TELAS.casos.descricao}>
-      {isLoading ? (
-        <PortalCarregando />
-      ) : !data || data.length === 0 ? (
-        <PortalVazio mensagem={COPY_TELAS.casos.vazio} />
-      ) : (
+    <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
+      <EstadoDados
+        carregando={isLoading}
+        erro={error}
+        dados={data}
+        aoTentarNovamente={() => void refetch()}
+        recurso="os seus casos"
+        vazio={COPY_TELAS.casos.vazio}
+      >
+        {(casos) => (
         <ul className="space-y-3">
-          {data.map((c) => (
-            <li key={c.id}>
+          {casos.map((c) => (
+            <li
+              key={c.id}
+              className="rounded-xl border border-navy/10 bg-white p-4 transition-colors hover:border-gold"
+            >
               <Link
                 to="/portal/casos/$id"
                 params={{ id: c.id }}
-                className="block rounded-xl border border-navy/10 bg-white p-4 transition-colors hover:border-gold"
+                className="block"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-serif text-lg">{c.titulo}</p>
@@ -47,16 +58,25 @@ function PortalHome() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-navy/70">{c.statusTexto}</p>
-                {c.pendencias > 0 ? (
-                  <p className="mt-2 text-sm text-terracotta">
-                    {c.pendencias === 1 ? "1 documento pendente de envio" : `${c.pendencias} documentos pendentes de envio`}
-                  </p>
-                ) : null}
               </Link>
+              {c.proximoPasso ? (
+                <p className="mt-2 text-sm text-navy">
+                  Próximo passo: {c.proximoPasso}{" "}
+                  {c.proximoPassoDestino ? (
+                    <Link
+                      to={c.proximoPassoDestino}
+                      className="font-medium text-terracotta underline-offset-2 hover:underline"
+                    >
+                      Abrir
+                    </Link>
+                  ) : null}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </EstadoDados>
     </PortalShell>
   );
 }

@@ -16,7 +16,7 @@ export const PILOTO_ANA = {
   ids_historicos: ["CA-AUT-ANALUIZA-FAM-2026-001", "CA-2026-ANA-001", "CA-CID-AT-2026-002"],
   id_canonico_decidido: "CA-CID-AT-FAM-2026-001" as string | null,
   nome_operacional: "Projeto familiar — Ana Luiza",
-  classificacao: "Piloto real",
+  classificacao: "Primeira cliente",
   decisao_id_canonico:
     "Decisão da Proprietária Administradora em 22/08/2026: identificador canônico já definido na operação. Referência legada resolvida para CA-CID-AT-FAM-2026-001.",
   responsavel: "Tatiana Melani Tosi",
