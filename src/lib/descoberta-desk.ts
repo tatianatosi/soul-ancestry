@@ -13,7 +13,7 @@ export const ROTULOS_HUMANOS: Record<string, string> = {
   "/pesquisa-modulo": "Pesquisa Genealógica",
   "/integracoes": "Integrações",
   "/acessos-portal": "App Cliente",
-  "/painel": "Painel Hoje",
+  "/painel": "Visão Geral",
 };
 
 export function rotuloHumano(rota: string, padrao?: string): string {

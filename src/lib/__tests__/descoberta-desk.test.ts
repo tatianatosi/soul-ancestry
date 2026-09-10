@@ -76,13 +76,13 @@ describe("atalhos de descoberta", () => {
 describe("superfícies preservadas", () => {
   it("mantém os 8 grupos de navegação do Desk operacional (CA-UX-03)", () => {
     const grupos = [
-      "Hoje",
+      "Visão Geral",
       "Comercial",
-      "Casos",
+      "Casos 360",
       "Pesquisa",
       "Contratos e financeiro",
       "Cliente",
-      "Governança",
+      "Biblioteca Mestre",
       "Marketing",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);

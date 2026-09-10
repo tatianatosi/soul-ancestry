@@ -15,9 +15,9 @@ import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMat
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
     meta: [
-      { title: "Matriz jurídica interna — Clube Ancestral" },
+      { title: "Validação Jurídica — Clube Ancestral" },
       { name: "description", content: "Temas contratuais pendentes de revisão jurídica, sem redação de cláusula." },
-      { property: "og:title", content: "Matriz jurídica interna — Clube Ancestral" },
+      { property: "og:title", content: "Validação Jurídica — Clube Ancestral" },
       { property: "og:description", content: "Decisões jurídicas normativas do Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

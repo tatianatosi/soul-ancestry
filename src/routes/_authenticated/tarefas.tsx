@@ -8,9 +8,9 @@ import { ESTADOS, PRIORIDADES, rotuloEstado } from "@/lib/estados";
 export const Route = createFileRoute("/_authenticated/tarefas")({
   head: () => ({
     meta: [
-      { title: "Tarefas — Clube Ancestral" },
+      { title: "Checklist — Clube Ancestral" },
       { name: "description", content: "Tarefas operacionais da pesquisa genealógica e da jornada de cidadania." },
-      { property: "og:title", content: "Tarefas — Clube Ancestral" },
+      { property: "og:title", content: "Checklist — Clube Ancestral" },
       { property: "og:description", content: "Tarefas operacionais no Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,7 +30,7 @@ function TarefasPage() {
     ? null
     : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua.";
   return (
-    <SaasShell titulo="Tarefas" descricao="Pendências e próximos passos da equipe.">
+    <SaasShell titulo="Checklist" descricao="Tarefas: pendências e próximos passos da equipe.">
       {pendenciaVinculo ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada: {pendenciaVinculo}
@@ -38,7 +38,7 @@ function TarefasPage() {
       ) : null}
       <EntidadeCrud
         entidade="tarefas"
-        titulo="Tarefas"
+        titulo="Checklist"
         podeEscrever={podeEscrever}
         dominio="tarefa"
         colunas={[

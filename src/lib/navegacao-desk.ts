@@ -43,8 +43,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "hoje",
     to: "/painel",
-    label: "Hoje",
-    descricao: "Fila operacional única do dia, prioridades, alertas derivados e atalhos.",
+    label: "Visão Geral",
+    descricao: "Fila operacional única do dia (Painel Hoje), prioridades, alertas derivados e atalhos.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },
@@ -127,7 +127,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "casos",
     to: "/casos",
-    label: "Casos",
+    label: "Casos 360",
     descricao: "Casos 360, núcleos, tarefas, exceções, qualidade, onboarding e go-live.",
     icone: "casos",
     agrupador: true,
@@ -136,7 +136,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
       { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados (sugestão)" },
-      { to: "/tarefas", label: "Tarefas e entregas internas" },
+      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
@@ -228,8 +228,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "governanca",
     to: "/biblioteca",
-    label: "Governança",
-    descricao: "Jurídico, radar interno, bibliotecas, auditoria, conformidade e integrações.",
+    label: "Biblioteca Mestre",
+    descricao: "Jurídico, radar interno, bibliotecas, auditoria, conformidade e integrações (governança).",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -389,10 +389,10 @@ export function destinosDuplicados(): string[] {
 
 /** Links contextuais: mesma rota citada em mais de um grupo, de forma explícita. */
 export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [
-  { rota: "/matriz-juridica", origem: "Governança", tambemEm: ["Comercial", "Casos"] },
-  { rota: "/qualidade", origem: "Governança", tambemEm: ["Casos", "Pesquisa"] },
-  { rota: "/relatorios", origem: "Hoje", tambemEm: ["Pesquisa"] },
-  { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
+  { rota: "/matriz-juridica", origem: "Biblioteca Mestre", tambemEm: ["Comercial", "Casos 360"] },
+  { rota: "/qualidade", origem: "Biblioteca Mestre", tambemEm: ["Casos 360", "Pesquisa"] },
+  { rota: "/relatorios", origem: "Visão Geral", tambemEm: ["Pesquisa"] },
+  { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Pesquisa"] },
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
 ] as const;
 

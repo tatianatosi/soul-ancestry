@@ -47,7 +47,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "visao-geral",
     grupo: "Visão geral",
-    grupoNovo: "Hoje",
+    grupoNovo: "Visão Geral",
     rotaBase: "/painel",
     linhas: [
       { mockup: "Overview / Visão Geral", rota: "/painel", dado: "derivado: casos, tarefas, ops_microentregas, communication_queue", estado: "implementado", nota: "Painel Hoje com ordem canônica e deduplicação." },
@@ -81,7 +81,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "casos",
     grupo: "Casos e núcleos",
-    grupoNovo: "Casos",
+    grupoNovo: "Casos 360",
     rotaBase: "/casos",
     linhas: [
       { mockup: "Casos 360", rota: "/casos · /casos/$id", dado: "crm_casos, case_members, case_services", estado: "implementado" },
@@ -124,7 +124,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "governanca",
     grupo: "Governança e biblioteca",
-    grupoNovo: "Governança",
+    grupoNovo: "Biblioteca Mestre",
     rotaBase: "/biblioteca",
     linhas: [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado" },
