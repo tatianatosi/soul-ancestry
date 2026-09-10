@@ -487,8 +487,8 @@ export function PainelCalls() {
       ) : null}
 
       <Secao
-        titulo="Painel de Calls"
-        descricao="Registro da chamada, qualificação preliminar e handoff — o mesmo sistema do CA-04 / CRM Mestre. Toda triagem é sinal interno: não conclui elegibilidade jurídica, não envia proposta, contrato, cobrança nem mensagem."
+        titulo="Mesa de Discovery"
+        descricao="Aqui a entrada comercial funciona: varredura, uma pergunta SPIN por vez, próxima ação e handoff. Os KPIs do que está parado ou vencido ficam no Hoje. Toda triagem é sinal interno — não conclui elegibilidade nem envia proposta."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[

@@ -6,14 +6,14 @@ import { SaasShell } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/calls")({
   errorComponent: ({ error, reset }) => (
-    <ErroSuperficieDesk error={error} reset={reset} titulo="Painel de Calls" />
+    <ErroSuperficieDesk error={error} reset={reset} titulo="Mesa de Discovery" />
   ),
   head: () => ({
     meta: [
-      { title: "Painel de Calls — Clube Ancestral" },
-      { name: "description", content: "Registro de calls, qualificação preliminar de leads e handoff da Discovery com validações de bloqueio." },
-      { property: "og:title", content: "Painel de Calls — Clube Ancestral" },
-      { property: "og:description", content: "Calls, qualificação e handoff da Discovery no Desk Intelligence." },
+      { title: "Mesa de Discovery — Clube Ancestral" },
+      { name: "description", content: "Entrada comercial: varredura, perguntas SPIN, próxima ação e handoff. KPIs de atraso ficam no Hoje." },
+      { property: "og:title", content: "Mesa de Discovery — Clube Ancestral" },
+      { property: "og:description", content: "A Mesa faz a entrada comercial funcionar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
@@ -24,7 +24,10 @@ export const Route = createFileRoute("/_authenticated/calls")({
 
 function CallsPage() {
   return (
-    <SaasShell titulo="Painel de Calls" descricao="Registrar chamadas, qualificar leads e fazer o handoff da Discovery.">
+    <SaasShell
+      titulo="Mesa de Discovery"
+      descricao="Entrada comercial: uma pergunta por vez, com origem e destino. O que está parado ou vencido aparece no Hoje."
+    >
       <PainelCalls />
     </SaasShell>
   );
