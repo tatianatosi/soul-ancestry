@@ -8,7 +8,6 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
-import { FaixaKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 
 import { MotoresPrimordiais } from "@/components/biblioteca/motores-primordiais";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
@@ -192,7 +191,6 @@ function BibliotecaPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      <FaixaKpisVivos aba="pesquisa" />
       <div className="space-y-6">
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-lg font-medium text-foreground">Centro de Inteligência</h2>

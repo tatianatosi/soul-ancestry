@@ -11,7 +11,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
-import { BadgeDesk, CarregandoDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { BadgeDesk, CarregandoDesk, CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
 import { listarAlertas } from "@/lib/alertas.functions";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
@@ -28,7 +28,7 @@ import { painelCadencia } from "@/lib/jornada-cliente.functions";
 import { panoramaChecklistJuridico } from "@/lib/contratos.functions";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { FilaSlaOperacional } from "@/components/ops/fila-sla-operacional";
-import { rotulo as rotuloCatalogo, type Fila } from "@/lib/crm-desk";
+import { rotulo as rotuloCatalogo } from "@/lib/crm-desk";
 import { sinaisMarketing } from "@/lib/indicadores-marketing";
 import { contarLeadsAguardandoAcao, fraseComercialHoje } from "@/lib/comercial-hoje-canonico";
 import { GATILHOS, type Gatilho } from "@/lib/fila-comunicacao";
@@ -50,8 +50,6 @@ import {
   type ItemDia,
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
-import { KPIS_TRANSVERSAIS } from "@/lib/kpis-transversais";
-import { GradeKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 import { ItensDerivados } from "@/components/painel/itens-derivados";
 import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
 import {
@@ -225,6 +223,14 @@ function Linha({
   );
 }
 
+const TOM_DO_CARD: Record<string, TomEstado> = {
+  acoes_vencidas: "critico",
+  acoes_hoje: "atencao",
+  sem_responsavel: "atencao",
+  excecoes_criticas: "critico",
+  sla_em_risco: "atencao",
+};
+
 const GRUPOS_INDICADOR = [
   {
     chave: "integridade" as const,
@@ -388,7 +394,7 @@ export function PainelDia() {
     incluirDemo,
   });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
-  faixaCockpitHoje(filas, {
+  const faixa = faixaCockpitHoje(filas, {
     incluirDemo,
     cadenciasAtrasadas: cadencia.length,
   });
@@ -694,19 +700,97 @@ export function PainelDia() {
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
           Abrir Painel de Calls
         </Link>
-        . Os nove KPIs abaixo só resumem filas que já existem. Dicionário, catálogo
-        legado e DEMO não entram nesta tela. Campo com pendência continua editável.
+        . Visão Geral do mockup: KPIs com ação, funil e alertas. Receita e conversão
+        de demonstração não entram aqui. Campo com pendência continua editável.
       </p>
 
-      {/* 0 — Nove KPIs transversais: um número, um clique, uma fila. Sem volume sem ação. */}
+      {/* 0 — Visão Geral do mockup: KPIs, funil (Calls) e alertas. Radar é camada, não aba. */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
-        <div data-mockup-kpis>
-          <GradeKpisVivos
-            kpis={KPIS_TRANSVERSAIS}
-            filas={filas as Fila[]}
-            incluirDemo={incluirDemo}
-          />
+        <div>
+          <h2 className="font-serif text-lg text-navy">Radar da carteira</h2>
+          <p className="text-xs text-navy/55">
+            Leitura do dia: bloqueio, comercial e alerta. Sem score. Cada número abre a fila.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
+          <Link
+            to="/casos"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Casos ativos"
+              valor={(qCad.data?.casos ?? []).length}
+              apoio="Abrir Casos 360"
+              tom="neutro"
+            />
+          </Link>
+          <Link
+            to="/alertas"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Alertas pendentes"
+              valor={qAlertas.isSuccess ? (qAlertas.data ?? []).length : null}
+              apoio="Abrir a lista em Alertas"
+              tom="atencao"
+            />
+          </Link>
+          <Link
+            to="/calls"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Leads sem próxima ação"
+              valor={qtd("leads_sem_proxima_acao")}
+              apoio="Abrir no Painel de Calls"
+              tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
+            />
+          </Link>
+          <Link
+            to="/ops-excecoes"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Exceções e bloqueios"
+              valor={cards.find((c) => c.chave === "excecoes_criticas")?.total ?? 0}
+              apoio="Abrir exceções operacionais"
+              tom={cards.find((c) => c.chave === "excecoes_criticas")?.total ? "critico" : "neutro"}
+            />
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {cards.map((c) => (
+            <Link
+              key={c.chave}
+              to={c.destino as "/calls"}
+              className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <CardIndicador
+                rotulo={c.rotulo}
+                valor={c.total}
+                apoio={c.acao}
+                tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
+              />
+            </Link>
+          ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {faixa.map((f) => (
+            <Link
+              key={f.chave}
+              to={f.destino as "/calls"}
+              className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy hover:border-gold/60"
+            >
+              <span>
+                <span className="block text-[11px] uppercase tracking-wide text-navy/50">{f.rotulo}</span>
+                <span className="text-xs text-navy/65">{f.acao}</span>
+              </span>
+              <span className="shrink-0 font-serif text-xl tabular-nums">
+                {f.total === null ? "—" : f.total}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

@@ -13,7 +13,6 @@ import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { FaixaKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
   AREAS_RESPONSAVEIS,
@@ -198,7 +197,6 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
-      <FaixaKpisVivos aba="comercial" />
       {pendenciaVinculo || !podeEscrever ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
           Pendência registrada:{" "}

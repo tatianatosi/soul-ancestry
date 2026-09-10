@@ -2,8 +2,9 @@
  * Corte curto — 10/09/2026.
  *
  * Classifica o que já está no Desk (sem apagar rota nem tabela) e declara os
- * nove KPIs transversais. Contagem só onde a fila do Painel Hoje já existe;
- * senão o card declara SEM_DADO_SUFICIENTE e ainda assim abre o detalhe.
+ * nove KPIs transversais como mapa de fonte → fila. A face da Visão Geral
+ * (mockup de 17 páginas) continua sendo cardsHoje + faixaCockpitHoje +
+ * alertas; estes nove não substituem essa hierarquia.
  */
 
 import type { Fila } from "@/lib/crm-desk";

@@ -806,6 +806,73 @@ function FichaCaso() {
         </div>
       </div>
 
+      <section className="mb-4 rounded-xl border border-navy/10 bg-white p-4" data-radar-caso>
+        <p className="text-[11px] uppercase tracking-wide text-navy/50">Radar do caso</p>
+        <p className="mt-1 text-xs text-navy/55">
+          Camada do mockup: cada eixo abre a superfície que já opera o dado. Sem score.
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <li>
+            <a href="#secao-jornada" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Jornada e marco
+            </a>
+            <p className="text-[11px] text-navy/55">Planejador e onboarding deste caso</p>
+          </li>
+          <li>
+            <a href="#secao-jornada" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Bloqueio
+            </a>
+            <p className="text-[11px] text-navy/55">
+              {bloqueiosReais.length === 0
+                ? "Sem dados suficientes para um bloqueio ativo"
+                : `${bloqueiosReais.length} pendência(s) na situação acima`}
+            </p>
+          </li>
+          <li>
+            <Link
+              to="/pesquisa-evidencias/$caseId"
+              params={{ caseId: id }}
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Evidência e pesquisa
+            </Link>
+            <p className="text-[11px] text-navy/55">Dossiê e lacunas do mesmo case_id</p>
+          </li>
+          <li>
+            <Link to="/matriz-juridica" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Jurídico
+            </Link>
+            <p className="text-[11px] text-navy/55">Validação Jurídica — revisão humana</p>
+          </li>
+          <li>
+            <Link
+              to="/casos/$caseId/contrato/preparar"
+              params={{ caseId: id }}
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Formalização
+            </Link>
+            <p className="text-[11px] text-navy/55">Preparar contrato do caso</p>
+          </li>
+          <li>
+            <Link to="/financeiro" className="text-sm text-navy underline decoration-gold underline-offset-4">
+              Financeiro
+            </Link>
+            <p className="text-[11px] text-navy/55">Só confirmação transacional, nunca previsão</p>
+          </li>
+          <li>
+            <Link
+              to="/app-cliente-como-pessoa"
+              search={{ casoId: String(id) }}
+              className="text-sm text-navy underline decoration-gold underline-offset-4"
+            >
+              Experiência e entrega
+            </Link>
+            <p className="text-[11px] text-navy/55">O que o App Cliente já pode ver</p>
+          </li>
+        </ul>
+      </section>
+
       {erro ? (
         <p className="mb-4 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-navy">
           {erro}

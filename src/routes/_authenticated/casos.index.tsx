@@ -31,7 +31,6 @@ import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 import { AlertaDesk, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
-import { FaixaKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   /**
@@ -186,8 +185,6 @@ function CasosPage() {
         titulo="Casos 360 em acompanhamento"
         subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
       />
-
-      <FaixaKpisVivos aba="casos" />
 
       {qAtivacao.isLoading ? (
         <CarregandoDesk linhas={2} rotulo="Verificando requisitos de ativação no servidor" />

@@ -20,7 +20,6 @@ import {
   tomGatePesquisa,
 } from "@/components/contratos/rotulos";
 import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
-import { FaixaKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -100,7 +99,6 @@ function ContratosPage() {
             "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
         </p>
       ) : null}
-      <FaixaKpisVivos aba="contratos" />
       {qPainel.isError ? (
         <p className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
           Não foi possível carregar os indicadores abaixo — os números não são zero, a leitura falhou.

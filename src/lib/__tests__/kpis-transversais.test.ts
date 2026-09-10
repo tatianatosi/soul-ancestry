@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 
 import { GRUPOS_DESK, MENU_CONTA, rotasDoMenu } from "@/lib/navegacao-desk";
 import {
@@ -52,20 +51,16 @@ describe("Entrega 1 — classificação das superfícies", () => {
     }
   });
 
-  it("as abas donas mostram a faixa de KPI, sem criar rota nova", () => {
-    const arquivos = [
-      "src/routes/_authenticated/leads.tsx",
-      "src/routes/_authenticated/calls.tsx",
-      "src/routes/_authenticated/casos.index.tsx",
-      "src/routes/_authenticated/biblioteca.tsx",
-      "src/routes/_authenticated/contratos.index.tsx",
-    ];
-    for (const arquivo of arquivos) {
-      expect(readFileSync(arquivo, "utf8")).toContain("FaixaKpisVivos");
-    }
-    expect(readFileSync("src/routes/_authenticated/casos.index.tsx", "utf8")).not.toContain(
-      'rotulo="Casos ativos"',
-    );
+  it("as 7 telas do mockup de Desk existem como superfície, sem virar 7ª aba", () => {
+    const menu = new Set(rotasDoMenu());
+    expect(menu.has("/painel")).toBe(true);
+    expect(menu.has("/casos")).toBe(true);
+    expect(menu.has("/tarefas")).toBe(true);
+    expect(menu.has("/matriz-juridica")).toBe(true);
+    expect(menu.has("/qualidade")).toBe(true);
+    expect(menu.has("/alertas")).toBe(true);
+    expect(menu.has("/biblioteca")).toBe(true);
+    expect(GRUPOS_DESK).toHaveLength(6);
   });
 });
 

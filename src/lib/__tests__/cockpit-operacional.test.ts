@@ -19,23 +19,24 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     ]);
   });
 
-  it("cartões do Painel Hoje são os nove KPIs com link para a fila de origem", () => {
+  it("cartões do Painel Hoje são os KPIs do mockup Visão Geral, com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
-    expect(painel).toContain("KPIS_TRANSVERSAIS");
+    expect(painel).toContain("Radar da carteira");
+    expect(painel).toContain('rotulo="Casos ativos"');
+    expect(painel).toContain('rotulo="Alertas pendentes"');
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
     expect(painel).not.toContain('to={c.destino as "/tarefas"}');
   });
 
-  it("o topo do Hoje usa os nove KPIs vivos e tira receita, conversão e volume sem ação", () => {
+  it("o topo do Hoje segue o mockup: KPIs, funil e alertas — sem receita nem conversão DEMO", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
-    const kpis = ler("src/lib/kpis-transversais.ts");
-    expect(painel).toContain("GradeKpisVivos");
-    expect(painel).toContain("KPIS_TRANSVERSAIS");
-    expect(kpis).toContain("Lead/Discovery parado");
-    expect(kpis).toContain("Ação vencida ou sem dono");
-    expect(painel).not.toContain('rotulo="Casos ativos"');
+    expect(painel).toContain("Radar da carteira");
+    expect(painel).toContain('rotulo="Leads sem próxima ação"');
+    expect(painel).toContain("faixa.map");
+    expect(painel).not.toContain("GradeKpisVivos");
+    expect(painel).not.toContain("KPIS_TRANSVERSAIS");
     expect(painel).not.toContain('rotulo="Receita do mês"');
     expect(painel).not.toContain('rotulo="Taxa de conversão"');
   });
@@ -56,9 +57,10 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     expect(calls).toContain("Gravar registro da call");
   });
 
-  it("Caso 360 mantém síntese no topo e recolhe o restante técnico", () => {
+  it("Caso 360 mantém síntese no topo, Radar do caso e recolhe o restante técnico", () => {
     const ficha = ler("src/routes/_authenticated/casos.$caseId.index.tsx");
     expect(ficha).toContain("Situação hoje");
+    expect(ficha).toContain("Radar do caso");
     expect(ficha).toContain("FormularioTarefaCaso");
     expect(ler("src/components/caso/visao-geral.tsx")).toContain(
       "Dados técnicos e validações desta visão",

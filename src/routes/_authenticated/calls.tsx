@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PainelCalls } from "@/components/crm/painel-calls";
-import { FaixaKpisVivos } from "@/components/desk/faixa-kpis-vivos";
 import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 
@@ -26,7 +25,6 @@ export const Route = createFileRoute("/_authenticated/calls")({
 function CallsPage() {
   return (
     <SaasShell titulo="Painel de Calls" descricao="Registrar chamadas, qualificar leads e fazer o handoff da Discovery.">
-      <FaixaKpisVivos aba="comercial" />
       <PainelCalls />
     </SaasShell>
   );
