@@ -10,6 +10,7 @@
  * Não criar `case_participants`, `citizenship_cases`, nem vocabulário CHECK.
  */
 
+import { MOTORES_TABELAS } from "@/lib/motores-tabelas";
 import {
   obterProximaAcaoCanonica,
   SELO_PROXIMA_ACAO,
@@ -18,6 +19,7 @@ import {
 
 export { obterProximaAcaoCanonica, SELO_PROXIMA_ACAO };
 export type { ProximaAcaoCanonica };
+export { MOTORES_TABELAS };
 
 /** Níveis da RPC `proxima_acao_prioritaria` (nível 7 nunca existiu no banco). */
 export const NIVEIS_PROXIMA_ACAO = {

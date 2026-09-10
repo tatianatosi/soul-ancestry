@@ -47,13 +47,17 @@ Prompts Lovable em `docs/evolucao/recuperados/prompts-lovable/` e `…-2026-08-3
 
 ---
 
-## 3. PRs — o que entrou em `main` vs o que só tentou
+## 3. PRs — o que entrou em `main` vs arquitetura ainda não aplicada
 
-Total GitHub agora: **91 PRs** (#1–#91). Matriz 06/09 (`docs/auditorias/varredura-integral-2026-09-05/05-matriz-pr-000-a-090.md`) está **desatualizada** em três pontos: #28, #51 e #69 foram mescladas em 09/09; #91 nasceu nesta branch.
+Total GitHub agora: **91 PRs** (#1–#91). Matriz 06/09 (`docs/auditorias/varredura-integral-2026-09-05/05-matriz-pr-000-a-090.md`) está **desatualizada**.
 
-### Aplicado (código real em `main`)
+**Correção da proprietária (10/09):** PRs **#30–#84 são arquitetura e prompts que não foram implementados.** Não são “de-para documental para fechar”. Inventário revisado: `docs/relatorios/2026-09-10_prs-30-84-arquitetura-nao-aplicada.md`.
 
-Fundação e desbloqueio: **#1–#7, #9, #11–#24, #26–#29, #33–#34, #39, #44, #73, #77–#78, #85–#90**.
+### Aplicado (código real em `main`) — fora da faixa 30–84 e o que dessa faixa de fato operou
+
+Fundação e desbloqueio: **#1–#7, #9, #11–#24, #26–#29, #85–#90**.
+
+Na faixa **#30–#84**, o que **operou** em `main` (merge ou absorção): **#31** (padrão P0 via #34/#39), **#33**, **#34**, **#37–#39**, **#44**, **#47**, **#51**, **#66**, **#69**, **#73**, **#77–#78**, **#83** (via #85). Vários outros estão **parciais** (ver tabela do relatório 30–84).
 
 Entraram depois da matriz de 06/09:
 
@@ -66,21 +70,29 @@ Entraram depois da matriz de 06/09:
 | **#86** | 05/09 | Pessoa 360 + gate Entregas/Fase 01/02 |
 | **#87–#90** | 05/09 | Autoridade operacional da proprietária (UI + servidor) |
 
-Série Claude **09/09 (CA02–CA24B)** não abriu PRs numeradas: foi commitada na recovery e **já está em `origin/main`** (até `18e33a7b`). Isso conta como **aplicado em main**, não como PR órfã.
+Série Claude **09/09 (CA02–CA24B)** não abriu PRs numeradas: está em `origin/main` (até `18e33a7b`). **Não substitui** a arquitetura das PRs #30–#84 (Motor Cidadania 0–8, unificação de núcleos 2–6, onboarding P4, SKU vivo no contrato, Pessoa 360 em 5 camadas).
 
-Docs mesclados (não são motor): #8, #37–#38, #41, #43, #45–#46, #49.
+Políticas/artefatos mesclados (#8, #37–#38, #41, #43, #45–#46, #49) **arquivam o briefing**. O briefing continua válido até o motor existir.
 
-### Tentado / não dirige `main`
+### Arquitetura #30–#84 ainda não aplicada (maioria draft aberta)
 
-**Abertas (quase todas draft, maioria só `docs/`):** #30, #32, #35–#36, #40, #42, #48, #50, #52–#84, **#91** (esta branch, draft).
+Não tratar como fila descartável. Exemplos de **código/prompt que ainda não dirige a operação**:
 
-Código aberto que **ainda não está em main** (não docs): #30 núcleos duplicados; #32 pessoa+tarefa; #35 reconciliação contratos; #40 botões contrato; #42 demo Giovanna; #48 WhatsApp→lead; #50 planilha mestre; #53–#54 perfil/lead; #66 visão do cliente; #68 SKU vivo; #74 rótulo piloto; #80 cadência D10/D14. Tratar como fila, não como arquitetura vigente — vários já foram absorvidos por outro caminho (ex. #66 vs CA06).
+- **#30** fases 2–6 (Fase 1 já detecta duplicidade em `main`)
+- **#32** decisão de tarefa após salvar pessoa
+- **#35 / #40 / #53** contrato (outro agente no visual — aplicar depois)
+- **#48** WhatsApp→código de lead (parcial nesta branch)
+- **#61 / #62 / #63 / #79** Motor Planejador de Cidadania sobre tabelas existentes
+- **#64 / #81** Pessoa 360 e cadeia `client_deliverables`
+- **#68** SKU confirmado em `product_catalog` na pré-carga de contrato (helper nesta branch; fiação de contrato depois)
+- **#75 / P4** onboarding real em `onboarding_planos`
+- **#80** limiares D10/D14 (aplicado nesta branch)
 
-**Fechadas sem merge:** #10 (docs), #31 (gravação verificada — padrão chegou por outras PRs), #47 (leads arquivados), #83 (TOP 30 — código via #85).
+**Fechadas sem merge:** #10 (docs), #31 (absorvido), #47 (absorvido), #83 (via #85).
 
 **#25:** GitHub marca merged; na prática merge **reverso** (main → hotfix). Não trouxe hotfix para `main`.
 
-`docs/politicas/README.md` ainda diz que `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` está “não iniciado”. **Falso hoje:** RPC + CA18 estão em main. O README de políticas é rastreador histórico, não o estado.
+`docs/politicas/README.md` ainda diz que `PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md` está “não iniciado”. **Parcial hoje:** RPC + CA18 estão em main; o resto do prompt unificado (cadência por evento, onboarding único, Caso 360 completo) **não**.
 
 ---
 
@@ -97,7 +109,8 @@ Não usar como premissa de ops, dashboard ou arquitetura:
 - `casos` vs eixo `crm_casos`; `microentregas` / `ops_microentregas` vs `client_deliverables`.
 - Experimentos Claude em branches `claude/*` sem merge.
 - COPY de Entregas/Fase 01/Fase 02/Faturas/Proposta como se fossem abas — dívida de copy, não taxonomia aprovada.
-- PRs draft só de de-para (59–84 etc.): arquivo de estudo.
+
+**Não arquivar #30–#84 como “de-para de estudo”.** São arquitetura não aplicada. Os de-para (#59–#84) são planta de implementação: mapear para tabelas já existentes, não criar engine paralelo. Ver `2026-09-10_prs-30-84-arquitetura-nao-aplicada.md`.
 
 Legado segregável no schema: `legacy_record_links`.
 
@@ -107,7 +120,12 @@ Legado segregável no schema: `legacy_record_links`.
 
 Desk (Painel Hoje, Lista de Casos, Caso 360, `/ops`) **já** lê a RPC via `obterProximaAcaoCanonica` (CA18, 09/09). Faltava a **projeção autorizada no App Cliente** — Home e detalhe do caso narravam status genérico, sem a mesma ordem da RPC.
 
-Nesta entrega: `src/lib/motor-caso.ts` (grafo Pessoa/Núcleo/Lead/Caso/Pesquisa/Contrato → tabelas reais; projeção cliente na ordem 4→6 da RPC, sem vazar tarefa interna). Consumidores: `portal-cliente.functions.ts`, Home `/portal`, detalhe do caso. Sem tabela nova, sem RPC no session do cliente (SECURITY DEFINER vaza título de `tarefas`).
+Nesta entrega (acumulado da branch):
+
+- `src/lib/motor-caso.ts` — grafo Pessoa/Núcleo/Lead/Caso/Pesquisa/Contrato → tabelas reais; projeção cliente na ordem 4→6 da RPC. Consumidores: `portal-cliente.functions.ts`, Home `/portal`, detalhe do caso.
+- Revisão #30–#84: `cadencia-limiares.ts` (P3/#80), `codigoLeadDoAchado` (P8/#48), SKU opcional do planejador (P7/#68, sem tocar contrato visual), `motores-tabelas.ts`.
+
+Sem tabela nova, sem RPC no session do cliente (SECURITY DEFINER vaza título de `tarefas`).
 
 ---
 
@@ -117,6 +135,6 @@ Nesta entrega: `src/lib/motor-caso.ts` (grafo Pessoa/Núcleo/Lead/Caso/Pesquisa/
 - Jornada do App ainda usa ritmo de publicação (`jornadaSanitizada`), não o motor.
 - `COPY_TELAS.home.navegacao` ainda é “Início”; a barra usa `casos.navegacao` = “Home”.
 - `case_phase_history` na migration, ausente de `types.ts`.
-- Dezenas de PRs draft documentais abertas — fechar/arquivar com decisão humana.
+- PRs #30–#84: arquitetura não aplicada (não “fechar por ser docs”). Inventário em `2026-09-10_prs-30-84-arquitetura-nao-aplicada.md`. Fechar no GitHub só as já absorvidas (#31, #47, #66, #83) — decisão humana.
 - Homologação autenticada no browser (Supabase MCP desta sessão sem auth).
 - Magic link de homologação: estrutural, não prova de clique (relatório 05/09).

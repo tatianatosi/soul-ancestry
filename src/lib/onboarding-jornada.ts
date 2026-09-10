@@ -8,6 +8,11 @@
  */
 
 import { EIXO_FORMALIZACAO } from "@/lib/crm-desk";
+import {
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+  DIAS_PRIMEIRA_MICROENTREGA,
+} from "@/lib/cadencia-limiares";
 
 /* ---------------------------------------------------------------- estados */
 
@@ -263,7 +268,11 @@ export function derivarEstadoCaso(caso: CasoDiagnostico, diag: DiagnosticoOnboar
 
 /* -------------------------------------------------------------- cadência */
 
-export const CADENCIA = { primeiraMicroentregaDias: 7, atencaoDias: 10, criticoDias: 14 } as const;
+export const CADENCIA = {
+  primeiraMicroentregaDias: DIAS_PRIMEIRA_MICROENTREGA,
+  atencaoDias: DIAS_CADENCIA_ATENCAO,
+  criticoDias: DIAS_CADENCIA_CRITICA,
+} as const;
 
 export type AlertaCadencia = {
   regra: "D7" | "D10" | "D14";

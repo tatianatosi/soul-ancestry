@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   ENTIDADES_HIPOTETICAS_NAO_CRIAR,
   ENTIDADES_MOTOR,
+  MOTORES_TABELAS,
   NIVEIS_PROXIMA_ACAO,
   obterProximaAcaoCanonica,
   projetarProximaAcaoCliente,
@@ -35,6 +36,19 @@ describe("grafo do motor unificado", () => {
     ]);
     const motor = readFileSync("src/lib/motor-caso.ts", "utf8");
     expect(motor).not.toMatch(/from ["']@\/lib\/case.participants/);
+  });
+
+  it("P0–P9 apontam só para tabelas reais e recusam engines paralelos", () => {
+    expect(MOTORES_TABELAS.map((m) => m.motor).length).toBeGreaterThanOrEqual(9);
+    const p3 = MOTORES_TABELAS.find((m) => m.motor.startsWith("P3"));
+    expect(p3?.tabelas).toContain("tarefas");
+    expect(p3?.naoCriar).toContain("cadence_runs");
+    const p4 = MOTORES_TABELAS.find((m) => m.motor.startsWith("P4"));
+    expect(p4?.tabelas).toContain("onboarding_planos");
+    expect(p4?.naoCriar).toContain("onboarding_runs");
+    const p7 = MOTORES_TABELAS.find((m) => m.motor.startsWith("P7"));
+    expect(p7?.tabelas).toContain("product_catalog");
+    expect(p7?.tabelas).toContain("citizenship_tracks");
   });
 
   it("reusa obterProximaAcaoCanonica — não inventa segunda RPC", () => {
@@ -142,5 +156,6 @@ describe("premissas que o motor não pode desfazer", () => {
     expect(portalFn).not.toContain('rpc("proxima_acao_prioritaria');
     expect(home).toContain("proximoPasso");
     expect(detalhe).toContain("proximoPasso");
+  });
   });
 });
