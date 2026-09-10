@@ -4,7 +4,7 @@
  * Registro canônico executável do artefato CA 04. É biblioteca pura:
  * - não cria, altera ou apaga dado;
  * - não dispara pesquisa, cobrança, envio ou qualquer ação externa;
- * - não substitui as fontes de verdade (Planilha Mestre, Asaas, Desk, ambiente documental).
+ * - não substitui as fontes de verdade (Painel de Calls / CRM Vivo, catálogo homologado, Asaas, Desk).
  *
  * Serve para validar listas controladas, avaliar bloqueios de dependência,
  * derivar o Resultado comercial e expor as matrizes de handoff e privacidade
@@ -23,16 +23,17 @@ export type FonteVerdade = {
 
 export const FONTES_VERDADE_CA04: readonly FonteVerdade[] = [
   {
-    camada: "Painel de Calls",
+    camada: "Painel de Calls e CRM Vivo",
     responsabilidade:
-      "Entrada, preparação de call, registro inicial, consentimento inicial, SPIN, resultado da Discovery, handoff e próxima ação.",
+      "Entrada, preparação de call, registro inicial, consentimento inicial, SPIN, resultado da Discovery, handoff e próxima ação. CA-04 é o mapa de regras deste sistema — mesma tabela leads, sem segunda ficha.",
     naoUsarComo:
-      "CRM Mestre, catálogo de preços, repositório documental, fonte de evidência, parecer jurídico ou fonte transacional.",
+      "Catálogo de preços, repositório documental, fonte de evidência, parecer jurídico ou fonte transacional.",
   },
   {
-    camada: "Planilha Mestre",
-    responsabilidade: "SKU, status de produto, escopo, preço homologado, condição e link de cobrança.",
-    naoUsarComo: "Dossiê de cliente ou agenda de pesquisa.",
+    camada: "Catálogo homologado",
+    responsabilidade:
+      "SKU, status de produto, escopo, preço homologado, condição e link de cobrança (product_catalog no Desk).",
+    naoUsarComo: "Dossiê de cliente, agenda de pesquisa ou Planilha Mestre como fonte viva.",
   },
   {
     camada: "Asaas",
@@ -484,7 +485,7 @@ export const EIXO_COMERCIAL_TRANSICOES: readonly Transicao[] = [
   { de: "Triagem", para: "Discovery agendada", gatilho: "Agendamento de call", responsavel: "SDR/Closer", dadosMinimos: "Data/hora da call, responsável", bloqueio: "Consentimento Recusado sem alternativa sem gravação definida", fonteVerdade: "Painel de Calls" },
   { de: "Discovery agendada", para: "Discovery realizada", gatilho: "Call realizada", responsavel: "Closer", dadosMinimos: "Status da call = Realizada, resumo validado", bloqueio: "SPIN Concluído sem registro correspondente", fonteVerdade: "Painel de Calls → CRM Mestre" },
   { de: "Discovery realizada", para: "Diagnóstico em elaboração", gatilho: "Brief registrado", responsavel: "Responsável nominal", dadosMinimos: "Brief de Discovery preenchido", bloqueio: "Autorização de pesquisa prévia indefinida antes de pesquisa nominal", fonteVerdade: "Brief/CRM" },
-  { de: "Diagnóstico em elaboração", para: "Proposta enviada", gatilho: "Diagnóstico concluído + decisão de avançar", responsavel: "Responsável nominal", dadosMinimos: "SKU recomendado válido, produtos/serviços recomendados", bloqueio: "SKU precisa estar ativo na Planilha Mestre", fonteVerdade: "Diagnóstico/CRM" },
+  { de: "Diagnóstico em elaboração", para: "Proposta enviada", gatilho: "Diagnóstico concluído + decisão de avançar", responsavel: "Responsável nominal", dadosMinimos: "SKU recomendado válido, produtos/serviços recomendados", bloqueio: "SKU precisa estar ativo no catálogo homologado", fonteVerdade: "Diagnóstico/CRM" },
   { de: "Proposta enviada", para: "Negociação", gatilho: "Contato de retorno/ajuste", responsavel: "Closer", dadosMinimos: "Objeção registrada", bloqueio: "Nenhum", fonteVerdade: "CRM" },
   { de: "Negociação", para: "Nutrição", gatilho: "Decisão de adiar sem perder o lead", responsavel: "Closer/Responsável", dadosMinimos: "Motivo/observação", bloqueio: "Nenhum", fonteVerdade: "CRM" },
   { de: "Negociação", para: "Perdido", gatilho: "Recusa definitiva", responsavel: "Closer/Responsável", dadosMinimos: "Motivo de perda", bloqueio: "Nenhum", fonteVerdade: "CRM" },
@@ -703,7 +704,7 @@ export const MATRIZ_HANDOFF_CA04: readonly EtapaHandoff[] = [
 export const BLOQUEIOS_EXEMPLARES_HANDOFF: readonly string[] = [
   "Transcrição bruta fica em ambiente restrito; nunca chega ao App Cliente ou one-page.",
   "Documento recebido vai para Dossiê/Desk; nunca é anexado no Painel de Calls nem exibido cru ao cliente.",
-  "SKU, preço e link de cobrança vivem na Planilha Mestre/Asaas; o CRM apenas referencia.",
+  "SKU, preço e link de cobrança vivem no catálogo homologado/Asaas; o CRM apenas referencia.",
   "Evidência e fonte vivem no Desk; nunca servem como prova no CRM nem aparecem cruas ao cliente.",
   "Conteúdo cliente-facing só existe após aprovação humana da entrega correspondente.",
 ] as const;

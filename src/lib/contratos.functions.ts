@@ -259,6 +259,34 @@ export const criarInstrumento = createServerFn({ method: "POST" })
     exigir(papel, PREPARA, "Seu papel não permite criar instrumentos contratuais.");
 
     const derivado = data.contract_type !== "contract_base";
+    if (data.contract_type === "contract_base" && !data.case_id) {
+      throw new Error("Contrato-base precisa de um caso operacional.");
+    }
+
+    let caseId = data.case_id ?? null;
+    let clientId = data.client_id ?? null;
+    if (derivado && data.parent_contract_id) {
+      const pai = await supabase
+        .from("contracts")
+        .select("case_id, client_id")
+        .eq("id", data.parent_contract_id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (pai.error) throw new Error(pai.error.message);
+      caseId = caseId ?? pai.data?.case_id ?? null;
+      clientId = clientId ?? pai.data?.client_id ?? null;
+    }
+    if (caseId && !clientId) {
+      const caso = await supabase
+        .from("crm_casos")
+        .select("cliente_id")
+        .eq("id", caseId)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      if (caso.error) throw new Error(caso.error.message);
+      clientId = caso.data?.cliente_id ?? null;
+    }
+
     const { data: novo, error } = await supabase
       .from("contracts")
       .insert({
@@ -274,8 +302,8 @@ export const criarInstrumento = createServerFn({ method: "POST" })
             ? "amendment"
             : "complement"
           : "independent",
-        case_id: data.case_id ?? null,
-        client_id: data.client_id ?? null,
+        case_id: caseId,
+        client_id: clientId,
         template_id: data.template_id ?? null,
         status: "draft",
       })
@@ -288,11 +316,11 @@ export const criarInstrumento = createServerFn({ method: "POST" })
     // nasce desconectado de tudo que já foi validado para o caso (nome,
     // documento, endereço, valor, escopo), como aconteceu com o caso real da
     // Ana Luiza: os 22 campos existiam, só nunca foram ligados a este contrato.
-    if (data.contract_type === "contract_base" && data.case_id) {
+    if (data.contract_type === "contract_base" && caseId) {
       await supabase
         .from("contract_case_parameters")
         .update({ contract_id: novo.id, updated_by: context.userId })
-        .eq("case_id", data.case_id)
+        .eq("case_id", caseId)
         .is("contract_id", null);
     }
 
@@ -354,6 +382,13 @@ export const atualizarContrato = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
+    if (typeof patch.case_id === "string" && patch.case_id) {
+      await supabase
+        .from("contract_case_parameters")
+        .update({ contract_id: data.id, updated_by: context.userId })
+        .eq("case_id", patch.case_id)
+        .is("contract_id", null);
+    }
     return { ok: true };
   });
 

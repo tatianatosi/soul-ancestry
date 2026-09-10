@@ -5,17 +5,14 @@ import { alertasOps } from "@/lib/ops.functions";
 import type { ReactNode } from "react";
 import {
   LayoutDashboard,
-  Users,
   FolderOpen,
-  FileSearch,
-  FileSignature,
+  Scale,
+  Target,
   Library,
-  Smartphone,
   LogOut,
   Menu,
   ChevronDown,
   ShieldCheck,
-  Megaphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -81,10 +78,10 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 8 grupos principais (CA-UX-03).
+ * Navegação do Desk: 7 telas do mockup aprovado.
  * O registro canônico vive em `src/lib/navegacao-desk.ts`; aqui só há
- * apresentação. Nenhum módulo foi removido — os secundários aparecem como
- * subitens do grupo correspondente.
+ * apresentação. Trabalho operacional (Calls, contratos, pesquisa, portal)
+ * aparece como subitem da tela correspondente — nenhuma rota some.
  */
 type SubItem = ItemNav;
 
@@ -99,13 +96,11 @@ type SecaoNav = {
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
   hoje: LayoutDashboard,
-  marketing: Megaphone,
-  comercial: Users,
+  comercial: Target,
   casos: FolderOpen,
-  pesquisa: FileSearch,
-  contratos: FileSignature,
-  cliente: Smartphone,
-  governanca: Library,
+  pesquisa: Library,
+  contratos: Scale,
+  governanca: ShieldCheck,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
@@ -191,7 +186,7 @@ export function SaasShell({
   }
 
   // Admin não ganha abas novas: os módulos administrativos entram no menu da
-  // conta. O Desk mantém exatamente 8 grupos para qualquer papel interno.
+  // conta. O Desk mantém as 7 telas do mockup para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -204,7 +199,7 @@ export function SaasShell({
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
   // Itens restritos a admin (equipe, auditoria) só aparecem para admin.
-  // O Desk mantém exatamente 8 grupos para qualquer papel interno.
+  // O Desk mantém as 7 telas do mockup para qualquer papel interno.
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
@@ -221,7 +216,7 @@ export function SaasShell({
         <div className="px-2 pb-6">
           <BrandLogo size={34} variant="client-dark" className="items-center" />
           <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
-            Desk · menu enxuto
+            Desk Intelligence
           </p>
         </div>
 
@@ -348,7 +343,7 @@ export function SaasShell({
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
           <p className="truncate">{contexto?.organizacao?.nome ?? "—"}</p>
           <p className="mt-1 truncate text-cream/60">
-            {papeis.length ? papeis.map((p) => PAPEL_LABEL[p]).join(" · ") : "Sem papel atribuído"}
+            {papeis.length ? papeis.map((p) => PAPEL_LABEL[p] ?? p).join(" · ") : "Sem papel atribuído"}
           </p>
 
           <button

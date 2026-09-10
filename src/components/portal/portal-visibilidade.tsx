@@ -11,7 +11,7 @@ import {
 import { escopoDoPortal } from "@/lib/portal-jornada.functions";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_ESTADO_TEXTO, COPY_ESTADO_TITULO } from "@/lib/portal-copy";
-import { usePreviaPortal } from "@/components/portal/fonte-portal";
+import { usePreviaPortal, useFontePortal } from "@/components/portal/fonte-portal";
 
 /** Escopo conservador enquanto a leitura não retorna: nada é presumido. */
 const ESCOPO_INDEFINIDO: EscopoCliente = {
@@ -49,11 +49,12 @@ export function useEscopoPortal() {
 
 /** Estado de visibilidade de uma tela do spec CA-UX-01.2. */
 export function useVisibilidade(tela: TelaApp): { visibilidade: ResultadoVisibilidade; carregando: boolean } {
+  const fonte = useFontePortal();
   const previa = usePreviaPortal();
   const { data, isLoading } = useEscopoPortal();
   if (previa) {
     return {
-      visibilidade: visibilidadeTela(tela, ESCOPO_PREVIA),
+      visibilidade: visibilidadeTela(tela, fonte?.escopo ?? ESCOPO_PREVIA),
       carregando: false,
     };
   }

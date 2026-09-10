@@ -5,19 +5,29 @@ import { semCache } from "@/lib/no-store";
 import { contextoInterno } from "@/lib/comercial.server";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { ehProprietariaAdministradora } from "@/lib/modo-proprietaria";
+import { linhas as linhasDe, linha as linhaDe } from "@/lib/linhas";
+import { escopoAPartirDePublicacoes, type EscopoCliente } from "@/lib/app-visibilidade";
+import { projetarProximaAcaoCliente, sinaisDoCasoPortal, type ProximaAcaoCliente } from "@/lib/motor-caso";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+export type DadosPortalComoAdmin = {
+  projecoes: ProjecaoBruta[];
+  documentos: DocumentoPortal[];
+  proximaAcao: ProximaAcaoCliente | null;
+  escopo: EscopoCliente;
+};
+
 /**
  * 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente como
  * pessoa" (Proprietária). Só existia uma demo com dado fictício (Sophia),
  * sem consulta real. Esta função é a irmã autorizada de `dadosVivosDoPortal`
- * (CA-PORTAL-02): mesma forma de saída ({projecoes, documentos}), mesma
- * fonte (`portal_projecoes.content_sanitized`, já a projeção sanitizada —
- * nunca dado bruto do Desk/Mestre/Planejador), mas autorizada por papel de
- * staff dentro da organização em vez de `client_portal_access` do cliente.
+ * (CA-PORTAL-02): mesma forma de saída, mas lê `app_projections` como staff
+ * (organização + caso + publicado + vigente). A view `portal_projecoes` exige
+ * sessão de cliente (`portal_caso_permitido`); staff não é cliente — ler a
+ * view deixava o acesso master vazio ou travado em Carregando.
  * Somente leitura; nenhum dado é alterado, nenhuma comunicação é disparada.
  */
 export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
@@ -26,7 +36,7 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
     if (!data?.casoId) throw new Error("Selecione um caso.");
     return data;
   })
-  .handler(async ({ data, context }): Promise<{ projecoes: ProjecaoBruta[]; documentos: DocumentoPortal[] }> => {
+  .handler(async ({ data, context }): Promise<DadosPortalComoAdmin> => {
     semCache();
     const supabase = context.supabase as any;
     const { organizationId, papel } = await contextoInterno(supabase, context.userId as string);
@@ -34,25 +44,83 @@ export const dadosVivosDoPortalComoAdmin = createServerFn({ method: "GET" })
       throw new Error("Somente a Proprietária Administradora pode abrir o App Cliente como uma pessoa real.");
     }
 
-    const caso = await supabase
-      .from("crm_casos")
-      .select("id")
-      .eq("id", data.casoId)
-      .eq("organization_id", organizationId)
-      .maybeSingle();
-    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+    const caso = linhaDe<{
+      id: string;
+      status?: string | null;
+      ativo?: boolean | null;
+      suspenso_em?: string | null;
+      cliente_id?: string | null;
+    }>(
+      await supabase
+        .from("crm_casos")
+        .select("id, status, ativo, suspenso_em, cliente_id")
+        .eq("id", data.casoId)
+        .eq("organization_id", organizationId)
+        .maybeSingle(),
+      "o caso deste acesso master",
+    );
+    if (!caso) throw new Error("Caso não encontrado nesta organização.");
 
-    const [proj, docs] = await Promise.all([
+    const agora = new Date().toISOString();
+    const [proj, docs, pendencias, faturas] = await Promise.all([
       supabase
-        .from("portal_projecoes")
+        .from("app_projections")
         .select("id, case_id, projection_type, content_sanitized, effective_from, updated_at")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId)
+        .eq("destination", "app")
+        .eq("approval_status", "published")
+        .is("archived_at", null)
+        .not("effective_from", "is", null)
+        .lte("effective_from", agora),
+      supabase
+        .from("documents")
+        .select("id, liberado_cliente, origem")
+        .eq("organization_id", organizationId)
         .eq("case_id", data.casoId),
-      supabase.from("documents").select("id, liberado_cliente, origem, is_demo").eq("case_id", data.casoId),
+      supabase
+        .from("portal_document_requests")
+        .select("id, status")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId)
+        .in("status", ["aguardando", "recusado"])
+        .is("archived_at", null),
+      supabase
+        .from("invoices")
+        .select("id, status")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.casoId)
+        .in("status", ["pendente", "vencida"]),
     ]);
 
+    const projecoes = linhasDe<ProjecaoBruta>(proj, "as publicações do App Cliente");
+    const documentosBrutos = linhasDe<DocumentoPortal>(docs, "os documentos deste caso");
+    const documentos = documentosBrutos.filter(
+      (d) => d.liberado_cliente === true || d.origem === "cliente",
+    );
+    const documentosPendentes = linhasDe<{ id: string }>(
+      pendencias,
+      "as solicitações de documento do cliente",
+    ).length;
+    const pagamentoPendente =
+      linhasDe<{ id: string }>(faturas, "as faturas deste caso").length > 0;
+
     return {
-      projecoes: (proj.data ?? []) as ProjecaoBruta[],
-      documentos: (docs.data ?? []) as DocumentoPortal[],
+      projecoes,
+      documentos,
+      proximaAcao: projetarProximaAcaoCliente(
+        sinaisDoCasoPortal({
+          status: caso.status,
+          ativo: caso.ativo,
+          suspensoEm: caso.suspenso_em,
+          documentosPendentes,
+          pagamentoPendente,
+        }),
+      ),
+      escopo: escopoAPartirDePublicacoes({
+        temCaso: true,
+        tiposPublicados: projecoes.map((p) => String(p.projection_type ?? "")),
+      }),
     };
   });
 

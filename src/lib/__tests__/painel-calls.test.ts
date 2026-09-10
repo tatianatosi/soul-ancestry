@@ -101,6 +101,7 @@ describe("avaliarHandoffCall", () => {
     const a = avaliarHandoffCall(completo);
     expect(a.liberado).toBe(true);
     expect(a.destino).toBe("proposta");
+    expect(Array.isArray(a.dicionario)).toBe(true);
   });
   it("mantém bloqueado sem responsável nominal", () => {
     const a = avaliarHandoffCall({ ...completo, responsavel_nome: null });

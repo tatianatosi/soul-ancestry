@@ -14,8 +14,6 @@ import {
   ROTULO_DIVERGENCIA,
   ROTULO_LINK_FONTE,
   elegivelParaPropostaReal,
-  mapaFonteMestre,
-  previaImportacao,
   type ItemCatalogoImportado,
   type TipoDivergencia,
 } from "@/lib/catalogo-importacao";
@@ -23,13 +21,13 @@ import {
 export const Route = createFileRoute("/_authenticated/catalogo")({
   head: () => ({
     meta: [
-      { title: "Catálogo comercial — Clube Ancestral Desk" },
+      { title: "Catálogo homologado — Clube Ancestral Desk" },
       {
         name: "description",
         content:
-          "Área proprietária de catálogo: produto-pai, contexto e status de condição do Top 30 Pareto, com origem e divergências de reconciliação. Planilha Mestre é só origem histórica, nunca fonte operacional.",
+          "Catálogo homologado: produto-pai, contexto e status de condição, com divergências reais de reconciliação. Origem (Planilha Mestre) é rastreabilidade, não decisão.",
       },
-      { property: "og:title", content: "Catálogo comercial — Clube Ancestral Desk" },
+      { property: "og:title", content: "Catálogo homologado — Clube Ancestral Desk" },
       {
         property: "og:description",
         content: "Leitura do catálogo canônico importado, divergências e estado de reconciliação Asaas.",
@@ -48,16 +46,13 @@ function CatalogoPage() {
   const carregar = useServerFn(lerCatalogoImportado);
   const q = useQuery({ queryKey: ["catalogo-importado"], queryFn: () => carregar(), retry: false });
 
-  const mapa = mapaFonteMestre();
   // Leitura sem defaults silenciosos: a ausência de dados vira estado explícito na tela.
   const itens = q.data?.itens;
   const divergencias = q.data?.divergencias;
-  const previa = previaImportacao((itens ?? []).map((i) => ({ sku: i.sku, fonte_versao: i.fonte_versao })));
 
   // CA09-CATALOGO-PRODUTOS-PAI (09/09/2026): produto-pai é a taxonomia de
   // oferta — agrupa a mesma leitura que já existe, nunca lista SKU cru como
-  // decisão. Planilha Mestre (mapa/previa acima) fica só como origem
-  // histórica de auditoria, nunca fonte operacional de preço/status.
+  // decisão. Snapshot da Planilha Mestre (Top Pareto) saiu da face.
   const grupos = useMemo(() => {
     const porProdutoPai = new Map<string, ItemCatalogoImportado[]>();
     for (const item of itens ?? []) {
@@ -70,7 +65,7 @@ function CatalogoPage() {
 
   return (
     <SaasShell
-      titulo="Catálogo comercial"
+      titulo="Catálogo homologado"
       descricao="Produto-pai, contexto e status de condição do catálogo já saneado. Origem (Planilha Mestre) é rastreabilidade, não decisão. Nada é recriado, reprecificado ou homologado novamente aqui, e nenhum link Asaas é criado, chamado ou alterado."
     >
 
@@ -83,11 +78,9 @@ function CatalogoPage() {
         <CatalogoSaneamento />
       </div>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-6 grid gap-3 sm:grid-cols-2">
         {[
-          { r: "SKUs na fonte", v: mapa.totais.totalSkus },
-          { r: "Top Pareto", v: mapa.totais.topPareto },
-          { r: "Top Pareto ativos importados", v: itens ? itens.length : "—" },
+          { r: "Itens no catálogo homologado", v: itens ? itens.length : "—" },
           { r: "Divergências abertas", v: divergencias ? divergencias.length : "—" },
         ].map((c) => (
           <div key={c.r} className="rounded-xl border border-navy/10 bg-white p-4">
@@ -95,22 +88,6 @@ function CatalogoPage() {
             <p className="mt-1 font-serif text-2xl text-navy">{c.v}</p>
           </div>
         ))}
-      </section>
-
-      <section className="mt-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-xs text-navy/70">
-        <p>
-          <span className="font-medium text-navy/85">Fonte:</span> {mapa.arquivo} · aba “{mapa.aba}” · versão{" "}
-          {mapa.versao}
-        </p>
-        <p className="mt-1">
-          <span className="font-medium text-navy/85">Prévia idempotente:</span> {previa.resumo.criar} a criar ·{" "}
-          {previa.resumo.atualizar} a atualizar · {previa.resumo.inalterado} inalterados (mesma versão da fonte não
-          duplica SKU).
-        </p>
-        <p className="mt-1">
-          <span className="font-medium text-navy/85">Colunas ausentes na fonte:</span> {mapa.colunasAusentes.join(", ")}{" "}
-          — registradas como exceção, nunca preenchidas por inferência.
-        </p>
       </section>
 
       <section className="mt-6 space-y-4">

@@ -22,12 +22,10 @@ export type PapelAssistente =
 
 export type GrupoAssistenteId =
   | "hoje"
-  | "marketing"
   | "comercial"
   | "casos"
   | "pesquisa"
   | "contratos"
-  | "cliente"
   | "governanca";
 
 export type RegraAssistente = {
@@ -56,31 +54,31 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   {
     grupo: "hoje",
     label: "Hoje",
-    contexto: "Fila, exceções, SLA, prioridade e responsável",
+    contexto: "KPIs vivos, fila do dia, alertas e bloqueios",
     resultado: "Explicar prioridades, resumir bloqueios e sugerir navegação interna",
     papeis: TODOS,
     analisaCaso: false,
   },
   {
     grupo: "comercial",
-    label: "Comercial",
-    contexto: "Lead, origem, Calls, proposta e conversão",
-    resultado: "Resumir histórico registrado, apontar pendências e preparar rascunho interno",
+    label: "Marketing & Comercial",
+    contexto: "Leads, Calls, Discovery, proposta e conversão — CRM Vivo",
+    resultado: "Explicar o funil e o próximo passo comercial, sem inventar origem",
     papeis: ["admin", "operacoes", "comercial", "leitura"],
     analisaCaso: false,
   },
   {
     grupo: "casos",
-    label: "Casos",
-    contexto: "Caso confirmado, núcleo, tarefas, fase e gates",
+    label: "Pessoas & Casos",
+    contexto: "Caso confirmado, núcleo, checklist, radar e portal",
     resultado: "Sintetizar estado do caso e próximos passos internos",
-    papeis: ["admin", "operacoes", "pesquisador", "comercial", "leitura"],
+    papeis: ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"],
     analisaCaso: true,
   },
   {
     grupo: "pesquisa",
-    label: "Pesquisa",
-    contexto: "Caso confirmado, pessoas, fontes, evidências e pendências",
+    label: "Inteligência & Pesquisa",
+    contexto: "Biblioteca Mestre, evidências, dossiê do Legado e Validação Jurídica",
     resultado:
       "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
     papeis: ["admin", "operacoes", "pesquisador", "leitura"],
@@ -88,36 +86,17 @@ export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   },
   {
     grupo: "contratos",
-    label: "Contratos e Financeiro",
-    contexto: "Proposta, condição, contrato, OS, fatura e gate",
-    resultado:
-      "Explicar bloqueios, divergências e referências internas; não decide preço nem jurídico",
-    papeis: ["admin", "operacoes", "financeiro", "comercial", "leitura"],
+    label: "Formalização & Financeiro",
+    contexto: "Contrato vivo, catálogo homologado, OS e financeiro interno",
+    resultado: "Explicar pendência de formalização sem emitir parecer automático",
+    papeis: ["admin", "operacoes", "financeiro", "leitura"],
     analisaCaso: true,
   },
   {
-    grupo: "cliente",
-    label: "Cliente",
-    contexto: "Projeção sanitizada, acesso e entrega autorizada",
-    resultado:
-      "Verificar o que está publicado e explicar diferenças entre Desk e preview, sem acessar conteúdo interno no preview",
-    papeis: ["admin", "operacoes", "comercial", "leitura"],
-    analisaCaso: false,
-  },
-  {
     grupo: "governanca",
-    label: "Governança",
-    contexto: "Decisões, auditoria, regras, qualidade e integrações",
-    resultado: "Explicar estados, pendências e fontes de decisão, sem modificar controles",
-    papeis: TODOS,
-    analisaCaso: false,
-  },
-  {
-    grupo: "marketing",
-    label: "Marketing",
-    contexto: "Canais, campanhas, conteúdo, atribuição de origem e métricas de aquisição",
-    resultado:
-      "Explicar origem, canal e lacuna de atribuição, sem criar campanha, link ou disparo",
+    label: "Governança & Administração",
+    contexto: "Papéis, legado arquivado, integrações e configurações",
+    resultado: "Orientar administração sem misturar com a fila do dia",
     papeis: TODOS,
     analisaCaso: false,
   },
@@ -132,8 +111,6 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
  * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
-  // Rotas do menu da conta (Configurações, Equipe, Modo Proprietária) não são
-  // grupo principal: o Assistente as trata sob as regras de Governança.
   for (const item of MENU_CONTA.itens) {
     if (!("to" in item)) continue;
     if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
@@ -158,14 +135,14 @@ export function assistenteVisivel(entrada: {
   if (!entrada.superficieInterna) return false;
   if (entrada.rota.startsWith("/portal") || entrada.rota.startsWith("/acesso")) return false;
   if (entrada.papeis.length === 0) return false;
-  // Rota do menu da conta restrita a admin mantém a mesma restrição no Assistente.
-  const restritaConta = MENU_CONTA.itens.some(
+  const itensAdmin = [...MENU_CONTA.itens, ...GRUPOS_DESK.flatMap((g) => g.sub)];
+  const restritaAdmin = itensAdmin.some(
     (i) =>
       "to" in i &&
       i.adminOnly === true &&
       (entrada.rota === i.to || entrada.rota.startsWith(`${i.to}/`)),
   );
-  if (restritaConta && !entrada.papeis.includes("admin")) return false;
+  if (restritaAdmin && !entrada.papeis.includes("admin")) return false;
   const regra = regraDoGrupo(grupoDaRota(entrada.rota));
   return entrada.papeis.some((p) => regra.papeis.includes(p as PapelAssistente));
 }

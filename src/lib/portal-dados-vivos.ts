@@ -184,3 +184,25 @@ export function legadoSanitizado(projecoes: ProjecaoBruta[]): PublicacaoCliente[
     .filter((p) => p.tipo === "legado")
     .filter((p) => !contemConteudoInterno(p.conteudo));
 }
+
+/** Entregas da jornada: publicações do repositório, sem Árvore e sem Legado (abas próprias). */
+export function publicacoesDeEntrega(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
+  return publicacoesParaCliente(projecoes)
+    .filter((p) => !["arvore", "legado"].includes(p.tipo))
+    .filter((p) => !contemConteudoInterno(p.conteudo));
+}
+
+const TIPOS_FASE_01 = new Set(["resumo", "marco", "relatorio_f1", "fase01", "fase_01"]);
+const TIPOS_FASE_02 = new Set(["relatorio_f2", "fase02", "fase_02"]);
+
+export function publicacoesDeFase01(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
+  return publicacoesParaCliente(projecoes)
+    .filter((p) => TIPOS_FASE_01.has(p.tipo))
+    .filter((p) => !contemConteudoInterno(p.conteudo));
+}
+
+export function publicacoesDeFase02(projecoes: ProjecaoBruta[]): PublicacaoCliente[] {
+  return publicacoesParaCliente(projecoes)
+    .filter((p) => TIPOS_FASE_02.has(p.tipo))
+    .filter((p) => !contemConteudoInterno(p.conteudo));
+}

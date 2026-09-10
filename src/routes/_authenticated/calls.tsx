@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PainelCalls } from "@/components/crm/painel-calls";
+import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 import { SaasShell } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/calls")({
+  errorComponent: ({ error, reset }) => (
+    <ErroSuperficieDesk error={error} reset={reset} titulo="Painel de Calls" />
+  ),
   head: () => ({
     meta: [
       { title: "Painel de Calls — Clube Ancestral" },

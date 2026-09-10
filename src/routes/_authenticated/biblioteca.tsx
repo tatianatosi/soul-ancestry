@@ -168,7 +168,9 @@ function BibliotecaPage() {
     });
   }, [itens, sub, busca, status, responsavel, pais, arquivamento]);
 
-  const meta = SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub)!;
+  const meta =
+    SUBAREAS_BIBLIOTECA.find((s) => s.chave === sub && s.naFace !== false) ??
+    SUBAREAS_BIBLIOTECA.find((s) => s.chave === "acervo")!;
   const carregando = geral.isLoading || catalogo.isLoading;
   /**
    * Leitura em duas consultas. Se qualquer uma falhar, a tela mostra o erro:
@@ -241,7 +243,7 @@ function BibliotecaPage() {
 
         <section className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
 
-          {SUBAREAS_BIBLIOTECA.map((s) => (
+          {SUBAREAS_BIBLIOTECA.filter((s) => s.naFace !== false).map((s) => (
             <button
               key={s.chave}
               type="button"

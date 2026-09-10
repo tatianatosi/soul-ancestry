@@ -1,9 +1,11 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { decidirAcessoDesk } from "@/lib/superficie-interna-regras";
+import { ErroSuperficieDesk } from "@/components/saas/erro-superficie";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
+  errorComponent: ({ error, reset }) => <ErroSuperficieDesk error={error} reset={reset} />,
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
     let usuario = !error && data.user ? data.user : null;

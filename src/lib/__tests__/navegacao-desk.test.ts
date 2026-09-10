@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   GRUPOS_DESK,
+  GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
   ROTAS_PRESERVADAS,
   destinosDuplicados,
+  destinosSobrepostos,
   rotasDoMenu,
   rotasSemLink,
   rotasDoMenuConta,
@@ -12,20 +14,16 @@ import {
 } from "@/lib/navegacao-desk";
 import { MATRIZ_EQUIVALENCIA } from "@/lib/matriz-equivalencia";
 
-describe("CA-UX-03 — navegação em 8 grupos", () => {
-  it("expõe exatamente 8 grupos principais", () => {
-    expect(GRUPOS_DESK).toHaveLength(8);
-  });
-
-  it("usa os rótulos canônicos e ids estáveis", () => {
+describe("Navegação do Desk — 6 grupos operacionais", () => {
+  it("expõe exatamente os 6 grupos aprovados", () => {
+    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
-      "marketing",
       "comercial",
       "casos",
       "pesquisa",
       "contratos",
-      "cliente",
       "governanca",
     ]);
   });
@@ -33,7 +31,7 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
   it("dá descrição curta e humana a cada grupo", () => {
     for (const g of GRUPOS_DESK) {
       expect(g.descricao.length).toBeGreaterThan(20);
-      expect(g.descricao.length).toBeLessThan(140);
+      expect(g.descricao.length).toBeLessThan(160);
     }
   });
 
@@ -41,40 +39,41 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     expect(rotasSemLink()).toEqual([]);
   });
 
-  it("não duplica destino (rota + hash) entre grupos", () => {
+  it("não duplica destino dentro de um grupo nem sobrepõe entre grupos", () => {
     expect(destinosDuplicados()).toEqual([]);
+    expect(destinosSobrepostos()).toEqual([]);
   });
 
   it("usa apenas rotas absolutas do Desk", () => {
     for (const r of rotasDoMenu()) expect(r.startsWith("/")).toBe(true);
   });
 
-  it("expõe Marketing como aba 2 e mantém link contextual em Comercial", () => {
-    expect(GRUPOS_DESK[1]!.id).toBe("marketing");
+  it("Marketing e Calls moram em Marketing & Comercial", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    const rotas = comercial.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/marketing");
+    expect(rotas).toContain("/calls");
+    expect(rotas).toContain("/leads");
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("administracao");
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
   });
 
-  it("move Configurações, Equipe e Perfis para o menu da conta, sem nona aba", () => {
-    expect(GRUPOS_DESK).toHaveLength(8);
-    const conta = rotasDoMenuConta();
-    for (const r of ["/configuracoes", "/equipe"]) expect(conta).toContain(r);
-    for (const g of GRUPOS_DESK) {
-      const rotas = g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-      expect(rotas).not.toContain("/configuracoes");
-    }
+  it("menu da conta só tem a sessão DEMO; administração mora em Governança", () => {
+    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotas).toContain("/configuracoes");
+    expect(rotas).toContain("/equipe");
+    expect(rotas).toContain("/governanca/catalogo-operacional-30");
+    expect(rotas).not.toContain("/crm-mestre");
   });
 
-  it("mantém Validação Jurídica em Governança com link contextual em Comercial e Casos", () => {
-    const temJuridica = (id: string) =>
-      GRUPOS_DESK.find((g) => g.id === id)!.sub.some(
-        (s) => "to" in s && s.to === "/matriz-juridica",
-      );
-    expect(temJuridica("governanca")).toBe(true);
-    expect(temJuridica("comercial")).toBe(true);
-    expect(temJuridica("casos")).toBe(true);
+  it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
+    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
+    expect(pesquisa.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(true);
+    expect(casos.sub.some((s) => "to" in s && s.to === "/qualidade")).toBe(true);
+    expect(casos.sub.some((s) => "to" in s && s.to === "/matriz-juridica")).toBe(false);
   });
 
   it("aplica os rótulos humanos exigidos sem mudar URL", () => {
@@ -95,13 +94,13 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     ).toBe(true);
   });
 
-  it("restringe equipe a admin (/auditoria saiu do menu em 06/09, gate cerimonial removido por decisão da proprietária)", () => {
+  it("restringe equipe a admin", () => {
     const restritos = GRUPOS_DESK.flatMap((g) => g.sub)
-      .filter((s) => "to" in s && s.adminOnly)
-      .map((s) => (s as { to: string }).to);
+      .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s && Boolean(s.adminOnly))
+      .map((s) => s.to);
     const restritosConta = MENU_CONTA.itens
-      .filter((s) => "to" in s && (s as { adminOnly?: boolean }).adminOnly)
-      .map((s) => (s as { to: string }).to);
+      .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s && Boolean(s.adminOnly))
+      .map((s) => s.to);
     expect([...restritos, ...restritosConta].sort()).toEqual(["/equipe"]);
   });
 
@@ -121,58 +120,35 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     for (const r of ROTAS_PRESERVADAS) expect(menu.has(r)).toBe(true);
   });
 
-  it("mapeia cada grupo da matriz de equivalência para um grupo novo existente", () => {
+  it("mapeia cada grupo da matriz de equivalência para um dos 6 grupos", () => {
     const labels = new Set(GRUPOS_DESK.map((g) => g.label));
     for (const g of MATRIZ_EQUIVALENCIA) {
       expect(g.grupoNovo).toBeDefined();
-      expect(labels.has(g.grupoNovo!) || g.grupoNovo === MENU_CONTA.label).toBe(true);
+      expect(labels.has(g.grupoNovo!)).toBe(true);
     }
   });
 
-  /**
-   * 28/08/2026 — CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1
-   * (substitui a v1.0, que propunha tabelas contacts/opportunities novas):
-   * "a seção Comercial deve conter e tornar visível o CRM Vivo... não basta
-   * haver funções, tabelas ou componentes isolados". Trava aqui pra não
-   * regredir pro rótulo genérico "CRM" de novo.
-   */
-  it("Comercial exibe explicitamente o agrupamento CRM Vivo, com Leads/Propostas/Conversão", () => {
+  it("CA-04 e o dicionário moram no Comercial com as Calls; Catálogo 30 fica em Governança", () => {
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
+    expect(rotasGov).not.toContain("/crm-mestre");
+    expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    const chaves = comercial.sub.map((s) => ("grupo" in s ? s.grupo : s.to));
-    const idxCrmVivo = chaves.indexOf("CRM Vivo");
-    expect(idxCrmVivo).toBeGreaterThan(-1);
-
-    const proximoGrupo = chaves.findIndex((c, i) => i > idxCrmVivo && comercial.sub[i] && "grupo" in comercial.sub[i]);
-    const rotasDoCrmVivo = comercial.sub
-      .slice(idxCrmVivo + 1, proximoGrupo === -1 ? undefined : proximoGrupo)
-      .map((s) => ("to" in s ? s.to : null))
-      .filter(Boolean);
-
-    expect(rotasDoCrmVivo).toContain("/leads");
-    expect(rotasDoCrmVivo).toContain("/propostas");
-    expect(rotasDoCrmVivo).toContain("/conversao");
-  });
-
-  it("consulta de legado (CRM Mestre, dicionário, catálogo 30) fica no menu da conta, não na face", () => {
-    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(conta).toContain("/crm-mestre");
-    expect(conta).toContain("/governanca/dicionario-calls-crm");
-    expect(conta).toContain("/governanca/catalogo-operacional-30");
-    const rotasFace = GRUPOS_DESK.flatMap((g) =>
-      g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to),
-    );
-    expect(rotasFace).not.toContain("/crm-mestre");
-    expect(rotasFace).not.toContain("/governanca/dicionario-calls-crm");
-    expect(rotasFace).not.toContain("/governanca/catalogo-operacional-30");
-  });
-
-  it("Painel de Calls permanece na face: Comercial e atalho na Visão Geral", () => {
-    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotasHoje).toContain("/calls");
+    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasComercial).toContain("/calls");
+    expect(rotasComercial).toContain("/crm-mestre");
+    expect(rotasComercial).toContain("/governanca/dicionario-calls-crm");
+    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
+    const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasHoje).not.toContain("/crm-mestre");
+    expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
+  });
+
+  it("Painel de Calls permanece na face de Marketing & Comercial", () => {
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotas).toContain("/calls");
     expect(rotasDoMenu()).toContain("/calls");
   });
 });

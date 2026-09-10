@@ -15,17 +15,15 @@ const CASO = "11111111-2222-3333-4444-555555555555";
 const OUTRO = "99999999-8888-7777-6666-555555555555";
 
 describe("CA-UX-03 adendo — Assistente transversal", () => {
-  it("1. cobre exatamente os 8 grupos, sem nona aba", () => {
-    expect(REGRAS_ASSISTENTE).toHaveLength(8);
+  it("1. cobre exatamente os 6 grupos, sem sétima aba", () => {
+    expect(REGRAS_ASSISTENTE).toHaveLength(6);
     expect(REGRAS_ASSISTENTE.map((r) => r.grupo)).toEqual([
       "hoje",
       "comercial",
       "casos",
       "pesquisa",
       "contratos",
-      "cliente",
       "governanca",
-      "marketing",
     ]);
   });
 
@@ -93,7 +91,7 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
 
   it("8. grupos sem análise por caso jamais entram em modo de análise", () => {
     for (const regra of REGRAS_ASSISTENTE.filter((r) => !r.analisaCaso)) {
-      const rota = regra.grupo === "hoje" ? "/painel" : "/governanca/decisoes";
+      const rota = regra.grupo === "hoje" ? "/painel" : "/alertas";
       const e = estadoAssistente({ rota, confirmado: { casoId: CASO, rota } });
       if (!e.regra.analisaCaso) expect(e.podeAnalisarCaso).toBe(false);
     }
@@ -106,7 +104,7 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
     expect(grupoDaRota("/financeiro")).toBe("contratos");
     expect(grupoDaRota("/equipe")).toBe("governanca");
-    expect(grupoDaRota("/marketing")).toBe("marketing");
+    expect(grupoDaRota("/marketing")).toBe("comercial");
   });
 
   it("atalhos apontam apenas para rotas já existentes do grupo", () => {

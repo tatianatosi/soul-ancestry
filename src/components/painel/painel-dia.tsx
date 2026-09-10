@@ -319,11 +319,18 @@ export function PainelDia() {
     queryFn: () => carregarChecklistJuridico({ data: { incluirDemo } }),
     retry: false,
   });
+  const carregarAlertas = useServerFn(listarAlertas);
+  const qAlertas = useQuery({
+    queryKey: ["alertas-pendentes-hoje"],
+    queryFn: () => carregarAlertas({ data: { status: "pending" } }),
+    retry: false,
+  });
   const leiturasSecundarias = [
     { rotulo: "cadência dos casos", q: qCad },
     { rotulo: "bloqueios de catálogo", q: qCatalogo },
     { rotulo: "checklist jurídico", q: qJuridico },
     { rotulo: "estado de acesso do painel", q: qModo },
+    { rotulo: "alertas pendentes", q: qAlertas },
   ].filter((l) => l.q.isError);
 
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
@@ -694,17 +701,64 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls está no menu da Visão Geral e em Comercial → Calls Discovery.{" "}
+        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
           Abrir Painel de Calls
         </Link>
-        . CRM Mestre, dicionário e Catálogo 30 ficam na conta, no rodapé da barra. Campo com
-        pendência continua editável — a gravação é revalidada no servidor.
+        . CRM Mestre e o dicionário moram no Comercial, com as Calls. Catálogo 30 fica em
+        Governança, no arquivo. Campo com pendência continua editável — a gravação é revalidada
+        no servidor.
       </p>
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
+          <Link
+            to="/casos"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Casos ativos"
+              valor={(qCad.data?.casos ?? []).length}
+              apoio="Abrir Casos 360"
+              tom="neutro"
+            />
+          </Link>
+          <Link
+            to="/alertas"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Alertas pendentes"
+              valor={qAlertas.isSuccess ? (qAlertas.data ?? []).length : null}
+              apoio="Abrir a lista em Alertas"
+              tom="atencao"
+            />
+          </Link>
+          <Link
+            to="/calls"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Leads sem próxima ação"
+              valor={qtd("leads_sem_proxima_acao")}
+              apoio="Abrir no Painel de Calls"
+              tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
+            />
+          </Link>
+          <Link
+            to="/ops-excecoes"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Exceções e bloqueios"
+              valor={cards.find((c) => c.chave === "excecoes_criticas")?.total ?? 0}
+              apoio="Abrir exceções operacionais"
+              tom={cards.find((c) => c.chave === "excecoes_criticas")?.total ? "critico" : "neutro"}
+            />
+          </Link>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {cards.map((c) => (
             <Link
@@ -1153,14 +1207,14 @@ function AlertasPrioritariosDoPainel() {
   return (
     <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de hoje</h2>
+        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
         <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
-          Ver todos os alertas
+          Abrir Alertas
         </Link>
       </div>
       <p className="mt-1 text-xs text-navy/50">
-        Sinal sem duplicar tarefa. Só os pendentes mais críticos; a lista completa e filtrável fica
-        em Alertas.
+        Sinal sem duplicar tarefa. Enviar abre a tela de Alertas — a fila humana confirma; nada sai
+        sozinho por WhatsApp ou e-mail.
       </p>
       {q.isLoading ? (
         <CarregandoDesk linhas={2} />
@@ -1173,7 +1227,12 @@ function AlertasPrioritariosDoPainel() {
               <Link to="/casos/$caseId" params={{ caseId: a.caseId }} className="text-navy underline underline-offset-2">
                 {a.titulo} — {a.caseCodigo ?? a.caseTitulo ?? a.caseId}
               </Link>
-              <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+              <span className="flex items-center gap-2">
+                <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+                <Link to="/alertas" className="rounded-full bg-navy px-3 py-1 text-[11px] font-medium text-cream">
+                  Enviar
+                </Link>
+              </span>
             </li>
           ))}
         </ul>

@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import { PainelQualidade } from "@/components/qualidade/painel";
+import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
@@ -30,25 +31,25 @@ function QualidadePage() {
   return (
     <SaasShell
       titulo="Radar Interno"
-      descricao="Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
+      descricao="Matriz de prioridade da carteira e leitura de qualidade por caso."
     >
-      <EixosCanonicosInternos />
-      {/*
-        27/08/2026 — a matriz Elegibilidade × Urgência morou aqui até hoje.
-        A Proprietária pediu a mudança: "aqui sabemos as emergências" é em
-        Casos 360, não no Radar Interno — é lá que o dia a dia acontece.
-        A matriz se mudou para /casos; fica só o link, para quem já tinha o
-        hábito de olhar aqui.
-      */}
-      <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
-        A matriz de prioridades (Elegibilidade × Urgência — visão macro, todos os casos) agora mora em{" "}
-        <Link to="/casos" className="font-medium text-navy underline">
-          Casos 360
-        </Link>
-        , junto dos casos que ela posiciona. O Radar Individual de um caso (visão micro) fica na
-        aba "Indicadores" da ficha do próprio caso.
+      <p className="mb-4 text-sm text-navy/70">
+        Cada ponto é um caso ativo. O quadrante superior direito pede ação agora — alta urgência e
+        leitura de elegibilidade mais forte. Sem campo preenchido, o ponto não é inventado: a
+        legenda declara dados insuficientes.
       </p>
-      <PainelQualidade />
+      <div className="mb-6">
+        <MatrizPrioridadesConectada />
+      </div>
+      <details className="mb-6 rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <summary className="cursor-pointer font-serif text-base text-navy">
+          Qualidade, checklists e exportação
+        </summary>
+        <div className="mt-4">
+          <EixosCanonicosInternos />
+          <PainelQualidade />
+        </div>
+      </details>
     </SaasShell>
   );
 }

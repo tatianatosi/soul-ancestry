@@ -27,18 +27,18 @@ describe("rota do menu sem colisão de prefixo", () => {
 
   it("atalho não doura o grupo errado", () => {
     const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    const governanca = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(false);
-    expect(grupoNavAtivo("/matriz-juridica", "", governanca)).toBe(true);
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(grupoNavAtivo("/matriz-juridica", "", comercial)).toBe(false);
+    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(true);
     expect(grupoNavAtivo("/pesquisa-modulo", "", pesquisa)).toBe(true);
   });
 
-  it("o grupo Pesquisa entra no módulo vivo; o dossiê legado não compete no mesmo grupo", () => {
-    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(pesquisa.to).toBe("/pesquisa-modulo");
-    const rotas = pesquisa.sub.filter((s) => "to" in s).map((s) => s.to);
+  it("o grupo Inteligência entra no módulo vivo e no dossiê do Legado", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    expect(bib.to).toBe("/biblioteca");
+    const rotas = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/pesquisa-modulo");
-    expect(rotas).not.toContain("/pesquisa");
+    expect(rotas).toContain("/pesquisa");
   });
 });
 

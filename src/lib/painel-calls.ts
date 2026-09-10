@@ -8,6 +8,7 @@
  */
 
 import { handoffLead, type LeadDesk } from "@/lib/crm-desk";
+import { pendenciasDicionarioDoLead } from "@/lib/dicionario-calls-crm";
 
 export type EstadoCall =
   | "sem_agenda"
@@ -108,6 +109,8 @@ export type HandoffCall = {
   registro: Pendencia[];
   qualificacao: Pendencia[];
   handoff: Pendencia[];
+  /** Regras do dicionário CA-04 no lead vivo. Informam; não entram em `liberado`. */
+  dicionario: Pendencia[];
   bloqueios: Pendencia[];
   liberado: boolean;
   destino: "proposta" | "nutricao" | "encerrar_sem_aderencia" | "indefinido";
@@ -133,8 +136,17 @@ export function avaliarHandoffCall(l: LeadDesk): HandoffCall {
           ? "nutricao"
           : "indefinido";
 
+  const dicionario = pendenciasDicionarioDoLead(l);
   const bloqueios = [...registro, ...qualificacao, ...handoff];
-  return { registro, qualificacao, handoff, bloqueios, liberado: bloqueios.length === 0, destino };
+  return {
+    registro,
+    qualificacao,
+    handoff,
+    dicionario,
+    bloqueios,
+    liberado: bloqueios.length === 0,
+    destino,
+  };
 }
 
 export type FilaCalls = {

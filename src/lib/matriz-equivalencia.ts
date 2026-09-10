@@ -47,7 +47,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "visao-geral",
     grupo: "Visão geral",
-    grupoNovo: "Visão Geral",
+    grupoNovo: "Hoje",
     rotaBase: "/painel",
     linhas: [
       { mockup: "Overview / Visão Geral", rota: "/painel", dado: "derivado: casos, tarefas, ops_microentregas, communication_queue", estado: "implementado", nota: "Painel Hoje com ordem canônica e deduplicação." },
@@ -60,7 +60,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "comercial",
     grupo: "Comercial",
-    grupoNovo: "Comercial",
+    grupoNovo: "Marketing & Comercial",
     rotaBase: "/leads",
     linhas: [
       { mockup: "CRM Vivo — leads", rota: "/leads", dado: "leads, lead_sources, discovery_assessments", estado: "implementado" },
@@ -81,7 +81,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "casos",
     grupo: "Casos e núcleos",
-    grupoNovo: "Casos 360",
+    grupoNovo: "Pessoas & Casos",
     rotaBase: "/casos",
     linhas: [
       { mockup: "Casos 360", rota: "/casos · /casos/$id", dado: "crm_casos, case_members, case_services", estado: "implementado" },
@@ -96,7 +96,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "pesquisa",
     grupo: "Pesquisa genealógica",
-    grupoNovo: "Pesquisa",
+    grupoNovo: "Inteligência & Pesquisa",
     rotaBase: "/pesquisa",
     linhas: [
       { mockup: "Pesquisa e plano de ação", rota: "/pesquisa-modulo · /plano-acao/$caseId", dado: "research_cases, research_action_plan_items, research_hypotheses", estado: "implementado" },
@@ -110,7 +110,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "contratos",
     grupo: "Contratos e financeiro",
-    grupoNovo: "Contratos e financeiro",
+    grupoNovo: "Formalização & Financeiro",
     rotaBase: "/contratos",
     linhas: [
       { mockup: "Contratos, prévia e revisão", rota: "/contratos · /casos/$id/contrato/preparar", dado: "contracts, contract_versions, contract_review_events", estado: "implementado" },
@@ -124,7 +124,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "governanca",
     grupo: "Governança e biblioteca",
-    grupoNovo: "Biblioteca Mestre",
+    grupoNovo: "Governança & Administração",
     rotaBase: "/biblioteca",
     linhas: [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado" },
@@ -140,7 +140,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "app-cliente",
     grupo: "App Cliente",
-    grupoNovo: "Cliente",
+    grupoNovo: "Pessoas & Casos",
     rotaBase: "/acessos-portal",
     linhas: [
       { mockup: "Acessos e visibilidade", rota: "/acessos-portal", dado: "client_portal_access, client_portal_case_access, authorized_portal_emails", estado: "implementado", nota: "Link mágico de uso único, 20 min." },
@@ -152,7 +152,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "conta",
     grupo: "Conta e administração (menu da conta — CA-UX-04)",
-    grupoNovo: "Conta e administração",
+    grupoNovo: "Governança & Administração",
     rotaBase: "/modo-proprietaria",
     linhas: [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado", nota: "Movido para o menu da conta; rota, dado e permissão inalterados." },
@@ -165,7 +165,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "marketing",
     grupo: "Marketing e aquisição (aba 2 — CA-UX-04)",
-    grupoNovo: "Marketing",
+    grupoNovo: "Marketing & Comercial",
     rotaBase: "/marketing",
     linhas: [
       { mockup: "Visão geral de aquisição", rota: "/marketing", dado: "leads.origem, conversion_events", estado: "parcial", nota: "Origem em texto livre, sem taxonomia fechada." },

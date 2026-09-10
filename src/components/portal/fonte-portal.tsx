@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -6,6 +7,7 @@ import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 import type { ProximaAcaoCliente } from "@/lib/motor-caso";
+import type { EscopoCliente } from "@/lib/app-visibilidade";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -60,6 +62,12 @@ export type FontePortal = {
   carregando: boolean;
   erro: boolean;
   previa: PreviaPortal;
+  /** Escopo real do caso, quando o acesso master já o calculou. */
+  escopo?: EscopoCliente;
+  /** Em prévia, a barra do App não pode usar Link para /portal — sai do Desk. */
+  aoNavegar?: (path: string) => void;
+  /** Rota interna destacada na barra, quando a prévia não usa o router. */
+  rotaInterna?: string;
 };
 
 const FontePortalContext = createContext<FontePortal | null>(null);
@@ -72,6 +80,10 @@ export function FontePortalProvider({
   children: ReactNode;
 }) {
   return <FontePortalContext.Provider value={fonte}>{children}</FontePortalContext.Provider>;
+}
+
+export function useFontePortal(): FontePortal | null {
+  return useContext(FontePortalContext);
 }
 
 /**
@@ -115,4 +127,32 @@ export function usePortalVivo() {
  */
 export function usePreviaPortal(): PreviaPortal | null {
   return useContext(FontePortalContext)?.previa ?? null;
+}
+
+/**
+ * Link do App Cliente: na prévia do Desk permanece dentro do provider.
+ * No portal autenticado continua sendo rota de verdade.
+ */
+export function LinkPortal({
+  to,
+  className,
+  children,
+}: {
+  to: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  const fonte = useContext(FontePortalContext);
+  if (fonte?.previa && fonte.aoNavegar) {
+    return (
+      <button type="button" onClick={() => fonte.aoNavegar?.(to)} className={className}>
+        {children}
+      </button>
+    );
+  }
+  return (
+    <Link to={to} className={className}>
+      {children}
+    </Link>
+  );
 }

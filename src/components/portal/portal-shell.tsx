@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, type ReactNode } from "react";
@@ -16,7 +16,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand";
-import { usePreviaPortal } from "@/components/portal/fonte-portal";
+import { LinkPortal, useFontePortal, usePreviaPortal } from "@/components/portal/fonte-portal";
 import { portalContexto } from "@/lib/portal.functions";
 import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
@@ -24,8 +24,13 @@ import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
 
 export function usePortal() {
+  const previa = usePreviaPortal();
   const carregar = useServerFn(portalContexto);
-  return useQuery({ queryKey: ["portal-contexto"], queryFn: () => carregar({}) });
+  return useQuery({
+    queryKey: ["portal-contexto"],
+    queryFn: () => carregar({}),
+    enabled: previa === null,
+  });
 }
 
 export function PortalShell({
@@ -42,6 +47,8 @@ export function PortalShell({
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const { data, isSuccess } = usePortal();
   const previa = usePreviaPortal();
+  const fonte = useFontePortal();
+  const rotaAtiva = fonte?.rotaInterna ?? rota;
 
   useEffect(() => {
     // Em prévia (demo e espelho, dentro do Desk) ninguém é cliente autorizado
@@ -131,20 +138,20 @@ export function PortalShell({
       >
         <div className="mx-auto flex max-w-4xl gap-1">
           {nav.map(({ to, label, icon: Icon }) => (
-            <Link
+            <LinkPortal
               key={to}
               to={to}
               className={cn(
                 "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rota === to
+                rotaAtiva === to
                   ? "border-gold font-medium text-gold"
                   : "border-transparent text-navy/70 hover:text-navy",
               )}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
               {label}
-            </Link>
+            </LinkPortal>
           ))}
         </div>
       </nav>
@@ -161,18 +168,18 @@ export function PortalShell({
       >
         <div className="grid" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
           {nav.map(({ to, label, icon: Icon }) => (
-            <Link
+            <LinkPortal
               key={to}
               to={to}
               className={cn(
                 "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] leading-tight",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rota === to ? "font-medium text-gold" : "text-navy/60",
+                rotaAtiva === to ? "font-medium text-gold" : "text-navy/60",
               )}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />
               <span className="truncate">{label}</span>
-            </Link>
+            </LinkPortal>
           ))}
         </div>
       </nav>

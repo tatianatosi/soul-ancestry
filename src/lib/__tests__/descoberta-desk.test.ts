@@ -74,16 +74,14 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém os 8 grupos de navegação do Desk operacional (CA-UX-03)", () => {
+  it("mantém os 6 grupos na navegação do Desk", () => {
     const grupos = [
-      "Visão Geral",
-      "Comercial",
-      "Casos 360",
-      "Pesquisa",
-      "Contratos e financeiro",
-      "Cliente",
-      "Biblioteca Mestre",
-      "Marketing",
+      "Hoje",
+      "Marketing & Comercial",
+      "Pessoas & Casos",
+      "Inteligência & Pesquisa",
+      "Formalização & Financeiro",
+      "Governança & Administração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");
@@ -115,9 +113,9 @@ describe("superfícies preservadas", () => {
     }
   });
 
-  it("nenhum registro de navegação cita mockup ou protótipo", () => {
-    for (const proibido of ["mockup", "Mockup", "protótipo", "Protótipo"]) {
-      expect(navegacao).not.toContain(proibido);
-    }
+  it("nenhum registro de navegação cita o protótipo antigo de 14 abas", () => {
+    expect(navegacao).not.toContain("protótipo");
+    expect(navegacao).not.toContain("Protótipo");
+    expect(navegacao).not.toContain("14 abas");
   });
 });

@@ -145,10 +145,10 @@ describe("projeção autorizada no App Cliente (mesma ordem da RPC)", () => {
 });
 
 describe("premissas que o motor não pode desfazer", () => {
-  it("Desk continua com 8 grupos; 8º é Cliente", () => {
-    expect(GRUPOS_DESK).toHaveLength(8);
-    expect(GRUPOS_DESK[6]?.id).toBe("cliente");
-    expect(GRUPOS_DESK[5]?.label).toMatch(/Contratos e financeiro/i);
+  it("Desk continua com 6 grupos; Inteligência hospeda a Biblioteca Mestre", () => {
+    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK[3]?.id).toBe("pesquisa");
+    expect(GRUPOS_DESK[2]?.label).toMatch(/Pessoas & Casos/i);
   });
 
   it("escritor da RPC e consumidores Desk seguem no lugar (sem motor paralelo)", () => {

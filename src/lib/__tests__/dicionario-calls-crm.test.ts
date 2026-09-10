@@ -5,15 +5,18 @@ import {
   FORMATACAO_CONDICIONAL_CALLS,
   LISTAS_BASE_CALLS,
   avaliarBloqueiosCalls,
+  leadParaRegistroCalls,
+  pendenciasDicionarioDoLead,
   valorPermitidoCalls,
   type RegistroCallsCrm,
 } from "@/lib/dicionario-calls-crm";
+import type { LeadDesk } from "@/lib/crm-desk";
 import {
   SUBSTITUICOES_OBRIGATORIAS,
   VOCABULARIO_OFICIAL,
   revisarTerminologiaCliente,
 } from "@/lib/glossario-oficial";
-import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK } from "@/lib/navegacao-desk";
 
 const base: RegistroCallsCrm = { dataRegistro: "2026-08-24" };
 
@@ -34,14 +37,21 @@ describe("Dicionário de validações Calls → CRM", () => {
     expect(valorPermitidoCalls("Lista inexistente", "x")).toBe(false);
   });
 
-  it("bloqueia SKU sem produto recomendado ou fora da Planilha Mestre", () => {
+  it("bloqueia SKU sem produto recomendado ou marcado inativo no catálogo homologado", () => {
     const r = avaliarBloqueiosCalls({ ...base, skuRecomendado: "CA-CID-001" });
-    expect(r.filter((b) => b.regra === 1)).toHaveLength(2);
+    expect(r.filter((b) => b.regra === 1)).toHaveLength(1);
+    const inativo = avaliarBloqueiosCalls({
+      ...base,
+      skuRecomendado: "CA-CID-001",
+      produtosRecomendados: ["Diagnóstico"],
+      skuAtivoNoCatalogoHomologado: false,
+    });
+    expect(inativo.filter((b) => b.regra === 1)).toHaveLength(1);
     const ok = avaliarBloqueiosCalls({
       ...base,
       skuRecomendado: "CA-CID-001",
       produtosRecomendados: ["Diagnóstico"],
-      skuAtivoNaPlanilhaMestre: true,
+      skuAtivoNoCatalogoHomologado: true,
     });
     expect(ok.filter((b) => b.regra === 1)).toHaveLength(0);
   });
@@ -119,13 +129,38 @@ describe("Dicionário de validações Calls → CRM", () => {
     ).toBe(true);
   });
 
-  it("mantém a formatação condicional e a rota no menu da conta", () => {
+  it("mora no Comercial com o Painel de Calls, não em Governança", () => {
     expect(FORMATACAO_CONDICIONAL_CALLS).toHaveLength(10);
-    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(conta).toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotas).not.toContain("/governanca/dicionario-calls-crm");
+    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotas).toContain("/calls");
+    expect(rotas).toContain("/crm-mestre");
+    expect(rotas).toContain("/governanca/dicionario-calls-crm");
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
+    const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasGov).not.toContain("/crm-mestre");
+  });
+
+  it("avalia o lead canônico do Painel de Calls com as regras do dicionário", () => {
+    const lead: LeadDesk = {
+      nome: "Ana",
+      status_call: "realizada",
+      eixo_comercial: "discovery_realizada",
+      responsavel_nome: "Tati",
+      proxima_acao: "elaborar_diagnostico",
+      proxima_acao_em: "2026-09-12",
+    };
+    const registro = leadParaRegistroCalls(lead);
+    expect(registro.statusCall).toBe("Realizada");
+    expect(registro.etapaFunil).toBe("Discovery realizada");
+    expect(pendenciasDicionarioDoLead(lead).some((p) => p.motivo.includes("regra 6"))).toBe(true);
+
+    const ok = pendenciasDicionarioDoLead({
+      ...lead,
+      discovery_resultado: "aderente",
+    });
+    expect(ok.some((p) => p.motivo.includes("regra 6"))).toBe(false);
   });
 });
 

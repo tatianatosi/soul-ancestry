@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { SaasShell } from "@/components/saas/shell";
 import {
@@ -74,12 +74,20 @@ function DicionarioCallsCrm() {
   return (
     <SaasShell
       titulo="Dicionário de validações — Painel de Calls → CRM"
-      descricao="Referência interna somente leitura. Preço, SKU, condição e link vêm do catálogo homologado (product_catalog) — a Planilha Mestre é legado de auditoria, não fonte viva; despesa de terceiro nunca é caixa do Clube."
+      descricao="Regras vivas do Painel de Calls e do CRM Vivo. Preço, SKU, condição e link vêm do catálogo homologado — a Planilha Mestre não é fonte viva; despesa de terceiro nunca é caixa do Clube."
     >
       <div className="grid gap-4">
         <div className="rounded-xl border border-gold/40 bg-cream/60 p-4 text-sm text-navy/80">
-          Versão {DICIONARIO_CALLS_VERSAO}. Elegibilidade e via jurídica registradas aqui são triagem comercial/técnica
-          preliminar, nunca decisão jurídica final.
+          Versão {DICIONARIO_CALLS_VERSAO}. Este dicionário avalia o lead canônico em{" "}
+          <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
+            /calls
+          </Link>
+          . Pendência informa; não trava rascunho. Elegibilidade e via jurídica são triagem
+          comercial/técnica preliminar, nunca decisão jurídica final. Mapa CA-04 em{" "}
+          <Link to="/crm-mestre" className="font-medium underline decoration-gold underline-offset-4">
+            CRM Mestre
+          </Link>
+          .
         </div>
 
         <Bloco titulo="1. Princípios de governança">

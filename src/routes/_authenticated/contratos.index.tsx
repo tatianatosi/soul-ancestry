@@ -1,5 +1,4 @@
 import { PainelCatalogo } from "@/components/painel/painel-catalogo";
-import { PainelTop30 } from "@/components/painel/painel-top30";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,6 +9,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
+import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import {
   ROTULO_GATE_FINANCEIRO,
   ROTULO_GATE_PESQUISA,
@@ -53,6 +53,7 @@ function ContratosPage() {
   const listar = useServerFn(listarContratos);
   const painel = useServerFn(painelContratual);
   const criar = useServerFn(criarInstrumento);
+  const carregarCasos = useServerFn(listarCasosFicha);
 
   const [tipo, setTipo] = useState("");
   const [status, setStatus] = useState("");
@@ -65,6 +66,7 @@ function ContratosPage() {
     queryFn: () => listar({ data: { tipo: tipo || undefined, status: status || undefined, busca: busca || undefined } }),
   });
   const qPainel = useQuery({ queryKey: ["contratos-painel"], queryFn: () => painel({}) });
+  const qCasos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
   const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
@@ -168,6 +170,8 @@ function ContratosPage() {
         <FormNovo
           bases={bases}
           basesIndisponiveis={basesIndisponiveis}
+          casos={(qCasos.data?.casos ?? []) as { id: string; codigo?: string; titulo?: string }[]}
+          casosIndisponiveis={!qCasos.isLoading && (Boolean(qCasos.error) || qCasos.data === undefined)}
           erro={erro}
           onCancelar={() => setNovo(false)}
           onCriar={(dados) => mCriar.mutate(dados)}
@@ -215,6 +219,7 @@ function ContratosPage() {
               <tr>
                 <th className="px-3 py-2">Número</th>
                 <th className="px-3 py-2">Instrumento</th>
+                <th className="px-3 py-2">Caso</th>
                 <th className="px-3 py-2">Tipo</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Financeiro</th>
@@ -229,6 +234,12 @@ function ContratosPage() {
                     <Link to="/contratos/$id" params={{ id: c.id }} className="font-medium text-navy underline-offset-2 hover:underline">
                       {c.title}
                     </Link>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-navy/70">
+                    {c.case_id
+                      ? ((qCasos.data?.casos ?? []) as { id: string; codigo?: string }[]).find((x) => x.id === c.case_id)?.codigo ??
+                        "ligado"
+                      : "sem caso"}
                   </td>
                   <td className="px-3 py-2">{ROTULO_TIPO_INSTRUMENTO[c.contract_type] ?? c.contract_type}</td>
                   <td className="px-3 py-2">
@@ -254,7 +265,6 @@ function ContratosPage() {
         )}
       </EstadoDados>
       <PainelCatalogo />
-      <PainelTop30 />
     </SaasShell>
   );
 }
@@ -271,6 +281,8 @@ function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
 function FormNovo({
   bases,
   basesIndisponiveis,
+  casos,
+  casosIndisponiveis,
   erro,
   onCriar,
   onCancelar,
@@ -278,6 +290,8 @@ function FormNovo({
 }: {
   bases: any[];
   basesIndisponiveis: boolean;
+  casos: { id: string; codigo?: string; titulo?: string }[];
+  casosIndisponiveis: boolean;
   erro: string | null;
   onCriar: (dados: any) => void;
   onCancelar: () => void;
@@ -288,6 +302,7 @@ function FormNovo({
   const [purpose, setPurpose] = useState("");
   const [parent, setParent] = useState("");
   const [ref, setRef] = useState("");
+  const [casoId, setCasoId] = useState("");
   const derivado = tipo !== "contract_base";
 
   return (
@@ -300,6 +315,7 @@ function FormNovo({
           purpose_summary: purpose,
           parent_contract_id: derivado ? parent : null,
           base_contract_reference: derivado ? ref : null,
+          case_id: tipo === "contract_base" ? casoId : null,
         });
       }}
       className="mb-6 grid gap-3 rounded-xl border border-gold/40 bg-white p-4 sm:grid-cols-2"
@@ -325,6 +341,30 @@ function FormNovo({
           className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
         />
       </label>
+      {tipo === "contract_base" ? (
+        <label className="text-sm sm:col-span-2">
+          Caso operacional
+          <select
+            required
+            value={casoId}
+            onChange={(e) => setCasoId(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-navy/20 px-3 py-2"
+          >
+            <option value="">Selecione o caso…</option>
+            {casos.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.codigo} — {c.titulo}
+              </option>
+            ))}
+          </select>
+          {casosIndisponiveis ? (
+            <span role="alert" className="mt-1 block text-xs text-terracotta">
+              A lista de casos não pôde ser carregada. Sem caso o contrato-base não pode nascer ligado
+              aos parâmetros do Planejador.
+            </span>
+          ) : null}
+        </label>
+      ) : null}
       {derivado ? (
         <>
           <label className="text-sm">

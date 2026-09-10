@@ -210,3 +210,22 @@ export const ESCOPO_DIAGNOSTICO_ISOLADO: EscopoCliente = {
   escopoIncluiFase2: false,
   fase2Status: "nao_aplicavel",
 };
+
+/** Escopo de visibilidade derivado só do que já foi publicado para o cliente. */
+export function escopoAPartirDePublicacoes(opts: {
+  temCaso: boolean;
+  tiposPublicados: string[];
+}): EscopoCliente {
+  const tipos = opts.tiposPublicados.map((t) => t.toLowerCase());
+  const entregas = tipos.filter((t) => !["arvore", "legado"].includes(t)).length;
+  const temF1 = tipos.some((t) => ["resumo", "marco", "relatorio_f1", "fase01", "fase_01"].includes(t));
+  const temF2 = tipos.some((t) => ["relatorio_f2", "fase02", "fase_02"].includes(t));
+  return {
+    temAcesso: opts.temCaso,
+    entregasLiberadas: entregas,
+    fase1Contratada: opts.temCaso,
+    fase1Status: !opts.temCaso ? "nao_prevista" : temF1 ? "disponivel" : "em_preparacao",
+    escopoIncluiFase2: temF2,
+    fase2Status: temF2 ? "disponivel" : "nao_aplicavel",
+  };
+}

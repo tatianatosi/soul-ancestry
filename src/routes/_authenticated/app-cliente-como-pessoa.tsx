@@ -5,7 +5,11 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
-import { ABAS_APP_CLIENTE } from "@/components/portal/abas-app-cliente";
+import {
+  ABAS_APP_CLIENTE,
+  TELAS_INTERNAS_PORTAL,
+  rotaInternaDoPortal,
+} from "@/components/portal/abas-app-cliente";
 import { listarCasosFicha } from "@/lib/caso-ficha.functions";
 import { dadosVivosDoPortalComoAdmin } from "@/lib/app-cliente-como-pessoa.functions";
 
@@ -34,8 +38,8 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
 function AppClienteComoPessoa() {
   const { casoId: casoIdDaUrl } = Route.useSearch();
   const [casoId, setCasoId] = useState<string>(casoIdDaUrl ?? "");
-  const [ativa, setAtiva] = useState<(typeof ABAS_APP_CLIENTE)[number]["chave"]>("home");
-  const Tela = ABAS_APP_CLIENTE.find((t) => t.chave === ativa)?.Componente ?? ABAS_APP_CLIENTE[0]!.Componente;
+  const [rotaInterna, setRotaInterna] = useState("/portal");
+  const Tela = TELAS_INTERNAS_PORTAL[rotaInterna] ?? TELAS_INTERNAS_PORTAL["/portal"]!;
 
   useEffect(() => {
     if (casoIdDaUrl) setCasoId(casoIdDaUrl);
@@ -82,7 +86,10 @@ function AppClienteComoPessoa() {
                 </span>
                 <select
                   value={casoId}
-                  onChange={(e) => setCasoId(e.target.value)}
+                  onChange={(e) => {
+                    setCasoId(e.target.value);
+                    setRotaInterna("/portal");
+                  }}
                   className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
                 >
                   <option value="">Selecione um caso…</option>
@@ -103,10 +110,10 @@ function AppClienteComoPessoa() {
               <button
                 key={t.chave}
                 type="button"
-                onClick={() => setAtiva(t.chave)}
-                aria-pressed={ativa === t.chave}
+                onClick={() => setRotaInterna(t.rota)}
+                aria-pressed={rotaInterna === t.rota}
                 className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                  ativa === t.chave
+                  rotaInterna === t.rota
                     ? "border-navy bg-navy text-cream"
                     : "border-navy/15 text-navy/75 hover:bg-navy/5"
                 }`}
@@ -130,9 +137,12 @@ function AppClienteComoPessoa() {
         <div className="overflow-hidden rounded-xl border border-navy/15">
           <FontePortalProvider
             fonte={{
-              dados: dados.data ?? { projecoes: [], documentos: [] },
+              dados: dados.data ?? { projecoes: [], documentos: [], proximaAcao: null },
               carregando: dados.isLoading,
               erro: dados.isError,
+              escopo: dados.data?.escopo,
+              aoNavegar: (path) => setRotaInterna(rotaInternaDoPortal(path)),
+              rotaInterna,
               previa: {
                 selo: "ACESSO MASTER — VISÃO REAL DO APP CLIENTE",
                 titulo: casoEscolhido
