@@ -55,9 +55,9 @@ function PortalHome() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-navy/70">{c.statusTexto}</p>
-                {c.pendencias > 0 ? (
-                  <p className="mt-2 text-sm text-terracotta">
-                    {c.pendencias === 1 ? "1 documento pendente de envio" : `${c.pendencias} documentos pendentes de envio`}
+                {c.proximoPasso ? (
+                  <p className="mt-2 text-sm text-navy">
+                    Próximo passo: {c.proximoPasso}
                   </p>
                 ) : null}
               </Link>
