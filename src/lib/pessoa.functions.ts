@@ -1,6 +1,7 @@
 import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -11,9 +12,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * havia página de ninguém. Quem quisesse ver a história de uma pessoa tinha de
  * abrir os casos dela um a um e juntar de cabeça.
  *
- * Somente leitura. Não grava, não funde registro, não preenche o `case_id` que
- * falta nos leads — vínculo de identidade é decisão de gente, e este módulo só
- * mostra a evidência para que a decisão seja tomada com o que existe à vista.
+ * A leitura não funde registro nem preenche o `case_id` que falta nos leads —
+ * vínculo de identidade é decisão de gente, e este módulo só mostra a
+ * evidência para que a decisão seja tomada com o que existe à vista.
+ *
+ * 05/09/2026 — achado real reportado pela Proprietária: esta página exibia
+ * os dados civis da Pessoa Canônica (CPF, RG, endereço etc.) mas não tinha
+ * nenhuma forma de editá-los — em toda a aplicação não existia uma única
+ * tela de edição de `clientes` além do cadastro inicial. "Não consigo editar
+ * nada na Ana" era literal. `atualizarPessoa` fecha essa lacuna.
  *
  * Usa o cliente com RLS do próprio usuário, nunca o administrativo: ler a
  * carteira da própria organização não precisa de chave secreta.
@@ -42,7 +49,11 @@ export const carregarPessoa = createServerFn({ method: "GET" })
     const { data: cliente } = await supabase
       .from("clientes")
       .select(
-        "id, nome, nome_social, email, telefone, documento, origem, pais_interesse, status_comercial, created_at",
+        "id, nome, nome_social, email, telefone, documento, origem, pais_interesse, status_comercial, created_at," +
+          " sexo, nacionalidade, profissao, cpf, rg_numero, rg_orgao_uf," +
+          " endereco_logradouro, endereco_numero, endereco_complemento, endereco_bairro, endereco_cidade, endereco_uf, endereco_cep, endereco_pais," +
+          " estado_civil, nome_conjuge, procurador_cliente_id, procurador_escopo," +
+          " data_nascimento, nome_pai, nome_mae, cidade_nascimento",
       )
       .eq("id", data.clienteId)
       .eq("organization_id", organizationId)
@@ -91,11 +102,197 @@ export const carregarPessoa = createServerFn({ method: "GET" })
       .is("archived_at", null)
       .limit(500);
 
+    /*
+      Perfil 360 (execução sobre tabelas existentes, sem tabela nova):
+      núcleo/papéis, propostas, contratos/partes e documentos liberados são
+      todos vínculos que já existem no banco — clientes.id é a Pessoa
+      Canônica; nucleo_membros.cliente_id, contract_parties.client_id,
+      proposals.client_id e documents.client_id já apontam para ela. Esta
+      função só passa a ler os quatro juntos; nenhum schema muda.
+    */
+    const [
+      nucleoMembros,
+      propostas,
+      contratos,
+      contractParties,
+      documentos,
+      projecoes,
+      perfisGenealogicos,
+      pesquisaCasos,
+    ] = await Promise.all([
+      supabase
+        .from("nucleo_membros")
+        .select("id, nucleo_id, nome, papel, vinculo, processo, ordem")
+        .eq("cliente_id", cliente.id)
+        .is("archived_at", null),
+      supabase
+        .from("proposals")
+        .select("id, case_id, status, valor, created_at")
+        .eq("client_id", cliente.id)
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("contracts")
+        .select("id, case_id, status, signed_at, created_at")
+        .eq("client_id", cliente.id)
+        .eq("organization_id", organizationId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("contract_parties")
+        .select("id, contract_id, person_name, document_type")
+        .eq("client_id", cliente.id)
+        .is("archived_at", null),
+      ids.length
+        ? supabase
+            .from("documents")
+            .select("id, case_id, titulo, status, liberado_cliente, created_at")
+            .in("case_id", ids)
+            .eq("client_id", cliente.id)
+            .is("archived_at", null)
+            .order("created_at", { ascending: false })
+            .limit(200)
+        : { data: [] },
+      ids.length
+        ? supabase
+            .from("app_projections")
+            .select("id, case_id, projection_type, approval_status, effective_from, created_at")
+            .in("case_id", ids)
+            .is("archived_at", null)
+            .order("created_at", { ascending: false })
+            .limit(200)
+        : { data: [] },
+      /*
+          Camada 3 (pesquisa genealógica) é isolamento deliberado — nunca vai
+          ao App Cliente. Aqui é só leitura Desk.
+          05/09/2026 — achado real: esta consulta olhava só para
+          genealogical_person_profiles por correspondência de NOME, uma
+          tabela quase vazia (2 linhas de teste em toda a organização). A
+          ficha genealógica de verdade — a que pessoas-linhagens.$caseId usa,
+          com Ana, Adair, Alice e Felipe já cadastrados — vive em
+          research_people, ligada por research_cases.case_id, não por nome.
+          "Correspondência de nome" nunca tinha achado nada para a Ana porque
+          o registro real dela está em outra tabela e vinculado pelo caso,
+          não pelo texto do nome. Trocado para o vínculo real.
+        */
+      ids.length
+        ? supabase
+            .from("genealogical_person_profiles")
+            .select("id, nome_completo, status_verificacao, case_id")
+            .eq("organization_id", organizationId)
+            .in("case_id", ids)
+            .is("archived_at", null)
+        : { data: [] },
+      ids.length
+        ? supabase
+            .from("research_cases")
+            .select("id, case_id, status")
+            .eq("organization_id", organizationId)
+            .in("case_id", ids)
+            .is("archived_at", null)
+        : { data: [] },
+    ]);
+
+    const idsPesquisaDoCaso = (pesquisaCasos.data ?? []).map((p: Linha) => p.id as string);
+    const { data: fichaGenealogica } = idsPesquisaDoCaso.length
+      ? await supabase
+          .from("research_people")
+          .select(
+            "id, canonical_name, preferred_display_name, papel_na_linhagem, geracao, identity_status, birth_date, birth_place, research_case_id",
+          )
+          .eq("organization_id", organizationId)
+          .in("research_case_id", idsPesquisaDoCaso)
+          .is("archived_at", null)
+      : { data: [] as Linha[] };
+
+    const nomeDaPessoa = (cliente.nome_social || cliente.nome || "").trim().toLowerCase();
+    const fichaDestaPessoa = ((fichaGenealogica ?? []) as Linha[]).filter((p) => {
+      const nome = String(p["canonical_name"] ?? p["preferred_display_name"] ?? "").toLowerCase();
+      return (
+        nome &&
+        nomeDaPessoa &&
+        (nome === nomeDaPessoa || nomeDaPessoa.includes(nome) || nome.includes(nomeDaPessoa))
+      );
+    });
+    const outrosDaMesmaPesquisa = ((fichaGenealogica ?? []) as Linha[]).filter(
+      (p) => !fichaDestaPessoa.some((f) => f["id"] === p["id"]),
+    );
+
     return {
       encontrada: true as const,
       cliente: cliente as Linha,
       casos: listaCasos,
       eventos: (eventos ?? []) as Linha[],
       leads: (leads ?? []) as Linha[],
+      nucleoMembros: (nucleoMembros.data ?? []) as Linha[],
+      propostas: (propostas.data ?? []) as Linha[],
+      contratos: (contratos.data ?? []) as Linha[],
+      contractParties: (contractParties.data ?? []) as Linha[],
+      documentos: (documentos.data ?? []) as Linha[],
+      projecoesPublicadas: (projecoes.data ?? []) as Linha[],
+      perfisGenealogicos: (perfisGenealogicos.data ?? []) as Linha[],
+      fichaGenealogica: fichaDestaPessoa,
+      fichaGenealogicaEquipe: outrosDaMesmaPesquisa,
     };
+  });
+
+const CAMPOS_EDITAVEIS = [
+  "nome",
+  "nome_social",
+  "email",
+  "telefone",
+  "sexo",
+  "nacionalidade",
+  "profissao",
+  "cpf",
+  "rg_numero",
+  "rg_orgao_uf",
+  "endereco_logradouro",
+  "endereco_numero",
+  "endereco_complemento",
+  "endereco_bairro",
+  "endereco_cidade",
+  "endereco_uf",
+  "endereco_cep",
+  "endereco_pais",
+  "estado_civil",
+  "nome_conjuge",
+  "data_nascimento",
+  "nome_pai",
+  "nome_mae",
+  "cidade_nascimento",
+] as const;
+
+type CampoEditavel = (typeof CAMPOS_EDITAVEIS)[number];
+
+/** Edita os dados da Pessoa Canônica. Grava e relê para confirmar — nunca assume sucesso. */
+export const atualizarPessoa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: { clienteId: string; campos: Partial<Record<CampoEditavel, string | null>> }) => data,
+  )
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+
+    const payload: Record<string, string | null> = {};
+    for (const chave of CAMPOS_EDITAVEIS) {
+      if (chave in data.campos) {
+        const v = data.campos[chave];
+        payload[chave] = typeof v === "string" ? v.trim() || null : null;
+      }
+    }
+    if (Object.keys(payload).length === 0) throw new Error("Nenhum campo para gravar.");
+
+    const resultado = await gravarComVerificacao({
+      supabase,
+      tabela: "clientes",
+      id: data.clienteId,
+      organizationId,
+      userId: context.userId as string,
+      payload,
+    });
+
+    return { ok: true, registro: resultado.registro as Linha };
   });

@@ -30,7 +30,7 @@ export function MaterializarRevisados({
   onMaterializar: () => void;
 }) {
   const resumo = plano ? resumoMaterializacao(plano) : null;
-  const podeGravar = Boolean(resumo && resumo.materializar > 0);
+  const nadaAMaterializar = Boolean(resumo && resumo.materializar === 0);
 
   return (
     <section className="rounded-lg border border-navy/15 bg-white p-3">
@@ -54,13 +54,19 @@ export function MaterializarRevisados({
         </button>
         <button
           type="button"
-          disabled={ocupado || !podeGravar}
+          disabled={ocupado}
           onClick={onMaterializar}
           className="rounded bg-navy px-3 py-1.5 text-xs font-medium text-cream hover:bg-navy/90 disabled:opacity-40"
         >
           Materializar no caso
         </button>
       </div>
+
+      {nadaAMaterializar ? (
+        <p className="mt-2 text-xs text-terracotta">
+          Pendência: nenhum anexo revisado está aguardando materialização. Executar agora não altera nada no caso.
+        </p>
+      ) : null}
 
       {resumo && <p className="mt-2 text-xs text-navy/70">{resumo.mensagem}</p>}
 

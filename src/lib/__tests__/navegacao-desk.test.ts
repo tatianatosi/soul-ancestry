@@ -95,14 +95,14 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     ).toBe(true);
   });
 
-  it("restringe equipe e auditoria a admin", () => {
+  it("restringe equipe a admin (/auditoria saiu do menu em 06/09, gate cerimonial removido por decisão da proprietária)", () => {
     const restritos = GRUPOS_DESK.flatMap((g) => g.sub)
       .filter((s) => "to" in s && s.adminOnly)
       .map((s) => (s as { to: string }).to);
     const restritosConta = MENU_CONTA.itens
       .filter((s) => "to" in s && (s as { adminOnly?: boolean }).adminOnly)
       .map((s) => (s as { to: string }).to);
-    expect([...restritos, ...restritosConta].sort()).toEqual(["/auditoria", "/equipe"]);
+    expect([...restritos, ...restritosConta].sort()).toEqual(["/equipe"]);
   });
 
   it("não referencia rotas do App Cliente nem do mockup como superfície operacional", () => {
@@ -151,5 +151,28 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     expect(rotasDoCrmVivo).toContain("/leads");
     expect(rotasDoCrmVivo).toContain("/propostas");
     expect(rotasDoCrmVivo).toContain("/conversao");
+  });
+
+  it("consulta de legado (CRM Mestre, dicionário, catálogo 30) fica no menu da conta, não na face", () => {
+    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(conta).toContain("/crm-mestre");
+    expect(conta).toContain("/governanca/dicionario-calls-crm");
+    expect(conta).toContain("/governanca/catalogo-operacional-30");
+    const rotasFace = GRUPOS_DESK.flatMap((g) =>
+      g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to),
+    );
+    expect(rotasFace).not.toContain("/crm-mestre");
+    expect(rotasFace).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasFace).not.toContain("/governanca/catalogo-operacional-30");
+  });
+
+  it("Painel de Calls permanece na face: Comercial e atalho na Visão Geral", () => {
+    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(rotasHoje).toContain("/calls");
+    expect(rotasComercial).toContain("/calls");
+    expect(rotasDoMenu()).toContain("/calls");
   });
 });

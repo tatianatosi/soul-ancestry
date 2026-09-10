@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 import {
   camposDoTipo,
   pendenciasCadastro,
@@ -10,6 +11,30 @@ import {
   type ItemChecklist,
   type PessoaTipo,
 } from "@/lib/cadastro-checklist";
+import { clienteCorrespondentePorNome, pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
+import { PERFIL_INSTITUCIONAL } from "@/lib/contrato-base-consolidado";
+
+/*
+ * 04/09/2026 — achado real reportado pela Proprietária: o checklist cadastral
+ * marcava razão social/CNPJ/endereço/e-mail da própria contratada (Clube
+ * Ancestral) como "aguarda fonte societária" em TODO caso novo — mesmo esse
+ * dado já sendo canônico, versionado e conhecido em PERFIL_INSTITUCIONAL
+ * (contrato-base-consolidado.ts). Tratar dado institucional já homologado
+ * como pendência de verificação por caso não fazia sentido e aparecia como
+ * bloqueio vermelho permanente sem ação possível de resolver de verdade
+ * (o valor já é conhecido; não há "fonte societária" nova a declarar por
+ * caso). De-para campo do checklist → campo do perfil institucional:
+ */
+const CAMPO_CONTRATADA_PARA_PERFIL: Record<string, string> = {
+  razao_social: "razao_empresarial",
+  cnpj: "cnpj",
+  endereco: "endereco_institucional",
+  email: "email_oficial",
+  // 04/09/2026 — Proprietária confirmou: dona da firma individual, portanto
+  // representante legal em todos os aspectos do Clube Ancestral. Passou a
+  // ter correspondente canônico em PERFIL_INSTITUCIONAL.
+  representante_legal: "representante_legal",
+};
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -78,11 +103,7 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
     const userId = (context as any).userId as string;
     const caso = await contexto(supabase, data.caseId);
 
-    const { data: membros } = await supabase
-      .from("case_members")
-      .select("id,nome,papel_no_caso,titular,contratante,dependente")
-      .eq("case_id", data.caseId)
-      .is("archived_at", null);
+    const membros = await pessoasDoCasoComFallbackNucleo(supabase, data.caseId);
 
     const { data: dependentes } = await supabase
       .from("case_dependents")
@@ -96,19 +117,36 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
       .select("id,nome")
       .eq("organization_id", caso.organization_id)
       .is("archived_at", null);
-    const clientePorNome = new Map(
-      ((clientes ?? []) as any[]).map((c) => [String(c.nome).trim().toLowerCase(), c.id as string]),
-    );
+    const clientesOrg = (clientes ?? []) as { id: string; nome: string }[];
 
+    /*
+     * 04/09/2026 — achado real (Ana Luiza, Pessoa 360): o vínculo aqui era
+     * calculado apenas para preencher `checklist_cadastral.cliente_id`
+     * (uma linha derivada), e por igualdade exata de nome — o mesmo erro
+     * que deixou `nucleo_membros.cliente_id` nulo para Ana (nome curto no
+     * cadastro em `clientes` vs. nome completo em `case_members`). Agora
+     * usa a mesma regra tolerante do backfill (clienteCorrespondentePorNome)
+     * e também grava o vínculo de volta em `case_members.cliente_id` —
+     * fonte, não só a derivada — para que a próxima leitura de qualquer
+     * tela não dependa de recalcular o match de novo.
+     */
     const pessoas: { tipo: PessoaTipo; nome: string; ref: string | null; tabela: string | null; cliente: string | null }[] = [];
-    for (const m of (membros ?? []) as any[]) {
+    for (const m of membros) {
       if (m.dependente) continue;
+      const clienteId = m.cliente_id ?? clienteCorrespondentePorNome(String(m.nome), clientesOrg);
+      // Só grava de volta quando a linha é mesmo de case_members — um membro
+      // vindo do fallback de Núcleos (m.id de nucleo_membros) já tem o
+      // cliente_id correto lido de lá; escrever em case_members com esse id
+      // atingiria a linha errada (ou nenhuma).
+      if (clienteId && !m.cliente_id && m.origem === "case_members") {
+        await supabase.from("case_members").update({ cliente_id: clienteId }).eq("id", m.id);
+      }
       pessoas.push({
         tipo: "titular",
         nome: m.nome,
         ref: m.id,
-        tabela: "case_members",
-        cliente: clientePorNome.get(String(m.nome).trim().toLowerCase()) ?? null,
+        tabela: m.origem,
+        cliente: clienteId ?? null,
       });
     }
     for (const d of (dependentes ?? []) as any[]) {
@@ -128,9 +166,15 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
         `Checklist por pessoa exige referência por ID. Sem referência: ${semRef.join(", ")}. Nenhuma linha foi criada por nome.`,
       );
 
+    const hoje = new Date().toISOString().slice(0, 10);
     const linhas: any[] = [];
     for (const p of pessoas) {
       camposDoTipo(p.tipo).forEach((c, i) => {
+        const campoPerfil = p.tipo === "contratada" ? CAMPO_CONTRATADA_PARA_PERFIL[c.campo] : null;
+        const valorPerfil = campoPerfil
+          ? PERFIL_INSTITUCIONAL.find((x) => x.campo === campoPerfil)?.valor
+          : null;
+        const resolvidoPeloPerfil = Boolean(valorPerfil && valorPerfil.trim());
         linhas.push({
           organization_id: caso.organization_id,
           case_id: data.caseId,
@@ -141,10 +185,16 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
           cliente_id: p.cliente,
           campo: c.campo,
           campo_rotulo: c.rotulo,
-          obrigatorio: true,
-          status: p.tipo === "contratada" ? "aguarda_fonte_societaria" : "pendente",
-          fonte: null,
-          data_verificacao: null,
+          // 08/09/2026 — antes era `true` para todo campo, gerando 9 travas por
+          // pessoa adulta. Agora respeita a obrigatoriedade declarada no molde.
+          obrigatorio: c.obrigatorio,
+          status: resolvidoPeloPerfil
+            ? "verificado"
+            : p.tipo === "contratada"
+              ? "aguarda_fonte_societaria"
+              : "pendente",
+          fonte: resolvidoPeloPerfil ? "fonte_societaria" : null,
+          data_verificacao: resolvidoPeloPerfil ? hoje : null,
           acesso_restrito: true,
           ordem: i,
           created_by: userId,
@@ -162,7 +212,18 @@ export const semearChecklistCadastral = createServerFn({ method: "POST" })
   });
 
 
-/** Atualiza um item: status, fonte, data de verificação, acesso e observação. */
+/**
+ * Atualiza um item: status, fonte, data de verificação, acesso e observação.
+ *
+ * 30/08/2026 — achado real (P0, reportado pela proprietária no preview):
+ * fazia `.update(patch).eq("id", data.id)` e só checava `error`. Um UPDATE
+ * que bate em zero linhas (RLS por organização/permissão, ou id de outra
+ * organização) não é erro no Postgres/PostgREST — é sucesso com zero linhas
+ * afetadas. A tela recebia `{ok:true}` e nada tinha sido gravado. Agora usa
+ * `gravarComVerificacao` (persistencia.server.ts): exige organization_id na
+ * cláusula do UPDATE, confere linha afetada e relê comparando campo a campo
+ * antes de devolver sucesso.
+ */
 export const salvarItemChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -180,7 +241,14 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
     const supabase = (context as any).supabase;
     const userId = (context as any).userId as string;
 
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString(), updated_by: userId };
+    const { data: linha } = await supabase
+      .from("checklist_cadastral")
+      .select("organization_id,fonte,data_verificacao")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!linha) throw new Error("Item do checklist não encontrado ou sem permissão de leitura.");
+
+    const patch: Record<string, unknown> = {};
     for (const campo of ["status", "fonte", "data_verificacao", "acesso_restrito", "observacao_interna", "obrigatorio"] as const) {
       if (campo in data) {
         const v = (data as any)[campo];
@@ -189,20 +257,21 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
     }
     // Verificado exige fonte declarada e data — nada é inferido.
     if (patch["status"] === "verificado") {
-      const { data: atual } = await supabase
-        .from("checklist_cadastral")
-        .select("fonte,data_verificacao")
-        .eq("id", data.id)
-        .maybeSingle();
-      const fonte = (patch["fonte"] ?? atual?.fonte) as string | null;
-      const dt = (patch["data_verificacao"] ?? atual?.data_verificacao) as string | null;
+      const fonte = (patch["fonte"] ?? linha.fonte) as string | null;
+      const dt = (patch["data_verificacao"] ?? linha.data_verificacao) as string | null;
       if (!fonte || fonte === "nao_declarada" || !dt)
         throw new Error("Para marcar como verificado, declare a fonte e a data de verificação.");
     }
 
-    const { error } = await supabase.from("checklist_cadastral").update(patch).eq("id", data.id);
-    if (error) throw new Error(`Não foi possível salvar: ${error.message}`);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: "checklist_cadastral",
+      id: data.id,
+      organizationId: linha.organization_id,
+      userId,
+      payload: patch,
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });
 
 /**
@@ -212,8 +281,6 @@ export const salvarItemChecklist = createServerFn({ method: "POST" })
 export const registrarAcaoCadastro = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string; prazo: string; pessoa: string }) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data?.prazo ?? ""))) throw new Error("Informe a data da próxima ação.");
-    if (!String(data?.pessoa ?? "").trim()) throw new Error("Informe a pessoa da ação.");
     return { caseId: exigirUuid(data?.caseId, "caseId"), prazo: data.prazo, pessoa: data.pessoa.trim() };
   })
   .handler(async ({ data, context }) => {

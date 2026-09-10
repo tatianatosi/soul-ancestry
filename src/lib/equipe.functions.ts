@@ -215,7 +215,7 @@ export const listarEquipe = createServerFn({ method: "GET" })
     const { data } = await supabase
       .from("staff_access")
       .select(
-        "id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
+        "id, auth_user_id, email, full_name, role, status, invited_at, invitation_expires_at, activated_at, last_login_at, reason, demo",
       )
       .is("archived_at", null)
       .order("created_at", { ascending: false });
@@ -260,10 +260,11 @@ export const convidarMembroEquipe = createServerFn({ method: "POST" })
       redirectTo: `${origem()}/equipe/redefinir-senha`,
     });
     if (convite?.data?.user?.id) {
-      await h.adminClient
+      const vinculo = await h.adminClient
         .from("staff_access")
         .update({ auth_user_id: convite.data.user.id })
         .eq("id", inserido.data.id);
+      if (vinculo.error) throw new Error(vinculo.error.message);
     }
 
     await h.registrarAuditoria({
@@ -292,11 +293,12 @@ export const alterarPapelMembro = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!alvo.data) throw new Error("Membro não encontrado.");
 
-    await h.adminClient
+    const atualizado = await h.adminClient
       .from("staff_access")
       .update({ role: data.papel, updated_by: context.userId })
       .eq("id", data.id)
       .eq("organization_id", gestor.organization_id);
+    if (atualizado.error) throw new Error(atualizado.error.message);
 
     if (alvo.data.auth_user_id && alvo.data.status === "active") {
       await h.sincronizarVinculo({ ...alvo.data, role: data.papel, email: null, full_name: null }, alvo.data.auth_user_id);
@@ -441,7 +443,6 @@ async function registrarBootstrapNegado(h: typeof import("./equipe.server"), mot
 export const criarPrimeiroAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: { email: string; senha: string; nome: string; organizacao: string }) => {
     if (!data.senha || data.senha.length < 10) throw new Error("A senha deve ter ao menos 10 caracteres.");
-    if (!data.organizacao?.trim()) throw new Error("Informe o nome da organização.");
     return data;
   })
   .handler(async ({ data }) => {

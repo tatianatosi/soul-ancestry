@@ -12,6 +12,8 @@ import {
   limparCampos,
   type Sb,
 } from "@/lib/pesquisa.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -42,14 +44,13 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
       return q;
     };
 
-    const [caso, pessoas, hipoteses, evidencias, eventos, pendencias] = await Promise.all([
+    const [caso, hipoteses, evidencias, eventos, pendencias] = await Promise.all([
       supabase
         .from("crm_casos")
         .select("*")
         .eq("id", data.casoId)
         .eq("organization_id", organizationId)
         .maybeSingle(),
-      base("case_members", "case_id"),
       base("research_hypotheses", "case_id"),
       base("evidencias", "caso_id"),
       base("research_events", "case_id"),
@@ -57,6 +58,12 @@ export const carregarPesquisa = createServerFn({ method: "GET" })
     ]);
 
     if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    // 07/09/2026 — mesmo achado do cotéjo tela a tela: leitura crua de
+    // case_members sem fallback para Núcleos. Arquivados não entram aqui
+    // porque não havia flag `incluirArquivados` equivalente na função de
+    // fallback — mantém o comportamento de sempre mostrar só pessoas ativas.
+    const pessoas = { data: await pessoasDoCasoComFallbackNucleo(supabase, data.casoId) };
 
     const podeEditar =
       papel === "admin" ||
@@ -90,7 +97,22 @@ export const listarCasosPesquisa = createServerFn({ method: "GET" })
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as Record<string, any>[];
+    const pesquisas = await supabase
+      .from("research_cases")
+      .select("id,case_id,status")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const porCaso = new Map(
+      ((pesquisas.data ?? []) as { id: string; case_id: string; status: string }[]).map((p) => [p.case_id, p]),
+    );
+    return ((data ?? []) as Record<string, any>[]).map((c) => {
+      const rc = porCaso.get(String(c.id));
+      return {
+        ...c,
+        research_case_id: rc?.id ?? null,
+        research_status: rc?.status ?? null,
+      } as Record<string, any>;
+    });
   });
 
 const TABELA: Record<Bloco, { nome: string; caso: string; campos: string[] }> = {
@@ -123,13 +145,35 @@ export const salvarPesquisa = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const { error } = await supabase
-        .from(alvo.nome)
-        .update({ ...dados, updated_by: userId })
-        .eq("id", data.id)
-        .eq("organization_id", organizationId);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: alvo.nome,
+        id: data.id,
+        organizationId,
+        userId,
+        payload: dados,
+      });
       return { id: data.id };
+    }
+
+    // Idempotência (achado de 09/09/2026, rodada de limpeza pré-Perfil 360):
+    // "Adicionar pendência" grava em tarefas sem a proteção que salvarTarefa
+    // (ops.functions.ts) já tem — reenviar o formulário podia duplicar.
+    if (data.bloco === "pendencias" && dados["titulo"]) {
+      const janela = new Date(Date.now() - 60_000).toISOString();
+      const { data: existente } = await supabase
+        .from("tarefas")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("caso_id", data.casoId)
+        .eq("titulo", dados["titulo"] as string)
+        .not("status", "in", "(concluida,cancelada)")
+        .is("archived_at", null)
+        .gte("created_at", janela)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existente?.id) return { id: existente.id as string };
     }
 
     const { data: linha, error } = await supabase
@@ -159,17 +203,18 @@ export const arquivarPesquisa = createServerFn({ method: "POST" })
     const { organizationId, papel } = await contextoPesquisa(supabase, userId);
     await exigirPesquisaNoCaso(supabase, organizationId, papel, userId, data.casoId);
     const alvo = TABELA[data.bloco];
-    const coluna = alvo.nome === "tarefas" || alvo.nome === "evidencias" ? "archive_motivo" : "archive_motivo";
-    const { error } = await supabase
-      .from(alvo.nome)
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: alvo.nome,
+      id: data.id,
+      organizationId,
+      userId,
+      payload: {
         archived_at: new Date().toISOString(),
         archived_by: userId,
-        [coluna]: (data.motivo ?? "").trim() || "Sem motivo informado.",
-      })
-      .eq("id", data.id)
-      .eq("organization_id", organizationId);
-    if (error) throw new Error(error.message);
+        archive_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+      },
+    });
     return { ok: true };
   });
 

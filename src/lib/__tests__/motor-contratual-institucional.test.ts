@@ -83,7 +83,7 @@ describe("Motor contratual institucional", () => {
     expect(r.motivos.join(" ")).toContain("Modelo não permitido");
   });
 
-  it("5. matriz contém todas as cláusulas A–P", () => {
+  it("5. matriz contém todas as cláusulas A–R (Q e R adicionadas em 07/09/2026: inadimplemento e rescisão)", () => {
     expect(IDS_CLAUSULAS).toEqual([
       "A",
       "B",
@@ -101,8 +101,10 @@ describe("Motor contratual institucional", () => {
       "N",
       "O",
       "P",
+      "Q",
+      "R",
     ]);
-    expect(matrizClausulasTeste()).toHaveLength(16);
+    expect(matrizClausulasTeste()).toHaveLength(18);
   });
 
   it("6. cláusula fixa não é editável por caso", () => {

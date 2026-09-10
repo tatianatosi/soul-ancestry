@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +23,8 @@ import {
   vincularEvidenciaRelatorio,
   vincularMicroentregaRelatorio,
 } from "@/lib/relatorios-fase.functions";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -36,6 +40,16 @@ export const Route = createFileRoute("/_authenticated/relatorios-fase/$caseId")(
     ],
   }),
   component: RelatoriosFase,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Relatórios de fase" descricao="Falha ao carregar os relatórios.">
+      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Relatórios de fase" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const VAZIO: Record<string, unknown> = {
@@ -47,6 +61,14 @@ const VAZIO: Record<string, unknown> = {
 };
 
 function RelatoriosFase() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
@@ -96,16 +118,38 @@ function RelatoriosFase() {
   });
 
   const cards = useMemo(() => cardsDeFase((dados?.relatorios ?? []) as any[]), [dados]);
+  // Autoridade operacional: o gate de papel do servidor deixa de travar os
+  // controles; fica pendência declarada e o servidor revalida a gravação.
+  const pendenciaPapel = dados && !dados.podeEditar
+    ? "O servidor marcou os relatórios de fase deste caso como somente leitura para o seu vínculo — a gravação segue disponível por decisão sua."
+    : null;
   const erros = validarRelatorio(form as any);
 
   const set = (campo: string, valor: unknown) =>
     setForm((f) => ({ ...f, [campo]: valor, fase_jornada: campo === "report_type" ? faseDoTipo(String(valor)) : f.fase_jornada }));
 
-  if (painel.isLoading) return <p className="p-6 text-sm text-navy/70">Carregando relatórios de fase…</p>;
-  if (painel.error) return <p className="p-6 text-sm text-terracotta">{(painel.error as Error).message}</p>;
+  // Nada de tela vazia silenciosa: sem leitura concluída, o estado é declarado.
+  if (!dados)
+    return (
+      <div className="p-6">
+        <EstadoDados
+          carregando={painel.isLoading}
+          erro={painel.error}
+          dados={undefined}
+          aoTentarNovamente={() => void painel.refetch()}
+          recurso="os relatórios de fase deste caso"
+        >
+          {() => null}
+        </EstadoDados>
+      </div>
+    );
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <SaasShell
+      titulo="Relatórios de fase"
+      descricao="Relatórios F1 a F5 e memória de legado ligados à ficha e às evidências."
+    >
+    <div>
       <Link
         to="/casos/$caseId"
         params={{ caseId }}
@@ -121,6 +165,14 @@ function RelatoriosFase() {
         nesta entrega.
       </p>
 
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mt-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
+
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((c) => (
           <article key={c.tipo} className="rounded-xl border border-navy/15 bg-cream p-4">
@@ -131,6 +183,39 @@ function RelatoriosFase() {
             </p>
           </article>
         ))}
+      </section>
+
+      {/*
+        CA21-BIBLIOTECA-MESTRE-CONECTADA (09/09/2026): a Biblioteca Mestre já
+        governa "Modelos F1/F2" (master_library_items, categoria=modelos), mas
+        nada aqui apontava para essa referência — quem elabora o relatório não
+        via qual versão de modelo está homologada. case_reports não tem campo
+        de vínculo, então isto é só leitura: mostra o modelo, não grava nada.
+      */}
+      <section className="mt-6 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-sm font-semibold text-navy">Modelos F1/F2 homologados (Biblioteca Mestre)</h2>
+          <Link to="/biblioteca" className="text-[11px] text-terracotta underline">
+            Ver Biblioteca Mestre completa
+          </Link>
+        </div>
+        {(dados.modelosBiblioteca ?? []).length === 0 ? (
+          <p className="mt-1 text-xs text-navy/60">
+            Sem dado — nenhum modelo cadastrado na Biblioteca Mestre (subárea Modelos) para esta organização.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1 text-xs text-navy/70">
+            {(dados.modelosBiblioteca ?? []).map((m: any) => (
+              <li key={m.id}>
+                <strong className="text-navy">{m.titulo}</strong> · versão {m.versao} ·{" "}
+                {m.vigencia_estado === "homologado" || m.vigencia_estado === "vigente"
+                  ? "homologado"
+                  : "não homologado"}{" "}
+                ({m.status})
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-8 rounded-xl border border-navy/15 p-4">
@@ -266,20 +351,21 @@ function RelatoriosFase() {
           </ul>
         ) : null}
 
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            disabled={!dados?.podeEditar || erros.length > 0 || salvar.isPending}
-            onClick={() =>
-              salvar.mutate({
+        <div className="mt-4 flex flex-wrap gap-2">
+          <AcaoOperacional
+            rotulo={editandoId ? "Salvar alterações" : "Registrar relatório"}
+            capacidade="avancar_pesquisa_evidencia_microentrega"
+            pendenciaGate={
+              [pendenciaPapel, erros.length ? erros.join(" · ") : null].filter(Boolean).join(" · ") || null
+            }
+            efeito="Grava o relatório de fase no registro interno. Nenhum PDF é gerado, nada é enviado ao cliente nem publicado no App."
+            onConfirmar={async () => {
+              await salvar.mutateAsync({
                 id: editandoId ?? undefined,
                 valores: { ...form, fase_jornada: form.fase_jornada ?? faseDoTipo(String(form.report_type ?? "")) },
-              })
-            }
-            className="rounded bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-          >
-            {editandoId ? "Salvar alterações" : "Registrar relatório"}
-          </button>
+              });
+            }}
+          />
           {editandoId ? (
             <button
               type="button"
@@ -297,6 +383,11 @@ function RelatoriosFase() {
 
       <section className="mt-8 space-y-4">
         <h2 className="font-serif text-lg text-navy">Relatórios do caso</h2>
+        {pendenciaPapel ? (
+          <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada: {pendenciaPapel}
+          </p>
+        ) : null}
         {(dados?.relatorios ?? []).length === 0 ? (
           <p className="text-sm text-navy/70">Nenhum relatório registrado. Nada é iniciado automaticamente.</p>
         ) : null}
@@ -344,16 +435,17 @@ function RelatoriosFase() {
                   >
                     Editar
                   </button>
-                  <button
-                    type="button"
-                    className="rounded border border-terracotta/40 px-3 py-1 text-xs text-terracotta"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo !== null) arquivar.mutate({ id: r.id, motivo });
+                  <AcaoOperacional
+                    rotulo="Arquivar"
+                    acaoExterna="excluir_registro_ou_versao"
+                    pendenciaGate={pendenciaPapel}
+                    efeito="Arquiva este relatório de fase. O registro continua consultável em arquivados."
+                    variant="outline"
+                    size="sm"
+                    onConfirmar={async (motivo) => {
+                      await arquivar.mutateAsync({ id: r.id, motivo });
                     }}
-                  >
-                    Arquivar
-                  </button>
+                  />
                 </div>
               </div>
 
@@ -395,16 +487,28 @@ function RelatoriosFase() {
                         </option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      disabled={!estado.evidenceId || !dados?.podeEditar}
-                      className="rounded bg-navy px-3 py-1 text-xs text-cream disabled:opacity-50"
-                      onClick={() =>
-                        ligarEvidencia.mutate({ reportId: r.id, evidenceId: estado.evidenceId, relacao: estado.relacao })
+                    <AcaoOperacional
+                      rotulo="Vincular"
+                      capacidade="avancar_pesquisa_evidencia_microentrega"
+                      pendenciaGate={
+                        [
+                          pendenciaPapel,
+                          estado.evidenceId ? null : "Selecione a evidência antes de vincular.",
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || null
                       }
-                    >
-                      Vincular
-                    </button>
+                      efeito="Cria o vínculo interno entre relatório e evidência. Nada é publicado no App Cliente."
+                      size="sm"
+                      onConfirmar={async () => {
+                        if (!estado.evidenceId) return;
+                        await ligarEvidencia.mutateAsync({
+                          reportId: r.id,
+                          evidenceId: estado.evidenceId,
+                          relacao: estado.relacao,
+                        });
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -430,14 +534,22 @@ function RelatoriosFase() {
                         </option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      disabled={!estado.micro || !dados?.podeEditar}
-                      className="rounded border border-navy/20 px-3 py-1 text-xs text-navy disabled:opacity-50"
-                      onClick={() => ligarMicro.mutate({ reportId: r.id, microentregaId: estado.micro })}
-                    >
-                      Vincular à fase
-                    </button>
+                    <AcaoOperacional
+                      rotulo="Vincular à fase"
+                      capacidade="avancar_pesquisa_evidencia_microentrega"
+                      pendenciaGate={
+                        [pendenciaPapel, estado.micro ? null : "Selecione a micro-entrega antes de vincular."]
+                          .filter(Boolean)
+                          .join(" · ") || null
+                      }
+                      efeito="Vincula a micro-entrega ao relatório de fase. Micro-entrega nunca cria relatório novo."
+                      variant="outline"
+                      size="sm"
+                      onConfirmar={async () => {
+                        if (!estado.micro) return;
+                        await ligarMicro.mutateAsync({ reportId: r.id, microentregaId: estado.micro });
+                      }}
+                    />
                   </div>
                   <p className="mt-1 text-[11px] text-navy/60">Micro-entrega nunca cria relatório novo.</p>
                 </div>
@@ -447,5 +559,6 @@ function RelatoriosFase() {
         })}
       </section>
     </div>
+    </SaasShell>
   );
 }

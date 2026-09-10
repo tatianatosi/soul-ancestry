@@ -259,8 +259,14 @@ export async function sincronizarComercialDaProposta(
   };
 
   if (existente) {
-    const { error } = await supabase.from("commercial_conditions").update(payload).eq("id", existente.id);
+    const { data: atualizada, error } = await supabase
+      .from("commercial_conditions")
+      .update(payload)
+      .eq("id", existente.id)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!atualizada?.id) throw new Error("Nenhuma linha afetada ao sincronizar condição comercial da proposta.");
     return { vinculada: true, id: existente.id as string, criada: false, propostaId: proposta.id as string };
   }
 

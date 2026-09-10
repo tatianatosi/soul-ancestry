@@ -2,7 +2,9 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { conteudoProjetavel } from "@/lib/biblioteca-evidencias";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -35,6 +37,8 @@ const CAMPOS_PROJECAO = [
   "source_entity_type",
   "source_entity_id",
   "case_id",
+  "pessoa_id",
+  "due_at",
   "projection_type",
   "destination",
   "content_sanitized",
@@ -43,6 +47,10 @@ const CAMPOS_PROJECAO = [
   "approved_at",
   "visibility_scope",
   "effective_from",
+  // Decisão da Proprietária (09/09/2026) — "achado é compartilhável apenas
+  // quando sanitizado e autorizado": quando visibility_scope='titular',
+  // titular_client_id é a pessoa (clientes.id) que vê o achado por padrão.
+  "titular_client_id",
 ];
 
 function filtrar(campos: string[], entrada: Record<string, unknown>) {
@@ -72,7 +80,7 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
     const { organizationId, papel } = await contextoRg(supabase, context.userId as string);
     if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a biblioteca de evidências.");
 
-    const [evidencias, projecoes, fontes, pessoas, caso] = await Promise.all([
+    const [evidencias, projecoes, fontes, pessoas, caso, casoServicos] = await Promise.all([
       supabase
         .from("evidences")
         .select("*")
@@ -96,7 +104,27 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
         .eq("organization_id", organizationId)
         .is("archived_at", null),
       supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
+      supabase
+        .from("case_services")
+        .select("citizenship_track_id")
+        .eq("organization_id", organizationId)
+        .eq("case_id", data.caseId)
+        .is("archived_at", null),
     ]);
+
+    // Elo marco jurídico -> caso: trilha(s) do caso (case_services) já ligam a
+    // regra jurídica aprovada e ao marco/citação (consolidado em 08-09/09/2026).
+    // Só regra `aprovado` e não arquivada vira opção de origem de projeção —
+    // mesma trava de evidenciaProjetavel, aplicada à regra (marcoJuridicoProjetavel).
+    const trackIds = [...new Set((casoServicos.data ?? []).map((s: any) => s.citizenship_track_id).filter(Boolean))];
+    const marcosJuridicos = trackIds.length
+      ? await supabase
+          .from("versioned_legal_rules")
+          .select("id,track_id,tema,status,archived_at,fonte_referencia")
+          .in("track_id", trackIds)
+          .is("archived_at", null)
+          .eq("status", "aprovado")
+      : { data: [] as any[] };
 
     const ids = (evidencias.data ?? []).map((e: any) => e.id);
     const validacoes = ids.length
@@ -117,6 +145,7 @@ export const painelBibliotecaEvidencias = createServerFn({ method: "GET" })
       projecoes: (projecoes.data ?? []) as any[],
       fontes: (fontes.data ?? []) as any[],
       pessoas: (pessoas.data ?? []) as any[],
+      marcosJuridicos: (marcosJuridicos.data ?? []) as any[],
     };
   });
 
@@ -182,18 +211,19 @@ export const registrarValidacaoEvidencia = createServerFn({ method: "POST" })
     });
     if (hist.error) throw new Error(hist.error.message);
 
-    const upd = await supabase
-      .from("evidences")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "evidences",
+      id: data.evidenceId,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
         epistemic_validation_status: data.estadoNovo,
         confidence_level: data.confiancaNova,
         reviewed_by: context.userId as string,
         reviewed_at: agora,
-      })
-      .eq("id", data.evidenceId)
-      .select("id")
-      .maybeSingle();
-    if (upd.error) throw new Error(upd.error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -205,6 +235,10 @@ export const salvarProjecao = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     recusarNaoMapeado(CAMPOS_PROJECAO, data.valores);
     const valores = filtrar(CAMPOS_PROJECAO, data.valores);
+    if ("content_sanitized" in valores) {
+      const checagem = conteudoProjetavel(String(valores["content_sanitized"] ?? ""));
+      if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+    }
 
     const r = data.id
       ? await supabase.from("app_projections").update(valores).eq("id", data.id).select("id").maybeSingle()
@@ -218,13 +252,95 @@ export const salvarProjecao = createServerFn({ method: "POST" })
     return { id: r.data.id as string };
   });
 
+/**
+ * Ponte explícita entre entrega operacional e App Cliente (cadeia canônica,
+ * 09/09/2026): tarefa/onboarding/marco → client_deliverables (quando há
+ * entrega real) → revisão e aprovação → app_projections/portal_projecoes →
+ * conteúdo liberado no App.
+ *
+ * Só projeta uma micro-entrega já "publicado" em `client_deliverables` — o
+ * único estado cuja própria tela promete "aparece no App Cliente"
+ * (achado real: antes dessa ponte, nenhuma rota lia client_deliverables e a
+ * promessa nunca se cumpria). Cria a projeção em rascunho: passa pela MESMA
+ * revisão/aprovação/publicação humana já existente na Biblioteca Mestre
+ * (revisarProjecao/aprovarProjecao) — nunca libera automaticamente. Dedup por
+ * origem: uma micro-entrega nunca gera duas projeções.
+ */
+export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { entregaId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    const entrega = await supabase
+      .from("client_deliverables")
+      .select("id,case_id,deliverable_type,title_client,summary_approved,approval_status,organization_id")
+      .eq("id", data.entregaId)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    if (!entrega.data) throw new Error("Micro-entrega não encontrada nesta organização.");
+    if (entrega.data["approval_status"] !== "publicado") {
+      throw new Error("Só uma micro-entrega já publicada internamente pode ser projetada ao App.");
+    }
+
+    const existente = await supabase
+      .from("app_projections")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("source_entity_type", "client_deliverable")
+      .eq("source_entity_id", data.entregaId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (existente.data?.id) return { id: existente.data.id as string, criado: false };
+
+    const conteudo = String(entrega.data["summary_approved"] ?? "");
+    const checagem = conteudoProjetavel(conteudo);
+    if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+
+    const r = await supabase
+      .from("app_projections")
+      .insert({
+        organization_id: organizationId,
+        source_entity_type: "client_deliverable",
+        source_entity_id: data.entregaId,
+        case_id: entrega.data["case_id"],
+        projection_type: entrega.data["deliverable_type"],
+        destination: "app",
+        content_sanitized: conteudo,
+        approval_status: "draft",
+        visibility_scope: "titular",
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { id: r.data.id as string, criado: true };
+  });
+
 /** Aprovação humana explícita: sem aprovação automática e sem publicação silenciosa. */
 export const aprovarProjecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; publicar: boolean }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    // Achado de 09/09/2026 (rodada de limpeza pré-Perfil 360): aprovar/publicar
+    // confiava cegamente no que foi salvo antes — não repetia a checagem de
+    // conteúdo. Uma projeção gravada fora da UI (ou salva antes desta função
+    // existir) podia ser aprovada e publicada sem nunca passar por
+    // conteudoProjetavel. Achado só vira visível ao cliente sanitizado.
+    const atual = await supabase
+      .from("app_projections")
+      .select("content_sanitized,case_id,projection_type")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (atual.error) throw new Error(atual.error.message);
+    if (!atual.data) throw new Error("Projeção não encontrada ou sem permissão de acesso.");
+    const checagem = conteudoProjetavel(String(atual.data.content_sanitized ?? ""));
+    if (!checagem.ok) throw new Error(checagem.erros.join(" "));
+
     const agora = new Date().toISOString();
     const r = await supabase
       .from("app_projections")
@@ -239,7 +355,130 @@ export const aprovarProjecao = createServerFn({ method: "POST" })
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
     if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    // CA06-APP-NO-DESK — aprovada mas ainda não publicada é "pronta para
+    // liberação": o Desk vê em /alertas sem precisar abrir a Biblioteca.
+    // Publicada já resolveu a pendência — nenhum alerta é criado.
+    if (!data.publicar) {
+      await criarOuReaproveitarAlertaProjecao(supabase, organizationId, {
+        id: data.id,
+        caseId: atual.data["case_id"] as string,
+        titulo: `Projeção "${String(atual.data["projection_type"])}" pronta para liberação`,
+      });
+    }
+
     return { ok: true };
+  });
+
+/**
+ * Grava/reaproveita (nunca duplica) o alerta interno "microentrega_pendente"
+ * em `case_alerts` para uma projeção — mesma tabela e mesmo padrão de dedup
+ * usados por `registrarProximaAcao`/`registrarRevalidacaoProposta`. Extraído
+ * do corpo de `prepararAlertaProjecao` (CA06-APP-NO-DESK, 09/09/2026) para ser
+ * chamado também automaticamente quando uma projeção entra em revisão ou fica
+ * pronta para liberação — sem criar tarefa nova.
+ */
+async function criarOuReaproveitarAlertaProjecao(
+  supabase: Sb,
+  organizationId: string,
+  input: { id: string; caseId: string; titulo: string; detalhe?: string },
+) {
+  const { data: existente } = await supabase
+    .from("case_alerts")
+    .select("id")
+    .eq("case_id", input.caseId)
+    .eq("tipo", "microentrega_pendente")
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+  if (existente?.id) return { id: existente.id as string, criado: false };
+
+  const r = await supabase
+    .from("case_alerts")
+    .insert({
+      organization_id: organizationId,
+      case_id: input.caseId,
+      tipo: "microentrega_pendente",
+      criticidade: "atencao",
+      titulo: input.titulo,
+      detalhe: input.detalhe ?? `Projeção ${input.id} aguarda revisão/aprovação.`,
+      status: "pending",
+    })
+    .select("id")
+    .maybeSingle();
+  if (r.error) throw new Error(r.error.message);
+  if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+  return { id: r.data.id as string, criado: true };
+}
+
+/** Envia rascunho/aprovada de volta para revisão — nunca pula etapa às cegas. */
+export const revisarProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projections")
+      .update({ approval_status: "in_review" })
+      .eq("id", data.id)
+      .select("id,case_id,projection_type")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+
+    // CA06-APP-NO-DESK — entrar em revisão é conteúdo pronto para o Desk
+    // decidir: aparece em /alertas sem exigir clique manual em "Criar alerta
+    // interno" (que continua existindo, dedupado, sem risco de duplicar).
+    await criarOuReaproveitarAlertaProjecao(supabase, organizationId, {
+      id: data.id,
+      caseId: r.data["case_id"] as string,
+      titulo: `Projeção "${String(r.data["projection_type"])}" pronta para revisão`,
+    });
+
+    return { ok: true };
+  });
+
+/**
+ * Despublica sem arquivar: some do App Cliente (a view portal_projecoes exige
+ * approval_status = published), mas continua editável como aprovada — ação
+ * reversível, distinta de arquivar (que exige motivo e é definitiva).
+ */
+export const despublicarProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    await autorizarEscrita(supabase, context.userId as string);
+    const r = await supabase
+      .from("app_projections")
+      .update({ approval_status: "approved", effective_from: null })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    if (!r.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: verifique permissão e identificação do registro.");
+    return { ok: true };
+  });
+
+/**
+ * Rascunho de alerta interno sobre a microentrega — nunca envia WhatsApp,
+ * e-mail ou qualquer canal externo. Mesma tabela (`case_alerts`) já usada por
+ * `registrarProximaAcao` (caso-canonico.functions.ts), aqui escopada à
+ * projeção específica.
+ *
+ * 09/09/2026 — deduplicação: mesmo padrão de `registrarRevalidacaoProposta`
+ * (escopo-conferencia.functions.ts), a única rotina que já evitava alerta
+ * repetido. Um alerta `pending` do mesmo tipo já aberto para o caso é
+ * reaproveitado, nunca duplicado.
+ */
+export const prepararAlertaProjecao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; caseId: string; titulo: string; detalhe?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    return criarOuReaproveitarAlertaProjecao(supabase, organizationId, data);
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
@@ -248,14 +487,106 @@ export const arquivarRegistroG03 = createServerFn({ method: "POST" })
   .inputValidator((d: { tabela: "evidences" | "app_projections"; id: string; motivo: string }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const motivo = (data.motivo ?? "").trim() || "Sem motivo informado.";
     const patch: Record<string, unknown> = {
       archived_at: new Date().toISOString(),
       archived_reason: motivo,
     };
     if (data.tabela === "app_projections") patch["approval_status"] = "archived";
-    const r = await supabase.from(data.tabela).update(patch).eq("id", data.id).select("id").maybeSingle();
-    if (r.error) throw new Error(r.error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
     return { ok: true };
+  });
+
+/* ===================== COMPARTILHAMENTO DE ACHADO (LGPD) ===================== */
+
+/**
+ * Decisão da Proprietária (09/09/2026) — "achado é compartilhável apenas
+ * quando sanitizado e autorizado": registra que o TITULAR autorizou
+ * (por telefone, presencialmente etc. — a equipe registra em nome dele,
+ * deixando explícito quem autorizou) o compartilhamento de UM achado
+ * sanitizado com UM outro membro da família. Nunca compartilha o documento
+ * original — só o `content_sanitized` já aprovado/publicado da projeção.
+ */
+export const registrarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string; compartilharComClienteId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+
+    const { data: projecao } = await supabase
+      .from("app_projections")
+      .select("id,organization_id,titular_client_id,approval_status")
+      .eq("id", data.projecaoId)
+      .maybeSingle();
+    if (!projecao || projecao.organization_id !== organizationId) {
+      throw new Error("Achado não encontrado nesta organização.");
+    }
+    if (!projecao.titular_client_id) {
+      throw new Error("Este achado não tem titular definido — associe o titular antes de compartilhar.");
+    }
+    if (projecao.approval_status !== "approved" && projecao.approval_status !== "published") {
+      throw new Error("Só um achado já aprovado pode ser compartilhado.");
+    }
+
+    const r = await supabase
+      .from("app_projection_shares")
+      .insert({
+        organization_id: organizationId,
+        projection_id: data.projecaoId,
+        compartilhado_com_client_id: data.compartilharComClienteId,
+        autorizado_por: "equipe_interna",
+        autorizado_por_user_id: context.userId as string,
+      })
+      .select("id")
+      .maybeSingle();
+    if (r.error) throw new Error(r.error.message);
+    return { id: r.data?.id as string };
+  });
+
+/** Revoga uma autorização de compartilhamento — nunca exclusão física. */
+export const revogarCompartilhamentoAchado = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; motivo?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "app_projection_shares",
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: {
+        revogado_em: new Date().toISOString(),
+        revogado_por_user_id: context.userId as string,
+        revogado_motivo: (data.motivo ?? "").trim() || "Sem motivo informado.",
+      },
+    });
+    return { ok: true };
+  });
+
+/** Lista as autorizações de compartilhamento de um achado. */
+export const listarCompartilhamentosAchado = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { projecaoId: string }) => d)
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as unknown as Sb;
+    await autorizarEscrita(supabase, context.userId as string);
+    const { data: linhas, error } = await supabase
+      .from("app_projection_shares")
+      .select("*")
+      .eq("projection_id", data.projecaoId)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (linhas ?? []) as Record<string, any>[];
   });

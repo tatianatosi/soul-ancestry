@@ -3,9 +3,16 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * CA-UX-04 — o protótipo/mockup histórico foi arquivado fora do runtime.
- * Estes testes falham se qualquer arquivo de `src/` voltar a importar,
- * rotear ou anunciar o protótipo.
+ * CA-UX-04 — arquivamento do protótipo, revisto em 05/09/2026.
+ *
+ * A regra original tirava o mockup inteiro de `src/` e um teste impedia que
+ * voltasse. Na pratica isso impedia a propria proprietaria de consultar o
+ * layout que ela aprovou, enquanto o produto no ar divergia dele.
+ *
+ * Decisao da Proprietaria Administradora em 05/09/2026: a rota `/mockup`
+ * volta como REFERENCIA VISUAL, isolada e sem dados operacionais. O que
+ * continua proibido e o protótipo antigo (`desk-app`, `cliente-app`,
+ * `/prototipo`) e qualquer import do mockup por tela de produto.
  */
 
 function arquivosDeRuntime(dir = "src"): string[] {
@@ -29,9 +36,7 @@ describe("arquivamento do protótipo", () => {
     for (const caminho of [
       "src/components/desk-app.tsx",
       "src/components/cliente-app.tsx",
-      "src/components/mockup",
       "src/routes/prototipo.tsx",
-      "src/routes/mockup.tsx",
       "src/routes/_authenticated/referencia-mockup-desk.tsx",
     ]) {
       expect(existsSync(caminho)).toBe(false);
@@ -57,7 +62,6 @@ describe("import graph do runtime", () => {
   const IMPORTS_PROIBIDOS = [
     "@/components/desk-app",
     "@/components/cliente-app",
-    "@/components/mockup/",
     "archive/mockups",
     "./cliente-app",
     "./desk-app",
@@ -65,6 +69,8 @@ describe("import graph do runtime", () => {
 
   it("nenhum arquivo de src/ importa o protótipo", () => {
     for (const arquivo of RUNTIME) {
+      // A rota de referencia /mockup pode importar os componentes de mockup.
+      if (arquivo === "src/routes/mockup.tsx" || arquivo.startsWith("src/components/mockup/")) continue;
       const conteudo = readFileSync(arquivo, "utf8");
       for (const proibido of IMPORTS_PROIBIDOS) {
         expect(`${arquivo}:${conteudo.includes(proibido)}`).toBe(`${arquivo}:false`);
@@ -72,12 +78,11 @@ describe("import graph do runtime", () => {
     }
   });
 
-  it("nenhuma rota /prototipo, /mockup ou /referencia-mockup-desk é declarada", () => {
+  it("nenhuma rota /prototipo ou /referencia-mockup-desk é declarada", () => {
     for (const arquivo of RUNTIME) {
       const conteudo = readFileSync(arquivo, "utf8");
       for (const rota of [
         'createFileRoute("/prototipo")',
-        'createFileRoute("/mockup")',
         "referencia-mockup-desk",
       ]) {
         if (arquivo.endsWith("descoberta-desk.ts")) continue; // apenas comentário histórico

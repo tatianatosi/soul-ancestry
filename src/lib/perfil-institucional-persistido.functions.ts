@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { organizacaoDo } from "@/lib/caso-canonico.server";
 import {
   deveCriarSnapshotInstitucional,
   montarPayloadInstitucional,
@@ -11,15 +12,22 @@ import {
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Leitura da versão institucional persistida da organização do usuário. */
+/**
+ * CA12-PERFIL (09/09/2026) — leitura sem `.eq("organization_id", ...)`
+ * devolvia o registro mais recente de QUALQUER organização, nunca
+ * necessariamente o da sessão chamadora. Corrigido para escopar pela
+ * organização do usuário autenticado, igual a todo escritor deste módulo.
+ */
 export const lerPerfilInstitucionalPersistido = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
+    const organizationId = await organizacaoDo(supabase, (context as any).userId);
     const { data, error } = await supabase
       .from("institutional_profiles")
       .select("id,organization_id,versao,status,campos,whatsapp_configurado,created_at,updated_at")
+      .eq("organization_id", organizationId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
@@ -42,6 +50,26 @@ export const lerPerfilInstitucionalPersistido = createServerFn({ method: "GET" }
       editavelPeloCaso: false,
       habilitaAssinatura: false,
     };
+  });
+
+/**
+ * CA12-PERFIL (09/09/2026) — registra (ou reaproveita, idempotente) a versão
+ * institucional vigente da organização da sessão chamadora. `garantirPerfilInstitucional`
+ * e `registrarPerfilInstitucional` já existiam com essa mesma regra, mas
+ * nenhuma tela os chamava: a organização podia nunca ter um perfil
+ * institucional persistido, e nada avisava disso. Este wrapper existe só
+ * para não obrigar o cliente a descobrir e enviar seu próprio organization_id
+ * — o mesmo dado que todo outro escritor deste módulo já deriva no servidor.
+ */
+export const garantirPerfilInstitucionalDaSessao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = (context as any).supabase;
+    const organizationId = await organizacaoDo(supabase, (context as any).userId);
+    const { garantirPerfilInstitucional } = await import("@/lib/perfil-institucional-persistido.server");
+    const r = await garantirPerfilInstitucional(supabase, { org: organizationId, userId: (context as any).userId });
+    if (!r.perfil) throw new Error(r.motivo);
+    return r;
   });
 
 /** Registra (ou reaproveita) a versão institucional vigente da organização. */
@@ -123,7 +151,7 @@ export const registrarSnapshotInstitucional = createServerFn({ method: "POST" })
     if (erroPerfil) throw new Error(erroPerfil.message);
     if (!perfil) return { gravado: false, motivo: "Nenhuma versão institucional persistida para snapshot." };
 
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("contract_versions")
       .update({
         institutional_profile_id: perfil.id,
@@ -137,8 +165,13 @@ export const registrarSnapshotInstitucional = createServerFn({ method: "POST" })
         },
       })
       .eq("id", data.contractVersionId)
-      .is("institutional_profile_snapshot", null);
+      .is("institutional_profile_snapshot", null)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) {
+      return { gravado: false, motivo: "Snapshot já registrado nesta versão contratual (condição de corrida)." };
+    }
 
     await supabase.from("institutional_profile_events").insert({
       organization_id: versao.organization_id,

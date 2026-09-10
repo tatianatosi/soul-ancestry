@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -65,7 +66,7 @@ export const painelFontes = createServerFn({ method: "GET" })
 
     const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
     const [fontes, matriz, backlog] = await Promise.all([
-      org("genealogical_sources_catalog").order("nome", { ascending: true }),
+      org("genealogical_sources_catalog").is("archived_at", null).order("nome", { ascending: true }),
       org("source_evaluation_matrix").is("archived_at", null),
       org("sources_activation_backlog").is("archived_at", null).order("prazo", { ascending: true }),
     ]);
@@ -84,23 +85,41 @@ async function autorizarEscrita(supabase: Sb, userId: string) {
   return organizationId;
 }
 
+/**
+ * 30/08/2026 — achado real (P0, reportado pela proprietária no preview):
+ * as 4 gravações deste arquivo faziam `.update(...).select("id").maybeSingle()`
+ * sem checar se `data` voltou nulo. Quando o UPDATE bate em zero linhas —
+ * RLS filtrando por permissão/organização, ou um id que não existe mais —
+ * o Postgres/PostgREST não gera erro nenhum: só devolve zero linhas. A tela
+ * via `r.error` vazio e declarava sucesso, e o dado nunca tinha sido gravado.
+ * `gravarComVerificacao`/`inserirComVerificacao` (persistencia.server.ts,
+ * já usado em caso-canonico.functions.ts) fecham esse buraco: exigem
+ * `organization_id` na cláusula do UPDATE, conferem que pelo menos uma linha
+ * foi afetada e relêem do banco comparando campo a campo antes de devolver
+ * sucesso — a mesma regra "salvar não é o servidor não ter dado erro".
+ */
 export const salvarFonte = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; valores: Record<string, unknown> }) => d)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    const userId = context.userId as string;
     const valores = filtrar(CAMPOS_FONTE, data.valores);
 
-    const r = data.id
-      ? await supabase.from("genealogical_sources_catalog").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("genealogical_sources_catalog")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "genealogical_sources_catalog",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: valores,
+      });
+      return { id: data.id, salvoEm: r.salvoEm };
+    }
+    const r = await inserirComVerificacao({ supabase, tabela: "genealogical_sources_catalog", organizationId, userId, payload: valores });
+    return { id: r.id, salvoEm: r.salvoEm };
   });
 
 export const salvarAvaliacaoFonte = createServerFn({ method: "POST" })
@@ -109,17 +128,22 @@ export const salvarAvaliacaoFonte = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    const userId = context.userId as string;
     const valores = filtrar(CAMPOS_MATRIZ, data.valores);
 
-    const r = data.id
-      ? await supabase.from("source_evaluation_matrix").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("source_evaluation_matrix")
-          .insert({ ...valores, organization_id: organizationId })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "source_evaluation_matrix",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: valores,
+      });
+      return { id: data.id, salvoEm: r.salvoEm };
+    }
+    const r = await inserirComVerificacao({ supabase, tabela: "source_evaluation_matrix", organizationId, userId, payload: valores });
+    return { id: r.id, salvoEm: r.salvoEm };
   });
 
 export const salvarBacklogFonte = createServerFn({ method: "POST" })
@@ -128,17 +152,28 @@ export const salvarBacklogFonte = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
+    const userId = context.userId as string;
     const valores = filtrar(CAMPOS_BACKLOG, data.valores);
 
-    const r = data.id
-      ? await supabase.from("sources_activation_backlog").update(valores).eq("id", data.id).select("id").maybeSingle()
-      : await supabase
-          .from("sources_activation_backlog")
-          .insert({ ...valores, organization_id: organizationId, requires_human_approval: true })
-          .select("id")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    return { id: r.data?.id as string };
+    if (data.id) {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: "sources_activation_backlog",
+        id: data.id,
+        organizationId,
+        userId,
+        payload: valores,
+      });
+      return { id: data.id, salvoEm: r.salvoEm };
+    }
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: "sources_activation_backlog",
+      organizationId,
+      userId,
+      payload: { ...valores, requires_human_approval: true },
+    });
+    return { id: r.id, salvoEm: r.salvoEm };
   });
 
 /** Sem exclusão física: apenas arquivamento com motivo. */
@@ -153,12 +188,15 @@ export const arquivarRegistroG08 = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
-    await autorizarEscrita(supabase, context.userId as string);
+    const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!data.motivo.trim()) throw new Error("Informe o motivo do arquivamento.");
-    const r = await supabase
-      .from(data.tabela)
-      .update({ archived_at: new Date().toISOString(), archive_motivo: data.motivo })
-      .eq("id", data.id);
-    if (r.error) throw new Error(r.error.message);
-    return { ok: true };
+    const r = await gravarComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      id: data.id,
+      organizationId,
+      userId: context.userId as string,
+      payload: { archived_at: new Date().toISOString(), archive_motivo: data.motivo },
+    });
+    return { ok: true, salvoEm: r.salvoEm };
   });

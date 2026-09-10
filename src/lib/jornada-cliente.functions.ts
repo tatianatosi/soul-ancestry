@@ -9,6 +9,7 @@ import {
   validarTouchpoint,
   type StatusAprovacao,
 } from "@/lib/jornada-cliente";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -96,7 +97,6 @@ export const registrarInteracao = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
 
-    if (!data.resumoInterno?.trim()) throw new Error("Resumo interno é obrigatório.");
 
     if (data.contaComoTouchpoint) {
       const check = validarTouchpoint(data.touchpoint ?? {});
@@ -129,16 +129,18 @@ export const registrarInteracao = createServerFn({ method: "POST" })
 
     if (data.contaComoTouchpoint) {
       const t = data.touchpoint ?? {};
-      const { error: erroCaso } = await supabase
-        .from("crm_casos")
-        .update({
+      await gravarComVerificacao({
+        supabase,
+        tabela: "crm_casos",
+        id: data.casoId,
+        organizationId: ctx.organizationId,
+        userId: context.userId as string,
+        payload: {
           ultimo_touchpoint_em: data.ocorridoEm ?? hojeISO(),
           ultima_atualizacao_material_em: data.ocorridoEm ?? hojeISO(),
           proximo_marco_verificavel: t.proximoMarcoVerificavel ?? null,
-        })
-        .eq("id", data.casoId)
-        .eq("organization_id", ctx.organizationId);
-      if (erroCaso) throw new Error(erroCaso.message);
+        },
+      });
     }
 
     return inserida as Record<string, any>;
@@ -155,16 +157,18 @@ export const definirEsperaExterna = createServerFn({ method: "POST" })
     if (data.aguardando && !(data.motivo ?? "").trim())
       throw new Error("Espera institucional externa exige motivo comunicado.");
 
-    const { error } = await supabase
-      .from("crm_casos")
-      .update({
+    await gravarComVerificacao({
+      supabase,
+      tabela: "crm_casos",
+      id: data.casoId,
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: {
         aguardando_instituicao_externa: data.aguardando,
         motivo_espera_externa: data.aguardando ? (data.motivo ?? "").trim() : null,
         proxima_atualizacao_limite_em: data.limite ?? null,
-      })
-      .eq("id", data.casoId)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -188,8 +192,6 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    if (!data.tituloCliente?.trim() || !data.resumoAprovado?.trim())
-      throw new Error("Título e resumo aprovados pelo cliente são obrigatórios.");
 
     const { data: criada, error } = await supabase
       .from("client_deliverables")
@@ -225,7 +227,7 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
 
     const { data: atual, error: erroLeitura } = await supabase
       .from("client_deliverables")
-      .select("id,approval_status,organization_id")
+      .select("id,approval_status,organization_id,case_id,title_client")
       .eq("id", data.entregaId)
       .eq("organization_id", ctx.organizationId)
       .maybeSingle();
@@ -238,7 +240,6 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
 
     const patch: Record<string, any> = {
       approval_status: data.para,
-      updated_by: context.userId as string,
     };
     if (data.para === "publicado") patch['available_at'] = hojeISO();
     if (data.para === "arquivado") {
@@ -247,12 +248,47 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
       patch['archive_motivo'] = data.motivo ?? "Arquivada pela equipe";
     }
 
-    const { error } = await supabase
-      .from("client_deliverables")
-      .update(patch)
-      .eq("id", data.entregaId)
-      .eq("organization_id", ctx.organizationId);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "client_deliverables",
+      id: data.entregaId,
+      organizationId: ctx.organizationId,
+      userId: context.userId as string,
+      payload: patch,
+    });
+
+    // CA05-CADENCIA-MICROENTREGAS (09/09/2026) — achado real: uma micro-entrega
+    // em revisão só era visível para quem abrisse a aba Jornada do caso. Mesma
+    // tabela e mesmo padrão de dedup já usados por `prepararAlertaProjecao`
+    // (biblioteca-evidencias.functions.ts): reaproveita alerta pendente do
+    // mesmo tipo para o mesmo caso, nunca duplica. Não cria tarefa nenhuma —
+    // é sinal, não fila de trabalho.
+    if (data.para === "em_revisao") {
+      const caseId = (atual as any).case_id as string;
+      const { data: alertaExistente } = await supabase
+        .from("case_alerts")
+        .select("id")
+        .eq("case_id", caseId)
+        .eq("tipo", "microentrega_em_revisao")
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+      const alertaPayload = {
+        organization_id: ctx.organizationId,
+        case_id: caseId,
+        tipo: "microentrega_em_revisao",
+        criticidade: "atencao",
+        titulo: `Micro-entrega em revisão: ${(atual as any).title_client ?? "sem título"}`,
+        detalhe: `Entrega ${data.entregaId} aguarda revisão antes de poder ser publicada ao cliente.`,
+        status: "pending",
+      };
+      if (alertaExistente?.id) {
+        await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id);
+      } else {
+        await supabase.from("case_alerts").insert(alertaPayload);
+      }
+    }
+
     return { ok: true, de, para: data.para };
   });
 

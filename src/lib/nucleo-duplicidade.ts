@@ -1,17 +1,28 @@
 /**
- * Detecção de possíveis duplicidades de núcleo familiar — Fase 1 do prompt canônico
- * "Unificação controlada de núcleos familiares".
+ * Unificação controlada de núcleos familiares (prompt canônico, fases 1–6).
  *
- * Puramente sugestiva: nunca decide, nunca funde, nunca marca nada como igual.
- * Cada candidato carrega o motivo objetivo (o que exatamente bateu) para que a
- * decisão de unificar ou descartar continue sendo humana.
+ * Fase 1 (detecção) é puramente sugestiva: nunca decide, nunca funde, nunca
+ * marca nada como igual. Cada candidato carrega o motivo objetivo para que a
+ * decisão continue sendo humana.
  *
- * Sem persistência: como não há coluna/tabela para guardar "em revisão",
- * "descartado" etc., a lista é recalculada a cada carregamento — ver nota no
- * componente da tela.
+ * Fases 2–6 (comparação, plano, confirmação UNIFICAR, reapontamento,
+ * arquivamento lógico, validação pós-merge) usam colunas que já existem:
+ * archived_at, archive_motivo, archived_by, status 'arquivado', case_id,
+ * nucleo_membros.nucleo_id, leads.nucleo_id. Não cria coluna nova.
+ *
+ * A lista de candidatos continua recalculada a cada carregamento: não há
+ * coluna para "em revisão"/"descartado". Núcleo arquivado some da detecção.
  */
 
-export type MembroParaComparar = { nome: string; papel?: string | null };
+export const CONFIRMACAO_UNIFICAR = "UNIFICAR";
+
+export type MembroParaComparar = {
+  id?: string;
+  nucleo_id?: string;
+  nome: string;
+  papel?: string | null;
+  archived_at?: string | null;
+};
 
 export type NucleoParaComparar = {
   id: string;
@@ -23,8 +34,11 @@ export type NucleoParaComparar = {
   created_at: string;
   updated_at: string;
   case_id: string | null;
+  archived_at?: string | null;
   caso: { id: string; codigo: string | null; titulo: string | null; pais: string | null } | null;
   membros: MembroParaComparar[];
+  /** Leads ativos apontando para este núcleo — só para o plano de unificação. */
+  leadsAtivos?: number;
 };
 
 export type NivelConfianca = "alta" | "media" | "baixa";
@@ -47,8 +61,12 @@ function normalizar(v: string | null | undefined): string {
     .trim();
 }
 
+function membroAtivo(m: MembroParaComparar): boolean {
+  return !m.archived_at;
+}
+
 function nomesDeMembros(n: NucleoParaComparar): Set<string> {
-  return new Set(n.membros.map((m) => normalizar(m.nome)).filter(Boolean));
+  return new Set(n.membros.filter(membroAtivo).map((m) => normalizar(m.nome)).filter(Boolean));
 }
 
 /** Só considera "em comum" nome com pelo menos 2 palavras — evita falso positivo por primeiro nome comum ("Ana", "João"). */
@@ -57,7 +75,7 @@ function nomeComparavel(nome: string): boolean {
 }
 
 export function detectarDuplicidades(nucleos: NucleoParaComparar[]): CandidatoDuplicidade[] {
-  const ativos = nucleos.filter((n) => n.status !== "arquivado");
+  const ativos = nucleos.filter((n) => n.status !== "arquivado" && !n.archived_at);
   const candidatos: CandidatoDuplicidade[] = [];
 
   for (let i = 0; i < ativos.length; i++) {
@@ -108,4 +126,223 @@ export function detectarDuplicidades(nucleos: NucleoParaComparar[]): CandidatoDu
 
   const peso: Record<NivelConfianca, number> = { alta: 0, media: 1, baixa: 2 };
   return candidatos.sort((x, y) => peso[x.confianca] - peso[y.confianca]);
+}
+
+/** Chave da unique nucleo_membros_unico: (nucleo_id, lower(nome)). */
+export function chaveNomeUnico(nome: string): string {
+  return nome.trim().toLowerCase();
+}
+
+export function exigirConfirmacaoUnificar(confirmacao: string): void {
+  if (confirmacao !== CONFIRMACAO_UNIFICAR) {
+    throw new Error(
+      `Unificação recusada: digite ${CONFIRMACAO_UNIFICAR} para confirmar. Não há fusão automática.`,
+    );
+  }
+}
+
+function nucleoArquivado(n: NucleoParaComparar): boolean {
+  return n.status === "arquivado" || Boolean(n.archived_at);
+}
+
+export type AcaoMembroPlano =
+  | { acao: "mover"; nome: string; membroId?: string }
+  | { acao: "arquivar_por_conflito"; nome: string; membroId?: string };
+
+export type AcaoCasoPlano = "manter" | "transferir" | "nenhum" | "recusar";
+
+export type PlanoUnificacao = {
+  recusado: boolean;
+  motivoRecusa: string | null;
+  canonicoId: string;
+  origemId: string;
+  canonicoNome: string;
+  origemNome: string;
+  caso: {
+    acao: AcaoCasoPlano;
+    caseIdCanonico: string | null;
+    caseIdOrigem: string | null;
+    caseIdFinal: string | null;
+  };
+  membros: AcaoMembroPlano[];
+  leads: { acao: "reapontar"; quantidade: number };
+  arquivoOrigem: { status: "arquivado"; motivo: string };
+};
+
+function motivoArquivoOrigem(canonico: NucleoParaComparar): string {
+  return `Unificado no núcleo canônico "${canonico.nome}" (${canonico.id}).`;
+}
+
+function planoInvalido(
+  canonico: NucleoParaComparar,
+  origem: NucleoParaComparar,
+  motivoRecusa: string,
+): PlanoUnificacao {
+  return {
+    recusado: true,
+    motivoRecusa,
+    canonicoId: canonico.id,
+    origemId: origem.id,
+    canonicoNome: canonico.nome,
+    origemNome: origem.nome,
+    caso: {
+      acao: "recusar",
+      caseIdCanonico: canonico.case_id,
+      caseIdOrigem: origem.case_id,
+      caseIdFinal: null,
+    },
+    membros: [],
+    leads: { acao: "reapontar", quantidade: origem.leadsAtivos ?? 0 },
+    arquivoOrigem: { status: "arquivado", motivo: motivoArquivoOrigem(canonico) },
+  };
+}
+
+/**
+ * Matriz de reconciliação (fase 3) — o que move, o que arquiva, o que recusa.
+ * Não executa nada. Conflito de nome segue a unique (nucleo_id, lower(nome)):
+ * o membro da origem é arquivado, nunca inserido de novo no canônico.
+ */
+export function montarPlanoUnificacao(
+  canonico: NucleoParaComparar,
+  origem: NucleoParaComparar,
+): PlanoUnificacao {
+  if (canonico.id === origem.id) {
+    return planoInvalido(canonico, origem, "Canônico e origem são o mesmo núcleo.");
+  }
+  if (nucleoArquivado(canonico) || nucleoArquivado(origem)) {
+    return planoInvalido(
+      canonico,
+      origem,
+      "Não é possível unificar: um dos núcleos já está arquivado.",
+    );
+  }
+
+  const caseCanonico = canonico.case_id;
+  const caseOrigem = origem.case_id;
+  if (caseCanonico && caseOrigem && caseCanonico !== caseOrigem) {
+    return planoInvalido(
+      canonico,
+      origem,
+      "Os dois núcleos apontam para casos diferentes. Resolva os casos antes de unificar — a unificação não transfere nem funde casos.",
+    );
+  }
+
+  let acaoCaso: AcaoCasoPlano = "nenhum";
+  let caseIdFinal: string | null = caseCanonico;
+  if (caseOrigem && !caseCanonico) {
+    acaoCaso = "transferir";
+    caseIdFinal = caseOrigem;
+  } else if (caseCanonico) {
+    acaoCaso = "manter";
+    caseIdFinal = caseCanonico;
+  }
+
+  const nomesCanonico = new Set(
+    canonico.membros.map((m) => chaveNomeUnico(m.nome)).filter(Boolean),
+  );
+  const membros: AcaoMembroPlano[] = origem.membros
+    .filter((m) => m.nome.trim() && membroAtivo(m))
+    .map((m) => {
+      const chave = chaveNomeUnico(m.nome);
+      if (nomesCanonico.has(chave)) {
+        return { acao: "arquivar_por_conflito" as const, nome: m.nome, membroId: m.id };
+      }
+      return { acao: "mover" as const, nome: m.nome, membroId: m.id };
+    });
+
+  return {
+    recusado: false,
+    motivoRecusa: null,
+    canonicoId: canonico.id,
+    origemId: origem.id,
+    canonicoNome: canonico.nome,
+    origemNome: origem.nome,
+    caso: {
+      acao: acaoCaso,
+      caseIdCanonico: caseCanonico,
+      caseIdOrigem: caseOrigem,
+      caseIdFinal,
+    },
+    membros,
+    leads: { acao: "reapontar", quantidade: origem.leadsAtivos ?? 0 },
+    arquivoOrigem: { status: "arquivado", motivo: motivoArquivoOrigem(canonico) },
+  };
+}
+
+export type NucleoPosMerge = {
+  id: string;
+  status: string | null;
+  archived_at: string | null;
+  case_id: string | null;
+};
+
+export type MembroPosMerge = {
+  id: string;
+  nucleo_id: string;
+  nome: string;
+  archived_at: string | null;
+};
+
+export type LeadPosMerge = {
+  id: string;
+  nucleo_id: string | null;
+};
+
+/**
+ * Validação pós-merge (fase 6): origem arquivada, membros/leads no canônico,
+ * nenhum nome duplicado ativo no canônico.
+ */
+export function validarPosMerge(input: {
+  canonicoId: string;
+  origemId: string;
+  caseIdEsperado: string | null;
+  origem: NucleoPosMerge;
+  canonico: NucleoPosMerge;
+  membros: MembroPosMerge[];
+  leads: LeadPosMerge[];
+}): { ok: boolean; falhas: string[] } {
+  const falhas: string[] = [];
+
+  if (input.origem.id !== input.origemId) {
+    falhas.push("Núcleo de origem relido não corresponde ao pedido.");
+  }
+  if (input.canonico.id !== input.canonicoId) {
+    falhas.push("Núcleo canônico relido não corresponde ao pedido.");
+  }
+  if (input.origem.status !== "arquivado" || !input.origem.archived_at) {
+    falhas.push("Núcleo de origem não ficou arquivado.");
+  }
+  if (input.canonico.status === "arquivado" || input.canonico.archived_at) {
+    falhas.push("Núcleo canônico não pode ficar arquivado na unificação.");
+  }
+  if ((input.canonico.case_id ?? null) !== (input.caseIdEsperado ?? null)) {
+    falhas.push("Caso do núcleo canônico não bate com o plano de unificação.");
+  }
+
+  const leadsNaOrigem = input.leads.filter((l) => l.nucleo_id === input.origemId);
+  if (leadsNaOrigem.length > 0) {
+    falhas.push(`${leadsNaOrigem.length} lead(s) ainda apontam para o núcleo de origem.`);
+  }
+
+  const ativosCanonico = input.membros.filter(
+    (m) => m.nucleo_id === input.canonicoId && !m.archived_at,
+  );
+  const vistos = new Set<string>();
+  for (const m of ativosCanonico) {
+    const chave = chaveNomeUnico(m.nome);
+    if (!chave) continue;
+    if (vistos.has(chave)) {
+      falhas.push(`Nome duplicado no núcleo canônico: "${m.nome}".`);
+    }
+    vistos.add(chave);
+  }
+
+  const ativosOrigem = input.membros.filter((m) => m.nucleo_id === input.origemId && !m.archived_at);
+  if (ativosOrigem.length > 0) {
+    falhas.push(
+      `${ativosOrigem.length} membro(s) ativo(s) ainda no núcleo de origem; deveriam ter sido movidos ou arquivados.`,
+    );
+  }
+
+  return { ok: falhas.length === 0, falhas };
 }

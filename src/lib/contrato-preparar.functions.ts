@@ -3,14 +3,19 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
-import { conflitosCoerenciaDoRegistro } from "@/lib/coerencia-caso.server";
+import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
+import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import {
   bloqueiosDeEscopo,
   extrairEscopoDaProposta,
   mapaCoberturaEscopo,
+  propostaComPaginasCanva,
   validarPropostaCanva,
 } from "@/lib/escopo-proposta";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -158,13 +163,26 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         .eq("code", "BASE-GEN-V2")
         .eq("status", "active")
         .maybeSingle(),
-      supabase
-        .from("case_members")
-        .select("id,nome,parentesco,requerente,nacionalidade")
-        .eq("case_id", caso.id)
-        .is("archived_at", null)
-        .order("created_at", { ascending: true }),
+      pessoasDoCasoComFallbackNucleo(supabase, caso.id).then((data) => ({ data })),
     ]);
+
+    /*
+     * Achado real (06/09/2026): esta tela lia proposals.escopo_paginas/
+     * paginas_registradas direto — colunas legadas que nenhuma tela grava
+     * mais. A extração real acontece em "Preparar contrato" (CompletudeCanva),
+     * que grava em proposal_canva_pages. cadeia-formalizacao.server.ts já
+     * fazia essa fusão; esta tela (a que a proprietária de fato usa) não
+     * fazia, e por isso mostrava um escopo desatualizado/diferente da mesma
+     * proposta em cada tela.
+     */
+    const { data: paginasCanva } = proposta?.id
+      ? await supabase
+          .from("proposal_canva_pages")
+          .select("page_number,extracao_status,page_content_structured")
+          .eq("proposal_id", proposta.id)
+          .is("archived_at", null)
+      : { data: [] as any[] };
+    const propostaEfetiva = propostaComPaginasCanva(proposta as any, (paginasCanva ?? []) as any[]);
 
     // Ficha única por caso: reaproveita se já existir, nunca duplica.
     let { data: registro } = await supabase
@@ -193,13 +211,15 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       registro = novo;
       fichaCriada = true;
     } else if (!registro.proposal_id && proposta?.id) {
-      const { data: atualizado } = await supabase
-        .from("contract_case_parameters")
-        .update({ proposal_id: proposta.id, updated_by: userId })
-        .eq("id", registro.id)
-        .select("*")
-        .single();
-      registro = atualizado ?? registro;
+      const resultado = await gravarComVerificacao({
+        supabase,
+        tabela: "contract_case_parameters",
+        id: registro.id,
+        organizationId: org,
+        userId,
+        payload: { proposal_id: proposta.id },
+      });
+      registro = resultado.registro;
     }
 
     const [{ data: valores }, { data: previas }, completude, pendencias] = await Promise.all([
@@ -233,7 +253,45 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         ).data
       : null;
 
-    const lista = (valores ?? []) as any[];
+    let lista = (valores ?? []) as any[];
+    const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
+    // LEGADO: parametrosDoPlanejador lê src/data/casos.ts. Só preenche campo
+    // ainda vazio — valor já persistido (incluindo case_plans / edição humana) prevalece.
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
+    for (const c of planejador.parametros) {
+      const atual = lista.find((v) => v.campo === c.campo);
+      if (!atual || String(atual.valor ?? "").trim()) continue;
+      const texto = String(c.valor ?? "").trim();
+      if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
+      const { data: atualizado, error } = await supabase
+        .from("contract_parameter_values")
+        .update({
+          valor: texto,
+          origem: "planejador",
+          origem_detalhe: c.detalhe,
+          status: "importado_a_confirmar",
+        })
+        .eq("id", atual.id)
+        .select("*")
+        .maybeSingle();
+      if (!error && atualizado) lista = lista.map((v) => (v.id === atual.id ? atualizado : v));
+    }
+    const escopoProposta = String(propostaEfetiva?.escopo ?? "").trim();
+    const linhaEscopo = lista.find((v) => v.campo === "escopo_resumo");
+    if (linhaEscopo && !String(linhaEscopo.valor ?? "").trim() && escopoProposta && !PLACEHOLDER_PARAM.test(escopoProposta)) {
+      const { data: atualizado, error } = await supabase
+        .from("contract_parameter_values")
+        .update({
+          valor: escopoProposta,
+          origem: "proposta",
+          origem_detalhe: "Escopo da proposta aprovada vinculada ao caso.",
+          status: "importado_a_confirmar",
+        })
+        .eq("id", linhaEscopo.id)
+        .select("*")
+        .maybeSingle();
+      if (!error && atualizado) lista = lista.map((v) => (v.id === linhaEscopo.id ? atualizado : v));
+    }
     const pegar = (campo: string) => lista.find((v) => v.campo === campo)?.valor ?? null;
     const anexos = anexosPorRegra({
       produto: pegar("produto_sku"),
@@ -275,10 +333,10 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
     if (!finalAprovada) bloqueios.push({ chave: "revisao_humana", motivo: "Revisão humana da versão final ainda não aprovada." });
 
     // Escopo mandatório: proposta Canva vigente aprovada, páginas 1–7.
-    const validadeEscopo = validarPropostaCanva(proposta as any, caso.id);
-    const extraidos = extrairEscopoDaProposta(proposta as any);
+    const validadeEscopo = validarPropostaCanva(propostaEfetiva as any, caso.id);
+    const extraidos = extrairEscopoDaProposta(propostaEfetiva as any);
     const cobertura = mapaCoberturaEscopo({
-      proposta: proposta as any,
+      proposta: propostaEfetiva as any,
       extraidos,
       valores: lista.map((v) => ({ campo: v.campo, valor: v.valor, origem: v.origem, status: v.status })),
     });
@@ -326,7 +384,7 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       aliasDe,
       cliente: cliente ? { id: cliente.id, nome: cliente.nome, email: cliente.email, telefone: cliente.telefone } : null,
       registro,
-      proposta: proposta ?? null,
+      proposta: (propostaEfetiva ?? null) as any,
       modelo: modelo ?? null,
       base: base ?? null,
       membros: membros ?? [],
@@ -366,10 +424,7 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
       .select("id,case_id,proposal_id")
       .eq("id", registro.id)
       .maybeSingle();
-    const coerencia = await conflitosCoerenciaDoRegistro(supabase, completo ?? registro);
-    if (coerencia.conflitos.length) {
-      throw new Error(`Conflito crítico (${CONFLITO_PAIS_ROTA}): ${coerencia.conflitos[0].mensagem}`);
-    }
+    await exigirCoerencia(supabase, completo ?? registro, { userId, organizationId: registro.organization_id });
 
     await auditar(supabase, {
       org: registro.organization_id,
@@ -380,11 +435,14 @@ export const solicitarRevisaoHumana = createServerFn({ method: "POST" })
     });
 
     if (["rascunho", "em_validacao"].includes(registro.status)) {
-      const { error } = await supabase
-        .from("contract_case_parameters")
-        .update({ status: "em_validacao", updated_by: userId })
-        .eq("id", registro.id);
-      if (error) throw new Error(error.message);
+      await gravarComVerificacao({
+        supabase,
+        tabela: "contract_case_parameters",
+        id: registro.id,
+        organizationId: registro.organization_id,
+        userId,
+        payload: { status: "em_validacao" },
+      });
     }
 
     return { ok: true };

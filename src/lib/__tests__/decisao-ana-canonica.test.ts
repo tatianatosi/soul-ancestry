@@ -7,7 +7,7 @@ import {
   resolverReferenciaAna,
   rotuloExibicaoAna,
 } from "@/lib/decisao-ana-canonica";
-import { BLOQUEIOS_PILOTO, PILOTO_ANA } from "@/lib/piloto-ana";
+import { derivarPendenciasPiloto, PILOTO_ANA } from "@/lib/piloto-ana";
 import { MATRIZ_PENDENCIAS } from "@/lib/varredura-completude";
 
 describe("decisão canônica de Ana Luiza", () => {
@@ -22,12 +22,12 @@ describe("decisão canônica de Ana Luiza", () => {
     expect(resolverReferenciaAna("CA-CID-PT-IND-2026-002")).toBeNull();
   });
 
-  it("exibe apenas o código canônico, com 'Piloto real' como selo", () => {
+  it("exibe apenas o código canônico, com 'Primeira cliente' como selo", () => {
     const r = rotuloExibicaoAna();
     expect(r.codigo).toBe("CA-CID-AT-FAM-2026-001");
     expect(r.nome).toBe("Projeto familiar — Ana Luiza");
     expect(r.nome).not.toContain("CA-AUT");
-    expect(r.selo).toBe("Piloto real");
+    expect(r.selo).toBe("Primeira cliente");
   });
 
   it("mantém o código legado no histórico com a nota de resolução", () => {
@@ -39,7 +39,15 @@ describe("decisão canônica de Ana Luiza", () => {
 
   it("não é bloqueio, pendência nem gate aberto", () => {
     expect(divergenciaIdAnaEhBloqueio()).toBe(false);
-    expect(BLOQUEIOS_PILOTO.some((b) => b.codigo === "id_canonico")).toBe(false);
+    const pendencias = derivarPendenciasPiloto({
+      caseId: DECISAO_ANA_CANONICA.caseId,
+      caso: { id_canonico_decidido: PILOTO_ANA.id_canonico_decidido },
+      membros: [],
+      contrato: null,
+      ordemServico: null,
+      perfilInstitucionalVigente: true,
+    });
+    expect(pendencias.some((p) => p.codigo === "id_canonico_pendente")).toBe(false);
     expect(PILOTO_ANA.id_canonico_decidido).toBe("CA-CID-AT-FAM-2026-001");
     const pend01 = MATRIZ_PENDENCIAS.find((l) => l.id === "PEND-01");
     expect(pend01?.status).toBe("RESOLVIDO_POR_DECISAO_DA_PROPRIETARIA");

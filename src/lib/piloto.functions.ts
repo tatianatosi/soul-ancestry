@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -82,9 +83,6 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; valor: string; origem: string; origemDetalhe?: string; observacao?: string }) => {
     const valor = input.valor.trim();
-    if (valor && !ORIGENS.includes(input.origem as (typeof ORIGENS)[number])) {
-      throw new Error("Selecione uma origem válida para o dado.");
-    }
     if (valor && PLACEHOLDER.test(valor)) {
       throw new Error("Valor contém texto de exemplo. Deixe o campo vazio como pendência.");
     }
@@ -92,16 +90,20 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
-    const { error } = await supabase
-      .from("piloto_conferencia")
-      .update({
+    const org = await orgDoUsuario(supabase, context.userId as string);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "piloto_conferencia",
+      id: data.id,
+      organizationId: org,
+      userId: context.userId as string,
+      payload: {
         valor: data.valor || null,
         origem: data.valor ? data.origem : null,
         origem_detalhe: data.origemDetalhe?.trim() || null,
         observacao: data.observacao?.trim() || null,
-      })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+      },
+    });
     return { ok: true };
   });
 
@@ -111,6 +113,7 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; verificado: boolean }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
+    const org = await orgDoUsuario(supabase, context.userId as string);
     if (data.verificado) {
       const { data: atual } = await supabase
         .from("piloto_conferencia")
@@ -124,11 +127,14 @@ export const verificarDadoPiloto = createServerFn({ method: "POST" })
         );
       }
     }
-    const { error } = await supabase
-      .from("piloto_conferencia")
-      .update({ verificado: data.verificado })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "piloto_conferencia",
+      id: data.id,
+      organizationId: org,
+      userId: context.userId as string,
+      payload: { verificado: data.verificado },
+    });
     return { ok: true };
   });
 
@@ -139,12 +145,16 @@ export const resolverBloqueioPiloto = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; status: "resolvido" | "nao_aplicavel"; justificativa: string }) => input)
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
+    const org = await orgDoUsuario(supabase, context.userId as string);
     const justificativa = (data.justificativa ?? "").trim() || "Sem justificativa informada.";
-    const { error } = await supabase
-      .from("piloto_bloqueios")
-      .update({ status: data.status, justificativa })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await gravarComVerificacao({
+      supabase,
+      tabela: "piloto_bloqueios",
+      id: data.id,
+      organizationId: org,
+      userId: context.userId as string,
+      payload: { status: data.status, justificativa },
+    });
     return { ok: true };
   });
 
@@ -178,7 +188,7 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
         organization_id: org,
         case_id: caso["id"],
         status: "preparation",
-        research_objective: "Piloto real — preparação de pesquisa a partir de dados conferidos.",
+        research_objective: "Preparação de pesquisa a partir de dados conferidos — Ana Luiza, primeira cliente.",
         external_research_gate_status: "blocked_by_contract",
         external_research_authorization_status: "not_requested",
         demo: false,
@@ -196,11 +206,13 @@ export const liberarPortalPiloto = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as Sb;
     const org = await orgDoUsuario(supabase, context.userId as string);
-    const { error } = await supabase
+    const { data: linhas, error } = await supabase
       .from("crm_casos")
-      .update({ app_access_status: data.liberar ? "liberado" : "bloqueado" })
+      .update({ app_access_status: data.liberar ? "liberado" : "bloqueado", updated_by: context.userId })
       .eq("organization_id", org)
-      .eq("piloto", true);
+      .eq("piloto", true)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!linhas?.length) throw new Error("NENHUMA_LINHA_AFETADA: nenhum caso piloto encontrado nesta organização.");
     return { ok: true };
   });

@@ -47,13 +47,13 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "visao-geral",
     grupo: "Visão geral",
-    grupoNovo: "Hoje",
+    grupoNovo: "Visão Geral",
     rotaBase: "/painel",
     linhas: [
       { mockup: "Overview / Visão Geral", rota: "/painel", dado: "derivado: casos, tarefas, ops_microentregas, communication_queue", estado: "implementado", nota: "Painel Hoje com ordem canônica e deduplicação." },
       { mockup: "Métricas do topo", rota: "/metricas", dado: "derivado: crm_casos, leads, eventos_financeiros", estado: "implementado" },
       { mockup: "Relatórios", rota: "/relatorios", dado: "case_reports, research_reports", estado: "parcial", nota: "Exportações consolidadas; alguns relatórios ainda manuais." },
-      { mockup: "Alertas", rota: "/painel (Sinais de atenção)", dado: "derivado (alertas-derivados.ts) sobre case_alerts e SLA", estado: "implementado", nota: "Visão derivada, sem segunda fonte de verdade." },
+      { mockup: "Alertas", rota: "/alertas", dado: "case_alerts (mesma fonte lida por /painel para o subconjunto prioritário)", estado: "implementado", nota: "CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026): rota própria com lista completa/filtrável; Painel mostra só o subconjunto pendente mais crítico." },
       { mockup: "Radar interno multi-país", rota: "—", dado: "—", estado: "ausente", nota: "Lacuna real: radar multi-país não tem fonte canônica definida." },
     ],
   },
@@ -81,7 +81,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "casos",
     grupo: "Casos e núcleos",
-    grupoNovo: "Casos",
+    grupoNovo: "Casos 360",
     rotaBase: "/casos",
     linhas: [
       { mockup: "Casos 360", rota: "/casos · /casos/$id", dado: "crm_casos, case_members, case_services", estado: "implementado" },
@@ -124,7 +124,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "governanca",
     grupo: "Governança e biblioteca",
-    grupoNovo: "Governança",
+    grupoNovo: "Biblioteca Mestre",
     rotaBase: "/biblioteca",
     linhas: [
       { mockup: "Modo Proprietária", rota: "/modo-proprietaria", dado: "owner_override_events, staff_access", estado: "implementado" },

@@ -136,13 +136,19 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
   }
 
   const suficiente = verificacao?.suficiente ?? false;
-  const podeExecutar =
-    Boolean(verificacao) &&
-    verificacao?.case_id === casoId &&
-    confirmado &&
-    suficiente &&
-    (!verificacao?.demo || demoConfirmada) &&
-    !rodando;
+  // Autoridade operacional: as pré-condições de dado (verificação feita,
+  // confirmação, suficiência, confirmação de demo) deixam de travar o botão.
+  // Continuam visíveis como pendência e o servidor revalida a execução.
+  const pendenciaExecucao =
+    [
+      !verificacao ? "Verificação do caso ainda não executada." : null,
+      verificacao && verificacao.case_id !== casoId ? "A verificação carregada é de outro caso." : null,
+      !confirmado ? "Conferência dos dados do caso não confirmada." : null,
+      verificacao && !suficiente ? "Dados do caso considerados insuficientes pela verificação." : null,
+      verificacao?.demo && !demoConfirmada ? "Caso de demonstração sem confirmação explícita." : null,
+    ]
+      .filter(Boolean)
+      .join(" ") || null;
 
   return (
     <Painel titulo="Assistente de pesquisa genealógica">
@@ -232,11 +238,15 @@ export function AssistentePesquisa({ casoId }: { casoId: string }) {
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           onClick={gerar}
-          disabled={!podeExecutar}
+          disabled={rodando}
+          title={pendenciaExecucao ?? undefined}
           className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-60"
         >
           {rodando ? "Analisando dossiê…" : "Gerar análise de pesquisa"}
         </button>
+        {pendenciaExecucao ? (
+          <p className="w-full text-xs text-navy/70">Pendência registrada: {pendenciaExecucao}</p>
+        ) : null}
         {!rodando && (
           <button
             onClick={() => void verificar()}

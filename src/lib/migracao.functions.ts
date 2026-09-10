@@ -193,7 +193,7 @@ export const executarImportacaoPlacego = createServerFn({ method: "POST" })
       }
     }
 
-    await supabase
+    const finalizado = await supabase
       .from("import_batches")
       .update({
         finished_at: new Date().toISOString(),
@@ -204,7 +204,11 @@ export const executarImportacaoPlacego = createServerFn({ method: "POST" })
         error_log: erros,
         status: erros.length ? "concluido_com_erros" : "concluido",
       })
-      .eq("id", lote.id);
+      .eq("id", lote.id)
+      .select("id")
+      .maybeSingle();
+    if (finalizado.error) throw new Error(`Não foi possível finalizar o lote de importação: ${finalizado.error.message}`);
+    if (!finalizado.data?.id) throw new Error("NENHUMA_LINHA_AFETADA: o lote de importação não foi encontrado para finalizar.");
 
     return {
       loteId: lote.id as string,
@@ -222,14 +226,17 @@ export const atualizarExcecaoMigracao = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     const { organizationId } = await contexto(supabase, context.userId as string);
-    const { error } = await supabase
+    const { data: linhaAtualizada, error } = await supabase
       .from("migration_exceptions")
       .update({
         status: data.status,
         proposed_resolution: data.proposed_resolution ?? undefined,
       })
       .eq("id", data.id)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: exceção de migração não encontrada nesta organização.");
     return { ok: true };
   });
