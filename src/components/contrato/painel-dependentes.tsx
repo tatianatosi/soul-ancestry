@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { listarDependentes, salvarDependente } from "@/lib/crm-desk.functions";
@@ -28,10 +29,12 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
   const mut = useMutation({
     mutationFn: (p: { id?: string | null; valores: Record<string, unknown> }) => salvar({ data: { ...p, caseId } }),
     onSuccess: () => {
+      toast.success("Dependente salvo.");
       setNovo(null);
       setEdicao({});
       void qc.invalidateQueries({ queryKey: ["dependentes", caseId] });
     },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível salvar o dependente."),
   });
 
   const lista = (q.data ?? []) as Dependente[];
@@ -40,32 +43,28 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
 
   const formulario = (valores: Record<string, unknown>, onChange: (k: string, v: unknown) => void) => (
     <div className="grid gap-3 md:grid-cols-2">
-      <Texto label="Nome completo" valor={String(valores.nome_completo ?? "")} onChange={(v) => onChange("nome_completo", v)} desabilitado={!podeEscrever} />
+      <Texto label="Nome completo" valor={String(valores.nome_completo ?? "")} onChange={(v) => onChange("nome_completo", v)} />
       <Selecao
         label="Vínculo com o titular"
         valor={String(valores.vinculo_com_titular ?? "")}
         opcoes={VINCULOS_DEPENDENTE.map((v) => ({ valor: v.valor, rotulo: v.rotulo }))}
         onChange={(v) => onChange("vinculo_com_titular", v)}
-        desabilitado={!podeEscrever}
       />
       <Texto
         label="Titular responsável legal"
         valor={String(valores.titular_responsavel_legal_nome ?? "")}
         onChange={(v) => onChange("titular_responsavel_legal_nome", v)}
-        desabilitado={!podeEscrever}
       />
       <Selecao
         label="Status da representação"
         valor={String(valores.status_representacao ?? "")}
         opcoes={STATUS_REPRESENTACAO.map((s) => ({ valor: s.valor, rotulo: s.rotulo }))}
         onChange={(v) => onChange("status_representacao", v)}
-        desabilitado={!podeEscrever}
       />
       <Texto
         label="Referência interna do documento de representação"
         valor={String(valores.documento_representacao_referencia_interna ?? "")}
         onChange={(v) => onChange("documento_representacao_referencia_interna", v)}
-        desabilitado={!podeEscrever}
       />
       <div className="flex flex-wrap items-end gap-4 text-sm text-navy">
         {[
@@ -77,7 +76,6 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
             <input
               type="checkbox"
               checked={Boolean(valores[k])}
-              disabled={!podeEscrever}
               onChange={(e) => onChange(k, e.target.checked)}
             />
             {label}
@@ -90,7 +88,6 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
           area
           valor={String(valores.observacao_interna ?? "")}
           onChange={(v) => onChange("observacao_interna", v)}
-          desabilitado={!podeEscrever}
         />
       </div>
     </div>
@@ -121,22 +118,34 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
                 {d.nome_completo} · representação {rotuloStatusRepresentacao(d.status_representacao).toLowerCase()}
               </p>
               {formulario(valores, (k, v) => setEdicao((s) => ({ ...s, [String(d.id)]: { ...s[String(d.id)], [k]: v } })))}
-              {podeEscrever ? (
-                <button
-                  type="button"
-                  className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
-                  onClick={() => mut.mutate({ id: d.id, valores: edicao[String(d.id)] ?? {} })}
-                >
-                  Gravar dependente
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+                onClick={() => mut.mutate({ id: d.id, valores: edicao[String(d.id)] ?? {} })}
+              >
+                Gravar dependente
+              </button>
             </div>
           );
         })}
-        {!lista.length ? <p className="text-sm text-navy/55">Nenhum dependente declarado neste caso.</p> : null}
+        {q.error ? (
+          <p role="alert" className="flex flex-wrap items-center gap-2 text-sm text-terracotta">
+            Não foi possível carregar os dependentes. A lista está vazia por falha de leitura, não por ausência de
+            declaração.
+            <button
+              type="button"
+              onClick={() => void q.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : !lista.length ? (
+          <p className="text-sm text-navy/55">Nenhum dependente declarado neste caso.</p>
+        ) : null}
       </div>
 
-      {podeEscrever ? (
+      {(
         novo ? (
           <div className="mt-3 rounded-lg border border-gold/50 p-3">
             {formulario(novo, (k, v) => setNovo((s) => ({ ...(s ?? {}), [k]: v })))}
@@ -158,7 +167,7 @@ export function PainelDependentes({ caseId, podeEscrever }: { caseId: string; po
             Declarar dependente
           </button>
         )
-      ) : null}
+      )}
     </Secao>
   );
 }

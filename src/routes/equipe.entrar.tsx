@@ -162,11 +162,17 @@ function EntrarEquipe() {
     }
   }
 
-  const bloqueado = espera > 0;
+  // Espera por excesso de tentativas de senha. NÃO é trava de autoridade
+  // operacional: é proteção de credencial (rate limit) e deve continuar
+  // desabilitando o envio enquanto o contador não zerar.
+  const emEspera = espera > 0;
   const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
 
   return (
-    <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
+    <EquipeMoldura
+      titulo="Entrar no Desk"
+      subtitulo="Painel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável."
+    >
       <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
         <div>
           <label htmlFor="email" className="text-sm font-medium text-navy">
@@ -199,7 +205,7 @@ function EntrarEquipe() {
           />
         </div>
         {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-        {bloqueado ? (
+        {emEspera ? (
           <p className="text-sm text-navy/70">
             Acesso temporariamente pausado por excesso de tentativas. Liberação em{" "}
             <span className="font-medium text-navy">{rotuloEspera}</span>.
@@ -207,12 +213,12 @@ function EntrarEquipe() {
         ) : null}
         <button
           type="submit"
-          disabled={carregando || !pronto || bloqueado}
+          disabled={carregando || !pronto || emEspera}
           className="w-full rounded-lg bg-navy px-4 py-2.5 font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {!pronto
             ? "Carregando…"
-            : bloqueado
+            : emEspera
               ? `Aguarde ${rotuloEspera}`
               : carregando
                 ? "Entrando…"

@@ -13,20 +13,29 @@ import {
   FLUXO_EVIDENCIA,
   NATUREZAS,
   NIVEIS_ACESSO,
+  ROTULO_ESTADO_MICROENTREGA,
   cadeiaDaEvidencia,
   conteudoProjetavel,
+  estadoMicroentrega,
   evidenciaProjetavel,
+  marcoJuridicoProjetavel,
   validarElevacaoConfianca,
   validarEvidencia,
 } from "@/lib/biblioteca-evidencias";
 import {
   aprovarProjecao,
   arquivarRegistroG03,
+  despublicarProjecao,
   painelBibliotecaEvidencias,
+  prepararAlertaProjecao,
   registrarValidacaoEvidencia,
+  revisarProjecao,
   salvarEvidencia,
   salvarProjecao,
 } from "@/lib/biblioteca-evidencias.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
   component: Pagina,
@@ -48,9 +57,15 @@ export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$cas
     ],
   }),
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-terracotta">Não foi possível carregar a biblioteca: {error.message}</div>
+    <SaasShell titulo="Biblioteca de evidências" descricao="Falha ao carregar a biblioteca.">
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a biblioteca: {error.message}</p>
+    </SaasShell>
   ),
-  notFoundComponent: () => <div className="p-6 text-sm text-navy/70">Caso não encontrado.</div>,
+  notFoundComponent: () => (
+    <SaasShell titulo="Biblioteca de evidências" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
@@ -71,13 +86,23 @@ const inputCls = "mt-1 w-full rounded border border-navy/20 bg-white px-2 py-1.5
 type Aba = "evidencias" | "nova" | "validacao" | "projecoes" | "cadeia";
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { caseId } = Route.useParams();
   const qc = useQueryClient();
   const carregar = useServerFn(painelBibliotecaEvidencias);
-  const { data } = useQuery({
+  const consulta = useQuery({
     queryKey: ["g03", caseId],
     queryFn: () => carregar({ data: { caseId } }),
+    retry: false,
   });
+  const { data } = consulta;
 
   const [aba, setAba] = useState<Aba>("evidencias");
   const [selecionada, setSelecionada] = useState<string>("");
@@ -86,6 +111,9 @@ function Pagina() {
   const validarEv = useServerFn(registrarValidacaoEvidencia);
   const salvarProj = useServerFn(salvarProjecao);
   const aprovarProj = useServerFn(aprovarProjecao);
+  const revisarProj = useServerFn(revisarProjecao);
+  const despublicarProj = useServerFn(despublicarProjecao);
+  const alertaProj = useServerFn(prepararAlertaProjecao);
   const arquivar = useServerFn(arquivarRegistroG03);
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["g03", caseId] });
@@ -124,6 +152,30 @@ function Pagina() {
     },
     onError: erro,
   });
+  const mRevisar = useMutation({
+    mutationFn: (v: { id: string }) => revisarProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Projeção enviada para revisão.");
+      invalidar();
+    },
+    onError: erro,
+  });
+  const mDespublicar = useMutation({
+    mutationFn: (v: { id: string }) => despublicarProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Projeção despublicada — some do App Cliente, continua aprovada.");
+      invalidar();
+    },
+    onError: erro,
+  });
+  const mAlerta = useMutation({
+    mutationFn: (v: { id: string; caseId: string; titulo: string }) => alertaProj({ data: v }),
+    onSuccess: () => {
+      toast.success("Alerta interno registrado. Nada foi enviado ao cliente.");
+      invalidar();
+    },
+    onError: erro,
+  });
   const mArquivar = useMutation({
     mutationFn: (v: { tabela: "evidences" | "app_projections"; id: string; motivo: string }) => arquivar({ data: v }),
     onSuccess: () => {
@@ -133,13 +185,57 @@ function Pagina() {
     onError: erro,
   });
 
-  const evidencias = data?.evidencias ?? [];
-  const projecoes = data?.projecoes ?? [];
-  const validacoes = data?.validacoes ?? [];
-  const podeEditar = data?.podeEditar ?? false;
+  // Consulta sem payload é falha de carga, não base vazia (ver bloco `!data`).
+  const evidencias = data ? data.evidencias : [];
+  const projecoes = data ? data.projecoes : [];
+  const validacoes = data ? data.validacoes : [];
+  // Autoridade operacional (05/09/2026): o gate de papel do servidor deixou de
+  // esconder as ações da biblioteca. Elas renderizam sempre; o que sobra é
+  // estado do registro (rascunho/em revisão/arquivado), que é regra de negócio.
+  const pendenciaPapel = data && !data.podeEditar
+    ? "O servidor marcou esta biblioteca como somente leitura para o seu vínculo — as ações seguem disponíveis por decisão sua."
+    : null;
+
+  if (consulta.isLoading) {
+    return (
+      <SaasShell titulo="Biblioteca de evidências" descricao="Registro interno de evidências e projeções.">
+        <p className="text-sm text-navy/60" role="status">
+          Carregando a biblioteca de evidências…
+        </p>
+      </SaasShell>
+    );
+  }
+  // Consulta sem erro e sem payload é falha de carga, não biblioteca vazia.
+  if (consulta.isError || !data) {
+    return (
+      <SaasShell titulo="Biblioteca de evidências" descricao="Falha ao carregar a biblioteca.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium text-destructive">
+            Não foi possível carregar a biblioteca de evidências deste caso.
+          </p>
+          <p className="text-navy/80">
+            {consulta.error instanceof Error
+              ? consulta.error.message
+              : "A consulta terminou sem retornar resultado nem erro. Isso é falha de carga: não significa que o caso esteja sem evidências."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void consulta.refetch()}
+            className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </SaasShell>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <SaasShell
+      titulo="Biblioteca de evidências e projeções autorizadas"
+      descricao="Registro interno de evidências, validação e projeções ao App Cliente."
+    >
+    <div>
       <header className="mb-5">
         <p className="text-[11px] uppercase tracking-widest text-gold">G-03 · Uso interno</p>
         <h1 className="text-xl font-semibold text-navy">Biblioteca de evidências e projeções autorizadas</h1>
@@ -148,6 +244,14 @@ function Pagina() {
           evidência visível. Nada chega ao App Cliente sem projeção aprovada e sanitizada.
         </p>
       </header>
+
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
 
       <nav className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {(
@@ -198,29 +302,27 @@ function Pagina() {
               <p className="mt-1 text-[11px] text-navy/60">
                 {evidenciaProjetavel(e).ok ? "Elegível a projeção autorizada." : evidenciaProjetavel(e).erros.join(" ")}
               </p>
-              {podeEditar ? (
-                <div className="mt-2 flex gap-3 text-[11px]">
-                  <button
-                    className="underline decoration-gold"
-                    onClick={() => {
-                      setSelecionada(String(e["id"]));
-                      setAba("validacao");
-                    }}
-                  >
-                    Registrar validação
-                  </button>
-                  <button
-                    className="underline decoration-terracotta text-terracotta"
-                    onClick={() => {
-                      const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                      if (motivo !== null)
-                        mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
-                    }}
-                  >
-                    Arquivar
-                  </button>
-                </div>
-              ) : null}
+              <div className="mt-2 flex gap-3 text-[11px]">
+                <button
+                  className="underline decoration-gold"
+                  onClick={() => {
+                    setSelecionada(String(e["id"]));
+                    setAba("validacao");
+                  }}
+                >
+                  Registrar validação
+                </button>
+                <button
+                  className="underline decoration-terracotta text-terracotta"
+                  onClick={() => {
+                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
+                    if (motivo !== null)
+                      mArquivar.mutate({ tabela: "evidences", id: String(e["id"]), motivo });
+                  }}
+                >
+                  Arquivar
+                </button>
+              </div>
             </article>
           ))}
         </section>
@@ -239,29 +341,85 @@ function Pagina() {
 
       {aba === "projecoes" ? (
         <section className="space-y-4">
-          <FormProjecao caseId={caseId} evidencias={evidencias} onCriar={(v) => mProj.mutate(v)} />
+          <FormProjecao
+            caseId={caseId}
+            evidencias={evidencias}
+            marcosJuridicos={data.marcosJuridicos}
+            onCriar={(v) => mProj.mutate(v)}
+          />
           <div className="space-y-3">
-            {projecoes.map((p) => (
+            {projecoes.map((p) => {
+              const estado = estadoMicroentrega({
+                approval_status: p["approval_status"] as string,
+                effective_from: p["effective_from"] as string | null,
+              });
+              return (
               <article key={String(p["id"])} className="rounded border border-navy/15 bg-white p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-navy">{String(p["projection_type"])}</h3>
                   <span className="rounded-full bg-cream px-2 py-0.5 text-[11px] text-navy">
-                    {rotulo(DESTINOS, p["destination"])} · {rotulo(APROVACOES, p["approval_status"])}
+                    {rotulo(DESTINOS, p["destination"])} · {ROTULO_ESTADO_MICROENTREGA[estado]}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-navy/80">{String(p["content_sanitized"])}</p>
                 <p className="mt-1 text-[11px] text-navy/50">{DISCLAIMER_PROJECAO}</p>
-                {podeEditar && ["draft", "in_review"].includes(String(p["approval_status"])) ? (
-                  <div className="mt-2 flex gap-3 text-[11px]">
-                    <button className="underline decoration-gold" onClick={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}>
-                      Aprovar
+                <div className="mt-2 flex flex-wrap items-start gap-3 text-[11px]">
+                  {p["approval_status"] === "draft" ? (
+                    <button className="underline decoration-gold" onClick={() => mRevisar.mutate({ id: String(p["id"]) })}>
+                      Enviar para revisão
                     </button>
-                    <button className="underline decoration-gold" onClick={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}>
-                      Aprovar e publicar
+                  ) : null}
+                  {["draft", "in_review"].includes(String(p["approval_status"])) ? (
+                    <>
+                      <AcaoOperacional
+                        rotulo="Aprovar"
+                        variant="link"
+                        size="sm"
+                        capacidade="aprovar_projecao_app_cliente"
+                        pendenciaGate={pendenciaVinculo}
+                        efeito="Aprova a projeção internamente. Nada é publicado no App Cliente por esta ação."
+                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: false })}
+                      />
+                      <AcaoOperacional
+                        rotulo="Aprovar e publicar"
+                        variant="link"
+                        size="sm"
+                        capacidade="aprovar_projecao_app_cliente"
+                        acaoExterna="publicar_no_app_cliente"
+                        pendenciaGate={pendenciaVinculo}
+                        efeito="Aprova e publica esta projeção no App Cliente. Ação voltada ao cliente: exige confirmação com motivo registrado."
+                        onConfirmar={() => mAprovar.mutate({ id: String(p["id"]), publicar: true })}
+                      />
+                    </>
+                  ) : null}
+                  {estado === "publicada" || estado === "liberada" ? (
+                    <AcaoOperacional
+                      rotulo="Despublicar"
+                      variant="link"
+                      size="sm"
+                      capacidade="aprovar_projecao_app_cliente"
+                      acaoExterna="despublicar_no_app_cliente"
+                      pendenciaGate={pendenciaVinculo}
+                      efeito="Remove a projeção do App Cliente imediatamente. A projeção continua aprovada, editável e pode ser republicada."
+                      onConfirmar={() => mDespublicar.mutate({ id: String(p["id"]) })}
+                    />
+                  ) : null}
+                  {estado !== "arquivada" ? (
+                    <button
+                      className="underline decoration-navy/40"
+                      onClick={() =>
+                        mAlerta.mutate({
+                          id: String(p["id"]),
+                          caseId,
+                          titulo: `Microentrega "${String(p["projection_type"])}" aguarda atenção`,
+                        })
+                      }
+                    >
+                      Criar alerta interno
                     </button>
-                  </div>
-                ) : null}
-                {podeEditar && String(p["approval_status"]) !== "archived" ? (
+                  ) : null}
+                </div>
+                {String(p["approval_status"]) !== "archived" ? (
                   <button
                     className="mt-2 block text-[11px] text-terracotta underline"
                     onClick={() => {
@@ -274,7 +432,8 @@ function Pagina() {
                   </button>
                 ) : null}
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
       ) : null}
@@ -304,6 +463,7 @@ function Pagina() {
         </section>
       ) : null}
     </div>
+    </SaasShell>
   );
 }
 
@@ -313,7 +473,8 @@ function FormEvidencia({
   onSalvar,
 }: {
   caseId: string;
-  data: { fontes?: Record<string, unknown>[]; pessoas?: Record<string, unknown>[] } | undefined;
+  /** Payload já carregado: a rota garante presença antes de renderizar. */
+  data: { fontes: Record<string, unknown>[]; pessoas: Record<string, unknown>[] };
   onSalvar: (v: Record<string, unknown>) => void;
 }) {
   const [v, setV] = useState<Record<string, unknown>>({
@@ -386,7 +547,7 @@ function FormEvidencia({
       <Campo label="Fonte vinculada (opcional)">
         <select className={inputCls} value={String(v["source_id"] ?? "")} onChange={(e) => set("source_id", e.target.value || null)}>
           <option value="">—</option>
-          {(data?.fontes ?? []).map((f) => (
+          {data.fontes.map((f) => (
             <option key={String(f["id"])} value={String(f["id"])}>
               {String(f["title"])}
             </option>
@@ -400,7 +561,7 @@ function FormEvidencia({
           onChange={(e) => set("research_person_id", e.target.value || null)}
         >
           <option value="">—</option>
-          {(data?.pessoas ?? []).map((p) => (
+          {data.pessoas.map((p) => (
             <option key={String(p["id"])} value={String(p["id"])}>
               {String(p["canonical_name"])}
             </option>
@@ -453,7 +614,6 @@ function FormEvidencia({
       <div className="md:col-span-2">
         {check.erros.length ? <ul className="mb-2 text-[11px] text-terracotta">{check.erros.map((e) => <li key={e}>• {e}</li>)}</ul> : null}
         <button
-          disabled={!check.ok}
           onClick={() => onSalvar(v)}
           className="rounded bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
         >
@@ -524,7 +684,7 @@ function FormValidacao({
       <div className="md:col-span-2">
         {check.erros.length ? <ul className="mb-2 text-[11px] text-terracotta">{check.erros.map((e) => <li key={e}>• {e}</li>)}</ul> : null}
         <button
-          disabled={!selecionada || !check.ok}
+          disabled={!selecionada}
           onClick={() => onRegistrar({ evidenceId: selecionada, estadoNovo, confiancaNova, justificativa })}
           className="rounded bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-40"
         >
@@ -538,32 +698,78 @@ function FormValidacao({
 function FormProjecao({
   caseId,
   evidencias,
+  marcosJuridicos,
   onCriar,
 }: {
   caseId: string;
   evidencias: Record<string, unknown>[];
+  marcosJuridicos: Record<string, unknown>[];
   onCriar: (v: Record<string, unknown>) => void;
 }) {
+  const [origemTipo, setOrigemTipo] = useState<"evidence" | "legal_rule">("evidence");
   const [origem, setOrigem] = useState("");
   const [tipo, setTipo] = useState("marco_de_pesquisa");
   const [destino, setDestino] = useState("app");
   const [conteudo, setConteudo] = useState("");
   const evidencia = evidencias.find((e) => e["id"] === origem);
+  const regra = marcosJuridicos.find((r) => r["id"] === origem);
   const checkTexto = conteudoProjetavel(conteudo);
-  const checkEv = evidencia ? evidenciaProjetavel(evidencia) : { ok: false, erros: ["Selecione a evidência de origem."] };
+  const checkOrigem =
+    origemTipo === "evidence"
+      ? evidencia
+        ? evidenciaProjetavel(evidencia)
+        : { ok: false, erros: ["Selecione a evidência de origem."] }
+      : regra
+        ? marcoJuridicoProjetavel(regra as { status?: string | null; archived_at?: string | null })
+        : { ok: false, erros: ["Selecione o marco jurídico de origem."] };
+  const checkEv = checkOrigem;
 
   return (
     <section className="grid gap-3 rounded border border-navy/15 bg-white p-4 md:grid-cols-2">
-      <Campo label="Evidência de origem">
-        <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
-          <option value="">Selecione…</option>
-          {evidencias.map((e) => (
-            <option key={String(e["id"])} value={String(e["id"])}>
-              {String(e["title_internal"])}
-            </option>
-          ))}
+      <Campo label="Tipo de origem">
+        <select
+          className={inputCls}
+          value={origemTipo}
+          onChange={(e) => {
+            setOrigemTipo(e.target.value as "evidence" | "legal_rule");
+            setOrigem("");
+          }}
+        >
+          <option value="evidence">Evidência de pesquisa</option>
+          <option value="legal_rule">Marco/regra jurídica do caso</option>
         </select>
       </Campo>
+      {origemTipo === "evidence" ? (
+        <Campo label="Evidência de origem">
+          <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
+            <option value="">Selecione…</option>
+            {evidencias.map((e) => (
+              <option key={String(e["id"])} value={String(e["id"])}>
+                {String(e["title_internal"])}
+              </option>
+            ))}
+          </select>
+        </Campo>
+      ) : (
+        <Campo
+          label="Marco/regra jurídica de origem"
+          ajuda="Só regra jurídica aprovada aparece aqui — mesma trava de evidência restrita."
+        >
+          <select className={inputCls} value={origem} onChange={(e) => setOrigem(e.target.value)}>
+            <option value="">Selecione…</option>
+            {marcosJuridicos.length === 0 ? (
+              <option value="" disabled>
+                Nenhuma regra jurídica aprovada para este caso
+              </option>
+            ) : null}
+            {marcosJuridicos.map((r) => (
+              <option key={String(r["id"])} value={String(r["id"])}>
+                {String(r["tema"])} ({String(r["fonte_referencia"] ?? "sem fonte")})
+              </option>
+            ))}
+          </select>
+        </Campo>
+      )}
       <Campo label="Tipo de projeção">
         <input className={inputCls} value={tipo} onChange={(e) => setTipo(e.target.value)} />
       </Campo>
@@ -588,11 +794,11 @@ function FormProjecao({
           </ul>
         ) : null}
         <button
-          disabled={!checkTexto.ok || !checkEv.ok}
+
           onClick={() =>
             onCriar({
               case_id: caseId,
-              source_entity_type: "evidence",
+              source_entity_type: origemTipo,
               source_entity_id: origem,
               projection_type: tipo,
               destination: destino,

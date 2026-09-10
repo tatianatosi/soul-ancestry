@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assumirOuRecusar } from "@/lib/autoridade.server";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
+import { contextoInterno } from "@/lib/comercial.server";
 import { elegibilidadeAtivacao, type Classificacao, type PessoaLista } from "@/lib/clientes-lista";
 import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
@@ -97,8 +99,18 @@ export const ativarCliente = createServerFn({ method: "POST" })
       casosVinculados: meus.length,
       participacoes: membros.map((m) => ({ nucleo: m.nucleo_id ?? null, papel: m.papel ?? null })),
     } as PessoaLista;
+    // Autoridade operacional (05/09/2026): pendência informa, não impede.
+    // Antes, a promoção a cliente ativo era recusada no servidor mesmo com a
+    // proprietária confirmando na tela. Agora ela assume a pendência, que fica
+    // preservada e registrada. Para os demais papéis segue bloqueando.
     const eleg = elegibilidadeAtivacao(pessoa);
-    if (!eleg.apto) throw new Error(`Promoção a cliente ativo bloqueada. ${eleg.pendencias.join(" ")}`);
+    const { papel } = await contextoInterno(supabase, context.userId as string);
+    const pendenciasAssumidas = assumirOuRecusar(
+      papel,
+      eleg.apto ? [] : eleg.pendencias,
+      `Promoção a cliente ativo bloqueada. ${eleg.pendencias.join(" ")}`,
+    );
+    void pendenciasAssumidas;
 
     const r = await gravarComVerificacao({
       supabase,

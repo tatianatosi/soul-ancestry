@@ -55,6 +55,7 @@ describe("CA-UX-03 Fase B — Painel Hoje como fila diária única", () => {
       "fila_priorizada",
       "excecoes",
       "sinais",
+      "alertas",
       "comercial",
       "prazos",
       "descoberta",
@@ -86,20 +87,32 @@ describe("CA-UX-03 Fase B — painéis legados", () => {
     }
   });
 
-  it("exibem banner interno e link para /painel em acesso direto, sem redirect", () => {
+  // 08/09/2026 — as duas rotas históricas foram arquivadas no git. Elas se
+  // declaravam legado ("preservado apenas para consulta interna", "sem uso
+  // diário") e mostravam o mesmo dia de trabalho que o PainelDia de /painel.
+  // Manter tela morta alcançável só somava mais um lugar para olhar. O aviso e a
+  // faixa continuam existindo para qualquer visão histórica futura.
+  it("a faixa histórica segue apontando para o painel canônico, sem redirect", () => {
     const faixa = ler("src/components/painel/faixa-historica.tsx");
     expect(faixa).toContain("AVISO_VISAO_HISTORICA");
     expect(faixa).toContain('to="/painel"');
     expect(faixa).not.toMatch(/redirect|navigate\(/);
     expect(AVISO_VISAO_HISTORICA).toBe("Visão histórica — use Painel Hoje para execução diária.");
+  });
+
+  it("as rotas de painel legado não existem mais", () => {
     for (const arquivo of [
       "src/routes/_authenticated/historico.painel-hoje.tsx",
       "src/routes/_authenticated/historico.painel-desk-hoje.tsx",
     ]) {
-      const rota = ler(arquivo);
-      expect(rota).toContain("<FaixaHistorica />");
-      expect(rota).toContain('name: "robots", content: "noindex"');
+      expect(existsSync(arquivo)).toBe(false);
     }
+  });
+
+  it("/painel não oferece mais atalho para painel legado", () => {
+    const painel = ler("src/routes/_authenticated/painel.tsx");
+    expect(painel).not.toContain('to="/historico/painel-hoje"');
+    expect(painel).not.toContain('to="/historico/painel-desk-hoje"');
   });
 
   it("ficam fora de menus, atalhos e descoberta", () => {
@@ -111,11 +124,14 @@ describe("CA-UX-03 Fase B — painéis legados", () => {
     }
   });
 
-  it("cliente não acessa: rotas vivem apenas sob _authenticated", () => {
+  it("cliente não acessa: nenhuma rota de painel legado exposta", () => {
+    // Antes este teste exigia que os arquivos existissem sob _authenticated.
+    // Com as rotas arquivadas, a garantia passa a ser mais forte: elas não
+    // existem em lugar nenhum de src/routes, autenticado ou não.
     for (const p of PAINEIS_HISTORICOS) {
-      const arquivo = `src/routes/_authenticated/${p.rotaHistorica.replace("/historico/", "historico.")}.tsx`;
-      expect(existsSync(arquivo)).toBe(true);
-      expect(ler(arquivo)).toContain('createFileRoute("/_authenticated');
+      const sufixo = `${p.rotaHistorica.replace("/historico/", "historico.")}.tsx`;
+      expect(existsSync(`src/routes/_authenticated/${sufixo}`)).toBe(false);
+      expect(existsSync(`src/routes/${sufixo}`)).toBe(false);
     }
   });
 });

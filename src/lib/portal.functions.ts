@@ -157,7 +157,7 @@ export const portalContexto = createServerFn({ method: "GET" })
       .maybeSingle();
 
     if (!acesso.data || acesso.data.access_status !== "active") {
-      return { autorizado: false as const, cliente: null, casos: [], nivel: null, onboardingIniciado: false };
+      return { autorizado: false as const, cliente: null, casos: [], nivel: null };
     }
 
     const [cliente, casos] = await Promise.all([
@@ -173,13 +173,6 @@ export const portalContexto = createServerFn({ method: "GET" })
       nivel: acesso.data.access_level as "proposal_portal" | "client_workspace",
       cliente: (cliente.data ?? null) as { id: string; nome: string; pais_interesse: string | null } | null,
       casos: (casos.data ?? []) as any[],
-      /*
-        Onboarding formalmente iniciado em ao menos um caso: é o que decide,
-        no App Cliente, se as abas de Entrega/Fase 01/Fase 02 aparecem. Antes
-        disso o cliente vê só as 7 abas base — Entrega/Fase 01/Fase 02 são
-        promessa de trabalho que ainda não começou.
-      */
-      onboardingIniciado: (casos.data ?? []).some((c: any) => Boolean(c.onboarding_iniciado_em)),
     };
   });
 
@@ -457,7 +450,6 @@ export const criarConvitePortal = createServerFn({ method: "POST" })
 
     let caso: any = null;
     if (data.nivel === "client_workspace") {
-      if (!data.casoId) throw new Error("Para acesso ao espaço do cliente é obrigatório associar um caso.");
       if (auth.case_id && auth.case_id !== data.casoId) {
         throw new Error("A autorização é específica de outro caso.");
       }

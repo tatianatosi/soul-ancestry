@@ -115,7 +115,7 @@ export function CadeiaFormalizacao({ caseId, podeEscrever }: { caseId: string; p
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={!podeEscrever || mDerivar.isPending}
+          disabled={mDerivar.isPending}
           onClick={() => mDerivar.mutate()}
           className="rounded bg-navy px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-50"
         >

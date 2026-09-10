@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { portalProposta } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/portal/proposta")({
@@ -27,13 +28,23 @@ function formatarValor(v: number, moeda: string) {
 
 function PropostaPage() {
   const carregar = useServerFn(portalProposta);
-  const { data, isLoading } = useQuery({ queryKey: ["portal-proposta"], queryFn: () => carregar({}) });
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["portal-proposta"],
+    queryFn: () => carregar({}),
+  });
 
   return (
     <PortalShell titulo={COPY_TELAS.proposta.titulo} descricao={COPY_TELAS.proposta.descricao}>
       {isLoading ? (
         <PortalCarregando />
       ) : (
+        <EstadoDados
+          erro={error}
+          dados={data ? [data] : null}
+          aoTentarNovamente={() => void refetch()}
+          recurso="a sua proposta"
+        >
+          {() => (
         <div className="space-y-6">
           <section>
             <h2 className="font-serif text-xl">Escopo</h2>
@@ -77,6 +88,8 @@ function PropostaPage() {
             )}
           </section>
         </div>
+          )}
+        </EstadoDados>
       )}
     </PortalShell>
   );

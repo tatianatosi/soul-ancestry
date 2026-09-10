@@ -150,7 +150,7 @@ export const NOTA_FORA_DO_RELEASE =
 export const ANA_ESTADO_REAL = {
   casoCanonico: "CA-CID-AT-FAM-2026-001",
   nomeOperacional: "Projeto familiar — Ana Luiza",
-  classificacao: "Piloto real",
+  classificacao: "Primeira cliente",
   aliasHistorico: "CA-AUT-ANALUIZA-FAM-2026-001",
   trilha: "Áustria — §58c StbG",
   responsavel: "Tatiana Tosi",

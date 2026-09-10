@@ -160,7 +160,6 @@ export const painelCrmFluxo = createServerFn({ method: "GET" })
 export const registrarContato = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: Record<string, unknown>) => {
-    if (!String(d?.["nome"] ?? "").trim()) throw new Error("Nome do contato é obrigatório.");
     return d;
   })
   .handler(async ({ data, context }) => {
@@ -276,8 +275,6 @@ export const salvarOportunidade = createServerFn({ method: "POST" })
 export const registrarInteracao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: Record<string, unknown>) => {
-    if (!String(d?.["tipo"] ?? "").trim()) throw new Error("Tipo da interação é obrigatório.");
-    if (!String(d?.["resumo_interno"] ?? "").trim()) throw new Error("Resumo validado é obrigatório.");
     return d;
   })
   .handler(async ({ data, context }) => {
@@ -316,7 +313,6 @@ export const registrarDiscovery = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: Record<string, unknown>) => {
     exigirUuid(d?.["opportunity_id"], "opportunity_id");
-    if (!String(d?.["objetivo_principal"] ?? "").trim()) throw new Error("Objetivo principal é obrigatório.");
     return d;
   })
   .handler(async ({ data, context }) => {

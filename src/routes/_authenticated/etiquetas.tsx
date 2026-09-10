@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarMapaEtiquetas } from "@/lib/caso-canonico.functions";
 
 export const Route = createFileRoute("/_authenticated/etiquetas")({
@@ -34,28 +35,39 @@ const CATEGORIAS: Record<string, string> = {
   governanca: "Governança",
 };
 
+/** Linha da taxonomia como vem do banco. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LinhaEtiqueta = Record<string, any>;
+
 function Etiquetas() {
   const carregar = useServerFn(carregarMapaEtiquetas);
   const q = useQuery({ queryKey: ["mapa-etiquetas"], queryFn: () => carregar(), retry: false });
   const [busca, setBusca] = useState("");
 
-  const linhas = useMemo(() => {
+  const filtrar = useMemo(() => {
     const filtro = busca.trim().toLowerCase();
-    return (q.data?.taxonomia ?? []).filter((l: Record<string, any>) => // eslint-disable-line @typescript-eslint/no-explicit-any
-      !filtro ? true : `${l.name} ${l.code} ${l.category} ${l.meta_agent_equivalent ?? ""}`.toLowerCase().includes(filtro),
-    );
-  }, [q.data, busca]);
+    return (itens: LinhaEtiqueta[]) =>
+      itens.filter((l) =>
+        !filtro ? true : `${l.name} ${l.code} ${l.category} ${l.meta_agent_equivalent ?? ""}`.toLowerCase().includes(filtro),
+      );
+  }, [busca]);
 
   return (
     <SaasShell
       titulo="Taxonomia canônica de etiquetas"
       descricao="O Desk é a fonte canônica. O agente de WhatsApp apenas espelha esta taxonomia — nada é sincronizado automaticamente."
     >
-      {q.isLoading ? (
-        <EstadoVazio mensagem="Carregando taxonomia…" />
-      ) : q.isError ? (
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."} />
-      ) : (
+      <EstadoDados<LinhaEtiqueta>
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={q.data?.taxonomia as LinhaEtiqueta[] | undefined}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="a taxonomia de etiquetas"
+        vazio="Nenhuma etiqueta cadastrada na taxonomia canônica."
+      >
+        {(taxonomia) => {
+          const linhas = filtrar(taxonomia);
+          return (
         <>
           <input
             className="mb-5 w-full max-w-sm rounded-lg border border-navy/15 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
@@ -75,7 +87,7 @@ function Etiquetas() {
                 </tr>
               </thead>
               <tbody>
-                {linhas.map((l: Record<string, any>) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+                {linhas.map((l) => (
                   <tr key={String(l.id)} className="border-t border-navy/10">
                     <td className="px-4 py-3">
                       <p className="font-medium text-navy">{l.name}</p>
@@ -95,7 +107,9 @@ function Etiquetas() {
             {linhas.length} etiqueta(s) listada(s). Etiquetas fora desta lista não podem ser aplicadas a casos, famílias ou pessoas.
           </p>
         </>
-      )}
+          );
+        }}
+      </EstadoDados>
     </SaasShell>
   );
 }

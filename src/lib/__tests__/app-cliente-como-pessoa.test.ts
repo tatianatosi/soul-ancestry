@@ -54,10 +54,10 @@ describe("App Cliente como pessoa (acesso master, dado real)", () => {
 });
 
 describe("navegação — App Cliente como pessoa é alcançável no grupo Cliente", () => {
-  it("está listado ao lado da sessão demo, dentro do grupo Cliente", () => {
+  it("está listado no grupo Cliente; a sessão demo mora no menu da conta", () => {
     const grupoCliente = GRUPOS_DESK.find((g) => g.id === "cliente")!;
     const rotas = grupoCliente.sub.map((s) => ("to" in s ? s.to : null));
-    expect(rotas).toContain("/app-cliente-demo");
+    expect(rotas).not.toContain("/app-cliente-demo");
     expect(rotas).toContain("/app-cliente-como-pessoa");
   });
 });
