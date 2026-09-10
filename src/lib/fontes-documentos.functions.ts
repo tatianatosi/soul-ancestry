@@ -63,16 +63,25 @@ function validarDicionarios(valores: Record<string, unknown>) {
 }
 
 async function pessoasDoCaso(supabase: Sb, organizationId: string, caseId: string) {
-  // 07/09/2026 — mesmo achado do cotéjo tela a tela: leitura crua de
-  // case_members sem fallback para Núcleos. Troca para a função única já
-  // usada por contrato/escopo/cadastro/consolidação/Ficha 360.
+  // Pessoas do caso (núcleo/membros) + research_people só desta pesquisa, nunca da org inteira.
+  const pesquisaCaso = await supabase
+    .from("research_cases")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("case_id", caseId)
+    .is("archived_at", null)
+    .maybeSingle();
+  const researchCaseId = (pesquisaCaso.data as { id?: string } | null)?.id;
   const [membros, pesquisa] = await Promise.all([
     pessoasDoCasoComFallbackNucleo(supabase, caseId),
-    supabase
-      .from("research_people")
-      .select("id,canonical_name")
-      .eq("organization_id", organizationId)
-      .is("archived_at", null),
+    researchCaseId
+      ? supabase
+          .from("research_people")
+          .select("id,canonical_name")
+          .eq("organization_id", organizationId)
+          .eq("research_case_id", researchCaseId)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [] }),
   ]);
   const lista = [
     ...(membros.map((m) => ({ id: String(m.id), nome: String(m.nome ?? "Pessoa do caso") }))),

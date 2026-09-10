@@ -35,7 +35,7 @@ import {
 } from "@/lib/biblioteca-evidencias.functions";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$caseId")({
   component: Pagina,
@@ -57,9 +57,15 @@ export const Route = createFileRoute("/_authenticated/biblioteca-evidencias/$cas
     ],
   }),
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-terracotta">Não foi possível carregar a biblioteca: {error.message}</div>
+    <SaasShell titulo="Biblioteca de evidências" descricao="Falha ao carregar a biblioteca.">
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a biblioteca: {error.message}</p>
+    </SaasShell>
   ),
-  notFoundComponent: () => <div className="p-6 text-sm text-navy/70">Caso não encontrado.</div>,
+  notFoundComponent: () => (
+    <SaasShell titulo="Biblioteca de evidências" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
@@ -192,39 +198,44 @@ function Pagina() {
 
   if (consulta.isLoading) {
     return (
-      <div className="mx-auto max-w-6xl p-6 text-sm text-navy/60" role="status">
-        Carregando a biblioteca de evidências…
-      </div>
+      <SaasShell titulo="Biblioteca de evidências" descricao="Registro interno de evidências e projeções.">
+        <p className="text-sm text-navy/60" role="status">
+          Carregando a biblioteca de evidências…
+        </p>
+      </SaasShell>
     );
   }
   // Consulta sem erro e sem payload é falha de carga, não biblioteca vazia.
   if (consulta.isError || !data) {
     return (
-      <div
-        role="alert"
-        className="mx-auto max-w-6xl space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-6 text-sm"
-      >
-        <p className="font-medium text-destructive">
-          Não foi possível carregar a biblioteca de evidências deste caso.
-        </p>
-        <p className="text-navy/80">
-          {consulta.error instanceof Error
-            ? consulta.error.message
-            : "A consulta terminou sem retornar resultado nem erro. Isso é falha de carga: não significa que o caso esteja sem evidências."}
-        </p>
-        <button
-          type="button"
-          onClick={() => void consulta.refetch()}
-          className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
-        >
-          Tentar novamente
-        </button>
-      </div>
+      <SaasShell titulo="Biblioteca de evidências" descricao="Falha ao carregar a biblioteca.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium text-destructive">
+            Não foi possível carregar a biblioteca de evidências deste caso.
+          </p>
+          <p className="text-navy/80">
+            {consulta.error instanceof Error
+              ? consulta.error.message
+              : "A consulta terminou sem retornar resultado nem erro. Isso é falha de carga: não significa que o caso esteja sem evidências."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void consulta.refetch()}
+            className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </SaasShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <SaasShell
+      titulo="Biblioteca de evidências e projeções autorizadas"
+      descricao="Registro interno de evidências, validação e projeções ao App Cliente."
+    >
+    <div>
       <header className="mb-5">
         <p className="text-[11px] uppercase tracking-widest text-gold">G-03 · Uso interno</p>
         <h1 className="text-xl font-semibold text-navy">Biblioteca de evidências e projeções autorizadas</h1>
@@ -452,6 +463,7 @@ function Pagina() {
         </section>
       ) : null}
     </div>
+    </SaasShell>
   );
 }
 

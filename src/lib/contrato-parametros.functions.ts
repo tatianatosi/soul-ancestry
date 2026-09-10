@@ -34,6 +34,7 @@ import {
 import { ehAnexoRevisado, planejarMaterializacao } from "@/lib/anexos-materializacao";
 
 
+import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import { CONFLITO_PAIS_ROTA, textoCompativel, qualificadorPaisDoCodigo } from "@/lib/coerencia-caso";
 import { MARCA_CORRECAO_PLANEJADOR, exigirCoerencia, temCorrecaoHomologada } from "@/lib/coerencia-caso.server";
@@ -291,7 +292,13 @@ export const preencherDeOrigens = createServerFn({ method: "POST" })
     ];
 
     // Fonte da pré-carga específica do caso: Planejador Universal homologado.
-    const planejador = parametrosDoPlanejador(caso.codigo);
+    // SKU só entra se product_catalog confirmar o código da convenção (P7 / #68).
+    const skuHomologado = await skuHomologadoParaCaso(
+      supabase,
+      (registro.organization_id ?? caso.organization_id) as string | undefined,
+      caso.codigo,
+    );
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
     if (!planejador.convencao) {
       throw new Error("Sem convenção homologada no Planejador para este caso: nada a pré-carregar.");
     }

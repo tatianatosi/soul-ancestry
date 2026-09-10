@@ -158,10 +158,50 @@ export function convencaoDoCodigo(codigo?: string | null): ConvencaoPlanejador |
 }
 
 /**
- * Parâmetros homologados do Planejador para o caso, derivados exclusivamente
- * da convenção de ID registrada. Sem convenção registrada, retorna lista vazia.
+ * SKU homologado e ativo em `product_catalog`, resolvido pelo chamador.
+ * Este módulo permanece puro: só decide COMO usar o resultado (PR #68 / P7).
+ * Sem confirmação no catálogo, `produto_sku` fica pendente — nunca herda
+ * o nome estático da convenção como se fosse catálogo vivo.
  */
-export function parametrosDoPlanejador(codigoCaso?: string | null): {
+export type SkuHomologadoAtivo = { code: string; nome_comercial: string };
+
+export type LinhaCatalogoSku = {
+  code?: string | null;
+  nome_comercial?: string | null;
+  ativo?: boolean | null;
+  archived_at?: string | null;
+  status_homologacao?: string | null;
+};
+
+/**
+ * Confirma o SKU da convenção contra linhas já lidas de `product_catalog`.
+ * Sem linha ativa e homologada, devolve null — nunca inventa SKU.
+ */
+export function skuVivoDoCatalogo(
+  linhas: LinhaCatalogoSku[] | null | undefined,
+  skuEsperado?: string | null,
+): SkuHomologadoAtivo | null {
+  if (!skuEsperado) return null;
+  const hit = (linhas ?? []).find(
+    (l) =>
+      l.code === skuEsperado &&
+      l.ativo === true &&
+      !l.archived_at &&
+      l.status_homologacao === "homologado" &&
+      Boolean(String(l.nome_comercial ?? "").trim()),
+  );
+  if (!hit?.code || !hit.nome_comercial) return null;
+  return { code: hit.code, nome_comercial: hit.nome_comercial };
+}
+
+/**
+ * Parâmetros homologados do Planejador para o caso, derivados da convenção
+ * de ID. SKU só entra quando `skuHomologado` confirma o código no catálogo.
+ */
+export function parametrosDoPlanejador(
+  codigoCaso?: string | null,
+  skuHomologado?: SkuHomologadoAtivo | null,
+): {
   convencao: ConvencaoPlanejador | null;
   versao: string;
   homologadoEm: string;
@@ -178,14 +218,28 @@ export function parametrosDoPlanejador(codigoCaso?: string | null): {
   const parametros: ParamPlanejador[] = [
     { campo: "pais_rota", valor: `${convencao.pais} / ${convencao.rota}`, detalhe },
     { campo: "vinculo_familiar", valor: convencao.estruturaFamiliar, detalhe },
+    { campo: "objeto_contrato", valor: convencao.descricao, detalhe },
+    {
+      campo: "escopo_resumo",
+      valor: `${convencao.descricao}. Percurso homologado: ${convencao.etapas.join(" · ")}.`,
+      detalhe,
+    },
     { campo: "fases_entregas", valor: convencao.etapas.join(" · "), detalhe },
     { campo: "servicos_incluidos", valor: convencao.etapas.join(" · "), detalhe },
     { campo: "revisor_responsavel", valor: convencao.responsavel, detalhe },
   ];
 
-  // SKU só entra quando há SKU homologado para a rota da convenção.
-  // Sem SKU homologado, o campo permanece vazio (pendência), nunca herda SKU de outra cidadania.
-  if (convencao.sku && convencao.skuNome) {
+  // SKU: se o chamador confirmou `product_catalog`, usa o nome vivo.
+  // `null` = consultou e não achou (pendência). `undefined` = ainda não
+  // consultou — mantém o nome da convenção para não esvaziar a pré-carga
+  // de contrato enquanto a fiação de #68 em contrato-parametros espera.
+  if (convencao.sku && skuHomologado && skuHomologado.code === convencao.sku) {
+    parametros.unshift({
+      campo: "produto_sku",
+      valor: `${skuHomologado.code} — ${skuHomologado.nome_comercial}`,
+      detalhe: `${detalhe} · SKU confirmado ativo em product_catalog`,
+    });
+  } else if (convencao.sku && convencao.skuNome && skuHomologado === undefined) {
     parametros.unshift({ campo: "produto_sku", valor: `${convencao.sku} — ${convencao.skuNome}`, detalhe });
   }
 

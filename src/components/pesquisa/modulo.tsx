@@ -322,7 +322,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
         )}
       </Painel>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto">
         {ABAS.map((a) => (
           <button
             key={a.chave}
@@ -386,9 +386,12 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                 <>
                   <div className="flex flex-wrap items-center gap-2">
                     <strong className="text-sm">{String(p["preferred_display_name"] || p["canonical_name"])}</strong>
-                    <Selo texto={rotulo(p["person_status"])} tom={p["person_status"] === "confirmed" ? "ok" : "neutro"} />
-                    <Selo texto={`Identidade: ${rotulo(p["identity_status"])}`} />
-                    {p["sensitivity_level"] !== "normal" && (
+                    <Selo texto={rotulo(p["person_status"])} tom="neutro" />
+                    <Selo
+                      texto={`Identidade: ${rotulo(p["identity_status"])}`}
+                      tom={p["identity_status"] === "confirmed" ? "ok" : "neutro"}
+                    />
+                    {p["sensitivity_level"] !== "standard" && (
                       <Selo texto={`Dados ${rotulo(p["sensitivity_level"])}`} tom="alerta" />
                     )}
                   </div>
@@ -442,7 +445,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                       {nomePessoa(d, r["person_a_id"])} — {rotulo(r["relationship_type"])} —{" "}
                       {nomePessoa(d, r["person_b_id"])}
                     </strong>
-                    <Selo texto={rotulo(r["status"])} tom={r["status"] === "confirmed" ? "ok" : "neutro"} />
+                    <Selo texto={rotulo(r["status"])} tom={r["status"] === "validated" ? "ok" : "neutro"} />
                     <Selo texto={`Confiança ${rotulo(r["confidence_level"])}`} />
                   </div>
                   {linhaAcoes("relacoes", r)}
@@ -468,7 +471,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                     <span className="text-navy/50">{dataBr(e["event_date"])}</span>
                     <strong>{rotulo(e["event_type"])}</strong>
                     <span className="text-navy/70">{nomePessoa(d, e["person_id"])}</span>
-                    <Selo texto={rotulo(e["status"])} tom={e["status"] === "confirmed" ? "ok" : "neutro"} />
+                    <Selo texto={rotulo(e["status"])} tom={e["status"] === "validated" ? "ok" : "neutro"} />
                     {e["event_date_precision"] !== "exact" && (
                       <Selo texto={`Data ${rotulo(e["event_date_precision"])}`} tom="alerta" />
                     )}
@@ -536,7 +539,7 @@ export function PainelPesquisaModulo({ researchCaseId }: { researchCaseId: strin
                       }
                     />
                     <Selo texto={`Confiança ${rotulo(e["confidence_level"])}`} />
-                    {e["sensitivity_level"] !== "normal" && <Selo texto="Sensível" tom="alerta" />}
+                    {e["sensitivity_level"] !== "standard" && <Selo texto="Sensível" tom="alerta" />}
                   </div>
                   <p className="text-xs text-navy/60">
                     Fonte: {d.fontes.find((f) => f["id"] === e["source_id"])?.["title"] ?? "não vinculada"} ·

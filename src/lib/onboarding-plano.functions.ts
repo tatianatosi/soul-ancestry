@@ -3,11 +3,66 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
-import { estadoDoPlano, motivosBloqueio } from "@/lib/onboarding-plano";
+import { estadoDoPlano, motivosBloqueio, TOUCHPOINTS_PADRAO, type GatesPlano } from "@/lib/onboarding-plano";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Plano de onboarding do caso: leitura e recálculo do estado. Nunca ativa cliente. */
+async function lerPlanoOnboarding(
+  supabase: any,
+  organizationId: string,
+  caseId: string,
+) {
+  return supabase
+    .from("onboarding_planos")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .eq("case_id", caseId)
+    .is("archived_at", null)
+    .maybeSingle();
+}
+
+/**
+ * Garante uma linha em `onboarding_planos` (UNIQUE case_id).
+ * Não ativa cliente, não envia mensagem, não abre pesquisa externa.
+ */
+async function garantirPlanoOnboarding(
+  supabase: any,
+  input: {
+    organizationId: string;
+    caseId: string;
+    userId: string;
+    gates: GatesPlano;
+    responsavel: string | null;
+  },
+) {
+  const existente = await lerPlanoOnboarding(supabase, input.organizationId, input.caseId);
+  if (existente.data) return existente.data as Record<string, any>;
+
+  const motivos = motivosBloqueio(input.gates);
+  const estado = estadoDoPlano(input.gates, null);
+  const { data: criado, error } = await supabase
+    .from("onboarding_planos")
+    .insert({
+      organization_id: input.organizationId,
+      case_id: input.caseId,
+      estado,
+      motivos_bloqueio: motivos,
+      responsavel_principal: input.responsavel,
+      touchpoints: TOUCHPOINTS_PADRAO,
+      created_by: input.userId,
+      updated_by: input.userId,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (criado) return criado as Record<string, any>;
+
+  const corrida = await lerPlanoOnboarding(supabase, input.organizationId, input.caseId);
+  if (corrida.data) return corrida.data as Record<string, any>;
+  throw new Error(error?.message ?? "NENHUMA_LINHA_AFETADA: não foi possível criar o plano de onboarding.");
+}
+
+/** Plano de onboarding do caso: leitura. Nunca ativa cliente. */
 export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => data)
@@ -17,13 +72,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
 
     const [plano, caso, comunicacoes, microentregas] = await Promise.all([
-      supabase
-        .from("onboarding_planos")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .eq("case_id", data.caseId)
-        .is("archived_at", null)
-        .maybeSingle(),
+      lerPlanoOnboarding(supabase, organizationId, data.caseId),
       supabase
         .from("crm_casos")
         .select("id,codigo,contrato_assinado,pagamento_confirmado,responsavel_principal")
@@ -61,7 +110,7 @@ export const carregarPlanoOnboarding = createServerFn({ method: "GET" })
     };
   });
 
-/** Recalcula o estado do plano a partir dos gates reais. Nunca libera envio nem ativa o caso. */
+/** Recalcula o estado do plano a partir dos gates reais. Cria a linha se faltar. Nunca libera envio nem ativa o caso. */
 export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { caseId: string }) => data)
@@ -71,7 +120,7 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
 
     const caso = await supabase
       .from("crm_casos")
-      .select("contrato_assinado,pagamento_confirmado")
+      .select("contrato_assinado,pagamento_confirmado,responsavel_principal")
       .eq("organization_id", organizationId)
       .eq("id", data.caseId)
       .maybeSingle();
@@ -82,7 +131,15 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
       pagamento_confirmado: Boolean(caso.data.pagamento_confirmado),
     };
     const motivos = motivosBloqueio(gates);
-    const estado = motivos.length > 0 ? "bloqueado" : "liberado_preparacao";
+    const estado = estadoDoPlano(gates, motivos.length > 0 ? "bloqueado" : "liberado_preparacao");
+
+    await garantirPlanoOnboarding(supabase, {
+      organizationId,
+      caseId: data.caseId,
+      userId: context.userId as string,
+      gates,
+      responsavel: caso.data.responsavel_principal ?? null,
+    });
 
     const { data: linhaAtualizada, error } = await supabase
       .from("onboarding_planos")
@@ -92,7 +149,9 @@ export const recalcularPlanoOnboarding = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!linhaAtualizada?.id) throw new Error("NENHUMA_LINHA_AFETADA: plano de onboarding não encontrado nesta organização.");
+    if (!linhaAtualizada?.id) {
+      throw new Error("NENHUMA_LINHA_AFETADA: plano de onboarding não encontrado nesta organização.");
+    }
 
     return { ok: true, estado, motivos, clienteAtivado: false };
   });

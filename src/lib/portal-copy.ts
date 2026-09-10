@@ -51,7 +51,7 @@ export type CopyTela = {
 
 export const COPY_TELAS = {
   home: {
-    navegacao: "Início",
+    navegacao: "Home",
     titulo: "Sua jornada",
     descricao: "Um resumo simples de onde o seu acompanhamento está agora.",
     vazio: "Assim que houver algo preparado para você, ele aparece aqui.",

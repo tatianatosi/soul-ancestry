@@ -138,6 +138,16 @@ export function PortalCasoDetalhe({ casoId }: { casoId: string }) {
         <p className="text-xs uppercase tracking-wide text-navy/50">Situação</p>
         <p className="mt-1 font-serif text-xl">{painel.caso.statusRotulo}</p>
         <p className="mt-1 text-sm text-navy/70">{painel.caso.statusTexto}</p>
+        {painel.caso.proximoPasso ? (
+          <p className="mt-3 text-sm text-navy">
+            Próximo passo: {painel.caso.proximoPasso}{" "}
+            {painel.caso.proximoPassoDestino ? (
+              <Link to={painel.caso.proximoPassoDestino} className="font-medium text-terracotta underline-offset-2 hover:underline">
+                Abrir
+              </Link>
+            ) : null}
+          </p>
+        ) : null}
         <p className="mt-3 text-xs text-navy/50">Última atualização em {data(painel.caso.atualizadoEm)}</p>
       </Cartao>
 

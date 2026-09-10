@@ -5,6 +5,8 @@
  * quando falta informação, o estado é explicitamente "pendente".
  */
 
+import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
+
 export type Opcao = { valor: string; rotulo: string };
 
 /**
@@ -18,7 +20,7 @@ export { EIXO_COMERCIAL, EIXO_FORMALIZACAO } from "@/lib/crm-desk";
 /** Papel do registro: separa caso operacional, piloto real e dado de demonstração. */
 export const PAPEL_REGISTRO: Opcao[] = [
   { valor: "operacional", rotulo: "Caso operacional" },
-  { valor: "piloto_real", rotulo: "Piloto real — caso operacional de referência" },
+  { valor: "piloto_real", rotulo: "Primeira cliente — caso operacional de referência" },
   { valor: "demonstracao", rotulo: "Demonstração — não operacional" },
 ];
 
@@ -223,8 +225,11 @@ export function sugestoesJornada(input: {
   }
   if (input.updated_at) {
     const dias = Math.floor((agora.getTime() - new Date(input.updated_at).getTime()) / 86_400_000);
-    if (dias >= 14) out.push({ titulo: "Alerta crítico: 14 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "critico" });
-    else if (dias >= 10) out.push({ titulo: "Alerta interno: 10 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "atencao" });
+    if (dias >= DIAS_CADENCIA_CRITICA) {
+      out.push({ titulo: "Alerta crítico: 14 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "critico" });
+    } else if (dias >= DIAS_CADENCIA_ATENCAO) {
+      out.push({ titulo: "Alerta interno: 10 dias sem atualização", detalhe: `Última atualização há ${dias} dias.`, nivel: "atencao" });
+    }
   }
   return out;
 }
@@ -534,7 +539,7 @@ export function papelDoRegistro(linha: { papel_registro?: unknown; demo?: unknow
     return { valor: "demo", rotulo: "Demonstração" };
   }
   if (linha.piloto === true || linha.papel_registro === "piloto_real") {
-    return { valor: "referencia", rotulo: "Referência" };
+    return { valor: "referencia", rotulo: "Primeira cliente" };
   }
   return { valor: "operacional", rotulo: "Operacional" };
 }

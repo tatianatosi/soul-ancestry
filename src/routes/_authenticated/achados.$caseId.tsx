@@ -19,6 +19,7 @@ import {
   validarEncontro,
 } from "@/lib/achados-genealogicos";
 import { arquivarRegistroG06, painelAchados, salvarAchado, salvarEncontro } from "@/lib/achados-genealogicos.functions";
+import { SaasShell } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/achados/$caseId")({
   component: Pagina,
@@ -40,9 +41,15 @@ export const Route = createFileRoute("/_authenticated/achados/$caseId")({
     ],
   }),
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-terracotta">Não foi possível carregar os achados: {error.message}</div>
+    <SaasShell titulo="Achados genealógicos" descricao="Falha ao carregar os achados.">
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar os achados: {error.message}</p>
+    </SaasShell>
   ),
-  notFoundComponent: () => <div className="p-6 text-sm text-navy/70">Caso não encontrado.</div>,
+  notFoundComponent: () => (
+    <SaasShell titulo="Achados genealógicos" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const rotulo = (lista: { id: string; rotulo: string }[], id: unknown) =>
@@ -192,7 +199,11 @@ function Pagina() {
   const setE = (k: string, v: unknown) => setEncontro((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <SaasShell
+      titulo="Achados genealógicos e encontros de linhagem"
+      descricao="Registro interno com evidência obrigatória e nenhuma publicação automática."
+    >
+    <div className="space-y-6">
       <header className="space-y-1">
         <Link to="/casos/$caseId" params={{ caseId }} className="text-xs text-navy/50 hover:text-navy">
           ← Ficha do caso
@@ -611,5 +622,6 @@ function Pagina() {
         </div>
       )}
     </div>
+    </SaasShell>
   );
 }

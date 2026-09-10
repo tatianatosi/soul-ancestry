@@ -2,6 +2,12 @@
 
 Cópias verbatim dos documentos de política/prompt enviados pela proprietária, guardadas aqui para que nada dependa de memória de conversa ou de contexto que pode ser resumido ao longo de uma sessão longa. Nenhum deles foi implementado só por estar aqui — este diretório é **arquivo de referência**, não registro de execução. O estado real de cada capacidade fica no Mapa de Autoridade Admin (`docs/auditorias/MAPA-AUTORIDADE-ADMIN-DESK-APP-2026-08-30.md`).
 
+## Memória permanente para agentes (2026-09-10)
+
+A partir de 10/09/2026, as regras operacionais que todo agente deve aplicar estão destiladas em **`AGENTS.md`** (raiz) e **`.cursor/rules/clube-ancestral.mdc`**. O texto completo enviado pela proprietária está em `MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+
+Esse destilado **não substitui** `politica-autoridade-operacional.md`, a taxonomia do mockup de 17 páginas, nem os 8 grupos reais do Desk. Não inventar vocabulário CHECK-* nem tabelas hipotéticas (`case_participants`, `citizenship_cases`).
+
 ## Sequência confirmada pela proprietária (30/08/2026)
 
 > "Concordo com a sequência: manter P0 e P1 operacionais agora; Cockpit, indicadores e revisão visual somente depois."

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, rotaAtendeDestino } from "@/lib/navegacao-desk";
 import {
   CABECALHO_CSV_CRM_MESTRE,
   gerarCsvCrmMestre,
@@ -19,7 +19,7 @@ describe("/crm-mestre no menu do Desk", () => {
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {
     const rota = "/crm-mestre";
-    const ativos = links.filter((s) => rota.startsWith(s.to)).map((s) => s.to);
+    const ativos = links.filter((s) => rotaAtendeDestino(rota, s.to)).map((s) => s.to);
     expect(ativos).toEqual(["/crm-mestre"]);
   });
 });

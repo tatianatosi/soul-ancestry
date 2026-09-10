@@ -24,7 +24,7 @@ import {
   vincularMicroentregaRelatorio,
 } from "@/lib/relatorios-fase.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,6 +40,16 @@ export const Route = createFileRoute("/_authenticated/relatorios-fase/$caseId")(
     ],
   }),
   component: RelatoriosFase,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Relatórios de fase" descricao="Falha ao carregar os relatórios.">
+      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Relatórios de fase" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const VAZIO: Record<string, unknown> = {
@@ -135,7 +145,11 @@ function RelatoriosFase() {
     );
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <SaasShell
+      titulo="Relatórios de fase"
+      descricao="Relatórios F1 a F5 e memória de legado ligados à ficha e às evidências."
+    >
+    <div>
       <Link
         to="/casos/$caseId"
         params={{ caseId }}
@@ -545,5 +559,6 @@ function RelatoriosFase() {
         })}
       </section>
     </div>
+    </SaasShell>
   );
 }

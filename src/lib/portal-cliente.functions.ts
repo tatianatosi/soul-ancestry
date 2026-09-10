@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
 import { publicacoesParaCliente } from "@/lib/projecoes-cliente";
 import { ehFixtureLinha, semFixtures } from "@/lib/fixtures";
+import { projetarProximaAcaoCliente, sinaisDoCasoPortal } from "@/lib/motor-caso";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -22,17 +23,22 @@ export const meusCasos = createServerFn({ method: "GET" })
     const supabase = context.supabase as any;
     await h.acessoDoCliente(supabase, context.userId as string);
 
-    const [casos, pendencias] = await Promise.all([
+    const [casos, pendencias, faturas] = await Promise.all([
       supabase
         .from("portal_casos")
         .select("id, codigo, titulo, pais, via, status, ativo, suspenso_em, updated_at")
         .order("updated_at", { ascending: false }),
       supabase.from("portal_document_requests").select("case_id, status").in("status", ["aguardando", "recusado"]),
+      supabase.from("invoices").select("case_id, status").in("status", ["pendente", "vencida"]),
     ]);
 
     const porCaso = new Map<string, number>();
     for (const p of (pendencias.data ?? []) as any[]) {
       porCaso.set(p.case_id, (porCaso.get(p.case_id) ?? 0) + 1);
+    }
+    const pagamentoPorCaso = new Set<string>();
+    for (const f of (faturas.data ?? []) as any[]) {
+      if (f.case_id) pagamentoPorCaso.add(f.case_id as string);
     }
 
     // P0.2: fixture/demo nunca chega ao cliente autenticado. portal_casos não
@@ -41,16 +47,28 @@ export const meusCasos = createServerFn({ method: "GET" })
     // "não_classificado" e escondia a lista inteira; semFixtures usa o sinal
     // que a view realmente carrega (título/código).
     return semFixtures((casos.data ?? []) as any[]).map((c) => {
-      const s = h.statusSimples(c, porCaso.get(c.id) ?? 0);
+      const pendenciasDocumento = porCaso.get(c.id) ?? 0;
+      const s = h.statusSimples(c, pendenciasDocumento);
+      const proxima = projetarProximaAcaoCliente(
+        sinaisDoCasoPortal({
+          status: c.status,
+          ativo: c.ativo,
+          suspensoEm: c.suspenso_em,
+          documentosPendentes: pendenciasDocumento,
+          pagamentoPendente: pagamentoPorCaso.has(c.id as string),
+        }),
+      );
       return {
         id: c.id as string,
         titulo: c.titulo as string,
         pais: c.pais as string | null,
         via: c.via as string | null,
         atualizadoEm: c.updated_at as string,
-        pendencias: porCaso.get(c.id) ?? 0,
+        pendencias: pendenciasDocumento,
         statusRotulo: s.rotulo,
         statusTexto: s.texto,
+        proximoPasso: proxima.acao,
+        proximoPassoDestino: proxima.destino,
       };
     });
   });
@@ -109,8 +127,19 @@ export const meuCaso = createServerFn({ method: "GET" })
     ]);
 
     const listaSolicitacoes = (solicitacoes.data ?? []) as any[];
+    const listaFaturas = semFixtures((faturas.data ?? []) as any[]);
     const pendentes = listaSolicitacoes.filter((s) => ["aguardando", "recusado"].includes(s.status)).length;
+    const pagamentoPendente = listaFaturas.some((f) => ["pendente", "vencida"].includes(String(f.status)));
     const s = h.statusSimples(caso, pendentes);
+    const proxima = projetarProximaAcaoCliente(
+      sinaisDoCasoPortal({
+        status: caso["status"],
+        ativo: caso["ativo"],
+        suspensoEm: caso["suspenso_em"],
+        documentosPendentes: pendentes,
+        pagamentoPendente,
+      }),
+    );
     // documents/invoices não têm classificacao_dado nem data_origin — usar o
     // sinal real de fixture (is_demo/dados_teste), não o filtro P0.2 que
     // sempre escondia tudo aqui (ver correção acima e no rodapé do arquivo).
@@ -125,6 +154,8 @@ export const meuCaso = createServerFn({ method: "GET" })
         atualizadoEm: caso["updated_at"] as string,
         statusRotulo: s.rotulo,
         statusTexto: s.texto,
+        proximoPasso: proxima.acao,
+        proximoPassoDestino: proxima.destino,
       },
       solicitacoes: listaSolicitacoes.map((r) => ({
         ...r,
@@ -155,7 +186,7 @@ export const meuCaso = createServerFn({ method: "GET" })
           motivo: d.revisao_motivo as string | null,
           enviadoEm: d.created_at as string,
         })),
-      faturas: semFixtures((faturas.data ?? []) as any[]).map((f) => ({
+      faturas: listaFaturas.map((f) => ({
         id: f.id as string,
         numero: f.numero as string | null,
         descricao: f.descricao as string | null,

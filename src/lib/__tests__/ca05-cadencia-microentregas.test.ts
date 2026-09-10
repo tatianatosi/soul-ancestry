@@ -121,9 +121,9 @@ describe("CA05-CADENCIA-MICROENTREGAS — D0–D365 como jornada contínua por c
   });
 
   it("cadência (D7/D10/D14) e diagnóstico de onboarding são funções puras derivadas do estado real do caso, não datas fixas", () => {
-    expect(onboardingJornada).toContain("primeiraMicroentregaDias: 7");
-    expect(onboardingJornada).toContain("atencaoDias: 10");
-    expect(onboardingJornada).toContain("criticoDias: 14");
+    expect(onboardingJornada).toContain("DIAS_PRIMEIRA_MICROENTREGA");
+    expect(onboardingJornada).toContain("DIAS_CADENCIA_ATENCAO");
+    expect(onboardingJornada).toContain("DIAS_CADENCIA_CRITICA");
     expect(onboardingJornada).toContain("export function diagnosticarOnboarding(");
     expect(onboardingJornada).toContain("export function avaliarCadencia(");
   });

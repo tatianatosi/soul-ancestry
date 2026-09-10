@@ -6,6 +6,8 @@ import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
+import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import {
   bloqueiosDeEscopo,
   extrairEscopoDaProposta,
@@ -251,7 +253,43 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
         ).data
       : null;
 
-    const lista = (valores ?? []) as any[];
+    let lista = (valores ?? []) as any[];
+    const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
+    for (const c of planejador.parametros) {
+      const atual = lista.find((v) => v.campo === c.campo);
+      if (!atual || String(atual.valor ?? "").trim()) continue;
+      const texto = String(c.valor ?? "").trim();
+      if (!texto || PLACEHOLDER_PARAM.test(texto)) continue;
+      const { data: atualizado, error } = await supabase
+        .from("contract_parameter_values")
+        .update({
+          valor: texto,
+          origem: "planejador",
+          origem_detalhe: c.detalhe,
+          status: "importado_a_confirmar",
+        })
+        .eq("id", atual.id)
+        .select("*")
+        .maybeSingle();
+      if (!error && atualizado) lista = lista.map((v) => (v.id === atual.id ? atualizado : v));
+    }
+    const escopoProposta = String(propostaEfetiva?.escopo ?? "").trim();
+    const linhaEscopo = lista.find((v) => v.campo === "escopo_resumo");
+    if (linhaEscopo && !String(linhaEscopo.valor ?? "").trim() && escopoProposta && !PLACEHOLDER_PARAM.test(escopoProposta)) {
+      const { data: atualizado, error } = await supabase
+        .from("contract_parameter_values")
+        .update({
+          valor: escopoProposta,
+          origem: "proposta",
+          origem_detalhe: "Escopo da proposta aprovada vinculada ao caso.",
+          status: "importado_a_confirmar",
+        })
+        .eq("id", linhaEscopo.id)
+        .select("*")
+        .maybeSingle();
+      if (!error && atualizado) lista = lista.map((v) => (v.id === linhaEscopo.id ? atualizado : v));
+    }
     const pegar = (campo: string) => lista.find((v) => v.campo === campo)?.valor ?? null;
     const anexos = anexosPorRegra({
       produto: pegar("produto_sku"),

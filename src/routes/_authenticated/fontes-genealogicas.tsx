@@ -25,7 +25,8 @@ import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
 import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -44,8 +45,18 @@ export const Route = createFileRoute("/_authenticated/fontes-genealogicas")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  errorComponent: ({ error }) => <p className="p-6 text-sm text-terracotta">Não foi possível abrir o catálogo: {error.message}</p>,
-  notFoundComponent: () => <p className="p-6 text-sm text-navy/70">Catálogo não encontrado.</p>,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Fontes genealógicas" descricao="Falha ao carregar o catálogo.">
+      <p role="alert" className="text-sm text-terracotta">
+        Não foi possível abrir o catálogo: {error.message}
+      </p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Fontes genealógicas" descricao="Catálogo não encontrado.">
+      <p className="text-sm text-navy/70">Catálogo não encontrado.</p>
+    </SaasShell>
+  ),
   component: FontesGenealogicas,
 });
 
@@ -281,6 +292,7 @@ function FontesGenealogicas() {
   const qc = useQueryClient();
   const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
   const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+  const [busca, setBusca] = useState("");
 
   // 06/09/2026: salvarFonte() no servidor sempre aceitou criacao (insere
   // quando `id` vem ausente), mas a tela so chamava com `id` de uma fonte ja
@@ -301,14 +313,24 @@ function FontesGenealogicas() {
     onError: (e: Error) => setErroNovaFonte(e.message),
   });
 
-  const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
+  const grupos = useMemo(() => {
+    const fontes = filtrarPorBusca((data?.fontes ?? []) as Fonte[], busca, [
+      "nome",
+      "pais_eixo",
+      "tipo_de_acervo",
+      "uso_recomendado",
+      "status_documentacao",
+      "status_integracao",
+    ]);
+    return agruparCatalogo(fontes);
+  }, [data, busca]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
   // Catálogo não lido nunca aparece como catálogo vazio.
   if (!data)
     return (
-      <div className="p-6">
+      <SaasShell titulo="Fontes, consultas e bases genealógicas" descricao="Catálogo interno de bases, sem consulta externa.">
         <EstadoDados
           carregando={isPending}
           erro={error}
@@ -318,7 +340,7 @@ function FontesGenealogicas() {
         >
           {() => null}
         </EstadoDados>
-      </div>
+      </SaasShell>
     );
 
   const render = (lista: Fonte[]) =>
@@ -329,14 +351,24 @@ function FontesGenealogicas() {
     );
 
   return (
-    <div className="space-y-5 p-4 sm:p-6">
+    <SaasShell
+      titulo="Fontes, consultas e bases genealógicas"
+      descricao="Catálogo interno de bases genealógicas, matriz de avaliação e backlog de ativação."
+    >
+    <div className="space-y-5">
       <header className="space-y-2">
-        <h1 className="font-serif text-xl text-navy">Fontes e Integrações Genealógicas</h1>
         <p className="rounded border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy/70">{AVISO_CATALOGO}</p>
         <p className="text-[11px] text-navy/50">
           {grupos.total} fontes catalogadas · {grupos.recomendaveis.length} recomendáveis · {grupos.termosAConfirmar.length} com termos a
           confirmar · {grupos.bloqueadas.length} restritas ou descontinuadas
         </p>
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar fonte por nome, país, tipo ou status"
+          className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm"
+        />
       </header>
 
       {pendenciaVinculo || !podeEscrever ? (
@@ -427,5 +459,6 @@ function FontesGenealogicas() {
         brutos são recusados pelo banco. Fonte crua nunca aparece no App Cliente.
       </footer>
     </div>
+    </SaasShell>
   );
 }

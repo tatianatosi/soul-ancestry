@@ -20,6 +20,7 @@ import { diasEntre, saudeDoPlano, contemConteudoInterno } from "@/lib/onboarding
 import { publicacoesParaCliente, type ProjecaoBruta, type PublicacaoCliente } from "@/lib/projecoes-cliente";
 import type { EixoRadar } from "@/lib/radar-eixos";
 import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos";
+import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 
 export type BloqueioFonte = {
   tela: string;
@@ -70,12 +71,17 @@ const TEXTO_RITMO: Record<"regular" | "atencao" | "critico", string> = {
 const TEXTO_SEM_PUBLICACAO =
   "Assim que houver uma atualização publicada pela equipe, ela aparece aqui.";
 
-export function jornadaSanitizada(projecoes: ProjecaoBruta[], hoje = new Date()): JornadaCliente {
+export function jornadaSanitizada(
+  projecoes: ProjecaoBruta[],
+  hoje = new Date(),
+  proximaDoMotor?: Pick<ProximaAcaoCliente, "acao"> | null,
+): JornadaCliente {
   const linha = publicacoesParaCliente(projecoes).filter((p) => !contemConteudoInterno(p.conteudo));
   const ultima = linha[0]?.publicadoEm ?? null;
   const dias = diasEntre(ultima, hoje);
   const proximoPasso =
-    dias === null ? TEXTO_SEM_PUBLICACAO : TEXTO_RITMO[saudeDoPlano(dias)];
+    proximaDoMotor?.acao?.trim() ||
+    (dias === null ? TEXTO_SEM_PUBLICACAO : TEXTO_RITMO[saudeDoPlano(dias)]);
   return {
     marcosPublicados: linha.length,
     ultimaAtualizacaoEm: ultima,

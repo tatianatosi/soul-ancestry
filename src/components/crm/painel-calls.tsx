@@ -42,7 +42,7 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
-import type { Achado } from "@/lib/varredura-whatsapp";
+import { codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -155,16 +155,20 @@ export function PainelCalls() {
   const achadosDoCampo = (campo: string): Achado[] => {
     const valorAtual = (lead as unknown as Record<string, unknown>)?.[campo];
     const jaTem = new Set(Array.isArray(valorAtual) ? valorAtual : valorAtual ? [String(valorAtual)] : []);
-    return achados.filter(
-      (a) => a.campo === campo && !jaTem.has(a.valor) && !ignorados.has(`${chaveLeadCampo(campo)}:${a.valor}`),
-    );
+    return achados.filter((a) => {
+      if (a.campo !== campo) return false;
+      if (ignorados.has(`${chaveLeadCampo(campo)}:${a.valor}`)) return false;
+      const codigo = codigoLeadDoAchado(a);
+      return !jaTem.has(a.valor) && !(codigo && jaTem.has(codigo));
+    });
   };
 
   const aplicarAchado = (campo: string, valor: string, multi: boolean) => {
+    const codigo = codigoLeadDoAchado({ campo: campo as Achado["campo"], valor }) ?? valor;
     setRascunho((r) => {
-      if (!multi) return { ...r, [campo]: valor };
+      if (!multi) return { ...r, [campo]: codigo };
       const atual = ((r[campo] as string[] | undefined) ?? (lead as any)?.[campo] ?? []) as string[];
-      return atual.includes(valor) ? r : { ...r, [campo]: [...atual, valor] };
+      return atual.includes(codigo) ? r : { ...r, [campo]: [...atual, codigo] };
     });
     setHipoteses((s) => {
       const n = new Set(s);

@@ -147,7 +147,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   },
   {
     id: "pesquisa",
-    to: "/pesquisa",
+    to: "/pesquisa-modulo",
     label: "Pesquisa",
     descricao: "Pesquisa genealógica, evidências, fontes, achados e relatórios F1/F2.",
     icone: "pesquisa",
@@ -155,14 +155,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     sub: [
       { grupo: "Investigação" },
       { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
-      // CA11-CENTRO-INTELIGENCIA (09/09/2026): /pesquisa é um dossiê paralelo
-      // e mais antigo (tabela pesquisa, desconectado de research_cases/
-      // evidences/genealogical_findings que /pesquisa-modulo usa) — o rótulo
-      // anterior ("Plano de ação e ficha genealógica") prometia telas que na
-      // verdade são /plano-acao/$caseId e /pessoas-linhagens/$caseId. Rótulo
-      // corrigido para não apresentar o dossiê legado como equivalente ao
-      // atual; a rota não foi removida nem reativada, só nomeada com precisão.
-      { to: "/pesquisa", label: "Dossiê de pesquisa (sistema anterior, desconectado)" },
       { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
@@ -212,16 +204,10 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      // 25/08/2026 — o item apontava para `/acessos-portal#espelho`, âncora que
-      // nunca existiu naquela página: o link levava a uma tela de convites, sem
-      // espelho nenhum. Passa a apontar para a sessão demo, que é real e usa os
-      // componentes do próprio App Cliente. O espelho de caso real (mesma
-      // camada, outra fonte de dado) entra como passo seguinte.
-      { to: "/app-cliente-demo", label: "Sessão demo do App Cliente" },
       // 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente
-      // como pessoa" (Proprietária). É o "passo seguinte" citado acima: mesma
-      // camada de componentes, dado real de um caso escolhido, autorizado por
-      // papel de Proprietária Administradora.
+      // como pessoa" (Proprietária). Mesma camada de componentes, dado real
+      // de um caso escolhido. A sessão DEMO saiu deste grupo (10/09): não é
+      // a face do produto; mora no menu da conta.
       { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
     ],
   },
@@ -268,6 +254,11 @@ export const MENU_CONTA: {
     { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
     { to: "/configuracoes", label: "Configurações e preferências" },
     { to: "/etiquetas", label: "Etiquetas canônicas" },
+    {
+      to: "/pesquisa",
+      label: "Dossiê legado de pesquisa (sistema anterior)",
+    },
+    { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
   ],
 } as const;
 
@@ -448,6 +439,46 @@ export const NATUREZA_BIBLIOTECA: readonly {
 
 export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)[number] | null {
   return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
+}
+
+/** Hash da URL sem `#`, para comparar destino de menu com a rota atual. */
+export function hashDaRota(hash: string | undefined | null): string {
+  return (hash ?? "").replace(/^#/, "");
+}
+
+/**
+ * Destino de menu sem colisão de prefixo.
+ * `/pesquisa` não marca `/pesquisa-modulo`; `/casos` marca `/casos/$id`.
+ */
+export function rotaAtendeDestino(atual: string, destino: string): boolean {
+  if (!atual || !destino) return false;
+  if (atual === destino) return true;
+  if (destino === "/") return false;
+  return atual.startsWith(`${destino}/`);
+}
+
+export type DestinoNav = { to: string; hash?: string };
+
+/** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
+export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav): boolean {
+  const hash = hashDaRota(hashAtual);
+  if (item.hash) return atual === item.to && hash === hashDaRota(item.hash);
+  if (hash && atual === item.to) return false;
+  return rotaAtendeDestino(atual, item.to);
+}
+
+/** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */
+export function grupoNavAtivo(
+  atual: string,
+  hashAtual: string,
+  grupo: { to: string; label: string; sub: readonly ItemNav[] },
+): boolean {
+  if (rotaAtendeDestino(atual, grupo.to) && !hashDaRota(hashAtual)) return true;
+  return grupo.sub.some((s) => {
+    if (!("to" in s)) return false;
+    if (origemDoAtalho(grupo.label, s.to)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
 }
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */

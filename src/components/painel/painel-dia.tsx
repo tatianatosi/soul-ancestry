@@ -88,11 +88,12 @@ function useVerificacaoLeituraPainel(
 function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
   if (problemas.length === 0) return null;
   return (
-    <section
+    <details
       data-aviso-leitura-painel
-      className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-navy"
+      className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy"
     >
-      <p className="font-medium text-terracotta">A leitura desta tela saiu do padrão acordado</p>
+      <summary className="cursor-pointer font-medium text-navy">Detalhes técnicos de leitura</summary>
+      <p className="mt-2 text-xs text-navy/75">A leitura desta tela saiu do padrão acordado</p>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-navy/75">
         {problemas.map((p) => (
           <li key={`${p.chave}-${p.mensagem}`}>{p.mensagem}</li>
@@ -101,7 +102,7 @@ function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
       <p className="mt-2 text-[11px] text-navy/55">
         Aviso apenas de exibição: nenhum dado foi alterado e nenhuma ação externa foi disparada.
       </p>
-    </section>
+    </details>
   );
 }
 
@@ -700,9 +701,9 @@ export function PainelDia() {
       </section>
 
       {/*
-        1 — Caso em destaque (mockup Fase 01). O que olhar primeiro, com a
-        regra que o colocou no topo. Reusa `calcularPrioridade`, a mesma
-        função da fila e de Casos 360 — nenhum cálculo paralelo.
+        1 — Caso em destaque. O que olhar primeiro, com a regra que o colocou
+        no topo. Reusa `calcularPrioridade`, a mesma função da fila e de
+        Casos 360 — nenhum cálculo paralelo.
       */}
       <CasoEmDestaque dados={casoDestaque} />
 

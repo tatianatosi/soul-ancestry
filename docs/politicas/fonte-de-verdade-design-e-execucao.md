@@ -1,11 +1,12 @@
 # Política — Fonte de Verdade de Design e Execução
 
 - Status: aprovado
-- Versão: v1.0
-- Data: 2026-09-09
+- Versão: v1.1
+- Data: 2026-09-09; adendo operacional 2026-09-10
 - Responsável pela decisão: Proprietária do Clube Ancestral
-- Fonte: conversa, GitHub, mockup, relatório
+- Fonte: conversa, GitHub, mockup, relatório; memória permanente 2026-09-10
 - Substitui: versão anterior do mesmo arquivo
+- Superfície para agentes: `AGENTS.md` e `.cursor/rules/clube-ancestral.mdc` (destilado). Texto completo: `MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`.
 
 ## Escopo
 
@@ -16,7 +17,10 @@ Esta política define a fonte de verdade para decisões de design e execução n
 1. O mockup ou tela explicitamente aprovado pela Proprietária é a referência visual e comportamental prioritária.
 2. As políticas, decisões de arquitetura e contratos validados no repositório são a referência normativa e técnica complementar.
 3. O estado persistido e verificável nos sistemas integrados é a referência para dados operacionais; não deve ser substituído por estado simulado quando houver integração aplicável.
-4. Em caso de divergência, prevalece a seguinte ordem: decisão explícita e mais recente da Proprietária; política aprovada; arquitetura aprovada; mockup aprovado; implementação existente; hipótese de trabalho.
+4. Em caso de divergência, prevalece a seguinte ordem: decisão explícita e mais recente da Proprietária; política aprovada; arquitetura aprovada; mockup aprovado de **17 páginas**; implementação existente; hipótese de trabalho.
+5. O **planejador** é a fonte válida do planejamento operacional ativo (o que está planejado, próxima ação, responsável, atraso, capacidade). Não duplicar estado contraditório da mesma ação.
+6. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas não são fonte de verdade do presente. O PDF de auditoria de 47 páginas não é o mockup normativo.
+7. Esta política não revoga `politica-autoridade-operacional.md` (pendência informa, não impede). Não autoriza redesenhar os 8 grupos do Desk nem as 7 abas canônicas do App Cliente.
 
 ## Regras de execução
 

@@ -97,7 +97,22 @@ export const listarCasosPesquisa = createServerFn({ method: "GET" })
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as Record<string, any>[];
+    const pesquisas = await supabase
+      .from("research_cases")
+      .select("id,case_id,status")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const porCaso = new Map(
+      ((pesquisas.data ?? []) as { id: string; case_id: string; status: string }[]).map((p) => [p.case_id, p]),
+    );
+    return ((data ?? []) as Record<string, any>[]).map((c) => {
+      const rc = porCaso.get(String(c.id));
+      return {
+        ...c,
+        research_case_id: rc?.id ?? null,
+        research_status: rc?.status ?? null,
+      } as Record<string, any>;
+    });
   });
 
 const TABELA: Record<Bloco, { nome: string; caso: string; campos: string[] }> = {

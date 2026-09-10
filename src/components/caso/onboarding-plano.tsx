@@ -63,7 +63,18 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
   if (!plano) {
     return (
       <Secao titulo="Plano de onboarding" descricao="Preparação interna, sem ativação de cliente.">
-        <p className="text-sm text-navy/55">Nenhum plano de onboarding preparado para este caso.</p>
+        <p className="text-sm text-navy/55">
+          Nenhum plano de onboarding neste caso. Recalcular cria a linha em onboarding_planos — não
+          ativa o cliente.
+        </p>
+        <button
+          type="button"
+          onClick={() => m.mutate()}
+          disabled={m.isPending}
+          className="mt-3 rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
+        >
+          Preparar plano pelos gates
+        </button>
       </Secao>
     );
   }
