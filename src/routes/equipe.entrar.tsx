@@ -171,7 +171,7 @@ function EntrarEquipe() {
   return (
     <EquipeMoldura
       titulo="Entrar no Desk"
-      subtitulo="Menu mais curto. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável."
+      subtitulo="Painel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável."
     >
       <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
         <div>

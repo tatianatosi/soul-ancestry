@@ -165,4 +165,14 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     expect(rotasFace).not.toContain("/governanca/dicionario-calls-crm");
     expect(rotasFace).not.toContain("/governanca/catalogo-operacional-30");
   });
+
+  it("Painel de Calls permanece na face: Comercial e atalho na Visão Geral", () => {
+    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(rotasHoje).toContain("/calls");
+    expect(rotasComercial).toContain("/calls");
+    expect(rotasDoMenu()).toContain("/calls");
+  });
 });

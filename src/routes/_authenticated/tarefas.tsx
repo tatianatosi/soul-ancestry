@@ -59,8 +59,23 @@ function TarefasPage() {
             chave: "caso_id",
             rotulo: "Caso vinculado",
             tipo: "select",
+            obrigatorio: true,
             origem: { entidade: "crm_casos", rotuloChave: "titulo" },
           },
+          {
+            chave: "tipo",
+            rotulo: "Tipo",
+            tipo: "select",
+            opcoes: [
+              { valor: "geral", rotulo: "Geral" },
+              { valor: "documental", rotulo: "Documental" },
+              { valor: "pesquisa", rotulo: "Pesquisa" },
+              { valor: "juridico", rotulo: "Jurídico" },
+              { valor: "atendimento", rotulo: "Atendimento" },
+              { valor: "financeiro", rotulo: "Financeiro" },
+            ],
+          },
+          { chave: "responsavel_id", rotulo: "Responsável (UUID da equipe)" },
           { chave: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: PRIORIDADES },
           {
             chave: "status",

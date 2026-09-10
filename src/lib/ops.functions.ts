@@ -11,6 +11,7 @@ import {
 } from "@/lib/ops.server";
 import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autorizacoes";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -183,6 +184,9 @@ export const salvarTarefa = createServerFn({ method: "POST" })
     exigirEscrita(ctx);
 
     const valores = limparOps(CAMPOS_TAREFA, data.valores);
+    if (!data.id && !valores["caso_id"]) {
+      throw new Error("Tarefa operacional exige caso vinculado.");
+    }
 
     if (data.id) {
       await gravarComVerificacao({
@@ -228,6 +232,19 @@ export const salvarTarefa = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    const casoId = String(valores["caso_id"] ?? "");
+    const bloqueada = valores["status"] === "bloqueada";
+    await registrarTimelineCaso(supabase, {
+      organizationId: ctx.organizationId,
+      caseId: casoId,
+      eventType: bloqueada ? "pendencia" : "tarefa",
+      title: bloqueada ? "Pendência/bloqueio registrado" : "Tarefa criada",
+      summaryInternal: String(valores["titulo"] ?? ""),
+      sourceEntityType: "tarefas",
+      sourceEntityId: novo.id as string,
+      bloqueio: bloqueada,
+      userId: context.userId as string,
+    });
     return { id: novo.id as string, reaproveitada: false };
   });
 
@@ -253,7 +270,7 @@ export const moverTarefa = createServerFn({ method: "POST" })
 
     const atual = await supabase
       .from("tarefas")
-      .select("status,bloqueio,bloqueado_em")
+      .select("status,bloqueio,bloqueado_em,caso_id,titulo")
       .eq("id", data.id)
       .eq("organization_id", ctx.organizationId)
       .maybeSingle();
@@ -283,6 +300,20 @@ export const moverTarefa = createServerFn({ method: "POST" })
       userId,
       payload: patch,
     });
+    if (atual.data.caso_id) {
+      const bloqueada = data.status === "bloqueada";
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: atual.data.caso_id as string,
+        eventType: bloqueada ? "pendencia" : "tarefa",
+        title: "Tarefa atualizada",
+        summaryInternal: `${String(atual.data.titulo ?? "")} → ${data.status}`,
+        sourceEntityType: "tarefas",
+        sourceEntityId: data.id,
+        bloqueio: bloqueada,
+        userId,
+      });
+    }
     return { ok: true };
   });
 

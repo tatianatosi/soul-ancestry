@@ -48,6 +48,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },
+      { to: "/calls", label: "Painel de Calls" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
       { to: "/alertas", label: "Alertas" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
@@ -373,6 +374,7 @@ export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemE
   { rota: "/relatorios", origem: "Visão Geral", tambemEm: ["Pesquisa"] },
   { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Pesquisa"] },
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
+  { rota: "/calls", origem: "Comercial", tambemEm: ["Visão Geral"] },
 ] as const;
 
 /**

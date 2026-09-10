@@ -689,9 +689,12 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Neste Desk o menu da esquerda ficou mais curto. CRM Mestre, dicionário e Catálogo 30
-        estão na conta, no rodapé da barra. Campo com pendência continua editável — a gravação
-        é revalidada no servidor.
+        Painel de Calls está no menu da Visão Geral e em Comercial → Calls Discovery.{" "}
+        <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
+          Abrir Painel de Calls
+        </Link>
+        . CRM Mestre, dicionário e Catálogo 30 ficam na conta, no rodapé da barra. Campo com
+        pendência continua editável — a gravação é revalidada no servidor.
       </p>
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}

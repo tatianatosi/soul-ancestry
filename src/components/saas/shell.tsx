@@ -235,12 +235,18 @@ export function SaasShell({
                 <button
                   type="button"
                   title={descricaoGrupo}
-                  onClick={() =>
-                    setAbertosManuais((v) => ({
-                      ...v,
-                      [to]: !(to in v ? v[to] : desktop && ativo),
-                    }))
-                  }
+                  onClick={() => {
+                    if (ativo) {
+                      setAbertosManuais((v) => ({
+                        ...v,
+                        [to]: !(to in v ? v[to] : desktop && ativo),
+                      }));
+                      return;
+                    }
+                    setAbertosManuais((v) => ({ ...v, [to]: true }));
+                    void navigate({ to: to as never });
+                    setAberto(false);
+                  }}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
                     ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",
