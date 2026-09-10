@@ -66,6 +66,18 @@ describe("atalhos de descoberta", () => {
     expect(painel).not.toContain("ATALHOS_DESCOBERTA.map((a) => a.acao");
   });
 
+  it("o atalho aponta para a aba dona da função, não para o nome antigo do grupo", () => {
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/qualidade")?.onde).toBe("Pessoas & Casos");
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/matriz-juridica")?.onde).toBe(
+      "Inteligência & Pesquisa",
+    );
+    expect(ATALHOS_DESCOBERTA.find((a) => a.rota === "/integracoes")?.onde).toBe(
+      "Governança & Administração",
+    );
+    expect(painel).toContain('to: "/calls"');
+    expect(painel).toContain("Mesa de Discovery");
+  });
+
   it("mantém o bloco no fim da ordem canônica, sem quebrar exceções → sinais", () => {
     const chaves = ORDEM_BLOCOS_PAINEL.map((b) => b.chave);
     expect(chaves[chaves.length - 1]).toBe("descoberta");

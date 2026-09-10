@@ -5,8 +5,10 @@ import {
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
   ROTAS_PRESERVADAS,
+  CAMADAS_DESK,
   destinosDuplicados,
   destinosSobrepostos,
+  grupoDonoDaRota,
   rotasDoMenu,
   rotasSemLink,
   rotasDoMenuConta,
@@ -150,5 +152,36 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
     expect(rotasDoMenu()).toContain("/calls");
+  });
+
+  it("declara as três camadas sem criar aba nova", () => {
+    expect(CAMADAS_DESK.map((c) => c.id)).toEqual(["abas", "mesa", "kpis"]);
+    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(CAMADAS_DESK.find((c) => c.id === "mesa")?.rota).toBe("/calls");
+    expect(CAMADAS_DESK.find((c) => c.id === "kpis")?.rota).toBe("/painel");
+  });
+
+  it("cada função mora em um único grupo — privacidade e SKU legado não são operação diária", () => {
+    expect(grupoDonoDaRota("/calls")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/leads")).toBe("Marketing & Comercial");
+    expect(grupoDonoDaRota("/casos")).toBe("Pessoas & Casos");
+    expect(grupoDonoDaRota("/evidencias")).toBe("Inteligência & Pesquisa");
+    expect(grupoDonoDaRota("/contratos")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/financeiro")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/catalogo")).toBe("Formalização & Financeiro");
+    expect(grupoDonoDaRota("/privacidade")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/homologacao-skus")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/conciliacao-catalogo")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/escopo-origem")).toBe("Governança & Administração");
+    expect(grupoDonoDaRota("/governanca/catalogo-operacional-30")).toBe(
+      "Governança & Administração",
+    );
+    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    expect(pesquisa.sub.some((s) => "to" in s && s.to === "/privacidade")).toBe(false);
+    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos")!;
+    const rotasContratos = contratos.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasContratos).not.toContain("/homologacao-skus");
+    expect(rotasContratos).not.toContain("/conciliacao-catalogo");
+    expect(rotasContratos).not.toContain("/escopo-origem");
   });
 });

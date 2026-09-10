@@ -20,7 +20,10 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 function Painel() {
   return (
-    <SaasShell titulo="Visão Geral" descricao="Painel Hoje — o que precisa de ação hoje, por quem e até quando.">
+    <SaasShell
+      titulo="Visão Geral"
+      descricao="O que está parado, vencido ou pede decisão — com ação e link para a aba dona."
+    >
       <PainelDia />
       {/*
         08/09/2026 — correção de um erro meu de 07/09. Ao encontrar

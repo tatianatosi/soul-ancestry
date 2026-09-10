@@ -1,14 +1,32 @@
 /**
  * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
  *
- * Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa ·
- * Formalização & Financeiro · Governança & Administração.
+ * Três camadas (decisão da Proprietária, 10/09/2026):
+ * 1. Abas definem onde cada função vive.
+ * 2. Mesa de Discovery (`/calls`) faz a entrada comercial funcionar.
+ * 3. KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.
  *
- * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
- * junto do Painel de Calls. Planilha Mestre, Top 30 e Catálogo 30 ficam só
- * em Governança (legado). URLs não mudam. Nenhuma rota operacional some.
+ * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
+ * em Governança, rotulados. URLs não mudam. Nada é apagado.
  */
+
+/** As três camadas do Desk — não são abas novas. */
+export const CAMADAS_DESK = [
+  {
+    id: "abas",
+    frase: "Abas definem onde cada função vive.",
+  },
+  {
+    id: "mesa",
+    frase: "A Mesa de Discovery faz a entrada comercial funcionar.",
+    rota: "/calls",
+  },
+  {
+    id: "kpis",
+    frase: "Os KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.",
+    rota: "/painel",
+  },
+] as const;
 
 export type ItemNav =
   { grupo: string } | { to: string; label: string; hash?: string; adminOnly?: boolean };
@@ -57,7 +75,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "O que precisa de decisão agora — indicadores com ação, fila, alertas, bloqueios e prazos.",
+    descricao: "O que está parado, vencido ou pede decisão hoje — com ação concreta.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },
@@ -69,7 +87,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "comercial",
     to: "/leads",
     label: "Marketing & Comercial",
-    descricao: "Origem da demanda, Calls, Discovery, proposta e conversão — CRM Vivo.",
+    descricao: "Entrada comercial: Calls, Mesa de Discovery, lead, proposta e conversão.",
     icone: "comercial",
     agrupador: true,
     sub: [
@@ -127,7 +145,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
       { to: "/evidencias", label: "Evidências e documentos" },
-      { to: "/privacidade", label: "Privacidade e consentimento" },
       { grupo: "Trilha" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -153,19 +170,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
       { grupo: "Catálogo e financeiro" },
       { to: "/catalogo", label: "Catálogo homologado" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
   },
   {
     id: "governanca",
     to: "/configuracoes",
     label: "Governança & Administração",
-    descricao: "Papéis, legado arquivado, integrações, DEMO e o que não decide o dia.",
+    descricao: "Papéis, privacidade, integrações e legado fora da operação diária.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -176,8 +188,13 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { grupo: "Legado (arquivo)" },
+      { to: "/privacidade", label: "Privacidade e consentimento" },
+      { grupo: "Legado (fora da operação diária)" },
       { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
+      { to: "/homologacao-skus", label: "Homologação de SKUs (legado)" },
+      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo (legado)" },
+      { to: "/divergencias-catalogo", label: "Divergências de catálogo (legado)" },
+      { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
 ] as const;
@@ -315,6 +332,26 @@ export function destinosDuplicados(): string[] {
     }
   }
   return dup;
+}
+
+/**
+ * Grupo dono da rota: o trabalho completo mora aqui. Nos demais lugares,
+ * só resumo e link. Sem dono = rota fora do menu (não inventar aba).
+ */
+export function grupoDonoDaRota(rota: string): string | null {
+  const path = (rota.split("#")[0] ?? "").replace(/\/$/, "") || "/";
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if ("to" in s && s.to === path) return g.label;
+    }
+  }
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      if (rotaAtendeDestino(path, s.to)) return g.label;
+    }
+  }
+  return null;
 }
 
 /**
