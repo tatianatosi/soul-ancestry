@@ -11,6 +11,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { consolidarMatrizJuridica, listarMatrizJuridica, registrarDecisaoTema } from "@/lib/crm-desk.functions";
 import { STATUS_TEMA, rotuloStatusTema, temasBloqueantesPendentes, type LinhaMatriz } from "@/lib/matriz-juridica";
+import { separarNotaTecnica } from "@/lib/rotulo-negocio";
 
 export const Route = createFileRoute("/_authenticated/matriz-juridica")({
   head: () => ({
@@ -111,6 +112,8 @@ function MatrizPage() {
           const e = edicao[l.tema_codigo] ?? {};
           const v = (k: keyof LinhaMatriz | string) => e[k] ?? String((l as Record<string, unknown>)[k] ?? "");
           const set = (k: string) => (val: string) => setEdicao((s) => ({ ...s, [l.tema_codigo]: { ...s[l.tema_codigo], [k]: val } }));
+          const notaJustificativa = separarNotaTecnica(String(l.justificativa ?? ""));
+          const justificativaHumana = e.justificativa !== undefined ? e.justificativa : notaJustificativa.humana;
           return (
             <Secao
               key={l.tema_codigo}
@@ -144,7 +147,18 @@ function MatrizPage() {
                   <Texto label="Decisão (sem redação de cláusula)" area valor={v("decisao")} onChange={set("decisao")} />
                 </div>
                 <div className="md:col-span-2">
-                  <Texto label="Justificativa interna" area valor={v("justificativa")} onChange={set("justificativa")} />
+                  <Texto
+                    label="Justificativa interna"
+                    area
+                    valor={justificativaHumana}
+                    onChange={set("justificativa")}
+                  />
+                  {notaJustificativa.tecnica ? (
+                    <details className="mt-2 rounded-lg border border-navy/10 bg-navy/5 px-3 py-2 text-xs text-navy/60">
+                      <summary className="cursor-pointer font-medium text-navy/70">Detalhes técnicos</summary>
+                      <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px]">{notaJustificativa.tecnica}</pre>
+                    </details>
+                  ) : null}
                 </div>
               </div>
               <div className="mt-3">
@@ -158,7 +172,8 @@ function MatrizPage() {
                       tema_codigo: l.tema_codigo,
                       status: v("status"),
                       decisao: v("decisao") || null,
-                      justificativa: v("justificativa") || null,
+                      justificativa:
+                        [justificativaHumana.trim(), notaJustificativa.tecnica].filter(Boolean).join("\n") || null,
                       responsavel_revisao: v("responsavel_revisao") || null,
                       versao_juridica_aplicavel: v("versao_juridica_aplicavel") || null,
                       referencia_versao: v("referencia_versao") || null,

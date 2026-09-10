@@ -46,6 +46,7 @@ import {
   DecisoesNormativasDoCaso,
   ReferenciasNormativasAplicaveis,
 } from "@/components/pesquisa/referencias-normativas";
+import { SaasShell } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -65,6 +66,16 @@ export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseI
     ],
   }),
   component: AreaPesquisaEvidencias,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Pesquisa Genealógica e Evidências" descricao="Falha ao carregar a área de pesquisa.">
+      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Pesquisa Genealógica e Evidências" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const VAZIO: Record<string, unknown> = {
@@ -152,7 +163,11 @@ function AreaPesquisaEvidencias() {
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <SaasShell
+      titulo="Pesquisa Genealógica e Evidências"
+      descricao="Documentos, solicitações, evidências e pendências internas do caso."
+    >
+    <div className="space-y-6">
       <header className="space-y-1">
         <p className="text-xs uppercase tracking-widest text-navy/60">Desk Intelligence</p>
         <h1 className="text-2xl font-semibold text-navy">Pesquisa Genealógica e Evidências</h1>
@@ -971,6 +986,7 @@ function AreaPesquisaEvidencias() {
         </section>
       )}
     </div>
+    </SaasShell>
   );
 }
 

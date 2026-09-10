@@ -450,6 +450,46 @@ export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)
   return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
 }
 
+/** Hash da URL sem `#`, para comparar destino de menu com a rota atual. */
+export function hashDaRota(hash: string | undefined | null): string {
+  return (hash ?? "").replace(/^#/, "");
+}
+
+/**
+ * Destino de menu sem colisão de prefixo.
+ * `/pesquisa` não marca `/pesquisa-modulo`; `/casos` marca `/casos/$id`.
+ */
+export function rotaAtendeDestino(atual: string, destino: string): boolean {
+  if (!atual || !destino) return false;
+  if (atual === destino) return true;
+  if (destino === "/") return false;
+  return atual.startsWith(`${destino}/`);
+}
+
+export type DestinoNav = { to: string; hash?: string };
+
+/** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
+export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav): boolean {
+  const hash = hashDaRota(hashAtual);
+  if (item.hash) return atual === item.to && hash === hashDaRota(item.hash);
+  if (hash && atual === item.to) return false;
+  return rotaAtendeDestino(atual, item.to);
+}
+
+/** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */
+export function grupoNavAtivo(
+  atual: string,
+  hashAtual: string,
+  grupo: { to: string; label: string; sub: readonly ItemNav[] },
+): boolean {
+  if (rotaAtendeDestino(atual, grupo.to) && !hashDaRota(hashAtual)) return true;
+  return grupo.sub.some((s) => {
+    if (!("to" in s)) return false;
+    if (origemDoAtalho(grupo.label, s.to)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
+}
+
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */
 export const LACUNAS_CONHECIDAS: readonly { item: string; motivo: string }[] = [
   { item: "Radar multi-país", motivo: "Sem fonte canônica definida; nenhum cálculo é simulado." },

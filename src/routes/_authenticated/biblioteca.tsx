@@ -10,6 +10,7 @@ import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
+import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
   arquivarItemBiblioteca,
   definirVigenciaItem,
@@ -209,7 +210,15 @@ function BibliotecaPage() {
                   <tr key={l.area}>
                     <td className="py-2 pr-3 font-medium text-foreground">{l.area}</td>
                     <td className="py-2 pr-3 text-muted-foreground">{l.casa}</td>
-                    <td className="py-2 pr-3 font-mono text-[11px] text-muted-foreground">{l.fonte}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">
+                      {rotuloFonteNegocio(l.fonte)}
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-[10px] text-muted-foreground/80">
+                          Detalhes técnicos
+                        </summary>
+                        <code className="mt-1 block font-mono text-[10px]">{l.fonte}</code>
+                      </details>
+                    </td>
                     <td className="py-2 text-muted-foreground">{l.nota}</td>
                   </tr>
                 ))}

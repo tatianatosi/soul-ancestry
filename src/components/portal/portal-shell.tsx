@@ -10,7 +10,6 @@ import {
   Route,
   Radar,
   Trees,
-  PackageCheck,
   BookOpen,
   UserRound,
 } from "lucide-react";
@@ -23,18 +22,6 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_GERAL, COPY_TELAS } from "@/lib/portal-copy";
-import { useEscopoPortal } from "@/components/portal/portal-visibilidade";
-import { visibilidadeTela, type EscopoCliente } from "@/lib/app-visibilidade";
-
-/** Escopo conservador enquanto a leitura não retorna: nenhuma das três abas condicionais aparece. */
-const ESCOPO_NAV_INDEFINIDO: EscopoCliente = {
-  temAcesso: false,
-  entregasLiberadas: 0,
-  fase1Contratada: false,
-  fase1Status: "nao_prevista",
-  escopoIncluiFase2: false,
-  fase2Status: "nao_aplicavel",
-};
 
 export function usePortal() {
   const carregar = useServerFn(portalContexto);
@@ -55,7 +42,6 @@ export function PortalShell({
   const rota = useRouterState({ select: (s) => s.location.pathname });
   const { data, isSuccess } = usePortal();
   const previa = usePreviaPortal();
-  const { data: escopo } = useEscopoPortal();
 
   useEffect(() => {
     // Em prévia (demo e espelho, dentro do Desk) ninguém é cliente autorizado
@@ -67,20 +53,10 @@ export function PortalShell({
   }, [previa, isSuccess, data, navigate]);
 
   /*
-    Sete abas do mockup aprovado existem desde que o cliente chega — Início,
-    Jornada, Radar, Árvore, Documentos, Legado e Conta. Entrega, Fase 01 e
-    Fase 02 não são atalho universal: cada uma só entra na navegação quando o
-    escopo real do caso (CA-UX-01.2 — mesma fonte que decide o estado dentro
-    da própria tela) diz que ela é aplicável a este cliente. Uma data solta de
-    início de onboarding não basta — isso mostrava "Fase 02" na entrada para
-    qualquer caso que apenas tivesse começado, antes de ela fazer parte de
-    fato da jornada contratada.
+    Sete abas do mockup aprovado: Home, Jornada, Radar, Árvore, Documentos,
+    Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
+    continuam existindo como arquivos, só não ocupam a navegação.
   */
-  const escopoNav = previa ? null : (escopo ?? ESCOPO_NAV_INDEFINIDO);
-  const entregaAplicavel = previa || (escopoNav ? visibilidadeTela("entrega", escopoNav).estado !== "not_applicable" : false);
-  const fase01Aplicavel = previa || (escopoNav ? visibilidadeTela("relatorio", escopoNav).estado !== "not_applicable" : false);
-  const fase02Aplicavel = previa || (escopoNav ? visibilidadeTela("fase02", escopoNav).estado !== "not_applicable" : false);
-
   const nav =
     previa || data?.nivel === "client_workspace"
       ? [
@@ -91,9 +67,6 @@ export function PortalShell({
           { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
           { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
           { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-          ...(entregaAplicavel ? [{ to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck }] : []),
-          ...(fase01Aplicavel ? [{ to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText }] : []),
-          ...(fase02Aplicavel ? [{ to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText }] : []),
         ]
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 

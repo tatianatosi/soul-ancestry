@@ -11,6 +11,7 @@ import {
   type Entidade,
 } from "@/lib/saas.functions";
 import { rotuloEstado, transicoesDe, type Dominio } from "@/lib/estados";
+import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { BotaoTentarNovamente, EstadoVazio } from "./shell";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ export function EntidadeCrud({
   const arquivar = useServerFn(arquivarRegistro);
 
   const [incluirArquivados, setIncluirArquivados] = useState(false);
+  const [busca, setBusca] = useState("");
   const [form, setForm] = useState<Record<string, string> | null>(null);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -174,6 +176,7 @@ export function EntidadeCrud({
   };
 
   const linhas = filtrarLinhas ? carregadas.filter(filtrarLinhas) : carregadas;
+  const linhasBusca = filtrarPorBusca(linhas, busca, colunas.map((c) => c.chave));
 
   return (
     <div className="space-y-4">
@@ -186,6 +189,13 @@ export function EntidadeCrud({
           />
           Mostrar arquivados
         </label>
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar nos registros visíveis"
+          className="min-w-[200px] flex-1 rounded-lg border border-navy/20 px-3 py-2 text-sm"
+        />
         {topo}
         {/*
           Autoridade operacional: criar registro renderiza sempre. O aviso de
@@ -216,8 +226,14 @@ export function EntidadeCrud({
           mensagem={`Não foi possível carregar ${titulo.toLowerCase()}.`}
           acao={<BotaoTentarNovamente aoClicar={() => void q.refetch()} />}
         />
-      ) : linhas.length === 0 ? (
-        <EstadoVazio mensagem={`Nenhum registro em ${titulo.toLowerCase()} ainda.`} />
+      ) : linhasBusca.length === 0 ? (
+        <EstadoVazio
+          mensagem={
+            busca.trim()
+              ? "Nenhum registro corresponde à busca."
+              : `Nenhum registro em ${titulo.toLowerCase()} ainda.`
+          }
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
           <table className="w-full text-sm" style={{ minWidth: `${larguraMinima}px` }}>
@@ -232,7 +248,7 @@ export function EntidadeCrud({
               </tr>
             </thead>
             <tbody>
-              {linhas.map((linha) => {
+              {linhasBusca.map((linha) => {
                 const arquivado = Boolean(linha["archived_at"]);
                 return (
                   <tr key={String(linha["id"])} className={cn("border-t border-navy/5", arquivado && "opacity-55", classeLinha?.(linha))}>

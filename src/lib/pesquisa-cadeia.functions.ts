@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
 import { validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
+import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,7 +41,7 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
 
     const researchCaseId = (pesquisa.data as any)?.id ?? null;
 
-    const [pessoas, variantes, relacoes, eventos, linhagens, fontes, evidencias, achados, relatorios, pendencias] =
+    const [pessoas, variantes, relacoes, eventos, eventosModulo, linhagens, fontes, evidencias, evidenciasModulo, achados, relatorios, pendencias] =
       await Promise.all([
         researchCaseId
           ? supabase
@@ -69,6 +70,14 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           .eq("organization_id", organizationId)
           .eq("case_id", data.caseId)
           .is("archived_at", null),
+        researchCaseId
+          ? supabase
+              .from("research_case_events")
+              .select("id,event_type,event_date,location_text,person_id,status,confidence_level,notes_internal")
+              .eq("organization_id", organizationId)
+              .eq("research_case_id", researchCaseId)
+              .is("archived_at", null)
+          : { data: [] },
         supabase
           .from("lineage_paths")
           .select("id,case_id,nome_da_linha,tipo_da_linha,status,objetivo,proximo_marco,geracao_alvo,responsavel")
@@ -89,6 +98,16 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           .eq("organization_id", organizationId)
           .eq("case_id", data.caseId)
           .order("created_at", { ascending: false }),
+        researchCaseId
+          ? supabase
+              .from("research_evidence_items")
+              .select(
+                "id,title,evidence_type,evidence_status,confidence_level,person_id,source_id,reviewed_by,reviewed_at,validation_rationale,archived_at",
+              )
+              .eq("organization_id", organizationId)
+              .eq("research_case_id", researchCaseId)
+              .is("archived_at", null)
+          : { data: [] },
         supabase
           .from("genealogical_findings")
           .select(
@@ -115,17 +134,34 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
           .is("archived_at", null),
       ]);
 
+    const pessoasLista = ((pessoas as any).data ?? []) as any[];
+    const idsPessoas = new Set(pessoasLista.map((p) => p.id));
+    const evidenciasCadeia = ((evidencias as any).data ?? []) as any[];
+    const evidenciasDoModulo = (((evidenciasModulo as any).data ?? []) as any[]).map((e) => ({
+      ...e,
+      title_internal: e.title ?? e.title_internal,
+      workflow_status: workflowStatusDeEvidenciaModulo(e.evidence_status),
+    }));
+    const eventosCadeia = ((eventos as any).data ?? []) as any[];
+    const eventosDoModulo = (((eventosModulo as any).data ?? []) as any[]).map((e) => ({
+      ...e,
+      tipo: e.event_type ?? e.tipo,
+      titulo: e.event_type ?? e.titulo,
+      data_inicio: e.event_date ?? e.data_inicio,
+      local: e.location_text ?? e.local,
+    }));
+
     return {
       papel,
       podeEditar: PAPEIS_EDITA.includes(papel),
       pesquisa: (pesquisa.data ?? null) as any,
-      pessoas: ((pessoas as any).data ?? []) as any[],
-      variantes: ((variantes as any).data ?? []) as any[],
+      pessoas: pessoasLista,
+      variantes: (((variantes as any).data ?? []) as any[]).filter((v) => idsPessoas.has(v.person_id)),
       relacoes: ((relacoes as any).data ?? []) as any[],
-      eventos: ((eventos as any).data ?? []) as any[],
+      eventos: [...eventosCadeia, ...eventosDoModulo],
       linhagens: ((linhagens as any).data ?? []) as any[],
       fontes: ((fontes as any).data ?? []) as any[],
-      evidencias: ((evidencias as any).data ?? []) as any[],
+      evidencias: [...evidenciasCadeia, ...evidenciasDoModulo],
       achados: ((achados as any).data ?? []) as any[],
       relatorios: ((relatorios as any).data ?? []) as any[],
       pendencias: ((pendencias as any).data ?? []) as any[],
@@ -161,10 +197,9 @@ export const prepararAreaPesquisa = createServerFn({ method: "POST" })
       .insert({
         organization_id: organizationId,
         case_id: data.caseId,
-        research_type: data.tipo,
         research_objective: data.objetivo,
-        status: "preparacao_pendente",
-        external_research_authorization_status: "pendente",
+        status: "preparation",
+        external_research_authorization_status: "pending",
         created_by: context.userId,
       })
       .select("id")

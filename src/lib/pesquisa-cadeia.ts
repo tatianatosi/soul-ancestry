@@ -20,18 +20,26 @@ export const CADEIA_PESQUISA = [
 
 export type EtapaCadeia = (typeof CADEIA_PESQUISA)[number]["etapa"];
 
-/** A. Situações controladas da pesquisa. */
+/** A. Situações controladas da pesquisa (ids EN do CHECK + aliases PT de linhas antigas). */
 export const STATUS_PESQUISA = [
+  { id: "not_started", rotulo: "Não iniciada" },
   { id: "nao_iniciada", rotulo: "Não iniciada" },
+  { id: "preparation", rotulo: "Preparação pendente" },
   { id: "preparacao_pendente", rotulo: "Preparação pendente" },
-  { id: "aguardando_autorizacao", rotulo: "Aguardando autorização" },
+  { id: "internal_research", rotulo: "Pesquisa interna" },
   { id: "em_andamento", rotulo: "Em andamento" },
+  { id: "awaiting_documents", rotulo: "Aguardando documentos" },
   { id: "aguardando_cliente", rotulo: "Aguardando cliente" },
+  { id: "aguardando_autorizacao", rotulo: "Aguardando autorização" },
   { id: "aguardando_terceiro_ou_arquivo", rotulo: "Aguardando terceiro ou arquivo" },
+  { id: "awaiting_review", rotulo: "Aguardando revisão" },
   { id: "em_revisao", rotulo: "Em revisão" },
+  { id: "paused", rotulo: "Pausada" },
   { id: "pausada", rotulo: "Pausada" },
-  { id: "concluida_parcialmente", rotulo: "Concluída parcialmente" },
+  { id: "completed", rotulo: "Concluída" },
   { id: "concluida", rotulo: "Concluída" },
+  { id: "concluida_parcialmente", rotulo: "Concluída parcialmente" },
+  { id: "archived", rotulo: "Arquivada" },
   { id: "arquivada", rotulo: "Arquivada" },
 ] as const;
 

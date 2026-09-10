@@ -45,7 +45,7 @@ import {
   salvarRegistroG02,
 } from "@/lib/pessoas-linhagens.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
-import { useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
   component: Pagina,
@@ -67,9 +67,15 @@ export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId"
     ],
   }),
   errorComponent: ({ error }) => (
-    <div className="p-6 text-sm text-terracotta">Não foi possível carregar a ficha: {error.message}</div>
+    <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
+      <p role="alert" className="text-sm text-terracotta">Não foi possível carregar a ficha: {error.message}</p>
+    </SaasShell>
   ),
-  notFoundComponent: () => <div className="p-6 text-sm text-navy/70">Caso não encontrado.</div>,
+  notFoundComponent: () => (
+    <SaasShell titulo="Pessoas e linhagens" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const inputCls =
@@ -259,46 +265,56 @@ function Pagina() {
   const timeline = useMemo(() => montarTimeline(perfis, eventos), [perfis, eventos]);
   const lacunas = useMemo(() => calcularLacunas(perfis, relacoes, eventos, linhagens), [perfis, relacoes, eventos, linhagens]);
 
-  if (isLoading) return <div className="p-6 text-sm text-navy/60">Carregando ficha genealógica…</div>;
+  if (isLoading)
+    return (
+      <SaasShell titulo="Pessoas e linhagens" descricao="Ficha genealógica interna do caso.">
+        <p className="text-sm text-navy/60">Carregando ficha genealógica…</p>
+      </SaasShell>
+    );
   if (isError)
     return (
-      <div className="flex flex-wrap items-center gap-3 p-6 text-sm text-terracotta">
-        Não foi possível carregar a ficha genealógica deste caso.
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
-        >
-          Tentar novamente
-        </button>
-      </div>
+      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar a ficha genealógica deste caso.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      </SaasShell>
     );
   // Consulta concluída sem erro e sem payload é falha de carga, não base vazia.
   if (!data)
     return (
-      <div
-        role="alert"
-        className="m-4 space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm md:m-6"
-      >
-        <p className="font-medium text-destructive">
-          Não foi possível carregar a ficha genealógica deste caso.
-        </p>
-        <p className="text-navy/80">
-          A consulta terminou sem retornar resultado nem erro. Isso é uma falha de carga: não
-          significa que o caso esteja sem pessoas cadastradas.
-        </p>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
-        >
-          Tentar novamente
-        </button>
-      </div>
+      <SaasShell titulo="Pessoas e linhagens" descricao="Falha ao carregar a ficha.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium text-destructive">
+            Não foi possível carregar a ficha genealógica deste caso.
+          </p>
+          <p className="text-navy/80">
+            A consulta terminou sem retornar resultado nem erro. Isso é uma falha de carga: não
+            significa que o caso esteja sem pessoas cadastradas.
+          </p>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-navy/20 px-2 py-1 text-xs font-medium text-navy hover:bg-navy/5"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </SaasShell>
     );
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <SaasShell
+      titulo="Pessoas e linhagens"
+      descricao="Origem canônica interna de pessoas, relações, variantes, eventos e linhagens."
+    >
+    <div className="space-y-6">
       <header className="space-y-2">
         <Link to="/casos/$caseId" params={{ caseId }} className="text-xs text-navy/60 underline">
           ← Voltar à ficha do caso
@@ -465,6 +481,7 @@ function Pagina() {
         </section>
       ) : null}
     </div>
+    </SaasShell>
   );
 }
 

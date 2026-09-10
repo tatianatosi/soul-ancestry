@@ -10,6 +10,7 @@ import { useAutoridade } from "@/components/saas/autoridade";
 import { Painel, Selo } from "@/components/comercial/base";
 import { rotulo } from "@/components/pesquisa/modulo-campos";
 import { criarPesquisaParaCaso, painelPesquisaModulo, rodarScanPesquisa } from "@/lib/pesquisa-modulo.functions";
+import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 import { CardIndicador } from "@/components/desk/ui-desk";
 
 export const Route = createFileRoute("/_authenticated/pesquisa-modulo/")({
@@ -49,6 +50,7 @@ function Index() {
   const qc = useQueryClient();
   const [casoId, setCasoId] = useState("");
   const [objetivo, setObjetivo] = useState("");
+  const [busca, setBusca] = useState("");
 
   const q = useQuery({ queryKey: ["pesquisa-modulo", "painel"], queryFn: () => carregar() });
 
@@ -71,6 +73,18 @@ function Index() {
   });
 
   const d = q.data;
+  const pesquisasFiltradas = d
+    ? filtrarPorBusca(
+        d.pesquisas.map((p: any) => ({
+          ...p,
+          codigo: p.caso?.codigo,
+          titulo: p.caso?.titulo,
+          pais: p.caso?.pais,
+        })),
+        busca,
+        ["codigo", "titulo", "status", "pais"],
+      )
+    : [];
 
   return (
     <SaasShell
@@ -134,8 +148,15 @@ function Index() {
             >
               Rodar verificação de qualidade da pesquisa
             </button>
+            <input
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por código, título, status ou país"
+              className="mb-3 w-full rounded-lg border border-navy/15 bg-white px-3 py-1.5 text-sm"
+            />
             <div className="space-y-2">
-              {d.pesquisas.map((p: any) => (
+              {pesquisasFiltradas.map((p: any) => (
                 <Link
                   key={p["id"]}
                   to="/pesquisa-modulo/$id"
@@ -159,7 +180,7 @@ function Index() {
                   <p className="text-xs text-navy/50">{String(p["research_objective"] ?? "objetivo não descrito")}</p>
                 </Link>
               ))}
-              {d.pesquisas.length === 0 && <p className="text-sm text-navy/60">Nenhuma pesquisa criada ainda.</p>}
+              {pesquisasFiltradas.length === 0 && <p className="text-sm text-navy/60">Nenhuma pesquisa criada ainda.</p>}
             </div>
           </Painel>
 

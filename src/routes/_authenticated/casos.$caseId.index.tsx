@@ -18,6 +18,7 @@ import {
 import { ROTULO_STATUS_FINANCEIRO_CASO } from "@/lib/financeiro-caso";
 import { validacaoJuridicaCaso } from "@/lib/crm-desk.functions";
 import { cadeiaPesquisaDoCaso } from "@/lib/pesquisa-cadeia.functions";
+import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
@@ -255,13 +256,15 @@ function SecaoAncora({
   id,
   titulo,
   children,
+  hidden,
 }: {
   id: string;
   titulo: string;
   children: React.ReactNode;
+  hidden?: boolean;
 }) {
   return (
-    <section id={`secao-${id}`} data-secao-caso={id} className="scroll-mt-16">
+    <section id={`secao-${id}`} data-secao-caso={id} className="scroll-mt-16" hidden={hidden}>
       <h2 className="mb-2 flex items-center gap-2 font-serif text-lg text-navy">
         <span className="h-3.5 w-1 rounded-full bg-gold" aria-hidden />
         {titulo}
@@ -396,6 +399,8 @@ function FichaCaso() {
     queryFn: () => carregarPesquisaFn({ data: { caseId: id } }),
     retry: false,
   });
+
+  const [secaoFoco, setSecaoFoco] = useState<(typeof SECOES)[number]["id"] | null>(SECOES[0].id);
 
   // CA08-JURIDICO-PROPORCIONAL (09/09/2026): fontes já existentes
   // (citizenship_tracks, versioned_legal_rules, legal_reference_milestones,
@@ -884,7 +889,7 @@ function FichaCaso() {
               const c = qPesquisa.data;
               const evidencias = c?.evidencias ?? [];
               const comprovadas = evidencias.filter((e: any) => e.workflow_status === "validada_internamente").length;
-              const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido").length;
+              const pendencias = (c?.pendencias ?? []).filter((p: any) => p.status !== "resolvido" && pendenciaPesquisaAberta(p.status)).length;
               const achados = c?.achados?.length ?? 0;
               return (
                 <p className="mt-1 text-xs text-navy/70">
@@ -1159,7 +1164,7 @@ function FichaCaso() {
         </div>
       </div>
 
-      {/* Índice: leva à seção sem esconder as outras. */}
+      {/* Índice: âncoras fixas; seções fora de foco ficam no DOM com hidden. */}
       <nav
         aria-label="Seções do caso"
         className="sticky top-0 z-10 -mx-1 mb-5 flex flex-wrap gap-1.5 border-b border-navy/10 bg-cream/95 px-1 py-2 backdrop-blur"
@@ -1168,15 +1173,33 @@ function FichaCaso() {
           <a
             key={a.id}
             href={`#secao-${a.id}`}
-            className="rounded-lg px-2.5 py-1 text-[13px] text-navy/65 transition-colors hover:bg-navy/5 hover:text-navy"
+            onClick={() => setSecaoFoco(a.id)}
+            className={
+              "rounded-lg px-2.5 py-1 text-[13px] transition-colors " +
+              (secaoFoco === a.id
+                ? "bg-navy text-cream"
+                : "text-navy/65 hover:bg-navy/5 hover:text-navy")
+            }
           >
             {a.rotulo}
           </a>
         ))}
+        <button
+          type="button"
+          onClick={() => setSecaoFoco(null)}
+          className={
+            "rounded-lg px-2.5 py-1 text-[13px] transition-colors " +
+            (secaoFoco === null
+              ? "bg-gold text-navy font-medium"
+              : "text-navy/65 hover:bg-navy/5 hover:text-navy")
+          }
+        >
+          Ver página completa
+        </button>
       </nav>
 
       <div className="space-y-8">
-        <SecaoAncora id="visao" titulo="Indicadores">
+        <SecaoAncora id="visao" titulo="Indicadores" hidden={secaoFoco !== null && secaoFoco !== "visao"}>
           <EstadoDados
             carregando={q.isLoading}
             erro={q.error}
@@ -1411,7 +1434,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="comercial" titulo="Jurídico">
+        <SecaoAncora id="comercial" titulo="Jurídico" hidden={secaoFoco !== null && secaoFoco !== "comercial"}>
           {/*
             27/08/2026 — decisão da Proprietária, com cautela deliberada: o
             motor e a matriz de contrato já moram em /contratos e
@@ -1570,7 +1593,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="tecnico" titulo="Técnico e riscos">
+        <SecaoAncora id="tecnico" titulo="Técnico e riscos" hidden={secaoFoco !== null && secaoFoco !== "tecnico"}>
           <div className="grid gap-5 lg:grid-cols-2">
             <Secao
               titulo="País e via"
@@ -1663,7 +1686,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="pessoas" titulo="Pessoa e família">
+        <SecaoAncora id="pessoas" titulo="Pessoa e família" hidden={secaoFoco !== null && secaoFoco !== "pessoas"}>
           <div className="space-y-5">
             <EstadoDados
               carregando={q.isLoading}
@@ -1749,7 +1772,7 @@ function FichaCaso() {
           </div>
         </SecaoAncora>
 
-        <SecaoAncora id="jornada" titulo="Jornada">
+        <SecaoAncora id="jornada" titulo="Jornada" hidden={secaoFoco !== null && secaoFoco !== "jornada"}>
           {/*
             27/08/2026 — decisão da Proprietária: o ciclo de vida e o produto
             fazem parte da jornada do cliente, não são algo à parte. Um fio
@@ -1813,7 +1836,7 @@ function FichaCaso() {
           de persistência campo→tabela) recolhidos por padrão — nada foi
           apagado, "secao-log" continua sendo o alvo do índice fixo.
         */}
-        <details id="secao-log" className="scroll-mt-16 rounded-xl border border-navy/10 bg-white p-5">
+        <details id="secao-log" hidden={secaoFoco !== null && secaoFoco !== "log"} className="scroll-mt-16 rounded-xl border border-navy/10 bg-white p-5">
           <summary className="cursor-pointer font-serif text-lg text-navy">
             Dados técnicos e validações
           </summary>
