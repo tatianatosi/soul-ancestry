@@ -6,7 +6,7 @@ import { INDICADORES_CANONICOS } from "@/lib/fontes-canonicas-indicadores";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
-describe("Cockpit — Visão Geral opera, Calls grava, Caso 360 sintetiza", () => {
+describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   it("os 6 grupos do Desk permanecem; não volta o mockup de 14 abas", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
@@ -22,7 +22,7 @@ describe("Cockpit — Visão Geral opera, Calls grava, Caso 360 sintetiza", () =
   it("cartões do Painel Hoje são links para lista com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
-    expect(painel).toContain("to={c.destino as \"/tarefas\"}");
+    expect(painel).toContain('to={c.destino as "/tarefas"}');
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
   });

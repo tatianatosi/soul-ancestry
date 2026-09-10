@@ -705,8 +705,9 @@ export function PainelDia() {
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
           Abrir Painel de Calls
         </Link>
-        . CRM Mestre, dicionário e Catálogo 30 ficam em Governança, no arquivo. Campo com
-        pendência continua editável — a gravação é revalidada no servidor.
+        . CRM Mestre e o dicionário moram no Comercial, com as Calls. Catálogo 30 fica em
+        Governança, no arquivo. Campo com pendência continua editável — a gravação é revalidada
+        no servidor.
       </p>
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}

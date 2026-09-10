@@ -57,7 +57,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "hoje",
     to: "/painel",
     label: "Hoje",
-    descricao: "O que precisa de decisão agora — fila, alertas, bloqueios e próximos prazos.",
+    descricao: "O que precisa de decisão agora — indicadores com ação, fila, alertas, bloqueios e prazos.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },

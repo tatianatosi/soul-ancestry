@@ -46,7 +46,8 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     contagemEm: ["/painel"],
     etiquetaEm: ["/metricas", "/leads", "/casos", "/tarefas"],
     confianca: "confirmado",
-    observacao: "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Painel de Calls — a fonte é leads.proxima_acao_em.",
+    observacao:
+      "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Painel de Calls porque a contagem atual é leads.proxima_acao_em — não é marco do Planejador nem tarefa do Checklist.",
   },
   {
     indicador: "Sem responsável",
