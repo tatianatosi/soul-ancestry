@@ -5,6 +5,7 @@ import {
   GRUPOS_OPERACIONAIS_DESK,
   LACUNAS_CONHECIDAS,
   ROTAS_PRESERVADAS,
+  ROTAS_LEGADO_MENU_GOVERNANCA,
   CAMADAS_DESK,
   destinosDuplicados,
   destinosSobrepostos,
@@ -183,5 +184,16 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotasContratos).not.toContain("/homologacao-skus");
     expect(rotasContratos).not.toContain("/conciliacao-catalogo");
     expect(rotasContratos).not.toContain("/escopo-origem");
+  });
+
+  it("legado SKU/conciliação fica no menu de Governança até o pente fino arquivar no GitHub", () => {
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
+    for (const r of ROTAS_LEGADO_MENU_GOVERNANCA) {
+      expect(grupoDonoDaRota(r)).toBe("Governança & Administração");
+      expect(rotasGov).toContain(r);
+      expect(rotasDoMenu()).toContain(r);
+      expect(rotasDoMenuConta()).not.toContain(r);
+    }
   });
 });

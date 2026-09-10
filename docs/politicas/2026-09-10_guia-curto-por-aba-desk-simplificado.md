@@ -26,6 +26,9 @@ Não apagar dados, rotas, componentes, migrations, RLS nem histórico nesta roda
 
 CA OPS, Matriz Operacional, Planilha Mestre, SKU/ranking legado, conciliação histórica e DEMO/local não orientam o dia. Continuam no repositório; no Desk entram só em Governança, rotulados como legado.
 
+**Agora:** menu de Governança, grupo “Legado (fora da operação diária)”.  
+**No pente fino:** essas rotas saem do Desk e vão para arquivo GitHub. Nada é apagado nesta rodada. Não tirar do menu antes do pente fino.
+
 ## Superfícies no código
 
 | Camada | Onde está | O que não é |

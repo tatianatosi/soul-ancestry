@@ -7,7 +7,9 @@
  * 3. KPIs do Hoje mostram o que está parado, vencido ou precisa de decisão.
  *
  * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. URLs não mudam. Nada é apagado.
+ * em Governança, rotulados. URLs não mudam. Nada é apagado nesta rodada.
+ * 10/09/2026 — Proprietária: agora no menu de Governança; no pente fino,
+ * essas rotas saem do Desk e vão para arquivo GitHub.
  */
 
 /** As três camadas do Desk — não são abas novas. */
@@ -197,6 +199,18 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
+] as const;
+
+/**
+ * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.
+ * No pente fino, sai do Desk e vai para arquivo GitHub — não apagar nesta rodada.
+ */
+export const ROTAS_LEGADO_MENU_GOVERNANCA = [
+  "/governanca/catalogo-operacional-30",
+  "/homologacao-skus",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/escopo-origem",
 ] as const;
 
 /**
