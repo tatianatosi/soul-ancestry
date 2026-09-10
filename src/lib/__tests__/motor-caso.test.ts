@@ -38,8 +38,22 @@ describe("grafo do motor unificado", () => {
     expect(motor).not.toMatch(/from ["']@\/lib\/case.participants/);
   });
 
-  it("P0–P9 apontam só para tabelas reais e recusam engines paralelos", () => {
-    expect(MOTORES_TABELAS.map((m) => m.motor).length).toBeGreaterThanOrEqual(9);
+  it("P0–P11 apontam só para tabelas reais e recusam engines paralelos", () => {
+    expect(MOTORES_TABELAS.map((m) => m.motor).length).toBe(12);
+    expect(MOTORES_TABELAS.map((m) => m.id)).toEqual([
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "P10",
+      "P11",
+    ]);
     const p3 = MOTORES_TABELAS.find((m) => m.motor.startsWith("P3"));
     expect(p3?.tabelas).toContain("tarefas");
     expect(p3?.naoCriar).toContain("cadence_runs");

@@ -6,6 +6,7 @@ import { CONFLITO_PAIS_ROTA } from "@/lib/coerencia-caso";
 import { conflitosCoerenciaDoRegistro, exigirCoerencia } from "@/lib/coerencia-caso.server";
 import { PLACEHOLDER_PARAM, anexosPorRegra } from "@/lib/contrato-parametros.server";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
 import { parametrosDoPlanejador } from "@/lib/planejador-parametros";
 import {
   bloqueiosDeEscopo,
@@ -253,7 +254,8 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
       : null;
 
     let lista = (valores ?? []) as any[];
-    const planejador = parametrosDoPlanejador(caso.codigo);
+    const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
+    const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
     for (const c of planejador.parametros) {
       const atual = lista.find((v) => v.campo === c.campo);
       if (!atual || String(atual.valor ?? "").trim()) continue;

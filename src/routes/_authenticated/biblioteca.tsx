@@ -9,6 +9,7 @@ import { EstadoDados } from "@/components/saas/estado-dados";
 import { ManifestoResgate } from "@/components/governanca/manifesto";
 import { CadeiaSuprimentoPesquisa } from "@/components/pesquisa/cadeia-suprimento";
 
+import { MotoresPrimordiais } from "@/components/biblioteca/motores-primordiais";
 import { MAPA_CENTRO_INTELIGENCIA, SUBAREAS_BIBLIOTECA, type SubareaBiblioteca } from "@/lib/biblioteca-mestre";
 import { rotuloFonteNegocio } from "@/lib/rotulo-negocio";
 import {
@@ -226,6 +227,8 @@ function BibliotecaPage() {
             </table>
           </div>
         </section>
+
+        <MotoresPrimordiais />
 
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-lg font-medium text-foreground">Da Biblioteca até o App Cliente</h2>

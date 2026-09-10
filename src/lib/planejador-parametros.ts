@@ -165,6 +165,35 @@ export function convencaoDoCodigo(codigo?: string | null): ConvencaoPlanejador |
  */
 export type SkuHomologadoAtivo = { code: string; nome_comercial: string };
 
+export type LinhaCatalogoSku = {
+  code?: string | null;
+  nome_comercial?: string | null;
+  ativo?: boolean | null;
+  archived_at?: string | null;
+  status_homologacao?: string | null;
+};
+
+/**
+ * Confirma o SKU da convenção contra linhas já lidas de `product_catalog`.
+ * Sem linha ativa e homologada, devolve null — nunca inventa SKU.
+ */
+export function skuVivoDoCatalogo(
+  linhas: LinhaCatalogoSku[] | null | undefined,
+  skuEsperado?: string | null,
+): SkuHomologadoAtivo | null {
+  if (!skuEsperado) return null;
+  const hit = (linhas ?? []).find(
+    (l) =>
+      l.code === skuEsperado &&
+      l.ativo === true &&
+      !l.archived_at &&
+      l.status_homologacao === "homologado" &&
+      Boolean(String(l.nome_comercial ?? "").trim()),
+  );
+  if (!hit?.code || !hit.nome_comercial) return null;
+  return { code: hit.code, nome_comercial: hit.nome_comercial };
+}
+
 /**
  * Parâmetros homologados do Planejador para o caso, derivados da convenção
  * de ID. SKU só entra quando `skuHomologado` confirma o código no catálogo.

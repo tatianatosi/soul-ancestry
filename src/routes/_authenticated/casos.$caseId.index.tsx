@@ -25,6 +25,7 @@ import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canoni
 import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
+import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
@@ -1237,6 +1238,7 @@ function FichaCaso() {
                     })}
                   />
                 </div>
+                <FasesMotorCidadania caseId={id} />
               </>
             )}
           </EstadoDados>
