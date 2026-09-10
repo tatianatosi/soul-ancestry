@@ -694,7 +694,7 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls está no menu da Visão Geral e em Comercial → Calls Discovery.{" "}
+        Painel de Calls abre o funil da Visão Geral: gravar a call e recarregar.{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
           Abrir Painel de Calls
         </Link>
@@ -705,6 +705,52 @@ export function PainelDia() {
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />
       <section data-painel-bloco="cards" className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>
+          <Link
+            to="/casos"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Casos ativos"
+              valor={(qCad.data?.casos ?? []).length}
+              apoio="Abrir Casos 360"
+              tom="neutro"
+            />
+          </Link>
+          <Link
+            to="/alertas"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Alertas pendentes"
+              valor={null}
+              apoio="Abrir a lista em Alertas"
+              tom="atencao"
+            />
+          </Link>
+          <Link
+            to="/financeiro"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Receita do mês"
+              valor={null}
+              apoio="Sem dados suficientes"
+              tom="neutro"
+            />
+          </Link>
+          <Link
+            to="/leads"
+            className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            <CardIndicador
+              rotulo="Taxa de conversão"
+              valor={null}
+              apoio="Sem dados suficientes — abrir funil"
+              tom="neutro"
+            />
+          </Link>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {cards.map((c) => (
             <Link
@@ -1153,14 +1199,14 @@ function AlertasPrioritariosDoPainel() {
   return (
     <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de hoje</h2>
+        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de achados pendentes</h2>
         <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
-          Ver todos os alertas
+          Abrir Alertas
         </Link>
       </div>
       <p className="mt-1 text-xs text-navy/50">
-        Sinal sem duplicar tarefa. Só os pendentes mais críticos; a lista completa e filtrável fica
-        em Alertas.
+        Sinal sem duplicar tarefa. Enviar abre a tela de Alertas — a fila humana confirma; nada sai
+        sozinho por WhatsApp ou e-mail.
       </p>
       {q.isLoading ? (
         <CarregandoDesk linhas={2} />
@@ -1173,7 +1219,12 @@ function AlertasPrioritariosDoPainel() {
               <Link to="/casos/$caseId" params={{ caseId: a.caseId }} className="text-navy underline underline-offset-2">
                 {a.titulo} — {a.caseCodigo ?? a.caseTitulo ?? a.caseId}
               </Link>
-              <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+              <span className="flex items-center gap-2">
+                <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+                <Link to="/alertas" className="rounded-full bg-navy px-3 py-1 text-[11px] font-medium text-cream">
+                  Enviar
+                </Link>
+              </span>
             </li>
           ))}
         </ul>

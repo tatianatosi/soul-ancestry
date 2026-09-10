@@ -14,11 +14,11 @@ describe("/crm-mestre no menu do Desk", () => {
 
   it("aparece no menu da conta, fora da face Comercial", () => {
     expect(links.some((s) => s.to === "/crm-mestre")).toBe(true);
-    const comercial = GRUPOS_DESK.find((g) => g.icone === "comercial");
-    const rotasComercial = (comercial?.sub ?? [])
+    const visao = GRUPOS_DESK.find((g) => g.icone === "visao-geral");
+    const rotasVisao = (visao?.sub ?? [])
       .filter((s): s is { to: string; label: string } => "to" in s)
       .map((s) => s.to);
-    expect(rotasComercial).not.toContain("/crm-mestre");
+    expect(rotasVisao).not.toContain("/crm-mestre");
   });
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {

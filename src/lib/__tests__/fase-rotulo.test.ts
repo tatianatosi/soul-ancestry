@@ -46,14 +46,13 @@ describe("rótulo de fase", () => {
 describe("atalhos contextuais no menu", () => {
   it("marca o grupo de origem quando a rota é citada de fora dele", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
-    // /matriz-juridica mora em Biblioteca Mestre e é citada em Comercial e Casos 360.
-    expect(origemDoAtalho("Comercial", "/matriz-juridica")).toBe("Biblioteca Mestre");
-    expect(origemDoAtalho("Casos 360", "/matriz-juridica")).toBe("Biblioteca Mestre");
+    expect(origemDoAtalho("Biblioteca Mestre", "/nucleos")).toBe("Casos 360");
+    expect(origemDoAtalho("Casos 360", "/nucleos")).toBeNull();
   });
 
   it("não marca a entrada canônica — não há nada a dizer ali", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
-    expect(origemDoAtalho("Biblioteca Mestre", "/matriz-juridica")).toBeNull();
+    expect(origemDoAtalho("Validação Jurídica", "/matriz-juridica")).toBeNull();
     expect(origemDoAtalho("Marketing", "/marketing")).toBeNull();
   });
 

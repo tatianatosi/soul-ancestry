@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
-import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
@@ -54,9 +54,9 @@ export function PortalJornada() {
                 <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
                   {jornada.proximoPasso}{" "}
                   {destino ? (
-                    <Link to={destino} className="font-medium text-terracotta underline-offset-2 hover:underline">
+                    <LinkPortal to={destino} className="font-medium text-terracotta underline-offset-2 hover:underline">
                       Abrir
-                    </Link>
+                    </LinkPortal>
                   ) : null}
                 </p>
                 {jornada.linha.length === 0 ? (
@@ -81,28 +81,28 @@ export function PortalJornada() {
                 )}
                 <div className="mt-4 flex flex-wrap gap-2 text-sm">
                   {abreJornada(entrega.visibilidade) ? (
-                    <Link
+                    <LinkPortal
                       to="/portal/entregas"
                       className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
                     >
                       Entregas da jornada
-                    </Link>
+                    </LinkPortal>
                   ) : null}
                   {abreJornada(fase1.visibilidade) ? (
-                    <Link
+                    <LinkPortal
                       to="/portal/fase-01"
                       className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
                     >
                       Relatório Fase 01
-                    </Link>
+                    </LinkPortal>
                   ) : null}
                   {abreJornada(fase2.visibilidade) ? (
-                    <Link
+                    <LinkPortal
                       to="/portal/fase-02"
                       className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
                     >
                       Fase 02
-                    </Link>
+                    </LinkPortal>
                   ) : null}
                 </div>
               </BlocoVisibilidade>

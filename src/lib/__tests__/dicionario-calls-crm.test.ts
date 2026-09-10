@@ -123,8 +123,8 @@ describe("Dicionário de validações Calls → CRM", () => {
     expect(FORMATACAO_CONDICIONAL_CALLS).toHaveLength(10);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
     expect(conta).toContain("/governanca/dicionario-calls-crm");
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    const comercial = GRUPOS_DESK.find((g) => g.id === "visao-geral");
+    const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).not.toContain("/governanca/dicionario-calls-crm");
   });
 });

@@ -37,8 +37,8 @@ describe("sessão demo do App Cliente", () => {
     expect([...abas.matchAll(/chave: "/g)]).toHaveLength(7);
     expect(abas).toContain('chave: "home"');
     expect(abas).toContain('chave: "conta"');
-    expect(abas).not.toContain("/portal/entregas");
-    expect(abas).not.toContain("/portal/fase-01");
+    expect(abas).not.toContain('chave: "entregas"');
+    expect(abas).not.toContain('chave: "fase-01"');
   });
 });
 

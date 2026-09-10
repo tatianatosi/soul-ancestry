@@ -21,14 +21,13 @@ export type PapelAssistente =
   | "leitura";
 
 export type GrupoAssistenteId =
-  | "hoje"
-  | "marketing"
-  | "comercial"
+  | "visao-geral"
   | "casos"
-  | "pesquisa"
-  | "contratos"
-  | "cliente"
-  | "governanca";
+  | "checklist"
+  | "validacao"
+  | "radar"
+  | "alertas"
+  | "biblioteca";
 
 export type RegraAssistente = {
   grupo: GrupoAssistenteId;
@@ -54,72 +53,61 @@ const TODOS: readonly PapelAssistente[] = [
 
 export const REGRAS_ASSISTENTE: readonly RegraAssistente[] = [
   {
-    grupo: "hoje",
-    label: "Hoje",
-    contexto: "Fila, exceções, SLA, prioridade e responsável",
+    grupo: "visao-geral",
+    label: "Visão Geral",
+    contexto: "KPIs, funil, Calls, fila do dia e prioridades",
     resultado: "Explicar prioridades, resumir bloqueios e sugerir navegação interna",
     papeis: TODOS,
     analisaCaso: false,
   },
   {
-    grupo: "comercial",
-    label: "Comercial",
-    contexto: "Lead, origem, Calls, proposta e conversão",
-    resultado: "Resumir histórico registrado, apontar pendências e preparar rascunho interno",
-    papeis: ["admin", "operacoes", "comercial", "leitura"],
-    analisaCaso: false,
+    grupo: "casos",
+    label: "Casos 360",
+    contexto: "Caso confirmado, núcleo, contrato, portal e próxima ação",
+    resultado: "Sintetizar estado do caso e próximos passos internos",
+    papeis: ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"],
+    analisaCaso: true,
   },
   {
-    grupo: "casos",
-    label: "Casos",
-    contexto: "Caso confirmado, núcleo, tarefas, fase e gates",
-    resultado: "Sintetizar estado do caso e próximos passos internos",
+    grupo: "checklist",
+    label: "Checklist",
+    contexto: "Tarefas, operação, exceções e próximas ações",
+    resultado: "Apontar o que confirmar, revisar ou está crítico hoje",
     papeis: ["admin", "operacoes", "pesquisador", "comercial", "leitura"],
     analisaCaso: true,
   },
   {
-    grupo: "pesquisa",
-    label: "Pesquisa",
-    contexto: "Caso confirmado, pessoas, fontes, evidências e pendências",
-    resultado:
-      "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
+    grupo: "validacao",
+    label: "Validação Jurídica",
+    contexto: "Trilha, critério jurídico e decisão humana por caso",
+    resultado: "Explicar pendência jurídica sem emitir parecer automático",
     papeis: ["admin", "operacoes", "pesquisador", "leitura"],
     analisaCaso: true,
   },
   {
-    grupo: "contratos",
-    label: "Contratos e Financeiro",
-    contexto: "Proposta, condição, contrato, OS, fatura e gate",
+    grupo: "radar",
+    label: "Radar Interno",
+    contexto: "Matriz de prioridade e sinais de saúde da carteira",
+    resultado: "Explicar posição na matriz, sem inventar score",
+    papeis: TODOS,
+    analisaCaso: false,
+  },
+  {
+    grupo: "alertas",
+    label: "Alertas",
+    contexto: "Achados e sinais em case_alerts",
+    resultado: "Resumir o sinal e apontar a tela de envio humano",
+    papeis: TODOS,
+    analisaCaso: false,
+  },
+  {
+    grupo: "biblioteca",
+    label: "Biblioteca Mestre",
+    contexto: "Pesquisa, dossiê do Legado, evidências e referências",
     resultado:
-      "Explicar bloqueios, divergências e referências internas; não decide preço nem jurídico",
-    papeis: ["admin", "operacoes", "financeiro", "comercial", "leitura"],
+      "Organizar evidências existentes e formular hipóteses marcadas como não confirmadas",
+    papeis: ["admin", "operacoes", "pesquisador", "leitura"],
     analisaCaso: true,
-  },
-  {
-    grupo: "cliente",
-    label: "Cliente",
-    contexto: "Projeção sanitizada, acesso e entrega autorizada",
-    resultado:
-      "Verificar o que está publicado e explicar diferenças entre Desk e preview, sem acessar conteúdo interno no preview",
-    papeis: ["admin", "operacoes", "comercial", "leitura"],
-    analisaCaso: false,
-  },
-  {
-    grupo: "governanca",
-    label: "Governança",
-    contexto: "Decisões, auditoria, regras, qualidade e integrações",
-    resultado: "Explicar estados, pendências e fontes de decisão, sem modificar controles",
-    papeis: TODOS,
-    analisaCaso: false,
-  },
-  {
-    grupo: "marketing",
-    label: "Marketing",
-    contexto: "Canais, campanhas, conteúdo, atribuição de origem e métricas de aquisição",
-    resultado:
-      "Explicar origem, canal e lacuna de atribuição, sem criar campanha, link ou disparo",
-    papeis: TODOS,
-    analisaCaso: false,
   },
 ];
 
@@ -132,13 +120,13 @@ export function regraDoGrupo(grupo: GrupoAssistenteId): RegraAssistente {
  * (`GRUPOS_DESK`), por prefixo mais longo. Sem segunda fonte de verdade.
  */
 export function grupoDaRota(rota: string): GrupoAssistenteId {
-  // Rotas do menu da conta (Configurações, Equipe, Modo Proprietária) não são
-  // grupo principal: o Assistente as trata sob as regras de Governança.
+  // Rotas do menu da conta (Configurações, Equipe) não são tela do mockup:
+  // o Assistente as trata sob a Biblioteca Mestre (referência interna).
   for (const item of MENU_CONTA.itens) {
     if (!("to" in item)) continue;
-    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "governanca";
+    if (rota === item.to || rota.startsWith(`${item.to}/`)) return "biblioteca";
   }
-  let melhor: { id: string; tamanho: number } = { id: "hoje", tamanho: -1 };
+  let melhor: { id: string; tamanho: number } = { id: "visao-geral", tamanho: -1 };
   for (const grupo of GRUPOS_DESK) {
     const rotas = [grupo.to, ...grupo.sub.flatMap((s) => ("to" in s ? [s.to] : []))];
     for (const alvo of rotas) {

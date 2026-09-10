@@ -39,17 +39,18 @@ describe("pente-fino Ana — primeira cliente e contrato decente", () => {
 });
 
 describe("pente-fino visual — legado fora da face do produto", () => {
-  it("grupo Pesquisa entra no módulo vivo; dossiê e DEMO saem da face", () => {
-    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
-    expect(pesquisa.to).toBe("/pesquisa-modulo");
-    const rotasPesquisa = pesquisa.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasPesquisa).not.toContain("/pesquisa");
-    const cliente = GRUPOS_DESK.find((g) => g.id === "cliente")!;
-    const rotasCliente = cliente.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasCliente).not.toContain("/app-cliente-demo");
-    expect(rotasCliente).toContain("/app-cliente-como-pessoa");
+  it("grupo Biblioteca Mestre entra no módulo vivo e no dossiê do Legado; DEMO sai da face", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+    expect(bib.to).toBe("/biblioteca");
+    const rotasBib = bib.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasBib).toContain("/pesquisa");
+    expect(rotasBib).toContain("/pesquisa-modulo");
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
+    const rotasCasos = casos.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasCasos).not.toContain("/app-cliente-demo");
+    expect(rotasCasos).toContain("/app-cliente-como-pessoa");
     const conta = MENU_CONTA.itens.filter((i) => "to" in i).map((i) => i.to);
-    expect(conta).toContain("/pesquisa");
+    expect(conta).not.toContain("/pesquisa");
     expect(conta).toContain("/app-cliente-demo");
   });
 

@@ -1,18 +1,17 @@
 /**
- * NAVEGAÇÃO CANÔNICA DO DESK — CA-UX-03 (8 grupos principais)
+ * NAVEGAÇÃO CANÔNICA DO DESK — mockup de 17 páginas (7 telas)
  *
- * Registro puro de navegação: mapeia grupos → rótulos humanos → rotas já
- * existentes. Não cria dado, não altera dado, não executa ação externa.
+ * A face do produto é a sidebar do mockup aprovado:
+ * Visão Geral, Casos 360, Checklist, Validação Jurídica,
+ * Radar Interno, Alertas, Biblioteca Mestre.
  *
- * Regras aplicadas:
- * - Exatamente 8 grupos principais para usuário interno autorizado.
- * - Nenhuma rota operacional é removida: toda rota de menu anterior continua
- *   presente no menu principal ou no menu da conta (ver `ROTAS_PRESERVADAS`).
- * - Marketing é a aba 2 (aquisição, canal, conteúdo, atribuição e análise);
- *   Comercial mantém apenas link contextual, sem duplicar a lista de leads.
- * - Configurações, Equipe, Perfis e Preferências saem da navegação principal e
- *   passam ao menu da conta (`MENU_CONTA`) — sem criar nona aba.
- * - Rótulos de interface mudam; URLs permanecem idênticas.
+ * CA-UX-03 (8 grupos) permanece como camada operacional interna: Marketing,
+ * Comercial, Pesquisa, Contratos e Cliente não competem como primeiro nível.
+ * Nenhuma rota operacional some — mora como submenu da tela certa ou no
+ * menu da conta. URLs não mudam.
+ *
+ * Fonte visual: clube-ancestral-mockup (17 páginas).
+ * Taxonomia: docs/politicas/TAXONOMIA-CANONICA-MOCKUP-APROVADO.md
  */
 
 export type ItemNav =
@@ -26,183 +25,141 @@ export type GrupoDesk = {
   /** Descrição curta e humana exibida no menu e no topo do grupo. */
   descricao: string;
   icone:
-    | "hoje"
-    | "marketing"
-    | "comercial"
+    | "visao-geral"
     | "casos"
-    | "pesquisa"
-    | "contratos"
-    | "cliente"
-    | "governanca";
+    | "checklist"
+    | "validacao"
+    | "radar"
+    | "alertas"
+    | "biblioteca";
 
   agrupador?: boolean;
   sub: readonly ItemNav[];
 };
 
+/** Ordem e nomes da sidebar do mockup de 17 páginas. Trava de regressão da face. */
+export const TELAS_DESK_MOCKUP = [
+  "Visão Geral",
+  "Casos 360",
+  "Checklist",
+  "Validação Jurídica",
+  "Radar Interno",
+  "Alertas",
+  "Biblioteca Mestre",
+] as const;
+
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
-    id: "hoje",
+    id: "visao-geral",
     to: "/painel",
     label: "Visão Geral",
-    descricao: "O que fazer agora: indicadores com ação, fila do dia, Calls e alertas.",
-    icone: "hoje",
+    descricao: "O que precisa de ação hoje — KPIs, funil, Calls e prioridades.",
+    icone: "visao-geral",
+    agrupador: true,
     sub: [
+      { grupo: "Cockpit" },
       { to: "/painel", label: "Painel Hoje" },
-      { to: "/calls", label: "Painel de Calls" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
-      { to: "/alertas", label: "Alertas" },
-      { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { to: "/relatorios", label: "Relatórios" },
-    ],
-  },
-  {
-    id: "marketing",
-    to: "/marketing",
-    label: "Marketing",
-    descricao: "Aquisição, canais, campanhas, conteúdo, atribuição e análise por canal.",
-    icone: "marketing",
-    agrupador: true,
-    sub: [
-      { grupo: "Aquisição" },
-      { to: "/marketing", label: "Visão geral de aquisição" },
-      { to: "/marketing", hash: "canais-campanhas", label: "Canais e campanhas" },
-      { grupo: "Handoff" },
-      { to: "/marketing", hash: "links-comercial", label: "Links contextuais para Comercial" },
-    ],
-  },
-  {
-    id: "comercial",
-    to: "/leads",
-    label: "Comercial",
-    descricao: "Lead identificado, triagem, Discovery, proposta e formalização.",
-    icone: "comercial",
-    agrupador: true,
-    sub: [
-      { grupo: "Aquisição" },
-      { to: "/marketing", label: "Marketing e aquisição (aba 2)" },
-
-      { grupo: "CRM Vivo" },
-      // 28/08/2026 — CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1
-      // (substitui a v1.0, que propunha tabelas contacts/opportunities novas):
-      // "não basta haver funções, tabelas ou componentes isolados: o CRM Vivo
-      // precisa aparecer e operar na interface autenticada... use apenas
-      // rotas e telas existentes". O CRM Vivo sempre foi isto — Leads,
-      // Contatos/eventos de funil, Propostas, Conversão/handoff — só nunca
-      // apareceu com esse nome no menu. Nenhuma tabela nova, nenhum dado
-      // movido; só o rótulo que faltava.
+      { grupo: "Funil e Calls" },
+      { to: "/calls", label: "Painel de Calls" },
       { to: "/leads", label: "Leads e triagem" },
-      { to: "/calls", label: "Calls Discovery" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
-      { to: "/proximas-acoes", label: "Próximas ações dos leads" },
-      { grupo: "Relacionamento" },
-      // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
-      // é uma chave mestra" (Proprietária). A página existe desde antes desta
-      // sessão (pessoas.$clienteId.tsx — "Ana Luiza um dia foi lead e depois
-      // virou cliente, mas Ana Luiza continua sendo Ana Luiza") e já era
-      // linkada a partir do nome em /clientes — mas nunca teve o rótulo do
-      // menu dizendo que é isso que ela é. Não tem link de menu genérico
-      // possível (a página exige uma pessoa específica); o rótulo abaixo
-      // deixa explícito que /clientes é a porta de entrada da pessoa 360.
-      { to: "/clientes", label: "Clientes e pessoa 360 (histórico completo por pessoa)" },
-      { to: "/matriz-juridica", label: "Validação Jurídica" },
+      { to: "/marketing", label: "Marketing e aquisição" },
+      { grupo: "Leitura" },
+      { to: "/metricas", label: "Métricas comerciais e operacionais" },
+      { to: "/relatorios", label: "Relatórios" },
     ],
   },
   {
     id: "casos",
     to: "/casos",
     label: "Casos 360",
-    descricao: "Casos 360, núcleos, tarefas, exceções, qualidade, onboarding e go-live.",
+    descricao: "Carteira, saúde do caso, pessoa, contrato, portal e App como pessoa.",
     icone: "casos",
     agrupador: true,
     sub: [
-      { grupo: "Operação do caso" },
+      { grupo: "Carteira" },
       { to: "/casos", label: "Casos 360" },
+      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
       { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
-      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
-      { to: "/ops", label: "Operação" },
-      { to: "/ops-excecoes", label: "Exceções operacionais" },
-      { to: "/qualidade", label: "Radar Interno e Qualidade" },
-      { grupo: "Ativação" },
-      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
-      { to: "/matriz-juridica", label: "Validação Jurídica" },
-    ],
-  },
-  {
-    id: "pesquisa",
-    to: "/pesquisa-modulo",
-    label: "Pesquisa",
-    descricao: "Pesquisa genealógica, evidências, fontes, achados e relatórios F1/F2.",
-    icone: "pesquisa",
-    agrupador: true,
-    sub: [
-      { grupo: "Investigação" },
-      { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
-      { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
-      { grupo: "Fontes e prova" },
-      { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
-      { to: "/evidencias", label: "Evidências e documentos" },
-      { to: "/privacidade", label: "Privacidade e consentimento" },
-      { grupo: "Resultado" },
-      { to: "/qualidade", hash: "pesquisa", label: "Validação e pendências" },
-      { to: "/relatorios", label: "Achados, microentregas e relatórios F1/F2" },
-      { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
-    ],
-  },
-  {
-    id: "contratos",
-    to: "/contratos",
-    label: "Contratos e financeiro",
-    descricao: "Escopo aprovado, contratos, ordens de serviço, catálogo e financeiro.",
-    icone: "contratos",
-    agrupador: true,
-    sub: [
+      { to: "/clientes", label: "Clientes e pessoa 360" },
       { grupo: "Formalização" },
       { to: "/contratos", label: "Contratos, versões e anexos" },
       { to: "/contrato-parametros", label: "Parâmetros contratuais" },
       { to: "/ordens-servico", label: "Ordens de serviço" },
-      { grupo: "Catálogo" },
       { to: "/catalogo", label: "Catálogo e SKUs" },
       { to: "/homologacao-skus", label: "Homologação de SKUs" },
       { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
       { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
-      { grupo: "Financeiro" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
       { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { grupo: "Auditoria (referência)" },
       { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
-    ],
-  },
-  {
-    id: "cliente",
-    to: "/acessos-portal",
-    label: "Cliente",
-    descricao: "Acessos ao portal, atendimento, solicitações e publicação autorizada.",
-    icone: "cliente",
-    sub: [
+      { grupo: "App Cliente" },
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      // 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente
-      // como pessoa" (Proprietária). Mesma camada de componentes, dado real
-      // de um caso escolhido. A sessão DEMO saiu deste grupo (10/09): não é
-      // a face do produto; mora no menu da conta.
       { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
     ],
   },
   {
-    id: "governanca",
-    to: "/biblioteca",
-    label: "Biblioteca Mestre",
-    descricao: "Jurídico, radar interno, bibliotecas, auditoria, conformidade e integrações (governança).",
-    icone: "governanca",
+    id: "checklist",
+    to: "/tarefas",
+    label: "Checklist",
+    descricao: "Tarefas por prioridade, operação, exceções e próximas ações.",
+    icone: "checklist",
     agrupador: true,
     sub: [
-      { to: "/matriz-juridica", label: "Validação Jurídica" },
-      { to: "/qualidade", label: "Radar Interno e Qualidade" },
-      { grupo: "Bibliotecas" },
+      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
+      { to: "/proximas-acoes", label: "Próximas ações" },
+      { to: "/ops", label: "Operação" },
+      { to: "/ops-excecoes", label: "Exceções operacionais" },
+    ],
+  },
+  {
+    id: "validacao",
+    to: "/matriz-juridica",
+    label: "Validação Jurídica",
+    descricao: "Elegibilidade e parecer jurídico por caso, decisão humana.",
+    icone: "validacao",
+    sub: [{ to: "/matriz-juridica", label: "Validação Jurídica" }],
+  },
+  {
+    id: "radar",
+    to: "/qualidade",
+    label: "Radar Interno",
+    descricao: "Matriz de prioridade e radares individuais da carteira.",
+    icone: "radar",
+    sub: [{ to: "/qualidade", label: "Radar Interno e Qualidade" }],
+  },
+  {
+    id: "alertas",
+    to: "/alertas",
+    label: "Alertas",
+    descricao: "Gestão de achados e notificações — sinal sem duplicar tarefa.",
+    icone: "alertas",
+    sub: [{ to: "/alertas", label: "Alertas" }],
+  },
+  {
+    id: "biblioteca",
+    to: "/biblioteca",
+    label: "Biblioteca Mestre",
+    descricao: "Produção de conteúdo por caso, pesquisa, dossiê do Legado e referências.",
+    icone: "biblioteca",
+    agrupador: true,
+    sub: [
+      { grupo: "Produção por caso" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
+      { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
+      { to: "/pesquisa", label: "Dossiê e repositório do Legado" },
+      { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
+      { grupo: "Fontes e prova" },
+      { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
+      { to: "/evidencias", label: "Evidências e documentos" },
+      { to: "/privacidade", label: "Privacidade e consentimento" },
+      { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
+      { grupo: "Referência" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
       { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
@@ -234,10 +191,6 @@ export const MENU_CONTA: {
     { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
     { to: "/configuracoes", label: "Configurações e preferências" },
     { to: "/etiquetas", label: "Etiquetas canônicas" },
-    {
-      to: "/pesquisa",
-      label: "Dossiê legado de pesquisa (sistema anterior)",
-    },
     { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
     { to: "/crm-mestre", label: "CRM Mestre (legado, consulta)" },
     {
@@ -298,6 +251,7 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/ops-excecoes",
   "/qualidade",
   "/pesquisa-modulo",
+  "/pesquisa",
   "/evidencias",
   "/fontes-genealogicas",
   "/privacidade",
@@ -369,12 +323,7 @@ export function destinosDuplicados(): string[] {
 
 /** Links contextuais: mesma rota citada em mais de um grupo, de forma explícita. */
 export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [
-  { rota: "/matriz-juridica", origem: "Biblioteca Mestre", tambemEm: ["Comercial", "Casos 360"] },
-  { rota: "/qualidade", origem: "Biblioteca Mestre", tambemEm: ["Casos 360", "Pesquisa"] },
-  { rota: "/relatorios", origem: "Visão Geral", tambemEm: ["Pesquisa"] },
-  { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Pesquisa"] },
-  { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
-  { rota: "/calls", origem: "Comercial", tambemEm: ["Visão Geral"] },
+  { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Biblioteca Mestre"] },
 ] as const;
 
 /**

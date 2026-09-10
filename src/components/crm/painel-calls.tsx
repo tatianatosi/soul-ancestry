@@ -569,7 +569,8 @@ export function PainelCalls() {
                   return (
                     <div className="space-y-4">
                       {ROTEIRO_DISCOVERY.map((b) => {
-                        const p = progressoRoteiro(lead).find((x) => x.chave === b.chave)!;
+                        const p = progressoRoteiro(lead).find((x) => x.chave === b.chave);
+                        if (!p) return null;
                         const camposDoBloco = b.campos.filter((c) => {
                           if (jaRenderizado.has(c)) return false;
                           jaRenderizado.add(c);

@@ -58,8 +58,8 @@ describe("CA-06 — Catálogo Operacional 30", () => {
     expect(DECISOES_BLOQUEADORAS).toHaveLength(6);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
     expect(conta).toContain("/governanca/catalogo-operacional-30");
-    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos");
-    const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    const contratos = GRUPOS_DESK.find((g) => g.id === "casos");
+    const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).not.toContain("/governanca/catalogo-operacional-30");
   });
 

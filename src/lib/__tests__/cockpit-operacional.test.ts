@@ -6,18 +6,17 @@ import { INDICADORES_CANONICOS } from "@/lib/fontes-canonicas-indicadores";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
-describe("Cockpit Fase 1 — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
-  it("os 8 grupos do Desk permanecem; não volta o mockup de 14 abas", () => {
-    expect(GRUPOS_DESK).toHaveLength(8);
+describe("Cockpit — Visão Geral opera, Calls grava, Caso 360 sintetiza", () => {
+  it("as 7 telas do Desk permanecem; não volta o mockup de 14 abas", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
-      "hoje",
-      "marketing",
-      "comercial",
+      "visao-geral",
       "casos",
-      "pesquisa",
-      "contratos",
-      "cliente",
-      "governanca",
+      "checklist",
+      "validacao",
+      "radar",
+      "alertas",
+      "biblioteca",
     ]);
   });
 

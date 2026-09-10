@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
-import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
+import { LinkPortal, usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
@@ -44,6 +44,16 @@ export function PortalHome() {
           <div className="rounded-xl border border-navy/10 bg-white p-4">
             <p className="font-serif text-lg">{previa.titulo}</p>
             <p className="mt-2 text-sm text-navy/70">Próximo passo: {jornada.proximoPasso}</p>
+            {jornada.linha.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {jornada.linha.slice(0, 3).map((item) => (
+                  <li key={item.id} className="rounded-lg border border-navy/10 bg-cream/50 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-navy/50">{item.tipoRotulo}</p>
+                    <p className="mt-1 text-sm text-navy/80">{item.conteudo}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         )}
       </PortalShell>
@@ -84,12 +94,12 @@ export function PortalHome() {
                 <p className="mt-2 text-sm text-navy">
                   Próximo passo: {c.proximoPasso}{" "}
                   {c.proximoPassoDestino ? (
-                    <Link
+                    <LinkPortal
                       to={c.proximoPassoDestino}
                       className="font-medium text-terracotta underline-offset-2 hover:underline"
                     >
                       Abrir
-                    </Link>
+                    </LinkPortal>
                   ) : null}
                 </p>
               ) : null}

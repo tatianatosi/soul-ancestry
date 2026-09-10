@@ -2,8 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
-import { ABAS_APP_CLIENTE } from "@/components/portal/abas-app-cliente";
+import {
+  ABAS_APP_CLIENTE,
+  TELAS_INTERNAS_PORTAL,
+  rotaInternaDoPortal,
+} from "@/components/portal/abas-app-cliente";
 import { CASO_DEMO_TITULO, DADOS_DEMO_SOPHIA, SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
+import { escopoAPartirDePublicacoes } from "@/lib/app-visibilidade";
 
 /**
  * Sessão demo do App Cliente — superfície interna do Desk.
@@ -38,9 +43,14 @@ export const Route = createFileRoute("/_authenticated/app-cliente-demo")({
   component: AppClienteDemo,
 });
 
+const ESCOPO_DEMO = escopoAPartirDePublicacoes({
+  temCaso: true,
+  tiposPublicados: DADOS_DEMO_SOPHIA.projecoes.map((p) => String(p.projection_type ?? "")),
+});
+
 function AppClienteDemo() {
-  const [ativa, setAtiva] = useState<(typeof ABAS_APP_CLIENTE)[number]["chave"]>("home");
-  const Tela = ABAS_APP_CLIENTE.find((t) => t.chave === ativa)?.Componente ?? ABAS_APP_CLIENTE[0]!.Componente;
+  const [rotaInterna, setRotaInterna] = useState("/portal");
+  const Tela = TELAS_INTERNAS_PORTAL[rotaInterna] ?? TELAS_INTERNAS_PORTAL["/portal"]!;
 
   return (
     <div className="space-y-4">
@@ -56,14 +66,14 @@ function AppClienteDemo() {
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-            {ABAS_APP_CLIENTE.map((t) => (
+          {ABAS_APP_CLIENTE.map((t) => (
             <button
               key={t.chave}
               type="button"
-              onClick={() => setAtiva(t.chave)}
-              aria-pressed={ativa === t.chave}
+              onClick={() => setRotaInterna(t.rota)}
+              aria-pressed={rotaInterna === t.rota}
               className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                ativa === t.chave
+                rotaInterna === t.rota
                   ? "border-navy bg-navy text-cream"
                   : "border-navy/15 text-navy/75 hover:bg-navy/5"
               }`}
@@ -85,6 +95,9 @@ function AppClienteDemo() {
             dados: DADOS_DEMO_SOPHIA,
             carregando: false,
             erro: false,
+            escopo: ESCOPO_DEMO,
+            aoNavegar: (path) => setRotaInterna(rotaInternaDoPortal(path)),
+            rotaInterna,
             previa: { selo: SELO_DEMO_PORTAL, titulo: CASO_DEMO_TITULO },
           }}
         >

@@ -22,22 +22,21 @@ import {
 
 const ler = (p: string) => readFileSync(p, "utf8");
 const ORDEM = [
-  "hoje",
-  "marketing",
-  "comercial",
+  "visao-geral",
   "casos",
-  "pesquisa",
-  "contratos",
-  "cliente",
-  "governanca",
+  "checklist",
+  "validacao",
+  "radar",
+  "alertas",
+  "biblioteca",
 ];
 
 describe("CA-UX-04 — navegação", () => {
-  it("tem exatamente 8 grupos na ordem aprovada, com Marketing em 2º", () => {
-    expect(GRUPOS_DESK).toHaveLength(8);
+  it("tem exatamente 7 telas do mockup; Marketing mora na Visão Geral", () => {
+    expect(GRUPOS_DESK).toHaveLength(7);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual(ORDEM);
-    expect(GRUPOS_DESK[1]!.id).toBe("marketing");
-    expect(GRUPOS_DESK[1]!.to).toBe("/marketing");
+    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
+    expect(visao.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
   });
 
   it("não expõe Administração como grupo principal", () => {
@@ -54,9 +53,9 @@ describe("CA-UX-04 — navegação", () => {
     expect("adminOnly" in equipe && equipe.adminOnly).toBe(true);
   });
 
-  it("mantém Integrações em Governança", () => {
-    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub!.some((s) => "to" in s && s.to === "/integracoes")).toBe(true);
+  it("mantém Integrações na Biblioteca Mestre", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+    expect(bib.sub!.some((s) => "to" in s && s.to === "/integracoes")).toBe(true);
     expect(rotasDoMenuConta()).not.toContain("/integracoes");
   });
 

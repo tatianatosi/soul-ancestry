@@ -31,7 +31,6 @@ import { calcularPrioridade } from "@/lib/prioridade-matriz";
 import { ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
 import { PainelFormalizacao } from "@/components/painel/painel-formalizacao";
 import { AlertaDesk, CardIndicador, CarregandoDesk, PageHeader } from "@/components/desk/ui-desk";
-import { MatrizPrioridadesConectada } from "@/components/desk/matriz-prioridades-conectada";
 
 export const Route = createFileRoute("/_authenticated/casos/")({
   /**
@@ -239,14 +238,17 @@ function CasosPage() {
       ) : null}
 
       {/*
-        27/08/2026 — morava só no Radar Interno (/qualidade). A Proprietária
-        pediu que viesse para cá: "aqui sabemos as emergências" — é em Casos
-        360 que o dia a dia acontece, não num radar à parte. Mesmo motor,
-        mesmo componente, novo endereço.
+        A matriz Urgência × Elegibilidade é a tela Radar Interno do mockup.
+        Em Casos 360 a saúde aparece por linha da carteira; o mapa da carteira
+        inteira abre aqui.
       */}
-      <div className="mb-6">
-        <MatrizPrioridadesConectada />
-      </div>
+      <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
+        A matriz de prioridade da carteira (Agir agora / Avaliar / Monitorar / Cultivar) está no{" "}
+        <Link to="/qualidade" className="font-medium text-navy underline">
+          Radar Interno
+        </Link>
+        . Nesta lista, a coluna de saúde e a próxima ação vêm do mesmo planejador da ficha.
+      </p>
 
       {pendenciaVinculo ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">

@@ -111,9 +111,10 @@ describe("vitrine pública e navegação", () => {
     }
   });
 
-  it("o menu do Desk não cita mockup nem protótipo", () => {
-    for (const proibido of ["mockup", "Mockup", "protótipo", "Protótipo"]) {
-      expect(navegacao).not.toContain(proibido);
-    }
+  it("o menu do Desk não cita o protótipo antigo de 14 abas", () => {
+    expect(navegacao).not.toContain("protótipo");
+    expect(navegacao).not.toContain("Protótipo");
+    expect(navegacao).not.toContain("14 abas");
+    expect(navegacao).not.toContain("desk-app");
   });
 });

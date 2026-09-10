@@ -42,8 +42,8 @@ describe("App Cliente como pessoa (acesso master, dado real)", () => {
     expect(fn).toContain('throw new Error("Somente a Proprietária Administradora');
   });
 
-  it("lê a mesma projeção sanitizada do cliente real, escopada por organização", () => {
-    expect(fn).toContain("portal_projecoes");
+  it("lê a projeção sanitizada do caso como staff, via app_projections da organização", () => {
+    expect(fn).toContain("app_projections");
     expect(fn).toContain("content_sanitized");
     expect(fn).toContain('.eq("organization_id", organizationId)');
   });
@@ -54,10 +54,10 @@ describe("App Cliente como pessoa (acesso master, dado real)", () => {
   });
 });
 
-describe("navegação — App Cliente como pessoa é alcançável no grupo Cliente", () => {
-  it("está listado no grupo Cliente; a sessão demo mora no menu da conta", () => {
-    const grupoCliente = GRUPOS_DESK.find((g) => g.id === "cliente")!;
-    const rotas = grupoCliente.sub.map((s) => ("to" in s ? s.to : null));
+describe("navegação — App Cliente como pessoa é alcançável em Casos 360", () => {
+  it("está listado em Casos 360; a sessão demo mora no menu da conta", () => {
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
+    const rotas = casos.sub.map((s) => ("to" in s ? s.to : null));
     expect(rotas).not.toContain("/app-cliente-demo");
     expect(rotas).toContain("/app-cliente-como-pessoa");
   });

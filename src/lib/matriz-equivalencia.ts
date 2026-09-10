@@ -60,7 +60,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "comercial",
     grupo: "Comercial",
-    grupoNovo: "Comercial",
+    grupoNovo: "Visão Geral",
     rotaBase: "/leads",
     linhas: [
       { mockup: "CRM Vivo — leads", rota: "/leads", dado: "leads, lead_sources, discovery_assessments", estado: "implementado" },
@@ -96,7 +96,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "pesquisa",
     grupo: "Pesquisa genealógica",
-    grupoNovo: "Pesquisa",
+    grupoNovo: "Biblioteca Mestre",
     rotaBase: "/pesquisa",
     linhas: [
       { mockup: "Pesquisa e plano de ação", rota: "/pesquisa-modulo · /plano-acao/$caseId", dado: "research_cases, research_action_plan_items, research_hypotheses", estado: "implementado" },
@@ -110,7 +110,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "contratos",
     grupo: "Contratos e financeiro",
-    grupoNovo: "Contratos e financeiro",
+    grupoNovo: "Casos 360",
     rotaBase: "/contratos",
     linhas: [
       { mockup: "Contratos, prévia e revisão", rota: "/contratos · /casos/$id/contrato/preparar", dado: "contracts, contract_versions, contract_review_events", estado: "implementado" },
@@ -140,7 +140,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "app-cliente",
     grupo: "App Cliente",
-    grupoNovo: "Cliente",
+    grupoNovo: "Casos 360",
     rotaBase: "/acessos-portal",
     linhas: [
       { mockup: "Acessos e visibilidade", rota: "/acessos-portal", dado: "client_portal_access, client_portal_case_access, authorized_portal_emails", estado: "implementado", nota: "Link mágico de uso único, 20 min." },
@@ -165,7 +165,7 @@ export const MATRIZ_EQUIVALENCIA: GrupoEquivalencia[] = [
   {
     id: "marketing",
     grupo: "Marketing e aquisição (aba 2 — CA-UX-04)",
-    grupoNovo: "Marketing",
+    grupoNovo: "Visão Geral",
     rotaBase: "/marketing",
     linhas: [
       { mockup: "Visão geral de aquisição", rota: "/marketing", dado: "leads.origem, conversion_events", estado: "parcial", nota: "Origem em texto livre, sem taxonomia fechada." },
