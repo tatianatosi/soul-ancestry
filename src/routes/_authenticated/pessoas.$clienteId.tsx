@@ -7,6 +7,7 @@ import { SaasShell, useSaas } from "@/components/saas/shell";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { atualizarPessoa, carregarPessoa } from "@/lib/pessoa.functions";
 import { salvarLeadDesk } from "@/lib/crm-desk.functions";
+import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 import {
   evidenciaDeMesmaPessoa,
   montarLinhaDoTempoDaPessoa,
@@ -170,12 +171,14 @@ function Pessoa() {
   // escolhe explicitamente a qual caso desta pessoa o lead pertence.
   const [casoEscolhido, setCasoEscolhido] = useState<Record<string, string>>({});
   const [erroVinculo, setErroVinculo] = useState<string | null>(null);
+  const [decisaoAposSalvar, setDecisaoAposSalvar] = useState(false);
 
   const mSalvar = useMutation({
     mutationFn: (campos: Partial<CamposPessoa>) => salvar({ data: { clienteId, campos } }),
     onSuccess: () => {
       setErroSalvar(null);
       setEditando(false);
+      setDecisaoAposSalvar(true);
       void qc.invalidateQueries({ queryKey: ["pessoa", clienteId] });
     },
     onError: (e: Error) => setErroSalvar(e.message),
@@ -341,6 +344,14 @@ function Pessoa() {
             <p className="mt-2 rounded-md border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
               {erroSalvar}
             </p>
+          ) : null}
+
+          {decisaoAposSalvar ? (
+            <DecisaoAposSalvarPessoa
+              nomePessoa={nome}
+              casos={casos.map((c) => ({ id: c.id, codigo: c.codigo, titulo: c.titulo }))}
+              onFechou={() => setDecisaoAposSalvar(false)}
+            />
           ) : null}
 
           {editando ? (

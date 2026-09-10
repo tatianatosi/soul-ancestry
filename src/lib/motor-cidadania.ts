@@ -158,3 +158,6 @@ export function avaliarFasesMotorCidadania(s: SinalFaseCidadania): LeituraFaseCi
     };
   });
 }
+
+/** Título estável da tarefa da fase 4 — idempotente por caso. */
+export const TITULO_TAREFA_AVALIACAO_CIDADANIA = "Planejador: avaliar próxima ação (fase 4)";
