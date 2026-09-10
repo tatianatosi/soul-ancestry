@@ -21,7 +21,21 @@ export function PendenciasCriticasPesquisa() {
     retry: false,
   });
 
-  if (q.isLoading || q.isError || !q.data) return null;
+  if (q.isLoading) return null;
+  if (q.isError)
+    return (
+      <p className="mt-6 flex flex-wrap items-center gap-3 text-sm text-terracotta">
+        Não foi possível carregar as pendências críticas de pesquisa.
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
+  if (!q.data) return null;
 
   const itens = pendenciasCriticasPesquisa((q.data.itens ?? []) as ItemPainel[]);
   const casos = new Map((q.data.casos ?? []).map((c: Record<string, any>) => [String(c.id), c]));

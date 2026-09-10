@@ -82,6 +82,11 @@ export const CLAUSULAS_MATRIZ: ClausulaMatriz[] = [
   { id: "N", titulo: "Assinatura, evidência, versão e registros", fonte: "config_juridica", tipo: "condicional", parametros: ["forma_assinatura", "evidencia_externa"], gates: ["assinatura", "financeiro"] },
   { id: "O", titulo: "Foro e disposições finais", fonte: "config_juridica", tipo: "fixa", parametros: ["foro"], gates: ["previa_final", "assinatura"] },
   { id: "P", titulo: "Anexos aplicáveis (ANX-ESCOPO, ANX-PRIVACIDADE, ANX-COMERCIAL, ANX-INDIVIDUAL, ANX-REPRESENTACAO)", fonte: "contrato_base", tipo: "condicional", parametros: ["anexos_aplicaveis"], gates: ["previa_final", "assinatura"] },
+  // 07/09/2026 — Q e R fecham os 2 temas jurídicos que não tinham cláusula
+  // correspondente (inadimplemento, rescisão). Mesmo tratamento de E/F/G/L/M:
+  // texto fixo institucional, sem parâmetro de caso.
+  { id: "Q", titulo: "Inadimplemento", fonte: "contrato_base", tipo: "fixa", parametros: [], gates: [] },
+  { id: "R", titulo: "Rescisão", fonte: "contrato_base", tipo: "fixa", parametros: [], gates: [] },
 ];
 
 export const IDS_CLAUSULAS = CLAUSULAS_MATRIZ.map((c) => c.id);
@@ -152,6 +157,8 @@ export function avaliarMatrizClausulas(e: EntradaMatrizClausulas): LinhaClausula
       case "G":
       case "L":
       case "M":
+      case "Q":
+      case "R":
         return linha(c, "presente", "Texto fixo institucional versionado; não editável por caso.", `${CONTRATO_BASE_VERSAO}`);
       case "H":
         if (!e.politicaPrivacidadeVigente) {

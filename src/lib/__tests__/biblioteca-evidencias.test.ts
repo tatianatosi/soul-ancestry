@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   cadeiaDaEvidencia,
   conteudoProjetavel,
+  estadoMicroentrega,
   evidenciaProjetavel,
   itensVisiveisNoApp,
+  marcoJuridicoProjetavel,
   validarElevacaoConfianca,
   validarEvidencia,
   validarProjecao,
@@ -172,5 +174,27 @@ describe("G-03 — evidências", () => {
   it("10. evidência exige caso, título, tipo e natureza", () => {
     expect(validarEvidencia({}).ok).toBe(false);
     expect(validarEvidencia({}).erros.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("11. vocabulário único de estado da microentrega, sem migrar approval_status", () => {
+    const hoje = new Date("2026-09-09T12:00:00Z");
+    expect(estadoMicroentrega({ approval_status: "draft" }, hoje)).toBe("em_producao");
+    expect(estadoMicroentrega({ approval_status: "in_review" }, hoje)).toBe("em_revisao");
+    expect(estadoMicroentrega({ approval_status: "approved" }, hoje)).toBe("aprovada");
+    expect(estadoMicroentrega({ approval_status: "archived" }, hoje)).toBe("arquivada");
+    // published com vigência futura é liberada; já vigente é publicada — mesma
+    // coluna approval_status, diferenciado só por effective_from.
+    expect(
+      estadoMicroentrega({ approval_status: "published", effective_from: "2026-09-10T00:00:00Z" }, hoje),
+    ).toBe("liberada");
+    expect(
+      estadoMicroentrega({ approval_status: "published", effective_from: "2026-09-01T00:00:00Z" }, hoje),
+    ).toBe("publicada");
+  });
+
+  it("12. marco jurídico só é projetável com regra aprovada e não arquivada", () => {
+    expect(marcoJuridicoProjetavel({ status: "em_revisao" }).ok).toBe(false);
+    expect(marcoJuridicoProjetavel({ status: "aprovado", archived_at: "2026-09-01" }).ok).toBe(false);
+    expect(marcoJuridicoProjetavel({ status: "aprovado", archived_at: null }).ok).toBe(true);
   });
 });

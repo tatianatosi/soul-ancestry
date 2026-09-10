@@ -2,12 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { CadeiaFormalizacao } from "@/components/contrato/cadeia-formalizacao";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { montarChecklistJuridico } from "@/lib/checklist-juridico";
 import {
   AvisoInstrumento,
   ROTULO_CATEGORIA_ESCOPO,
+  ROTULO_GATE_PESQUISA,
   ROTULO_PAPEL_PARTE,
   ROTULO_STATUS_ANEXO,
   ROTULO_STATUS_CONTRATO,
@@ -33,6 +39,8 @@ import {
   tentarEtapaExterna,
   visualizarVersaoInterna,
 } from "@/lib/contratos.functions";
+import { salvarTarefa } from "@/lib/ops.functions";
+import { listarEquipe } from "@/lib/equipe.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({
@@ -52,15 +60,22 @@ export const Route = createFileRoute("/_authenticated/contratos/$id")({
   component: ContratoDetalhe,
 });
 
-const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos", "Versões", "Revisão"] as const;
-const ABAS_AVANCADAS = ["Fontes", "Validações"] as const;
+const ABAS_PRINCIPAIS = ["Resumo", "Partes", "Escopo", "Cláusulas", "Anexos"] as const;
+const ABAS_AVANCADAS = ["Fontes", "Validações", "Versões", "Revisão"] as const;
 const ABAS = [...ABAS_PRINCIPAIS, ...ABAS_AVANCADAS] as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 function ContratoDetalhe() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const { id } = Route.useParams();
-  const { ehAdmin } = useSaas();
   const obter = useServerFn(obterContrato);
   const q = useQuery({ queryKey: ["contrato", id], queryFn: () => obter({ data: { id } }) });
   const [aba, setAba] = useState<(typeof ABAS)[number]>("Resumo");
@@ -76,23 +91,42 @@ function ContratoDetalhe() {
 
   const mGerar = useMutation({
     mutationFn: (resumo?: string) => gerar({ data: { contract_id: id, change_summary: resumo } }),
-    onSuccess: (r) =>
+    // Achado real (08/09/2026): a versão era criada e o aviso aparecia, mas a
+    // tela nunca recarregava — "Versões" continuava mostrando a lista antiga
+    // até um F5 manual, dando a impressão de que a versão nova não existia.
+    onSuccess: (r) => {
       setAviso(
         r.falhaRenderizacao
           ? `Versão ${r.versao} criada, mas a renderização falhou e foi registrada. A versão não está pronta.`
-          : `Versão ${r.versao} gerada como rascunho interno.`,
-      ),
+          : r.pendenciasConciliacao?.length
+            ? `Versão ${r.versao} gerada como rascunho interno. Pendente para envio (não impede o rascunho): ${r.pendenciasConciliacao.join(" · ")}`
+            : `Versão ${r.versao} gerada como rascunho interno.`,
+      );
+      recarregar();
+    },
     onError: (e: Error) => setAviso(e.message),
   });
   const mValidar = useMutation({
     mutationFn: () => validar({ data: { contract_id: id } }),
-    onSuccess: (r) => setAviso(`${r.abertas} pendência(s), sendo ${r.bloqueios} bloqueante(s).`),
+    onSuccess: (r) => {
+      setAviso(`${r.abertas} pendência(s), sendo ${r.bloqueios} bloqueante(s).`);
+      recarregar();
+    },
     onError: (e: Error) => setAviso(e.message),
   });
   const mSolicitar = useMutation({
     mutationFn: () => solicitar({ data: { contract_id: id } }),
-    onSuccess: (r) =>
-      setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`),
+    onSuccess: (r) => {
+      setAviso(r.ok ? "Revisão humana solicitada." : `Bloqueado: ${r.bloqueios.join("; ")}`);
+      recarregar();
+    },
+    onError: (e: Error) => setAviso(e.message),
+  });
+  const criarTarefaFn = useServerFn(salvarTarefa);
+  const mTarefa = useMutation({
+    mutationFn: (v: { titulo: string; caso_id: string | null }) =>
+      criarTarefaFn({ data: { valores: { titulo: v.titulo, caso_id: v.caso_id, tipo: "contrato" } } }),
+    onSuccess: () => setAviso("Tarefa criada."),
     onError: (e: Error) => setAviso(e.message),
   });
 
@@ -108,6 +142,21 @@ function ContratoDetalhe() {
   const c = d.contrato as any;
   const versaoAtual = (d.versoes as any[])[0] ?? null;
 
+  // Pendência do checklist não trava mais botão: vira gate auditado na confirmação.
+  const checklist = montarChecklistJuridico({
+    contrato: d.contrato as any,
+    partes: d.partes as any,
+    escopo: d.escopo as any,
+    clausulas: d.clausulas as any,
+    anexos: d.anexos as any,
+    versoes: d.versoes as any,
+    valorReferencia: (d as any).valorReferencia,
+    prazoReferencia: (d as any).prazoReferencia,
+  });
+  const pendenciaChecklist = checklist.aptoParaRevisaoHumana
+    ? null
+    : `${checklist.bloqueios} bloqueio(s) formal(is) no checklist jurídico.`;
+
   return (
     <SaasShell
       titulo={c.title}
@@ -118,6 +167,13 @@ function ContratoDetalhe() {
         </Link>
       }
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <AvisoInstrumento tipo={c.contract_type} status={c.status} />
 
       {d.contratoBase ? (
@@ -127,37 +183,95 @@ function ContratoDetalhe() {
         </p>
       ) : null}
 
+      {d.parametrosId ? (
+        <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">
+          Este caso já tem parâmetros capturados pelo Planejador (nome, documento, endereço, valor, escopo).{" "}
+          <Link
+            to="/contrato-parametros/$id"
+            params={{ id: d.parametrosId }}
+            className="font-medium underline underline-offset-2"
+          >
+            Ver/editar parâmetros do Planejador
+          </Link>
+        </p>
+      ) : null}
+
       {aviso ? (
         <p className="mt-3 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-sm text-navy">{aviso}</p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Acao onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}>
-          Gerar rascunho interno
-        </Acao>
-        <Acao onClick={() => mValidar.mutate()}>Executar validações</Acao>
-        <Acao onClick={() => mSolicitar.mutate()}>Solicitar revisão humana</Acao>
-        <Acao
-          onClick={async () => {
+      {/*
+        09/09/2026 — achado real: a fusão da PR #28 ("5 ações principais em
+        destaque") com o main deixou DUAS barras de botão, uma embaixo da
+        outra — a nova ("Salvar rascunho") e a antiga ("Gerar rascunho
+        interno"), que chamam exatamente a mesma mutação (mGerar). É a causa
+        do "contrato continua confuso": duas fileiras de botão para a mesma
+        ação. Consolidado numa fileira só; "Gerar rascunho interno" (redundante)
+        foi removido, e "Enviar ao cliente"/"Arquivar" — que não tinham
+        equivalente na barra nova — entraram na mesma fileira, mantendo o
+        próprio confirm/efeito do AcaoOperacional (ações externas/formais
+        continuam pedindo confirmação explícita, só não ficam mais numa
+        segunda barra à parte).
+
+        09/09/2026 (Corte D, limpeza pré-Perfil 360) — "Editar contrato",
+        "Adicionar anexo" e "Adicionar cláusula" só trocavam de aba (setAba),
+        sem nenhuma ação própria: duplicavam a navegação que já existe na
+        &lt;nav&gt; de abas logo abaixo, misturada na mesma fileira com botões que
+        de fato mutam. Removidos daqui; a aba correspondente continua
+        acessível pela nav.
+      */}
+      <div className="mt-4 flex flex-wrap items-start gap-2">
+        <button
+          onClick={() => mGerar.mutate((d.versoes as any[]).length ? prompt("Resumo das alterações desta versão:") ?? "" : undefined)}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
+        >
+          Salvar rascunho
+        </button>
+        <button
+          onClick={() => {
+            const titulo = prompt("Título da tarefa:");
+            if (!titulo?.trim()) return;
+            mTarefa.mutate({ titulo: titulo.trim(), caso_id: (c.case_id as string | null) ?? null });
+          }}
+          disabled={mTarefa.isPending}
+          className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90 disabled:opacity-60"
+        >
+          Criar tarefa
+        </button>
+        {/*
+          06/09/2026 — "Executar validações" e "Solicitar revisão humana" foram
+          removidos daqui na execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS
+          e do PROMPT_REVERSAO_EMERGENCIAL_PLATAFORMA_OPERACIONAL, por ordem
+          direta da proprietária. Os dois prompts listam esses botões nome por
+          nome entre o que precisa sair da interface operacional de contrato,
+          que deve conter apenas editar, salvar rascunho, ver prévia e arquivar.
+          A proprietária é quem revisa — pedir revisão humana a si mesma era
+          cerimônia, e a validação formal já roda sozinha no congelamento da
+          versão. As mutações mValidar/mSolicitar seguem existentes para a
+          cadeia de formalização, que é onde essas etapas fazem sentido.
+        */}
+        <AcaoOperacional
+          rotulo="Enviar ao cliente"
+          acaoExterna="enviar_contrato"
+          variant="outline"
+          efeito="Tenta a etapa de envio do instrumento ao cliente. Nada sai sem esta confirmação."
+          onConfirmar={async () => {
             const r = await externa({ data: { contract_id: id, etapa: "envio" } });
             setAviso(r.mensagem);
+            recarregar();
           }}
-        >
-          Enviar ao cliente (desabilitado)
-        </Acao>
-        {ehAdmin ? (
-          <Acao
-            onClick={async () => {
-              const motivo = prompt("Motivo do arquivamento:");
-              if (!motivo) return;
-              await arquivar({ data: { contract_id: id, motivo } });
-              setAviso("Instrumento arquivado. Nenhum dado foi excluído.");
-              recarregar();
-            }}
-          >
-            Arquivar
-          </Acao>
-        ) : null}
+        />
+        <AcaoOperacional
+          rotulo="Arquivar"
+          acaoExterna="excluir_registro_ou_versao"
+          variant="outline"
+          efeito="Arquiva o instrumento. Nenhum dado é excluído; o registro sai da operação corrente."
+          onConfirmar={async (motivo) => {
+            await arquivar({ data: { contract_id: id, motivo } });
+            setAviso("Instrumento arquivado. Nenhum dado foi excluído.");
+            recarregar();
+          }}
+        />
       </div>
 
       <nav className="mt-6 flex flex-wrap items-center gap-1 overflow-x-auto border-b border-navy/10">
@@ -172,7 +286,7 @@ function ContratoDetalhe() {
         ))}
         <details className="relative ml-auto shrink-0">
           <summary className="cursor-pointer list-none rounded-t-lg px-3 py-2 text-sm text-navy/50 hover:text-navy/70">
-            Mais opções ▾
+            Dados técnicos ▾
           </summary>
           <div className="absolute right-0 z-10 flex flex-col rounded-lg border border-navy/10 bg-white p-1 shadow-lg">
             {ABAS_AVANCADAS.map((a) => (
@@ -198,18 +312,10 @@ function ContratoDetalhe() {
         {aba === "Validações" ? <Validacoes dados={d} /> : null}
         {aba === "Versões" ? <Versoes dados={d} contratoId={id} /> : null}
         {aba === "Revisão" ? (
-          <Revisao dados={d} contratoId={id} versao={versaoAtual} ehAdmin={ehAdmin} onSalvo={recarregar} setAviso={setAviso} />
+          <Revisao dados={d} contratoId={id} versao={versaoAtual} onSalvo={recarregar} setAviso={setAviso} />
         ) : null}
       </div>
     </SaasShell>
-  );
-}
-
-function Acao({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5">
-      {children}
-    </button>
   );
 }
 
@@ -268,21 +374,58 @@ function Campo({
 function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
   const c = dados.contrato;
   const atualizar = useServerFn(atualizarContrato);
+  const carregarEquipe = useServerFn(listarEquipe);
   const [erro, setErro] = useState<string | null>(null);
+  const equipe = useQuery({ queryKey: ["equipe-revisao"], queryFn: () => carregarEquipe() });
   const salvar = async (patch: Record<string, unknown>) => {
     try {
       await atualizar({ data: { id: c.id, patch } });
       setErro(null);
       onSalvo();
+      // 06/09/2026: campo salvava por autosave silencioso (só no blur), sem
+      // nenhuma confirmação visível — quem editava não tinha como saber se a
+      // gravação persistiu sem recarregar a página manualmente.
+      toast.success("Salvo.");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao salvar.");
+      toast.error("Não foi possível salvar esta alteração.");
     }
   };
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {erro ? <p className="text-sm text-terracotta sm:col-span-2">{erro}</p> : null}
       <Campo rotulo="Título" valor={c.title} onSalvar={(v) => salvar({ title: v })} />
-      <Campo rotulo="Responsável pela revisão (usuário)" valor={c.review_owner_user_id} onSalvar={(v) => salvar({ review_owner_user_id: v || null })} />
+      <EstadoDados
+        carregando={equipe.isLoading}
+        erro={equipe.error}
+        dados={equipe.data?.membros as any[] | undefined}
+        aoTentarNovamente={() => void equipe.refetch()}
+        recurso="a equipe de revisão"
+        vazio="Nenhum membro de equipe cadastrado para assumir a revisão."
+      >
+        {(membros) => (
+          <Campo
+            rotulo="Responsável pela revisão (usuário)"
+            tipo="select"
+            valor={c.review_owner_user_id ?? ""}
+            opcoes={[
+              { valor: "", rotulo: "Não definido" },
+              // 06/09/2026: listarEquipe() vem de staff_access, cuja PK (id) NAO
+              // e o auth_user_id real. Usar m.id aqui gravava
+              // review_owner_user_id apontando pra uma linha de staff_access, nao
+              // pra um usuario/profile real - salvava "com sucesso" um id
+              // orfao, sem erro visivel, e sem corresponder a ninguem de verdade.
+              ...(membros as any[])
+                .filter((m) => m.auth_user_id)
+                .map((m) => ({
+                  valor: m.auth_user_id as string,
+                  rotulo: (m.full_name as string) || (m.email as string),
+                })),
+            ]}
+            onSalvar={(v) => salvar({ review_owner_user_id: v || null })}
+          />
+        )}
+      </EstadoDados>
       <Campo rotulo="Finalidade" tipo="textarea" valor={c.purpose_summary} onSalvar={(v) => salvar({ purpose_summary: v })} />
       <Campo rotulo="Resumo de escopo" tipo="textarea" valor={c.scope_summary} onSalvar={(v) => salvar({ scope_summary: v })} />
       <Campo rotulo="Exclusões" tipo="textarea" valor={c.exclusions_summary} onSalvar={(v) => salvar({ exclusions_summary: v })} />
@@ -340,8 +483,8 @@ function Resumo({ dados, onSalvo }: { dados: any; onSalvo: () => void }) {
         onSalvar={(v) => salvar({ financial_gate_status: v })}
       />
       <p className="text-xs text-navy/60 sm:col-span-2">
-        Gate de pesquisa externa: {c.research_gate_status}. Cobrança, assinatura e pesquisa externa exigem gatilhos
-        próprios e não são liberadas por rascunho contratual.
+        Gate de pesquisa externa: {ROTULO_GATE_PESQUISA[c.research_gate_status] ?? c.research_gate_status}. Cobrança,
+        assinatura e pesquisa externa exigem gatilhos próprios e não são liberadas por rascunho contratual.
       </p>
     </div>
   );
@@ -381,9 +524,7 @@ function useSalvarItem(contratoId: string, tabela: any, onSalvo: () => void) {
         setErro(e instanceof Error ? e.message : "Falha ao salvar.");
       }
     },
-    arquivar: async (id: string) => {
-      const motivo = prompt("Motivo do arquivamento:");
-      if (!motivo) return;
+    arquivar: async (id: string, motivo: string) => {
       try {
         await arquivar({ data: { tabela, contract_id: contratoId, id, motivo } });
         onSalvo();
@@ -401,34 +542,42 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
-        {(dados.partes as any[]).map((p) => (
-          <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
-            <td className="px-3 py-2">{p.person_name}</td>
-            <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
-            <td className="px-3 py-2">{p.legal_capacity_status}</td>
-            <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
-            <td className="px-3 py-2 text-right">
-              {!p.archived_at ? (
-                <button onClick={() => arquivar(p.id)} className="text-xs text-navy/60 underline">
-                  Arquivar
-                </button>
-              ) : (
-                <span className="text-xs text-navy/50">arquivada</span>
-              )}
-            </td>
-          </tr>
-        ))}
-      </Tabela>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!nome.trim()) return;
-          salvar({ person_name: nome, role: papel });
-          setNome("");
-        }}
+      <EstadoDados
+        dados={dados.partes as any[] | undefined}
+        aoTentarNovamente={onSalvo}
+        recurso="as partes do instrumento"
+        vazio="Nenhuma parte cadastrada neste instrumento."
       >
+        {(partes) => (
+          <Tabela cabecalho={["Nome", "Papel", "Capacidade", "Assinatura", "Ações"]}>
+            {(partes as any[]).map((p) => (
+              <tr key={p.id} className={`border-t border-navy/10 ${p.archived_at ? "opacity-50" : ""}`}>
+                <td className="px-3 py-2">{p.person_name}</td>
+                <td className="px-3 py-2">{ROTULO_PAPEL_PARTE[p.role] ?? p.role}</td>
+                <td className="px-3 py-2">{p.legal_capacity_status}</td>
+                <td className="px-3 py-2">{p.signature_required ? "requerida" : "não requerida"}</td>
+                <td className="px-3 py-2 text-right">
+                  {!p.archived_at ? (
+                    <AcaoOperacional
+                      rotulo="Arquivar parte"
+                      acaoExterna="excluir_registro_ou_versao"
+                      variant="ghost"
+                      size="sm"
+                      efeito={`Arquiva a parte ${p.person_name}. O registro permanece no histórico.`}
+                      onConfirmar={(motivo) => arquivar(p.id, motivo)}
+                    >
+                      Arquivar
+                    </AcaoOperacional>
+                  ) : (
+                    <span className="text-xs text-navy/50">arquivada</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </Tabela>
+        )}
+      </EstadoDados>
+      <div className="flex flex-wrap items-start gap-2">
         <input
           value={nome}
           onChange={(e) => setNome(e.target.value)}
@@ -442,8 +591,18 @@ function Partes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </option>
           ))}
         </select>
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">Adicionar parte</button>
-      </form>
+        <AcaoOperacional
+          rotulo="Adicionar parte"
+          capacidade="corrigir_pessoas_dependentes_representacao"
+          validacaoFormulario={nome.trim() ? null : "Informe o nome da parte antes de adicionar."}
+          efeito="Cadastra a parte neste instrumento contratual."
+          onConfirmar={async () => {
+            if (!nome.trim()) return;
+            await salvar({ person_name: nome, role: papel });
+            setNome("");
+          }}
+        />
+      </div>
       <p className="text-xs text-navy/60">
         Documento, endereço e telefone das partes são restritos: não vão ao portal do cliente, a exports padrão nem a logs.
       </p>
@@ -459,32 +618,40 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Item", "Categoria", "Status", "Origem", "Ações"]}>
-        {(dados.escopo as any[]).map((s) => (
-          <tr key={s.id} className={`border-t border-navy/10 ${s.archived_at ? "opacity-50" : ""}`}>
-            <td className="px-3 py-2">{s.title}</td>
-            <td className="px-3 py-2">{ROTULO_CATEGORIA_ESCOPO[s.category] ?? s.category}</td>
-            <td className="px-3 py-2">{s.status}</td>
-            <td className="px-3 py-2">{s.source_type}</td>
-            <td className="px-3 py-2 text-right">
-              {!s.archived_at ? (
-                <button onClick={() => arquivar(s.id)} className="text-xs text-navy/60 underline">
-                  Arquivar
-                </button>
-              ) : null}
-            </td>
-          </tr>
-        ))}
-      </Tabela>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!titulo.trim()) return;
-          salvar({ title: titulo, category: categoria, status });
-          setTitulo("");
-        }}
+      <EstadoDados
+        dados={dados.escopo as any[] | undefined}
+        aoTentarNovamente={onSalvo}
+        recurso="os itens de escopo"
+        vazio="Nenhum item de escopo cadastrado neste instrumento."
       >
+        {(itens) => (
+          <Tabela cabecalho={["Item", "Categoria", "Status", "Origem", "Ações"]}>
+            {(itens as any[]).map((s) => (
+              <tr key={s.id} className={`border-t border-navy/10 ${s.archived_at ? "opacity-50" : ""}`}>
+                <td className="px-3 py-2">{s.title}</td>
+                <td className="px-3 py-2">{ROTULO_CATEGORIA_ESCOPO[s.category] ?? s.category}</td>
+                <td className="px-3 py-2">{s.status}</td>
+                <td className="px-3 py-2">{s.source_type}</td>
+                <td className="px-3 py-2 text-right">
+                  {!s.archived_at ? (
+                    <AcaoOperacional
+                      rotulo="Arquivar item de escopo"
+                      acaoExterna="excluir_registro_ou_versao"
+                      variant="ghost"
+                      size="sm"
+                      efeito={`Arquiva o item de escopo “${s.title}”. O registro permanece no histórico.`}
+                      onConfirmar={(motivo) => arquivar(s.id, motivo)}
+                    >
+                      Arquivar
+                    </AcaoOperacional>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </Tabela>
+        )}
+      </EstadoDados>
+      <div className="flex flex-wrap items-start gap-2">
         <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Item de escopo" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
         <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {Object.entries(ROTULO_CATEGORIA_ESCOPO).map(([v, r]) => (
@@ -500,8 +667,18 @@ function Escopo({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </option>
           ))}
         </select>
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">Adicionar item</button>
-      </form>
+        <AcaoOperacional
+          rotulo="Adicionar item"
+          capacidade="corrigir_proposta_escopo_preco"
+          validacaoFormulario={titulo.trim() ? null : "Informe o título do item de escopo antes de adicionar."}
+          efeito="Cadastra o item de escopo neste instrumento."
+          onConfirmar={async () => {
+            if (!titulo.trim()) return;
+            await salvar({ title: titulo, category: categoria, status });
+            setTitulo("");
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -521,26 +698,29 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Cláusula", "Ação", "Cláusula-base", "Precedência"]}>
-        {(dados.clausulas as any[]).map((c) => (
-          <tr key={c.id} className="border-t border-navy/10 align-top">
-            <td className="px-3 py-2">
-              <strong>{c.clause_code}</strong> — {c.clause_title}
-            </td>
-            <td className="px-3 py-2">{c.action}</td>
-            <td className="px-3 py-2">{c.base_contract_clause_reference ?? "—"}</td>
-            <td className="px-3 py-2 text-navy/70">{c.precedence_statement ?? "—"}</td>
-          </tr>
-        ))}
-      </Tabela>
-      <form
-        className="grid gap-2 sm:grid-cols-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          salvar({ ...form, clause_code: form.clause_code.trim() || `CL-${Date.now().toString(36).toUpperCase()}` });
-        }}
+      <EstadoDados
+        dados={dados.clausulas as any[] | undefined}
+        aoTentarNovamente={onSalvo}
+        recurso="as cláusulas"
+        vazio="Nenhuma cláusula específica registrada neste instrumento."
       >
-        <input required placeholder="Título da cláusula" value={form.clause_title} onChange={(e) => set("clause_title", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
+        {(clausulas) => (
+          <Tabela cabecalho={["Cláusula", "Ação", "Cláusula-base", "Precedência"]}>
+            {(clausulas as any[]).map((c) => (
+              <tr key={c.id} className="border-t border-navy/10 align-top">
+                <td className="px-3 py-2">
+                  <strong>{c.clause_code}</strong> — {c.clause_title}
+                </td>
+                <td className="px-3 py-2">{c.action}</td>
+                <td className="px-3 py-2">{c.base_contract_clause_reference ?? "—"}</td>
+                <td className="px-3 py-2 text-navy/70">{c.precedence_statement ?? "—"}</td>
+              </tr>
+            ))}
+          </Tabela>
+        )}
+      </EstadoDados>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <input placeholder="Título da cláusula" value={form.clause_title} onChange={(e) => set("clause_title", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
         <textarea placeholder="Texto da cláusula" value={form.clause_text} onChange={(e) => set("clause_text", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm sm:col-span-2" />
         <details className="sm:col-span-2">
           <summary className="cursor-pointer text-xs text-navy/50 hover:text-navy/70">Detalhes avançados (opcional)</summary>
@@ -558,8 +738,22 @@ function Clausulas({ dados, contratoId, onSalvo }: { dados: any; contratoId: str
             <input placeholder="Declaração de precedência" value={form.precedence_statement} onChange={(e) => set("precedence_statement", e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
           </div>
         </details>
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream sm:col-span-2">Salvar cláusula</button>
-      </form>
+        <div className="sm:col-span-2">
+          <AcaoOperacional
+            rotulo="Salvar cláusula"
+            capacidade="editar_rascunho"
+            validacaoFormulario={form.clause_title.trim() ? null : "Informe o título da cláusula antes de salvar."}
+            efeito="Grava a cláusula específica no rascunho deste instrumento."
+            onConfirmar={async () => {
+              if (!form.clause_title.trim()) return;
+              await salvar({
+                ...form,
+                clause_code: form.clause_code.trim() || `CL-${Date.now().toString(36).toUpperCase()}`,
+              });
+            }}
+          />
+        </div>
+      </div>
       <p className="text-xs text-navy/60">
         Só título e texto são obrigatórios para salvar um rascunho. Código, cláusula-base, justificativa e precedência
         ficam em "Detalhes avançados" e continuam recomendados antes de uma substituição ir para revisão humana.
@@ -574,8 +768,15 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Código", "Anexo", "Tipo", "Obrigatório", "Status"]}>
-        {(dados.anexos as any[]).map((a) => (
+      <EstadoDados
+        dados={dados.anexos as any[] | undefined}
+        aoTentarNovamente={onSalvo}
+        recurso="os anexos"
+        vazio="Nenhum anexo cadastrado neste instrumento."
+      >
+        {(anexos) => (
+          <Tabela cabecalho={["Código", "Anexo", "Tipo", "Obrigatório", "Status"]}>
+        {(anexos as any[]).map((a) => (
           <tr key={a.id} className="border-t border-navy/10">
             <td className="px-3 py-2 font-mono text-xs">{a.annex_code}</td>
             <td className="px-3 py-2">{a.title}</td>
@@ -585,9 +786,8 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
               <select
                 value={a.status}
                 onChange={(e) => {
-                  const status = e.target.value;
-                  const motivo = status === "not_applicable" ? prompt("Motivo da não aplicabilidade:") ?? "" : undefined;
-                  salvar({ status, ...(motivo !== undefined ? { reason_not_applicable: motivo } : {}) }, a.id);
+                    const status = e.target.value;
+                  salvar({ status }, a.id);
                 }}
                 className="rounded-lg border border-navy/20 px-2 py-1 text-xs"
               >
@@ -602,16 +802,11 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </td>
           </tr>
         ))}
-      </Tabela>
-      <form
-        className="flex flex-wrap items-end gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          salvar({ ...form, annex_code: form.annex_code.trim() || `ANEXO-${Date.now().toString(36).toUpperCase()}` });
-          setForm({ annex_code: "", title: "", annex_type: "scope", required_for_contract: true });
-        }}
-      >
-        <input required placeholder="Título do anexo" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
+          </Tabela>
+        )}
+      </EstadoDados>
+      <div className="flex flex-wrap items-start gap-2">
+        <input placeholder="Título do anexo" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
         <select value={form.annex_type} onChange={(e) => setForm({ ...form, annex_type: e.target.value })} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {Object.entries(ROTULO_TIPO_ANEXO).map(([v, r]) => (
             <option key={v} value={v}>
@@ -619,7 +814,20 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </option>
           ))}
         </select>
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">Adicionar anexo</button>
+        <AcaoOperacional
+          rotulo="Adicionar anexo"
+          capacidade="corrigir_os_anexos_previa"
+          validacaoFormulario={form.title.trim() ? null : "Informe o título do anexo antes de adicionar."}
+          efeito="Cadastra o anexo neste instrumento."
+          onConfirmar={async () => {
+            if (!form.title.trim()) return;
+            await salvar({
+              ...form,
+              annex_code: form.annex_code.trim() || `ANEXO-${Date.now().toString(36).toUpperCase()}`,
+            });
+            setForm({ annex_code: "", title: "", annex_type: "scope", required_for_contract: true });
+          }}
+        />
         <details className="w-full">
           <summary className="cursor-pointer text-xs text-navy/50 hover:text-navy/70">Detalhes avançados (opcional)</summary>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -630,7 +838,7 @@ function Anexos({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
             </label>
           </div>
         </details>
-      </form>
+      </div>
     </div>
   );
 }
@@ -642,29 +850,37 @@ function Fontes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
   return (
     <div className="space-y-4">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
-      <Tabela cabecalho={["Origem", "Referência", "Acesso", "Verificada"]}>
-        {(dados.fontes as any[]).map((f) => (
-          <tr key={f.id} className="border-t border-navy/10">
-            <td className="px-3 py-2">{f.source_type}</td>
-            <td className="px-3 py-2">{f.source_reference}</td>
-            <td className="px-3 py-2">{f.access_level}</td>
-            <td className="px-3 py-2">
-              <button onClick={() => salvar({ verified: !f.verified }, f.id)} className="text-xs underline">
-                {f.verified ? "verificada" : "marcar verificada"}
-              </button>
-            </td>
-          </tr>
-        ))}
-      </Tabela>
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!ref.trim()) return;
-          salvar({ source_reference: ref, source_type: tipo });
-          setRef("");
-        }}
+      <EstadoDados
+        dados={dados.fontes as any[] | undefined}
+        aoTentarNovamente={onSalvo}
+        recurso="as fontes vinculadas"
+        vazio="Nenhuma fonte vinculada a este instrumento."
       >
+        {(fontes) => (
+          <Tabela cabecalho={["Origem", "Referência", "Acesso", "Verificada"]}>
+            {(fontes as any[]).map((f) => (
+              <tr key={f.id} className="border-t border-navy/10">
+                <td className="px-3 py-2">{f.source_type}</td>
+                <td className="px-3 py-2">{f.source_reference}</td>
+                <td className="px-3 py-2">{f.access_level}</td>
+                <td className="px-3 py-2">
+                  <AcaoOperacional
+                    rotulo={f.verified ? "Desmarcar verificação" : "Marcar verificada"}
+                    capacidade="editar_rascunho"
+                    variant="ghost"
+                    size="sm"
+                    efeito="Altera a marcação de fonte verificada neste instrumento."
+                    onConfirmar={() => salvar({ verified: !f.verified }, f.id)}
+                  >
+                    {f.verified ? "verificada" : "marcar verificada"}
+                  </AcaoOperacional>
+                </td>
+              </tr>
+            ))}
+          </Tabela>
+        )}
+      </EstadoDados>
+      <div className="flex flex-wrap items-start gap-2">
         <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="rounded-lg border border-navy/20 px-3 py-2 text-sm">
           {["proposal", "case", "client", "dossie", "checklist", "prior_contract", "external_authorization", "other"].map((v) => (
             <option key={v} value={v}>
@@ -673,8 +889,18 @@ function Fontes({ dados, contratoId, onSalvo }: { dados: any; contratoId: string
           ))}
         </select>
         <input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="Referência segura da fonte" className="rounded-lg border border-navy/20 px-3 py-2 text-sm" />
-        <button className="rounded-lg bg-navy px-3 py-2 text-sm text-cream">Vincular fonte</button>
-      </form>
+        <AcaoOperacional
+          rotulo="Vincular fonte"
+          capacidade="editar_rascunho"
+          validacaoFormulario={ref.trim() ? null : "Informe a referência da fonte antes de vincular."}
+          efeito="Vincula a referência de fonte ao instrumento. Nenhum conteúdo externo é copiado."
+          onConfirmar={async () => {
+            if (!ref.trim()) return;
+            await salvar({ source_reference: ref, source_type: tipo });
+            setRef("");
+          }}
+        />
+      </div>
       <p className="text-xs text-navy/60">Somente referência e vínculo. Conteúdo integral de fontes externas não é copiado.</p>
     </div>
   );
@@ -688,6 +914,8 @@ function ChecklistJuridico({ dados }: { dados: any }) {
     clausulas: dados.clausulas,
     anexos: dados.anexos,
     versoes: dados.versoes,
+    valorReferencia: dados.valorReferencia,
+    prazoReferencia: dados.prazoReferencia,
   });
   return (
     <section className="space-y-3">
@@ -731,21 +959,25 @@ function Validacoes({ dados }: { dados: any }) {
       <ChecklistJuridico dados={dados} />
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-navy">Validações registradas</h3>
-        {lista.length ? (
-          <Tabela cabecalho={["Validação", "Severidade", "Situação"]}>
-            {lista.map((v) => (
-              <tr key={v.id} className="border-t border-navy/10">
-                <td className="px-3 py-2">{v.label}</td>
-                <td className="px-3 py-2">{v.severity}</td>
-                <td className="px-3 py-2">
-                  <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
-                </td>
-              </tr>
-            ))}
-          </Tabela>
-        ) : (
-          <p className="text-sm text-navy/60">Nenhuma validação executada ainda.</p>
-        )}
+        <EstadoDados
+          dados={lista}
+          recurso="as validações"
+          vazio="Nenhuma validação executada ainda."
+        >
+          {(itens) => (
+            <Tabela cabecalho={["Validação", "Severidade", "Situação"]}>
+              {(itens as any[]).map((v) => (
+                <tr key={v.id} className="border-t border-navy/10">
+                  <td className="px-3 py-2">{v.label}</td>
+                  <td className="px-3 py-2">{v.severity}</td>
+                  <td className="px-3 py-2">
+                    <Selo texto={v.status} tom={v.status === "open" ? "alerta" : "ok"} />
+                  </td>
+                </tr>
+              ))}
+            </Tabela>
+          )}
+        </EstadoDados>
       </section>
     </div>
   );
@@ -761,11 +993,54 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
     rascunho: boolean;
     perfil: { versao: string | null; status: string | null; capturadoEm: string | null } | null;
   } | null>(null);
+  // Achado real (08/09/2026): "Ver prévia interna" só existia na coluna
+  // "Ações" da tabela — que tem 640px mínimos e exige rolar para o lado num
+  // celular (~390px de tela). A proprietária aprovava decisões sem nunca ter
+  // visto o texto real do contrato, porque o único jeito de ver o conteúdo
+  // estava fora da área visível sem descobrir que dava para arrastar a
+  // tabela. Botão abaixo abre a prévia da versão mais recente sem depender
+  // de rolagem horizontal nenhuma.
+  const abrirPreviaMaisRecente = async (v: any) => {
+    try {
+      setErro(null);
+      const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
+      setPrevia({
+        html: r.html,
+        versao: r.versao,
+        rascunho: r.rascunho,
+        perfil: r.perfilInstitucional
+          ? {
+              versao: r.perfilInstitucional.versao,
+              status: r.perfilInstitucional.status,
+              capturadoEm: r.perfilInstitucional.capturadoEm,
+            }
+          : null,
+      });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
+    }
+  };
+  const versoesLista = dados.versoes as any[] | undefined;
+  const maisRecente = versoesLista?.[0] ?? null;
   return (
     <div className="space-y-3">
       {erro ? <p className="text-sm text-terracotta">{erro}</p> : null}
+      {maisRecente ? (
+        <button
+          onClick={() => abrirPreviaMaisRecente(maisRecente)}
+          className="w-full rounded-lg border-2 border-gold bg-gold/10 px-4 py-3 text-sm font-semibold text-navy hover:bg-gold/20"
+        >
+          Ver o texto real da versão v{maisRecente.version_number} (a mais recente) antes de decidir
+        </button>
+      ) : null}
+      <EstadoDados
+        dados={versoesLista}
+        recurso="as versões do instrumento"
+        vazio="Nenhuma versão gerada ainda. Use “Gerar rascunho interno”."
+      >
+        {(versoes) => (
       <Tabela cabecalho={["Versão", "Status", "Alterações", "Arquivo privado", "Ações"]}>
-        {(dados.versoes as any[]).map((v) => (
+        {(versoes as any[]).map((v) => (
           <tr key={v.id} className="border-t border-navy/10 align-top">
             <td className="px-3 py-2">v{v.version_number}</td>
             <td className="px-3 py-2">{ROTULO_STATUS_VERSAO[v.status] ?? v.status}</td>
@@ -775,29 +1050,7 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
             </td>
             <td className="px-3 py-2">
               <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={async () => {
-                    try {
-                      setErro(null);
-                      const r = await visualizar({ data: { contract_id: contratoId, version_id: v.id } });
-                      setPrevia({
-                        html: r.html,
-                        versao: r.versao,
-                        rascunho: r.rascunho,
-                        perfil: r.perfilInstitucional
-                          ? {
-                              versao: r.perfilInstitucional.versao,
-                              status: r.perfilInstitucional.status,
-                              capturadoEm: r.perfilInstitucional.capturadoEm,
-                            }
-                          : null,
-                      });
-                    } catch (e) {
-                      setErro(e instanceof Error ? e.message : "Falha ao abrir a prévia.");
-                    }
-                  }}
-                  className="text-xs underline"
-                >
+                <button onClick={() => abrirPreviaMaisRecente(v)} className="text-xs underline">
                   Ver prévia interna
                 </button>
                 {v.rendered_file_path ? (
@@ -820,6 +1073,8 @@ function Versoes({ dados, contratoId }: { dados: any; contratoId: string }) {
           </tr>
         ))}
       </Tabela>
+        )}
+      </EstadoDados>
       {previa ? (
         <section className="overflow-hidden rounded-lg border border-navy/15 bg-white">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy/10 bg-cream/60 px-3 py-2">
@@ -860,14 +1115,12 @@ function Revisao({
   dados,
   contratoId,
   versao,
-  ehAdmin,
   onSalvo,
   setAviso,
 }: {
   dados: any;
   contratoId: string;
   versao: any;
-  ehAdmin: boolean;
   onSalvo: () => void;
   setAviso: (v: string) => void;
 }) {
@@ -875,111 +1128,155 @@ function Revisao({
   const aprovar = useServerFn(aprovarParaEnvio);
   const excecao = useServerFn(criarExcecao);
   const os = useServerFn(salvarOrdemServico);
+  // 06/09/2026: "Aprovar para envio" recusava com "Escopo contratado definido" e
+  // "condicao comercial nao persistida a partir da proposta aprovada", mas quem
+  // corrige isso (derivar o Anexo I da proposta) so existia na tela do caso
+  // (/casos/$caseId/contrato/preparar), sem link nenhum a partir daqui. Trazendo
+  // o motor pra dentro da propria aba de Revisao: zero navegacao, um clique.
+  const autoridadeAnexo = useAutoridade();
+  const podeEscreverAnexo = !autoridadeAnexo.bloqueado({ capacidade: "aprovar_proposta_os_anexo_previa" });
 
   if (!versao) return <p className="text-sm text-navy/60">Gere uma versão de trabalho antes da revisão.</p>;
 
   return (
     <div className="space-y-5">
+      {dados.contrato?.case_id ? (
+        <CadeiaFormalizacao caseId={dados.contrato.case_id} podeEscrever={podeEscreverAnexo} />
+      ) : null}
       <div>
         <p className="text-sm">
           Versão em revisão: <strong>v{versao.version_number}</strong> · decisão atual: {versao.review_decision}
         </p>
-        {ehAdmin ? (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {(["approved", "changes_requested", "rejected"] as const).map((d) => (
-              <button
-                key={d}
-                onClick={async () => {
-                  const notas = prompt("Notas de revisão (opcional):") ?? "";
-                  await decidir({ data: { contract_id: contratoId, version_id: versao.id, decisao: d, notas } });
-                  setAviso("Decisão de revisão registrada.");
-                  onSalvo();
-                }}
-                className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
-              >
-                {d === "approved" ? "Aprovar revisão" : d === "changes_requested" ? "Solicitar ajustes" : "Rejeitar"}
-              </button>
-            ))}
-            <button
-              onClick={async () => {
-                const r = await aprovar({ data: { contract_id: contratoId, version_id: versao.id } });
-                setAviso(r.ok ? "Aprovado para envio futuro. Envio segue desabilitado nesta fase." : `Impedimentos: ${r.impedimentos.join("; ")}`);
+        <div className="mt-2 flex flex-wrap items-start gap-2">
+          {(["approved", "changes_requested", "rejected"] as const).map((d) => (
+            <AcaoOperacional
+              key={d}
+              rotulo={d === "approved" ? "Aprovar revisão" : d === "changes_requested" ? "Solicitar ajustes" : "Rejeitar"}
+              capacidade="aprovar_proposta_os_anexo_previa"
+              variant="outline"
+              efeito={`Registra a decisão de revisão na versão v${versao.version_number}. As notas ficam auditadas.`}
+              onConfirmar={async (motivo) => {
+                await decidir({
+                  data: { contract_id: contratoId, version_id: versao.id, decisao: d, notas: motivo },
+                });
+                setAviso("Decisão de revisão registrada.");
                 onSalvo();
               }}
-              className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
-            >
-              Aprovar para envio (congela versão)
-            </button>
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-navy/60">Somente admin conclui revisão e aprova para envio.</p>
-        )}
+            />
+          ))}
+          <AcaoOperacional
+            rotulo="Aprovar para envio (congela versão)"
+            capacidade="aprovar_proposta_os_anexo_previa"
+            efeito="Congela a versão para envio futuro. Nenhum envio ao cliente acontece aqui."
+            onConfirmar={async () => {
+              const r = await aprovar({ data: { contract_id: contratoId, version_id: versao.id } });
+              setAviso(
+                r.ok
+                  ? "Aprovado para envio futuro. O envio continua sendo uma ação externa confirmada à parte."
+                  : `Impedimentos: ${r.impedimentos.join("; ")}`,
+              );
+              onSalvo();
+            }}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border border-navy/10 p-3">
         <h3 className="text-sm font-medium">Ordens de serviço</h3>
-        <Tabela cabecalho={["Número", "Status", "Condição de início"]}>
-          {(dados.ordens as any[]).map((o) => (
-            <tr key={o.id} className="border-t border-navy/10">
-              <td className="px-3 py-2 font-mono text-xs">{o.service_order_number}</td>
-              <td className="px-3 py-2">{o.status}</td>
-              <td className="px-3 py-2">{o.start_condition_status}</td>
-            </tr>
-          ))}
-        </Tabela>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            onClick={async () => {
-              const r = await os({ data: { contract_id: contratoId, scope_summary: "Execução vinculada ao instrumento." } });
+        <EstadoDados
+          dados={dados.ordens as any[] | undefined}
+          aoTentarNovamente={onSalvo}
+          recurso="as ordens de serviço"
+          vazio="Nenhuma ordem de serviço vinculada a este instrumento."
+        >
+          {(ordens) => (
+            <>
+              <Tabela cabecalho={["Número", "Status", "Condição de início"]}>
+                {(ordens as any[]).map((o) => (
+                  <tr key={o.id} className="border-t border-navy/10">
+                    <td className="px-3 py-2 font-mono text-xs">{o.service_order_number}</td>
+                    <td className="px-3 py-2">{o.status}</td>
+                    <td className="px-3 py-2">{o.start_condition_status}</td>
+                  </tr>
+                ))}
+              </Tabela>
+              <div className="mt-2 flex flex-wrap items-start gap-2">
+                {(ordens as any[]).map((o) => (
+                  <AcaoOperacional
+                    key={o.id}
+                    rotulo={`Ativar ${o.service_order_number}`}
+                    capacidade="avancar_caso_planejador_tarefa"
+                    variant="outline"
+                    efeito="Tenta ativar a ordem de serviço. Condições de início continuam visíveis."
+                    onConfirmar={async () => {
+                      const r = await os({ data: { id: o.id, contract_id: contratoId, status: "active" } });
+                      setAviso(r.ok ? "Ordem de serviço ativada." : `Ativação bloqueada: ${r.mensagem}`);
+                      onSalvo();
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </EstadoDados>
+        <div className="mt-2 flex flex-wrap items-start gap-2">
+          <AcaoOperacional
+            rotulo="Criar ordem de serviço"
+            capacidade="corrigir_os_anexos_previa"
+            variant="outline"
+            efeito="Cria uma ordem de serviço vinculada a este instrumento."
+            onConfirmar={async () => {
+              const r = await os({
+                data: { contract_id: contratoId, scope_summary: "Execução vinculada ao instrumento." },
+              });
               setAviso(r.mensagem ?? "Ordem de serviço criada.");
               onSalvo();
             }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
-          >
-            Criar ordem de serviço
-          </button>
-          {(dados.ordens as any[]).map((o) => (
-            <button
-              key={o.id}
-              onClick={async () => {
-                const r = await os({ data: { id: o.id, contract_id: contratoId, status: "active" } });
-                setAviso(r.ok ? "Ordem de serviço ativada." : `Ativação bloqueada: ${r.mensagem}`);
-                onSalvo();
-              }}
-              className="rounded-lg border border-navy/20 px-3 py-2 text-sm"
-            >
-              Tentar ativar {o.service_order_number}
-            </button>
-          ))}
+          />
         </div>
       </div>
 
-      {ehAdmin ? (
-        <div className="rounded-lg border border-terracotta/30 p-3">
-          <h3 className="text-sm font-medium">Exceções formais</h3>
-          <p className="text-xs text-navy/60">Exceção não oculta validação: continua visível no painel de completude.</p>
-          <button
-            onClick={async () => {
-              const reason = prompt("Motivo da exceção:");
-              const impact = reason ? prompt("Impacto da exceção:") : null;
-              if (!reason || !impact) return;
-              await excecao({ data: { contract_id: contratoId, scope: "activation_gate", reason, impact } });
+      <div className="rounded-lg border border-terracotta/30 p-3">
+        <h3 className="text-sm font-medium">Exceções formais</h3>
+        <p className="text-xs text-navy/60">Exceção não oculta validação: continua visível no painel de completude.</p>
+        <div className="mt-2">
+          <AcaoOperacional
+            rotulo="Registrar exceção de gate"
+            capacidade="resolver_divergencia"
+            variant="outline"
+            efeito="Registra uma exceção formal ao gate de ativação. O motivo informado fica auditado e a validação continua visível."
+            onConfirmar={async (motivo) => {
+              await excecao({
+                data: {
+                  contract_id: contratoId,
+                  scope: "activation_gate",
+                  reason: motivo,
+                  impact: motivo,
+                },
+              });
               setAviso("Exceção registrada e auditada.");
               onSalvo();
             }}
-            className="mt-2 rounded-lg border border-terracotta/40 px-3 py-2 text-sm text-terracotta"
-          >
-            Registrar exceção de gate
-          </button>
-          <ul className="mt-2 space-y-1 text-xs text-navy/70">
-            {(dados.excecoes as any[]).map((e) => (
-              <li key={e.id}>
-                {e.scope} · {e.reason} · {e.expires_at ? `expira em ${new Date(e.expires_at).toLocaleDateString("pt-BR")}` : "sem expiração"}
-              </li>
-            ))}
-          </ul>
+          />
         </div>
-      ) : null}
+        <EstadoDados
+          dados={dados.excecoes as any[] | undefined}
+          aoTentarNovamente={onSalvo}
+          recurso="as exceções formais"
+          vazio="Nenhuma exceção registrada."
+        >
+          {(excecoes) => (
+            <ul className="mt-2 space-y-1 text-xs text-navy/70">
+              {(excecoes as any[]).map((e) => (
+                <li key={e.id}>
+                  {e.scope} · {e.reason} ·{" "}
+                  {e.expires_at ? `expira em ${new Date(e.expires_at).toLocaleDateString("pt-BR")}` : "sem expiração"}
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
+      </div>
     </div>
   );
 }

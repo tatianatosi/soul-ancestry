@@ -1,4 +1,6 @@
 import { semCache } from "@/lib/no-store";
+// Alias obrigatório: este arquivo já usa `linhas` como variável local.
+import { linhas as linhasDe } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { semFixtures } from "@/lib/fixtures";
@@ -12,8 +14,10 @@ import {
 } from "@/lib/crm-desk";
 import { sincronizarParametroDependentes } from "@/lib/dependentes.server";
 import { TEMAS_JURIDICOS, avaliarAssinaturaPelaMatriz, canonicalizarTemaCodigo, type LinhaMatriz } from "@/lib/matriz-juridica";
+import { avaliarValidacaoJuridicaCaso } from "@/lib/validacao-juridica-caso";
 import type { Dependente } from "@/lib/dependentes";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { proprietariaOperando } from "@/lib/autoridade.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -28,6 +32,12 @@ const CAMPOS_LEAD = [
   "email",
   "telefone",
   "origem",
+  // CA03-PESSOA-UNICA-VINCULOS (09/09/2026): vínculo ausente — leads.case_id
+  // existia desde sempre mas nenhum escritor gravava nele (leads.case_id era
+  // nulo em todo o banco). Só é preenchido por confirmação humana explícita
+  // (confirmarVinculoLeadPessoa, pessoa.functions.ts), nunca por fusão
+  // automática de nome.
+  "case_id",
   "area_responsavel",
   "responsavel_nome",
   "indicado_por",
@@ -123,20 +133,28 @@ async function orgDoUsuario(supabase: any, userId: string) {
   return data.organization_id as string;
 }
 
-/** Lista de leads do Desk com validação espelhada e resultado derivado. */
+/**
+ * Lista de leads do Desk com validação espelhada e resultado derivado.
+ *
+ * Lead arquivado nunca aparece na listagem padrão — a mesma trava de "sem
+ * exclusão física" que o resto do app usa (nucleos_familiares, crm_casos):
+ * arquivar não é apagar, mas também não deve continuar poluindo a fila de
+ * trabalho ativa. `incluirArquivados` existe só para quem precisa consultar
+ * o que já foi arquivado.
+ */
 export const listarLeadsDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d?: { incluirArquivados?: boolean }) => ({ incluirArquivados: d?.incluirArquivados === true }))
+  .handler(async ({ data: input, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1000);
+    let query = supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(1000);
+    if (!input.incluirArquivados) query = query.is("archived_at", null);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     const leads = (data ?? []) as LeadDesk[];
-    return leads.map((l) => ({ ...l, pendencias: validarLead(l) }));
+    const livre = await proprietariaOperando(supabase, (context as any).userId as string);
+    return leads.map((l) => ({ ...l, pendencias: validarLead(l, livre) }));
   });
 
 /** Cria ou atualiza um lead. Rejeita valores fora das listas controladas. */
@@ -158,7 +176,8 @@ export const salvarLeadDesk = createServerFn({ method: "POST" })
     }
 
     const candidato = { ...(atual ?? { nome: "" }), ...patch } as LeadDesk;
-    const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch));
+    const livre = await proprietariaOperando(supabase, userId);
+    const erros = errosBloqueantesAlteracao(atual, candidato, Object.keys(patch), livre);
     if (erros.length) {
       return { ok: false as const, erros, lead: atual };
     }
@@ -217,7 +236,7 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const [{ data: leads }, { data: casos }] = await Promise.all([
+    const [leadsRes, casosRes] = await Promise.all([
       supabase.from("leads").select("*").limit(1000),
       supabase
         .from("crm_casos")
@@ -227,16 +246,37 @@ export const painelHojeDesk = createServerFn({ method: "GET" })
     ]);
     // Fixtures de demonstração ficam fora das filas e métricas por padrão;
     // só entram quando o filtro explícito "Incluir demonstrações" é acionado.
-    const listaLeads = (data.incluirDemo ? (leads ?? []) : semFixtures((leads ?? []) as never)) as unknown as LeadDesk[];
-    const listaCasos = ((data.incluirDemo ? (casos ?? []) : semFixtures((casos ?? []) as never)) as any[]).filter(
+    const leads = linhasDe<any>(leadsRes, "leads do Painel Hoje");
+    const casos = linhasDe<any>(casosRes, "casos do Painel Hoje");
+    const listaLeads = (data.incluirDemo ? leads : semFixtures(leads as never)) as unknown as LeadDesk[];
+    const listaCasos = ((data.incluirDemo ? casos : semFixtures(casos as never)) as any[]).filter(
       // Massa TESTE nunca aparece no Painel Hoje padrão.
       (c) => data.incluirDemo || c.dados_teste !== true,
     );
     const { orgDoUsuario, pendenciasCadeiaPainel } = await import("@/lib/cadeia-operacional.server");
     const org = await orgDoUsuario(supabase, (context as any).userId);
     const cadeia = await pendenciasCadeiaPainel(supabase, org, { incluirTeste: data.incluirDemo });
+    // Decisão 1 (CA-DECISÕES-DA-PROPRIETÁRIA, 09/09/2026) — mesma RPC
+    // canônica de Ficha 360/Lista de Casos, em lote, para que o TEXTO da
+    // ação exibida no Painel Hoje nunca seja uma segunda narrativa.
+    const idsComPendenciaDocumental = listaCasos
+      .filter((c) => c.documentos_minimos_ok === false)
+      .map((c) => c.id as string);
+    let proximasAcoes: Record<string, { nivel: number; motivo: string; origem_tabela: string | null; origem_id: string | null; prazo: string | null }> = {};
+    if (idsComPendenciaDocumental.length > 0) {
+      const { data: lote } = await supabase.rpc("proxima_acao_prioritaria_lote", { _cases: idsComPendenciaDocumental });
+      for (const r of (lote ?? []) as any[]) {
+        proximasAcoes[r.case_id as string] = {
+          nivel: r.nivel,
+          motivo: r.motivo,
+          origem_tabela: r.origem_tabela,
+          origem_id: r.origem_id,
+          prazo: r.prazo,
+        };
+      }
+    }
     return {
-      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia }),
+      filas: montarFilasHoje({ leads: listaLeads, casos: listaCasos, cadeia, proximasAcoes }),
       metricas: calcularMetricasCrm({ leads: listaLeads, casos: listaCasos }),
     };
   });
@@ -299,14 +339,13 @@ export const salvarDependente = createServerFn({ method: "POST" })
       await sincronizarParametroDependentes(supabase, data.caseId);
       return { ok: true };
     }
-    const { error } = await supabase.from("case_dependents").insert({
-      ...patch,
-      case_id: data.caseId,
-      organization_id: caso.organization_id,
-      created_by: userId,
-      updated_by: userId,
+    await inserirComVerificacao({
+      supabase,
+      tabela: "case_dependents",
+      organizationId: caso.organization_id as string,
+      userId,
+      payload: { ...patch, case_id: data.caseId },
     });
-    if (error) throw new Error(error.message);
     await sincronizarParametroDependentes(supabase, data.caseId);
     return { ok: true };
   });
@@ -319,9 +358,20 @@ export const listarMatrizJuridica = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data: rows } = await supabase.from("legal_clause_matrix").select("*").is("archived_at", null);
+    // 08/09/2026 — esta leitura não filtrava organização (dependia só de RLS).
+    // O banco tem três organizações com matriz jurídica; sem o filtro, uma
+    // aprovação gravada em outra organização podia ser lida como se fosse
+    // desta, ou o inverso — foi exatamente o que mascarou 7 temas bloqueantes
+    // arquivados na organização operante. Filtro explícito, sem depender de RLS.
+    const organization_id = await orgDoUsuario(supabase, (context as any).userId as string);
+    const matrizRes = await supabase
+      .from("legal_clause_matrix")
+      .select("*")
+      .eq("organization_id", organization_id)
+      .is("archived_at", null);
+    const rows = linhasDe<any>(matrizRes, "matriz jurídica");
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
-      const l = ((rows ?? []) as any[]).find((r) => r.tema_codigo === t.tema_codigo);
+      const l = rows.find((r) => r.tema_codigo === t.tema_codigo);
       return {
         tema_codigo: t.tema_codigo,
         tema: t.tema,
@@ -376,13 +426,33 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
       bloqueia_assinatura: tema.bloqueia_assinatura,
       decidido_em: data.status === "pendente_revisao_juridica" ? null : new Date().toISOString(),
       updated_by: userId,
-    };
+    } as Record<string, unknown>;
+    // Achado real (08/09/2026): a chave única é (organization_id, tema_codigo) e
+    // NÃO exclui linha arquivada. Um dedupe anterior (07/09) arquivou 11 dos 13
+    // temas desta organização como "duplicata de seed", sem perceber que isso
+    // deixava o tema sem NENHUMA linha ativa — e a busca abaixo, ao ignorar
+    // linhas arquivadas, nunca as encontrava. Resultado: toda tentativa de
+    // registrar decisão nesses temas caía no INSERT e colidia com a própria
+    // linha arquivada, travando a tela com "duplicate key value violates
+    // unique constraint" para a Proprietária. Corrigido: busca por organização
+    // (nunca confia só em RLS para isolar) e independente de arquivamento —
+    // reaproveita a linha existente (arquivada ou não) em vez de tentar duplicar,
+    // e desarquiva ao registrar: registrar decisão é exatamente o ato que torna
+    // o tema vigente de novo.
     const { data: existente } = await supabase
       .from("legal_clause_matrix")
-      .select("id")
+      .select("id,archived_at")
+      .eq("organization_id", organization_id)
       .eq("tema_codigo", tema.tema_codigo)
-      .is("archived_at", null)
+      .order("archived_at", { ascending: true, nullsFirst: true })
+      .limit(1)
       .maybeSingle();
+    if (existente?.archived_at) {
+      registro.archived_at = null;
+      registro.archive_motivo = null;
+      registro.substituido_por_id = null;
+      registro.substituicao_motivo = null;
+    }
     if (existente?.id) {
       await gravarComVerificacao({
         supabase,
@@ -390,11 +460,16 @@ export const registrarDecisaoTema = createServerFn({ method: "POST" })
         id: existente.id,
         organizationId: organization_id,
         userId,
-        payload: registro,
+        payload: { ...registro, archived_at: null, archived_by: null, archive_motivo: null },
       });
     } else {
-      const { error } = await supabase.from("legal_clause_matrix").insert({ ...registro, created_by: userId });
-      if (error) throw new Error(error.message);
+      await inserirComVerificacao({
+        supabase,
+        tabela: "legal_clause_matrix",
+        organizationId: organization_id,
+        userId,
+        payload: registro,
+      });
     }
     return { ok: true };
   });
@@ -407,13 +482,13 @@ export const listarPaginasCanva = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = (context as any).supabase;
-    const { data: rows } = await supabase
+    const paginasRes = await supabase
       .from("proposal_canva_pages")
       .select("*")
       .eq("proposal_id", data.proposalId)
       .is("archived_at", null)
       .order("page_number");
-    return (rows ?? []) as any[];
+    return linhasDe<any>(paginasRes, "páginas da proposta Canva");
   });
 
 /** Registra a extração de uma página 1–7 da proposta Canva. */
@@ -472,8 +547,13 @@ export const salvarPaginaCanva = createServerFn({ method: "POST" })
         payload: registro,
       });
     } else {
-      const { error } = await supabase.from("proposal_canva_pages").insert({ ...registro, created_by: userId });
-      if (error) throw new Error(error.message);
+      await inserirComVerificacao({
+        supabase,
+        tabela: "proposal_canva_pages",
+        organizationId: caso.organization_id as string,
+        userId,
+        payload: registro,
+      });
     }
     return { ok: true };
   });
@@ -518,7 +598,7 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
         .limit(1),
     ]);
 
-    const rows = (matrizRes.data ?? []) as any[];
+    const rows = linhasDe<any>(matrizRes, "matriz jurídica");
     const linhas: LinhaMatriz[] = TEMAS_JURIDICOS.map((t) => {
       const l = rows.find((r) => canonicalizarTemaCodigo(r.tema_codigo) === t.tema_codigo);
       return {
@@ -539,7 +619,7 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
     const assinatura = avaliarAssinaturaPelaMatriz(linhas);
     const bloqueios = assinatura.bloqueios.map((b) => ({ origem: "matriz_juridica", detalhe: `${b.tema}: ${b.motivo}` }));
 
-    const dependentes = (depRes.data ?? []) as any[];
+    const dependentes = linhasDe<any>(depRes, "dependentes do caso");
     for (const d of dependentes) {
       if (String(d.status_representacao ?? "") !== "documentada") {
         bloqueios.push({
@@ -549,24 +629,24 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
       }
     }
 
-    const checklist = (checkRes.data ?? []) as any[];
+    const checklist = linhasDe<any>(checkRes, "checklist cadastral do caso");
     const checklistPendente = checklist.filter((c) => String(c.status ?? "") !== "completo").length;
     if (checklistPendente) {
       bloqueios.push({ origem: "checklist_cadastral", detalhe: `${checklistPendente} item(ns) cadastrais pendentes.` });
     }
 
-    const servicos = (servRes.data ?? []) as any[];
+    const servicos = linhasDe<any>(servRes, "case services do caso");
     const servicoNaoConsolidado = servicos.filter((s) => !["approved", "contracted"].includes(String(s.status ?? ""))).length;
     if (!servicos.length) bloqueios.push({ origem: "case_service", detalhe: "Nenhum case service registrado." });
     else if (servicoNaoConsolidado)
       bloqueios.push({ origem: "case_service", detalhe: `${servicoNaoConsolidado} case service(s) fora de estado consolidado.` });
 
-    const criterios = (critRes.data ?? []) as any[];
+    const criterios = linhasDe<any>(critRes, "critérios de aceite do caso");
     const criteriosPendentes = criterios.filter((c) => String(c.estado ?? c.status ?? "") !== "aceito").length;
     if (criteriosPendentes)
       bloqueios.push({ origem: "criterios_aceite", detalhe: `${criteriosPendentes} critério(s) de aceite pendentes.` });
 
-    const conferencia = ((confRes.data ?? []) as any[])[0] ?? null;
+    const conferencia = linhasDe<any>(confRes, "conferência de escopo da proposta")[0] ?? null;
     if (!conferencia) bloqueios.push({ origem: "conferencia_canva", detalhe: "Conferência de escopo da proposta não registrada." });
     else if (String(conferencia.status ?? "") !== "aprovado_para_preparacao")
       bloqueios.push({ origem: "conferencia_canva", detalhe: `Conferência de escopo em estado “${conferencia.status}”.` });
@@ -584,6 +664,79 @@ export const diagnosticoInstrumentos = createServerFn({ method: "GET" })
       },
       nenhuma_acao_externa: true,
     };
+  });
+
+/**
+ * Validação Jurídica por caso (CA08-JURIDICO-PROPORCIONAL, 09/09/2026):
+ * rota/marco aplicável, estado, decisão humana necessária, documento/evidência
+ * pendente e qual ato formal é afetado. Mesmas fontes de sempre
+ * (citizenship_tracks, versioned_legal_rules, legal_reference_milestones via
+ * case_services.citizenship_track_id, legal_clause_matrix, case_dependents) —
+ * nenhuma tabela ou taxonomia nova. Só diagnostica: nenhuma ação externa.
+ */
+export const validacaoJuridicaCaso = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => ({ caseId: exigirUuid(d?.caseId, "caseId") }))
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = (context as any).supabase;
+
+    const [servRes, matrizRes, depRes] = await Promise.all([
+      supabase
+        .from("case_services")
+        .select("citizenship_track_id")
+        .eq("case_id", data.caseId)
+        .is("archived_at", null)
+        .not("citizenship_track_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1),
+      supabase.from("legal_clause_matrix").select("*").is("archived_at", null),
+      supabase.from("case_dependents").select("nome,participa_do_contrato,status_representacao").eq("case_id", data.caseId).is("archived_at", null),
+    ]);
+
+    const trackId = linhasDe<any>(servRes, "case services do caso")[0]?.citizenship_track_id as string | undefined;
+
+    const [trackRes, marcosRes, regrasRes] = trackId
+      ? await Promise.all([
+          supabase.from("citizenship_tracks").select("*").eq("id", trackId).is("archived_at", null).maybeSingle(),
+          supabase.from("legal_reference_milestones").select("*").eq("track_id", trackId).is("archived_at", null),
+          supabase.from("versioned_legal_rules").select("*").eq("track_id", trackId).is("archived_at", null),
+        ])
+      : [{ data: null }, { data: [] }, { data: [] }];
+
+    const trackRow = (trackRes as any).data as Record<string, any> | null;
+    const track = trackRow
+      ? {
+          trackId: trackRow.id as string,
+          pais: trackRow.pais ?? null,
+          nacionalidade: trackRow.nacionalidade ?? null,
+          viaPreliminar: trackRow.via_preliminar ?? null,
+          statusVia: trackRow.status_via ?? null,
+          trackName: trackRow.track_name ?? null,
+          lifecycleStatus: trackRow.lifecycle_status ?? "rascunho",
+          revisaoHumanaJuridica: trackRow.revisao_humana_juridica ?? null,
+        }
+      : null;
+
+    const matrizRows = linhasDe<any>(matrizRes, "matriz jurídica");
+    const temasMatriz = TEMAS_JURIDICOS.map((t) => {
+      const l = matrizRows.find((r) => canonicalizarTemaCodigo(r.tema_codigo) === t.tema_codigo);
+      return {
+        tema_codigo: t.tema_codigo,
+        tema: t.tema,
+        status: l?.status ?? "pendente_revisao_juridica",
+        bloqueia_assinatura: l?.bloqueia_assinatura ?? t.bloqueia_assinatura,
+        versao_juridica_aplicavel: l?.versao_juridica_aplicavel ?? null,
+      };
+    });
+
+    return avaliarValidacaoJuridicaCaso({
+      track,
+      marcos: ((marcosRes as any).data ?? []) as any[],
+      regras: ((regrasRes as any).data ?? []) as any[],
+      temasMatriz,
+      dependentes: linhasDe<any>(depRes, "dependentes do caso"),
+    });
   });
 
 /* ————— Cadastro manual de lead (Comercial → Leads → Novo lead) ————— */
@@ -611,8 +764,11 @@ async function buscarDuplicidades(
   supabase: any,
   entrada: { nome: string; email?: string | null; telefone?: string | null },
 ): Promise<PossivelDuplicidade[]> {
-  const { data } = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
-  const linhas = (data ?? []) as Array<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>;
+  const leadsRes = await supabase.from("leads").select("id, codigo, nome, email, telefone").limit(2000);
+  const linhas = linhasDe<{ id: string; codigo: string | null; nome: string; email: string | null; telefone: string | null }>(
+    leadsRes,
+    "leads para checagem de duplicidade",
+  );
 
   const email = (entrada.email ?? "").trim().toLowerCase();
   const tel = soDigitos(entrada.telefone ?? "");
@@ -656,15 +812,13 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       indicado_por?: string | null;
       confirmarDuplicidade?: boolean;
     }) => {
-      const problemas: string[] = [];
-      if (!d?.nome?.trim()) problemas.push("Nome completo é obrigatório.");
-      if (!d?.email?.trim() && !d?.telefone?.trim()) problemas.push("Informe ao menos telefone ou e-mail.");
-      if (!d?.origem) problemas.push("Origem é obrigatória.");
-      if (!d?.objetivo) problemas.push("Interesse inicial é obrigatório.");
-      if (!d?.responsavel_nome?.trim()) problemas.push("Responsável é obrigatório.");
-      if (!d?.proxima_acao) problemas.push("Próxima ação é obrigatória.");
-      if (!d?.proxima_acao_em) problemas.push("Prazo da próxima ação é obrigatório.");
-      if (problemas.length) throw new Error(problemas.join(" · "));
+      // Campos de conteudo do lead (05/09/2026).
+      //
+      // Antes exigia sete campos ao mesmo tempo para gravar. Faltando um, nada
+      // era salvo e o trabalho se perdia. Agora so o nome e obrigatorio - sem
+      // ele nao ha lead. O que falta vira pendencia visivel no proprio
+      // registro, para completar depois.
+      if (!d?.nome?.trim()) throw new Error("Informe ao menos o nome para criar o lead.");
       return d;
     },
   )
@@ -693,7 +847,8 @@ export const criarLeadManual = createServerFn({ method: "POST" })
       indicado_por: data.indicado_por?.trim() || null,
     };
 
-    const erros = validarLead(candidato);
+    const livre = await proprietariaOperando(supabase, userId);
+    const erros = validarLead(candidato, livre);
     if (erros.length) return { ok: false as const, duplicidades: [], erros, lead: null };
 
     const organization_id = await orgDoUsuario(supabase, userId);

@@ -7,13 +7,14 @@
  */
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
   corrigirFilaCanonica,
   registrarOverrideProprietaria,
 } from "@/lib/painel-hoje-acoes.functions";
+import { listarEquipe } from "@/lib/equipe.functions";
 
 type Tipo = "lead" | "oportunidade" | "caso" | "tarefa";
 
@@ -38,7 +39,14 @@ export function AcoesRapidasProprietaria({
 }) {
   const corrigir = useServerFn(corrigirFilaCanonica);
   const assumir = useServerFn(registrarOverrideProprietaria);
+  const carregarEquipe = useServerFn(listarEquipe);
   const [aberto, setAberto] = useState(false);
+  const equipe = useQuery({
+    queryKey: ["equipe-acoes-rapidas"],
+    queryFn: () => carregarEquipe(),
+    enabled: aberto,
+  });
+  const opcoesResponsavel = (equipe.data?.membros ?? []) as { auth_user_id: string | null; full_name: string | null; email: string | null }[];
   const [form, setForm] = useState({
     responsavel: "",
     prazo: "",
@@ -110,12 +118,21 @@ export function AcoesRapidasProprietaria({
       </p>
       <div className="grid gap-1.5 sm:grid-cols-2">
         <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
-          Responsável (identificador interno)
-          <input
+          Responsável
+          <select
             value={form.responsavel}
             onChange={(e) => setForm((f) => ({ ...f, responsavel: e.target.value }))}
             className="w-full min-w-0 rounded border border-navy/15 px-1.5 py-1 text-navy"
-          />
+          >
+            <option value="">Não definido</option>
+            {opcoesResponsavel
+              .filter((m) => m.auth_user_id)
+              .map((m) => (
+                <option key={m.auth_user_id} value={m.auth_user_id as string}>
+                  {m.full_name || m.email}
+                </option>
+              ))}
+          </select>
         </label>
         <label className="flex min-w-0 flex-col gap-0.5 text-navy/60">
           Prazo

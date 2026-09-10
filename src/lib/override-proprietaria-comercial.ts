@@ -157,13 +157,22 @@ export function permiteEscopoInterno(
 /**
  * Payload para `owner_override_events`. Nunca inclui campo financeiro,
  * assinatura, envio ou publicação — só o registro da decisão interna.
+ *
+ * 05/09/2026 — achado real: `owner_override_events.categoria` só aceita
+ * 'override_interno'/'confirmacao_externa' (CHECK da migration
+ * 20260822185358). Este módulo gravava `categoria: "override_proprietaria_comercial"`
+ * desde a criação — todo INSERT sempre violou o CHECK e sempre falhou. A
+ * função nunca funcionou, para ninguém, em nenhuma sessão. Corrigido para o
+ * valor que o banco de fato aceita; `acao` (um TipoOverride, vocabulário
+ * próprio deste módulo) continua distinguindo este registro dos demais
+ * eventos internos que também usam `categoria: 'override_interno'`.
  */
 export function montarEventoOverride(s: SolicitacaoOverride, organizationId: string) {
   return {
     organization_id: organizationId,
     actor_user_id: s.autorUserId,
     actor_papel: s.autorPapel ?? "admin",
-    categoria: "override_proprietaria_comercial",
+    categoria: "override_interno",
     acao: s.tipo,
     entidade: "crm_casos",
     entidade_id: s.casoId,

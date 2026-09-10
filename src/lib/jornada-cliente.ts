@@ -11,6 +11,8 @@
  * Nada aqui declara elegibilidade, prazo ou resultado jurídico.
  */
 
+import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
+
 /* ----------------------------- Fases ----------------------------- */
 
 export const FASES_JORNADA = [
@@ -177,8 +179,12 @@ export function calcularCadencia(e: EntradaCadencia): SaudeCadencia {
   if (esperaComunicada) {
     return { diasSemTouchpoint: dias, status: "regular", motivo: "Espera institucional externa previamente comunicada." };
   }
-  if (dias >= 14) return { diasSemTouchpoint: dias, status: "critico", motivo: "14 dias ou mais sem atualização contextualizada." };
-  if (dias >= 10) return { diasSemTouchpoint: dias, status: "atencao", motivo: "10 dias ou mais sem atualização contextualizada." };
+  if (dias >= DIAS_CADENCIA_CRITICA) {
+    return { diasSemTouchpoint: dias, status: "critico", motivo: "14 dias ou mais sem atualização contextualizada." };
+  }
+  if (dias >= DIAS_CADENCIA_ATENCAO) {
+    return { diasSemTouchpoint: dias, status: "atencao", motivo: "10 dias ou mais sem atualização contextualizada." };
+  }
   return { diasSemTouchpoint: dias, status: "regular", motivo: "Cadência dentro do limite de 14 dias." };
 }
 

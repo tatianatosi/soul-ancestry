@@ -51,7 +51,7 @@ export type CopyTela = {
 
 export const COPY_TELAS = {
   home: {
-    navegacao: "Início",
+    navegacao: "Home",
     titulo: "Sua jornada",
     descricao: "Um resumo simples de onde o seu acompanhamento está agora.",
     vazio: "Assim que houver algo preparado para você, ele aparece aqui.",
@@ -64,8 +64,8 @@ export const COPY_TELAS = {
   },
   radar: {
     navegacao: "Radar",
-    titulo: "Radar",
-    descricao: "Quatro leituras da sua jornada. Nada aqui é conclusão sobre a sua história.",
+    titulo: "Radar Ancestral",
+    descricao: "Seu equilíbrio nas 6 dimensões da jornada. Nada aqui é conclusão sobre a sua história.",
     vazio: "Estas leituras aparecem assim que houver material preparado para compartilhar.",
   },
   arvore: {
@@ -123,7 +123,7 @@ export const COPY_TELAS = {
     vazio: "A sua proposta aparece aqui assim que estiver disponível para consulta.",
   },
   casos: {
-    navegacao: "Início",
+    navegacao: "Home",
     titulo: "Seu acompanhamento",
     descricao: "Aqui aparece o acompanhamento disponível para o seu acesso.",
     vazio: "Ainda não há um acompanhamento disponível para o seu acesso.",

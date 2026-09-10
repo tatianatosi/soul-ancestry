@@ -22,6 +22,11 @@ import {
   type Fonte,
 } from "@/lib/fontes-genealogicas";
 import { painelFontes, salvarFonte } from "@/lib/fontes-genealogicas.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { filtrarPorBusca } from "@/lib/rotulo-negocio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,8 +45,18 @@ export const Route = createFileRoute("/_authenticated/fontes-genealogicas")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  errorComponent: ({ error }) => <p className="p-6 text-sm text-terracotta">Não foi possível abrir o catálogo: {error.message}</p>,
-  notFoundComponent: () => <p className="p-6 text-sm text-navy/70">Catálogo não encontrado.</p>,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Fontes genealógicas" descricao="Falha ao carregar o catálogo.">
+      <p role="alert" className="text-sm text-terracotta">
+        Não foi possível abrir o catálogo: {error.message}
+      </p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Fontes genealógicas" descricao="Catálogo não encontrado.">
+      <p className="text-sm text-navy/70">Catálogo não encontrado.</p>
+    </SaasShell>
+  ),
   component: FontesGenealogicas,
 });
 
@@ -135,14 +150,15 @@ function EditarFonte({ fonte, onSalvo }: { fonte: Fonte; onSalvo: () => void }) 
           <textarea className={cls} rows={2} value={form.observacao_risco} onChange={(e) => set("observacao_risco", e.target.value)} />
         </label>
       </div>
-      <button
-        type="button"
-        disabled={m.isPending}
-        onClick={() => m.mutate()}
-        className="rounded bg-navy px-3 py-1.5 text-[11px] text-cream disabled:opacity-50"
-      >
-        {m.isPending ? "Salvando…" : "Salvar"}
-      </button>
+      <AcaoOperacional
+        rotulo={m.isPending ? "Salvando…" : "Salvar"}
+        capacidade="editar_rascunho"
+        efeito="Atualiza o catálogo interno desta fonte. Nenhuma consulta externa é disparada."
+        size="sm"
+        onConfirmar={async () => {
+          await m.mutateAsync();
+        }}
+      />
     </div>
   );
 }
@@ -264,17 +280,68 @@ function CartaoFonte({ fonte, matriz, backlog, onSalvo }: { fonte: Fonte; matriz
 }
 
 function FontesGenealogicas() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(painelFontes);
   const qc = useQueryClient();
-  const { data, isPending, error } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
+  const { data, isPending, error, refetch } = useQuery({ queryKey: ["g08-fontes"], queryFn: () => carregar({} as never) });
   const onSalvo = () => void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+  const [busca, setBusca] = useState("");
 
-  const grupos = useMemo(() => agruparCatalogo(data?.fontes ?? []), [data]);
+  // 06/09/2026: salvarFonte() no servidor sempre aceitou criacao (insere
+  // quando `id` vem ausente), mas a tela so chamava com `id` de uma fonte ja
+  // existente — nao havia nenhum caminho para cadastrar fonte nova. Mesmo
+  // padrao encontrado em Nucleos no mesmo dia.
+  const criarFonteFn = useServerFn(salvarFonte);
+  const [novaFonteAberta, setNovaFonteAberta] = useState(false);
+  const [novaFonteNome, setNovaFonteNome] = useState("");
+  const [erroNovaFonte, setErroNovaFonte] = useState<string | null>(null);
+  const mCriarFonte = useMutation({
+    mutationFn: (nome: string) => criarFonteFn({ data: { valores: { nome } } }),
+    onSuccess: () => {
+      setNovaFonteAberta(false);
+      setNovaFonteNome("");
+      setErroNovaFonte(null);
+      void qc.invalidateQueries({ queryKey: ["g08-fontes"] });
+    },
+    onError: (e: Error) => setErroNovaFonte(e.message),
+  });
+
+  const grupos = useMemo(() => {
+    const fontes = filtrarPorBusca((data?.fontes ?? []) as Fonte[], busca, [
+      "nome",
+      "pais_eixo",
+      "tipo_de_acervo",
+      "uso_recomendado",
+      "status_documentacao",
+      "status_integracao",
+    ]);
+    return agruparCatalogo(fontes);
+  }, [data, busca]);
   const matrizPor = (id: string) => (data?.matriz ?? []).filter((m: any) => m.source_id === id);
   const backlogPor = (id: string) => (data?.backlog ?? []).filter((b: any) => b.source_id === id);
 
-  if (isPending) return <p className="p-6 text-sm text-navy/60">Carregando catálogo interno…</p>;
-  if (error) return <p className="p-6 text-sm text-terracotta">{(error as Error).message}</p>;
+  // Catálogo não lido nunca aparece como catálogo vazio.
+  if (!data)
+    return (
+      <SaasShell titulo="Fontes, consultas e bases genealógicas" descricao="Catálogo interno de bases, sem consulta externa.">
+        <EstadoDados
+          carregando={isPending}
+          erro={error}
+          dados={undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="o catálogo interno de fontes"
+        >
+          {() => null}
+        </EstadoDados>
+      </SaasShell>
+    );
 
   const render = (lista: Fonte[]) =>
     lista.length === 0 ? (
@@ -284,15 +351,75 @@ function FontesGenealogicas() {
     );
 
   return (
-    <div className="space-y-5 p-4 sm:p-6">
+    <SaasShell
+      titulo="Fontes, consultas e bases genealógicas"
+      descricao="Catálogo interno de bases genealógicas, matriz de avaliação e backlog de ativação."
+    >
+    <div className="space-y-5">
       <header className="space-y-2">
-        <h1 className="font-serif text-xl text-navy">Fontes e Integrações Genealógicas</h1>
         <p className="rounded border border-gold/40 bg-gold/10 p-2 text-[11px] text-navy/70">{AVISO_CATALOGO}</p>
         <p className="text-[11px] text-navy/50">
           {grupos.total} fontes catalogadas · {grupos.recomendaveis.length} recomendáveis · {grupos.termosAConfirmar.length} com termos a
           confirmar · {grupos.bloqueadas.length} restritas ou descontinuadas
         </p>
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar fonte por nome, país, tipo ou status"
+          className="w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm"
+        />
       </header>
+
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
+
+      <div>
+        {novaFonteAberta ? (
+          <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+            <label className="min-w-[220px] flex-1 text-[10px] uppercase tracking-wide text-navy/50">
+              Nome da nova fonte
+              <input
+                className="mt-1 w-full rounded border border-navy/15 px-2 py-1 text-[11px]"
+                value={novaFonteNome}
+                onChange={(e) => setNovaFonteNome(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={mCriarFonte.isPending || !novaFonteNome.trim()}
+              onClick={() => mCriarFonte.mutate(novaFonteNome.trim())}
+              className="rounded-lg bg-navy px-4 py-2 text-[11px] text-white disabled:opacity-50"
+            >
+              {mCriarFonte.isPending ? "Criando…" : "Criar fonte"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNovaFonteAberta(false);
+                setErroNovaFonte(null);
+              }}
+              className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy"
+            >
+              Cancelar
+            </button>
+            {erroNovaFonte ? <p className="w-full text-[11px] text-terracotta">{erroNovaFonte}</p> : null}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setNovaFonteAberta(true)}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-[11px] text-navy hover:bg-navy/5"
+          >
+            + Nova fonte
+          </button>
+        )}
+      </div>
 
       <Secao titulo="Recomendáveis para uso operacional" subtitulo="Documentadas, sem termos pendentes e nunca restritas ou descontinuadas.">
         {render(grupos.recomendaveis)}
@@ -332,5 +459,6 @@ function FontesGenealogicas() {
         brutos são recusados pelo banco. Fonte crua nunca aparece no App Cliente.
       </footer>
     </div>
+    </SaasShell>
   );
 }

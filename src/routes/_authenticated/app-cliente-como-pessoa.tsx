@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
 import { PortalJornada } from "@/routes/portal/jornada";
 import { PortalArvore } from "@/routes/portal/arvore";
@@ -35,6 +36,9 @@ export const Route = createFileRoute("/_authenticated/app-cliente-como-pessoa")(
       { name: "robots", content: "noindex" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    casoId: typeof search["casoId"] === "string" ? search["casoId"] : undefined,
+  }),
   component: AppClienteComoPessoa,
 });
 
@@ -45,9 +49,15 @@ const TELAS = [
 ] as const;
 
 function AppClienteComoPessoa() {
-  const [casoId, setCasoId] = useState<string>("");
+  const { casoId: casoIdDaUrl } = Route.useSearch();
+  const [casoId, setCasoId] = useState<string>(casoIdDaUrl ?? "");
   const [ativa, setAtiva] = useState<(typeof TELAS)[number]["chave"]>("jornada");
   const Tela = TELAS.find((t) => t.chave === ativa)?.Componente ?? PortalJornada;
+
+  // Chegando de "Abrir visão do cliente" (ficha do cliente ou do caso): pré-seleciona o caso.
+  useEffect(() => {
+    if (casoIdDaUrl) setCasoId(casoIdDaUrl);
+  }, [casoIdDaUrl]);
 
   const carregarCasos = useServerFn(listarCasosFicha);
   const casos = useQuery({ queryKey: ["casos-ficha-picker"], queryFn: () => carregarCasos() });
@@ -61,7 +71,7 @@ function AppClienteComoPessoa() {
   });
 
   const casoEscolhido = useMemo(
-    () => (casos.data?.casos ?? []).find((c: Record<string, unknown>) => c["id"] === casoId),
+    () => casos.data?.casos?.find((c: Record<string, unknown>) => c["id"] === casoId),
     [casos.data, casoId],
   );
 
@@ -74,22 +84,42 @@ function AppClienteComoPessoa() {
           sanitizada que a pessoa veria, nunca dado bruto do Desk. Somente leitura: nada aqui envia,
           publica ou altera qualquer registro.
         </p>
+        <p className="mt-2 rounded-lg border border-gold/50 bg-gold/10 px-3 py-2 text-xs text-navy/80">
+          Cobre hoje 3 das 10 telas do App Cliente (Jornada, Árvore da família, Radar de países).
+          Documentos, Entregas, Fase 01/02, Legado, Conta e Faturas ainda não estão disponíveis
+          nesta visão master — para vê-las, abra a sessão de portal real do cliente.
+        </p>
 
-        <label className="mt-4 block max-w-sm">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">Caso</span>
-          <select
-            value={casoId}
-            onChange={(e) => setCasoId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+        <div className="mt-4 max-w-sm">
+          <EstadoDados<Record<string, unknown>>
+            carregando={casos.isLoading}
+            erro={casos.error}
+            dados={casos.data?.casos}
+            aoTentarNovamente={() => void casos.refetch()}
+            recurso="a lista de casos"
+            vazio="Nenhum caso cadastrado ainda. Sem caso não há App Cliente para abrir."
           >
-            <option value="">Selecione um caso…</option>
-            {(casos.data?.casos ?? []).map((c: Record<string, unknown>) => (
-              <option key={String(c["id"])} value={String(c["id"])}>
-                {String(c["codigo"])} — {String(c["titulo"])}
-              </option>
-            ))}
-          </select>
-        </label>
+            {(lista) => (
+              <label className="block">
+                <span className="text-[11px] font-medium uppercase tracking-wide text-navy/50">
+                  Caso
+                </span>
+                <select
+                  value={casoId}
+                  onChange={(e) => setCasoId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-navy/20 bg-white px-3 py-2 text-sm text-navy outline-none focus:border-gold"
+                >
+                  <option value="">Selecione um caso…</option>
+                  {lista.map((c) => (
+                    <option key={String(c["id"])} value={String(c["id"])}>
+                      {String(c["codigo"])} — {String(c["titulo"])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </EstadoDados>
+        </div>
 
         {casoId ? (
           <div className="mt-4 flex flex-wrap gap-2">

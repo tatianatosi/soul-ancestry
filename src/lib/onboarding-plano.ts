@@ -60,6 +60,46 @@ export const TOUCHPOINTS_PADRAO: Touchpoint[] = [
   { marco: "D14", descricao: "Limite de atualização contextualizada ao cliente", status: "planejado" },
 ];
 
+export type ItemChecklistOnboarding = { item: string; responsavel: string; status: string };
+
+export const CHECKLIST_INICIAL_PADRAO: ItemChecklistOnboarding[] = [
+  { item: "Contrato assinado no caso", responsavel: "Comercial", status: "pendente" },
+  { item: "Pagamento inicial confirmado", responsavel: "Financeiro", status: "pendente" },
+  { item: "Dossiê-mãe identificado", responsavel: "Pesquisa", status: "pendente" },
+  { item: "Primeira micro-entrega planejada", responsavel: "Operações", status: "pendente" },
+];
+
+/** Atualiza o checklist pelos gates reais; não inventa item novo se já houver lista. */
+export function checklistComGates(
+  gates: GatesPlano,
+  atual: ItemChecklistOnboarding[] | null | undefined,
+): ItemChecklistOnboarding[] {
+  const base = atual && atual.length > 0 ? atual : CHECKLIST_INICIAL_PADRAO;
+  return base.map((item) => {
+    if (/contrato assinado/i.test(item.item) && gates.contrato_assinado) {
+      return { ...item, status: "ok" };
+    }
+    if (/pagamento inicial/i.test(item.item) && gates.pagamento_confirmado) {
+      return { ...item, status: "ok" };
+    }
+    return item;
+  });
+}
+
+export function planoAcaoDosTouchpoints(): { ordem: number; acao: string; prazo: string }[] {
+  return TOUCHPOINTS_PADRAO.map((tp, i) => ({ ordem: i + 1, acao: tp.descricao, prazo: tp.marco }));
+}
+
+/** Títulos estáveis — idempotência da tarefa de onboarding. */
+export function titulosTarefasDosGates(gates: GatesPlano): string[] {
+  const titulos: string[] = [];
+  if (!gates.contrato_assinado) titulos.push("Onboarding: registrar contrato assinado");
+  if (!gates.pagamento_confirmado) titulos.push("Onboarding: registrar pagamento inicial");
+  return titulos;
+}
+
+export const TITULO_PRIMEIRA_MICROENTREGA = "Primeira micro-entrega do onboarding";
+
 /** Data prevista de um marco (Dn) a partir do início do onboarding. */
 export function dataDoMarco(inicio: string | null | undefined, dias: number): string | null {
   if (!inicio) return null;

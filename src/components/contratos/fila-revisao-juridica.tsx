@@ -35,6 +35,18 @@ export function FilaRevisaoJuridica({ compacto = false }: { compacto?: boolean }
 
       {q.isLoading ? (
         <p className="text-sm text-navy/60">Carregando checklist…</p>
+      ) : q.error ? (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar o checklist jurídico. A fila está vazia por falha de leitura, não por
+          ausência de pendências.
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+          >
+            Tentar novamente
+          </button>
+        </p>
       ) : lista.length === 0 ? (
         <p className="text-sm text-navy/60">Nenhum instrumento em preparação com pendência de conformidade.</p>
       ) : (

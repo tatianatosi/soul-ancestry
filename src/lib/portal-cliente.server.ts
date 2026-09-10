@@ -147,7 +147,20 @@ export async function alertaInternoTicket(params: {
   if (!params.casoId) return;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await (supabaseAdmin as any).from("case_alerts").insert({
+    // 09/09/2026 — dedup: várias mensagens seguidas do cliente no mesmo
+    // ticket, antes da equipe responder, não empilham um alerta por mensagem.
+    const admin = supabaseAdmin as any;
+    const { data: existente } = await admin
+      .from("case_alerts")
+      .select("id")
+      .eq("case_id", params.casoId)
+      .eq("tipo", "atendimento_cliente")
+      .eq("status", "pending")
+      .ilike("detalhe", `Ticket ${params.ticketId}.%`)
+      .limit(1)
+      .maybeSingle();
+    if (existente?.id) return;
+    await admin.from("case_alerts").insert({
       organization_id: params.organizationId,
       case_id: params.casoId,
       tipo: "atendimento_cliente",

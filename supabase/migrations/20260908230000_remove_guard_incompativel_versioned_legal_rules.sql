@@ -1,0 +1,13 @@
+-- Achado real (08/09/2026): trg_versioned_legal_rules_guard chama
+-- fn_biblioteca_mestre_guard(), escrita para master_library_items
+-- (colunas vigencia_estado/owner/homologacao_criterio/substitui_item_id).
+-- versioned_legal_rules nunca teve essas colunas — usa status/reviewed_by/
+-- reviewed_at. A trigger quebrava TODA E QUALQUER atualização da tabela
+-- (não só transição de vigência): "NEW.vigencia_estado IS DISTINCT FROM
+-- OLD.vigencia_estado" falha em tempo de execução por a coluna não existir
+-- no tipo da linha. Isso bloquearia, por exemplo, a nova ação
+-- homologarTrilhaOuRegra ao tentar aprovar uma regra jurídica.
+-- versioned_legal_rules já tem sua própria semântica de homologação
+-- (status='aprovado', reviewed_by, reviewed_at) aplicada no código —
+-- não precisa do guard genérico do acervo.
+DROP TRIGGER IF EXISTS trg_versioned_legal_rules_guard ON public.versioned_legal_rules;

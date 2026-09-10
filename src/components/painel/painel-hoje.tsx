@@ -3,30 +3,47 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
 
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { painelHoje } from "@/lib/conversao.functions";
 import { calcularMetricas, moeda } from "@/lib/conversao";
 
-/** Painel Hoje: filas operacionais, sinais de atraso e leitura de conversão. Somente leitura. */
+type DadosPainelHoje = NonNullable<Awaited<ReturnType<typeof painelHoje>>>;
+
+/**
+ * Painel Hoje: filas operacionais, sinais de atraso e leitura de conversão.
+ * Somente leitura. A carga passa por EstadoDados: falha de leitura aparece como
+ * erro com nova tentativa, nunca como fila vazia.
+ */
 export function PainelHoje() {
   const carregar = useServerFn(painelHoje);
   const q = useQuery({ queryKey: ["painel-hoje"], queryFn: () => carregar(), retry: false });
 
+  return (
+    <EstadoDados<DadosPainelHoje>
+      carregando={q.isLoading}
+      erro={q.error}
+      dados={q.data ? [q.data as DadosPainelHoje] : undefined}
+      aoTentarNovamente={() => void q.refetch()}
+      recurso="o Painel Hoje"
+    >
+      {([dados]) => <ConteudoPainelHoje dados={dados} />}
+    </EstadoDados>
+  );
+}
+
+function ConteudoPainelHoje({ dados }: { dados: DadosPainelHoje }) {
   const metricas = useMemo(() => {
-    if (!q.data) return null;
     const nomes = new Map(
-      (q.data.campanhas ?? []).map((c: Record<string, unknown>) => [String(c.id), String(c.nome)]),
+      (dados.campanhas ?? []).map((c: Record<string, unknown>) => [String(c.id), String(c.nome)]),
     );
     return calcularMetricas(
-      (q.data.eventos ?? []) as never,
-      (q.data.investimentos ?? []) as never,
+      (dados.eventos ?? []) as never,
+      (dados.investimentos ?? []) as never,
       (id) => (id ? (nomes.get(String(id)) ?? "campanha não vinculada") : "sem campanha"),
     );
-  }, [q.data]);
+  }, [dados]);
 
-  if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando Painel Hoje…</p>;
-  if (q.isError || !q.data) return null;
-
-  const f = q.data.filas;
+  const f = dados.filas;
   const filas: { rotulo: string; itens: { id: string; codigo: string; titulo: string }[] }[] = [
     {
       rotulo: "Aceites verbais aguardando confirmação formal",
@@ -77,9 +94,9 @@ export function PainelHoje() {
         <div className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-xs uppercase tracking-wide text-navy/50">Importações Placego</p>
           <ul className="mt-2 space-y-1 text-xs text-navy/60">
-            <li>Lotes com erro: {q.data.importacoes.comErro.length}</li>
-            <li>Lotes com duplicidade: {q.data.importacoes.duplicidades.length}</li>
-            <li>Exceções abertas: {q.data.importacoes.excecoesAbertas}</li>
+            <li>Lotes com erro: {dados.importacoes.comErro.length}</li>
+            <li>Lotes com duplicidade: {dados.importacoes.duplicidades.length}</li>
+            <li>Exceções abertas: {dados.importacoes.excecoesAbertas}</li>
           </ul>
           <Link to="/importacoes" className="mt-2 inline-block text-xs text-navy underline">
             Abrir importações
