@@ -47,6 +47,9 @@ export function MotoresPrimordiais() {
                   {m.tabelas.length === 0
                     ? "Visual / marca — sem tabela nova"
                     : m.tabelas.map((t) => rotuloTabela(t)).join(" · ")}
+                  {"oQueJaEscreve" in m && m.oQueJaEscreve ? (
+                    <p className="mt-1 text-[10px] text-foreground/70">{m.oQueJaEscreve}</p>
+                  ) : null}
                   {m.tabelas.length > 0 ? (
                     <details className="mt-1">
                       <summary className="cursor-pointer text-[10px] text-muted-foreground/80">

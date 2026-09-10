@@ -29,6 +29,11 @@ describe("Motores primordiais P0–P11", () => {
     expect(MOTORES_TABELAS).toHaveLength(12);
     expect(MOTORES_TABELAS[0]?.estado).toBe("operando");
     expect(MOTORES_TABELAS.find((m) => m.id === "P10")?.estado).toBe("planta");
+    const p1 = MOTORES_TABELAS.find((m) => m.id === "P1");
+    expect(p1?.estado).toBe("parcial");
+    expect("oQueJaEscreve" in (p1 ?? {}) && (p1 as { oQueJaEscreve?: string }).oQueJaEscreve).toMatch(
+      /archived_at/,
+    );
   });
 
   it("não cria 13º motor: cidadania 0–8 mora em P7", () => {
