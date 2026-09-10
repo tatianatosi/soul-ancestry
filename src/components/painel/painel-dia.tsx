@@ -7,8 +7,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import { estadoAcessoPainel } from "@/lib/painel-hoje-acoes.functions";
 import { podeExibirAcoesRapidas } from "@/lib/painel-acoes-rapidas";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { ATALHOS_DESCOBERTA, ROTULO_PRIORIDADE } from "@/lib/descoberta-desk";
-import { CardIndicador, type TomEstado } from "@/components/desk/ui-desk";
+import { SELO_PROXIMA_ACAO } from "@/lib/caso-ficha";
+import { CardIndicador, BadgeDesk, CarregandoDesk, type TomEstado } from "@/components/desk/ui-desk";
+import { listarAlertas } from "@/lib/alertas.functions";
 import { derivarCadenciaDoPainel } from "@/lib/painel-cadencia-derivada";
 import { escolherCasoDestaque } from "@/lib/painel-caso-destaque";
 import { FilaCadencia } from "@/components/painel/fila-cadencia";
@@ -84,11 +88,12 @@ function useVerificacaoLeituraPainel(
 function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
   if (problemas.length === 0) return null;
   return (
-    <section
+    <details
       data-aviso-leitura-painel
-      className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4 text-sm text-navy"
+      className="rounded-xl border border-navy/10 bg-white p-4 text-sm text-navy"
     >
-      <p className="font-medium text-terracotta">A leitura desta tela saiu do padrão acordado</p>
+      <summary className="cursor-pointer font-medium text-navy">Detalhes técnicos de leitura</summary>
+      <p className="mt-2 text-xs text-navy/75">A leitura desta tela saiu do padrão acordado</p>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-navy/75">
         {problemas.map((p) => (
           <li key={`${p.chave}-${p.mensagem}`}>{p.mensagem}</li>
@@ -97,7 +102,7 @@ function AvisoLeituraPainel({ problemas }: { problemas: ProblemaPainel[] }) {
       <p className="mt-2 text-[11px] text-navy/55">
         Aviso apenas de exibição: nenhum dado foi alterado e nenhuma ação externa foi disparada.
       </p>
-    </section>
+    </details>
   );
 }
 
@@ -181,7 +186,14 @@ function Linha({
       <p className="mt-0.5">
         <EtiquetaPrioridade item={item} />
       </p>
-      <p className="mt-0.5 break-words text-xs text-navy/65">{item.acao}</p>
+      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 break-words text-xs text-navy/65">
+        <span>{item.acao}</span>
+        {item.origemAcao ? (
+          <span className="rounded-full border border-navy/15 bg-cream px-1.5 py-0.5 text-[10px] text-navy/60">
+            {SELO_PROXIMA_ACAO[item.origemAcao]}
+          </span>
+        ) : null}
+      </p>
 
       <p className="mt-0.5 text-xs">
         {item.responsavel ? (
@@ -228,7 +240,10 @@ const GRUPOS_INDICADOR = [
     chave: "integridade" as const,
     titulo: "Integridade",
     resumo: "Sem responsável, sem próxima ação, conflito de fonte e pendência de auditoria.",
-    rota: "/auditoria" as const,
+    // Corte D (09/09/2026): /auditoria foi removida — o Radar Interno em
+    // /qualidade já cobre este conteúdo (ver qualidade.tsx). O card tinha CTA
+    // morto (404).
+    rota: "/qualidade" as const,
     acao: "Abrir auditoria e integridade",
   },
   {
@@ -282,7 +297,10 @@ export function PainelDia() {
     queryFn: () => carregarModo(),
     retry: false,
   });
-  const proprietaria = podeExibirAcoesRapidas(qModo.data);
+  const { proprietaria: proprietariaAutoridade } = useAutoridade();
+  // Autoridade operacional é a fonte canônica; o estado legado do painel continua
+  // valendo como fallback para não estreitar acesso já concedido.
+  const proprietaria = proprietariaAutoridade || podeExibirAcoesRapidas(qModo.data);
   const qCad = useQuery({
     queryKey: ["painel-cadencia"],
     queryFn: () => carregarCadencia(),
@@ -300,6 +318,13 @@ export function PainelDia() {
     queryFn: () => carregarChecklistJuridico({ data: { incluirDemo } }),
     retry: false,
   });
+  const leiturasSecundarias = [
+    { rotulo: "cadência dos casos", q: qCad },
+    { rotulo: "bloqueios de catálogo", q: qCatalogo },
+    { rotulo: "checklist jurídico", q: qJuridico },
+    { rotulo: "estado de acesso do painel", q: qModo },
+  ].filter((l) => l.q.isError);
+
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
   const instrumentosComBloqueio = instrumentosJuridico.filter((i) => i.bloqueios > 0);
   const instrumentosComPendencia = instrumentosJuridico.filter(
@@ -323,7 +348,18 @@ export function PainelDia() {
 
   if (qDesk.isLoading) return <p className="text-sm text-navy/50">Carregando o dia…</p>;
   if (qDesk.isError || !qDesk.data)
-    return <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>;
+    return (
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
+        <p className="text-sm text-terracotta">Não foi possível carregar as filas do dia.</p>
+        <button
+          type="button"
+          onClick={() => void qDesk.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
 
   const filas = qDesk.data.filas;
   const hoje = hojeISO();
@@ -633,7 +669,33 @@ export function PainelDia() {
         quem chega de manhã lia cinco números sem saber o que fazer com eles.
         Nada de novo é calculado aqui — é leitura do que já foi derivado.
       */}
+      {leiturasSecundarias.length ? (
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2">
+          <p className="text-sm text-terracotta">
+            Falha ao carregar: {leiturasSecundarias.map((l) => l.rotulo).join(", ")}. Os blocos
+            correspondentes estão incompletos — não trate como ausência de registro.
+          </p>
+          <button
+            type="button"
+            onClick={() => leiturasSecundarias.forEach((l) => void l.q.refetch())}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
       <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
+      <p
+        data-desk-enxuto
+        className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
+      >
+        Painel de Calls está no menu da Visão Geral e em Comercial → Calls Discovery.{" "}
+        <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
+          Abrir Painel de Calls
+        </Link>
+        . CRM Mestre, dicionário e Catálogo 30 ficam na conta, no rodapé da barra. Campo com
+        pendência continua editável — a gravação é revalidada no servidor.
+      </p>
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />
@@ -650,9 +712,9 @@ export function PainelDia() {
       </section>
 
       {/*
-        1 — Caso em destaque (mockup Fase 01). O que olhar primeiro, com a
-        regra que o colocou no topo. Reusa `calcularPrioridade`, a mesma
-        função da fila e de Casos 360 — nenhum cálculo paralelo.
+        1 — Caso em destaque. O que olhar primeiro, com a regra que o colocou
+        no topo. Reusa `calcularPrioridade`, a mesma função da fila e de
+        Casos 360 — nenhum cálculo paralelo.
       */}
       <CasoEmDestaque dados={casoDestaque} />
 
@@ -663,7 +725,21 @@ export function PainelDia() {
         que o Painel já fazia — só passou a trazer o campo `fase`.
       */}
       <section data-painel-bloco="jornada">
-        <JornadaCasos casos={(qCad.data?.casos ?? []) as never} />
+        {/*
+          A jornada é a única leitura de cadência que aparece como lista própria:
+          se a consulta falhar, mostra erro com nova tentativa em vez de uma
+          carteira aparentemente vazia.
+        */}
+        <EstadoDados<Record<string, unknown>>
+          carregando={qCad.isLoading}
+          erro={qCad.error}
+          dados={qCad.data?.casos as Record<string, unknown>[] | undefined}
+          aoTentarNovamente={() => void qCad.refetch()}
+          recurso="a jornada dos casos"
+          vazio="Nenhum caso na carteira para montar a jornada."
+        >
+          {(casos) => <JornadaCasos casos={casos as never} />}
+        </EstadoDados>
       </section>
 
       {/* 3 — Minha fila priorizada */}
@@ -771,7 +847,13 @@ export function PainelDia() {
         <FilaSlaOperacional />
       </section>
 
-      {/* 3 — Sinais de atenção: vem logo após as exceções. Só conta e linka; nunca cria linha de trabalho nem tarefa. */}
+      {/*
+        3 — Alertas prioritários (CA-CORTE-ALERTAS-ROTA-CANONICA, 09/09/2026):
+        mesma fonte (case_alerts, via listarAlertas) da rota /alertas — aqui só
+        o subconjunto pendente mais crítico de hoje, nunca a lista completa.
+        Abrir/reconhecer/reprogramar vive em /alertas; aqui é só contagem e link.
+      */}
+      <AlertasPrioritariosDoPainel />
 
       {/* 4 — Comercial hoje: resumo único (CA-UX-03 Fase B). Detalhe em /conversao. */}
 
@@ -897,21 +979,23 @@ export function PainelDia() {
           ))}
         </div>
 
-        <p className="mt-4 text-[11px] uppercase tracking-wide text-navy/50">
-          Módulos que mudaram de nome
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          {ATALHOS_DESCOBERTA.map((a) => (
-            <Link
-              key={a.rota}
-              to={a.rota}
-              className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
-              title={a.onde}
-            >
-              {a.rotulo}
-            </Link>
-          ))}
-        </div>
+        <details className="mt-4">
+          <summary className="cursor-pointer text-[11px] uppercase tracking-wide text-navy/50">
+            Módulos que mudaram de nome
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {ATALHOS_DESCOBERTA.map((a) => (
+              <Link
+                key={a.rota}
+                to={a.rota}
+                className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
+                title={a.onde}
+              >
+                {a.rotulo}
+              </Link>
+            ))}
+          </div>
+        </details>
 
         {/*
           Sinais de atenção, fundidos aqui em 25/08. Cada grupo já era contagem,
@@ -929,12 +1013,6 @@ export function PainelDia() {
               className="text-[11px] font-medium text-navy underline underline-offset-2"
             >
               Ver cadência e onboarding em risco
-            </Link>
-            <Link
-              to="/governanca/indicadores"
-              className="text-[11px] text-navy/40 underline underline-offset-2 hover:text-navy/60"
-            >
-              registro canônico dos indicadores
             </Link>
           </span>
         </div>
@@ -988,5 +1066,56 @@ export function PainelDia() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+const TOM_CRITICIDADE_PAINEL: Record<string, TomEstado> = {
+  critica: "bloqueio",
+  alta: "critico",
+  atencao: "atencao",
+};
+
+/**
+ * CA-CORTE-ALERTAS-ROTA-CANONICA (09/09/2026) — subconjunto prioritário de
+ * hoje, mesma fonte (case_alerts, via listarAlertas) da rota /alertas. Só
+ * conta e linka: reconhecer/reprogramar/abrir tarefa vivem na rota completa.
+ */
+function AlertasPrioritariosDoPainel() {
+  const carregar = useServerFn(listarAlertas);
+  const q = useQuery({
+    queryKey: ["alertas-prioritarios-painel"],
+    queryFn: () => carregar({ data: { status: "pending", limite: 5 } }),
+  });
+  const linhas = q.data ?? [];
+
+  return (
+    <section data-painel-bloco="alertas" className="rounded-xl border border-navy/10 bg-white p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="min-w-0 font-serif text-lg text-navy">Alertas de hoje</h2>
+        <Link to="/alertas" className="shrink-0 text-xs text-navy/60 underline">
+          Ver todos os alertas
+        </Link>
+      </div>
+      <p className="mt-1 text-xs text-navy/50">
+        Sinal sem duplicar tarefa. Só os pendentes mais críticos; a lista completa e filtrável fica
+        em Alertas.
+      </p>
+      {q.isLoading ? (
+        <CarregandoDesk linhas={2} />
+      ) : linhas.length === 0 ? (
+        <p className="mt-3 text-sm text-navy/60">Nenhum alerta pendente agora.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {linhas.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <Link to="/casos/$caseId" params={{ caseId: a.caseId }} className="text-navy underline underline-offset-2">
+                {a.titulo} — {a.caseCodigo ?? a.caseTitulo ?? a.caseId}
+              </Link>
+              <BadgeDesk texto={a.criticidade} tom={TOM_CRITICIDADE_PAINEL[a.criticidade] ?? "neutro"} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

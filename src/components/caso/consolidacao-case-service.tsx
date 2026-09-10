@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { Secao, Rotulo } from "@/components/caso/campos";
 import {
   carregarConsolidacaoCaseService,
@@ -63,7 +64,6 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
         data: {
           caseId,
           homologar,
-          homologadoPor: quem,
           forma_pagamento: cond.forma_pagamento ?? q.data?.condicao?.forma_pagamento ?? "",
           parcelas: cond.parcelas ? Number(cond.parcelas) : (q.data?.condicao?.parcelas ?? null),
           valor_parcela: cond.valor_parcela ? Number(cond.valor_parcela) : (q.data?.condicao?.valor_parcela ?? null),
@@ -313,13 +313,23 @@ export function ConsolidacaoCaseService({ caseId }: { caseId: string }) {
           >
             Salvar rascunho da condição
           </button>
-          <button
-            onClick={() => mCondicao.mutate(true)}
-            disabled={mCondicao.isPending || !d.elegibilidade.elegivel}
+          <AcaoOperacional
+            rotulo="Homologar condição"
+            capacidade="homologar_condicao_comercial"
+            pendenciaGate={
+              d.elegibilidade.elegivel
+                ? null
+                : `Consolidação ainda não elegível: ${
+                    d.elegibilidade.motivos?.join("; ") || "critérios pendentes"
+                  }`
+            }
+            efeito="Homologa a condição comercial deste case service como referência interna."
             className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
-          >
-            Homologar condição
-          </button>
+            onConfirmar={() => {
+              if (mCondicao.isPending) return;
+              mCondicao.mutate(true);
+            }}
+          />
         </div>
         <p className="mt-2 text-[11px] text-navy/45">
           Estado atual: {d.condicao?.status ?? "sem condição registrada"}

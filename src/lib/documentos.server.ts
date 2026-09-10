@@ -113,6 +113,27 @@ export function caminhoArquivo(organizationId: string, casoId: string | null, no
   return `${organizationId}/${casoId ?? "sem-caso"}/${Date.now()}-${seguro}`;
 }
 
+/**
+ * Decisão da Proprietária (09/09/2026) — "documento é individual por
+ * padrão": categoria sensível exige titular explícito e finalidade
+ * registrada. Nunca é inferido do contratante do caso nem deixado em branco.
+ * Espelha a mesma trava que existe no banco (fn_documents_guard), num
+ * formato que dá erro amigável antes de gastar uma chamada ao servidor.
+ */
+export function exigirTitularEFinalidadeSensivel(input: {
+  categoria: string;
+  clienteId?: string | null;
+  finalidade?: string | null;
+}): void {
+  if (!CATEGORIAS_SENSIVEIS.includes(input.categoria)) return;
+  if (!input.clienteId) {
+    throw new Error("Documento de categoria sensível exige o titular (a pessoa a quem o documento pertence).");
+  }
+  if (!input.finalidade?.trim()) {
+    throw new Error("Documento de categoria sensível exige a finalidade (para que ele foi recebido).");
+  }
+}
+
 export function limparTexto(valor: unknown, max = 2000) {
   if (typeof valor !== "string") return null;
   const t = valor.trim();

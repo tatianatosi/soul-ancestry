@@ -27,7 +27,6 @@ type Linha = { rota: string; origem: string; escopo: string; guard: string; semS
 const ROTAS: Linha[] = [
   { rota: "/", origem: "src/routes/index.tsx", escopo: "Público", guard: "nenhum", semSessao: "renderiza (sem redirect)" },
   { rota: "/devolutiva", origem: "src/routes/devolutiva.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza" },
-  { rota: "/studio-devolutivas", origem: "src/routes/studio-devolutivas.tsx", escopo: "Público (legado/demo)", guard: "nenhum", semSessao: "renderiza" },
   { rota: "/canvas/$token", origem: "src/routes/canvas.$token.tsx", escopo: "Público por token", guard: "token + canvas_publicado no servidor", semSessao: "renderiza se publicado" },
   { rota: "/acesso", origem: "src/routes/acesso.tsx", escopo: "Cliente", guard: "nenhum", semSessao: "renderiza formulário de link mágico" },
   { rota: "/acesso/confirmar", origem: "src/routes/acesso.confirmar.tsx", escopo: "Cliente", guard: "sessão do link mágico", semSessao: "mensagem de link inválido" },
@@ -38,7 +37,7 @@ const ROTAS: Linha[] = [
   { rota: "/equipe/redefinir-senha", origem: "src/routes/equipe.redefinir-senha.tsx", escopo: "Equipe", guard: "sessão de recuperação do link", semSessao: "pede novo link" },
   { rota: "/equipe/sem-permissao", origem: "src/routes/equipe.sem-permissao.tsx", escopo: "Equipe", guard: "nenhum", semSessao: "renderiza" },
   { rota: "/equipe/diagnostico-rotas", origem: "este arquivo (temporário)", escopo: "Equipe", guard: "nenhum — só topologia, sem dados", semSessao: "renderiza" },
-  { rota: "/painel, /casos, /clientes, /leads, /tarefas, /evidencias, /financeiro, /relatorios, /contratos, /contratos/$id, /acessos-portal, /equipe, /auditoria, /configuracoes", origem: "src/routes/_authenticated/*", escopo: "Backoffice", guard: "layout _authenticated (ssr:false, getUser) + SaasShell (staff ativo + papel)", semSessao: "→ /equipe/entrar" },
+  { rota: "/painel, /casos, /clientes, /leads, /tarefas, /evidencias, /financeiro, /relatorios, /contratos, /contratos/$id, /acessos-portal, /equipe, /qualidade, /configuracoes, /mockup, /studio-devolutivas", origem: "src/routes/_authenticated/*", escopo: "Backoffice", guard: "layout _authenticated (ssr:false, getUser) + SaasShell (staff ativo + papel)", semSessao: "→ /equipe/entrar" },
   { rota: "/auth", origem: "src/routes/auth.tsx", escopo: "Legado", guard: "redirect permanente", semSessao: "→ /equipe/entrar" },
 ];
 

@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo } from "react";
+import { EstadoDados } from "@/components/saas/estado-dados";
+import { SaasShell } from "@/components/saas/shell";
 
 import {
   agruparPlanoAcao,
@@ -42,6 +44,16 @@ export const Route = createFileRoute("/_authenticated/plano-acao/$caseId")({
     ],
   }),
   component: PlanoAcao,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Plano de ação de pesquisa" descricao="Falha ao carregar o plano.">
+      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Plano de ação de pesquisa" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 function Campo({ r, v }: { r: string; v: React.ReactNode }) {
@@ -177,13 +189,31 @@ function PlanoAcao() {
   const estimativas = (dados?.estimativas ?? []) as Record<string, any>[];
   const nomeInstituicao = (id?: string | null) => instituicoes.find((x) => x.id === id)?.name as string | undefined;
 
-  if (q.isLoading) return <p className="p-6 text-sm text-navy/50">Carregando plano de ação…</p>;
-  if (q.isError) return <p className="p-6 text-sm text-terracotta">{(q.error as Error).message}</p>;
+  // Sem dado lido não existe plano vazio: carregando, erro e falha de carga
+  // ficam explícitos, com ação de tentar novamente.
+  if (!dados)
+    return (
+      <SaasShell titulo="Plano de ação de pesquisa" descricao="Fila interna de ações de pesquisa.">
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="o plano de ação deste caso"
+        >
+          {() => null}
+        </EstadoDados>
+      </SaasShell>
+    );
 
   const aguardandoAprovacao = estimativas.filter((e) => e.client_approval_status === "aguardando_aprovacao");
 
   return (
-    <div className="p-6">
+    <SaasShell
+      titulo="Plano de ação de pesquisa"
+      descricao="Fila interna de ações, instituições de referência e previsões de terceiros."
+    >
+    <div>
       <p className="text-xs text-navy/50">
         <Link to="/casos/$caseId" params={{ caseId }} className="underline">
           Casos 360
@@ -320,5 +350,6 @@ function PlanoAcao() {
         </ul>
       </section>
     </div>
+    </SaasShell>
   );
 }

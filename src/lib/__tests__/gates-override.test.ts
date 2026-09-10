@@ -59,8 +59,18 @@ describe("gates com três estados e override interno auditado", () => {
     expect(r.erros.join(" ")).toContain("proprietária administradora");
   });
 
-  it("recusa motivo curto e fonte ausente", () => {
-    expect(validarOverrideInterno(base({ motivo: "ok" })).valida).toBe(false);
+  /**
+   * 06/09/2026 — este teste exigia que "ok" fosse RECUSADO como motivo, o que
+   * só existia por causa do mínimo de 10 caracteres. A proprietária mandou
+   * remover mínimo arbitrário de caracteres em motivo
+   * (`hotfix_autonomia_operacional_proprietaria.md`), então "ok" agora é
+   * motivo válido. O que o teste passa a proteger é o que continua valendo:
+   * motivo em branco e fonte ausente seguem recusados — o registro precisa
+   * existir, só não precisa ter um tamanho mínimo inventado.
+   */
+  it("aceita motivo curto mas recusa motivo em branco e fonte ausente", () => {
+    expect(validarOverrideInterno(base({ motivo: "ok" })).valida).toBe(true);
+    expect(validarOverrideInterno(base({ motivo: "   " })).valida).toBe(false);
     expect(validarOverrideInterno(base({ fonte: "" })).valida).toBe(false);
   });
 

@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { usePortalVivo } from "@/components/portal/fonte-portal";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/jornada")({
@@ -25,39 +26,57 @@ export const Route = createFileRoute("/portal/jornada")({
 
 export function PortalJornada() {
   const { visibilidade, carregando } = useVisibilidade("jornada");
-  const { data, isLoading } = usePortalVivo();
-  const jornada = jornadaSanitizada(data?.projecoes ?? []);
+  const { data, isLoading, isError, error, refetch } = usePortalVivo();
 
   return (
     <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
-      {carregando || isLoading ? (
+      {carregando ? (
         <PortalCarregando />
       ) : (
-        <BlocoVisibilidade visibilidade={visibilidade}>
-          <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
-            {jornada.proximoPasso}
-          </p>
-          {jornada.linha.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
-              {COPY_TELAS.jornada.vazio}
-            </p>
-          ) : (
-            <ol className="space-y-3">
-              {jornada.linha.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-start gap-3 rounded-lg border border-navy/10 bg-white p-3"
-                >
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />
-                  <div>
-                    <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
-                    <p className="text-sm text-navy/70">{item.conteudo}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </BlocoVisibilidade>
+        <EstadoDados
+          carregando={isLoading}
+          erro={isError ? (error ?? true) : null}
+          dados={data ? [data] : null}
+          aoTentarNovamente={refetch}
+          recurso="o seu acompanhamento"
+        >
+          {([vivo]) => {
+            const jornada = jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao);
+            const destino = vivo.proximaAcao?.destino ?? null;
+            return (
+              <BlocoVisibilidade visibilidade={visibilidade}>
+                <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 p-3 text-sm text-navy/70">
+                  {jornada.proximoPasso}{" "}
+                  {destino ? (
+                    <Link to={destino} className="font-medium text-terracotta underline-offset-2 hover:underline">
+                      Abrir
+                    </Link>
+                  ) : null}
+                </p>
+                {jornada.linha.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
+                    {COPY_TELAS.jornada.vazio}
+                  </p>
+                ) : (
+                  <ol className="space-y-3">
+                    {jornada.linha.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-start gap-3 rounded-lg border border-navy/10 bg-white p-3"
+                      >
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />
+                        <div>
+                          <p className="text-sm font-medium text-navy">{item.tipoRotulo}</p>
+                          <p className="text-sm text-navy/70">{item.conteudo}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </BlocoVisibilidade>
+            );
+          }}
+        </EstadoDados>
       )}
     </PortalShell>
   );

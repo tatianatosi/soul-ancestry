@@ -62,9 +62,17 @@ const VAZIO: Estado = {
  * cadeia inteira ficava bloqueada em cascata, mesmo sem nenhum bug de dado.
  * Este formulário é a entrada que faltava.
  */
-export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string; podeEscrever: boolean }) {
+export function PlanejadorOperacional({
+  caseId,
+  podeEscrever,
+  inicialAberto = false,
+}: {
+  caseId: string;
+  podeEscrever: boolean;
+  inicialAberto?: boolean;
+}) {
   const qc = useQueryClient();
-  const [aberto, setAberto] = useState(false);
+  const [aberto, setAberto] = useState(inicialAberto);
   const [estado, setEstado] = useState<Estado>(VAZIO);
 
   const carregarSkus = useServerFn(listarSkusPlanejador);
@@ -81,6 +89,8 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
       );
       qc.invalidateQueries({ queryKey: ["cadeia-operacional", caseId] });
       qc.invalidateQueries({ queryKey: ["contrato-preparar", caseId] });
+      qc.invalidateQueries({ queryKey: ["ficha-caso", caseId] });
+      qc.invalidateQueries({ queryKey: ["caso-canonico", caseId] });
       setAberto(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -112,8 +122,6 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
     }),
     [caseId, estado],
   );
-
-  if (!podeEscrever) return null;
 
   if (!aberto) {
     return (
@@ -183,6 +191,12 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
               </option>
             ))}
           </select>
+          {skus.error ? (
+            <span role="alert" className="mt-1 block text-[11px] text-terracotta">
+              Catálogo indisponível: a lista de SKUs está vazia por falha de leitura, não por ausência de
+              cadastro.
+            </span>
+          ) : null}
         </label>
         {campo("rotaConfirmada", "País/rota confirmado", "Só se já confirmado — o motor não infere")}
         <label className="block">

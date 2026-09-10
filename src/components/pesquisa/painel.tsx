@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -173,6 +174,7 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
   const gerarLink = useServerFn(linkArquivoEvidencia);
   const qc = useQueryClient();
 
+  const autoridade = useAutoridade();
   const q = useQuery({
     queryKey: ["pesquisa", casoId],
     queryFn: () => carregar({ data: { casoId } }),
@@ -211,7 +213,12 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
   const evidencias = d.evidencias as Linha[];
   const eventos = d.eventos as Linha[];
   const pendencias = d.pendencias as Linha[];
-  const podeEditar = d.podeEditar;
+  // Autoridade operacional: gate de papel do servidor deixa de esconder ações;
+  // vira pendência declarada e o servidor revalida cada gravação.
+  const podeEditar = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaPapel = d.podeEditar
+    ? null
+    : "O servidor não reconhece seu papel como responsável por esta pesquisa — as ações seguem disponíveis por decisão sua.";
 
   const nomePessoa = (id: unknown) => pessoas.find((p) => p.id === id)?.nome ?? "—";
   const tituloHipotese = (id: unknown) => hipoteses.find((h) => h.id === id)?.titulo ?? "—";
@@ -259,11 +266,9 @@ export function PesquisaCaso({ casoId }: { casoId: string }) {
         <p className="mt-1 text-sm text-navy/60">
           Registro de pesquisa e evidências. Uso interno; não expressa conclusão jurídica nem previsão de resultado.
         </p>
-        {!podeEditar && (
-          <p className="mt-2 text-xs text-terracotta">
-            Você tem acesso de leitura: apenas o responsável designado, operações ou administração alteram esta pesquisa.
-          </p>
-        )}
+        {pendenciaPapel ? (
+          <p className="mt-2 text-xs text-navy/70">Pendência registrada: {pendenciaPapel}</p>
+        ) : null}
       </header>
 
       <nav className="flex flex-wrap gap-2">

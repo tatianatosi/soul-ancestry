@@ -47,8 +47,10 @@ export function ReferenciaCatalogo() {
         </label>
       </div>
       <p className="text-xs text-navy/60">
-        A Planilha Mestre é a fonte canônica de SKU, status, escopo, preço vigente, condição e link autorizado. No Desk
-        esses campos são somente leitura: o CRM guarda apenas SKU, versão de vigência e data de última validação.
+        O catálogo homologado (product_catalog) é a fonte canônica de SKU, status, escopo, preço vigente, condição e
+        link autorizado — a Planilha Mestre é só a origem histórica desses dados, não uma fonte lida em produção. No
+        Desk esses campos são somente leitura: o CRM guarda apenas SKU, versão de vigência e data de última validação.
+        SKU é referência técnica: a decisão de oferta por caso é do produto-pai (Planejador).
       </p>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-3">

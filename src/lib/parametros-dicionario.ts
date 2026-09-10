@@ -97,7 +97,7 @@ export const DICIONARIO_CAMPOS: DefinicaoCampo[] = [
     campo: "contratada_qualificacao",
     tipo: "texto_longo",
     justificativa: "opcional",
-    origens: ["planejador", "documento", "preenchimento_humano"],
+    origens: ["perfil_institucional", "planejador", "documento", "preenchimento_humano"],
     confiancaMinima: 4,
     validacao: "Qualificação completa da contratada.",
     destinos: ["contrato"],

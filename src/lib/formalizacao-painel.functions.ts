@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoOps, type Sb } from "@/lib/ops.server";
+import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
 import { calcularCadencia } from "@/lib/jornada-cliente";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -113,14 +114,14 @@ export const painelFormalizacao = createServerFn({ method: "GET" })
         "sem_touchpoint_10",
         "Sem atualização ao cliente há 10+ dias",
         cadencias
-          .filter((x) => x.dias >= 10 && x.dias < 14)
+          .filter((x) => x.dias >= DIAS_CADENCIA_ATENCAO && x.dias < DIAS_CADENCIA_CRITICA)
           .map((x) => ({ id: x.caso.id, rotulo: nome(x.caso), detalhe: `${x.dias} dias sem touchpoint` })),
       ),
       fila(
         "criticos_14",
         "Críticos: 14+ dias sem touchpoint",
         cadencias
-          .filter((x) => x.dias >= 14)
+          .filter((x) => x.dias >= DIAS_CADENCIA_CRITICA)
           .map((x) => ({
             id: x.caso.id,
             rotulo: nome(x.caso),

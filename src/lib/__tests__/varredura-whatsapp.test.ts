@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { CAMPOS_VARRIDOS, lerConversa, varrerConversa } from "../varredura-whatsapp";
+import {
+  CAMPOS_VARRIDOS,
+  CAMPO_LEAD_POR_VARREDURA,
+  codigoLeadDoAchado,
+  lerConversa,
+  varrerConversa,
+} from "../varredura-whatsapp";
 
 /** Dump no formato iOS, com colchetes. */
 const DUMP_IOS = `[10/08/2026, 14:32:05] Tatiana: Oi Ana! Me conta um pouco da sua história familiar.
@@ -174,5 +180,21 @@ describe("acento não engole achado", () => {
 
   it("não casa dentro de outra palavra", () => {
     expect(achou("o navio chamava Caronte", "certidão de casamento")).toBe(false);
+  });
+});
+
+describe("de-para do sinal para o lead — só o valor normalizado, nunca o trecho (PR #48)", () => {
+  it("mapeia os achados da conversa da Ana Luiza para código de opção controlada", () => {
+    const r = varrerConversa(DUMP_IOS, { autoresDaCasa: ["Tatiana"] });
+    const codigos = new Map(r.achados.map((a) => [`${a.campo}::${a.valor}`, codigoLeadDoAchado(a)]));
+    expect(codigos.get("nacionalidades_interesse::Itália")).toBe("italiana");
+    expect(codigos.get("geracao_ascendente::bisavô ou bisavó")).toBe("bisavo");
+    expect(codigos.get("linha_transmissao::paterna")).toBe("paterna");
+    expect(codigos.get("documentos_chave::certidão de nascimento")).toBe("certidao_nascimento");
+    expect(CAMPO_LEAD_POR_VARREDURA.geracao_ascendente.campoLead).toBe("geracao_ascendente");
+  });
+
+  it("não inventa código quando o achado não tem de-para inequívoco", () => {
+    expect(codigoLeadDoAchado({ campo: "objecao_predominante", valor: "decisão adiada" })).toBeNull();
   });
 });

@@ -109,7 +109,7 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
       supabase
         .from("genealogical_sources_catalog")
         .select(
-          "id,nome,pais_eixo,tipo_de_acervo,acesso,restricoes:observacao_risco,cobertura_geografica,url_referencia_interna,responsavel_revisao,ultima_verificacao,archived_at,archive_motivo",
+          "id,nome,pais_eixo,tipo_de_acervo,acesso,restricoes:observacao_risco,cobertura_geografica,url_referencia_interna,responsavel_revisao,ultima_verificacao,proxima_acao,citizenship_track_id,archived_at,archive_motivo",
         ),
       supabase
         .from("controlled_taxonomies")
@@ -179,6 +179,13 @@ export const listarBibliotecaMestre = createServerFn({ method: "GET" })
           ...det("Cobertura", r.cobertura_geografica),
           ...det("Restrições e risco", r.restricoes),
           ...det("Referência interna", r.url_referencia_interna),
+          // CA11-CENTRO-INTELIGENCIA (09/09/2026): proxima_acao e
+          // citizenship_track_id já existiam em genealogical_sources_catalog
+          // e eram gravados em /fontes-genealogicas, mas nunca apareciam
+          // aqui — a Biblioteca Mestre mostrava a base sem dizer o que fazer
+          // com ela nem a qual trilha ela está vinculada.
+          ...det("Próxima ação", r.proxima_acao),
+          ...det("Trilha vinculada", r.citizenship_track_id),
         ],
       });
     }
@@ -422,8 +429,27 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
       });
       throw new Error("Item não encontrado nesta organização.");
     }
+    // Autoridade operacional (05/09/2026): pendência informa, não impede.
+    // A homologação de item da Biblioteca Mestre era recusada no servidor por
+    // versão ou responsável ausente mesmo com a proprietária confirmando — era
+    // um dos pontos em que a homologação de SKU do catálogo não saía do lugar.
+    // A proprietária assume a pendência, que fica registrada na auditoria do
+    // próprio fluxo; os demais papéis seguem bloqueados.
+    const pendenciasAssumidas: string[] = [];
     if ((data.estado === "homologado" || data.estado === "vigente") && (!atual.versao || !atual.owner)) {
-      throw new Error("Item sem versão e responsável não pode ser homologado ou tornado vigente.");
+      const { assumirOuRecusarComUsuario } = await import("@/lib/autoridade.server");
+      const faltantes = [
+        !atual.versao ? "Item sem versão registrada." : "",
+        !atual.owner ? "Item sem responsável registrado." : "",
+      ].filter(Boolean);
+      pendenciasAssumidas.push(
+        ...(await assumirOuRecusarComUsuario(
+          supabase,
+          context.userId as string,
+          faltantes,
+          "Item sem versão e responsável não pode ser homologado ou tornado vigente.",
+        )),
+      );
     }
 
     // Sucessor só entra em vigência com o predecessor já encerrado.
@@ -505,6 +531,10 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         para: data.estado,
         criterio: data.criterio ? "registrado" : "nao_informado",
         sucessorId: data.estado === "substituido" ? data.sucessorId : null,
+        // Liberar não é apagar: a pendência assumida fica no histórico.
+        pendencias_assumidas: pendenciasAssumidas,
+        decidido_por: pendenciasAssumidas.length ? "proprietaria_administradora" : null,
+        politica: pendenciasAssumidas.length ? "pendência informa, não impede" : null,
       },
     });
     // Revalidação de dependências: itens que citam o item alterado precisam de
@@ -525,6 +555,89 @@ export const definirVigenciaItem = createServerFn({ method: "POST" })
         pendencia: "Confirmar se permanece compatível após a troca de vigência.",
       })),
     };
+  });
+
+/**
+ * Homologa trilha jurídica (`citizenship_tracks`) ou regra jurídica
+ * (`versioned_legal_rules`) — o mesmo conceito de vigência de
+ * `definirVigenciaItem`, mas para essas duas fontes.
+ *
+ * Achado real (08/09/2026): a Biblioteca Mestre já lista trilhas e regras
+ * com um campo `homologado` calculado — `status_via === "homologada"` para
+ * trilha, `status === "aprovado"` para regra (ver `regraAplicavelACaso`) —
+ * mas não existia NENHUMA ação de escrita que definisse esses valores.
+ * `definirVigenciaItem` só grava em `master_library_items`; a UI escondia o
+ * formulário de vigência para `fonte !== "acervo"` (`biblioteca.tsx:368`).
+ * Resultado: o motor jurídico multipaís (trilhas + marcos + regras) pode
+ * ser lido e navegado, mas nenhuma trilha ou regra jurídica jamais podia
+ * ser marcada como aprovada pela tela — travava para sempre em rascunho/em
+ * revisão, mesmo com a aprovação jurídica já dada fora do sistema.
+ *
+ * Não reaproveita o formulário de sucessor/substituição do acervo (essas
+ * duas tabelas não têm esse conceito) — é uma homologação simples, com
+ * critério obrigatório, mesma política de auditoria append-only.
+ */
+export const homologarTrilhaOuRegra = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string; fonte: "trilhas" | "juridico"; criterio: string; justificativa?: string }) => {
+    if (!data?.id) throw new Error("Item inválido.");
+    if (data.fonte !== "trilhas" && data.fonte !== "juridico") throw new Error("Origem não suportada por esta ação.");
+    if (!data.criterio?.trim()) throw new Error("Homologação exige critério ou evidência registrada.");
+    return {
+      id: data.id,
+      fonte: data.fonte,
+      criterio: data.criterio.trim(),
+      justificativa: data.justificativa?.trim() || null,
+    };
+  })
+  .handler(async ({ context, data }) => {
+    const supabase = context.supabase as unknown as Cliente;
+    const tabela = FONTES_BIBLIOTECA[data.fonte];
+
+    const { data: atual } = await supabase.from(tabela).select("id,organization_id").eq("id", data.id).maybeSingle();
+    if (!atual) {
+      await registrarAuditoriaBiblioteca(supabase, {
+        organizationId: null,
+        userId: context.userId,
+        acao: "biblioteca_acesso_negado",
+        entidadeId: data.id,
+        metadados: { fonte: data.fonte, tentativa: "homologar" },
+      });
+      throw new Error("Item não encontrado nesta organização.");
+    }
+
+    const patch: Record<string, unknown> =
+      data.fonte === "trilhas"
+        ? {
+            status_via: "homologada",
+            ativo: true,
+            responsavel_revisao: String(context.userId),
+            ultima_revisao_em: new Date().toISOString(),
+          }
+        : {
+            status: "aprovado",
+            reviewed_by: String(context.userId),
+            reviewed_at: new Date().toISOString(),
+          };
+
+    await gravarComVerificacao({
+      supabase,
+      tabela,
+      id: data.id,
+      organizationId: atual.organization_id as string,
+      userId: context.userId as string,
+      payload: patch,
+    });
+
+    await registrarAuditoriaBiblioteca(supabase, {
+      organizationId: atual.organization_id ?? null,
+      userId: context.userId,
+      acao: "biblioteca_homologacao",
+      entidadeId: data.id,
+      metadados: { fonte: data.fonte, criterio: data.criterio, justificativa: data.justificativa },
+    });
+
+    return { ok: true };
   });
 
 /** Histórico append-only de estados de um item da Biblioteca Mestre. */

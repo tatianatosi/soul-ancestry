@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -96,13 +97,16 @@ function AbaInconsistencias() {
     null,
   );
 
+  const autoridade = useAutoridade();
   const q = useQuery({
     queryKey: ["qualidade", "issues", severidade, status, dominio],
     queryFn: () => fnListar({ data: { severidade, status, dominio } }),
   });
 
   const resumo = q.data?.resumo ?? {};
-  const podeTratar = q.data?.podeTratar ?? false;
+  // Autoridade operacional: o gate de papel do servidor deixa de esconder a
+  // ação de tratamento. Só falta de papel/organização bloqueia.
+  const podeTratar = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
   const lista = q.data?.inconsistencias ?? [];
 
   return (
@@ -175,7 +179,18 @@ function AbaInconsistencias() {
       </div>
 
       {q.isLoading && <p className="text-sm text-navy/60">Carregando…</p>}
-      {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
+      {q.error && (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {(q.error as Error).message}
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
 
       <div className="space-y-2">
         {lista.length === 0 && !q.isLoading && (
@@ -303,6 +318,7 @@ function AbaChecklists() {
   const fnMarcar = useServerFn(marcarItemChecklist);
   const [casoId, setCasoId] = useState("");
 
+  const autoridade = useAutoridade();
   const q = useQuery({
     queryKey: ["qualidade", "checklists", casoId],
     queryFn: () => fnListar({ data: { casoId } }),
@@ -311,7 +327,9 @@ function AbaChecklists() {
   const casos = q.data?.casos ?? [];
   const itens = q.data?.itens ?? [];
   const modelos = q.data?.modelos ?? [];
-  const podeTratar = q.data?.podeTratar ?? false;
+  // Autoridade operacional: o gate de papel do servidor deixa de esconder a
+  // ação de tratamento. Só falta de papel/organização bloqueia.
+  const podeTratar = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
 
   const porFase = itens.reduce<Record<string, Linha[]>>((acc, i: Linha) => {
     const f = String(i["fase"] ?? "*");
@@ -458,7 +476,18 @@ function AbaSemanal() {
       </div>
 
       {q.isLoading && <p className="text-sm text-navy/60">Calculando…</p>}
-      {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
+      {q.error && (
+        <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {(q.error as Error).message}
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-3">
         {numeros.map(([k, v]) => (
@@ -503,22 +532,28 @@ function AbaExportacao() {
   const [conjunto, setConjunto] = useState("inconsistencias");
   const [confirmando, setConfirmando] = useState(false);
 
+  const autoridade = useAutoridade();
   const previa = useQuery({
     queryKey: ["qualidade", "preview", conjunto],
     queryFn: () => fnPreview({ data: { conjunto } }),
   });
   const historico = useQuery({ queryKey: ["qualidade", "exportacoes"], queryFn: () => fnHistorico() });
 
-  const ehAdmin = previa.data?.ehAdmin ?? false;
+  // Autoridade operacional: exportação deixa de ser escondida por flag de
+  // admin; a restrição vira pendência declarada e o servidor revalida.
+  const ehAdmin = !autoridade.bloqueado({ acaoExterna: "confirmar_acao_externa_pacote" });
+  const pendenciaExportacao = previa.data && !previa.data.ehAdmin
+    ? "O servidor não reconhece seu vínculo como administração — a exportação segue disponível por decisão sua e é revalidada no servidor."
+    : null;
 
   return (
     <div className="space-y-4">
       <Painel titulo="Exportar em CSV">
-        {!ehAdmin && (
-          <p className="mb-3 rounded-lg bg-terracotta/10 p-3 text-sm text-terracotta">
-            A exportação é restrita à administração. Você pode consultar os conjuntos e o histórico.
+        {pendenciaExportacao ? (
+          <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 p-3 text-xs text-navy/70">
+            Pendência registrada: {pendenciaExportacao}
           </p>
-        )}
+        ) : null}
         <Campo rotulo="Conjunto">
           <select value={conjunto} onChange={(e) => setConjunto(e.target.value)} className={inputCls}>
             {Object.entries(CONJUNTOS_CSV).map(([v, c]) => (
@@ -533,7 +568,6 @@ function AbaExportacao() {
             Documentos, arquivos, links privados e dados sensíveis do titular nunca são exportados.
         </p>
         <button
-          disabled={!ehAdmin}
           onClick={() => setConfirmando(true)}
           className="mt-3 rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
         >
@@ -542,8 +576,20 @@ function AbaExportacao() {
       </Painel>
 
       <Painel titulo="Histórico de exportações">
-        {(historico.data?.exportacoes ?? []).length === 0 && (
-          <p className="text-sm text-navy/60">Nenhuma exportação registrada.</p>
+        {historico.isError ? (
+          <p role="alert" className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+            Não foi possível carregar o histórico de exportações — a lista está vazia por falha de consulta.
+            <button
+              type="button"
+              onClick={() => void historico.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+        {!historico.isLoading && !historico.isError && (historico.data?.exportacoes ?? []).length === 0 && (
+          <p className="text-sm text-navy/60">Consulta concluída: nenhuma exportação registrada.</p>
         )}
         <ul className="space-y-1 text-sm">
           {(historico.data?.exportacoes ?? []).map((e: Linha) => (

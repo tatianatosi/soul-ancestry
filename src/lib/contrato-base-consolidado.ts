@@ -45,6 +45,18 @@ export const PERFIL_INSTITUCIONAL: CampoInstitucional[] = [
   { campo: "nome_operacao", rotulo: "Nome de operação", valor: "Clube Ancestral" },
   { campo: "cnpj", rotulo: "CNPJ", valor: "10.448.812/0001-58" },
   {
+    /*
+     * 04/09/2026 — a Proprietária confirmou: como a razão empresarial já é o
+     * nome dela ("TATIANA MELANI TOSI – ME", uma firma individual), ela é a
+     * representante legal em todos os aspectos do Clube Ancestral. Não é dado
+     * novo sendo exposto (o nome completo já está em razao_empresarial acima);
+     * é o mesmo fato, declarado no campo que os checklists/telas perguntam.
+     */
+    campo: "representante_legal",
+    rotulo: "Representante legal",
+    valor: "Tatiana Melani Tosi",
+  },
+  {
     campo: "endereco_institucional",
     rotulo: "Endereço institucional",
     valor: "Rua Nova York, 822, Apt. 142, Brooklin, CEP 04560-001, São Paulo – SP, Brasil",
@@ -229,6 +241,34 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
       "14.3. Por estarem de acordo, as partes assinam o presente instrumento por meio físico ou eletrônico, conforme método institucional homologado.",
     ],
   },
+  /**
+   * 07/09/2026 — cláusulas 15 e 16 adicionadas para fechar os 2 últimos temas
+   * jurídicos bloqueantes da matriz (inadimplemento, rescisão), que não
+   * tinham cobertura em nenhuma das 14 cláusulas originais. Decisão assumida
+   * pela proprietária (instrução explícita de continuar fechando a jornada
+   * da Ana sem pausar para confirmação) — registrada em
+   * docs/auditorias/fechamento-8-temas-juridicos-ana-07-09.md. Numeradas após
+   * a cláusula 14 (não renumeradas no meio) para não alterar a referência de
+   * nenhuma cláusula já existente.
+   */
+  {
+    numero: 15,
+    titulo: "Inadimplemento",
+    itens: [
+      "15.1. O atraso no pagamento de qualquer parcela sujeita o CONTRATANTE a juros de mora de 1% (um por cento) ao mês e multa de 2% (dois por cento) sobre o valor em atraso, sem prejuízo da correção monetária aplicável.",
+      "15.2. O atraso superior a 30 (trinta) dias autoriza a CONTRATADA a suspender a execução dos serviços até a regularização, sem caracterizar descumprimento contratual de sua parte.",
+      "15.3. A suspensão por inadimplemento não gera direito a indenização ou compensação pelo período suspenso.",
+    ],
+  },
+  {
+    numero: 16,
+    titulo: "Rescisão",
+    itens: [
+      "16.1. Qualquer parte pode rescindir este instrumento mediante aviso prévio de 15 (quinze) dias, preservando-se os honorários já devidos pelas etapas efetivamente entregues até a data da rescisão.",
+      "16.2. A rescisão por inadimplemento do CONTRATANTE superior a 60 (sessenta) dias dispensa o aviso prévio.",
+      "16.3. Documentos e materiais já produzidos até a rescisão são entregues ao CONTRATANTE, observado o disposto na cláusula de Propriedade Intelectual.",
+    ],
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -236,10 +276,13 @@ export const CLAUSULAS_FIXAS: ClausulaFixa[] = [
 /* ------------------------------------------------------------------ */
 
 /**
- * O documento consolidado v1.0 numera 14 seções começando pelo Perfil
- * institucional. Internamente o perfil é fonte versionada própria e as
- * cláusulas seguem numeração 1–14 a partir de "Partes e documentos".
- * Este mapa mantém as duas leituras equivalentes — nada é renumerado à mão.
+ * O documento consolidado v1.0 numerava 14 seções começando pelo Perfil
+ * institucional. Em 07/09/2026, as cláusulas 15 (Inadimplemento) e 16
+ * (Rescisão) foram adicionadas para fechar os 2 temas jurídicos que não
+ * tinham cobertura — agora 16 seções. Internamente o perfil é fonte
+ * versionada própria e as cláusulas seguem numeração 1–16 a partir de
+ * "Partes e documentos". Este mapa mantém as duas leituras equivalentes —
+ * nada é renumerado à mão.
  */
 export type SecaoDocumentoPublicado = {
   secao: number;
@@ -264,6 +307,8 @@ export const SECOES_DOCUMENTO_PUBLICADO: SecaoDocumentoPublicado[] = [
   { secao: 12, titulo: "Cumprimento e encerramento", clausulaInterna: 11, fonte: CONTRATO_BASE_VERSAO },
   { secao: 13, titulo: "Propriedade intelectual", clausulaInterna: 12, fonte: CONTRATO_BASE_VERSAO },
   { secao: 14, titulo: "Assinatura, evidência e foro", clausulaInterna: 13, fonte: `${CONTRATO_BASE_VERSAO} (cláusulas 13 e 14)` },
+  { secao: 15, titulo: "Inadimplemento", clausulaInterna: 15, fonte: "v1.1 (07/09/2026)" },
+  { secao: 16, titulo: "Rescisão", clausulaInterna: 16, fonte: "v1.1 (07/09/2026)" },
 ];
 
 /** Nenhuma cláusula interna pode ficar fora do documento publicado. */

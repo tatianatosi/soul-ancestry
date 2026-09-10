@@ -5,7 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
   FiltroStatus,
@@ -59,7 +61,11 @@ type Linha = Record<string, unknown>;
 type Aba = "faturas" | "pagamentos";
 
 function FinanceiroPage() {
-  const { podeFinanceiro } = useSaas();
+  const autoridade = useAutoridade();
+  // Antes: `podeFinanceiro` desligava a tela inteira e ainda desligava as
+  // consultas. Agora só a falta de papel ou de organização bloqueia.
+  const decisaoFinanceiro = autoridade.decidir({ capacidade: "corrigir_condicao_comercial" });
+  const podeFinanceiro = decisaoFinanceiro.decisao !== "bloquear";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
   const vinculos = useServerFn(listarVinculos);
@@ -143,13 +149,14 @@ function FinanceiroPage() {
   if (!podeFinanceiro) {
     return (
       <SaasShell titulo="Financeiro" descricao="Faturas, pagamentos e conciliação.">
-        <EstadoVazio mensagem="Seu papel não inclui acesso financeiro. Solicite a um admin da sua organização." />
+        <EstadoVazio mensagem={decisaoFinanceiro.motivo} />
       </SaasShell>
     );
   }
 
   const clientes = qv.data?.clientes ?? [];
   const casos = qv.data?.casos ?? [];
+  const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const faturas = (qFaturas.data ?? []) as Linha[];
   const linhas = (q.data ?? []) as Linha[];
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
@@ -194,6 +201,22 @@ function FinanceiroPage() {
       }
     >
       <div className="space-y-4">
+        {qFaturas.isError || qPagamentos.isError ? (
+          <p className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+            Não foi possível carregar {qFaturas.isError && qPagamentos.isError ? "faturas nem pagamentos" : qFaturas.isError ? "as faturas" : "os pagamentos"}.
+            Os totais abaixo não refletem valor real — a leitura falhou, não é zero.
+            <button
+              type="button"
+              onClick={() => {
+                if (qFaturas.isError) void qFaturas.refetch();
+                if (qPagamentos.isError) void qPagamentos.refetch();
+              }}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
         <div className="flex gap-2">
           {(["faturas", "pagamentos"] as Aba[]).map((a) => (
             <button
@@ -228,8 +251,16 @@ function FinanceiroPage() {
             não entra como custo do Clube. Indicador sem base declarada aparece como “Sem dados suficientes”.
           </p>
           <p className="mt-1 text-[11px] text-navy/50">
-            Recorte único: caixa, previsão e eficiência de mídia usam o mesmo período de apuração (mês corrente). Mídia e aquisição
-            não são lidas em janela própria.
+            {/*
+              07/09/2026 — achado de auditoria: este texto anunciava "mês
+              corrente" como recorte de apuração, mas o cálculo abaixo soma
+              todo o histórico não arquivado, sem filtro de período nenhum.
+              Corrigido para descrever o que o código realmente faz, em vez
+              de prometer um recorte que não existe. Se quiser recorte por
+              mês de verdade, isso é uma mudança de cálculo à parte.
+            */}
+            Recorte único: caixa, previsão e eficiência de mídia usam a mesma base (acumulado total, sem filtro de período).
+            Não é recorte de mês corrente. Mídia e aquisição não são lidas em janela própria.
           </p>
           {realidadeAberta ? (
             <div className="mt-3 space-y-3">
@@ -340,12 +371,109 @@ function FinanceiroPage() {
           </p>
         ) : null}
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando…" />
-        ) : !linhas.length ? (
+        {vinculosIndisponiveis ? (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+          >
+            Não foi possível carregar clientes e casos vinculados. As listas de seleção e os nomes exibidos
+            estão vazios por falha de leitura, não por ausência de cadastro.
+            <button
+              type="button"
+              onClick={() => void qv.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data as Linha[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso={aba === "faturas" ? "as faturas" : "os pagamentos"}
+          vazio="Nenhum registro cadastrado ainda."
+        >
+          {() =>
+          !linhas.length ? (
           <EstadoVazio mensagem="Nenhum registro neste filtro." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
+          <>
+            {/* Mobile (<640px): cards empilhados — a tabela larga cortava conteúdo e a rolagem
+                horizontal não é aceitável como única saída para um fluxo operacional. */}
+            <div className="grid gap-3 sm:hidden">
+              {linhas.map((l) => (
+                <button
+                  key={String(l["id"])}
+                  type="button"
+                  onClick={() => {
+                    setErro(null);
+                    setDetalhe(l);
+                  }}
+                  className="rounded-xl border border-navy/10 bg-white p-3 text-left text-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium text-navy">
+                      {aba === "faturas" ? String(l["descricao"] ?? "—") : rotuloFatura(l["invoice_id"])}
+                    </span>
+                    <span className="whitespace-nowrap font-medium text-navy">{moeda(l["valor"], l["moeda"])}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-navy/60">
+                    {aba === "faturas" ? nomeCliente(l["client_id"]) : String(l["referencia_externa"] ?? "—")}
+                  </div>
+                  <div className="mt-1 text-xs text-navy/60">
+                    {dataBr(l[aba === "faturas" ? "vencimento" : "pago_em"])}
+                    {(() => {
+                      if (aba !== "faturas") return null;
+                      if (l["status"] === "paga" || l["status"] === "cancelada") return null;
+                      const dias = diasDesde(l["vencimento"]);
+                      const rotulo = rotuloIdade(dias, "em aberto");
+                      if (!rotulo) return null;
+                      return (
+                        <span
+                          className={cn(
+                            "ml-2",
+                            tomIdade(dias) === "alerta" ? "font-semibold text-terracotta" : "text-navy/55",
+                          )}
+                        >
+                          {rotulo}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <Selo
+                      texto={rotulos[String(l["status"])] ?? String(l["status"])}
+                      tom={
+                        l["status"] === "paga" || l["status"] === "confirmado"
+                          ? "ok"
+                          : l["status"] === "vencida" || l["status"] === "cancelada"
+                            ? "alerta"
+                            : "neutro"
+                      }
+                    />
+                    {aba === "pagamentos" ? (
+                      <Selo
+                        texto={ROTULO_CONCILIACAO[String(l["conciliacao_status"])] ?? String(l["conciliacao_status"] ?? "—")}
+                        tom={
+                          l["conciliacao_status"] === "conciliado"
+                            ? "ok"
+                            : l["conciliacao_status"] === "divergente"
+                              ? "erro"
+                              : "neutro"
+                        }
+                      />
+                    ) : null}
+                    {ehDemo(l) ? <Selo texto="DEMO" tom="alerta" /> : null}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop/tablet (≥640px): tabela completa */}
+            <div className="hidden overflow-x-auto rounded-xl border border-navy/10 bg-white sm:block">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
                 <tr>
@@ -429,8 +557,11 @@ function FinanceiroPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
+            </div>
+          </>
+        )
+          }
+        </EstadoDados>
       </div>
 
       {detalhe ? (
@@ -524,16 +655,27 @@ function FinanceiroPage() {
                 >
                   Registrar ajuste
                 </button>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {((qAjustes.data ?? []) as Linha[])
-                    .filter((a) => a["invoice_id"] === detalhe["id"])
-                    .map((a) => (
-                    <li key={String(a["id"])} className="rounded-lg border border-navy/10 px-3 py-2">
-                      {moeda(a["valor"], detalhe["moeda"])} — {String(a["motivo"] ?? "")}{" "}
-                      <span className="text-navy/50">{dataBr(a["created_at"])}</span>
-                    </li>
-                  ))}
-                </ul>
+                <EstadoDados
+                  carregando={qAjustes.isLoading}
+                  erro={qAjustes.error}
+                  dados={qAjustes.data as Linha[] | undefined}
+                  aoTentarNovamente={() => void qAjustes.refetch()}
+                  recurso="os ajustes de fatura"
+                  vazio="Nenhum ajuste registrado."
+                >
+                  {(ajustes) => (
+                    <ul className="mt-4 space-y-2 text-sm">
+                      {ajustes
+                        .filter((a) => a["invoice_id"] === detalhe["id"])
+                        .map((a) => (
+                          <li key={String(a["id"])} className="rounded-lg border border-navy/10 px-3 py-2">
+                            {moeda(a["valor"], detalhe["moeda"])} — {String(a["motivo"] ?? "")}{" "}
+                            <span className="text-navy/50">{dataBr(a["created_at"])}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </EstadoDados>
               </Painel>
             </>
           ) : (

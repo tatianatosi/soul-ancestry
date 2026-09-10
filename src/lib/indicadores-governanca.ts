@@ -247,27 +247,35 @@ export const DETALHE_INDICADOR: Record<string, DetalheIndicador> = {
   },
   "IND-MKT-01": {
     formula: "investimento de mídia classificado ÷ leads atribuíveis",
-    periodo: "Mês corrente",
+    // CA22-GOVERNANCA-E-INDICADORES-UNICOS (09/09/2026): este campo dizia
+    // "Mês corrente", mas /marketing usa recorte selecionável (7d/30d/90d/
+    // 365d/tudo), com "tudo" (acumulado, sem janela) como padrão — nunca mês
+    // calendário. Corrigido para descrever o recorte real.
+    periodo: "Recorte selecionável em /marketing (7d/30d/90d/365d/tudo); padrão: tudo, acumulado",
     status: "sem_dados",
     condicao_sem_dados: "Sem investimento classificado ou sem atribuição de leads.",
   },
   "IND-MKT-02": {
     formula: "investimento de mídia ÷ pagamentos iniciais confirmados atribuíveis",
-    periodo: "Mês corrente",
+    periodo: "Recorte selecionável em /marketing (7d/30d/90d/365d/tudo); padrão: tudo, acumulado",
     status: "sem_dados",
     condicao_sem_dados: "Sem investimento classificado ou sem pagamento atribuível confirmado.",
   },
   "IND-MKT-03": {
     formula: "(receita recebida atribuível − investimento) ÷ investimento",
-    periodo: "Mês corrente",
+    periodo: "Recorte selecionável em /marketing (7d/30d/90d/365d/tudo); padrão: tudo, acumulado",
     status: "sem_dados",
     condicao_sem_dados: "Sem investimento classificado ou sem receita recebida atribuível.",
   },
   "IND-FIN-01": {
     formula: "receita recebida − despesas operacionais do Clube − investimento de mídia",
-    periodo: "Mês corrente",
+    // CA22: idem — /financeiro não tem filtro de período (achado de auditoria
+    // de 07/09/2026, já corrigido no texto da própria tela): soma o
+    // acumulado não arquivado, sem recorte de mês. "Mês corrente" aqui era
+    // uma segunda regra, divergente da tela real.
+    periodo: "Acumulado total em /financeiro, sem filtro de período",
     status: "parcial",
-    condicao_sem_dados: "Receita recebida não apurada no período.",
+    condicao_sem_dados: "Receita recebida não apurada.",
   },
   "IND-FIN-02": {
     formula: "soma(contratos assinados) − soma(recebimentos confirmados)",
