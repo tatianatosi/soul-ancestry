@@ -114,10 +114,15 @@ export function CompletudeCanva({
       titulo="Completude da proposta Canva"
       descricao={
         pendentes.length
-          ? `Páginas sem extração concluída: ${pendentes.join(", ")}. Geração de contrato e anexos permanece bloqueada.`
+          ? `Páginas sem extração concluída: ${pendentes.join(", ")}. Contrato e anexos ficam como pendência até as páginas extraídas.`
           : "Todas as páginas 1–7 extraídas."
       }
     >
+      {!podeEscrever ? (
+        <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: contexto de acesso ainda não confirmado — a gravação é revalidada no servidor.
+        </p>
+      ) : null}
       <div className="space-y-3">
         {leituraFalhou ? (
           <p role="alert" className="flex flex-wrap items-center gap-2 text-sm text-terracotta">
@@ -148,7 +153,6 @@ export function CompletudeCanva({
                   valor={d.status ?? String(r?.extracao_status ?? "")}
                   opcoes={STATUS}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], status: v } }))}
-                  desabilitado={!podeEscrever}
                 />
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -164,7 +168,6 @@ export function CompletudeCanva({
                       }))
                     }
                     area={c.area}
-                    desabilitado={!podeEscrever}
                   />
                 ))}
               </div>
@@ -173,19 +176,17 @@ export function CompletudeCanva({
                   label="Campos não localizados"
                   valor={d.nao_localizados ?? naoLocalizados}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], nao_localizados: v } }))}
-                  desabilitado={!podeEscrever}
                   ajuda="Separe por vírgula. Cada item vira pendência, nunca valor presumido."
                 />
                 <Texto
                   label="Observação interna"
                   valor={d.observacao ?? String(r?.observacao_interna ?? "")}
                   onChange={(v) => setRascunho((s) => ({ ...s, [p]: { ...s[p], observacao: v } }))}
-                  desabilitado={!podeEscrever}
                 />
               </div>
               <button
                 type="button"
-                disabled={!podeEscrever || (mut.isPending && mut.variables?.page_number === p)}
+                disabled={mut.isPending && mut.variables?.page_number === p}
                 className="mt-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
                 onClick={() =>
                   mut.mutate({

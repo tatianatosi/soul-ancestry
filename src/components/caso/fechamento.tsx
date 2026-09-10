@@ -22,7 +22,17 @@ const ROTULO_SITUACAO: Record<string, string> = {
  * Fechamento do caso: os treze gates em uma tela única, com checklist, bloqueios
  * e a ação que o Desk oferece. Nenhum gate avança automaticamente.
  */
-export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; bloqueado?: boolean }) {
+export function AbaFechamento({
+  casoId,
+  bloqueado: _bloqueado = false,
+}: {
+  casoId: string;
+  /**
+   * Mantida só por compatibilidade com quem chama. Pendência informa;
+   * não esconde a ação de abrir tarefa.
+   */
+  bloqueado?: boolean;
+}) {
   const carregar = useServerFn(carregarFechamentoCaso);
   const abrirTarefa = useServerFn(abrirTarefaGate);
   const qc = useQueryClient();
@@ -46,7 +56,6 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
   const dados = q.data!;
   const f = dados.fechamento;
-  const podeAgir = dados.podeEscrever && !bloqueado;
 
   return (
     <div className="space-y-5">
@@ -127,7 +136,7 @@ export function AbaFechamento({ casoId, bloqueado = false }: { casoId: string; b
 
               {g.motivo ? <p className="mt-2 text-xs text-terracotta">{g.motivo}</p> : null}
 
-              {g.situacao !== "concluido" && podeAgir ? (
+              {g.situacao !== "concluido" ? (
                 <button
                   type="button"
                   onClick={() => tarefa.mutate(g.chave)}

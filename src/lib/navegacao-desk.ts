@@ -65,12 +65,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Visão geral de aquisição" },
       { to: "/marketing", hash: "canais-campanhas", label: "Canais e campanhas" },
-      { to: "/marketing", hash: "conteudo-ctas", label: "Conteúdo e CTAs" },
-      { grupo: "Origem e análise" },
-      { to: "/marketing", hash: "atribuicao", label: "Atribuição e origem" },
-      { to: "/marketing", hash: "funil-aquisicao", label: "Funil de aquisição" },
-      { to: "/marketing", hash: "metricas-canal", label: "Métricas por canal" },
-      { to: "/marketing", hash: "aprendizados", label: "Aprendizados" },
       { grupo: "Handoff" },
       { to: "/marketing", hash: "links-comercial", label: "Links contextuais para Comercial" },
     ],
@@ -99,17 +93,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/calls", label: "Calls Discovery" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
-      { grupo: "Referência do CRM" },
-      // 27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). O
-      // modelo de contatos/oportunidades (0 registros desde 21/08) saiu do
-      // menu, seguindo o mesmo padrão dos painéis históricos: link direto
-      // em /leads (id="crm-contatos"), sem entrada em nav/atalhos/descoberta.
-      // Preservado em /historico/fluxo-comercial-canonico.
-      { to: "/crm-mestre", label: "CRM Mestre, Discovery e handoff" },
-      {
-        to: "/governanca/dicionario-calls-crm",
-        label: "Dicionário de validações (Calls → CRM)",
-      },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
       { grupo: "Relacionamento" },
       // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
@@ -121,7 +104,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       // possível (a página exige uma pessoa específica); o rótulo abaixo
       // deixa explícito que /clientes é a porta de entrada da pessoa 360.
       { to: "/clientes", label: "Clientes e pessoa 360 (histórico completo por pessoa)" },
-      { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
+      { to: "/matriz-juridica", label: "Validação Jurídica" },
     ],
   },
   {
@@ -135,14 +118,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Operação do caso" },
       { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
-      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados (sugestão)" },
+      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
       { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
       { grupo: "Ativação" },
       { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
-      { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
+      { to: "/matriz-juridica", label: "Validação Jurídica" },
     ],
   },
   {
@@ -183,13 +166,9 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/homologacao-skus", label: "Homologação de SKUs" },
       { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
       { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
-      {
-        to: "/governanca/catalogo-operacional-30",
-        label: "Catálogo Operacional 30 (CA-06)",
-      },
       { grupo: "Financeiro" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Bloqueios de cobrança" },
+      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
       { grupo: "Auditoria (referência)" },
       { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
@@ -259,6 +238,15 @@ export const MENU_CONTA: {
       label: "Dossiê legado de pesquisa (sistema anterior)",
     },
     { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
+    { to: "/crm-mestre", label: "CRM Mestre (legado, consulta)" },
+    {
+      to: "/governanca/dicionario-calls-crm",
+      label: "Dicionário Calls → CRM (consulta)",
+    },
+    {
+      to: "/governanca/catalogo-operacional-30",
+      label: "Catálogo operacional 30 (consulta)",
+    },
   ],
 } as const;
 

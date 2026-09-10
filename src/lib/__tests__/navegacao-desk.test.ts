@@ -152,4 +152,17 @@ describe("CA-UX-03 — navegação em 8 grupos", () => {
     expect(rotasDoCrmVivo).toContain("/propostas");
     expect(rotasDoCrmVivo).toContain("/conversao");
   });
+
+  it("consulta de legado (CRM Mestre, dicionário, catálogo 30) fica no menu da conta, não na face", () => {
+    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(conta).toContain("/crm-mestre");
+    expect(conta).toContain("/governanca/dicionario-calls-crm");
+    expect(conta).toContain("/governanca/catalogo-operacional-30");
+    const rotasFace = GRUPOS_DESK.flatMap((g) =>
+      g.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to),
+    );
+    expect(rotasFace).not.toContain("/crm-mestre");
+    expect(rotasFace).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasFace).not.toContain("/governanca/catalogo-operacional-30");
+  });
 });

@@ -12,6 +12,7 @@ import {
   titulosTarefasDosGates,
   TITULO_PRIMEIRA_MICROENTREGA,
   TOUCHPOINTS_PADRAO,
+  type GatesPlano,
   type ItemChecklistOnboarding,
 } from "@/lib/onboarding-plano";
 import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";

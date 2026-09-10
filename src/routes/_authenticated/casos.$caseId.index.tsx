@@ -2085,13 +2085,17 @@ function CartaoPessoa({
   pessoa,
   atualizar,
   onMudou,
-  bloqueado,
+  bloqueado: _bloqueado,
 }: {
   pessoa: Record<string, unknown>;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
   }) => Promise<unknown>;
   onMudou: () => void;
+  /**
+   * Mantida só por compatibilidade com quem chama. Pendência informa;
+   * não trava CPF, telefone nem CEP.
+   */
   bloqueado: boolean;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
@@ -2174,7 +2178,6 @@ function CartaoPessoa({
           label="CPF"
           valor={v("cpf")}
           onChange={(x) => set("cpf", formatarCpf(x))}
-          desabilitado={bloqueado}
         />
         <Texto
           label="RG / documento"
@@ -2195,7 +2198,6 @@ function CartaoPessoa({
           label="Telefone"
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
-          desabilitado={bloqueado}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
@@ -2212,7 +2214,6 @@ function CartaoPessoa({
           label="CEP"
           valor={v("cep")}
           onChange={(x) => set("cep", formatarCep(x))}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Documentos pendentes"
