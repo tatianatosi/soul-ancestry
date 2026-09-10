@@ -4,7 +4,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo } from "@/lib/caso-canonico.server";
 import { skuHomologadoParaCaso } from "@/lib/catalogo-sku.server";
-import { avaliarFasesMotorCidadania, type SinalFaseCidadania } from "@/lib/motor-cidadania";
+import { avaliarFasesMotorCidadania, TITULO_TAREFA_AVALIACAO_CIDADANIA, type SinalFaseCidadania } from "@/lib/motor-cidadania";
+import { garantirTarefaAberta } from "@/lib/tarefa-garantida.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -88,9 +89,35 @@ export const lerSinaisMotorCidadania = createServerFn({ method: "GET" })
       skuCatalogo: Boolean(sku),
     };
 
-    return {
-      sinal,
-      fases: avaliarFasesMotorCidadania(sinal),
-      sku: sku?.code ?? null,
-    };
+    return { sinal, fases: avaliarFasesMotorCidadania(sinal), sku: sku?.code ?? null };
+  });
+
+/**
+ * Fase 4: grava uma tarefa de avaliação no caso. Não calcula % de elegibilidade,
+ * não emite parecer, não cria citizenship_cases.
+ */
+export const registrarTarefaAvaliacaoCidadania = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const organizationId = await organizacaoDo(supabase, context.userId as string);
+    const caso = await supabase
+      .from("crm_casos")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("id", data.caseId)
+      .maybeSingle();
+    if (!caso.data) throw new Error("Caso não encontrado nesta organização.");
+
+    const t = await garantirTarefaAberta(supabase, {
+      organizationId,
+      casoId: data.caseId,
+      titulo: TITULO_TAREFA_AVALIACAO_CIDADANIA,
+      tipo: "juridico",
+      descricao:
+        "Avaliação humana da próxima ação genealógica. Sem percentual de elegibilidade e sem parecer automático.",
+      userId: context.userId as string,
+    });
+    return { id: t.id, criada: t.criada };
   });

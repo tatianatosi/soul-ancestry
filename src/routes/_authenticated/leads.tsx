@@ -426,14 +426,13 @@ function LeadsPage() {
             <div className="grid gap-3 md:grid-cols-2">
               <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
-              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} desabilitado={!podeEscrever} />
+              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} />
               <Texto
                 label="Telefone"
                 valor={campo("telefone")}
                 onChange={(x) => set("telefone")(formatarTelefone(x))}
-                desabilitado={!podeEscrever}
               />
-              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} desabilitado={!podeEscrever} />
+              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao
                 label="Área responsável"
                 valor={campo("area_responsavel")}

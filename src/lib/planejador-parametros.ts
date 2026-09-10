@@ -1,15 +1,10 @@
 /**
- * Planejador Universal como FONTE CANÔNICA de parâmetros.
+ * LEGADO — dump homologado do Planejador Universal (planilha / src/data/casos.ts).
  *
- * Não é lacuna nem fonte descartada: os parâmetros aqui registrados foram
- * homologados no Planejador Universal (planejador-universal-simulador-todas-cidadanias)
- * e entram na ficha contratual com origem `planejador`, a maior confiança do motor.
- *
- * Regras:
- * - Nada é inferido: só há parâmetro quando a convenção de ID do caso está
- *   explicitamente registrada abaixo.
- * - Origem, versão e data de homologação são preservadas e rastreáveis.
- * - Fonte menor (WhatsApp, transcrição, relato, DEMO) nunca sobrescreve.
+ * NÃO é a fonte da operação ativa. O planejador operacional vivo é `case_plans`
+ * via `salvarPlanejadorOperacional`. Este módulo só preenche parâmetro contratual
+ * VAZIO (nunca sobrescreve valor já persistido) e não dirige status, prioridade,
+ * próxima ação, tarefa ou dashboard.
  */
 
 import { PARAMETROS } from "@/data/casos";

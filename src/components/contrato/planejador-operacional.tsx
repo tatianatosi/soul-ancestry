@@ -62,9 +62,17 @@ const VAZIO: Estado = {
  * cadeia inteira ficava bloqueada em cascata, mesmo sem nenhum bug de dado.
  * Este formulário é a entrada que faltava.
  */
-export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string; podeEscrever: boolean }) {
+export function PlanejadorOperacional({
+  caseId,
+  podeEscrever,
+  inicialAberto = false,
+}: {
+  caseId: string;
+  podeEscrever: boolean;
+  inicialAberto?: boolean;
+}) {
   const qc = useQueryClient();
-  const [aberto, setAberto] = useState(false);
+  const [aberto, setAberto] = useState(inicialAberto);
   const [estado, setEstado] = useState<Estado>(VAZIO);
 
   const carregarSkus = useServerFn(listarSkusPlanejador);
@@ -81,6 +89,8 @@ export function PlanejadorOperacional({ caseId, podeEscrever }: { caseId: string
       );
       qc.invalidateQueries({ queryKey: ["cadeia-operacional", caseId] });
       qc.invalidateQueries({ queryKey: ["contrato-preparar", caseId] });
+      qc.invalidateQueries({ queryKey: ["ficha-caso", caseId] });
+      qc.invalidateQueries({ queryKey: ["caso-canonico", caseId] });
       setAberto(false);
     },
     onError: (e: Error) => toast.error(e.message),

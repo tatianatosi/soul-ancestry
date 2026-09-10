@@ -49,7 +49,8 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     // (documentos), q.data.timeline (case_timeline_events, já lido por
     // carregarFichaCaso) e qc2.data.entregas/alertas (client_deliverables/
     // case_alerts, já lidos por carregarCanonico). Nenhuma tabela nova.
-    expect(pagina).toContain('import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions"');
+    expect(pagina).toContain('import { listarFilaOps } from "@/lib/ops.functions"');
+    expect(pagina).toContain("FormularioTarefaCaso");
     expect(pagina).toContain('import { listarDocumentos } from "@/lib/documentos.functions"');
     expect(pagina).toContain("qc2.data?.entregas");
     expect(pagina).toContain("qc2.data?.alertas");
@@ -59,7 +60,7 @@ describe("Caso 360 — primeira superfície simplificada (CA04-CASO360-SIMPLES)"
     expect(pagina).toContain("mConcluir.mutate()");
     expect(pagina).toContain('import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions"');
     expect(pagina).toContain("mReprogramar.mutate(novo.trim())");
-    expect(pagina).toContain("mCriarTarefa.mutate(titulo.trim())");
+    expect(pagina).toContain('document.getElementById("form-tarefa-caso")');
     expect(pagina).toContain("mRegistrarAtualizacao.mutate(texto.trim())");
     expect(pagina).toContain('href="#secao-jornada"');
   });

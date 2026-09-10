@@ -5,6 +5,7 @@ import type { AcaoGateada } from "@/lib/gates-formalizacao";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao, linhasDeLog } from "@/lib/persistencia.server";
 import { exigirProximaAcaoCompleta } from "@/lib/proxima-acao-regras";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 import {
   validarEstadoInicial,
   validarRegrasNegocio,
@@ -217,6 +218,7 @@ const CAMPOS_PERMITIDOS: Record<Entidade, string[]> = {
     "caso_id",
     "titulo",
     "descricao",
+    "tipo",
     "responsavel_id",
     "prioridade",
     "status",
@@ -473,6 +475,19 @@ export const criarRegistro = createServerFn({ method: "POST" })
     // podia criar duas tarefas idênticas. Mesma regra: caso_id + título +
     // status aberto reaproveita em vez de duplicar.
     const payloadGenerico = payload as Record<string, unknown>;
+    if (data.entidade === "crm_casos") {
+      if (!payloadGenerico["cliente_id"] || String(payloadGenerico["cliente_id"]).trim() === "") {
+        throw new Error("Caso operacional exige cliente vinculado.");
+      }
+      if (!payloadGenerico["tipo_servico"] || String(payloadGenerico["tipo_servico"]).trim() === "") {
+        throw new Error("Caso operacional exige tipo de serviço.");
+      }
+    }
+    if (data.entidade === "tarefas") {
+      if (!payloadGenerico["caso_id"] || String(payloadGenerico["caso_id"]).trim() === "") {
+        throw new Error("Tarefa operacional exige caso vinculado.");
+      }
+    }
     if (data.entidade === "tarefas" && payloadGenerico["caso_id"] && payloadGenerico["titulo"]) {
       const janela = new Date(Date.now() - 60_000).toISOString();
       const { data: existente } = await supabase
@@ -492,7 +507,35 @@ export const criarRegistro = createServerFn({ method: "POST" })
 
     const { data: linha, error } = await supabase.from(data.entidade).insert(payload).select("id").maybeSingle();
     if (error) throw new Error(error.message);
-    return { id: linha?.id as string | undefined };
+    const novoId = linha?.id as string | undefined;
+    if (novoId && data.entidade === "crm_casos") {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: novoId,
+        eventType: "caso",
+        title: "Caso aberto",
+        summaryInternal: String(payloadGenerico["titulo"] ?? novoId),
+        sourceEntityType: "crm_casos",
+        sourceEntityId: novoId,
+        userId: context.userId as string,
+        nextAction: typeof payloadGenerico["proxima_acao"] === "string" ? payloadGenerico["proxima_acao"] : null,
+      });
+    }
+    if (novoId && data.entidade === "tarefas" && payloadGenerico["caso_id"]) {
+      const bloqueada = payloadGenerico["status"] === "bloqueada";
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: String(payloadGenerico["caso_id"]),
+        eventType: bloqueada ? "pendencia" : "tarefa",
+        title: bloqueada ? "Pendência/bloqueio registrado" : "Tarefa criada",
+        summaryInternal: String(payloadGenerico["titulo"] ?? ""),
+        sourceEntityType: "tarefas",
+        sourceEntityId: novoId,
+        bloqueio: bloqueada,
+        userId: context.userId as string,
+      });
+    }
+    return { id: novoId };
   });
 
 export const atualizarRegistro = createServerFn({ method: "POST" })
@@ -614,6 +657,38 @@ export const atualizarRegistro = createServerFn({ method: "POST" })
           campos: diff,
         }),
       );
+    }
+
+    const casoDaTarefa =
+      data.entidade === "tarefas" && typeof combinado["caso_id"] === "string"
+        ? (combinado["caso_id"] as string)
+        : null;
+    if (data.entidade === "crm_casos" && (diff.includes("proxima_acao") || diff.includes("status"))) {
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: data.id,
+        eventType: "caso",
+        title: diff.includes("proxima_acao") ? "Próxima ação atualizada" : "Status do caso alterado",
+        summaryInternal: String(combinado["proxima_acao"] ?? combinado["status"] ?? ""),
+        sourceEntityType: "crm_casos",
+        sourceEntityId: data.id,
+        userId: context.userId as string,
+        nextAction: typeof combinado["proxima_acao"] === "string" ? combinado["proxima_acao"] : null,
+      });
+    }
+    if (casoDaTarefa && (diff.includes("status") || diff.includes("motivo_bloqueio") || diff.includes("prazo") || diff.includes("responsavel_id"))) {
+      const bloqueada = combinado["status"] === "bloqueada";
+      await registrarTimelineCaso(supabase, {
+        organizationId,
+        caseId: casoDaTarefa,
+        eventType: bloqueada ? "pendencia" : "tarefa",
+        title: "Tarefa atualizada",
+        summaryInternal: `${String(combinado["titulo"] ?? "")} → ${String(combinado["status"] ?? "")}`,
+        sourceEntityType: "tarefas",
+        sourceEntityId: data.id,
+        bloqueio: bloqueada,
+        userId: context.userId as string,
+      });
     }
 
     return { ok: true, alterados: diff, ignorados, salvoEm };

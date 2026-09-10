@@ -74,7 +74,7 @@ function MatrizPage() {
     >
       <div className="mb-4 rounded-xl border border-navy/10 bg-cream/50 p-4 text-sm text-navy">
         {pendentes.length
-          ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura permanece bloqueada.`
+          ? `${pendentes.length} tema(s) bloqueante(s) sem decisão: assinatura fica como pendência.`
           : "Nenhum tema bloqueante pendente."}
       </div>
 

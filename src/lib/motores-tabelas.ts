@@ -8,6 +8,8 @@
  * rodaram como motor. P1 unifica núcleos com colunas já existentes
  * (archived_at / status arquivado); permanece parcial enquanto Pessoa 360
  * (#64) não existir.
+ *
+ * `rotaDesk` é a tela que executa o motor — a Biblioteca não é o produto.
  */
 
 export type EstadoMotor = "operando" | "parcial" | "planta";
@@ -20,6 +22,8 @@ export const MOTORES_TABELAS = [
     prs: ["#31", "#34", "#39", "#44"],
     tabelas: ["crm_casos", "clientes", "tarefas", "contracts", "proposals"] as const,
     naoCriar: [] as const,
+    rotaDesk: "/casos" as const,
+    oQueJaEscreve: "Toda escrita operacional passa por gravarComVerificacao / inserirComVerificacao.",
   },
   {
     id: "P1",
@@ -35,10 +39,10 @@ export const MOTORES_TABELAS = [
       "case_dependents",
     ] as const,
     naoCriar: ["case_participants", "citizenship_cases"] as const,
+    rotaDesk: "/nucleos-duplicidades" as const,
     // Unificação de núcleos (fases 2–6) já grava em nucleos_familiares,
-    // nucleo_membros e leads com colunas existentes. Pessoa 360 (#64) e a
-    // decisão de tarefa após salvar pessoa (#32) ainda faltam — por isso
-    // permanece parcial, não "operando".
+    // nucleo_membros e leads com colunas existentes. Pessoa 360 (#64) ainda
+    // falta — por isso permanece parcial, não "operando".
     oQueJaEscreve:
       "Unificação controlada: reaponta nucleo_membros e leads.nucleo_id; arquiva a origem (archived_at, archive_motivo, archived_by, status arquivado). Sem coluna nova.",
   },
@@ -49,6 +53,9 @@ export const MOTORES_TABELAS = [
     prs: ["#35", "#40", "#41", "#53"],
     tabelas: ["contracts", "proposals", "service_orders", "contract_case_parameters"] as const,
     naoCriar: [] as const,
+    rotaDesk: "/contratos" as const,
+    oQueJaEscreve:
+      "Barra do instrumento: salvar rascunho, criar tarefa, enviar (com confirmação) e arquivar — todos gravam.",
   },
   {
     id: "P3",
@@ -57,6 +64,9 @@ export const MOTORES_TABELAS = [
     prs: ["#32", "#75", "#76", "#80"],
     tabelas: ["tarefas", "crm_casos", "case_plans", "case_alerts"] as const,
     naoCriar: ["cadence_runs"] as const,
+    rotaDesk: "/clientes" as const,
+    oQueJaEscreve:
+      "Após salvar a pessoa: criar tarefa no caso ou gravar sem_nova_acao_necessaria. A fila é /tarefas.",
   },
   {
     id: "P4",
@@ -65,6 +75,9 @@ export const MOTORES_TABELAS = [
     prs: ["#75", "#81"],
     tabelas: ["onboarding_planos", "crm_casos", "tarefas", "client_deliverables"] as const,
     naoCriar: ["onboarding_runs"] as const,
+    rotaDesk: "/casos" as const,
+    oQueJaEscreve:
+      "Preparar plano grava checklist, plano de ação e tarefas dos gates. CTA cria ops_microentregas. Não ativa cliente.",
   },
   {
     id: "P5",
@@ -80,6 +93,8 @@ export const MOTORES_TABELAS = [
       "evidences",
     ] as const,
     naoCriar: [] as const,
+    rotaDesk: "/pesquisa-modulo" as const,
+    oQueJaEscreve: "Módulo de pesquisa no caso e no Desk — evidências nas tabelas vivas.",
   },
   {
     id: "P6",
@@ -88,6 +103,8 @@ export const MOTORES_TABELAS = [
     prs: ["#66", "#72", "#73", "#76", "#78", "#81"],
     tabelas: ["client_deliverables", "ops_microentregas", "app_projections"] as const,
     naoCriar: ["micro_deliveries"] as const,
+    rotaDesk: "/ops" as const,
+    oQueJaEscreve: "Micro-entregas em Ops; App Cliente só vê o que foi sanitizado e publicado.",
   },
   {
     id: "P7",
@@ -104,6 +121,9 @@ export const MOTORES_TABELAS = [
       "payments",
     ] as const,
     naoCriar: ["catalog_product", "journey_instance"] as const,
+    rotaDesk: "/casos" as const,
+    oQueJaEscreve:
+      "SKU só entra se product_catalog estiver homologado. Fase 4 do planejador pode criar tarefa de avaliação no caso.",
   },
   {
     id: "P8",
@@ -112,6 +132,8 @@ export const MOTORES_TABELAS = [
     prs: ["#48", "#54", "#56", "#58"],
     tabelas: ["leads", "crm_casos"] as const,
     naoCriar: [] as const,
+    rotaDesk: "/conversao" as const,
+    oQueJaEscreve: "Lead e conversão no Desk; código de achado WhatsApp grava no lead.",
   },
   {
     id: "P9",
@@ -120,6 +142,8 @@ export const MOTORES_TABELAS = [
     prs: ["#55", "#84"],
     tabelas: ["case_alerts", "crm_casos"] as const,
     naoCriar: [] as const,
+    rotaDesk: "/qualidade" as const,
+    oQueJaEscreve: "Alertas e radar interno leem crm_casos / case_alerts.",
   },
   {
     id: "P10",
@@ -128,6 +152,8 @@ export const MOTORES_TABELAS = [
     prs: [] as string[],
     tabelas: ["communication_queue", "invoices", "payments"] as const,
     naoCriar: [] as const,
+    rotaDesk: "/integracoes" as const,
+    oQueJaEscreve: "Fila de comunicação existe; envio continua gatilho humano. Sem escala automática.",
   },
   {
     id: "P11",
@@ -136,6 +162,8 @@ export const MOTORES_TABELAS = [
     prs: ["#91"] as string[],
     tabelas: [] as const,
     naoCriar: [] as const,
+    rotaDesk: "/biblioteca" as const,
+    oQueJaEscreve: "Marca e navegação do Desk (8 grupos). Não é motor de dado.",
   },
 ] as const;
 

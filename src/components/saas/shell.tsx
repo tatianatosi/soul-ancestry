@@ -221,7 +221,7 @@ export function SaasShell({
         <div className="px-2 pb-6">
           <BrandLogo size={34} variant="client-dark" className="items-center" />
           <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
-            Gestão de pesquisa
+            Desk · menu enxuto
           </p>
         </div>
 
@@ -235,12 +235,18 @@ export function SaasShell({
                 <button
                   type="button"
                   title={descricaoGrupo}
-                  onClick={() =>
-                    setAbertosManuais((v) => ({
-                      ...v,
-                      [to]: !(to in v ? v[to] : desktop && ativo),
-                    }))
-                  }
+                  onClick={() => {
+                    if (ativo) {
+                      setAbertosManuais((v) => ({
+                        ...v,
+                        [to]: !(to in v ? v[to] : desktop && ativo),
+                      }));
+                      return;
+                    }
+                    setAbertosManuais((v) => ({ ...v, [to]: true }));
+                    void navigate({ to: to as never });
+                    setAberto(false);
+                  }}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
                     ativo ? "bg-gold text-navy font-medium" : "text-cream/80 hover:bg-cream/10",

@@ -169,7 +169,10 @@ function EntrarEquipe() {
   const rotuloEspera = `${Math.floor(espera / 60)}:${String(espera % 60).padStart(2, "0")}`;
 
   return (
-    <EquipeMoldura titulo="Entrar" subtitulo="Área exclusiva da equipe Clube Ancestral.">
+    <EquipeMoldura
+      titulo="Entrar no Desk"
+      subtitulo="Painel de Calls continua em Comercial e no Painel Hoje. CRM Mestre e Catálogo 30 ficam na conta, embaixo. Campo com pendência continua editável."
+    >
       <form onSubmit={onSubmit} method="post" action="?" className="space-y-4" autoComplete="on">
         <div>
           <label htmlFor="email" className="text-sm font-medium text-navy">

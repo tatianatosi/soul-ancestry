@@ -255,6 +255,8 @@ export const abrirPreparacaoContrato = createServerFn({ method: "POST" })
 
     let lista = (valores ?? []) as any[];
     const skuHomologado = await skuHomologadoParaCaso(supabase, org, caso.codigo);
+    // LEGADO: parametrosDoPlanejador lê src/data/casos.ts. Só preenche campo
+    // ainda vazio — valor já persistido (incluindo case_plans / edição humana) prevalece.
     const planejador = parametrosDoPlanejador(caso.codigo, skuHomologado);
     for (const c of planejador.parametros) {
       const atual = lista.find((v) => v.campo === c.campo);
