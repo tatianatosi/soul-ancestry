@@ -74,7 +74,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     expect(conta).not.toContain("/crm-mestre");
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
-    expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(true);
+    expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(false);
   });
 
   it("dossiê /pesquisa é o repositório do Legado, dentro da Inteligência", () => {
