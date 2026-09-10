@@ -10,7 +10,6 @@ import {
   Route,
   Radar,
   Trees,
-  PackageCheck,
   BookOpen,
   UserRound,
 } from "lucide-react";
@@ -54,31 +53,20 @@ export function PortalShell({
   }, [previa, isSuccess, data, navigate]);
 
   /*
-    Sete abas existem desde que o cliente chega — Início, Jornada, Radar,
-    Árvore, Documentos, Legado e Conta. Entrega, Fase 01 e Fase 02 só entram
-    quando o onboarding do caso de fato começou (`onboarding_iniciado_em`):
-    antes disso são promessa de trabalho que ainda não existe, e mostrá-las
-    cedo é o cliente ler "Fase 02" e achar que já devia ter alguma coisa lá.
+    Sete abas do mockup aprovado: Home, Jornada, Radar, Árvore, Documentos,
+    Legado e Conta. Entregas / Fase 01 / Fase 02 saem da barra — as rotas
+    continuam existindo como arquivos, só não ocupam a navegação.
   */
-  const onboardingIniciado = previa ? true : Boolean(data?.onboardingIniciado);
-
   const nav =
     previa || data?.nivel === "client_workspace"
       ? [
-          { to: "/portal", label: COPY_TELAS.casos.navegacao, icon: FolderOpen },
+          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: FolderOpen },
           { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
           { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
           { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
           { to: "/portal/documentos", label: COPY_TELAS.documentos.navegacao, icon: FileText },
           { to: "/portal/legado", label: COPY_TELAS.legado.navegacao, icon: BookOpen },
           { to: "/portal/conta", label: COPY_TELAS.conta.navegacao, icon: UserRound },
-          ...(onboardingIniciado
-            ? [
-                { to: "/portal/entregas", label: COPY_TELAS.entregas.navegacao, icon: PackageCheck },
-                { to: "/portal/fase-01", label: COPY_TELAS.fase01.navegacao, icon: FileText },
-                { to: "/portal/fase-02", label: COPY_TELAS.fase02.navegacao, icon: FileText },
-              ]
-            : []),
         ]
       : [{ to: "/portal/proposta", label: COPY_TELAS.proposta.navegacao, icon: Receipt }];
 
@@ -130,8 +118,18 @@ export function PortalShell({
         </p>
       ) : null}
 
-      <nav className="border-b border-navy/10 bg-white px-4 lg:px-8">
-        <div className="mx-auto flex max-w-4xl gap-1 overflow-x-auto">
+      {/*
+        Mobile (< sm): barra fixa no rodapé, como no mockup aprovado — ícone
+        sobre rótulo, largura igual para cada aba, todas visíveis sem rolagem
+        horizontal (era exatamente isso que cortava "Árvore" na barra de topo
+        rolável, pensada para desktop). Desktop (>= sm): mantém a barra de
+        abas no topo, com espaço de sobra para rótulo ao lado do ícone.
+      */}
+      <nav
+        aria-label="Navegação do aplicativo do cliente"
+        className="hidden border-b border-navy/10 bg-white px-4 sm:block lg:px-8"
+      >
+        <div className="mx-auto flex max-w-4xl gap-1">
           {nav.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
@@ -140,7 +138,7 @@ export function PortalShell({
                 "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rota === to
-                  ? "border-gold font-medium text-navy"
+                  ? "border-gold font-medium text-gold"
                   : "border-transparent text-navy/70 hover:text-navy",
               )}
             >
@@ -151,11 +149,33 @@ export function PortalShell({
         </div>
       </nav>
 
-      <main id="conteudo-portal" className="mx-auto max-w-4xl px-4 py-6 lg:px-8">
+      <main id="conteudo-portal" className="mx-auto max-w-4xl px-4 py-6 pb-24 sm:pb-6 lg:px-8">
         <h1 className={TIPO_CLIENTE.titulo}>{titulo}</h1>
         {descricao ? <p className={TIPO_CLIENTE.subtitulo}>{descricao}</p> : null}
         <div className="mt-5">{children}</div>
       </main>
+
+      <nav
+        aria-label="Navegação do aplicativo do cliente"
+        className="fixed inset-x-0 bottom-0 z-10 border-t border-navy/10 bg-white pb-[env(safe-area-inset-bottom)] sm:hidden"
+      >
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
+          {nav.map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className={cn(
+                "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] leading-tight",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
+                rota === to ? "font-medium text-gold" : "text-navy/60",
+              )}
+            >
+              <Icon className="h-5 w-5" aria-hidden="true" />
+              <span className="truncate">{label}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

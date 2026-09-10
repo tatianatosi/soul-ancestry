@@ -47,8 +47,10 @@ export function montarRascunho(input: {
   clausulas: any[];
   anexos: any[];
   contratoBase: any | null;
+  modeloClausulas?: any | null;
+  modeloStatus?: string | null;
 }): ConteudoRascunho {
-  const { contrato, partes, escopo, clausulas, anexos, contratoBase } = input;
+  const { contrato, partes, escopo, clausulas, anexos, contratoBase, modeloClausulas, modeloStatus } = input;
   const selos = selosDoInstrumento(contrato.contract_type);
 
   const secao = (titulo: string, corpo: string) =>
@@ -76,7 +78,7 @@ export function montarRascunho(input: {
       : "";
   };
 
-  const listaClausulas = clausulas.length
+  const listaClausulasEspecificas = clausulas.length
     ? `<ol>${clausulas
         .map(
           (c) =>
@@ -90,6 +92,29 @@ export function montarRascunho(input: {
         )
         .join("")}</ol>`
     : "";
+  // 06/09/2026: sem sobrescrita específica para este contrato, usa o piso
+  // textual do modelo vinculado (contract_templates.default_clauses) —
+  // preâmbulo + as cláusulas completas do modelo aprovado — em vez de deixar
+  // "Pendente de preenchimento." mesmo com o modelo pronto no banco.
+  const clausulasDoModelo: Array<{ numero: number; titulo: string; itens: string[] }> =
+    Array.isArray(modeloClausulas?.clausulas) ? modeloClausulas.clausulas : [];
+  const preamboloModelo: string | null =
+    typeof modeloClausulas?.preambulo === "string" ? modeloClausulas.preambulo : null;
+  const listaClausulasModelo = clausulasDoModelo.length
+    ? `${preamboloModelo ? `<p><em>${esc(preamboloModelo)}</em></p>` : ""}<ol>${clausulasDoModelo
+        .map(
+          (c) =>
+            `<li><strong>Cláusula ${esc(String(c.numero))} — ${esc(c.titulo)}</strong><ul>${(c.itens ?? [])
+              .map((item) => `<li>${esc(item)}</li>`)
+              .join("")}</ul></li>`,
+        )
+        .join("")}</ol>${
+        modeloStatus && modeloStatus !== "approved"
+          ? `<p class="pend">Modelo em status "${esc(modeloStatus)}" — cláusulas abaixo são o piso textual vigente, sujeitas à revisão jurídica antes de assinatura.</p>`
+          : ""
+      }`
+    : "";
+  const listaClausulas = listaClausulasEspecificas || listaClausulasModelo;
 
   const listaAnexos = anexos.length
     ? `<ul>${anexos

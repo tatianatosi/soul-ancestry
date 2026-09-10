@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { semCache } from "@/lib/no-store";
-import { filtrarParaCliente } from "@/lib/classificacao-dados";
+import { semFixtures } from "@/lib/fixtures";
 import type { EscopoCliente } from "@/lib/app-visibilidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -43,11 +43,14 @@ export const escopoDoPortal = createServerFn({ method: "GET" })
 
     const [docs, casos] = await Promise.all([
       supabase.from("documents").select("id, liberado_cliente, is_demo").eq("liberado_cliente", true),
-      supabase.from("portal_casos").select("id, is_demo"),
+      // portal_casos não expõe is_demo (a view só tem id/codigo/titulo/...) —
+      // selecionar uma coluna inexistente falhava a consulta inteira e
+      // zerava "casosReais" para qualquer cliente real, sempre.
+      supabase.from("portal_casos").select("id, codigo, titulo"),
     ]);
 
-    const entregasLiberadas = filtrarParaCliente((docs.data ?? []) as any[]).length;
-    const casosReais = filtrarParaCliente((casos.data ?? []) as any[]).length;
+    const entregasLiberadas = semFixtures((docs.data ?? []) as any[]).length;
+    const casosReais = semFixtures((casos.data ?? []) as any[]).length;
 
     return {
       temAcesso: true,

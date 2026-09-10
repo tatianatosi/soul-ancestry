@@ -22,12 +22,12 @@ describe("decisão canônica de Ana Luiza", () => {
     expect(resolverReferenciaAna("CA-CID-PT-IND-2026-002")).toBeNull();
   });
 
-  it("exibe apenas o código canônico, com 'Piloto real' como selo", () => {
+  it("exibe apenas o código canônico, com 'Primeira cliente' como selo", () => {
     const r = rotuloExibicaoAna();
     expect(r.codigo).toBe("CA-CID-AT-FAM-2026-001");
     expect(r.nome).toBe("Projeto familiar — Ana Luiza");
     expect(r.nome).not.toContain("CA-AUT");
-    expect(r.selo).toBe("Piloto real");
+    expect(r.selo).toBe("Primeira cliente");
   });
 
   it("mantém o código legado no histórico com a nota de resolução", () => {

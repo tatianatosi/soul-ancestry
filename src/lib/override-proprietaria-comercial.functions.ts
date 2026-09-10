@@ -17,6 +17,7 @@ import { contextoInterno } from "@/lib/comercial.server";
 import {
   estadoOverride,
   montarEventoOverride,
+  TIPOS_OVERRIDE,
   validarSolicitacaoOverride,
   type EstadoOverride,
   type GatePendenteOverride,
@@ -24,8 +25,16 @@ import {
   type TipoOverride,
 } from "@/lib/override-proprietaria-comercial";
 
-const CATEGORIA = "override_proprietaria_comercial";
-const CATEGORIA_REVOGACAO = "override_proprietaria_comercial_revogacao";
+/*
+ * 05/09/2026 — `owner_override_events.categoria` só aceita 'override_interno'/
+ * 'confirmacao_externa' (CHECK da migration 20260822185358). As duas
+ * categorias abaixo nunca bateram com isso: todo registrar/revogar sempre
+ * violou o CHECK e sempre falhou, para ninguém, em nenhuma sessão. `acao`
+ * (TipoOverride ou a string fixa de revogação, abaixo) é quem de fato
+ * distingue este módulo dos demais eventos internos na mesma categoria.
+ */
+const CATEGORIA = "override_interno";
+const ACAO_REVOGACAO = "revogar_override_comercial";
 
 export type OverrideComercialLido = {
   id: string;
@@ -110,8 +119,8 @@ export const revogarOverrideComercial = createServerFn({ method: "POST" })
         organization_id: organizationId,
         actor_user_id: context.userId,
         actor_papel: papel,
-        categoria: CATEGORIA_REVOGACAO,
-        acao: "revogar_override_comercial",
+        categoria: CATEGORIA,
+        acao: ACAO_REVOGACAO,
         entidade: "crm_casos",
         entidade_id: data.casoId,
         campo: data.eventoOriginalId,
@@ -149,18 +158,22 @@ export const listarOverridesComerciais = createServerFn({ method: "GET" })
       )
       .eq("organization_id", organizationId)
       .eq("entidade_id", data.casoId)
-      .in("categoria", [CATEGORIA, CATEGORIA_REVOGACAO])
+      .eq("categoria", CATEGORIA)
+      // `categoria: 'override_interno'` também é usada por outros módulos
+      // (ex.: gates de formalização) para o mesmo caso — `acao` é o que
+      // isola só os eventos deste módulo de override comercial.
+      .in("acao", [...TIPOS_OVERRIDE, ACAO_REVOGACAO])
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
     const linhas = (eventos ?? []) as any[];
     const revogacoesPorOriginal = new Map<string, string>();
     for (const e of linhas) {
-      if (e.categoria === CATEGORIA_REVOGACAO && e.campo) revogacoesPorOriginal.set(e.campo, e.created_at);
+      if (e.acao === ACAO_REVOGACAO && e.campo) revogacoesPorOriginal.set(e.campo, e.created_at);
     }
 
     const resultado: OverrideComercialLido[] = linhas
-      .filter((e) => e.categoria === CATEGORIA)
+      .filter((e) => e.acao !== ACAO_REVOGACAO)
       .map((e) => {
         const valorNovo = (e.valor_novo ?? {}) as any;
         const valorAnterior = (e.valor_anterior ?? {}) as any;

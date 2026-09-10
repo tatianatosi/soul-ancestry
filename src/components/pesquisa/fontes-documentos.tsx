@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -52,12 +53,16 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
   const [filtros, setFiltros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
 
+  const autoridade = useAutoridade();
   const painel = useQuery({
     queryKey: ["g08-fontes", caseId],
     queryFn: () => listarFontesDocumentos({ data: { caseId } }),
   });
 
   const d = painel.data as any;
+  // Autoridade operacional: o gate de papel vindo do servidor não esconde mais
+  // ação; falta de papel/organização é o único bloqueio e o servidor revalida.
+  const podeEditarAutoridade = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
   const pessoas: { id: string; nome: string }[] = d?.pessoas ?? [];
   const equipe: { id: string; nome: string }[] = d?.equipe ?? [];
   const documentos: Record<string, any>[] = d?.documentos ?? [];
@@ -215,7 +220,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
           </p>
           <p className="mt-1 text-xs text-navy/70">{ativos} documento(s) ativo(s) neste caso.</p>
         </div>
-        {d?.podeEditar && (
+        {podeEditarAutoridade && (
           <button
             type="button"
             onClick={() => (abrirForm && !editandoId ? limpar() : (setEditandoId(null), setForm({ ...VAZIO }), setArquivo(null), setAbrirForm(true)))}
@@ -367,7 +372,7 @@ export function SecaoFontesDocumentos({ caseId }: { caseId: string }) {
                     <button type="button" className="text-navy underline" onClick={() => setDetalheId(l.id)}>
                       Ver detalhes
                     </button>
-                    {d?.podeEditar && !l.arquivado && (
+                    {podeEditarAutoridade && !l.arquivado && (
                       <>
                         <button
                           type="button"

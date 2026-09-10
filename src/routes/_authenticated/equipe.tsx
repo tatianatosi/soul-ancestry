@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { EstadoVazio, PAPEL_LABEL, SaasShell, useSaas } from "@/components/saas/shell";
+import { EstadoVazio, PAPEL_LABEL, SaasShell } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { StatusEnvioRecuperacao } from "@/components/equipe/status-envio-recuperacao";
 import { CardIndicador } from "@/components/desk/ui-desk";
 import {
@@ -39,7 +41,10 @@ const STATUS_LABEL: Record<string, string> = {
 const PAPEIS = ["admin", "operacoes", "pesquisador", "comercial", "financeiro", "leitura"] as const;
 
 function EquipePage() {
-  const { ehAdmin } = useSaas();
+  const autoridade = useAutoridade();
+  // Antes: `ehAdmin` escondia a tela inteira. Agora só falta de papel/organização bloqueia.
+  const decisao = autoridade.decidir({ capacidade: "editar_fila_responsavel_prazo" });
+  const liberado = decisao.decisao !== "bloquear";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarEquipe);
   const convidar = useServerFn(convidarMembroEquipe);
@@ -99,8 +104,8 @@ function EquipePage() {
       titulo="Usuários e papéis"
       descricao="Equipe interna acessa por e-mail e senha. Não existe autocadastro."
     >
-      {!ehAdmin ? (
-        <EstadoVazio mensagem="Apenas administradores podem gerenciar usuários e papéis." />
+      {!liberado ? (
+        <EstadoVazio mensagem={decisao.motivo} />
       ) : (
         <div className="space-y-8">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -181,15 +186,17 @@ function EquipePage() {
 
           <section>
             <h2 className="font-serif text-xl">Membros</h2>
-            {q.isLoading ? (
-              <p className="mt-3 text-sm text-navy/60">Carregando…</p>
-            ) : !q.data?.membros.length ? (
-              <div className="mt-3">
-                <EstadoVazio mensagem="Nenhum acesso interno cadastrado." />
-              </div>
-            ) : (
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data?.membros}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="a equipe"
+              vazio="Nenhum acesso interno cadastrado."
+            >
+              {(listaMembros) => (
               <div className="mt-3 space-y-3">
-                {q.data.membros.map((m) => (
+                {listaMembros.map((m) => (
                   <div key={m.id} className="rounded-xl border border-navy/10 bg-white p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -262,7 +269,8 @@ function EquipePage() {
                   </div>
                 ))}
               </div>
-            )}
+              )}
+            </EstadoDados>
             <p className="mt-4 text-xs text-navy/50">
               Acessos internos nunca são excluídos fisicamente: são arquivados com motivo e responsável, e toda
               alteração entra na auditoria.

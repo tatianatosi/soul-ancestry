@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -45,6 +46,7 @@ import {
   DecisoesNormativasDoCaso,
   ReferenciasNormativasAplicaveis,
 } from "@/components/pesquisa/referencias-normativas";
+import { SaasShell } from "@/components/saas/shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -64,6 +66,16 @@ export const Route = createFileRoute("/_authenticated/pesquisa-evidencias/$caseI
     ],
   }),
   component: AreaPesquisaEvidencias,
+  errorComponent: ({ error }) => (
+    <SaasShell titulo="Pesquisa Genealógica e Evidências" descricao="Falha ao carregar a área de pesquisa.">
+      <p role="alert" className="text-sm text-terracotta">{error.message}</p>
+    </SaasShell>
+  ),
+  notFoundComponent: () => (
+    <SaasShell titulo="Pesquisa Genealógica e Evidências" descricao="Caso não encontrado.">
+      <p className="text-sm text-navy/70">Caso não encontrado.</p>
+    </SaasShell>
+  ),
 });
 
 const VAZIO: Record<string, unknown> = {
@@ -82,6 +94,7 @@ function AreaPesquisaEvidencias() {
   const [form, setForm] = useState<Record<string, unknown>>({ ...VAZIO, case_id: caseId });
   const [editandoId, setEditandoId] = useState<string | null>(null);
 
+  const autoridade = useAutoridade();
   const painel = useQuery({
     queryKey: ["g04", caseId],
     queryFn: () => painelPesquisaEvidencias({ data: { caseId } }),
@@ -136,6 +149,13 @@ function AreaPesquisaEvidencias() {
   });
 
   const d = painel.data as any;
+  // Autoridade operacional: o gate de papel do servidor deixa de esconder ação;
+  // vira pendência declarada e o servidor revalida cada gravação.
+  const podeEditarAutoridade = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
+  const pendenciaPapel =
+    d && !d.podeEditar
+      ? "O servidor marcou este dossiê de evidências como somente leitura para o seu vínculo — as ações seguem disponíveis por decisão sua."
+      : null;
   const c = cadeia.data as any;
   const check = validarSolicitacao(form);
   const exigeAcao = STATUS_EXIGE_ACAO.includes(String(form["status"]));
@@ -143,7 +163,11 @@ function AreaPesquisaEvidencias() {
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <SaasShell
+      titulo="Pesquisa Genealógica e Evidências"
+      descricao="Documentos, solicitações, evidências e pendências internas do caso."
+    >
+    <div className="space-y-6">
       <header className="space-y-1">
         <p className="text-xs uppercase tracking-widest text-navy/60">Desk Intelligence</p>
         <h1 className="text-2xl font-semibold text-navy">Pesquisa Genealógica e Evidências</h1>
@@ -186,7 +210,35 @@ function AreaPesquisaEvidencias() {
       </p>
 
       {painel.isLoading && <p className="text-sm text-navy/60">Carregando área de pesquisa…</p>}
-      {painel.error && <p className="text-sm text-terracotta">{String((painel.error as any).message)}</p>}
+      {pendenciaPapel ? (
+        <p className="mb-3 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaPapel}
+        </p>
+      ) : null}
+      {painel.error ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          {String((painel.error as any).message)}
+          <button
+            type="button"
+            onClick={() => void painel.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
+      {cadeia.error ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar a cadeia de custódia da evidência.
+          <button
+            type="button"
+            onClick={() => void cadeia.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       {d && secao === "visao" && (
         <section className="space-y-3">
@@ -206,7 +258,7 @@ function AreaPesquisaEvidencias() {
               Área de pesquisa ainda não preparada para este caso. A preparação cria apenas o registro interno em
               “preparação pendente”, com autorização de pesquisa externa pendente — nada é pesquisado, solicitado ou
               publicado.
-              {d.podeEditar && (
+              {podeEditarAutoridade && (
                 <button
                   type="button"
                   onClick={() =>
@@ -560,7 +612,7 @@ function AreaPesquisaEvidencias() {
                         </li>
                       ))}
                     </ul>
-                    {d.podeEditar && (
+                    {podeEditarAutoridade && (
                       <select
                         aria-label={`Situação da evidência ${e.title_internal}`}
                         value={e.workflow_status}
@@ -676,7 +728,7 @@ function AreaPesquisaEvidencias() {
                         <td>{s.received_at ?? "—"}</td>
                         <td className="max-w-[220px] text-xs text-navy/70">{s.observation_internal ?? "—"}</td>
                         <td className="whitespace-nowrap text-xs">
-                          {d.podeEditar && !s.archived_at && (
+                          {podeEditarAutoridade && !s.archived_at && (
                             <>
                               <button
                                 type="button"
@@ -733,7 +785,7 @@ function AreaPesquisaEvidencias() {
             </p>
           </Bloco>
 
-          {d.podeEditar && (
+          {podeEditarAutoridade && (
             <Bloco titulo={editandoId ? "Editar solicitação" : "Nova solicitação documental"}>
               <div className="grid gap-3 md:grid-cols-3">
                 <Campo label="Geração">
@@ -901,7 +953,7 @@ function AreaPesquisaEvidencias() {
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  disabled={!check.ok || salvar.isPending}
+                  disabled={salvar.isPending}
                   className="rounded bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
                   onClick={() =>
                     salvar.mutate({
@@ -934,6 +986,7 @@ function AreaPesquisaEvidencias() {
         </section>
       )}
     </div>
+    </SaasShell>
   );
 }
 

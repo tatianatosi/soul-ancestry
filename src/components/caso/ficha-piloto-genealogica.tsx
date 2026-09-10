@@ -26,12 +26,35 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   const carregar = useServerFn(carregarFichaPiloto);
   const q = useQuery({ queryKey: ["ficha-piloto", caseId], queryFn: () => carregar({ data: { caseId } }) });
 
-  if (q.isLoading) return <p className="text-sm text-navy/55">Carregando ficha piloto genealógica…</p>;
+  if (q.isLoading) return <p className="text-sm text-navy/55">Carregando ficha de pesquisa do caso…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <Secao titulo="Ficha de pesquisa do caso" descricao="Preparação interna, sem consulta a fontes.">
+        <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <p className="font-medium text-destructive">Não foi possível carregar a ficha de pesquisa do caso.</p>
+          <p className="text-navy/80">
+            {q.error instanceof Error
+              ? q.error.message
+              : "A consulta não retornou resultado nem erro. Isso é falha de carga, não ficha ausente."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void q.refetch()}
+            className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </Secao>
+    );
+  }
   const p = q.data?.pesquisa ?? null;
   if (!p) {
     return (
-      <Secao titulo="Ficha piloto genealógica" descricao="Preparação interna, sem consulta a fontes.">
-        <p className="text-sm text-navy/55">Nenhuma ficha de pesquisa preparada para este caso.</p>
+      <Secao titulo="Ficha de pesquisa do caso" descricao="Preparação interna, sem consulta a fontes.">
+        <p className="text-sm text-navy/55">
+          Nenhuma ficha de pesquisa preparada para este caso. A consulta foi concluída com sucesso.
+        </p>
       </Secao>
     );
   }
@@ -48,7 +71,7 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   return (
     <div className="space-y-5 lg:col-span-2">
       <Secao
-        titulo="Ficha piloto genealógica"
+        titulo="Ficha de pesquisa do caso"
         descricao="Preparação apenas: nenhuma fonte consultada, nenhum documento solicitado, nenhum arquivo contatado, nenhuma árvore ou relatório publicado."
       >
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -87,7 +110,7 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
           <ul className="space-y-1 text-sm text-navy/80">
             {vinculos.map((r) => (
               <li key={r.id}>
-                • {nomePessoa(r.person_a_id)} → {nomePessoa(r.person_b_id)} ({r.relationship_type}) —{" "}
+                • {nomePessoa(r.person_from_id)} → {nomePessoa(r.person_to_id)} ({r.relation_type}) —{" "}
                 <span className="text-xs text-navy/55">
                   {STATUS_VINCULO[String(r.status)]} · {r.supporting_evidence_count} evidência(s)
                 </span>

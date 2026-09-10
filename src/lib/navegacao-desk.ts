@@ -43,12 +43,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
     id: "hoje",
     to: "/painel",
-    label: "Hoje",
-    descricao: "Fila operacional única do dia, prioridades, alertas derivados e atalhos.",
+    label: "Visão Geral",
+    descricao: "Fila operacional única do dia (Painel Hoje), prioridades, alertas derivados e atalhos.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },
+      { to: "/calls", label: "Painel de Calls" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
+      { to: "/alertas", label: "Alertas" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
       { to: "/relatorios", label: "Relatórios" },
     ],
@@ -64,12 +66,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Aquisição" },
       { to: "/marketing", label: "Visão geral de aquisição" },
       { to: "/marketing", hash: "canais-campanhas", label: "Canais e campanhas" },
-      { to: "/marketing", hash: "conteudo-ctas", label: "Conteúdo e CTAs" },
-      { grupo: "Origem e análise" },
-      { to: "/marketing", hash: "atribuicao", label: "Atribuição e origem" },
-      { to: "/marketing", hash: "funil-aquisicao", label: "Funil de aquisição" },
-      { to: "/marketing", hash: "metricas-canal", label: "Métricas por canal" },
-      { to: "/marketing", hash: "aprendizados", label: "Aprendizados" },
       { grupo: "Handoff" },
       { to: "/marketing", hash: "links-comercial", label: "Links contextuais para Comercial" },
     ],
@@ -98,17 +94,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/calls", label: "Calls Discovery" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
-      { grupo: "Referência do CRM" },
-      // 27/08/2026 — "CRM mestre e legado nunca usei" (Proprietária). O
-      // modelo de contatos/oportunidades (0 registros desde 21/08) saiu do
-      // menu, seguindo o mesmo padrão dos painéis históricos: link direto
-      // em /leads (id="crm-contatos"), sem entrada em nav/atalhos/descoberta.
-      // Preservado em /historico/fluxo-comercial-canonico.
-      { to: "/crm-mestre", label: "CRM Mestre, Discovery e handoff" },
-      {
-        to: "/governanca/dicionario-calls-crm",
-        label: "Dicionário de validações (Calls → CRM)",
-      },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
       { grupo: "Relacionamento" },
       // 30/08/2026 — "aquela função que consigo ver sobre tudo de uma pessoa
@@ -120,13 +105,13 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       // possível (a página exige uma pessoa específica); o rótulo abaixo
       // deixa explícito que /clientes é a porta de entrada da pessoa 360.
       { to: "/clientes", label: "Clientes e pessoa 360 (histórico completo por pessoa)" },
-      { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
+      { to: "/matriz-juridica", label: "Validação Jurídica" },
     ],
   },
   {
     id: "casos",
     to: "/casos",
-    label: "Casos",
+    label: "Casos 360",
     descricao: "Casos 360, núcleos, tarefas, exceções, qualidade, onboarding e go-live.",
     icone: "casos",
     agrupador: true,
@@ -134,18 +119,19 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "Operação do caso" },
       { to: "/casos", label: "Casos 360" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
-      { to: "/tarefas", label: "Tarefas e entregas internas" },
+      { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
+      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
       { to: "/ops", label: "Operação" },
       { to: "/ops-excecoes", label: "Exceções operacionais" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
       { grupo: "Ativação" },
       { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
-      { to: "/matriz-juridica", label: "Validação Jurídica (bloqueios)" },
+      { to: "/matriz-juridica", label: "Validação Jurídica" },
     ],
   },
   {
     id: "pesquisa",
-    to: "/pesquisa",
+    to: "/pesquisa-modulo",
     label: "Pesquisa",
     descricao: "Pesquisa genealógica, evidências, fontes, achados e relatórios F1/F2.",
     icone: "pesquisa",
@@ -153,7 +139,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     sub: [
       { grupo: "Investigação" },
       { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
-      { to: "/pesquisa", label: "Plano de ação e ficha genealógica" },
       { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
       { grupo: "Fontes e prova" },
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
@@ -163,7 +148,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/qualidade", hash: "pesquisa", label: "Validação e pendências" },
       { to: "/relatorios", label: "Achados, microentregas e relatórios F1/F2" },
       { to: "/pesquisa-modulo", hash: "assistente-ia", label: "Assistente IA de pesquisa" },
-      { to: "/pesquisa", hash: "historico", label: "Alertas e histórico de pesquisa" },
     ],
   },
   {
@@ -183,13 +167,9 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/homologacao-skus", label: "Homologação de SKUs" },
       { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
       { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
-      {
-        to: "/governanca/catalogo-operacional-30",
-        label: "Catálogo Operacional 30 (CA-06)",
-      },
       { grupo: "Financeiro" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Bloqueios de cobrança" },
+      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
       { grupo: "Auditoria (referência)" },
       { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
@@ -204,33 +184,23 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
-      // 25/08/2026 — o item apontava para `/acessos-portal#espelho`, âncora que
-      // nunca existiu naquela página: o link levava a uma tela de convites, sem
-      // espelho nenhum. Passa a apontar para a sessão demo, que é real e usa os
-      // componentes do próprio App Cliente. O espelho de caso real (mesma
-      // camada, outra fonte de dado) entra como passo seguinte.
-      { to: "/app-cliente-demo", label: "Sessão demo do App Cliente" },
       // 28/08/2026 — "preciso com o acesso master ter acesso ao app cliente
-      // como pessoa" (Proprietária). É o "passo seguinte" citado acima: mesma
-      // camada de componentes, dado real de um caso escolhido, autorizado por
-      // papel de Proprietária Administradora.
+      // como pessoa" (Proprietária). Mesma camada de componentes, dado real
+      // de um caso escolhido. A sessão DEMO saiu deste grupo (10/09): não é
+      // a face do produto; mora no menu da conta.
       { to: "/app-cliente-como-pessoa", label: "App Cliente como pessoa (dado real)" },
     ],
   },
   {
     id: "governanca",
     to: "/biblioteca",
-    label: "Governança",
-    descricao: "Jurídico, radar interno, bibliotecas, auditoria, conformidade e integrações.",
+    label: "Biblioteca Mestre",
+    descricao: "Jurídico, radar interno, bibliotecas, auditoria, conformidade e integrações (governança).",
     icone: "governanca",
     agrupador: true,
     sub: [
-      { grupo: "Conformidade" },
       { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/qualidade", label: "Radar Interno e Qualidade" },
-      { to: "/governanca/matriz-conformidade", label: "Matriz de conformidade" },
-      { to: "/governanca/criterios-aceite", label: "Critérios de aceite" },
-      { to: "/governanca/corte-vertical", label: "Corte vertical e fontes" },
       { grupo: "Bibliotecas" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
@@ -238,19 +208,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal" },
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { grupo: "Registro e risco" },
-      { to: "/auditoria", label: "Auditoria", adminOnly: true },
-      { to: "/governanca/decisoes", label: "Decisões" },
-      { to: "/governanca/indicadores", label: "Indicadores" },
-      { to: "/governanca/inventario-recuperacao", label: "Inventário e recuperação" },
-      { to: "/governanca/inventario-patrimonial", label: "Inventário patrimonial" },
-      { to: "/governanca/varredura-completude", label: "Completude" },
-      { to: "/governanca/modulos-contextuais", label: "Módulos contextuais" },
-      {
-        to: "/governanca/matriz-equivalencia",
-        label: "Matriz de equivalência — rota → dado → estado",
-      },
-      { to: "/governanca/identificadores", label: "Identificadores" },
       { grupo: "Integrações" },
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
@@ -277,6 +234,20 @@ export const MENU_CONTA: {
     { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
     { to: "/configuracoes", label: "Configurações e preferências" },
     { to: "/etiquetas", label: "Etiquetas canônicas" },
+    {
+      to: "/pesquisa",
+      label: "Dossiê legado de pesquisa (sistema anterior)",
+    },
+    { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
+    { to: "/crm-mestre", label: "CRM Mestre (legado, consulta)" },
+    {
+      to: "/governanca/dicionario-calls-crm",
+      label: "Dicionário Calls → CRM (consulta)",
+    },
+    {
+      to: "/governanca/catalogo-operacional-30",
+      label: "Catálogo operacional 30 (consulta)",
+    },
   ],
 } as const;
 
@@ -289,6 +260,27 @@ export const MENU_CONTA: {
  * o fluxo padrão de qualquer caso real (aba Jornada → Fechamento, 9 gates
  * de src/lib/fechamento-caso.ts). As rotas continuam existindo no
  * repositório, só saíram do menu.
+ *
+ * 06/09/2026 — /governanca/criterios-aceite, /governanca/matriz-conformidade,
+ * /governanca/corte-vertical, /governanca/indicadores,
+ * /governanca/inventario-recuperacao, /governanca/inventario-patrimonial,
+ * /governanca/modulos-contextuais, /governanca/matriz-equivalencia,
+ * /governanca/identificadores, /governanca/varredura-completude e /auditoria
+ * removidas desta lista por decisão explícita da proprietária: "remova
+ * todos os gates cerimoniais, não preciso de mais de 700 linhas de
+ * auditoria pra um sistema que é meu". Eram telas de auditoria/diagnóstico
+ * estático, não superfície de trabalho — nenhuma grava ou decide nada sobre
+ * o caso real.
+ *
+ * 06/09/2026 (execução do PROMPT_REMOCAO_TOTAL_BARREIRAS_OPERACIONAIS, por
+ * ordem direta e explícita da proprietária, independente do rótulo
+ * "rejeitado" que um agente anterior deu a ele sem manifestação literal
+ * dela) — as 11 rotas acima e /auditoria deixaram de "só sair do menu" e
+ * tiveram o arquivo de rota fisicamente apagado do repositório: eram
+ * exatamente o que o prompt pede pra remover ("não esconder só por CSS ou
+ * navegação — remover renderização"). /governanca/decisoes foi mantida
+ * porque é um link real usado por `referencias-normativas.tsx` (log de
+ * decisões citado em pesquisa), não um card de auditoria isolado.
  */
 export const ROTAS_PRESERVADAS: readonly string[] = [
   "/painel",
@@ -325,17 +317,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/biblioteca",
   "/biblioteca-mensagens",
   "/matriz-juridica",
-  "/governanca/criterios-aceite",
-  "/governanca/matriz-conformidade",
-  "/governanca/indicadores",
-  "/governanca/decisoes",
-  "/governanca/corte-vertical",
-  "/governanca/inventario-recuperacao",
-  "/governanca/inventario-patrimonial",
-  "/governanca/modulos-contextuais",
-  "/governanca/matriz-equivalencia",
-  "/governanca/identificadores",
-  "/governanca/varredura-completude",
   "/etiquetas",
   "/integracoes",
   "/importacoes",
@@ -343,7 +324,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/acessos-portal",
   "/atendimento",
   "/equipe",
-  "/auditoria",
 ] as const;
 
 /** Todas as rotas com link direto no menu principal ou no menu da conta. */
@@ -389,11 +369,12 @@ export function destinosDuplicados(): string[] {
 
 /** Links contextuais: mesma rota citada em mais de um grupo, de forma explícita. */
 export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [
-  { rota: "/matriz-juridica", origem: "Governança", tambemEm: ["Comercial", "Casos"] },
-  { rota: "/qualidade", origem: "Governança", tambemEm: ["Casos", "Pesquisa"] },
-  { rota: "/relatorios", origem: "Hoje", tambemEm: ["Pesquisa"] },
-  { rota: "/nucleos", origem: "Casos", tambemEm: ["Pesquisa"] },
+  { rota: "/matriz-juridica", origem: "Biblioteca Mestre", tambemEm: ["Comercial", "Casos 360"] },
+  { rota: "/qualidade", origem: "Biblioteca Mestre", tambemEm: ["Casos 360", "Pesquisa"] },
+  { rota: "/relatorios", origem: "Visão Geral", tambemEm: ["Pesquisa"] },
+  { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Pesquisa"] },
   { rota: "/marketing", origem: "Marketing", tambemEm: ["Comercial"] },
+  { rota: "/calls", origem: "Comercial", tambemEm: ["Visão Geral"] },
 ] as const;
 
 /**
@@ -448,6 +429,46 @@ export const NATUREZA_BIBLIOTECA: readonly {
 
 export function naturezaDaBiblioteca(rota: string): (typeof NATUREZA_BIBLIOTECA)[number] | null {
   return NATUREZA_BIBLIOTECA.find((b) => b.rota === rota) ?? null;
+}
+
+/** Hash da URL sem `#`, para comparar destino de menu com a rota atual. */
+export function hashDaRota(hash: string | undefined | null): string {
+  return (hash ?? "").replace(/^#/, "");
+}
+
+/**
+ * Destino de menu sem colisão de prefixo.
+ * `/pesquisa` não marca `/pesquisa-modulo`; `/casos` marca `/casos/$id`.
+ */
+export function rotaAtendeDestino(atual: string, destino: string): boolean {
+  if (!atual || !destino) return false;
+  if (atual === destino) return true;
+  if (destino === "/") return false;
+  return atual.startsWith(`${destino}/`);
+}
+
+export type DestinoNav = { to: string; hash?: string };
+
+/** Item de menu ativo: hash, quando existe, precisa bater; senão a rota (ou subrota). */
+export function itemNavAtivo(atual: string, hashAtual: string, item: DestinoNav): boolean {
+  const hash = hashDaRota(hashAtual);
+  if (item.hash) return atual === item.to && hash === hashDaRota(item.hash);
+  if (hash && atual === item.to) return false;
+  return rotaAtendeDestino(atual, item.to);
+}
+
+/** Grupo ativo canônico: entrada do grupo ou item que mora nele — atalhos não douram o grupo errado. */
+export function grupoNavAtivo(
+  atual: string,
+  hashAtual: string,
+  grupo: { to: string; label: string; sub: readonly ItemNav[] },
+): boolean {
+  if (rotaAtendeDestino(atual, grupo.to) && !hashDaRota(hashAtual)) return true;
+  return grupo.sub.some((s) => {
+    if (!("to" in s)) return false;
+    if (origemDoAtalho(grupo.label, s.to)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
 }
 
 /** Lacunas conhecidas: sem fonte canônica, permanecem declaradas e não simuladas. */

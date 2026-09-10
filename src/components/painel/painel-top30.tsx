@@ -26,7 +26,38 @@ export function PainelTop30() {
 
   if (q.isLoading)
     return <p className="mt-6 text-sm text-navy/50">Carregando base comercial Top 30…</p>;
-  if (q.isError || !q.data) return null;
+  if (q.isError) {
+    /*
+     * 04/09/2026 — CA-P0-EXEC-001, critério D: este painel sumia
+     * silenciosamente (`return null`) em qualquer erro, sem mensagem nem
+     * forma de tentar de novo — a falha ficava invisível para a
+     * Proprietária. Erro agora permanece visível, com o texto real e um
+     * botão de repetir.
+     */
+    return (
+      <section className="mt-8 rounded-xl border border-terracotta/30 bg-terracotta/5 p-4">
+        <h2 className="font-serif text-xl text-navy">Base comercial Top 30 e planejador de casos</h2>
+        <p className="mt-2 text-sm text-terracotta">
+          Não foi possível carregar o painel: {(q.error as Error)?.message ?? "erro desconhecido"}.
+        </p>
+        <button
+          type="button"
+          onClick={() => q.refetch()}
+          className="mt-3 rounded-lg border border-terracotta/40 px-3 py-1.5 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar de novo
+        </button>
+      </section>
+    );
+  }
+  if (!q.data) {
+    return (
+      <section className="mt-8 rounded-xl border border-navy/10 bg-cream/40 p-4">
+        <h2 className="font-serif text-xl text-navy">Base comercial Top 30 e planejador de casos</h2>
+        <p className="mt-2 text-sm text-navy/55">Nenhum dado retornado ainda.</p>
+      </section>
+    );
+  }
 
   const { resumo, top10, top30, filas, fases, pendenciasPorResponsavel } = q.data;
   type Produto = (typeof top10)[number];

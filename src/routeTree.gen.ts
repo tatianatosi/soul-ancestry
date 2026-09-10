@@ -15,12 +15,11 @@ import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DevolutivaRouteImport } from './routes/devolutiva'
 import { Route as PortalRouteRouteImport } from './routes/portal/route'
-import { Route as StudioDevolutivasRouteImport } from './routes/studio-devolutivas'
 import { Route as AuthenticatedAcessosPortalRouteImport } from './routes/_authenticated/acessos-portal'
+import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedAppClienteComoPessoaRouteImport } from './routes/_authenticated/app-cliente-como-pessoa'
 import { Route as AuthenticatedAppClienteDemoRouteImport } from './routes/_authenticated/app-cliente-demo'
 import { Route as AuthenticatedAtendimentoRouteImport } from './routes/_authenticated/atendimento'
-import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedBibliotecaMensagensRouteImport } from './routes/_authenticated/biblioteca-mensagens'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
@@ -44,17 +43,18 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedMatrizJuridicaRouteImport } from './routes/_authenticated/matriz-juridica'
 import { Route as AuthenticatedMetricasRouteImport } from './routes/_authenticated/metricas'
+import { Route as AuthenticatedMockupRouteImport } from './routes/_authenticated/mockup'
 import { Route as AuthenticatedNucleosRouteImport } from './routes/_authenticated/nucleos'
+import { Route as AuthenticatedNucleosDuplicidadesRouteImport } from './routes/_authenticated/nucleos-duplicidades'
 import { Route as AuthenticatedOpsRouteImport } from './routes/_authenticated/ops'
 import { Route as AuthenticatedOpsExcecoesRouteImport } from './routes/_authenticated/ops-excecoes'
 import { Route as AuthenticatedOrdensServicoRouteImport } from './routes/_authenticated/ordens-servico'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedPilotoRouteImport } from './routes/_authenticated/piloto'
-import { Route as AuthenticatedPilotoAnaRouteImport } from './routes/_authenticated/piloto-ana'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProximasAcoesRouteImport } from './routes/_authenticated/proximas-acoes'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedStudioDevolutivasRouteImport } from './routes/_authenticated/studio-devolutivas'
 import { Route as AuthenticatedTarefasRouteImport } from './routes/_authenticated/tarefas'
 import { Route as AcessoConfirmarRouteImport } from './routes/acesso.confirmar'
 import { Route as AcessoSemPermissaoRouteImport } from './routes/acesso.sem-permissao'
@@ -87,24 +87,12 @@ import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated/contratos.$id'
 import { Route as AuthenticatedGovernancaCatalogoOperacional30RouteImport } from './routes/_authenticated/governanca.catalogo-operacional-30'
 import { Route as AuthenticatedGovernancaContratoBaseRouteImport } from './routes/_authenticated/governanca.contrato-base'
-import { Route as AuthenticatedGovernancaCorteVerticalRouteImport } from './routes/_authenticated/governanca.corte-vertical'
-import { Route as AuthenticatedGovernancaCriteriosAceiteRouteImport } from './routes/_authenticated/governanca.criterios-aceite'
 import { Route as AuthenticatedGovernancaDecisoesRouteImport } from './routes/_authenticated/governanca.decisoes'
 import { Route as AuthenticatedGovernancaDicionarioCallsCrmRouteImport } from './routes/_authenticated/governanca.dicionario-calls-crm'
-import { Route as AuthenticatedGovernancaIdentificadoresRouteImport } from './routes/_authenticated/governanca.identificadores'
-import { Route as AuthenticatedGovernancaIndicadoresRouteImport } from './routes/_authenticated/governanca.indicadores'
-import { Route as AuthenticatedGovernancaInventarioPatrimonialRouteImport } from './routes/_authenticated/governanca.inventario-patrimonial'
-import { Route as AuthenticatedGovernancaInventarioRecuperacaoRouteImport } from './routes/_authenticated/governanca.inventario-recuperacao'
-import { Route as AuthenticatedGovernancaMatrizConformidadeRouteImport } from './routes/_authenticated/governanca.matriz-conformidade'
-import { Route as AuthenticatedGovernancaMatrizEquivalenciaRouteImport } from './routes/_authenticated/governanca.matriz-equivalencia'
 import { Route as AuthenticatedGovernancaModeloFamiliarCasalRouteImport } from './routes/_authenticated/governanca.modelo-familiar-casal'
 import { Route as AuthenticatedGovernancaModeloIndividualRouteImport } from './routes/_authenticated/governanca.modelo-individual'
 import { Route as AuthenticatedGovernancaModelosContratuaisRouteImport } from './routes/_authenticated/governanca.modelos-contratuais'
-import { Route as AuthenticatedGovernancaModulosContextuaisRouteImport } from './routes/_authenticated/governanca.modulos-contextuais'
-import { Route as AuthenticatedGovernancaVarreduraCompletudeRouteImport } from './routes/_authenticated/governanca.varredura-completude'
 import { Route as AuthenticatedHistoricoFluxoComercialCanonicoRouteImport } from './routes/_authenticated/historico.fluxo-comercial-canonico'
-import { Route as AuthenticatedHistoricoPainelDeskHojeRouteImport } from './routes/_authenticated/historico.painel-desk-hoje'
-import { Route as AuthenticatedHistoricoPainelHojeRouteImport } from './routes/_authenticated/historico.painel-hoje'
 import { Route as AuthenticatedOnboardingIdRouteImport } from './routes/_authenticated/onboarding.$id'
 import { Route as AuthenticatedPesquisaEvidenciasCaseIdRouteImport } from './routes/_authenticated/pesquisa-evidencias.$caseId'
 import { Route as AuthenticatedPesquisaModuloIndexRouteImport } from './routes/_authenticated/pesquisa-modulo.index'
@@ -153,17 +141,17 @@ const PortalRouteRoute = PortalRouteRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StudioDevolutivasRoute = StudioDevolutivasRouteImport.update({
-  id: '/studio-devolutivas',
-  path: '/studio-devolutivas',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedAcessosPortalRoute =
   AuthenticatedAcessosPortalRouteImport.update({
     id: '/acessos-portal',
     path: '/acessos-portal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppClienteComoPessoaRoute =
   AuthenticatedAppClienteComoPessoaRouteImport.update({
     id: '/app-cliente-como-pessoa',
@@ -182,11 +170,6 @@ const AuthenticatedAtendimentoRoute =
     path: '/atendimento',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
-  id: '/auditoria',
-  path: '/auditoria',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
   id: '/biblioteca',
   path: '/biblioteca',
@@ -312,11 +295,22 @@ const AuthenticatedMetricasRoute = AuthenticatedMetricasRouteImport.update({
   path: '/metricas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMockupRoute = AuthenticatedMockupRouteImport.update({
+  id: '/mockup',
+  path: '/mockup',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNucleosRoute = AuthenticatedNucleosRouteImport.update({
   id: '/nucleos',
   path: '/nucleos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNucleosDuplicidadesRoute =
+  AuthenticatedNucleosDuplicidadesRouteImport.update({
+    id: '/nucleos-duplicidades',
+    path: '/nucleos-duplicidades',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOpsRoute = AuthenticatedOpsRouteImport.update({
   id: '/ops',
   path: '/ops',
@@ -337,16 +331,6 @@ const AuthenticatedOrdensServicoRoute =
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPilotoRoute = AuthenticatedPilotoRouteImport.update({
-  id: '/piloto',
-  path: '/piloto',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPilotoAnaRoute = AuthenticatedPilotoAnaRouteImport.update({
-  id: '/piloto-ana',
-  path: '/piloto-ana',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
@@ -370,6 +354,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStudioDevolutivasRoute =
+  AuthenticatedStudioDevolutivasRouteImport.update({
+    id: '/studio-devolutivas',
+    path: '/studio-devolutivas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTarefasRoute = AuthenticatedTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
@@ -539,18 +529,6 @@ const AuthenticatedGovernancaContratoBaseRoute =
     path: '/governanca/contrato-base',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGovernancaCorteVerticalRoute =
-  AuthenticatedGovernancaCorteVerticalRouteImport.update({
-    id: '/governanca/corte-vertical',
-    path: '/governanca/corte-vertical',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaCriteriosAceiteRoute =
-  AuthenticatedGovernancaCriteriosAceiteRouteImport.update({
-    id: '/governanca/criterios-aceite',
-    path: '/governanca/criterios-aceite',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedGovernancaDecisoesRoute =
   AuthenticatedGovernancaDecisoesRouteImport.update({
     id: '/governanca/decisoes',
@@ -561,42 +539,6 @@ const AuthenticatedGovernancaDicionarioCallsCrmRoute =
   AuthenticatedGovernancaDicionarioCallsCrmRouteImport.update({
     id: '/governanca/dicionario-calls-crm',
     path: '/governanca/dicionario-calls-crm',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaIdentificadoresRoute =
-  AuthenticatedGovernancaIdentificadoresRouteImport.update({
-    id: '/governanca/identificadores',
-    path: '/governanca/identificadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaIndicadoresRoute =
-  AuthenticatedGovernancaIndicadoresRouteImport.update({
-    id: '/governanca/indicadores',
-    path: '/governanca/indicadores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaInventarioPatrimonialRoute =
-  AuthenticatedGovernancaInventarioPatrimonialRouteImport.update({
-    id: '/governanca/inventario-patrimonial',
-    path: '/governanca/inventario-patrimonial',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaInventarioRecuperacaoRoute =
-  AuthenticatedGovernancaInventarioRecuperacaoRouteImport.update({
-    id: '/governanca/inventario-recuperacao',
-    path: '/governanca/inventario-recuperacao',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaMatrizConformidadeRoute =
-  AuthenticatedGovernancaMatrizConformidadeRouteImport.update({
-    id: '/governanca/matriz-conformidade',
-    path: '/governanca/matriz-conformidade',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaMatrizEquivalenciaRoute =
-  AuthenticatedGovernancaMatrizEquivalenciaRouteImport.update({
-    id: '/governanca/matriz-equivalencia',
-    path: '/governanca/matriz-equivalencia',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGovernancaModeloFamiliarCasalRoute =
@@ -617,34 +559,10 @@ const AuthenticatedGovernancaModelosContratuaisRoute =
     path: '/governanca/modelos-contratuais',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedGovernancaModulosContextuaisRoute =
-  AuthenticatedGovernancaModulosContextuaisRouteImport.update({
-    id: '/governanca/modulos-contextuais',
-    path: '/governanca/modulos-contextuais',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGovernancaVarreduraCompletudeRoute =
-  AuthenticatedGovernancaVarreduraCompletudeRouteImport.update({
-    id: '/governanca/varredura-completude',
-    path: '/governanca/varredura-completude',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedHistoricoFluxoComercialCanonicoRoute =
   AuthenticatedHistoricoFluxoComercialCanonicoRouteImport.update({
     id: '/historico/fluxo-comercial-canonico',
     path: '/historico/fluxo-comercial-canonico',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHistoricoPainelDeskHojeRoute =
-  AuthenticatedHistoricoPainelDeskHojeRouteImport.update({
-    id: '/historico/painel-desk-hoje',
-    path: '/historico/painel-desk-hoje',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHistoricoPainelHojeRoute =
-  AuthenticatedHistoricoPainelHojeRouteImport.update({
-    id: '/historico/painel-hoje',
-    path: '/historico/painel-hoje',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedOnboardingIdRoute =
@@ -757,12 +675,11 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -786,17 +703,18 @@ export interface FileRoutesByFullPath {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
+  '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/ops': typeof AuthenticatedOpsRoute
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/piloto': typeof AuthenticatedPilotoRoute
-  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -826,24 +744,12 @@ export interface FileRoutesByFullPath {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -871,12 +777,11 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/alertas': typeof AuthenticatedAlertasRoute
   '/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/calls': typeof AuthenticatedCallsRoute
@@ -900,17 +805,18 @@ export interface FileRoutesByTo {
   '/marketing': typeof AuthenticatedMarketingRoute
   '/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/metricas': typeof AuthenticatedMetricasRoute
+  '/mockup': typeof AuthenticatedMockupRoute
   '/nucleos': typeof AuthenticatedNucleosRoute
+  '/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/ops': typeof AuthenticatedOpsRoute
   '/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/piloto': typeof AuthenticatedPilotoRoute
-  '/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -940,24 +846,12 @@ export interface FileRoutesByTo {
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -988,12 +882,11 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRouteWithChildren
   '/auth': typeof AuthRoute
   '/devolutiva': typeof DevolutivaRoute
-  '/studio-devolutivas': typeof StudioDevolutivasRoute
   '/_authenticated/acessos-portal': typeof AuthenticatedAcessosPortalRoute
+  '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/app-cliente-como-pessoa': typeof AuthenticatedAppClienteComoPessoaRoute
   '/_authenticated/app-cliente-demo': typeof AuthenticatedAppClienteDemoRoute
   '/_authenticated/atendimento': typeof AuthenticatedAtendimentoRoute
-  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/biblioteca-mensagens': typeof AuthenticatedBibliotecaMensagensRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
@@ -1017,17 +910,18 @@ export interface FileRoutesById {
   '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/matriz-juridica': typeof AuthenticatedMatrizJuridicaRoute
   '/_authenticated/metricas': typeof AuthenticatedMetricasRoute
+  '/_authenticated/mockup': typeof AuthenticatedMockupRoute
   '/_authenticated/nucleos': typeof AuthenticatedNucleosRoute
+  '/_authenticated/nucleos-duplicidades': typeof AuthenticatedNucleosDuplicidadesRoute
   '/_authenticated/ops': typeof AuthenticatedOpsRoute
   '/_authenticated/ops-excecoes': typeof AuthenticatedOpsExcecoesRoute
   '/_authenticated/ordens-servico': typeof AuthenticatedOrdensServicoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/piloto': typeof AuthenticatedPilotoRoute
-  '/_authenticated/piloto-ana': typeof AuthenticatedPilotoAnaRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/proximas-acoes': typeof AuthenticatedProximasAcoesRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/studio-devolutivas': typeof AuthenticatedStudioDevolutivasRoute
   '/_authenticated/tarefas': typeof AuthenticatedTarefasRoute
   '/acesso/confirmar': typeof AcessoConfirmarRoute
   '/acesso/sem-permissao': typeof AcessoSemPermissaoRoute
@@ -1057,24 +951,12 @@ export interface FileRoutesById {
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/_authenticated/governanca/catalogo-operacional-30': typeof AuthenticatedGovernancaCatalogoOperacional30Route
   '/_authenticated/governanca/contrato-base': typeof AuthenticatedGovernancaContratoBaseRoute
-  '/_authenticated/governanca/corte-vertical': typeof AuthenticatedGovernancaCorteVerticalRoute
-  '/_authenticated/governanca/criterios-aceite': typeof AuthenticatedGovernancaCriteriosAceiteRoute
   '/_authenticated/governanca/decisoes': typeof AuthenticatedGovernancaDecisoesRoute
   '/_authenticated/governanca/dicionario-calls-crm': typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  '/_authenticated/governanca/identificadores': typeof AuthenticatedGovernancaIdentificadoresRoute
-  '/_authenticated/governanca/indicadores': typeof AuthenticatedGovernancaIndicadoresRoute
-  '/_authenticated/governanca/inventario-patrimonial': typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  '/_authenticated/governanca/inventario-recuperacao': typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  '/_authenticated/governanca/matriz-conformidade': typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  '/_authenticated/governanca/matriz-equivalencia': typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   '/_authenticated/governanca/modelo-familiar-casal': typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   '/_authenticated/governanca/modelo-individual': typeof AuthenticatedGovernancaModeloIndividualRoute
   '/_authenticated/governanca/modelos-contratuais': typeof AuthenticatedGovernancaModelosContratuaisRoute
-  '/_authenticated/governanca/modulos-contextuais': typeof AuthenticatedGovernancaModulosContextuaisRoute
-  '/_authenticated/governanca/varredura-completude': typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   '/_authenticated/historico/fluxo-comercial-canonico': typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  '/_authenticated/historico/painel-desk-hoje': typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  '/_authenticated/historico/painel-hoje': typeof AuthenticatedHistoricoPainelHojeRoute
   '/_authenticated/onboarding/$id': typeof AuthenticatedOnboardingIdRoute
   '/_authenticated/pesquisa-evidencias/$caseId': typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   '/_authenticated/pesquisa-modulo/$id': typeof AuthenticatedPesquisaModuloIdRoute
@@ -1105,12 +987,11 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/alertas'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
-    | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
     | '/calls'
@@ -1134,17 +1015,18 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/mockup'
     | '/nucleos'
+    | '/nucleos-duplicidades'
     | '/ops'
     | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
-    | '/piloto'
-    | '/piloto-ana'
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
+    | '/studio-devolutivas'
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1174,24 +1056,12 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
-    | '/governanca/corte-vertical'
-    | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
-    | '/governanca/identificadores'
-    | '/governanca/indicadores'
-    | '/governanca/inventario-patrimonial'
-    | '/governanca/inventario-recuperacao'
-    | '/governanca/matriz-conformidade'
-    | '/governanca/matriz-equivalencia'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
-    | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
-    | '/historico/painel-desk-hoje'
-    | '/historico/painel-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1219,12 +1089,11 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/studio-devolutivas'
     | '/acessos-portal'
+    | '/alertas'
     | '/app-cliente-como-pessoa'
     | '/app-cliente-demo'
     | '/atendimento'
-    | '/auditoria'
     | '/biblioteca'
     | '/biblioteca-mensagens'
     | '/calls'
@@ -1248,17 +1117,18 @@ export interface FileRouteTypes {
     | '/marketing'
     | '/matriz-juridica'
     | '/metricas'
+    | '/mockup'
     | '/nucleos'
+    | '/nucleos-duplicidades'
     | '/ops'
     | '/ops-excecoes'
     | '/ordens-servico'
     | '/painel'
-    | '/piloto'
-    | '/piloto-ana'
     | '/propostas'
     | '/proximas-acoes'
     | '/qualidade'
     | '/relatorios'
+    | '/studio-devolutivas'
     | '/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1288,24 +1158,12 @@ export interface FileRouteTypes {
     | '/contratos/$id'
     | '/governanca/catalogo-operacional-30'
     | '/governanca/contrato-base'
-    | '/governanca/corte-vertical'
-    | '/governanca/criterios-aceite'
     | '/governanca/decisoes'
     | '/governanca/dicionario-calls-crm'
-    | '/governanca/identificadores'
-    | '/governanca/indicadores'
-    | '/governanca/inventario-patrimonial'
-    | '/governanca/inventario-recuperacao'
-    | '/governanca/matriz-conformidade'
-    | '/governanca/matriz-equivalencia'
     | '/governanca/modelo-familiar-casal'
     | '/governanca/modelo-individual'
     | '/governanca/modelos-contratuais'
-    | '/governanca/modulos-contextuais'
-    | '/governanca/varredura-completude'
     | '/historico/fluxo-comercial-canonico'
-    | '/historico/painel-desk-hoje'
-    | '/historico/painel-hoje'
     | '/onboarding/$id'
     | '/pesquisa-evidencias/$caseId'
     | '/pesquisa-modulo/$id'
@@ -1335,12 +1193,11 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/auth'
     | '/devolutiva'
-    | '/studio-devolutivas'
     | '/_authenticated/acessos-portal'
+    | '/_authenticated/alertas'
     | '/_authenticated/app-cliente-como-pessoa'
     | '/_authenticated/app-cliente-demo'
     | '/_authenticated/atendimento'
-    | '/_authenticated/auditoria'
     | '/_authenticated/biblioteca'
     | '/_authenticated/biblioteca-mensagens'
     | '/_authenticated/calls'
@@ -1364,17 +1221,18 @@ export interface FileRouteTypes {
     | '/_authenticated/marketing'
     | '/_authenticated/matriz-juridica'
     | '/_authenticated/metricas'
+    | '/_authenticated/mockup'
     | '/_authenticated/nucleos'
+    | '/_authenticated/nucleos-duplicidades'
     | '/_authenticated/ops'
     | '/_authenticated/ops-excecoes'
     | '/_authenticated/ordens-servico'
     | '/_authenticated/painel'
-    | '/_authenticated/piloto'
-    | '/_authenticated/piloto-ana'
     | '/_authenticated/propostas'
     | '/_authenticated/proximas-acoes'
     | '/_authenticated/qualidade'
     | '/_authenticated/relatorios'
+    | '/_authenticated/studio-devolutivas'
     | '/_authenticated/tarefas'
     | '/acesso/confirmar'
     | '/acesso/sem-permissao'
@@ -1404,24 +1262,12 @@ export interface FileRouteTypes {
     | '/_authenticated/contratos/$id'
     | '/_authenticated/governanca/catalogo-operacional-30'
     | '/_authenticated/governanca/contrato-base'
-    | '/_authenticated/governanca/corte-vertical'
-    | '/_authenticated/governanca/criterios-aceite'
     | '/_authenticated/governanca/decisoes'
     | '/_authenticated/governanca/dicionario-calls-crm'
-    | '/_authenticated/governanca/identificadores'
-    | '/_authenticated/governanca/indicadores'
-    | '/_authenticated/governanca/inventario-patrimonial'
-    | '/_authenticated/governanca/inventario-recuperacao'
-    | '/_authenticated/governanca/matriz-conformidade'
-    | '/_authenticated/governanca/matriz-equivalencia'
     | '/_authenticated/governanca/modelo-familiar-casal'
     | '/_authenticated/governanca/modelo-individual'
     | '/_authenticated/governanca/modelos-contratuais'
-    | '/_authenticated/governanca/modulos-contextuais'
-    | '/_authenticated/governanca/varredura-completude'
     | '/_authenticated/historico/fluxo-comercial-canonico'
-    | '/_authenticated/historico/painel-desk-hoje'
-    | '/_authenticated/historico/painel-hoje'
     | '/_authenticated/onboarding/$id'
     | '/_authenticated/pesquisa-evidencias/$caseId'
     | '/_authenticated/pesquisa-modulo/$id'
@@ -1452,7 +1298,6 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRouteWithChildren
   AuthRoute: typeof AuthRoute
   DevolutivaRoute: typeof DevolutivaRoute
-  StudioDevolutivasRoute: typeof StudioDevolutivasRoute
   ApiPesquisaAssistenteRoute: typeof ApiPesquisaAssistenteRoute
   CanvasTokenRoute: typeof CanvasTokenRoute
   EquipeDiagnosticoConexaoRoute: typeof EquipeDiagnosticoConexaoRoute
@@ -1509,18 +1354,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/studio-devolutivas': {
-      id: '/studio-devolutivas'
-      path: '/studio-devolutivas'
-      fullPath: '/studio-devolutivas'
-      preLoaderRoute: typeof StudioDevolutivasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/acessos-portal': {
       id: '/_authenticated/acessos-portal'
       path: '/acessos-portal'
       fullPath: '/acessos-portal'
       preLoaderRoute: typeof AuthenticatedAcessosPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/alertas': {
+      id: '/_authenticated/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AuthenticatedAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app-cliente-como-pessoa': {
@@ -1542,13 +1387,6 @@ declare module '@tanstack/react-router' {
       path: '/atendimento'
       fullPath: '/atendimento'
       preLoaderRoute: typeof AuthenticatedAtendimentoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/auditoria': {
-      id: '/_authenticated/auditoria'
-      path: '/auditoria'
-      fullPath: '/auditoria'
-      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/biblioteca': {
@@ -1712,11 +1550,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMetricasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mockup': {
+      id: '/_authenticated/mockup'
+      path: '/mockup'
+      fullPath: '/mockup'
+      preLoaderRoute: typeof AuthenticatedMockupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/nucleos': {
       id: '/_authenticated/nucleos'
       path: '/nucleos'
       fullPath: '/nucleos'
       preLoaderRoute: typeof AuthenticatedNucleosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/nucleos-duplicidades': {
+      id: '/_authenticated/nucleos-duplicidades'
+      path: '/nucleos-duplicidades'
+      fullPath: '/nucleos-duplicidades'
+      preLoaderRoute: typeof AuthenticatedNucleosDuplicidadesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ops': {
@@ -1747,20 +1599,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/piloto': {
-      id: '/_authenticated/piloto'
-      path: '/piloto'
-      fullPath: '/piloto'
-      preLoaderRoute: typeof AuthenticatedPilotoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/piloto-ana': {
-      id: '/_authenticated/piloto-ana'
-      path: '/piloto-ana'
-      fullPath: '/piloto-ana'
-      preLoaderRoute: typeof AuthenticatedPilotoAnaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/propostas': {
       id: '/_authenticated/propostas'
       path: '/propostas'
@@ -1787,6 +1625,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/studio-devolutivas': {
+      id: '/_authenticated/studio-devolutivas'
+      path: '/studio-devolutivas'
+      fullPath: '/studio-devolutivas'
+      preLoaderRoute: typeof AuthenticatedStudioDevolutivasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tarefas': {
@@ -2013,20 +1858,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaContratoBaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/governanca/corte-vertical': {
-      id: '/_authenticated/governanca/corte-vertical'
-      path: '/governanca/corte-vertical'
-      fullPath: '/governanca/corte-vertical'
-      preLoaderRoute: typeof AuthenticatedGovernancaCorteVerticalRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/criterios-aceite': {
-      id: '/_authenticated/governanca/criterios-aceite'
-      path: '/governanca/criterios-aceite'
-      fullPath: '/governanca/criterios-aceite'
-      preLoaderRoute: typeof AuthenticatedGovernancaCriteriosAceiteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/governanca/decisoes': {
       id: '/_authenticated/governanca/decisoes'
       path: '/governanca/decisoes'
@@ -2039,48 +1870,6 @@ declare module '@tanstack/react-router' {
       path: '/governanca/dicionario-calls-crm'
       fullPath: '/governanca/dicionario-calls-crm'
       preLoaderRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/identificadores': {
-      id: '/_authenticated/governanca/identificadores'
-      path: '/governanca/identificadores'
-      fullPath: '/governanca/identificadores'
-      preLoaderRoute: typeof AuthenticatedGovernancaIdentificadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/indicadores': {
-      id: '/_authenticated/governanca/indicadores'
-      path: '/governanca/indicadores'
-      fullPath: '/governanca/indicadores'
-      preLoaderRoute: typeof AuthenticatedGovernancaIndicadoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/inventario-patrimonial': {
-      id: '/_authenticated/governanca/inventario-patrimonial'
-      path: '/governanca/inventario-patrimonial'
-      fullPath: '/governanca/inventario-patrimonial'
-      preLoaderRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/inventario-recuperacao': {
-      id: '/_authenticated/governanca/inventario-recuperacao'
-      path: '/governanca/inventario-recuperacao'
-      fullPath: '/governanca/inventario-recuperacao'
-      preLoaderRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/matriz-conformidade': {
-      id: '/_authenticated/governanca/matriz-conformidade'
-      path: '/governanca/matriz-conformidade'
-      fullPath: '/governanca/matriz-conformidade'
-      preLoaderRoute: typeof AuthenticatedGovernancaMatrizConformidadeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/matriz-equivalencia': {
-      id: '/_authenticated/governanca/matriz-equivalencia'
-      path: '/governanca/matriz-equivalencia'
-      fullPath: '/governanca/matriz-equivalencia'
-      preLoaderRoute: typeof AuthenticatedGovernancaMatrizEquivalenciaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/governanca/modelo-familiar-casal': {
@@ -2104,39 +1893,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGovernancaModelosContratuaisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/governanca/modulos-contextuais': {
-      id: '/_authenticated/governanca/modulos-contextuais'
-      path: '/governanca/modulos-contextuais'
-      fullPath: '/governanca/modulos-contextuais'
-      preLoaderRoute: typeof AuthenticatedGovernancaModulosContextuaisRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/governanca/varredura-completude': {
-      id: '/_authenticated/governanca/varredura-completude'
-      path: '/governanca/varredura-completude'
-      fullPath: '/governanca/varredura-completude'
-      preLoaderRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/historico/fluxo-comercial-canonico': {
       id: '/_authenticated/historico/fluxo-comercial-canonico'
       path: '/historico/fluxo-comercial-canonico'
       fullPath: '/historico/fluxo-comercial-canonico'
       preLoaderRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/historico/painel-desk-hoje': {
-      id: '/_authenticated/historico/painel-desk-hoje'
-      path: '/historico/painel-desk-hoje'
-      fullPath: '/historico/painel-desk-hoje'
-      preLoaderRoute: typeof AuthenticatedHistoricoPainelDeskHojeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/historico/painel-hoje': {
-      id: '/_authenticated/historico/painel-hoje'
-      path: '/historico/painel-hoje'
-      fullPath: '/historico/painel-hoje'
-      preLoaderRoute: typeof AuthenticatedHistoricoPainelHojeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding/$id': {
@@ -2270,10 +2031,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcessosPortalRoute: typeof AuthenticatedAcessosPortalRoute
+  AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedAppClienteComoPessoaRoute: typeof AuthenticatedAppClienteComoPessoaRoute
   AuthenticatedAppClienteDemoRoute: typeof AuthenticatedAppClienteDemoRoute
   AuthenticatedAtendimentoRoute: typeof AuthenticatedAtendimentoRoute
-  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBibliotecaMensagensRoute: typeof AuthenticatedBibliotecaMensagensRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
@@ -2297,17 +2058,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedMatrizJuridicaRoute: typeof AuthenticatedMatrizJuridicaRoute
   AuthenticatedMetricasRoute: typeof AuthenticatedMetricasRoute
+  AuthenticatedMockupRoute: typeof AuthenticatedMockupRoute
   AuthenticatedNucleosRoute: typeof AuthenticatedNucleosRoute
+  AuthenticatedNucleosDuplicidadesRoute: typeof AuthenticatedNucleosDuplicidadesRoute
   AuthenticatedOpsRoute: typeof AuthenticatedOpsRoute
   AuthenticatedOpsExcecoesRoute: typeof AuthenticatedOpsExcecoesRoute
   AuthenticatedOrdensServicoRoute: typeof AuthenticatedOrdensServicoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedPilotoRoute: typeof AuthenticatedPilotoRoute
-  AuthenticatedPilotoAnaRoute: typeof AuthenticatedPilotoAnaRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedProximasAcoesRoute: typeof AuthenticatedProximasAcoesRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedStudioDevolutivasRoute: typeof AuthenticatedStudioDevolutivasRoute
   AuthenticatedTarefasRoute: typeof AuthenticatedTarefasRoute
   AuthenticatedAchadosCaseIdRoute: typeof AuthenticatedAchadosCaseIdRoute
   AuthenticatedBibliotecaEvidenciasCaseIdRoute: typeof AuthenticatedBibliotecaEvidenciasCaseIdRoute
@@ -2315,24 +2077,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContratosIdRoute: typeof AuthenticatedContratosIdRoute
   AuthenticatedGovernancaCatalogoOperacional30Route: typeof AuthenticatedGovernancaCatalogoOperacional30Route
   AuthenticatedGovernancaContratoBaseRoute: typeof AuthenticatedGovernancaContratoBaseRoute
-  AuthenticatedGovernancaCorteVerticalRoute: typeof AuthenticatedGovernancaCorteVerticalRoute
-  AuthenticatedGovernancaCriteriosAceiteRoute: typeof AuthenticatedGovernancaCriteriosAceiteRoute
   AuthenticatedGovernancaDecisoesRoute: typeof AuthenticatedGovernancaDecisoesRoute
   AuthenticatedGovernancaDicionarioCallsCrmRoute: typeof AuthenticatedGovernancaDicionarioCallsCrmRoute
-  AuthenticatedGovernancaIdentificadoresRoute: typeof AuthenticatedGovernancaIdentificadoresRoute
-  AuthenticatedGovernancaIndicadoresRoute: typeof AuthenticatedGovernancaIndicadoresRoute
-  AuthenticatedGovernancaInventarioPatrimonialRoute: typeof AuthenticatedGovernancaInventarioPatrimonialRoute
-  AuthenticatedGovernancaInventarioRecuperacaoRoute: typeof AuthenticatedGovernancaInventarioRecuperacaoRoute
-  AuthenticatedGovernancaMatrizConformidadeRoute: typeof AuthenticatedGovernancaMatrizConformidadeRoute
-  AuthenticatedGovernancaMatrizEquivalenciaRoute: typeof AuthenticatedGovernancaMatrizEquivalenciaRoute
   AuthenticatedGovernancaModeloFamiliarCasalRoute: typeof AuthenticatedGovernancaModeloFamiliarCasalRoute
   AuthenticatedGovernancaModeloIndividualRoute: typeof AuthenticatedGovernancaModeloIndividualRoute
   AuthenticatedGovernancaModelosContratuaisRoute: typeof AuthenticatedGovernancaModelosContratuaisRoute
-  AuthenticatedGovernancaModulosContextuaisRoute: typeof AuthenticatedGovernancaModulosContextuaisRoute
-  AuthenticatedGovernancaVarreduraCompletudeRoute: typeof AuthenticatedGovernancaVarreduraCompletudeRoute
   AuthenticatedHistoricoFluxoComercialCanonicoRoute: typeof AuthenticatedHistoricoFluxoComercialCanonicoRoute
-  AuthenticatedHistoricoPainelDeskHojeRoute: typeof AuthenticatedHistoricoPainelDeskHojeRoute
-  AuthenticatedHistoricoPainelHojeRoute: typeof AuthenticatedHistoricoPainelHojeRoute
   AuthenticatedOnboardingIdRoute: typeof AuthenticatedOnboardingIdRoute
   AuthenticatedPesquisaEvidenciasCaseIdRoute: typeof AuthenticatedPesquisaEvidenciasCaseIdRoute
   AuthenticatedPesquisaModuloIdRoute: typeof AuthenticatedPesquisaModuloIdRoute
@@ -2354,11 +2104,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcessosPortalRoute: AuthenticatedAcessosPortalRoute,
+  AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedAppClienteComoPessoaRoute:
     AuthenticatedAppClienteComoPessoaRoute,
   AuthenticatedAppClienteDemoRoute: AuthenticatedAppClienteDemoRoute,
   AuthenticatedAtendimentoRoute: AuthenticatedAtendimentoRoute,
-  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedBibliotecaMensagensRoute: AuthenticatedBibliotecaMensagensRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
@@ -2383,17 +2133,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedMatrizJuridicaRoute: AuthenticatedMatrizJuridicaRoute,
   AuthenticatedMetricasRoute: AuthenticatedMetricasRoute,
+  AuthenticatedMockupRoute: AuthenticatedMockupRoute,
   AuthenticatedNucleosRoute: AuthenticatedNucleosRoute,
+  AuthenticatedNucleosDuplicidadesRoute: AuthenticatedNucleosDuplicidadesRoute,
   AuthenticatedOpsRoute: AuthenticatedOpsRoute,
   AuthenticatedOpsExcecoesRoute: AuthenticatedOpsExcecoesRoute,
   AuthenticatedOrdensServicoRoute: AuthenticatedOrdensServicoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedPilotoRoute: AuthenticatedPilotoRoute,
-  AuthenticatedPilotoAnaRoute: AuthenticatedPilotoAnaRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedProximasAcoesRoute: AuthenticatedProximasAcoesRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedStudioDevolutivasRoute: AuthenticatedStudioDevolutivasRoute,
   AuthenticatedTarefasRoute: AuthenticatedTarefasRoute,
   AuthenticatedAchadosCaseIdRoute: AuthenticatedAchadosCaseIdRoute,
   AuthenticatedBibliotecaEvidenciasCaseIdRoute:
@@ -2405,40 +2156,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedGovernancaCatalogoOperacional30Route,
   AuthenticatedGovernancaContratoBaseRoute:
     AuthenticatedGovernancaContratoBaseRoute,
-  AuthenticatedGovernancaCorteVerticalRoute:
-    AuthenticatedGovernancaCorteVerticalRoute,
-  AuthenticatedGovernancaCriteriosAceiteRoute:
-    AuthenticatedGovernancaCriteriosAceiteRoute,
   AuthenticatedGovernancaDecisoesRoute: AuthenticatedGovernancaDecisoesRoute,
   AuthenticatedGovernancaDicionarioCallsCrmRoute:
     AuthenticatedGovernancaDicionarioCallsCrmRoute,
-  AuthenticatedGovernancaIdentificadoresRoute:
-    AuthenticatedGovernancaIdentificadoresRoute,
-  AuthenticatedGovernancaIndicadoresRoute:
-    AuthenticatedGovernancaIndicadoresRoute,
-  AuthenticatedGovernancaInventarioPatrimonialRoute:
-    AuthenticatedGovernancaInventarioPatrimonialRoute,
-  AuthenticatedGovernancaInventarioRecuperacaoRoute:
-    AuthenticatedGovernancaInventarioRecuperacaoRoute,
-  AuthenticatedGovernancaMatrizConformidadeRoute:
-    AuthenticatedGovernancaMatrizConformidadeRoute,
-  AuthenticatedGovernancaMatrizEquivalenciaRoute:
-    AuthenticatedGovernancaMatrizEquivalenciaRoute,
   AuthenticatedGovernancaModeloFamiliarCasalRoute:
     AuthenticatedGovernancaModeloFamiliarCasalRoute,
   AuthenticatedGovernancaModeloIndividualRoute:
     AuthenticatedGovernancaModeloIndividualRoute,
   AuthenticatedGovernancaModelosContratuaisRoute:
     AuthenticatedGovernancaModelosContratuaisRoute,
-  AuthenticatedGovernancaModulosContextuaisRoute:
-    AuthenticatedGovernancaModulosContextuaisRoute,
-  AuthenticatedGovernancaVarreduraCompletudeRoute:
-    AuthenticatedGovernancaVarreduraCompletudeRoute,
   AuthenticatedHistoricoFluxoComercialCanonicoRoute:
     AuthenticatedHistoricoFluxoComercialCanonicoRoute,
-  AuthenticatedHistoricoPainelDeskHojeRoute:
-    AuthenticatedHistoricoPainelDeskHojeRoute,
-  AuthenticatedHistoricoPainelHojeRoute: AuthenticatedHistoricoPainelHojeRoute,
   AuthenticatedOnboardingIdRoute: AuthenticatedOnboardingIdRoute,
   AuthenticatedPesquisaEvidenciasCaseIdRoute:
     AuthenticatedPesquisaEvidenciasCaseIdRoute,
@@ -2524,7 +2252,6 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRouteWithChildren,
   AuthRoute: AuthRoute,
   DevolutivaRoute: DevolutivaRoute,
-  StudioDevolutivasRoute: StudioDevolutivasRoute,
   ApiPesquisaAssistenteRoute: ApiPesquisaAssistenteRoute,
   CanvasTokenRoute: CanvasTokenRoute,
   EquipeDiagnosticoConexaoRoute: EquipeDiagnosticoConexaoRoute,

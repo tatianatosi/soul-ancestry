@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { cn } from "@/lib/utils";
 import { diasDesde, rotuloIdade, tomIdade } from "@/lib/idade-registro";
 import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   Campo,
   FiltroStatus,
@@ -30,6 +33,7 @@ import {
 } from "@/lib/comercial.functions";
 import { FLUXO } from "@/lib/comercial-fluxo";
 import { CAT_ESTADO_PROPOSTA, CAT_FORMA_PAGAMENTO, CAT_MOTIVO_ARQUIVAMENTO } from "@/lib/parametros-catalogos";
+import { RegraComercial } from "@/components/contrato/regra-comercial";
 
 const AJUDA_PROPOSTA: Record<string, string> = Object.fromEntries(CAT_ESTADO_PROPOSTA.map((o) => [o.valor, o.ajuda ?? ""]));
 
@@ -51,7 +55,14 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 type Linha = Record<string, unknown>;
 
 function PropostasPage() {
-  const { podeComercial } = useSaas();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_proposta_escopo_preco" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const queryClient = useQueryClient();
   const listar = useServerFn(listarComercial);
   const vinculos = useServerFn(listarVinculos);
@@ -147,6 +158,7 @@ function PropostasPage() {
 
   const clientes = qv.data?.clientes ?? [];
   const casos = qv.data?.casos ?? [];
+  const vinculosIndisponiveis = !qv.isLoading && (Boolean(qv.error) || qv.data === undefined);
   const nomeCliente = (id: unknown) => clientes.find((c) => c.id === id)?.nome ?? "—";
   const codigoCaso = (id: unknown) => {
     const c = casos.find((x) => x.id === id);
@@ -171,7 +183,7 @@ function PropostasPage() {
       titulo="CRM Vivo — Propostas"
       descricao="Versões, escopo, condições e validade. Só uma proposta aprovada por cliente."
       acoes={
-        podeComercial ? (
+        (
           <button
             onClick={() => {
               setErro(null);
@@ -181,9 +193,16 @@ function PropostasPage() {
           >
             Nova proposta
           </button>
-        ) : null
+        )
       }
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <FiltroStatus rotulos={ROTULO_PROPOSTA} valor={status} aoMudar={setStatus} />
@@ -218,9 +237,33 @@ function PropostasPage() {
           </p>
         ) : null}
 
-        {q.isLoading ? (
-          <EstadoVazio mensagem="Carregando…" />
-        ) : !linhas.length ? (
+        {vinculosIndisponiveis ? (
+          <p
+            role="alert"
+            className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+          >
+            Não foi possível carregar clientes e casos vinculados. Nomes e listas de seleção estão vazios por
+            falha de leitura, não por ausência de cadastro.
+            <button
+              type="button"
+              onClick={() => void qv.refetch()}
+              className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium"
+            >
+              Tentar novamente
+            </button>
+          </p>
+        ) : null}
+
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data as Linha[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as propostas"
+          vazio="Nenhuma proposta cadastrada ainda."
+        >
+          {() =>
+          !linhas.length ? (
           <EstadoVazio mensagem="Nenhuma proposta neste filtro." />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
@@ -290,7 +333,9 @@ function PropostasPage() {
               </tbody>
             </table>
           </div>
-        )}
+        )
+          }
+        </EstadoDados>
       </div>
 
       {detalhe ? (
@@ -299,7 +344,18 @@ function PropostasPage() {
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-navy/60">Cliente</dt>
-                <dd>{nomeCliente(detalhe["client_id"])}</dd>
+                <dd>
+                  {nomeCliente(detalhe["client_id"])}
+                  {detalhe["client_id"] ? (
+                    <Link
+                      to="/pessoas/$clienteId"
+                      params={{ clienteId: String(detalhe["client_id"]) }}
+                      className="ml-2 text-xs text-navy underline underline-offset-4"
+                    >
+                      Ver perfil 360
+                    </Link>
+                  ) : null}
+                </dd>
               </div>
               <div>
                 <dt className="text-navy/60">Valor</dt>
@@ -332,7 +388,11 @@ function PropostasPage() {
             </dl>
           </Painel>
 
-          {podeComercial ? (
+          {detalhe["case_id"] ? (
+            <RegraComercial caseId={String(detalhe["case_id"])} />
+          ) : null}
+
+          {(
             <>
               <Painel titulo="Mover status">
                 <div className="flex flex-wrap gap-2">
@@ -444,20 +504,25 @@ function PropostasPage() {
                     ? " Proposta arquivada continua arquivada e recuperável — o ajuste nasce como rascunho novo."
                     : " A proposta atual é marcada como substituída."}
                 </p>
-                <button
-                  disabled={mVersionar.isPending || String(detalhe["status"]) === "substituida"}
-
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do ajuste (opcional)");
-                    if (motivo !== null) mVersionar.mutate({ id: String(detalhe["id"]), motivo });
-                  }}
-                  className="mt-3 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
-                >
-                  Criar versão para ajuste
-                </button>
+                <div className="mt-3">
+                  <AcaoOperacional
+                    rotulo="Criar versão para ajuste"
+                    size="sm"
+                    capacidade="criar_versao_derivada"
+                    pendenciaGate={
+                      String(detalhe["status"]) === "substituida"
+                        ? "Esta proposta já foi substituída: o ajuste nasce como rascunho derivado de uma versão que não vale mais."
+                        : null
+                    }
+                    efeito="Duplica a proposta como rascunho editável e marca a atual como substituída."
+                    onConfirmar={async (motivo) => {
+                      await mVersionar.mutateAsync({ id: String(detalhe["id"]), motivo });
+                    }}
+                  />
+                </div>
               </Painel>
             </>
-          ) : null}
+          )}
 
           <Painel titulo="Histórico">
             <Historico entidade="proposals" id={String(detalhe["id"])} />

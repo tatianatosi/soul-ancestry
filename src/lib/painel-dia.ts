@@ -27,6 +27,8 @@ export type ItemDia = {
   /** Falha de qualidade: item operacional sem dono resolvido. */
   semResponsavel: boolean;
   semPrazo: boolean;
+  /** Selo de origem da ação (quando o item é um caso com RPC canônica). */
+  origemAcao?: "automatica" | "manual";
 };
 
 /** Filas que descrevem disciplina comercial (não bloqueio de execução). */
@@ -74,6 +76,7 @@ export function consolidarDia(filas: Fila[], opcoes?: { incluirDemo?: boolean })
           demo: eDemo(item.rotulo),
           semResponsavel: !item.responsavel,
           semPrazo: !item.data,
+          origemAcao: item.origemAcao,
           criticidade: fila.criticidade,
         });
         continue;
@@ -83,6 +86,7 @@ export function consolidarDia(filas: Fila[], opcoes?: { incluirDemo?: boolean })
       if (nova && (!atual.data || nova < atual.data)) {
         atual.data = nova;
         atual.acao = item.detalhe;
+        atual.origemAcao = item.origemAcao;
       }
       if (!atual.responsavel && item.responsavel) atual.responsavel = item.responsavel;
       atual.semResponsavel = !atual.responsavel;

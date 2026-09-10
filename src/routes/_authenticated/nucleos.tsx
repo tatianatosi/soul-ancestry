@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -6,15 +8,20 @@ import { toast } from "sonner";
 
 import { Secao, Selecao, Texto } from "@/components/caso/campos";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import {
   NUCLEO_AMBIENTES,
   NUCLEO_DOSSIE_STATUS,
   NUCLEO_NIVEIS_ACESSO,
   NUCLEO_PAPEIS,
+  criarNucleo,
+  encaminharFilaDrive,
+  listarClientesParaVinculo,
   listarNucleos,
   salvarDossieNucleo,
   salvarMembroNucleo,
 } from "@/lib/nucleos-desk.functions";
+import { STATUS_FILA_DRIVE } from "@/lib/drive-provisioning";
 import { salvarTarefa } from "@/lib/ops.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos")({
@@ -47,7 +54,14 @@ const CORES_STATUS: Record<string, string> = {
   arquivado: "bg-navy/5 text-navy/50",
 };
 
-type Membro = { id: string; nome: string; papel: string; vinculo: string | null; processo: string | null };
+type Membro = {
+  id: string;
+  nome: string;
+  papel: string;
+  vinculo: string | null;
+  processo: string | null;
+  cliente_id: string | null;
+};
 type Nucleo = {
   id: string;
   nome: string;
@@ -58,7 +72,15 @@ type Nucleo = {
   link_interno: string | null;
   responsavel_nome: string | null;
   dossie_status: string | null;
-  caso: { id: string; codigo: string | null; titulo: string | null } | null;
+  caso: {
+    id: string;
+    codigo: string | null;
+    titulo: string | null;
+    contrato_assinado: boolean | null;
+    pagamento_confirmado: boolean | null;
+    ativado_em: string | null;
+  } | null;
+  filaDrive: { id: string; status: string; stage_trigger: string; observacao_interna: string | null } | null;
   membros: Membro[];
 };
 
@@ -72,14 +94,27 @@ type Rascunho = {
 };
 
 function NucleosPage() {
-  const { podeEscrever } = useSaas();
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_pessoas_dependentes_representacao" });
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura não trava campo nem botão.
+  // Vira pendência declarada e a decisão passa por <AcaoOperacional>.
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarNucleos);
+  const carregarClientes = useServerFn(listarClientesParaVinculo);
+  const criar = useServerFn(criarNucleo);
   const salvar = useServerFn(salvarDossieNucleo);
   const salvarMembro = useServerFn(salvarMembroNucleo);
+  const encaminhar = useServerFn(encaminharFilaDrive);
   const criarTarefa = useServerFn(salvarTarefa);
   const qc = useQueryClient();
 
   const q = useQuery({ queryKey: ["nucleos-desk"], queryFn: () => carregar(), retry: false });
+  const qClientes = useQuery({ queryKey: ["clientes-vinculo"], queryFn: () => carregarClientes(), retry: false });
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
   const [selecionado, setSelecionado] = useState<string | null>(null);
@@ -87,17 +122,39 @@ function NucleosPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [membroEditando, setMembroEditando] = useState<string | null>(null);
-  const [rascunhoMembro, setRascunhoMembro] = useState<{ nome: string; vinculo: string; processo: string } | null>(
-    null,
-  );
+  const [rascunhoMembro, setRascunhoMembro] = useState<{
+    nome: string;
+    vinculo: string;
+    processo: string;
+    clienteId: string;
+  } | null>(null);
   const [erroMembro, setErroMembro] = useState<string | null>(null);
+  const [novoNucleoAberto, setNovoNucleoAberto] = useState(false);
+  const [novoNucleoNome, setNovoNucleoNome] = useState("");
+  const [erroNovoNucleo, setErroNovoNucleo] = useState<string | null>(null);
+
+  const mCriarNucleo = useMutation({
+    mutationFn: (nome: string) => criar({ data: { nome } }),
+    onSuccess: async (criado) => {
+      setNovoNucleoAberto(false);
+      setNovoNucleoNome("");
+      setErroNovoNucleo(null);
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+      setSelecionado((criado as { id: string }).id);
+      toast.success("Núcleo criado.");
+    },
+    onError: (e: Error) => setErroNovoNucleo(e.message),
+  });
   const [sugestaoAcao, setSugestaoAcao] = useState<{ membroId: string; nome: string; caseId: string | null } | null>(
     null,
   );
 
   const nucleos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return ((q.data ?? []) as Nucleo[]).filter((n) => {
+    const lista = q.data as Nucleo[] | undefined;
+    // `undefined` preservado de propósito: consulta não resolvida não é "nenhum núcleo".
+    if (!lista) return undefined;
+    return lista.filter((n) => {
       if (filtroStatus && (n.dossie_status ?? "nao_iniciado") !== filtroStatus) return false;
       if (!termo) return true;
       const alvo = [n.nome, n.contratante_nome, n.dossie_mae, n.caso?.codigo, n.caso?.titulo]
@@ -110,14 +167,16 @@ function NucleosPage() {
 
   const casosDuplicados = useMemo(() => {
     const contagem = new Map<string, number>();
-    for (const n of (q.data ?? []) as Nucleo[]) {
+    const lista = q.data as Nucleo[] | undefined;
+    if (!lista) return new Set<string>();
+    for (const n of lista) {
       if (n.caso) contagem.set(n.caso.id, (contagem.get(n.caso.id) ?? 0) + 1);
     }
     return new Set([...contagem.entries()].filter(([, c]) => c > 1).map(([id]) => id));
   }, [q.data]);
 
   const atual = useMemo(
-    () => ((q.data ?? []) as Nucleo[]).find((n) => n.id === selecionado) ?? null,
+    () => (q.data as Nucleo[] | undefined)?.find((n) => n.id === selecionado) ?? null,
     [q.data, selecionado],
   );
 
@@ -150,8 +209,23 @@ function NucleosPage() {
   });
 
   const mMembro = useMutation({
-    mutationFn: (data: { membroId: string; nome: string; vinculo: string; processo: string; caseId: string | null }) =>
-      salvarMembro({ data: { membroId: data.membroId, nome: data.nome, vinculo: data.vinculo, processo: data.processo } }),
+    mutationFn: (data: {
+      membroId: string;
+      nome: string;
+      vinculo: string;
+      processo: string;
+      clienteId: string;
+      caseId: string | null;
+    }) =>
+      salvarMembro({
+        data: {
+          membroId: data.membroId,
+          nome: data.nome,
+          vinculo: data.vinculo,
+          processo: data.processo,
+          clienteId: data.clienteId || null,
+        },
+      }),
     onSuccess: async (_r, variaveis) => {
       setErroMembro(null);
       setMembroEditando(null);
@@ -160,6 +234,20 @@ function NucleosPage() {
       await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
     },
     onError: (e: Error) => setErroMembro(e.message),
+  });
+
+  const [erroFila, setErroFila] = useState<Record<string, string>>({});
+
+  const mFilaDrive = useMutation({
+    mutationFn: (data: { nucleoId: string }) => encaminhar({ data }),
+    onSuccess: async (_r, variaveis) => {
+      setErroFila((prev) => {
+        const { [variaveis.nucleoId]: _remover, ...resto } = prev;
+        return resto;
+      });
+      await qc.invalidateQueries({ queryKey: ["nucleos-desk"] });
+    },
+    onError: (e: Error, variaveis) => setErroFila((prev) => ({ ...prev, [variaveis.nucleoId]: e.message })),
   });
 
   const mTarefaAcao = useMutation({
@@ -188,16 +276,63 @@ function NucleosPage() {
               onChange={setFiltroStatus}
             />
           </div>
+          <div className="mt-3">
+            {novoNucleoAberto ? (
+              <div className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-navy/5 p-3">
+                <div className="min-w-[220px] flex-1">
+                  <Texto label="Nome do novo núcleo" valor={novoNucleoNome} onChange={setNovoNucleoNome} />
+                </div>
+                <button
+                  type="button"
+                  disabled={mCriarNucleo.isPending || !novoNucleoNome.trim()}
+                  onClick={() => mCriarNucleo.mutate(novoNucleoNome.trim())}
+                  className="rounded-lg bg-navy px-4 py-2 text-sm text-white disabled:opacity-50"
+                >
+                  {mCriarNucleo.isPending ? "Criando…" : "Criar núcleo"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNovoNucleoAberto(false);
+                    setErroNovoNucleo(null);
+                  }}
+                  className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy"
+                >
+                  Cancelar
+                </button>
+                {erroNovoNucleo ? <p className="w-full text-xs text-terracotta">{erroNovoNucleo}</p> : null}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setNovoNucleoAberto(true)}
+                className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
+              >
+                + Novo núcleo
+              </button>
+            )}
+          </div>
         </Secao>
 
-        {q.isLoading ? <p className="text-sm text-navy/60">Carregando núcleos…</p> : null}
-        {q.error ? <p className="text-sm text-red-700">{(q.error as Error).message}</p> : null}
-        {!q.isLoading && !q.error && nucleos.length === 0 ? (
-          <p className="text-sm text-navy/60">Nenhum núcleo familiar encontrado com os filtros atuais.</p>
+        {pendenciaVinculo || !podeEscrever ? (
+          <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+            Pendência registrada:{" "}
+            {pendenciaVinculo ??
+              "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+          </p>
         ) : null}
 
+        <EstadoDados<Nucleo>
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={nucleos}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os núcleos familiares"
+          vazio="Nenhum núcleo familiar encontrado com os filtros atuais. A consulta foi concluída com sucesso."
+        >
+          {(lista) => (
         <div className="grid gap-4 lg:grid-cols-2">
-          {nucleos.map((n: Nucleo) => {
+          {lista.map((n: Nucleo) => {
             const status = n.dossie_status ?? "nao_iniciado";
             return (
               <article key={n.id} className="rounded-xl border border-navy/10 bg-white p-5">
@@ -245,6 +380,59 @@ function NucleosPage() {
                   <p>Responsável: {n.responsavel_nome || "—"}</p>
                 </div>
 
+                {/*
+                 * 04/09/2026 — CA-P0-EXEC-001, critério C: "Dossiê-mãe" acima é
+                 * só um rótulo de texto livre em nucleos_familiares — não tinha
+                 * nenhum vínculo com a fila real de provisionamento
+                 * (drive_provisioning_queue / drive-provisioning.ts). Este bloco
+                 * mostra o estado real da fila e oferece um único CTA seguro:
+                 * encaminhar para revisão. Nunca cria pasta, nunca aprova/executa
+                 * a partir daqui — isso exige decisão humana registrada à parte.
+                 */}
+                <div className="mt-3 rounded-lg border border-navy/10 bg-navy/[0.03] px-3 py-2 text-xs text-navy/70">
+                  <p className="text-[11px] uppercase tracking-wide text-navy/45">Fila de provisionamento do Drive</p>
+                  {n.filaDrive ? (
+                    <p className="mt-1">
+                      Estado atual:{" "}
+                      <span className="font-medium text-navy">
+                        {STATUS_FILA_DRIVE.find((s) => s.valor === n.filaDrive?.status)?.rotulo ??
+                          n.filaDrive.status}
+                      </span>
+                      {n.filaDrive.observacao_interna ? ` — ${n.filaDrive.observacao_interna}` : ""}
+                    </p>
+                  ) : (
+                    <p className="mt-1">Nenhum item na fila ainda. Nada é criado no Drive automaticamente.</p>
+                  )}
+                  {/*
+                   * A ausência de caso vinculado e o vínculo somente leitura
+                   * viram pendência declarada, não trava do controle. O gate
+                   * real continua sendo avaliado no servidor.
+                   */}
+                  <div className="mt-2">
+                    <AcaoOperacional
+                      rotulo="Encaminhar para revisão"
+                      capacidade="editar_rascunho"
+                      pendenciaGate={
+                        [
+                          n.caso
+                            ? null
+                            : "Núcleo sem caso operacional vinculado — os gates da fila do Drive não podem ser avaliados.",
+                          pendenciaVinculo,
+                        ]
+                          .filter(Boolean)
+                          .join("; ") || null
+                      }
+                      efeito="Coloca este núcleo na fila de revisão de provisionamento do Drive. Nenhuma pasta é criada e nada é aprovado aqui."
+                      size="sm"
+                      variant="outline"
+                      onConfirmar={async () => {
+                        await mFilaDrive.mutateAsync({ nucleoId: n.id });
+                      }}
+                    />
+                  </div>
+                  {erroFila[n.id] ? <p className="mt-1.5 text-terracotta">{erroFila[n.id]}</p> : null}
+                </div>
+
                 <div className="mt-3">
                   <p className="text-[11px] uppercase tracking-wide text-navy/45">Requerentes e vínculos</p>
                   {n.membros.length === 0 ? (
@@ -270,11 +458,29 @@ function NucleosPage() {
                                 valor={rascunhoMembro.processo}
                                 onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, processo: v })}
                               />
+                              <EstadoDados
+                                carregando={qClientes.isLoading}
+                                erro={qClientes.error}
+                                dados={qClientes.data}
+                                aoTentarNovamente={() => void qClientes.refetch()}
+                                recurso="as pessoas cadastradas"
+                                vazio="Nenhuma pessoa cadastrada ainda — cadastre em Pessoas para poder vincular este requerente."
+                              >
+                                {(clientes) => (
+                                  <Selecao
+                                    label="Vincular a pessoa cadastrada"
+                                    ajuda="Liga este requerente ao cadastro de Pessoa Canônica — habilita o link 'Ver perfil' e evita duplicar o cadastro da mesma pessoa."
+                                    valor={rascunhoMembro.clienteId}
+                                    opcoes={clientes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                                    onChange={(v) => setRascunhoMembro({ ...rascunhoMembro, clienteId: v })}
+                                  />
+                                )}
+                              </EstadoDados>
                               {erroMembro ? <p className="text-red-700">{erroMembro}</p> : null}
                               <div className="flex gap-2 pt-1">
                                 <button
                                   type="button"
-                                  disabled={!podeEscrever || mMembro.isPending}
+                                  disabled={mMembro.isPending}
                                   onClick={() =>
                                     mMembro.mutate({ membroId: m2.id, ...rascunhoMembro, caseId: n.caso?.id ?? null })
                                   }
@@ -305,23 +511,45 @@ function NucleosPage() {
                                 {m2.vinculo ? <p className="text-navy/55">{m2.vinculo}</p> : null}
                                 {m2.processo ? <p className="text-navy/45">{m2.processo}</p> : null}
                               </div>
-                              {podeEscrever ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMembroEditando(m2.id);
-                                    setRascunhoMembro({
-                                      nome: m2.nome,
-                                      vinculo: m2.vinculo ?? "",
-                                      processo: m2.processo ?? "",
-                                    });
-                                    setErroMembro(null);
-                                  }}
-                                  className="shrink-0 rounded-md border border-navy/15 px-2 py-1 text-navy hover:border-gold"
-                                >
-                                  Editar
-                                </button>
-                              ) : null}
+                              <div className="flex shrink-0 items-center gap-2">
+                                {m2.cliente_id ? (
+                                  <Link
+                                    to="/pessoas/$clienteId"
+                                    params={{ clienteId: m2.cliente_id }}
+                                    className="rounded-md border border-gold/50 bg-gold/10 px-2 py-1 text-navy hover:bg-gold/20"
+                                  >
+                                    Ver perfil
+                                  </Link>
+                                ) : (
+                                  /*
+                                   * 04/09/2026 — CA-P0-EXEC-001, critério B: quando não há
+                                   * vínculo com a Pessoa Canônica, isso precisa aparecer
+                                   * explicitamente (não silêncio) e apontar como resolver —
+                                   * "Editar" já abre o seletor de vínculo manual, sem apagar
+                                   * nome/vínculo/processo já cadastrados.
+                                   */
+                                  <span className="text-[11px] text-navy/45">
+                                    Sem vínculo com Pessoa Canônica — use "Editar" para vincular
+                                  </span>
+                                )}
+                                {/* Abrir o formulário não grava nada: sempre disponível. */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMembroEditando(m2.id);
+                                      setRascunhoMembro({
+                                        nome: m2.nome,
+                                        vinculo: m2.vinculo ?? "",
+                                        processo: m2.processo ?? "",
+                                        clienteId: m2.cliente_id ?? "",
+                                      });
+                                      setErroMembro(null);
+                                    }}
+                                    className="rounded-md border border-navy/15 px-2 py-1 text-navy hover:border-gold"
+                                  >
+                                    Editar
+                                  </button>
+                              </div>
                             </div>
                           )}
                           {sugestaoAcao?.membroId === m2.id ? (
@@ -333,7 +561,12 @@ function NucleosPage() {
                               <div className="mt-1.5 flex flex-wrap gap-2">
                                 <button
                                   type="button"
-                                  disabled={!sugestaoAcao.caseId || mTarefaAcao.isPending}
+                                  disabled={mTarefaAcao.isPending}
+                                  title={
+                                    sugestaoAcao.caseId
+                                      ? undefined
+                                      : "Membro sem caso vinculado — sem caso não há onde criar a tarefa."
+                                  }
                                   onClick={() =>
                                     sugestaoAcao.caseId &&
                                     mTarefaAcao.mutate({
@@ -377,6 +610,8 @@ function NucleosPage() {
             );
           })}
         </div>
+          )}
+        </EstadoDados>
 
         {atual && rascunho ? (
           <Secao
@@ -388,41 +623,35 @@ function NucleosPage() {
                 label="ID/nome do dossiê-mãe"
                 valor={rascunho.dossie_mae}
                 onChange={(v) => setRascunho({ ...rascunho, dossie_mae: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Ambiente autorizado"
                 valor={rascunho.ambiente}
                 opcoes={opcoes(NUCLEO_AMBIENTES)}
                 onChange={(v) => setRascunho({ ...rascunho, ambiente: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Nível de acesso"
                 valor={rascunho.nivel_acesso}
                 opcoes={opcoes(NUCLEO_NIVEIS_ACESSO)}
                 onChange={(v) => setRascunho({ ...rascunho, nivel_acesso: v })}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Link interno do dossiê"
                 valor={rascunho.link_interno}
                 onChange={(v) => setRascunho({ ...rascunho, link_interno: v })}
-                desabilitado={!podeEscrever}
                 ajuda="URL do ambiente autorizado. Arquivos não são replicados no Desk."
               />
               <Texto
                 label="Responsável nominal"
                 valor={rascunho.responsavel_nome}
                 onChange={(v) => setRascunho({ ...rascunho, responsavel_nome: v })}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Situação do dossiê"
                 valor={rascunho.dossie_status}
                 opcoes={opcoes(NUCLEO_DOSSIE_STATUS)}
                 onChange={(v) => setRascunho({ ...rascunho, dossie_status: v })}
-                desabilitado={!podeEscrever}
               />
             </div>
 
@@ -432,7 +661,7 @@ function NucleosPage() {
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
-                disabled={!podeEscrever || m.isPending}
+                disabled={m.isPending}
                 onClick={() => m.mutate({ nucleoId: atual.id, ...rascunho })}
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
               >
@@ -449,8 +678,8 @@ function NucleosPage() {
                 Fechar
               </button>
             </div>
-            {!podeEscrever ? (
-              <p className="mt-2 text-xs text-navy/50">Seu perfil tem acesso somente de leitura.</p>
+            {pendenciaVinculo ? (
+              <p className="mt-2 text-xs text-navy/60">Pendência registrada: {pendenciaVinculo}</p>
             ) : null}
           </Secao>
         ) : null}

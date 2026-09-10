@@ -436,16 +436,24 @@ export type LinhaAtribuicaoCanal = {
   canal?: string | null;
   case_id?: string | null;
   lead_id?: string | null;
+  /** lead_sources.id — só presente quando a atribuição já foi ligada a uma origem catalogada. */
+  lead_source_id?: string | null;
   valor_convertido?: number | null;
 };
-export type LinhaCasoPagamento = { id?: string | null; pagamento_confirmado?: boolean | null };
+export type LinhaCasoPagamento = {
+  id?: string | null;
+  pagamento_confirmado?: boolean | null;
+  titulo?: string | null;
+  codigo?: string | null;
+};
+export type LinhaFonteOrigem = { id?: string | null; nome?: string | null };
 
 export type EntradaAquisicao = {
   leads: readonly { origem?: string | null; canal?: string | null }[];
   eventos: readonly { origem?: string | null; canal?: string | null }[];
   investimentos: readonly LinhaInvestimentoCanal[];
   campanhas: readonly unknown[];
-  fontes: readonly unknown[];
+  fontes: readonly LinhaFonteOrigem[];
   atribuicoes: readonly LinhaAtribuicaoCanal[];
   /** Só para checar pagamento confirmado por atribuição — opcional para não quebrar fixture de teste. */
   casos?: readonly LinhaCasoPagamento[];
@@ -471,6 +479,56 @@ export function resumoPorOrigem(entrada: EntradaAquisicao): ResumoOrigem[] {
     mapa.set(k, atual);
   }
   return [...mapa.values()].sort((a, b) => b.leads + b.eventos - (a.leads + a.eventos));
+}
+
+export type CasoLigadoOrigem = { id: string; rotulo: string; pagamentoConfirmado: boolean };
+export type ResumoCasoOrigem = {
+  origemId: string;
+  rotulo: string;
+  casos: CasoLigadoOrigem[];
+  pagamentosConfirmados: number;
+};
+
+/**
+ * CA10-MARKETING-CONTEUDO-VIVO (09/09/2026) — "propostas/casos por origem"
+ * não existia em lugar nenhum: attribution_records já liga case_id a
+ * lead_source_id, mas nada lia essa junção. Só entra na leitura o que já
+ * está gravado nas duas pontas — sem lead_source_id, sem case_id, sem
+ * origem catalogada (fontes) ou sem o caso existir no recorte atual, a
+ * atribuição fica de fora (nunca inventa vínculo nem rótulo de origem).
+ */
+export function casosPorOrigem(entrada: EntradaAquisicao): ResumoCasoOrigem[] {
+  const rotuloDaFonte = new Map<string, string>();
+  for (const f of entrada.fontes) {
+    if (f.id) rotuloDaFonte.set(String(f.id), (f.nome ?? "").trim() || String(f.id));
+  }
+  const casoPorId = new Map<string, LinhaCasoPagamento>();
+  for (const c of entrada.casos ?? []) {
+    if (c.id) casoPorId.set(String(c.id), c);
+  }
+
+  const porOrigem = new Map<string, ResumoCasoOrigem>();
+  for (const atr of entrada.atribuicoes) {
+    if (!atr.case_id || !atr.lead_source_id) continue;
+    const rotulo = rotuloDaFonte.get(String(atr.lead_source_id));
+    if (!rotulo) continue;
+    const caso = casoPorId.get(String(atr.case_id));
+    if (!caso) continue;
+
+    const atual = porOrigem.get(String(atr.lead_source_id)) ?? {
+      origemId: String(atr.lead_source_id),
+      rotulo,
+      casos: [],
+      pagamentosConfirmados: 0,
+    };
+    if (!atual.casos.some((c) => c.id === String(caso.id))) {
+      const pago = Boolean(caso.pagamento_confirmado);
+      atual.casos.push({ id: String(caso.id), rotulo: caso.titulo || caso.codigo || String(caso.id), pagamentoConfirmado: pago });
+      if (pago) atual.pagamentosConfirmados += 1;
+    }
+    porOrigem.set(String(atr.lead_source_id), atual);
+  }
+  return [...porOrigem.values()].sort((a, b) => b.casos.length - a.casos.length);
 }
 
 export type LeituraMetrica = { chave: string; nome: string; valor: string; confianca: Confianca; nota: string };

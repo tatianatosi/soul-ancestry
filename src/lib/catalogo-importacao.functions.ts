@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { ItemCatalogoImportado } from "@/lib/catalogo-importacao";
+import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/planejador-produtos-pai";
 
 export type DivergenciaCatalogo = {
   sku: string;
@@ -24,15 +25,25 @@ export const lerCatalogoImportado = createServerFn({ method: "GET" })
     semCache();
     const supabase = (context as any).supabase;
 
-    const { data, error } = await supabase
-      .from("product_catalog")
-      .select(
-        "code,nome_comercial,categoria_fonte,subcategoria_fonte,pareto_classificacao,faixa_prioridade,status_fonte,status_produto,preco_sugerido_fonte,preco_atual_fonte,moeda,status_link_asaas_fonte,link_asaas_fonte,fonte_arquivo,fonte_aba,fonte_versao,fonte_linha,importado_em",
-      )
-      .eq("pareto_classificacao", "TOP_PARETO")
-      .is("archived_at", null)
-      .order("code");
+    const [{ data, error }, { data: feed }] = await Promise.all([
+      supabase
+        .from("product_catalog")
+        .select(
+          "code,nome_comercial,categoria_fonte,subcategoria_fonte,pareto_classificacao,faixa_prioridade,status_fonte,status_produto,preco_sugerido_fonte,preco_atual_fonte,moeda,status_link_asaas_fonte,link_asaas_fonte,fonte_arquivo,fonte_aba,fonte_versao,fonte_linha,importado_em,tipo_oferta,status_homologacao,elegivel_para_proposta",
+        )
+        .eq("pareto_classificacao", "TOP_PARETO")
+        .is("archived_at", null)
+        .order("code"),
+      supabase.from("planner_catalog_feed").select("item_id,product_parent,status_dictionary,legacy_aliases").is("archived_at", null),
+    ]);
     if (error) throw new Error(error.message);
+
+    // CA09-CATALOGO-PRODUTOS-PAI (09/09/2026): mesmo enriquecimento de
+    // produto-pai já usado no Caso (caso-canonico.functions.ts) — nunca um
+    // segundo cálculo. Contexto (tipo_oferta) e status de condição
+    // (status_homologacao/elegivel_para_proposta) vêm do product_catalog já
+    // consultado, sem tabela nova.
+    const mapaProdutoPai = construirMapaProdutoPaiPorCodigo((feed ?? []) as any);
 
     const vistos = new Set<string>();
     const itens: ItemCatalogoImportado[] = (data ?? [])
@@ -56,6 +67,10 @@ export const lerCatalogoImportado = createServerFn({ method: "GET" })
         fonte_versao: (r.fonte_versao ?? null) as string | null,
         fonte_linha: (r.fonte_linha ?? null) as number | null,
         importado_em: (r.importado_em ?? null) as string | null,
+        tipo_oferta: (r.tipo_oferta ?? "produto_pai") as string,
+        status_homologacao: (r.status_homologacao ?? null) as string | null,
+        elegivel_para_proposta: Boolean(r.elegivel_para_proposta),
+        ...produtoPaiDoCodigo(r.code, mapaProdutoPai),
       }));
 
     const { data: divs } = await supabase

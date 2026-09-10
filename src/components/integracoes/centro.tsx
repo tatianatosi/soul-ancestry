@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, PlayCircle, Plug, ShieldCheck, TestTube2 } from "lucide-react";
+import { toast } from "sonner";
 
+import { useAutoridade } from "@/components/saas/autoridade";
 import {
   CAMPOS_DESTINO,
   CATEGORIAS_INTEGRACAO,
@@ -59,7 +61,14 @@ export function CentroIntegracoes() {
   const [confirmacao, setConfirmacao] = useState("");
   const [resultado, setResultado] = useState<any>(null);
 
-  const { data, isLoading } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
+  const { data, isLoading, isError, refetch } = useQuery({ queryKey: ["integracoes"], queryFn: () => carregar({}) });
+
+  const { proprietaria } = useAutoridade();
+  // Autoridade operacional é a fonte canônica; o papel de configuração/ativação
+  // vindo do servidor segue valendo como piso — a proprietária nunca vê o
+  // controle mais restrito do que já é hoje.
+  const podeConfigurar = Boolean(data?.podeConfigurar) || proprietaria;
+  const podeAtivar = Boolean(data?.podeAtivar) || proprietaria;
 
   const atual = useMemo(
     () => (data?.integracoes ?? []).find((i: any) => i.id === selecionada) ?? null,
@@ -95,14 +104,20 @@ export function CentroIntegracoes() {
         },
       });
     },
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Configuração salva.");
+      recarregar();
+    },
     onError: falhar,
   });
 
   const mSituacao = useMutation({
     mutationFn: (p: { status: "desligada" | "teste" | "pausada"; motivo?: string }) =>
       situacao({ data: { id: atual.id, ...p } }),
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Situação da integração atualizada.");
+      recarregar();
+    },
     onError: falhar,
   });
 
@@ -136,7 +151,10 @@ export function CentroIntegracoes() {
 
   const mResolver = useMutation({
     mutationFn: (p: { id: string; resolucao: string }) => resolver({ data: p }),
-    onSuccess: recarregar,
+    onSuccess: () => {
+      toast.success("Revisão resolvida e integração desligada.");
+      recarregar();
+    },
     onError: falhar,
   });
 
@@ -188,6 +206,18 @@ export function CentroIntegracoes() {
       ) : null}
 
       {isLoading ? <p className="text-sm text-navy/60">Carregando…</p> : null}
+      {isError ? (
+        <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+          Não foi possível carregar as integrações.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <ul className="space-y-2">
@@ -301,14 +331,14 @@ export function CentroIntegracoes() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     onClick={() => mSalvar.mutate()}
-                    disabled={!data?.podeConfigurar || mSalvar.isPending}
+                    disabled={!podeConfigurar || mSalvar.isPending}
                     className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-60"
                   >
                     Salvar configuração
                   </button>
                   <button
                     onClick={() => mTestar.mutate()}
-                    disabled={!data?.podeConfigurar || mTestar.isPending}
+                    disabled={!podeConfigurar || mTestar.isPending}
                     className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
                   >
                     <TestTube2 className="h-4 w-4" /> Testar com dados DEMO
@@ -317,14 +347,14 @@ export function CentroIntegracoes() {
                     <>
                       <button
                         onClick={() => mDemo.mutate(false)}
-                        disabled={!data?.podeConfigurar || mDemo.isPending}
+                        disabled={!podeConfigurar || mDemo.isPending}
                         className="inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
                       >
                         <PlayCircle className="h-4 w-4" /> Rodar formulário → lead
                       </button>
                       <button
                         onClick={() => mDemo.mutate(true)}
-                        disabled={!data?.podeConfigurar || mDemo.isPending}
+                        disabled={!podeConfigurar || mDemo.isPending}
                         className="rounded-lg border border-terracotta/40 px-3 py-2 text-sm text-terracotta disabled:opacity-60"
                       >
                         Simular falha
@@ -333,14 +363,14 @@ export function CentroIntegracoes() {
                   ) : null}
                   <button
                     onClick={() => mSituacao.mutate({ status: "teste" })}
-                    disabled={!data?.podeConfigurar}
+                    disabled={!podeConfigurar}
                     className="rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
                   >
                     Colocar em teste
                   </button>
                   <button
                     onClick={() => mSituacao.mutate({ status: "desligada" })}
-                    disabled={!data?.podeConfigurar}
+                    disabled={!podeConfigurar}
                     className="rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
                   >
                     Desligar
@@ -350,20 +380,20 @@ export function CentroIntegracoes() {
                       const m = window.prompt("Motivo da pausa") ?? "";
                       if (m.trim()) mSituacao.mutate({ status: "pausada", motivo: m });
                     }}
-                    disabled={!data?.podeConfigurar}
+                    disabled={!podeConfigurar}
                     className="rounded-lg border border-navy/20 px-3 py-2 text-sm disabled:opacity-60"
                   >
                     Pausar
                   </button>
                   <button
                     onClick={() => setModalAtivar(true)}
-                    disabled={!data?.podeAtivar || atual.status === "ativa"}
+                    disabled={!podeAtivar || atual.status === "ativa"}
                     className="rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy disabled:opacity-60"
                   >
                     Ativar em produção
                   </button>
                 </div>
-                {!data?.podeAtivar ? (
+                {!podeAtivar ? (
                   <p className="mt-2 text-xs text-navy/50">Somente admin pode ativar uma integração.</p>
                 ) : null}
               </section>
