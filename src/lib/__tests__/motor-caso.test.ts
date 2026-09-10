@@ -157,5 +157,4 @@ describe("premissas que o motor não pode desfazer", () => {
     expect(home).toContain("proximoPasso");
     expect(detalhe).toContain("proximoPasso");
   });
-  });
 });
