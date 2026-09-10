@@ -45,7 +45,11 @@ import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
 import { modeloAplicavelAoCaso } from "@/lib/matriz-modelos-contratuais";
-import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
+import {
+  CONTRATO_BASE_VERSAO,
+  contratoBaseAssinavel,
+  type EstadoVigenciaContratoBase,
+} from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -113,18 +117,6 @@ function Pagina() {
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
 
-  const lerPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
-  const qp = useQuery({ queryKey: ["perfil-institucional-persistido"], queryFn: () => lerPerfilPersistido(), retry: false });
-  /**
-   * Fonte canônica do status do perfil institucional: o registro persistido em
-   * `institutional_profiles` (decisão da proprietária, 02/09/2026 — CA Regra
-   * Contratada). Sem registro ainda, cai no valor fixo de código (comportamento
-   * inalterado até a organização ter uma versão institucional registrada).
-   */
-  const perfilStatusPersistido = qp.data?.persistido
-    ? (qp.data.payload.status as EstadoVigenciaContratoBase)
-    : undefined;
-
   const abrir = useServerFn(abrirPreparacaoContrato);
   const importar = useServerFn(preencherDeOrigens);
   const gerar = useServerFn(gerarPrevia);
@@ -160,6 +152,13 @@ function Pagina() {
     queryKey: ["perfil-institucional-persistido"],
     queryFn: () => carregarPerfilPersistido(),
   });
+  /**
+   * Fonte canônica do status do perfil institucional: o registro persistido em
+   * `institutional_profiles`. Sem registro, cai no valor fixo de código.
+   */
+  const perfilStatusPersistido = qPerfilPersistido.data?.persistido
+    ? (qPerfilPersistido.data.payload.status as EstadoVigenciaContratoBase)
+    : undefined;
   const mGarantirPerfil = useMutation({
     mutationFn: () => garantirPerfil(),
     onSuccess: () => {

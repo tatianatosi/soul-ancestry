@@ -42,7 +42,7 @@ import {
   type SinalCor,
 } from "@/lib/painel-calls";
 import { VarreduraWhatsApp } from "@/components/crm/varredura-whatsapp";
-import { codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
+import { CAMPO_LEAD_POR_VARREDURA, codigoLeadDoAchado, type Achado } from "@/lib/varredura-whatsapp";
 
 /** Catálogos de seleção múltipla — não vivem em CATALOGOS (só campo único). */
 const CATALOGO_MULTI: Record<string, Opcao[]> = {
@@ -363,7 +363,15 @@ export function PainelCalls() {
         prospect. A varredura fica ANTES do formulário porque é dela que sai o
         material para preenchê-lo.
       */}
-      <VarreduraWhatsApp onAchadosMudaram={setAchados} />
+      <VarreduraWhatsApp
+        onAchadosMudaram={setAchados}
+        leadNome={lead?.nome}
+        onAplicar={(a) => {
+          const dest = CAMPO_LEAD_POR_VARREDURA[a.campo];
+          if (!dest) return;
+          aplicarAchado(dest.campoLead, a.valor, dest.multi);
+        }}
+      />
 
       {isError ? (
         <p

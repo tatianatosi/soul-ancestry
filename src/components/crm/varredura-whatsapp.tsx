@@ -15,16 +15,33 @@
  */
 import { useEffect, useMemo, useState } from "react";
 
-import { ROTULO_CAMPO, varrerConversa, type Achado, type CampoVarrido } from "@/lib/varredura-whatsapp";
+import {
+  ROTULO_CAMPO,
+  codigoLeadDoAchado,
+  varrerConversa,
+  type Achado,
+  type CampoVarrido,
+} from "@/lib/varredura-whatsapp";
 
 /**
  * CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026): `onAchadosMudaram` deixa o Painel
  * de Calls mostrar cada achado dentro do card da pergunta correspondente do
  * roteiro, com confirmar/corrigir/virar hipótese/ignorar — em vez de uma
- * lista solta sem ligação com o formulário. A varredura em si não muda:
- * continua sem ler banco, sem gravar, sem persistir a conversa.
+ * lista solta sem ligação com o formulário.
+ *
+ * `leadNome` + `onAplicar` são o atalho “Usar no lead” da PR #48: só o sinal
+ * normalizado entra no rascunho, nunca o trecho da conversa. Gravar de fato
+ * continua no botão do Painel.
  */
-export function VarreduraWhatsApp({ onAchadosMudaram }: { onAchadosMudaram?: (achados: Achado[]) => void }) {
+export function VarreduraWhatsApp({
+  onAchadosMudaram,
+  leadNome,
+  onAplicar,
+}: {
+  onAchadosMudaram?: (achados: Achado[]) => void;
+  leadNome?: string | null;
+  onAplicar?: (achado: Achado, codigo: string) => void;
+}) {
   const [bruto, setBruto] = useState("");
   const [casa, setCasa] = useState("");
   const [avisoArquivo, setAvisoArquivo] = useState<string | null>(null);
