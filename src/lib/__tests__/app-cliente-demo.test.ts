@@ -6,15 +6,17 @@ import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 const ler = (p: string) => readFileSync(p, "utf8");
 
 const rota = ler("src/routes/_authenticated/app-cliente-demo.tsx");
+const abas = ler("src/components/portal/abas-app-cliente.tsx");
 const shell = ler("src/components/portal/portal-shell.tsx");
 const fonte = ler("src/components/portal/fonte-portal.tsx");
+const visib = ler("src/components/portal/portal-visibilidade.tsx");
 
 describe("sessão demo do App Cliente", () => {
   it("renderiza os componentes reais do portal, não uma reprodução", () => {
-    // É a propriedade que impede a demo de divergir do produto.
-    expect(rota).toContain('from "@/routes/portal/jornada"');
-    expect(rota).toContain('from "@/routes/portal/arvore"');
-    expect(rota).toContain('from "@/routes/portal/radar"');
+    expect(abas).toContain('from "@/routes/portal/jornada"');
+    expect(abas).toContain('from "@/routes/portal/arvore"');
+    expect(abas).toContain('from "@/routes/portal/radar"');
+    expect(rota).toContain("ABAS_APP_CLIENTE");
   });
 
   it("é rota interna do Desk, autenticada e noindex", () => {
@@ -30,12 +32,26 @@ describe("sessão demo do App Cliente", () => {
   it("nada nesta tela envia, publica ou grava", () => {
     expect(rota).not.toMatch(/useMutation|\.insert\(|\.update\(|\.delete\(|enviar|publicar/i);
   });
+
+  it("as sete abas do mockup são a face; Entregas e Fases não são 1º nível", () => {
+    expect([...abas.matchAll(/chave: "/g)]).toHaveLength(7);
+    expect(abas).toContain('chave: "home"');
+    expect(abas).toContain('chave: "conta"');
+    expect(abas).not.toContain("/portal/entregas");
+    expect(abas).not.toContain("/portal/fase-01");
+  });
 });
 
 describe("guardas do modo de prévia", () => {
   it("a consulta ao portal fica desabilitada sob provider", () => {
     // Rota interna não deve nem tentar ler o portal como se fosse cliente.
     expect(fonte).toContain("enabled: externa === null");
+  });
+
+  it("a visibilidade não chama escopoDoPortal em prévia — senão as abas travam em Carregando", () => {
+    expect(visib).toContain("enabled: previa === null");
+    expect(visib).toContain("ESCOPO_PREVIA");
+    expect(visib).toContain("carregando: false");
   });
 
   it("o shell não redireciona quem não é cliente, em prévia", () => {

@@ -301,6 +301,15 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
 /* Cards do dia e filtros da fila priorizada                          */
 /* ------------------------------------------------------------------ */
 
+/** Destino clicável de cada cartão do topo — o número sem ação não opera. */
+export const DESTINO_CARD_HOJE = {
+  acoes_vencidas: { destino: "/tarefas", acao: "Abrir Checklist — vencidos" },
+  acoes_hoje: { destino: "/tarefas", acao: "Abrir o que vence hoje" },
+  sem_responsavel: { destino: "/casos", acao: "Abrir casos para atribuir dono" },
+  excecoes_criticas: { destino: "/ops-excecoes", acao: "Abrir exceções operacionais" },
+  sla_em_risco: { destino: "/ops", acao: "Abrir operação e SLA" },
+} as const;
+
 export type CardHoje = {
   chave: string;
   rotulo: string;
@@ -310,6 +319,17 @@ export type CardHoje = {
    */
   total: number | null;
   /** Leitura curta do que o número significa. Sem juízo de mérito. */
+  leitura: string;
+  destino: string;
+  acao: string;
+};
+
+export type IndicadorCockpit = {
+  chave: string;
+  rotulo: string;
+  total: number | null;
+  destino: string;
+  acao: string;
   leitura: string;
 };
 
@@ -379,7 +399,82 @@ export function cardsHoje(
     sla_em_risco: null,
   };
 
-  return CARDS_HOJE.map((c) => ({ ...c, total: valor[c.chave] ?? null }));
+  return CARDS_HOJE.map((c) => {
+    const destino = DESTINO_CARD_HOJE[c.chave as keyof typeof DESTINO_CARD_HOJE];
+    return {
+      ...c,
+      total: valor[c.chave] ?? null,
+      destino: destino?.destino ?? "/painel",
+      acao: destino?.acao ?? "Abrir Painel Hoje",
+    };
+  });
+}
+
+/**
+ * Faixa operacional extra do cockpit (Fase 1): cada item abre uma lista com
+ * ação. Não entra no teto das cinco métricas de decisão — é atalho, não
+ * segundo contador concorrente das mesmas filas do topo.
+ */
+export function faixaCockpitHoje(
+  filas: Fila[],
+  opcoes?: { incluirDemo?: boolean; cadenciasAtrasadas?: number },
+): IndicadorCockpit[] {
+  const incluirDemo = opcoes?.incluirDemo ?? false;
+  const visiveis = <T extends { rotulo: string }>(lista: T[]) =>
+    incluirDemo ? lista : lista.filter((i) => !eDemo(i.rotulo));
+  const daFila = (chave: string) =>
+    visiveis((filas.find((f) => f.chave === chave)?.itens ?? []) as ItemFila[]).length;
+
+  return [
+    {
+      chave: "cadencias",
+      rotulo: "Cadências atrasadas",
+      total: opcoes?.cadenciasAtrasadas ?? 0,
+      destino: "/casos",
+      acao: "Abrir casos sem toque",
+      leitura: "Casos acima da regra de dias sem touchpoint",
+    },
+    {
+      chave: "documentos",
+      rotulo: "Documentos aguardados",
+      total: daFila("casos_pendencia_documental"),
+      destino: "/evidencias",
+      acao: "Abrir evidências e pedidos",
+      leitura: "Caso com documento aguardando retorno",
+    },
+    {
+      chave: "calls_hoje",
+      rotulo: "Calls de hoje",
+      total: daFila("calls_hoje"),
+      destino: "/calls",
+      acao: "Abrir Painel de Calls",
+      leitura: "Leads com call marcada para hoje — mesma tabela leads",
+    },
+    {
+      chave: "leads_sem_acao",
+      rotulo: "Leads sem próxima ação",
+      total: daFila("leads_sem_proxima_acao"),
+      destino: "/calls",
+      acao: "Definir próxima ação no CRM",
+      leitura: "Lead ativo sem próxima ação datada",
+    },
+    {
+      chave: "propostas",
+      rotulo: "Propostas sem follow-up",
+      total: daFila("propostas_sem_followup"),
+      destino: "/propostas",
+      acao: "Abrir propostas",
+      leitura: "Proposta enviada sem follow-up registrado",
+    },
+    {
+      chave: "contratos",
+      rotulo: "Contratos parados",
+      total: daFila("contratos_enviados_pendentes"),
+      destino: "/contratos",
+      acao: "Abrir contratos",
+      leitura: "Contrato enviado sem avanço registrado",
+    },
+  ];
 }
 
 export type FiltrosDia = { responsavel?: string | null; area?: string | null; etapa?: string | null };

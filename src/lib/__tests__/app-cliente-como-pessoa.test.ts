@@ -17,9 +17,10 @@ const fn = ler("src/lib/app-cliente-como-pessoa.functions.ts");
  */
 describe("App Cliente como pessoa (acesso master, dado real)", () => {
   it("renderiza os componentes reais do portal, não uma reprodução", () => {
-    expect(rota).toContain('from "@/routes/portal/jornada"');
-    expect(rota).toContain('from "@/routes/portal/arvore"');
-    expect(rota).toContain('from "@/routes/portal/radar"');
+    expect(ler("src/components/portal/abas-app-cliente.tsx")).toContain('from "@/routes/portal/jornada"');
+    expect(ler("src/components/portal/abas-app-cliente.tsx")).toContain('from "@/routes/portal/arvore"');
+    expect(ler("src/components/portal/abas-app-cliente.tsx")).toContain('from "@/routes/portal/radar"');
+    expect(rota).toContain("ABAS_APP_CLIENTE");
   });
 
   it("é rota interna do Desk, autenticada e noindex", () => {

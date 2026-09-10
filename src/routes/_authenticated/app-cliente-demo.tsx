@@ -2,9 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { FontePortalProvider } from "@/components/portal/fonte-portal";
-import { PortalJornada } from "@/routes/portal/jornada";
-import { PortalArvore } from "@/routes/portal/arvore";
-import { PortalRadar } from "@/routes/portal/radar";
+import { ABAS_APP_CLIENTE } from "@/components/portal/abas-app-cliente";
 import { CASO_DEMO_TITULO, DADOS_DEMO_SOPHIA, SELO_DEMO_PORTAL } from "@/lib/portal-demo-sophia";
 
 /**
@@ -40,15 +38,9 @@ export const Route = createFileRoute("/_authenticated/app-cliente-demo")({
   component: AppClienteDemo,
 });
 
-const TELAS = [
-  { chave: "jornada", rotulo: "Jornada", Componente: PortalJornada },
-  { chave: "arvore", rotulo: "Árvore da família", Componente: PortalArvore },
-  { chave: "radar", rotulo: "Radar de países", Componente: PortalRadar },
-] as const;
-
 function AppClienteDemo() {
-  const [ativa, setAtiva] = useState<(typeof TELAS)[number]["chave"]>("jornada");
-  const Tela = TELAS.find((t) => t.chave === ativa)?.Componente ?? PortalJornada;
+  const [ativa, setAtiva] = useState<(typeof ABAS_APP_CLIENTE)[number]["chave"]>("home");
+  const Tela = ABAS_APP_CLIENTE.find((t) => t.chave === ativa)?.Componente ?? ABAS_APP_CLIENTE[0]!.Componente;
 
   return (
     <div className="space-y-4">
@@ -64,7 +56,7 @@ function AppClienteDemo() {
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {TELAS.map((t) => (
+            {ABAS_APP_CLIENTE.map((t) => (
             <button
               key={t.chave}
               type="button"

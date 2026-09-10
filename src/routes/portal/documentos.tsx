@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { EstadoDados } from "@/components/saas/estado-dados";
 import { baixarEntrega, minhasEntregas } from "@/lib/portal-cliente.functions";
 import { mensagemDeFalha, rotuloEstadoVivo, textoParaCliente } from "@/lib/portal-linguagem-viva";
@@ -22,10 +23,12 @@ export const Route = createFileRoute("/portal/documentos")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: DocumentosPage,
+  component: PortalDocumentos,
 });
 
-function DocumentosPage() {
+export function PortalDocumentos() {
+  const previa = usePreviaPortal();
+  const vivo = usePortalVivo();
   const carregar = useServerFn(minhasEntregas);
   const baixar = useServerFn(baixarEntrega);
   const [erro, setErro] = useState<string | null>(null);
@@ -34,7 +37,47 @@ function DocumentosPage() {
     isLoading,
     error: erroLeitura,
     refetch,
-  } = useQuery({ queryKey: ["portal-entregas"], queryFn: () => carregar({}) });
+  } = useQuery({
+    queryKey: ["portal-entregas"],
+    queryFn: () => carregar({}),
+    enabled: previa === null,
+  });
+
+  if (previa) {
+    const docs = (vivo.data?.documentos ?? []).filter((d) => d.is_demo !== true);
+    const liberados = docs.filter((d) => d.liberado_cliente);
+    const enviados = docs.filter((d) => d.origem === "cliente");
+    return (
+      <PortalShell titulo={COPY_TELAS.documentos.titulo} descricao={COPY_TELAS.documentos.descricao}>
+        {vivo.isLoading ? (
+          <PortalCarregando />
+        ) : (
+          <div className="space-y-8">
+            <section>
+              <h2 className="font-serif text-xl">Preparado para você</h2>
+              {liberados.length === 0 ? (
+                <div className="mt-3">
+                  <PortalVazio mensagem={COPY_TELAS.documentos.vazio} />
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-navy/70">{liberados.length} documento(s) liberado(s) neste caso.</p>
+              )}
+            </section>
+            <section>
+              <h2 className="font-serif text-xl">O que você compartilhou</h2>
+              {enviados.length === 0 ? (
+                <div className="mt-3">
+                  <PortalVazio mensagem="Você ainda não compartilhou documentos conosco." />
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-navy/70">{enviados.length} envio(s) neste caso.</p>
+              )}
+            </section>
+          </div>
+        )}
+      </PortalShell>
+    );
+  }
 
   async function abrir(id: string) {
     setErro(null);

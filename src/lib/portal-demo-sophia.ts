@@ -86,6 +86,15 @@ export const PROJECOES_DEMO_SOPHIA: DadosPortal["projecoes"] = [
     effective_from: "2026-08-20",
     updated_at: "2026-08-20",
   },
+  {
+    id: "demo-sophia-07",
+    case_id: CASO_DEMO_ID,
+    projection_type: "legado",
+    content_sanitized:
+      "Caderno de família reunindo as certidões já confirmadas e o registro de batismo do bisavô. Fica com vocês como memória, independente do andamento do reconhecimento.",
+    effective_from: "2026-08-22",
+    updated_at: "2026-08-22",
+  },
 ];
 
 /**
@@ -99,4 +108,9 @@ export const DOCUMENTOS_DEMO_SOPHIA: DadosPortal["documentos"] = [];
 export const DADOS_DEMO_SOPHIA: DadosPortal = {
   projecoes: PROJECOES_DEMO_SOPHIA,
   documentos: DOCUMENTOS_DEMO_SOPHIA,
+  proximaAcao: {
+    acao: "Reunir as certidões que ainda faltam na linha direta.",
+    nivelEquivalente: 4,
+    destino: "/portal/documentos",
+  },
 };

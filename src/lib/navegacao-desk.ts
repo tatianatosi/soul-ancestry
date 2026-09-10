@@ -44,7 +44,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "hoje",
     to: "/painel",
     label: "Visão Geral",
-    descricao: "Fila operacional única do dia (Painel Hoje), prioridades, alertas derivados e atalhos.",
+    descricao: "O que fazer agora: indicadores com ação, fila do dia, Calls e alertas.",
     icone: "hoje",
     sub: [
       { to: "/painel", label: "Painel Hoje" },

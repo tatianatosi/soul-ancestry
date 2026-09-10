@@ -4,8 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, PortalVazio, PortalCarregando } from "@/components/portal/portal-shell";
+import { usePreviaPortal, usePortalVivo } from "@/components/portal/fonte-portal";
 import { meusCasos } from "@/lib/portal-cliente.functions";
 import { EstadoDados } from "@/components/saas/estado-dados";
+import { jornadaSanitizada } from "@/lib/portal-dados-vivos";
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -22,12 +24,31 @@ export const Route = createFileRoute("/portal/")({
   component: PortalHome,
 });
 
-function PortalHome() {
+export function PortalHome() {
+  const previa = usePreviaPortal();
+  const vivo = usePortalVivo();
   const carregar = useServerFn(meusCasos);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["portal-meus-casos"],
     queryFn: () => carregar({}),
+    enabled: previa === null,
   });
+
+  if (previa) {
+    const jornada = jornadaSanitizada(vivo.data?.projecoes ?? [], new Date(), vivo.data?.proximaAcao);
+    return (
+      <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>
+        {vivo.isLoading ? (
+          <PortalCarregando />
+        ) : (
+          <div className="rounded-xl border border-navy/10 bg-white p-4">
+            <p className="font-serif text-lg">{previa.titulo}</p>
+            <p className="mt-2 text-sm text-navy/70">Próximo passo: {jornada.proximoPasso}</p>
+          </div>
+        )}
+      </PortalShell>
+    );
+  }
 
   return (
     <PortalShell titulo={COPY_TELAS.home.titulo} descricao={COPY_TELAS.home.descricao}>

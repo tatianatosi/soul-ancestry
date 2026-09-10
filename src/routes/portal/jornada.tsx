@@ -26,7 +26,13 @@ export const Route = createFileRoute("/portal/jornada")({
 
 export function PortalJornada() {
   const { visibilidade, carregando } = useVisibilidade("jornada");
+  const entrega = useVisibilidade("entrega");
+  const fase1 = useVisibilidade("relatorio");
+  const fase2 = useVisibilidade("fase02");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
+
+  const abreJornada = (r: typeof entrega.visibilidade) =>
+    r.navegavel && r.estado !== "hidden_by_permission" && r.estado !== "not_applicable";
 
   return (
     <PortalShell titulo={COPY_TELAS.jornada.titulo} descricao={COPY_TELAS.jornada.descricao}>
@@ -73,6 +79,32 @@ export function PortalJornada() {
                     ))}
                   </ol>
                 )}
+                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                  {abreJornada(entrega.visibilidade) ? (
+                    <Link
+                      to="/portal/entregas"
+                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
+                    >
+                      Entregas da jornada
+                    </Link>
+                  ) : null}
+                  {abreJornada(fase1.visibilidade) ? (
+                    <Link
+                      to="/portal/fase-01"
+                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
+                    >
+                      Relatório Fase 01
+                    </Link>
+                  ) : null}
+                  {abreJornada(fase2.visibilidade) ? (
+                    <Link
+                      to="/portal/fase-02"
+                      className="rounded-md border border-navy/15 px-3 py-1.5 text-navy hover:border-gold/60"
+                    >
+                      Fase 02
+                    </Link>
+                  ) : null}
+                </div>
               </BlocoVisibilidade>
             );
           }}

@@ -195,6 +195,19 @@ describe("de-para do sinal para o lead — só o valor normalizado, nunca o trec
   });
 
   it("não inventa código quando o achado não tem de-para inequívoco", () => {
+    expect(codigoLeadDoAchado({ campo: "estrutura_familiar", valor: "mais de um requerente" })).toBeNull();
     expect(codigoLeadDoAchado({ campo: "objecao_predominante", valor: "decisão adiada" })).toBeNull();
+  });
+
+  it("todo campo varrido tem destino no lead", () => {
+    for (const campo of CAMPOS_VARRIDOS) {
+      expect(CAMPO_LEAD_POR_VARREDURA[campo]).toBeDefined();
+    }
+  });
+
+  it("campos de lista somam ao lead; os demais substituem", () => {
+    expect(CAMPO_LEAD_POR_VARREDURA.nacionalidades_interesse.multi).toBe(true);
+    expect(CAMPO_LEAD_POR_VARREDURA.documentos_chave.multi).toBe(true);
+    expect(CAMPO_LEAD_POR_VARREDURA.geracao_ascendente.multi).toBe(false);
   });
 });
