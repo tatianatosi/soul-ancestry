@@ -5,7 +5,10 @@
  * marca nada como igual. Cada candidato carrega o motivo objetivo para que a
  * decisão continue sendo humana.
  *
- * (nucleo_canonico_id, unificado_em, status mesclado).
+ * Fases 2–6 (comparação, plano, confirmação UNIFICAR, reapontamento,
+ * arquivamento lógico, validação pós-merge) usam colunas que já existem:
+ * archived_at, archive_motivo, archived_by, status 'arquivado', case_id,
+ * nucleo_membros.nucleo_id, leads.nucleo_id. Não cria coluna nova.
  *
  * A lista de candidatos continua recalculada a cada carregamento: não há
  * coluna para "em revisão"/"descartado". Núcleo arquivado some da detecção.
@@ -13,7 +16,13 @@
 
 export const CONFIRMACAO_UNIFICAR = "UNIFICAR";
 
-export type MembroParaComparar = { id?: string; nome: string; papel?: string | null };
+export type MembroParaComparar = {
+  id?: string;
+  nucleo_id?: string;
+  nome: string;
+  papel?: string | null;
+  archived_at?: string | null;
+};
 
 export type NucleoParaComparar = {
   id: string;
@@ -25,6 +34,7 @@ export type NucleoParaComparar = {
   created_at: string;
   updated_at: string;
   case_id: string | null;
+  archived_at?: string | null;
   caso: { id: string; codigo: string | null; titulo: string | null; pais: string | null } | null;
   membros: MembroParaComparar[];
   /** Leads ativos apontando para este núcleo — só para o plano de unificação. */
@@ -51,8 +61,12 @@ function normalizar(v: string | null | undefined): string {
     .trim();
 }
 
+function membroAtivo(m: MembroParaComparar): boolean {
+  return !m.archived_at;
+}
+
 function nomesDeMembros(n: NucleoParaComparar): Set<string> {
-  return new Set(n.membros.map((m) => normalizar(m.nome)).filter(Boolean));
+  return new Set(n.membros.filter(membroAtivo).map((m) => normalizar(m.nome)).filter(Boolean));
 }
 
 /** Só considera "em comum" nome com pelo menos 2 palavras — evita falso positivo por primeiro nome comum ("Ana", "João"). */
@@ -61,7 +75,7 @@ function nomeComparavel(nome: string): boolean {
 }
 
 export function detectarDuplicidades(nucleos: NucleoParaComparar[]): CandidatoDuplicidade[] {
-  const ativos = nucleos.filter((n) => n.status !== "arquivado");
+  const ativos = nucleos.filter((n) => n.status !== "arquivado" && !n.archived_at);
   const candidatos: CandidatoDuplicidade[] = [];
 
   for (let i = 0; i < ativos.length; i++) {
@@ -127,6 +141,10 @@ export function exigirConfirmacaoUnificar(confirmacao: string): void {
   }
 }
 
+function nucleoArquivado(n: NucleoParaComparar): boolean {
+  return n.status === "arquivado" || Boolean(n.archived_at);
+}
+
 export type AcaoMembroPlano =
   | { acao: "mover"; nome: string; membroId?: string }
   | { acao: "arquivar_por_conflito"; nome: string; membroId?: string };
@@ -155,6 +173,30 @@ function motivoArquivoOrigem(canonico: NucleoParaComparar): string {
   return `Unificado no núcleo canônico "${canonico.nome}" (${canonico.id}).`;
 }
 
+function planoInvalido(
+  canonico: NucleoParaComparar,
+  origem: NucleoParaComparar,
+  motivoRecusa: string,
+): PlanoUnificacao {
+  return {
+    recusado: true,
+    motivoRecusa,
+    canonicoId: canonico.id,
+    origemId: origem.id,
+    canonicoNome: canonico.nome,
+    origemNome: origem.nome,
+    caso: {
+      acao: "recusar",
+      caseIdCanonico: canonico.case_id,
+      caseIdOrigem: origem.case_id,
+      caseIdFinal: null,
+    },
+    membros: [],
+    leads: { acao: "reapontar", quantidade: origem.leadsAtivos ?? 0 },
+    arquivoOrigem: { status: "arquivado", motivo: motivoArquivoOrigem(canonico) },
+  };
+}
+
 /**
  * Matriz de reconciliação (fase 3) — o que move, o que arquiva, o que recusa.
  * Não executa nada. Conflito de nome segue a unique (nucleo_id, lower(nome)):
@@ -164,49 +206,25 @@ export function montarPlanoUnificacao(
   canonico: NucleoParaComparar,
   origem: NucleoParaComparar,
 ): PlanoUnificacao {
-  const arquivoOrigem = { status: "arquivado" as const, motivo: motivoArquivoOrigem(canonico) };
-  const base = {
-    canonicoId: canonico.id,
-    origemId: origem.id,
-    canonicoNome: canonico.nome,
-    origemNome: origem.nome,
-    arquivoOrigem,
-    leads: { acao: "reapontar" as const, quantidade: origem.leadsAtivos ?? 0 },
-  };
-
   if (canonico.id === origem.id) {
-    return {
-      ...base,
-      recusado: true,
-      motivoRecusa: "Canônico e origem são o mesmo núcleo.",
-      caso: {
-        acao: "recusar",
-        caseIdCanonico: canonico.case_id,
-        caseIdOrigem: origem.case_id,
-        caseIdFinal: null,
-      },
-      membros: [],
-    };
+    return planoInvalido(canonico, origem, "Canônico e origem são o mesmo núcleo.");
+  }
+  if (nucleoArquivado(canonico) || nucleoArquivado(origem)) {
+    return planoInvalido(
+      canonico,
+      origem,
+      "Não é possível unificar: um dos núcleos já está arquivado.",
+    );
   }
 
   const caseCanonico = canonico.case_id;
   const caseOrigem = origem.case_id;
-  const casosDiferentes = Boolean(caseCanonico && caseOrigem && caseCanonico !== caseOrigem);
-
-  if (casosDiferentes) {
-    return {
-      ...base,
-      recusado: true,
-      motivoRecusa:
-        "Os dois núcleos apontam para casos diferentes. Resolva os casos antes de unificar — a unificação não transfere nem funde casos.",
-      caso: {
-        acao: "recusar",
-        caseIdCanonico: caseCanonico,
-        caseIdOrigem: caseOrigem,
-        caseIdFinal: null,
-      },
-      membros: [],
-    };
+  if (caseCanonico && caseOrigem && caseCanonico !== caseOrigem) {
+    return planoInvalido(
+      canonico,
+      origem,
+      "Os dois núcleos apontam para casos diferentes. Resolva os casos antes de unificar — a unificação não transfere nem funde casos.",
+    );
   }
 
   let acaoCaso: AcaoCasoPlano = "nenhum";
@@ -219,9 +237,11 @@ export function montarPlanoUnificacao(
     caseIdFinal = caseCanonico;
   }
 
-  const nomesCanonico = new Set(canonico.membros.map((m) => chaveNomeUnico(m.nome)).filter(Boolean));
+  const nomesCanonico = new Set(
+    canonico.membros.map((m) => chaveNomeUnico(m.nome)).filter(Boolean),
+  );
   const membros: AcaoMembroPlano[] = origem.membros
-    .filter((m) => m.nome.trim())
+    .filter((m) => m.nome.trim() && membroAtivo(m))
     .map((m) => {
       const chave = chaveNomeUnico(m.nome);
       if (nomesCanonico.has(chave)) {
@@ -231,9 +251,12 @@ export function montarPlanoUnificacao(
     });
 
   return {
-    ...base,
     recusado: false,
     motivoRecusa: null,
+    canonicoId: canonico.id,
+    origemId: origem.id,
+    canonicoNome: canonico.nome,
+    origemNome: origem.nome,
     caso: {
       acao: acaoCaso,
       caseIdCanonico: caseCanonico,
@@ -241,6 +264,8 @@ export function montarPlanoUnificacao(
       caseIdFinal,
     },
     membros,
+    leads: { acao: "reapontar", quantidade: origem.leadsAtivos ?? 0 },
+    arquivoOrigem: { status: "arquivado", motivo: motivoArquivoOrigem(canonico) },
   };
 }
 

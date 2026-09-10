@@ -57,6 +57,10 @@ const ROTULOS_CONFIANCA: Record<NivelConfianca, string> = {
   baixa: "Confiança baixa",
 };
 
+function membrosVisiveis(n: NucleoParaComparar) {
+  return n.membros.filter((m) => !m.archived_at);
+}
+
 function CartaoNucleo({
   n,
   papel,
@@ -68,6 +72,7 @@ function CartaoNucleo({
   selecionado: boolean;
   onEscolher: () => void;
 }) {
+  const requerentes = membrosVisiveis(n);
   return (
     <div
       className={`min-w-0 flex-1 rounded-lg border p-3 ${
@@ -79,7 +84,11 @@ function CartaoNucleo({
         <span className="min-w-0 flex-1">
           <p className="truncate font-serif text-base text-navy">{n.nome}</p>
           <p className="text-[11px] uppercase tracking-wide text-navy/45">
-            {papel === "canonico" ? "Canônico — permanece" : papel === "origem" ? "Origem — será arquivado" : "Escolher como canônico"}
+            {papel === "canonico"
+              ? "Canônico — permanece"
+              : papel === "origem"
+                ? "Origem — será arquivado"
+                : "Escolher como canônico"}
           </p>
         </span>
       </label>
@@ -116,7 +125,7 @@ function CartaoNucleo({
         ) : null}
         <div>
           <dt className="inline text-navy/45">Requerentes: </dt>
-          <dd className="inline">{n.membros.length ? n.membros.map((m) => m.nome).join(", ") : "nenhum cadastrado"}</dd>
+          <dd className="inline">{requerentes.length ? requerentes.map((m) => m.nome).join(", ") : "nenhum cadastrado"}</dd>
         </div>
         <div>
           <dt className="inline text-navy/45">Leads ativos: </dt>
@@ -193,12 +202,11 @@ function NucleosDuplicidadesPage() {
   });
   const [filtroConfianca, setFiltroConfianca] = useState("");
   const [escolha, setEscolha] = useState<Record<string, "A" | "B">>({});
-  const [dialogo, setDialogo] = useState<PlanoUnificacao | null>(null);
+  const [dialogo, setDialogo] = useState<{ chave: string; plano: PlanoUnificacao } | null>(null);
   const [confirmacao, setConfirmacao] = useState("");
 
   const mut = useMutation({
-    mutationFn: (p: { canonicoId: string; origemId: string }) =>
-      unificar({ data: { ...p, confirmacao: CONFIRMACAO_UNIFICAR } }),
+    mutationFn: (p: { canonicoId: string; origemId: string; confirmacao: string }) => unificar({ data: p }),
     onSuccess: () => {
       toast.success("Núcleos unificados. A lista foi recarregada.");
       setDialogo(null);
@@ -304,7 +312,7 @@ function NucleosDuplicidadesPage() {
                     disabled={plano.recusado || mut.isPending}
                     onClick={() => {
                       setConfirmacao("");
-                      setDialogo(plano);
+                      setDialogo({ chave: c.chave, plano });
                     }}
                     className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
                   >
@@ -340,10 +348,10 @@ function NucleosDuplicidadesPage() {
           {dialogo ? (
             <div className="space-y-2 text-sm text-navy/80">
               <p>
-                Canônico: <strong>{dialogo.canonicoNome}</strong>
+                Canônico: <strong>{dialogo.plano.canonicoNome}</strong>
               </p>
               <p>
-                Origem a arquivar: <strong>{dialogo.origemNome}</strong>
+                Origem a arquivar: <strong>{dialogo.plano.origemNome}</strong>
               </p>
               <label className="block text-xs uppercase tracking-wide text-navy/50">
                 Digite {CONFIRMACAO_UNIFICAR}
@@ -374,8 +382,9 @@ function NucleosDuplicidadesPage() {
               onClick={() => {
                 if (!dialogo) return;
                 mut.mutate({
-                  canonicoId: dialogo.canonicoId,
-                  origemId: dialogo.origemId,
+                  canonicoId: dialogo.plano.canonicoId,
+                  origemId: dialogo.plano.origemId,
+                  confirmacao,
                 });
               }}
               className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"

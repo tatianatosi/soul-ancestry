@@ -4,7 +4,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   CONFIRMACAO_UNIFICAR,
-  chaveNomeUnico,
   detectarDuplicidades,
   exigirConfirmacaoUnificar,
   montarPlanoUnificacao,
@@ -69,7 +68,7 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
     const { data: nucleos, error } = await supabase
       .from("nucleos_familiares")
       .select(
-        "id,case_id,nome,dossie_mae,contratante_nome,dossie_status,status,created_at,updated_at",
+        "id,case_id,nome,dossie_mae,contratante_nome,dossie_status,status,archived_at,created_at,updated_at",
       )
       .is("archived_at", null)
       .order("created_at", { ascending: false });
@@ -80,7 +79,10 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
 
     const [{ data: membros }, { data: casos }, { data: leads }] = await Promise.all([
       ids.length
-        ? supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel").in("nucleo_id", ids).is("archived_at", null)
+        ? supabase
+            .from("nucleo_membros")
+            .select("id,nucleo_id,nome,papel,archived_at")
+            .in("nucleo_id", ids)
         : Promise.resolve({ data: [] }),
       caseIds.length
         ? supabase.from("crm_casos").select("id,codigo,titulo,pais").in("id", caseIds)
@@ -103,6 +105,7 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
       contratante_nome: n.contratante_nome,
       dossie_status: n.dossie_status,
       status: n.status,
+      archived_at: n.archived_at ?? null,
       created_at: n.created_at,
       updated_at: n.updated_at,
       case_id: n.case_id,
@@ -110,7 +113,13 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
       leadsAtivos: leadsPorNucleo.get(n.id) ?? 0,
       membros: ((membros ?? []) as any[])
         .filter((m) => m.nucleo_id === n.id)
-        .map((m) => ({ id: m.id, nome: m.nome, papel: m.papel })),
+        .map((m) => ({
+          id: m.id,
+          nucleo_id: m.nucleo_id,
+          nome: m.nome,
+          papel: m.papel,
+          archived_at: m.archived_at ?? null,
+        })),
     }));
 
     return detectarDuplicidades(paraComparar);
@@ -124,12 +133,19 @@ function paraCompararDoBanco(n: any, membros: any[], leadsAtivos: number): Nucle
     contratante_nome: n.contratante_nome ?? null,
     dossie_status: n.dossie_status ?? null,
     status: n.status ?? null,
+    archived_at: n.archived_at ?? null,
     created_at: n.created_at,
     updated_at: n.updated_at,
     case_id: n.case_id ?? null,
     caso: null,
     leadsAtivos,
-    membros: membros.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel })),
+    membros: membros.map((m) => ({
+      id: m.id,
+      nucleo_id: m.nucleo_id,
+      nome: m.nome,
+      papel: m.papel,
+      archived_at: m.archived_at ?? null,
+    })),
   };
 }
 
@@ -137,8 +153,8 @@ function paraCompararDoBanco(n: any, membros: any[], leadsAtivos: number): Nucle
  * Fases 2–6: comparação, plano, confirmação humana UNIFICAR, reapontamento,
  * arquivamento lógico do núcleo de origem e validação após refresh.
  *
- * Sem fusão automática, sem caso/núcleo novo, sem case_participants,
- * sem coluna nova: o canônico é o id escolhido pela operadora.
+ * Sem fusão automática, sem caso/núcleo novo, sem case_participants.
+ * Grava archived_at / archive_motivo / archived_by / status arquivado.
  */
 export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -176,22 +192,16 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
     if (!canonico || !origem) {
       throw new Error("Núcleo não encontrado nesta organização.");
     }
-    if (canonico.archived_at || canonico.status === "arquivado") {
-      throw new Error("Núcleo canônico já está arquivado.");
-    }
-    if (origem.archived_at || origem.status === "arquivado") {
-      throw new Error("Núcleo de origem já está arquivado.");
-    }
 
     const [{ data: membrosCanonicoTodos }, { data: membrosOrigemTodos }, { data: leadsOrigem }] =
       await Promise.all([
-        supabase.from("nucleo_membros").select("id,nucleo_id,nome,archived_at").eq("nucleo_id", data.canonicoId),
+        supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel,archived_at").eq("nucleo_id", data.canonicoId),
         supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel,archived_at").eq("nucleo_id", data.origemId),
         supabase.from("leads").select("id,nucleo_id").eq("nucleo_id", data.origemId),
       ]);
 
     const membrosCanonico = (membrosCanonicoTodos ?? []) as any[];
-    const membrosOrigem = ((membrosOrigemTodos ?? []) as any[]).filter((m) => !m.archived_at);
+    const membrosOrigem = (membrosOrigemTodos ?? []) as any[];
     const leads = (leadsOrigem ?? []) as any[];
 
     const plano = montarPlanoUnificacao(
@@ -213,17 +223,16 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
       });
     }
 
-    const nomesCanonico = new Set(
-      membrosCanonico.map((m) => chaveNomeUnico(m.nome)).filter(Boolean),
-    );
-
-    for (const membro of membrosOrigem) {
-      const chave = chaveNomeUnico(membro.nome);
-      if (nomesCanonico.has(chave)) {
+    for (const acao of plano.membros) {
+      const membroId = acao.membroId;
+      if (!membroId) {
+        throw new Error(`Membro "${acao.nome}" sem identificador — unificação interrompida.`);
+      }
+      if (acao.acao === "arquivar_por_conflito") {
         await gravarComVerificacao({
           supabase,
           tabela: "nucleo_membros",
-          id: membro.id,
+          id: membroId,
           organizationId,
           userId,
           payload: {
@@ -236,12 +245,11 @@ export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
         await gravarComVerificacao({
           supabase,
           tabela: "nucleo_membros",
-          id: membro.id,
+          id: membroId,
           organizationId,
           userId,
           payload: { nucleo_id: data.canonicoId },
         });
-        nomesCanonico.add(chave);
       }
     }
 

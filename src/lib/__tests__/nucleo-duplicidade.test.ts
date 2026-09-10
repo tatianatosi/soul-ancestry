@@ -96,6 +96,22 @@ describe("detectarDuplicidades — Fase 1 (Detecção) da unificação de núcle
 });
 
 describe("montarPlanoUnificacao — fases 2–3", () => {
+  it("recusa quando canônico e origem são o mesmo id", () => {
+    const n = nucleo({ id: "c", nome: "Família Silva" });
+    const plano = montarPlanoUnificacao(n, n);
+    expect(plano.recusado).toBe(true);
+    expect(plano.caso.acao).toBe("recusar");
+    expect(plano.motivoRecusa).toMatch(/mesmo núcleo/i);
+  });
+
+  it("recusa quando um dos núcleos já está arquivado", () => {
+    const canonico = nucleo({ id: "c", nome: "Família Silva", status: "arquivado", archived_at: "2026-09-01T00:00:00Z" });
+    const origem = nucleo({ id: "o", nome: "Família Silva 2" });
+    const plano = montarPlanoUnificacao(canonico, origem);
+    expect(plano.recusado).toBe(true);
+    expect(plano.motivoRecusa).toMatch(/arquivado/i);
+  });
+
   it("recusa quando os dois núcleos apontam para casos diferentes", () => {
     const canonico = nucleo({ id: "c", nome: "Família Silva", case_id: "caso-a" });
     const origem = nucleo({ id: "o", nome: "Família Silva 2", case_id: "caso-b" });
@@ -108,11 +124,14 @@ describe("montarPlanoUnificacao — fases 2–3", () => {
 
   it("transfere o caso da origem quando o canônico não tem caso", () => {
     const canonico = nucleo({ id: "c", nome: "Família Silva", case_id: null });
-    const origem = nucleo({ id: "o", nome: "Família Silva 2", case_id: "caso-1" });
+    const origem = nucleo({ id: "o", nome: "Família Silva 2", case_id: "caso-1", leadsAtivos: 2 });
     const plano = montarPlanoUnificacao(canonico, origem);
     expect(plano.recusado).toBe(false);
     expect(plano.caso.acao).toBe("transferir");
     expect(plano.caso.caseIdFinal).toBe("caso-1");
+    expect(plano.leads).toEqual({ acao: "reapontar", quantidade: 2 });
+    expect(plano.arquivoOrigem.status).toBe("arquivado");
+    expect(plano.arquivoOrigem.motivo).toContain("c");
   });
 
   it("arquiva o membro da origem em conflito de nome em vez de mover", () => {
@@ -134,6 +153,26 @@ describe("montarPlanoUnificacao — fases 2–3", () => {
     expect(plano.membros).toEqual([
       { acao: "arquivar_por_conflito", nome: "JOÃO PEDRO SILVA", membroId: "m2" },
       { acao: "mover", nome: "Maria Costa Silva", membroId: "m3" },
+    ]);
+  });
+
+  it("não move membro já arquivado na origem e trata nome arquivado no canônico como conflito da unique", () => {
+    const canonico = nucleo({
+      id: "c",
+      nome: "Família Silva",
+      membros: [{ id: "m0", nome: "Ana Beatriz Lima", archived_at: "2026-01-01T00:00:00Z" }],
+    });
+    const origem = nucleo({
+      id: "o",
+      nome: "Família Silva 2",
+      membros: [
+        { id: "m1", nome: "Ana Beatriz Lima" },
+        { id: "m2", nome: "Arquivado Origem", archived_at: "2026-02-01T00:00:00Z" },
+      ],
+    });
+    const plano = montarPlanoUnificacao(canonico, origem);
+    expect(plano.membros).toEqual([
+      { acao: "arquivar_por_conflito", nome: "Ana Beatriz Lima", membroId: "m1" },
     ]);
   });
 
@@ -190,6 +229,18 @@ describe("validarPosMerge — fase 6", () => {
     expect(r.falhas.join(" ")).toMatch(/lead/i);
   });
 
+  it("falha se ainda há membro ativo na origem", () => {
+    const r = validarPosMerge({
+      ...base,
+      membros: [
+        { id: "m1", nucleo_id: "c", nome: "João Pedro Silva", archived_at: null },
+        { id: "m2", nucleo_id: "o", nome: "Maria Costa Silva", archived_at: null },
+      ],
+    });
+    expect(r.ok).toBe(false);
+    expect(r.falhas.join(" ")).toMatch(/membro/i);
+  });
+
   it("falha se o canônico ficou com nomes duplicados ativos", () => {
     const r = validarPosMerge({
       ...base,
@@ -210,17 +261,22 @@ describe("writer executarUnificacaoNucleo — contrato de persistência", () => 
     expect(src).toContain("executarUnificacaoNucleo");
     expect(src).toContain("exigirConfirmacaoUnificar");
     expect(src).toContain("gravarComVerificacao");
+    expect(src).toContain("method: \"POST\"");
     expect(src).toContain('tabela: "nucleos_familiares"');
     expect(src).toContain('tabela: "nucleo_membros"');
     expect(src).toContain('tabela: "leads"');
     expect(src).toContain('status: "arquivado"');
+    expect(src).toContain("archived_by");
+    expect(src).toContain("archive_motivo");
+    expect(src).toContain("select(\"id,nucleo_id,nome,papel,archived_at\")");
     expect(src).toContain("audit_logs");
     expect(src).toContain("validarPosMerge");
-    expect(src).not.toMatch(/nucleo_canonico_id/);
+    expect(src).toContain("requireSupabaseAuth");
     expect(src).not.toMatch(/dependem de colunas/);
+    expect(src).not.toMatch(/status `mesclado`/);
     expect(ui).toContain("CONFIRMACAO_UNIFICAR");
     expect(ui).toContain("montarPlanoUnificacao");
-    expect(ui).not.toMatch(/colunas novas/);
-    expect(ui).not.toMatch(/nucleo_canonico_id/);
+    expect(ui).toContain("invalidateQueries");
+    expect(ui).not.toMatch(/dependem de colunas novas/);
   });
 });
