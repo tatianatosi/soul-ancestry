@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
@@ -394,7 +395,7 @@ export function PainelCalls() {
 
       <Secao
         titulo="Painel de Calls"
-        descricao="Registro da chamada, qualificação preliminar e handoff. Toda triagem é sinal interno: não conclui elegibilidade jurídica, não envia proposta, contrato, cobrança nem mensagem."
+        descricao="Registro da chamada, qualificação preliminar e handoff — o mesmo sistema do CA-04 / CRM Mestre. Toda triagem é sinal interno: não conclui elegibilidade jurídica, não envia proposta, contrato, cobrança nem mensagem."
       >
         <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
@@ -418,6 +419,16 @@ export function PainelCalls() {
           />
           Exibir registros de teste/demonstração (fora das métricas reais)
         </label>
+        <p className="mt-2 text-xs text-navy/60">
+          Regras do CRM:{" "}
+          <Link to="/crm-mestre" className="underline decoration-gold underline-offset-2">
+            CRM Mestre
+          </Link>
+          {" · "}
+          <Link to="/governanca/dicionario-calls-crm" className="underline decoration-gold underline-offset-2">
+            Dicionário Calls → CRM
+          </Link>
+        </p>
       </Secao>
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -651,6 +662,12 @@ export function PainelCalls() {
                 </p>
                 <div className="mt-3">
                   <Pendencias titulo="Bloqueios do handoff" itens={avaliacao?.handoff ?? []} />
+                </div>
+                <div className="mt-3">
+                  <Pendencias
+                    titulo="Regras do dicionário CA-04 (informam, não travam o rascunho)"
+                    itens={avaliacao?.dicionario ?? []}
+                  />
                 </div>
                 <div className="mt-3">
                   <HandoffLead lead={lead} />

@@ -1,9 +1,10 @@
 # De-para de convivência — mockup de 17 páginas × Desk de 6 grupos
 
-**Status:** rascunho para decisão da Proprietária (10/09/2026).  
+**Status:** rascunho para decisão da Proprietária (10/09/2026), com correção do sistema comercial no mesmo dia.  
 **Tipo:** de-para canônico de navegação, layout e domínio, com cotejo factual das fontes atuais.  
-**Branch lida:** `cursor/desk-produto-mockup-17-5d7b` após o cockpit de 6 grupos (`73a29224`).  
-**Nenhuma alteração de código, rota, schema, RLS, integração, preço, contrato ou conteúdo cliente-facing nesta fase.**
+**Branch lida:** `cursor/desk-produto-mockup-17-5d7b` após o cockpit de 6 grupos e a correção CA-04.  
+
+**Correção da Proprietária (10/09, após o primeiro de-para):** CA-04 CRM Mestre **não** é legado de Governança. É o mapa de regras do **mesmo sistema** do Painel de Calls. O Dicionário Calls → CRM **não** fica como consulta arquivada: avalia o lead canônico em `/calls`. Planilha Mestre, Top 30 e Catálogo 30 continuam arquivo. Sem tabela nova, sem segunda ficha, sem Planilha como preço.
 
 **Fontes visuais (ordem de autoridade):**
 
@@ -20,7 +21,8 @@ Mockup aprovado     = linguagem, experiência, composição e prioridades visuai
 Desk Simplificado   = seis grupos de navegação e operação diária
 Casos + Planejador  = contexto, jornada, marcos, responsáveis e dependências
 Radar               = leitura transversal (carteira + caso), explicável e acionável
-Governança          = fonte, cobertura, auditoria, dicionários e classificação
+CA-04 + Calls       = um sistema comercial (mapa de regras + operação na tabela leads)
+Governança          = cobertura, auditoria, papéis, Catálogo 30 e arquivo
 ```
 
 **Vocabulário de realidade:** `DADO_ATUAL_CONFIRMADO` · `DADO_ATUAL_PARCIAL` · `SEM_DADO_SUFICIENTE` · `PENDENTE_DE_TESTE` · `DEMO_OU_LOCAL` · `LEGADO` · `ERRO_DE_FONTE`.
@@ -44,6 +46,20 @@ O PDF mostra **7 itens** na sidebar do Desk. O Desk atual mostra **6 grupos**. I
 | Biblioteca Mestre | Inteligência & Pesquisa | `/biblioteca` + pesquisa/evidências | Catálogo Top 30 / Planilha |
 
 App Cliente permanece com as **7 abas do mockup** (`portal-shell.tsx`). Os 6 grupos do Desk **não** entram na barra do cliente.
+
+### 0.1 Sistema comercial CA-04 (não é página do PDF; é o CRM que vai com as Calls)
+
+A tela `/crm-mestre` (cards “Fontes de verdade”) não é uma das 17 páginas do mockup e **não** é arquivo. Convive assim:
+
+| Elemento visual (CA-04) | Intenção | Grupo | Superfície | Equivalente atual | Tipo | Fonte | Realidade | Radar | Visibilidade | Duplicidade | Convivência | Risco |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Card Painel de Calls / CRM Vivo | Entrada, SPIN, Discovery, handoff, próxima ação | Marketing & Comercial | `/calls` + `/leads` | `painel-calls.tsx` + tabela `leads` | Operação | Lead canônico | `DADO_ATUAL_CONFIRMADO` | Comercial em atenção | Interno | `/leads` é a mesma ficha | Manter como um sistema; CA-04 não grava lead | Alto se criar CRM paralelo |
+| Card Catálogo homologado | SKU, preço, condição, link | Formalização & Financeiro | `/catalogo` | `product_catalog` | Operação | Catálogo | `DADO_ATUAL_PARCIAL` | Formalização | Interno | Planilha Mestre (texto histórico) | Planilha não volta como fonte viva | Alto se reler Planilha como preço |
+| Card Asaas | Evento transacional | Formalização & Financeiro | `/financeiro` | Evento Asaas referenciado | Operação | Transação confirmada | `DADO_ATUAL_PARCIAL` | Financeiro | Interno / admin | CRM não substitui Asaas | Conectar por referência | Alto inferir pagamento |
+| Card Desk / dossiê | Caso, evidência, pendência | Pessoas & Casos + Inteligência | Caso 360 + `/pesquisa-modulo` | `crm_casos` + evidências | Operação | Caso / dossiê | `DADO_ATUAL_PARCIAL` | Evidência / Bloqueio | Interno | Não usar Calls como dossiê | Ponte por vínculo | Médio |
+| Card App Cliente | Só o aprovado | Pessoas & Casos (projeção) | `/portal/*` | Projeção sanitizada | Projeção | Entrega liberada | `DADO_ATUAL_PARCIAL` | Experiência | Cliente aprovado | Desk cru | Nunca projetar triagem CA-04 | Alto |
+| Card CRM legado | Histórico consultável | Governança (arquivo) | Importações / histórico | Sistemas antigos | Legado | Nenhuma fonte nova | `LEGADO` | — | Histórico | CA-04 atual | Não usar para dado novo | Médio se confundir com `/crm-mestre` |
+| Dicionário Calls → CRM | Listas e regras de dependência | Marketing & Comercial | `/governanca/dicionario-calls-crm` + bloco no `/calls` | `dicionario-calls-crm.ts` → `pendenciasDicionarioDoLead` | Operação (regra viva) | Lead + CATALOGOS | `DADO_ATUAL_PARCIAL` | Comercial / Formalização | Interno | `validarLead` (slugs) | Conectar; pendência informa, não trava rascunho | Médio se travar rascunho ou reabrir Planilha |
 
 ---
 
@@ -179,11 +195,11 @@ Nível 4 — evidência, auditoria, dicionário, DEMO
 | Grupo | Cabeçalho (nível 2) | Fila (nível 2) | Detalhe contextual (nível 3) | Governança (nível 4) |
 |---|---|---|---|---|
 | **Hoje** | Casos ativos, alertas, leads sem ação, exceções; cards vencidos/hoje/dono/SLA | Fila priorizada, alertas prioritários, 3 sinais do CRM Vivo | Abre caso, Call ou alerta — não edita contrato | Fórmulas de métrica **não** moram aqui |
-| **Marketing & Comercial** | Funil/saúde em `/conversao` (não % mágico) | Leads, Calls, propostas, follow-up | Lead / Discovery / proposta | Origem canônica, CAC/ROI SEM_DADOS |
+| **Marketing & Comercial** | Funil/saúde em `/conversao` (não % mágico) | Leads, Calls, propostas, follow-up | Lead / Discovery / proposta; CA-04 + dicionário no mesmo sistema | Origem canônica, CAC/ROI SEM_DADOS |
 | **Pessoas & Casos** | Carteira + saúde (matriz em `/qualidade`) | Checklist, exceções, cadência | Caso 360, núcleo, pessoa, App como pessoa, Radar de caso (proposta) | Papéis de portal |
 | **Inteligência & Pesquisa** | Biblioteca + bases + trilhas | Pendências de pesquisa / evidência | Dossiê, árvore interna, Validação Jurídica, assistente | Dicionários de termo (não Top 30) |
 | **Formalização & Financeiro** | Contratos + catálogo homologado + financeiro | OS, divergências, pendência de cobrança | Preparar contrato do caso; matrizes individual/casal/familiar | Preço/cobertura — sem Planilha como decisão |
-| **Governança & Administração** | Config, equipe, métricas | — | Integrações, importações | CRM Mestre, dicionário Calls, Catálogo 30, DEMO |
+| **Governança & Administração** | Config, equipe, métricas | — | Integrações, importações | Catálogo 30, DEMO, arquivo — **não** o CA-04 |
 
 ### 3.2 App Cliente (não é grupo do Desk)
 
@@ -234,16 +250,18 @@ Nível 4 — evidência, auditoria, dicionário, DEMO
 | Radar | App 6 eixos, Desk 4 eixos, matriz `/qualidade`, teia DEMO | Camada deste doc: carteira no Hoje + caso na ficha; App = projeção | Não apagar `/qualidade` nem `/portal/radar` |
 | Pesquisa | Ficha, `/pesquisa-modulo`, `/pesquisa`, Biblioteca | `/pesquisa-modulo` = trabalho; `/pesquisa` = dossiê Legado; Biblioteca = acervo | Rotas |
 | Contrato | Ficha ponte, `/contratos`, preparar, matrizes | Um form `/casos/$id/contrato/preparar` | Matrizes de composição |
-| Catálogo / preço | `/catalogo`, homologação, dicionário Calls, Catálogo 30, Planilha (texto) | `product_catalog` + produto-pai | Planilha e Top 30 só em Governança |
+| Catálogo / preço | `/catalogo`, homologação, Catálogo 30, Planilha (texto) | `product_catalog` + produto-pai | Planilha e Top 30 só em Governança; dicionário no Comercial só referencia o catálogo |
+| CA-04 / CRM / Calls | `/calls`, `/leads`, `/crm-mestre`, `/governanca/dicionario-calls-crm` | Tabela `leads` + regras do dicionário | Não apagar o mapa CA-04; não criar segunda ficha |
 | App como pessoa | `/app-cliente-como-pessoa` vs `/app-cliente-demo` | Real = staff + caso; Demo = conta | Demo |
 | Métricas | `/metricas` + cards do Hoje + `/conversao` | Hoje = decisão; Conversão = funil; `/metricas` = Governança | Não duas verdades no Hoje |
 | Núcleo / árvore | `/nucleos` interno vs `/portal/arvore` | Mesmas pessoas; projeção filtrada | Não merge automático |
 
 ---
 
-## 6. Entregável — patch mínimo proposto (não aplicado)
+## 6. Entregável — patch mínimo proposto
 
-Somente rótulo, agrupamento visual, visibilidade, drill-down e localização. **Sem** rota nova, tabela, RPC, merge ou exclusão.
+P1–P6: só rótulo, agrupamento, visibilidade e drill-down do Radar/mockup — **ainda não aplicados**.  
+P7: aplicado nesta correção, com autorização expressa da Proprietária. Sem rota nova, tabela, RPC, merge ou exclusão.
 
 | # | Mudança | Impacto | Risco | Depende de |
 |---|---|---|---|---|
@@ -253,8 +271,9 @@ Somente rótulo, agrupamento visual, visibilidade, drill-down e localização. *
 | P4 | Badge de cobertura em qualquer card que ainda possa ser lido como DEMO (prévia App, `/mockup`, fixtures) | Evita número local como realidade | Baixo | Inventário de fixtures |
 | P5 | No Checklist, link explícito caso ← tarefa (se ainda faltar na lista) | Fecha a regra `case_id` do mockup | Baixo | Conferir UI atual |
 | P6 | Texto de Elegibilidade no App: deixar explícito que o eixo **não** é parecer (já é média) | Alinha PDF × fonte | Baixo / copy | Aprovação de wording |
+| P7 | **Aplicado:** CA-04 e dicionário entram em Marketing & Comercial com `/calls`; o dicionário avalia o lead vivo; fontes CA-04 usam catálogo homologado no lugar da Planilha | O CRM deixa de parecer arquivo e a regra aparece na call | Médio se alguém ler pendência do dicionário como trava de gravação | Sem tabela nova; URLs iguais |
 
-**Fora deste patch (precisa de outra decisão):** contar marcos de `case_plans` no Hoje; unificar 4 eixos × 6 eixos × 7 eixos; ligar SLA; recolocar Receita/Conversão no topo.
+**Fora deste patch (precisa de outra decisão):** contar marcos de `case_plans` no Hoje; unificar 4 eixos × 6 eixos × 7 eixos; ligar SLA; recolocar Receita/Conversão no topo. Harmonizar vocabulário restante das listas CA-04 (rótulos) × CATALOGOS (slugs) sem migrar valor persistido.
 
 **Checklist de teste do patch (quando autorizado):** §7, itens 1–8, só nas telas tocadas.
 
@@ -262,7 +281,7 @@ Somente rótulo, agrupamento visual, visibilidade, drill-down e localização. *
 
 ## 7. Entregável — roteiro de testes
 
-Não executado nesta fase (sem sessão autenticada e sem mudança de código). Usar depois de qualquer patch autorizado.
+P1–P6 ainda sem sessão autenticada. P7 coberto pelos testes de navegação, dicionário e Painel de Calls.
 
 | # | O quê | Desktop | Mobile | Passa se |
 |---|---|---|---|---|
@@ -288,7 +307,7 @@ Não executado nesta fase (sem sessão autenticada e sem mudança de código). U
 | Marketing, Pessoas & Casos, Inteligência explícitos | §0 e §3 — não viram só número |
 | Bases, Biblioteca, Dicionários, Trilhas = Inteligência | §0, §1 pág. 17, §3 |
 | CA OPS / Planilha / Matriz Operacional / SKU legado ≠ fonte vigente | §1 nota + §5 catálogo |
-| Sem alteração de código nesta fase | Só este Markdown |
-| Patch mínimo para decisão | §6, não aplicado |
+| Sem alteração de schema/RLS/preço/contrato | Mantido. Código só no recorte CA-04 + Calls + dicionário, após correção da Proprietária |
+| Patch mínimo para decisão | §6 P1–P6 ainda à espera; **P7 aplicado** |
 
-**Encerrado.** Implementação, migração, refatoração visual ou exclusão de duplicidade ficam à espera de autorização expressa da Proprietária.
+P1–P6 do Radar/mockup continuam à espera. A conversão do dicionário em regra viva do Painel de Calls foi a autorização desta rodada.

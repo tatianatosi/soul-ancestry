@@ -11,11 +11,19 @@
  * por `preco-canonico.ts`, a Planilha Mestre é legado de migração, reconciliação
  * e auditoria histórica — a fonte operacional é o catálogo homologado no Desk.
  *
- * Registro interno somente leitura: nenhuma função aqui envia, cobra ou grava
- * em sistema externo.
+ * 10/09/2026 — o dicionário deixa de ser só consulta: `leadParaRegistroCalls`
+ * e `pendenciasDicionarioDoLead` avaliam o lead canônico do Painel de Calls.
+ * Nenhuma função aqui envia, cobra ou grava em sistema externo. Pendência
+ * informa; não trava rascunho.
  */
 
 import { LISTAS_BASE_CA04 } from "@/lib/ca04-crm-mestre";
+import {
+  PRODUTOS_RECOMENDADOS,
+  resultadoComercialDerivado,
+  rotulo,
+  type LeadDesk,
+} from "@/lib/crm-desk";
 
 export const DICIONARIO_CALLS_VERSAO = "1.1" as const;
 
@@ -126,7 +134,7 @@ export const LISTAS_DICIONARIO_CALLS = {
     "Protocolo/acompanhamento",
     "Pós-cidadania",
     "Memória familiar",
-    "Outro SKU — consultar Planilha Mestre",
+    "Outro SKU — consultar catálogo homologado",
   ],
   "Faixa de despesas externas": [
     "Sem estimativa",
@@ -245,7 +253,7 @@ export const CAMPOS_DICIONARIO_CALLS: readonly CampoDicionario[] = [
   { campo: "Número de requerentes potenciais", tipo: "Número", obrigatorio_na_etapa: "Pós-Discovery", regra: "Inteiro positivo." },
   { campo: "Estrutura familiar", tipo: "Dropdown", obrigatorio_na_etapa: "Pós-Discovery", lista: "Estrutura familiar", regra: "Lista controlada; rejeitar entrada livre." },
   { campo: "Produtos/serviços recomendados", tipo: "Dropdown múltiplo controlado", obrigatorio_na_etapa: "Proposta", lista: "Produtos/serviços recomendados", regra: "Múltipla escolha apenas dentro da lista." },
-  { campo: "SKU recomendado", tipo: "Dropdown dependente", obrigatorio_na_etapa: "Proposta", regra: "Somente SKUs ativos da Planilha Mestre; depende de Produtos/serviços recomendados." },
+  { campo: "SKU recomendado", tipo: "Dropdown dependente", obrigatorio_na_etapa: "Proposta", regra: "Somente SKUs ativos do catálogo homologado; depende de Produtos/serviços recomendados." },
   { campo: "Status de despesas de terceiros", tipo: "Dropdown", obrigatorio_na_etapa: "Proposta", lista: "Status de despesas de terceiros", regra: "Nunca lançar como caixa do Clube ou reembolso." },
   { campo: "Regra de despesas", tipo: "Dropdown fixo", obrigatorio_na_etapa: "Proposta", lista: "Regra de despesas", regra: "Lista fixa; o Clube não antecipa nem reembolsa despesa de terceiro." },
   { campo: "Faixa de despesas externas", tipo: "Dropdown", obrigatorio_na_etapa: "Proposta", lista: "Faixa de despesas externas", regra: "Faixa estimada; nunca valor digitado livremente como preço." },
@@ -285,6 +293,8 @@ export type RegistroCallsCrm = {
   motivoPerda?: string | null;
   produtosRecomendados?: readonly string[];
   skuRecomendado?: string | null;
+  /** Fonte operacional: product_catalog. `skuAtivoNaPlanilhaMestre` fica só como alias histórico. */
+  skuAtivoNoCatalogoHomologado?: boolean;
   skuAtivoNaPlanilhaMestre?: boolean;
   ofertaProtocoloAssessoria?: boolean;
   statusDespesasTerceiros?: string | null;
@@ -316,11 +326,11 @@ export function avaliarBloqueiosCalls(r: RegistroCallsCrm): BloqueioCalls[] {
         mensagem: "Preencher 'Produtos/serviços recomendados' antes do SKU recomendado.",
       });
     }
-    if (r.skuAtivoNaPlanilhaMestre !== true) {
+    if (r.skuAtivoNoCatalogoHomologado === false || r.skuAtivoNaPlanilhaMestre === false) {
       b.push({
         regra: 1,
         campo: "SKU recomendado",
-        mensagem: "Usar apenas SKU com status ATIVO na Planilha Mestre.",
+        mensagem: "Usar apenas SKU com status ATIVO no catálogo homologado.",
       });
     }
   }
@@ -447,8 +457,100 @@ export const CRITERIOS_ACEITE_CALLS: readonly string[] = [
 
 /** §6 — Mapeamento para o Painel de Calls atual. */
 export const MAPEAMENTO_PAINEL_CALLS: readonly string[] = [
-  "Manter o comparativo de cidadanias como referência jurídica interna.",
-  "Usar uma base de listas única (LISTAS_BASE) para todos os campos classificatórios.",
-  "Ampliar a aba operacional de Calls com os campos comerciais do dicionário.",
+  "CA-04 / CRM Mestre é o mapa de regras do mesmo sistema do Painel de Calls — mesma tabela leads, sem segunda ficha.",
+  "O dicionário avalia o lead canônico em /calls. Pendência informa; não trava rascunho.",
+  "Campos classificatórios do Painel usam CATALOGOS do CRM Vivo (slugs persistidos); os rótulos cobrem as listas do dicionário.",
+  "SKU, preço e link vêm do catálogo homologado. A Planilha Mestre não volta como fonte viva.",
   "O comparativo jurídico alimenta a triagem, mas não substitui o cadastro operacional do lead.",
 ];
+
+const campoVazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
+
+const NUCLEO_ESTRUTURAS = new Set(["nucleo_familiar", "familia_ampliada", "linha_com_menores"]);
+const EIXO_GANHO = new Set([
+  "contrato_assinado",
+  "pagamento_inicial_confirmado",
+  "cliente_ativo",
+  "onboarding_iniciado",
+  "caso_ativo",
+]);
+
+function etapaFunilDoLead(l: LeadDesk): string | null {
+  const formalizacao = String(l.eixo_formalizacao ?? "");
+  if (formalizacao === "contrato_assinado") return "Contrato assinado";
+  if (formalizacao === "onboarding_iniciado") return "Onboarding";
+  if (formalizacao === "pagamento_inicial_confirmado") return "Pagamento inicial confirmado";
+  if (formalizacao === "contrato_enviado") return "Contrato enviado";
+  const comercial = rotulo("eixo_comercial", l.eixo_comercial);
+  return comercial === "—" ? null : comercial;
+}
+
+function resultadoParaDicionario(l: LeadDesk): string | null {
+  if (l.eixo_comercial === "perdido") {
+    const motivo = rotulo("motivo_perda", l.motivo_perda);
+    return motivo === "—" ? "Perdido" : `Perdido — ${motivo}`;
+  }
+  if (EIXO_GANHO.has(String(l.eixo_formalizacao ?? ""))) return "Convertido";
+  const derivado = resultadoComercialDerivado(l);
+  return derivado === "Em andamento comercial" ? null : derivado;
+}
+
+function rotuloProduto(valor: string): string {
+  return PRODUTOS_RECOMENDADOS.find((o) => o.valor === valor)?.rotulo ?? valor;
+}
+
+/** Traduz o lead persistido (slugs) para o vocabulário do dicionário (rótulos). */
+export function leadParaRegistroCalls(l: LeadDesk): RegistroCallsCrm {
+  const produtos = (l.produtos_recomendados ?? []).map(rotuloProduto);
+  return {
+    leadAtivo: !l.archived_at && !["perdido", "encerrado_sem_aderencia"].includes(String(l.eixo_comercial)),
+    origemLead: campoVazio(l.origem) ? null : rotulo("origem", l.origem),
+    responsavelAtual: l.responsavel_nome ?? null,
+    etapaFunil: etapaFunilDoLead(l),
+    statusCall: campoVazio(l.status_call) ? null : rotulo("status_call", l.status_call),
+    elegibilidadePreliminar: campoVazio(l.elegibilidade_preliminar)
+      ? null
+      : rotulo("elegibilidade_preliminar", l.elegibilidade_preliminar),
+    viaJuridicaPreliminar: campoVazio(l.via_juridica_preliminar)
+      ? null
+      : rotulo("via_juridica_preliminar", l.via_juridica_preliminar),
+    statusVia:
+      String(l.status_via) === "inviavel_preliminar"
+        ? "Encerrada para novos pedidos"
+        : campoVazio(l.status_via)
+          ? null
+          : rotulo("status_via", l.status_via),
+    geracaoAscendente: campoVazio(l.geracao_ascendente) ? null : rotulo("geracao_ascendente", l.geracao_ascendente),
+    estadoDocumentalInicial: campoVazio(l.estado_documental_inicial)
+      ? null
+      : rotulo("estado_documental_inicial", l.estado_documental_inicial),
+    resultadoDiscovery: campoVazio(l.discovery_resultado) ? null : rotulo("discovery_resultado", l.discovery_resultado),
+    proximaAcao: campoVazio(l.proxima_acao) ? null : rotulo("proxima_acao", l.proxima_acao),
+    prazoProximaAcao: l.proxima_acao_em ? String(l.proxima_acao_em).slice(0, 10) : null,
+    dataRegistro: l.created_at ? String(l.created_at).slice(0, 10) : null,
+    resultadoComercial: resultadoParaDicionario(l),
+    motivoPerda: campoVazio(l.motivo_perda) ? null : rotulo("motivo_perda", l.motivo_perda),
+    produtosRecomendados: produtos,
+    skuRecomendado: l.sku_referencia ?? null,
+    ofertaProtocoloAssessoria: (l.produtos_recomendados ?? []).includes("protocolo_acompanhamento"),
+    statusDespesasTerceiros: campoVazio(l.despesas_terceiros_status)
+      ? null
+      : rotulo("despesas_terceiros_status", l.despesas_terceiros_status),
+    estimativaDespesasRegistrada: !campoVazio(l.despesas_terceiros_faixa),
+    consentimentoGravacao: String(l.consentimento_status) === "concedido" || l.consentimento_gravacao === true,
+    linkGravacao: l.gravacao_link_interno ?? null,
+    contratoAssinado: !campoVazio(l.contrato_link_interno),
+    pagamentoInicialConfirmado: !campoVazio(l.asaas_evento_referencia),
+    linkDossie: l.dossie_link_interno ?? l.dossie_mae_ref ?? null,
+    vinculoNucleoRegistrado: !campoVazio(l.nucleo_id),
+    fazParteDeNucleo: NUCLEO_ESTRUTURAS.has(String(l.estrutura_familiar)) || !campoVazio(l.nucleo_id),
+  };
+}
+
+/** Regras do dicionário aplicadas ao lead vivo. Informam; não travam gravação. */
+export function pendenciasDicionarioDoLead(l: LeadDesk): { campo: string; motivo: string }[] {
+  return avaliarBloqueiosCalls(leadParaRegistroCalls(l)).map((b) => ({
+    campo: b.campo,
+    motivo: `CA-04 · regra ${b.regra}: ${b.mensagem}`,
+  }));
+}

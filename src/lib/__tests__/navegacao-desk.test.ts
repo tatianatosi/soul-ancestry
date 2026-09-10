@@ -64,7 +64,8 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/configuracoes");
     expect(rotas).toContain("/equipe");
-    expect(rotas).toContain("/crm-mestre");
+    expect(rotas).toContain("/governanca/catalogo-operacional-30");
+    expect(rotas).not.toContain("/crm-mestre");
   });
 
   it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
@@ -127,18 +128,20 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     }
   });
 
-  it("consulta de legado fica em Governança, não no Hoje nem no Comercial", () => {
+  it("CA-04 e o dicionário moram no Comercial com as Calls; Catálogo 30 fica em Governança", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
-    expect(rotasGov).toContain("/crm-mestre");
-    expect(rotasGov).toContain("/governanca/dicionario-calls-crm");
     expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
-    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
+    expect(rotasGov).not.toContain("/crm-mestre");
+    expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
-    for (const g of [hoje, comercial]) {
-      const rotas = g.sub.filter((s) => "to" in s).map((s) => s.to);
-      expect(rotas).not.toContain("/crm-mestre");
-    }
+    const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasComercial).toContain("/calls");
+    expect(rotasComercial).toContain("/crm-mestre");
+    expect(rotasComercial).toContain("/governanca/dicionario-calls-crm");
+    const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
+    const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasHoje).not.toContain("/crm-mestre");
     expect(rotasDoMenuConta()).not.toContain("/crm-mestre");
   });
 

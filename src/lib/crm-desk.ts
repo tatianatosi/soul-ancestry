@@ -277,7 +277,7 @@ export const PRODUTOS_RECOMENDADOS: Opcao[] = [
   { valor: "protocolo_acompanhamento", rotulo: "Protocolo/acompanhamento" },
   { valor: "pos_cidadania", rotulo: "Pós-cidadania" },
   { valor: "memoria_familiar", rotulo: "Memória familiar" },
-  { valor: "outro_sku", rotulo: "Outro SKU — consultar Planilha Mestre" },
+  { valor: "outro_sku", rotulo: "Outro SKU — consultar catálogo homologado" },
 ];
 
 export const DESPESAS_TERCEIROS_STATUS: Opcao[] = [

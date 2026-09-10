@@ -10,17 +10,17 @@ import {
 } from "@/lib/crm-mestre-export";
 
 describe("/crm-mestre no menu do Desk", () => {
-  const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-  const links = gov.sub.filter((s): s is { to: string; label: string } => "to" in s);
+  const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+  const links = comercial.sub.filter((s): s is { to: string; label: string } => "to" in s);
 
-  it("aparece em Governança, fora da face Comercial", () => {
+  it("aparece no Comercial com o Painel de Calls, fora da conta e da Governança", () => {
     expect(links.some((s) => s.to === "/crm-mestre")).toBe(true);
     expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
-    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
-    const rotasComercial = (comercial?.sub ?? [])
-      .filter((s): s is { to: string; label: string } => "to" in s)
-      .map((s) => s.to);
-    expect(rotasComercial).not.toContain("/crm-mestre");
+    const rotasComercial = links.map((s) => s.to);
+    expect(rotasComercial).toContain("/crm-mestre");
+    expect(rotasComercial).toContain("/calls");
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
   });
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {

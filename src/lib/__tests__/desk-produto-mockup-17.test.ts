@@ -64,15 +64,17 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     for (const r of ROTAS_PRESERVADAS) expect(rotasDoMenu()).toContain(r);
   });
 
-  it("Painel de Calls fica no Comercial; legado e DEMO ficam fora da fila do dia", () => {
+  it("Painel de Calls e CA-04 ficam no Comercial; DEMO fica fora da fila do dia", () => {
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     expect(comercial.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(true);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => s.to);
     expect(conta).toContain("/app-cliente-demo");
     expect(conta).not.toContain("/pesquisa");
     expect(conta).not.toContain("/crm-mestre");
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
-    expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(true);
+    expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
+    expect(gov.sub.some((s) => "to" in s && s.to === "/governanca/catalogo-operacional-30")).toBe(true);
   });
 
   it("dossiê /pesquisa é o repositório do Legado, dentro da Inteligência", () => {

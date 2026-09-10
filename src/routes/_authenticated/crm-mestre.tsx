@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Download, Loader2, Printer, TriangleAlert } from "lucide-react";
 
@@ -158,10 +158,25 @@ function Pagina() {
   return (
     <SaasShell
       titulo="CRM Mestre, Discovery e Handoff"
-      descricao="CA-04 v1.0.1 — somente leitura. Nenhum dado é criado ou alterado aqui, nenhuma ação externa é disparada e nenhuma fonte de verdade é substituída."
+      descricao="CA-04 — mapa de regras do sistema comercial (Painel de Calls + CRM Vivo). Nenhum lead é gravado aqui: a operação vive em /calls e /leads, na mesma tabela."
       acoes={<AcoesExportacao />}
     >
       <div className="space-y-10">
+        <p className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-navy">
+          Este é o sistema que vai junto com o Painel de Calls — não é legado de Governança.
+          Operar a call em{" "}
+          <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
+            /calls
+          </Link>
+          ; o{" "}
+          <Link
+            to="/governanca/dicionario-calls-crm"
+            className="font-medium underline decoration-gold underline-offset-4"
+          >
+            dicionário
+          </Link>{" "}
+          avalia o lead vivo. SKU e preço vêm do catálogo homologado, não da Planilha Mestre.
+        </p>
         <Secao titulo={"Fontes de verdade"} vazio={FONTES_VERDADE_CA04.length === 0} mensagemVazio={"Nenhuma fonte de verdade registrada nesta versão do CA-04."}>
           <div className="grid gap-3 md:grid-cols-2">
             {FONTES_VERDADE_CA04.map((f) => (

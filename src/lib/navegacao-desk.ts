@@ -5,8 +5,9 @@
  * Formalização & Financeiro · Governança & Administração.
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. Planilha Mestre, Top 30 e Catálogo 30 ficam só em
- * Governança (legado). URLs não mudam. Nenhuma rota operacional some.
+ * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
+ * junto do Painel de Calls. Planilha Mestre, Top 30 e Catálogo 30 ficam só
+ * em Governança (legado). URLs não mudam. Nenhuma rota operacional some.
  */
 
 export type ItemNav =
@@ -77,6 +78,8 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "CRM Vivo" },
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Painel de Calls" },
+      { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
+      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
@@ -174,8 +177,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
       { grupo: "Legado (arquivo)" },
-      { to: "/crm-mestre", label: "CRM Mestre (legado)" },
-      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM (legado)" },
       { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
     ],
   },
@@ -234,6 +235,8 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/relatorios",
   "/leads",
   "/calls",
+  "/crm-mestre",
+  "/governanca/dicionario-calls-crm",
   "/proximas-acoes",
   "/propostas",
   "/conversao",
