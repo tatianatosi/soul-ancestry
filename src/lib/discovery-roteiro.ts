@@ -101,6 +101,7 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
       "Quem será responsável por esse próximo passo e qual prazo é realista?",
     ],
     campos: [
+      "elegibilidade_preliminar",
       "objecao_predominante",
       "nivel_intencao",
       "discovery_resultado",
@@ -113,6 +114,267 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
 ];
 
 export type ProgressoBlocoRoteiro = { chave: string; titulo: string; preenchidos: number; total: number; completo: boolean };
+
+/**
+ * CA02-CRM-VIVO-PAINEL-CALLS (09/09/2026) — "o problema é formulário sobre
+ * formulário e perguntas SPIN sem local evidente para resposta/destino".
+ * Cada campo do roteiro ganha aqui o que faltava para virar card completo:
+ * por que a pergunta importa, para onde a resposta vai e o que muda quando
+ * ela é respondida. Não é campo novo — é o texto que faltava ao lado do
+ * campo que já existe.
+ */
+export type TipoControleRoteiro = "select" | "multi" | "texto" | "numero" | "data" | "trilha" | "marco";
+
+export type MetaCampoRoteiro = {
+  tipo: TipoControleRoteiro;
+  porQueImporta: string;
+  destino: string;
+  consequencia: string;
+};
+
+export const META_CAMPO_ROTEIRO: Record<string, MetaCampoRoteiro> = {
+  objetivo: {
+    tipo: "select",
+    porQueImporta: "Define o que a pessoa veio resolver — orienta toda a conversa.",
+    destino: "Ficha do lead — objetivo",
+    consequencia: "Alinha o restante do roteiro ao que a pessoa realmente busca.",
+  },
+  nacionalidades_interesse: {
+    tipo: "multi",
+    porQueImporta: "Aponta o país-alvo, base para trilha jurídica e marco aplicável.",
+    destino: "Ficha do lead → trilha jurídica",
+    consequencia: "Filtra as trilhas e marcos mostrados no bloco Trilha.",
+  },
+  pais_linha_prioritaria: {
+    tipo: "select",
+    porQueImporta: "Quando há mais de um país, diz por qual seguir primeiro.",
+    destino: "Ficha do lead — radar de elegibilidade",
+    consequencia: "Reordena a prioridade de pesquisa e a leitura do radar.",
+  },
+  estrutura_familiar: {
+    tipo: "select",
+    porQueImporta: "Muda quem mais participa da jornada e do custo.",
+    destino: "Ficha do lead — composição familiar",
+    consequencia: "Ajusta quem entra como requerente potencial.",
+  },
+  requerentes_potenciais: {
+    tipo: "numero",
+    porQueImporta: "Dimensiona o escopo — uma pessoa ou uma família inteira.",
+    destino: "Ficha do lead — dimensionamento",
+    consequencia: "Sinal de porte para a triagem, sem calcular preço aqui.",
+  },
+  responsavel_nome: {
+    tipo: "texto",
+    porQueImporta: "Sem responsável nominal, o próximo passo não tem dono.",
+    destino: "Ficha do lead — responsável",
+    consequencia: "Some do sinal 'sem responsável' assim que preenchido.",
+  },
+  proxima_acao: {
+    tipo: "select",
+    porQueImporta: "É o compromisso que sai desta call — sem isso, a call não avança nada.",
+    destino: "Ficha do lead — próxima ação",
+    consequencia: "Com prazo definido, habilita criar/atualizar a tarefa do caso (quando já há caso).",
+  },
+  geracao_ascendente: {
+    tipo: "select",
+    porQueImporta: "Situa a que distância está o ascendente que conecta ao país.",
+    destino: "Ficha do lead — linha familiar",
+    consequencia: "Alimenta o radar de elegibilidade preliminar.",
+  },
+  linha_transmissao: {
+    tipo: "select",
+    porQueImporta: "Paterna, materna ou a confirmar muda a via jurídica aplicável.",
+    destino: "Ficha do lead — linha familiar",
+    consequencia: "Alimenta o radar de elegibilidade preliminar.",
+  },
+  localidades_conhecidas: {
+    tipo: "texto",
+    porQueImporta: "Comuna, paróquia ou província já conhecida acelera a pesquisa depois.",
+    destino: "Ficha do lead — pesquisa futura",
+    consequencia: "Vira ponto de partida da pesquisa genealógica, se o caso avançar.",
+  },
+  risco_ruptura: {
+    tipo: "select",
+    porQueImporta: "Casamento, mudança de nome ou adoção podem exigir prova extra.",
+    destino: "Ficha do lead — complexidade",
+    consequencia: "Eleva a complexidade documental esperada.",
+  },
+  estado_documental_inicial: {
+    tipo: "select",
+    porQueImporta: "O que a família já tem em mãos muda o ponto de partida real.",
+    destino: "Ficha do lead — documentos",
+    consequencia: "Base do estado documental mostrado na triagem.",
+  },
+  documentos_chave: {
+    tipo: "multi",
+    porQueImporta: "Marca quais documentos-chave já existem ou faltam.",
+    destino: "Ficha do lead — documentos",
+    consequencia: "Alimenta o radar de elegibilidade (item de documento-chave).",
+  },
+  pendencia_documental_prioritaria: {
+    tipo: "select",
+    porQueImporta: "Diz o que confirmar primeiro para reduzir a maior incerteza.",
+    destino: "Ficha do lead — documentos",
+    consequencia: "Vira o item prioritário da pesquisa, se o caso avançar.",
+  },
+  complexidade_documental: {
+    tipo: "select",
+    porQueImporta: "Sinaliza se a jornada documental tende a ser simples ou longa.",
+    destino: "Ficha do lead — qualificação",
+    consequencia: "Aparece como selo na lista de calls (alta/muito alta em destaque).",
+  },
+  confianca_triagem: {
+    tipo: "select",
+    porQueImporta: "Diz o quanto confiar no sinal preliminar registrado aqui.",
+    destino: "Ficha do lead — qualificação",
+    consequencia: "Exigido para elegibilidade Forte/Provável sustentar o handoff.",
+  },
+  via_juridica_preliminar: {
+    tipo: "select",
+    porQueImporta: "Hipótese de caminho jurídico — nunca parecer, sempre preliminar.",
+    destino: "Ficha do lead — trilha",
+    consequencia: "Exigido para elegibilidade Forte/Provável sustentar o handoff.",
+  },
+  status_via: {
+    tipo: "select",
+    porQueImporta: "Diz se a via segue vigente, restrita ou em confirmação jurídica.",
+    destino: "Ficha do lead — trilha (herdado da trilha selecionada)",
+    consequencia: "Via restrita/encerrada nunca pode virar caminho comunicado ao cliente.",
+  },
+  trilha_referencia_id: {
+    tipo: "trilha",
+    porQueImporta: "Ancora a call numa trilha jurídica real, não numa impressão solta.",
+    destino: "Biblioteca Mestre — trilha jurídica",
+    consequencia: "Mostra o contexto interno resumido da trilha; nunca vai ao App.",
+  },
+  marco_referencia_id: {
+    tipo: "marco",
+    porQueImporta: "Liga a um marco jurídico já homologado, quando existir.",
+    destino: "Biblioteca Mestre — marco jurídico",
+    consequencia: "Marco a revisar/desatualizado não sustenta comunicação externa.",
+  },
+  exige_idioma_entrevista: {
+    tipo: "select",
+    porQueImporta: "Idioma ou entrevista consular muda o preparo necessário.",
+    destino: "Ficha do lead — trilha",
+    consequencia: "Sinal para a equipe se antecipar a essa exigência.",
+  },
+  pesquisa_previa_autorizacao: {
+    tipo: "select",
+    porQueImporta: "Sem autorização registrada, nenhuma pesquisa nominal externa pode sair.",
+    destino: "Ficha do lead — autorização de pesquisa",
+    consequencia: "Libera (ou mantém bloqueada) qualquer pesquisa externa em nome do cliente.",
+  },
+  pesquisa_previa_escopo: {
+    tipo: "multi",
+    porQueImporta: "Delimita exatamente o que foi autorizado a pesquisar.",
+    destino: "Ficha do lead — autorização de pesquisa",
+    consequencia: "Só existe com autorização registrada — sem isso, fica bloqueado.",
+  },
+  elegibilidade_preliminar: {
+    tipo: "select",
+    porQueImporta: "É o sinal-síntese da call — resume o que a triagem indica até aqui.",
+    destino: "Ficha do lead — qualificação",
+    consequencia: "Sinal Forte/Provável passa a exigir via preliminar, geração e linha de transmissão para sustentar o handoff.",
+  },
+  objecao_predominante: {
+    tipo: "select",
+    porQueImporta: "Nomear a objeção real evita repetir a mesma barreira na próxima call.",
+    destino: "Ficha do lead — qualificação",
+    consequencia: "Orienta o próximo contato a tratar a objeção certa.",
+  },
+  nivel_intencao: {
+    tipo: "select",
+    porQueImporta: "Mede o quanto a pessoa já decidiu seguir, além da elegibilidade.",
+    destino: "Ficha do lead — qualificação",
+    consequencia: "Ajuda a priorizar quem atender primeiro na fila de calls.",
+  },
+  discovery_resultado: {
+    tipo: "select",
+    porQueImporta: "É a conclusão da Discovery — decide para onde o lead vai depois.",
+    destino: "Handoff da Discovery",
+    consequencia: "Determina o destino: proposta, nutrição ou encerrar sem aderência.",
+  },
+  proxima_acao_em: {
+    tipo: "data",
+    porQueImporta: "Próxima ação sem prazo não é compromisso, é intenção.",
+    destino: "Ficha do lead — próxima ação",
+    consequencia: "Com o campo acima preenchido, habilita criar/atualizar a tarefa do caso.",
+  },
+  area_responsavel: {
+    tipo: "select",
+    porQueImporta: "Diz qual área do Desk é dona deste lead agora.",
+    destino: "Ficha do lead — responsável",
+    consequencia: "Some do sinal 'sem responsável' assim que preenchido.",
+  },
+};
+
+/** Rótulo curto de cada campo do roteiro — o mesmo texto usado no CRM de leads. */
+export const ROTULO_CAMPO_ROTEIRO: Record<string, string> = {
+  objetivo: "Objetivo",
+  nacionalidades_interesse: "Nacionalidades de interesse",
+  pais_linha_prioritaria: "País/linha prioritária",
+  estrutura_familiar: "Estrutura familiar",
+  requerentes_potenciais: "Requerentes potenciais",
+  responsavel_nome: "Responsável nominal",
+  proxima_acao: "Próxima ação",
+  geracao_ascendente: "Geração do ascendente",
+  linha_transmissao: "Linha de transmissão",
+  localidades_conhecidas: "Localidades conhecidas (comuna, paróquia, província)",
+  risco_ruptura: "Risco de ruptura",
+  estado_documental_inicial: "Estado documental inicial",
+  documentos_chave: "Documentos-chave já indicados",
+  pendencia_documental_prioritaria: "Pendência documental prioritária",
+  complexidade_documental: "Complexidade documental",
+  confianca_triagem: "Confiança da triagem",
+  via_juridica_preliminar: "Via jurídica preliminar",
+  status_via: "Status da via",
+  trilha_referencia_id: "Trilha jurídica de referência",
+  marco_referencia_id: "Marco jurídico de referência",
+  exige_idioma_entrevista: "Exige idioma/entrevista",
+  pesquisa_previa_autorizacao: "Autorização de pesquisa prévia",
+  pesquisa_previa_escopo: "Escopo autorizado da pesquisa prévia",
+  objecao_predominante: "Objeção predominante",
+  nivel_intencao: "Nível de intenção",
+  discovery_resultado: "Resultado da Discovery",
+  proxima_acao_em: "Prazo da próxima ação",
+  area_responsavel: "Área responsável",
+  elegibilidade_preliminar: "Elegibilidade preliminar",
+};
+
+export type EstadoRespostaRoteiro = "confirmado" | "informado_a_confirmar" | "hipotese" | "pendente";
+
+export const ROTULO_ESTADO_RESPOSTA: Record<EstadoRespostaRoteiro, string> = {
+  confirmado: "Confirmado",
+  informado_a_confirmar: "Informado — a confirmar",
+  hipotese: "Hipótese",
+  pendente: "Pendente",
+};
+
+function valorPreenchido(v: unknown): boolean {
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== null && v !== undefined && String(v).trim() !== "";
+}
+
+/**
+ * Estado de UMA resposta do roteiro. Nunca lê banco: recebe o que a tela já
+ * tem — valor salvo no lead canônico, valor em rascunho (ainda não gravado,
+ * de digitação ou de achado aplicado) e se a pessoa marcou esta resposta
+ * como hipótese nesta sessão. Nada aqui vira fato só porque apareceu numa
+ * conversa — só "gravado no lead" é confirmado.
+ */
+export function estadoResposta(args: {
+  valorSalvo: unknown;
+  valorRascunho: unknown;
+  emRascunho: boolean;
+  marcadaComoHipotese: boolean;
+}): EstadoRespostaRoteiro {
+  const valorAtual = args.emRascunho ? args.valorRascunho : args.valorSalvo;
+  if (!valorPreenchido(valorAtual)) return "pendente";
+  if (args.marcadaComoHipotese) return "hipotese";
+  if (args.emRascunho) return "informado_a_confirmar";
+  return "confirmado";
+}
 
 /**
  * 28/08/2026 — "o roteiro, o Painel de Calls... por que é tão difícil algo

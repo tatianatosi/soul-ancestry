@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { Rotulo, Secao, Texto, inputCls } from "@/components/caso/campos";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { DIRECOES_CONVERSA, ROTULO_CONVERSA, TIPOS_CONVERSA, type ErroCanonico } from "@/lib/desk-canonico";
 import { registrarConversa } from "@/lib/desk-canonico.functions";
 
@@ -12,7 +13,7 @@ type Vinculo = { contactId?: string | null; opportunityId?: string | null; caseI
  * Registro interno de conversa. Não envia mensagem, não cria aceite,
  * contrato, cobrança ou onboarding. Conversa gravada é imutável.
  */
-export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; podeEscrever: boolean }) {
+export function FormConversa({ vinculo }: { vinculo: Vinculo }) {
   const qc = useQueryClient();
   const registrar = useServerFn(registrarConversa);
 
@@ -75,7 +76,7 @@ export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; pode
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block">
           <Rotulo>Tipo</Rotulo>
-          <select className={inputCls} value={tipo} onChange={(e) => setTipo(e.target.value)} disabled={!podeEscrever}>
+          <select className={inputCls} value={tipo} onChange={(e) => setTipo(e.target.value)}>
             {TIPOS_CONVERSA.map((t) => (
               <option key={t} value={t}>
                 {ROTULO_CONVERSA[t]}
@@ -86,7 +87,7 @@ export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; pode
 
         <label className="block">
           <Rotulo>Direção</Rotulo>
-          <select className={inputCls} value={direcao} onChange={(e) => setDirecao(e.target.value)} disabled={!podeEscrever}>
+          <select className={inputCls} value={direcao} onChange={(e) => setDirecao(e.target.value)}>
             {DIRECOES_CONVERSA.map((d) => (
               <option key={d} value={d}>
                 {d}
@@ -102,11 +103,10 @@ export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; pode
             className={inputCls}
             value={ocorreuEm}
             onChange={(e) => setOcorreuEm(e.target.value)}
-            disabled={!podeEscrever}
           />
         </label>
 
-        <Texto label="Referência interna (opcional)" valor={referencia} onChange={setReferencia} desabilitado={!podeEscrever} />
+        <Texto label="Referência interna (opcional)" valor={referencia} onChange={setReferencia} />
 
         <div className="md:col-span-2">
           <Texto
@@ -114,13 +114,12 @@ export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; pode
             valor={resumo}
             onChange={setResumo}
             area
-            desabilitado={!podeEscrever}
             ajuda="Não registre transcrição bruta, documento, CPF ou conteúdo sensível."
           />
         </div>
 
-        <Texto label="Próxima ação" valor={proximaAcao} onChange={setProximaAcao} desabilitado={!podeEscrever} />
-        <Texto label="Prazo da próxima ação" valor={prazo} onChange={setPrazo} tipo="date" desabilitado={!podeEscrever} />
+        <Texto label="Próxima ação" valor={proximaAcao} onChange={setProximaAcao} />
+        <Texto label="Prazo da próxima ação" valor={prazo} onChange={setPrazo} tipo="date" />
       </div>
 
       {erros.length ? (
@@ -135,14 +134,23 @@ export function FormConversa({ vinculo, podeEscrever }: { vinculo: Vinculo; pode
 
       {msg ? <p className="mt-3 rounded-lg border border-navy/10 bg-cream/50 px-3 py-2 text-sm text-navy">{msg}</p> : null}
 
-      <button
-        type="button"
-        className="mt-4 rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-40"
-        disabled={!podeEscrever || !temVinculo || mut.isPending}
-        onClick={() => mut.mutate()}
-      >
-        {mut.isPending ? "Registrando…" : "Registrar conversa"}
-      </button>
+      <div className="mt-4">
+        <AcaoOperacional
+          rotulo={mut.isPending ? "Registrando…" : "Registrar conversa"}
+          capacidade="editar_rascunho"
+          pendenciaGate={
+            temVinculo ? null : "Nenhum contato, oportunidade ou caso selecionado para vincular a conversa."
+          }
+          efeito="Grava o registro interno da conversa. Nenhuma mensagem externa é enviada."
+          onConfirmar={async () => {
+            try {
+              await mut.mutateAsync();
+            } catch {
+              /* falha já exibida na mensagem da tela */
+            }
+          }}
+        />
+      </div>
     </Secao>
   );
 }

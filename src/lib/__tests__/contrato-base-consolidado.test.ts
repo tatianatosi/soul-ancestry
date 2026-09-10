@@ -21,10 +21,10 @@ import {
 } from "@/lib/contrato-base-previa";
 
 describe("contrato-base consolidado v1.0", () => {
-  it("registra as 14 cláusulas fixas, numeradas e com conteúdo", () => {
-    expect(CLAUSULAS_FIXAS).toHaveLength(14);
+  it("registra as 16 cláusulas fixas, numeradas e com conteúdo (14 originais + 15/16 de 07/09/2026)", () => {
+    expect(CLAUSULAS_FIXAS).toHaveLength(16);
     expect(CLAUSULAS_FIXAS.map((c) => c.numero)).toEqual(
-      Array.from({ length: 14 }, (_, i) => i + 1),
+      Array.from({ length: 16 }, (_, i) => i + 1),
     );
     for (const c of CLAUSULAS_FIXAS) {
       expect(c.titulo.length).toBeGreaterThan(5);
@@ -88,8 +88,8 @@ describe("prévia TESTE do motor", () => {
 });
 
 describe("equivalência com o documento consolidado publicado", () => {
-  it("mapeia as 14 seções publicadas sem deixar cláusula interna órfã", () => {
-    expect(SECOES_DOCUMENTO_PUBLICADO).toHaveLength(14);
+  it("mapeia as 16 seções publicadas sem deixar cláusula interna órfã", () => {
+    expect(SECOES_DOCUMENTO_PUBLICADO).toHaveLength(16);
     expect(clausulasSemSecaoPublicada()).toEqual([]);
   });
 

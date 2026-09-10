@@ -23,6 +23,8 @@ import { PainelInstrumentos } from "@/components/contrato/painel-instrumentos";
 import { PainelBloqueios } from "@/components/contrato/painel-bloqueios";
 import { RegraComercial } from "@/components/contrato/regra-comercial";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
 import { CabecalhoBloco, GovernancaFicha } from "@/components/contrato/ficha-governanca";
 import { agruparAuditoria, bloqueiosResolutivos, temBloqueioImpeditivo } from "@/lib/bloqueios-dicionario";
 import { GRUPOS, ROTULO_EVENTO_PREVIA } from "@/lib/contrato-parametros.server";
@@ -40,8 +42,10 @@ import {
   FONTES_APENAS_APOIO,
 } from "@/lib/matriz-aceite";
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
+import { garantirPerfilInstitucionalDaSessao, lerPerfilInstitucionalPersistido } from "@/lib/perfil-institucional-persistido.functions";
 import { MatrizClausulas, PerfilInstitucionalBloco } from "@/components/contrato/matriz-clausulas";
-import { CONTRATO_BASE_VERSAO } from "@/lib/contrato-base-consolidado";
+import { modeloAplicavelAoCaso } from "@/lib/matriz-modelos-contratuais";
+import { CONTRATO_BASE_VERSAO, contratoBaseAssinavel } from "@/lib/contrato-base-consolidado";
 
 import {
   aprovarParametros,
@@ -66,6 +70,20 @@ const DESCRICAO = "Ficha única parametrizável e prévia contratual do caso, re
 
 
 
+/**
+ * Lista opcional de um payload já carregado (campo do registro, coluna JSONB ou
+ * consulta secundária cujo erro a tela já mostra em bloco próprio).
+ *
+ * Existe para não escrever o coalescimento solto para lista vazia: ali a lista
+ * vazia era indistinguível
+ * de falha de leitura. Aqui a intenção fica declarada — falha de carga da
+ * consulta principal já é barrada antes deste ponto, e o erro das consultas
+ * secundárias (`qa`, `qi`) aparece nos painéis de Auditoria e Instância.
+ */
+function listaOpcional<T>(valor: T[] | null | undefined): T[] {
+  return Array.isArray(valor) ? valor : [];
+}
+
 export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/preparar")({
   head: () => ({
     meta: [
@@ -82,8 +100,15 @@ export const Route = createFileRoute("/_authenticated/casos/$caseId/contrato/pre
 });
 
 function Pagina() {
+  const autoridade = useAutoridade();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
   const { caseId } = Route.useParams();
-  const { podeEscrever } = useSaas();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const qc = useQueryClient();
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
@@ -99,6 +124,8 @@ function Pagina() {
   const revisar = useServerFn(solicitarRevisaoHumana);
   const auditoria = useServerFn(auditoriaPreparacao);
   const lerInstancias = useServerFn(instanciasDocumentaisDoCaso);
+  const carregarPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
+  const garantirPerfil = useServerFn(garantirPerfilInstitucionalDaSessao);
 
   const q = useQuery({ queryKey: chave, queryFn: () => abrir({ data: { caseId } }), retry: false });
   const registroId = (q.data as any)?.registro?.id as string | undefined;
@@ -115,12 +142,27 @@ function Pagina() {
     enabled: Boolean(casoUuid),
   });
 
+  // CA12-PERFIL (09/09/2026): perfil institucional persistido é a fonte
+  // viva por organização — antes existia sem nenhuma tela consumindo.
+  const qPerfilPersistido = useQuery({
+    queryKey: ["perfil-institucional-persistido"],
+    queryFn: () => carregarPerfilPersistido(),
+  });
+  const mGarantirPerfil = useMutation({
+    mutationFn: () => garantirPerfil(),
+    onSuccess: () => {
+      toast.success("Perfil institucional registrado como fonte viva desta organização.");
+      qc.invalidateQueries({ queryKey: ["perfil-institucional-persistido"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const materializar = useServerFn(materializarAnexosRevisados);
   const [planoRevisados, setPlanoRevisados] = useState<ItemPlanoMaterializacao[] | null>(null);
   const mMaterializar = useMutation({
     mutationFn: (confirmar: boolean) => materializar({ data: { id: registroId as string, confirmar } }),
     onSuccess: (r: any) => {
-      setPlanoRevisados((r.plano ?? []) as ItemPlanoMaterializacao[]);
+      setPlanoRevisados(listaOpcional(r.plano) as ItemPlanoMaterializacao[]);
       if (r.simulado) {
         toast.info("Prévia do lote: nada foi gravado ainda.");
         return;
@@ -142,7 +184,7 @@ function Pagina() {
   const mRessincronizar = useMutation({
     mutationFn: (confirmar: boolean) => ressincronizar({ data: { id: registroId as string, confirmar } }),
     onSuccess: (r: any) => {
-      setPlanoRessincronizacao((r.plano ?? []) as any);
+      setPlanoRessincronizacao(listaOpcional(r.plano) as any);
       if (r.simulado) {
         toast.info("Prévia da sincronização: nada foi gravado ainda.");
         return;
@@ -253,7 +295,18 @@ function Pagina() {
     return (
       <SaasShell titulo="Preparar contrato">
         <Painel titulo="Preparação bloqueada">
-          <p className="text-sm text-terracotta">{(q.error as Error)?.message ?? "Caso indisponível para esta organização."}</p>
+          <p className="flex flex-wrap items-center gap-3 text-sm text-terracotta">
+            {(q.error as Error)?.message ?? "Caso indisponível para esta organização."}
+            {q.error ? (
+              <button
+                type="button"
+                onClick={() => void q.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            ) : null}
+          </p>
         </Painel>
       </SaasShell>
     );
@@ -262,13 +315,18 @@ function Pagina() {
   const d = q.data as any;
   const bloqueios = d.bloqueios as { chave: string; motivo: string }[];
   const bloqueado = bloqueios.length > 0;
-  const resolutivos = bloqueiosResolutivos(bloqueios, (d.valores ?? []) as any);
+  const resolutivos = bloqueiosResolutivos(bloqueios, listaOpcional(d.valores) as any);
   const impeditivos = resolutivos.filter((b) => b.impeditivo);
   const revisaoTravada = temBloqueioImpeditivo(resolutivos);
-  const eventos = agruparAuditoria((qa.data?.eventos ?? []) as any[]);
-  const rascunhoAtual = (d.previas ?? []).find((p: any) => p.estado === "rascunho_editavel");
-  const ultimaFinal = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.estado === "congelado");
-  const finalAprovada = (d.previas ?? []).find((p: any) => p.tipo === "final" && p.aprovado_em);
+  const eventos = agruparAuditoria(listaOpcional(qa.data?.eventos) as any[]);
+  const rascunhoAtual = listaOpcional<any>(d.previas).find((p: any) => p.estado === "rascunho_editavel");
+  const ultimaFinal = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.estado === "congelado");
+  const finalAprovada = listaOpcional<any>(d.previas).find((p: any) => p.tipo === "final" && p.aprovado_em);
+  // CA14-MATRIZES-DE-COMPOSICAO (09/09/2026): individual/casal/núcleo são
+  // variações do mesmo contrato-base — aplicadas à composição real do caso
+  // (titular/dependente já resolvidos por pessoasDoCasoComFallbackNucleo),
+  // nunca por suposição nem por um segundo checklist jurídico.
+  const composicaoCaso = modeloAplicavelAoCaso(listaOpcional(d.membros) as { titular: boolean; dependente: boolean }[]);
 
   // Anexos I–V: derivação somente-leitura da ficha, sem escrever nada.
   const entradaAnexos = entradaDeValores({
@@ -277,7 +335,7 @@ function Pagina() {
     responsavel: null,
     contratoBaseVersao: CONTRATO_BASE_VERSAO,
     modelo: "MODELO-ESTUDO",
-    valores: (d.valores ?? []) as any[],
+    valores: listaOpcional(d.valores) as any[],
   });
   const anexosGovernados = anexosIaV(entradaAnexos);
   const perfilInstitucional = perfilInstitucionalRenderizado();
@@ -285,7 +343,7 @@ function Pagina() {
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
     perfilInstitucionalAtivo: perfilInstitucional.vigente,
-    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    metodoAssinaturaConfigurado: Boolean(listaOpcional<any>(d.valores).find((v) => v.campo === "forma_assinatura")?.valor),
     revisorHumanoAprovado: Boolean(finalAprovada),
     conflitos: [],
   });
@@ -294,9 +352,25 @@ function Pagina() {
     entradaAnexos,
     anexos: anexosGovernados,
     conflitos: [],
-    politicaPrivacidadeVigente: false,
-    foroConfigurado: false,
-    metodoAssinaturaConfigurado: Boolean((d.valores ?? []).find((v: any) => v.campo === "forma_assinatura")?.valor),
+    /*
+     * 04/09/2026 — achado real reportado pela Proprietária (pente fino
+     * ponta a ponta na tela de preparação de contrato): estes dois campos
+     * estavam hardcoded `false` para todo caso, sempre — nenhuma tela ou
+     * fluxo jamais os definia como `true`, então a prévia final nunca
+     * conseguia ser liberada (previaFinalLiberada exige zero cláusulas
+     * bloqueantes), mesmo com o contrato-base já vigente. A cláusula H
+     * (retenção/descarte) e a O (foro) do próprio contrato-base
+     * (contrato-base-consolidado.ts, cláusulas 7.3 e 14.2) dizem
+     * textualmente que essas regras "observarão a política institucional
+     * versionada e vigente" — ou seja, já são a mesma vigência do
+     * contrato-base (CONTRATO_BASE_STATUS), revisada nos itens 2 e 4 de
+     * ITENS_REVISAO_JURIDICA antes de `CONTRATO_BASE_STATUS` virar
+     * "vigente". Não era uma segunda aprovação pendente: era um campo que
+     * nunca foi ligado à aprovação que já existia.
+     */
+    politicaPrivacidadeVigente: contratoBaseAssinavel(),
+    foroConfigurado: contratoBaseAssinavel(),
+    metodoAssinaturaConfigurado: Boolean(listaOpcional<any>(d.valores).find((v) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
   });
   const blocosCaso = blocosRenderizados(anexosGovernados);
@@ -307,8 +381,15 @@ function Pagina() {
       status: statusTelaDeAnexo(a),
       modelo: null,
     })),
-    (qi.data ?? []) as any,
+    listaOpcional(qi.data) as any,
   );
+  // Autoridade operacional: bloqueio de gate não desabilita controle nem
+  // esconde bloco. Vira pendência declarada, preservada na confirmação.
+  const pendenciaBloqueios = bloqueios.length
+    ? `${bloqueios.length} bloqueio(s) de gate aberto(s): ${bloqueios
+        .map((b) => b.motivo)
+        .join("; ")}`
+    : null;
   const previaFinalCaso = previaFinalLiberada({
     modelo: "MODELO-ESTUDO",
     linhas: clausulasAvaliadas,
@@ -319,6 +400,13 @@ function Pagina() {
 
   return (
     <SaasShell titulo={`Preparar contrato — ${d.caso.codigo}`}>
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-4">
         <Painel titulo={`Caso em preparação: ${d.caso.codigo} — ${d.cliente?.nome ?? "cliente não vinculado"}`}>
           <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -357,7 +445,9 @@ function Pagina() {
 
         <EstruturaFamiliar codigoCaso={d.caso?.codigo} caseId={caseId} />
 
-        <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+        <div id="canva">
+          <CompletudeCanva caseId={caseId} proposalId={(d.proposta as any)?.id ?? null} podeEscrever={podeEscrever} />
+        </div>
 
         <EscopoProposta dados={(d as any).escopo} proposta={d.proposta as any} />
 
@@ -395,6 +485,19 @@ function Pagina() {
               <strong>Anexos pelas regras existentes:</strong> {d.anexos.map((a: any) => a.codigo).join(", ") || "—"}
             </li>
             <li>
+              <strong>Composição contratual (matriz aplicável):</strong>{" "}
+              {composicaoCaso.estado === "sem_dados" ? (
+                <span className="text-terracotta">Sem dados suficientes — {composicaoCaso.motivo}</span>
+              ) : (
+                <>
+                  {composicaoCaso.modelo.nome} — {composicaoCaso.motivo}
+                  <span className="ml-2 text-navy/50">
+                    Anexos aplicáveis: {composicaoCaso.modelo.anexos.map((a) => a.codigo).join(", ")}
+                  </span>
+                </>
+              )}
+            </li>
+            <li>
               <strong>Cadastro CRM:</strong> {d.cliente ? [d.cliente.email, d.cliente.telefone].filter(Boolean).join(" · ") || "sem contato" : "—"}
             </li>
           </ul>
@@ -418,21 +521,25 @@ function Pagina() {
         <div id="coerencia">
         <ConflitoCoerencia
           coerencia={d.coerencia}
-          valorPaisRota={(d.valores ?? []).find((v: any) => v.campo === "pais_rota") ?? null}
+          valorPaisRota={listaOpcional<any>(d.valores).find((v) => v.campo === "pais_rota") ?? null}
           aoCorrigir={invalidar}
         />
         </div>
 
         <div id="bloqueios">
-          <PainelBloqueios bloqueios={bloqueios} valores={d.valores ?? []} pendencias={d.pendencias ?? []} />
+          <PainelBloqueios
+            bloqueios={bloqueios}
+            valores={listaOpcional(d.valores)}
+            pendencias={listaOpcional(d.pendencias)}
+          />
         </div>
 
         <div id="anexos" className="space-y-4">
           <AnexosAplicaveis
-            valores={d.valores ?? []}
-            anexosGerados={d.anexos ?? []}
+            valores={listaOpcional(d.valores)}
+            anexosGerados={listaOpcional(d.anexos)}
             aoVerPrevia={(codigo) => {
-              const alvo = rascunhoAtual ?? (d.previas ?? [])[0];
+              const alvo = rascunhoAtual ?? listaOpcional<any>(d.previas)[0];
               if (alvo) mVer.mutate(alvo.id);
               else toast.info(`Gere o rascunho de trabalho para visualizar a instância de ${codigo}.`);
               document.getElementById("previas")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -446,6 +553,37 @@ function Pagina() {
                 Ver contrato-base
               </Link>
             </p>
+            {qPerfilPersistido.data && (
+              <div
+                className={
+                  qPerfilPersistido.data.persistido
+                    ? "mb-2 rounded-lg border border-navy/10 bg-cream/40 p-2 text-[11px] text-navy/70"
+                    : "mb-2 rounded-lg border border-terracotta/40 bg-terracotta/5 p-2 text-[11px] text-terracotta"
+                }
+              >
+                {qPerfilPersistido.data.persistido ? (
+                  <p>
+                    Fonte viva confirmada: perfil institucional persistido (versão{" "}
+                    {qPerfilPersistido.data.payload.versao}) nesta organização.
+                  </p>
+                ) : (
+                  <>
+                    <p>
+                      Pendência: perfil institucional ainda não registrado como fonte viva nesta organização — a
+                      prévia usa a versão de referência do contrato-base até o registro.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => mGarantirPerfil.mutate()}
+                      disabled={mGarantirPerfil.isPending}
+                      className="mt-1 rounded border border-terracotta/50 px-2 py-1 disabled:opacity-60"
+                    >
+                      {mGarantirPerfil.isPending ? "Registrando…" : "Registrar perfil institucional desta organização"}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <PerfilInstitucionalBloco
               campos={perfilInstitucional.campos}
               versao={perfilInstitucional.versao}
@@ -535,11 +673,23 @@ function Pagina() {
               nenhum campo é preenchido por inferência.
             </p>
             <div className="mb-3">
+              {qi.isError ? (
+                <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+                  Não foi possível carregar os anexos.
+                  <button
+                    type="button"
+                    onClick={() => void qi.refetch()}
+                    className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+                  >
+                    Tentar novamente
+                  </button>
+                </p>
+              ) : null}
               <InstanciaDocumental linhas={linhasInstancia} carregando={qi.isLoading} />
               <div className="mt-2">
                 <MaterializarRevisados
                   plano={planoRevisados}
-                  ocupado={mMaterializar.isPending || !registroId}
+                  ocupado={mMaterializar.isPending}
                   onVerificar={() => mMaterializar.mutate(false)}
                   onMaterializar={() => mMaterializar.mutate(true)}
                 />
@@ -547,7 +697,7 @@ function Pagina() {
               <div className="mt-2">
                 <RessincronizarAnexos
                   plano={planoRessincronizacao}
-                  ocupado={mRessincronizar.isPending || !registroId}
+                  ocupado={mRessincronizar.isPending}
                   onVerificar={() => mRessincronizar.mutate(false)}
                   onSincronizar={() => mRessincronizar.mutate(true)}
                 />
@@ -566,7 +716,7 @@ function Pagina() {
           <GovernancaFicha />
           {BLOCOS_FICHA.map((s) => (
             <Painel key={s.chave} titulo={s.titulo}>
-              <CabecalhoBloco bloco={s} estado={estadoDoBloco((d.valores ?? []) as any[], s.grupos)} />
+              <CabecalhoBloco bloco={s} estado={estadoDoBloco(listaOpcional(d.valores) as any[], s.grupos)} />
               <div className="space-y-3">
                 {s.grupos.flatMap((g) => {
                   const itens = (d.valores as any[]).filter((v) => v.grupo === g);
@@ -616,7 +766,12 @@ function Pagina() {
                 const motivo = window.prompt("Motivo do retorno para ajuste (opcional)");
                 if (motivo !== null) mCongelar.mutate({ evento: "retorno_ajuste", motivo });
               }}
-              disabled={mCongelar.isPending || !rascunhoAtual}
+              disabled={mCongelar.isPending}
+              title={
+                rascunhoAtual
+                  ? "Congela o rascunho atual como retorno para ajuste."
+                  : "Nenhum rascunho editável no momento — a pendência fica registrada."
+              }
               className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80 disabled:opacity-50"
             >
               Congelar retorno para ajuste
@@ -626,7 +781,12 @@ function Pagina() {
                 const motivo = window.prompt("Motivo da versão final (opcional)");
                 if (motivo !== null) mCongelar.mutate({ evento: "aprovacao", motivo });
               }}
-              disabled={mCongelar.isPending || bloqueios.some((b) => b.chave !== "revisao_humana")}
+              disabled={mCongelar.isPending}
+              title={
+                bloqueios.some((b) => b.chave !== "revisao_humana")
+                  ? "Há bloqueios acionáveis abertos — ver seção abaixo. É possível prosseguir; a pendência fica registrada."
+                  : undefined
+              }
               className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
             >
               Congelar versão final
@@ -650,18 +810,18 @@ function Pagina() {
                     <p className="text-xs text-navy/60">
                       {ROTULO_EVENTO_PREVIA[p.evento ?? ""] ?? "Evento não registrado"} ·{" "}
                       {new Date(p.congelado_em ?? p.created_at).toLocaleString("pt-BR")} · autor {p.gerado_por ? "registrado" : "—"} ·{" "}
-                      {(p.anexos ?? []).length} anexo(s) · {(p.conteudo?.valores ?? []).length} parâmetro(s)
+                      {listaOpcional(p.anexos).length} anexo(s) · {listaOpcional(p.conteudo?.valores).length} parâmetro(s)
                     </p>
                     {p.motivo && <p className="text-xs text-navy/60">Motivo: {p.motivo}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <Selo
                       texto={
-                        (p.placeholders_pendentes ?? []).length
+                        listaOpcional(p.placeholders_pendentes).length
                           ? `${p.placeholders_pendentes.length} pendência(s)`
                           : "Sem placeholders"
                       }
-                      tom={(p.placeholders_pendentes ?? []).length ? "erro" : "ok"}
+                      tom={listaOpcional(p.placeholders_pendentes).length ? "erro" : "ok"}
                     />
                     <button onClick={() => mVer.mutate(p.id)} className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy/80">
                       Ver prévia
@@ -689,10 +849,12 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Revisão humana e assinatura">
-          {bloqueado ? (
+          <div className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm text-navy/70">
-                Enquanto houver bloqueios, o envio para assinatura permanece indisponível. Registre o pedido de revisão humana.
+                {pendenciaBloqueios
+                  ? "Há bloqueios de gate abertos. Eles ficam registrados e visíveis, mas não travam a operação: registre o pedido de revisão humana ou prossiga assumindo a decisão."
+                  : "Registre o pedido de revisão humana em auditoria."}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <input
@@ -704,12 +866,12 @@ function Pagina() {
                 />
                 <button
                   onClick={() => mRevisar.mutate()}
-                  disabled={mRevisar.isPending || !nota.trim() || revisaoTravada}
+                  disabled={mRevisar.isPending || !nota.trim()}
                   title={
                     revisaoTravada
-                      ? `Indisponível: ${impeditivos.length} bloqueio(s) impeditivo(s) — ${impeditivos
+                      ? `${impeditivos.length} bloqueio(s) ainda aberto(s) — ${impeditivos
                           .map((b) => b.titulo)
-                          .join("; ")}`
+                          .join("; ")}. Pode prosseguir mesmo assim; a pendência fica registrada.`
                       : "Registra o pedido de revisão humana em auditoria."
                   }
                   className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
@@ -718,19 +880,34 @@ function Pagina() {
                 </button>
               </div>
             </div>
-          ) : (
-            <div className="space-y-3">
+
+            <div className="space-y-3 border-t border-navy/10 pt-3">
               <p className="text-sm text-navy/70">
-                Revisão humana aprovada em {new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")} — criação da solicitação de assinatura
-                liberada, com registro de template, versão e aprovador.
+                {d.revisaoAprovadaEm
+                  ? `Revisão humana aprovada em ${new Date(d.revisaoAprovadaEm).toLocaleString("pt-BR")} — criação da solicitação de assinatura liberada, com registro de template, versão e aprovador.`
+                  : "Revisão humana ainda não aprovada. A criação da solicitação de assinatura segue disponível por decisão sua, com a pendência registrada."}
               </p>
-              <button
-                onClick={() => mEnviar.mutate()}
-                disabled={mEnviar.isPending || !["aprovado", "validado"].includes(d.registro.status)}
+              <AcaoOperacional
+                rotulo="Criar solicitação de assinatura"
+                acaoExterna="solicitar_assinatura"
+                pendenciaGate={
+                  [
+                    pendenciaBloqueios,
+                    d.revisaoAprovadaEm ? null : "Revisão humana ainda não aprovada.",
+                    ["aprovado", "validado"].includes(d.registro.status)
+                      ? null
+                      : `Registro do contrato está em "${d.registro.status}", não em aprovado nem validado.`,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || null
+                }
+                efeito="Cria a solicitação de assinatura do contrato, registrando template, versão e aprovador."
                 className="rounded-lg bg-navy px-3 py-1.5 text-xs text-cream disabled:opacity-50"
-              >
-                Criar solicitação de assinatura
-              </button>
+                onConfirmar={() => {
+                  if (mEnviar.isPending) return;
+                  mEnviar.mutate();
+                }}
+              />
               {finalAprovada && d.registro.contract_id && (
                 <div className="grid gap-2 md:grid-cols-4">
                   <input
@@ -763,7 +940,7 @@ function Pagina() {
                 </div>
               )}
             </div>
-          )}
+          </div>
           <p className="mt-2 text-xs text-navy/60">
             Assinatura registrada não cria cobrança, não libera portal e não inicia pesquisa externa: financeiro e ativação continuam
             sujeitos aos gates próprios.
@@ -774,6 +951,18 @@ function Pagina() {
         </Painel>
 
         <Painel titulo="Auditoria da preparação (sem dados sensíveis completos)">
+          {qa.isError ? (
+            <p className="mb-2 flex flex-wrap items-center gap-3 text-xs text-terracotta">
+              Não foi possível carregar a auditoria.
+              <button
+                type="button"
+                onClick={() => void qa.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
           <ul className="space-y-1 text-xs text-navy/70">
             {eventos.map((e) => (
               <li key={e.id}>

@@ -57,6 +57,8 @@ export type MomentoCadencia = {
   entregaAoCliente: string;
   /** Aprovação adicional e específica, além da aprovação de envio. */
   aprovacaoExtra?: string;
+  /** Evidência/gate de saída da janela, quando a norma declara um (D31–D365). */
+  evidenciaSaida?: string;
 };
 
 /**
@@ -156,14 +158,19 @@ export type LeituraD0D30 = {
   lacunas: string[];
 };
 
-function soODia(valor: string | Date): number | null {
+/**
+ * Exportadas para `cadencia-d31-d365.ts` reaproveitar sem duplicar: a régua
+ * D0–D365 é uma escada só, transcrita em dois arquivos por causa do tamanho
+ * das duas normas-fonte (§10.3 e o Mapa de Cadências), não duas lógicas.
+ */
+export function soODia(valor: string | Date): number | null {
   const d = valor instanceof Date ? valor : new Date(valor);
   const t = d.getTime();
   if (Number.isNaN(t)) return null;
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 }
 
-function dia(baseUtc: number, offset: number): string {
+export function dia(baseUtc: number, offset: number): string {
   return new Date(baseUtc + offset * 86400000).toISOString().slice(0, 10);
 }
 
@@ -174,7 +181,7 @@ function dia(baseUtc: number, offset: number): string {
  * fim, o momento está ABERTO — não vencido nem futuro. Tratar janela como
  * ponto colocaria D1–D3 em atraso já no dia 2, o que é falso.
  */
-function situarMomento(
+export function situarMomento(
   m: MomentoCadencia,
   inicioUtc: number | null,
   hojeUtc: number,

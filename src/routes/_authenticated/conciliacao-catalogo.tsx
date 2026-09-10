@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Painel, Selo, inputCls } from "@/components/comercial/base";
 import { varreduraConciliacaoCatalogo } from "@/lib/conciliacao-catalogo.functions";
 
@@ -41,10 +42,11 @@ function ConciliacaoCatalogoPage() {
   const [somenteBloqueadas, setSomenteBloqueadas] = useState(false);
   const [busca, setBusca] = useState("");
 
-  const todas = useMemo(() => q.data?.linhas ?? [], [q.data]);
+  // Sem default silencioso: `undefined` indica falha de carga, não base vazia.
+  const todas = q.data?.linhas;
   const linhas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return todas.filter(
+    return (todas ?? []).filter(
       (l) =>
         (!somenteBloqueadas || !l.pode_gerar_os) &&
         (!termo || [l.caso, l.sku ?? "", l.status ?? ""].join(" ").toLowerCase().includes(termo)),
@@ -99,13 +101,18 @@ function ConciliacaoCatalogoPage() {
           </label>
         </div>
 
-        {q.isLoading ? (
-          <Painel titulo="Carregando">
-            <p className="text-sm text-navy/60">Conciliando propostas contra o catálogo homologado…</p>
-          </Painel>
-        ) : !linhas.length ? (
-          <EstadoVazio mensagem="Não há proposta viva que atenda ao filtro atual." />
-        ) : (
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={todas}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="a conciliação de catálogo"
+          vazio="Nenhuma proposta viva conciliada nesta organização."
+        >
+          {() =>
+            !linhas.length ? (
+              <EstadoVazio mensagem="Não há proposta viva que atenda ao filtro atual." />
+            ) : (
           <div className="space-y-3">
             {linhas.map((l) => (
               <Painel key={l.proposalId} titulo={`${l.caso} — proposta v${l.versao ?? "—"}`}>
@@ -151,7 +158,9 @@ function ConciliacaoCatalogoPage() {
               </Painel>
             ))}
           </div>
-        )}
+            )
+          }
+        </EstadoDados>
       </div>
     </SaasShell>
   );

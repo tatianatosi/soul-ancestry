@@ -104,6 +104,91 @@ export function subareaBiblioteca(chave: string): SubareaBibliotecaMeta | null {
   return SUBAREAS_BIBLIOTECA.find((s) => s.chave === chave) ?? null;
 }
 
+/* ------------------------------------------------------------------ */
+/* Centro de Inteligência — mapa das 9 áreas (CA11)                    */
+/* ------------------------------------------------------------------ */
+
+export type LinhaCentroInteligencia = {
+  area: string;
+  casa: string;
+  fonte: string;
+  tipo: "catalogo_org" | "caso_scoped" | "componente_global";
+  nota: string;
+};
+
+/**
+ * CA11-CENTRO-INTELIGENCIA (09/09/2026) — mapa de onde cada área do Centro
+ * de Inteligência realmente mora hoje. Não move dado nem cria tabela: só
+ * declara a casa de cada núcleo e nomeia a fonte concorrente onde ela existe
+ * de fato, para que a próxima decisão de unificação parta de um diagnóstico
+ * único, e não de nove leituras dispersas.
+ */
+export const MAPA_CENTRO_INTELIGENCIA: readonly LinhaCentroInteligencia[] = [
+  {
+    area: "Bases por país/rota",
+    casa: "Biblioteca Mestre → Bases Genealógicas (aqui) e /fontes-genealogicas (edição completa)",
+    fonte: "genealogical_sources_catalog",
+    tipo: "catalogo_org",
+    nota: "Catálogo único: mesma tabela nas duas telas, sem duplicação. Biblioteca Mestre resume; /fontes-genealogicas edita.",
+  },
+  {
+    area: "Fontes",
+    casa: "Catálogo aqui (Bases Genealógicas); fonte consultada por caso abre em /pesquisa-evidencias/$caseId",
+    fonte: "genealogical_sources_catalog (catálogo) · research_sources (uso por caso)",
+    tipo: "catalogo_org",
+    nota: "Caso 360 e Pesquisa e Documentos apenas abrem o caso; nenhuma base é copiada para dentro do caso.",
+  },
+  {
+    area: "Trilhas/marcos",
+    casa: "Biblioteca Mestre → Trilhas de pesquisa (aqui); marco jurídico por caso em /casos/$caseId (Validação Jurídica)",
+    fonte: "citizenship_tracks (trilha) · legal_reference_milestones (marco por caso)",
+    tipo: "catalogo_org",
+    nota: "Trilha é referência de país; marco é a aplicação dela a um caso — já resolvido no corte CA08-JURIDICO-PROPORCIONAL, não duplicado aqui.",
+  },
+  {
+    area: "Evidências",
+    casa: "/pesquisa-modulo (índice) → /pesquisa-evidencias/$caseId e /biblioteca-evidencias/$caseId por caso",
+    fonte: "evidences · research_evidence_items",
+    tipo: "caso_scoped",
+    nota: "Fonte concorrente real: achados e o índice de pesquisa gravam em research_evidence_items; a cadeia de custódia e a biblioteca de evidências gravam em evidences. Duas tabelas para o mesmo conceito — não unificadas neste corte.",
+  },
+  {
+    area: "Pessoas/relações/linhagens",
+    casa: "/pessoas-linhagens/$caseId",
+    fonte: "research_people · genealogical_person_profiles · name_variants / research_name_variants",
+    tipo: "caso_scoped",
+    nota: "Fonte concorrente real: duas tabelas de variante de nome (name_variants e research_name_variants) e um perfil adicional (genealogical_person_profiles) sobre a mesma pessoa — declarado, não corrigido neste corte.",
+  },
+  {
+    area: "Hipóteses/lacunas",
+    casa: "/pesquisa-modulo e /pesquisa-evidencias/$caseId (achados: facts_to_confirm, negative_next_action)",
+    fonte: "genealogical_findings (achados) · pesquisa (sistema legado, ver nota)",
+    tipo: "caso_scoped",
+    nota: "Fonte concorrente real e a mais grave: /pesquisa (tabela pesquisa, blocos hipóteses/pessoas/evidências) é sistema legado paralelo ao atual (research_*/evidences/genealogical_findings) — dado de um caso pode estar em qualquer um dos dois, desconectados. Não reativado nem estendido neste corte.",
+  },
+  {
+    area: "Modelos/linguagem",
+    casa: "Biblioteca Mestre → Modelos F1/F2 e Dicionários e taxonomias (aqui)",
+    fonte: "master_library_items (categoria modelo) · controlled_taxonomies",
+    tipo: "catalogo_org",
+    nota: "Sem fonte concorrente: única leitura, já dentro da Biblioteca Mestre.",
+  },
+  {
+    area: "Conteúdos/microentregas",
+    casa: "/biblioteca-mensagens (conteúdo editorial) · client_deliverables por caso (Caso 360)",
+    fonte: "editorial_content_items · client_deliverables",
+    tipo: "caso_scoped",
+    nota: "Fronteira já decidida em 27/08/2026: conteúdo editorial mora em Biblioteca de Mensagens, nunca duplicado aqui — Biblioteca Mestre só aponta.",
+  },
+  {
+    area: "Assistente de Pesquisa",
+    casa: "Aba do dossiê de pesquisa (/pesquisa-modulo/$id, /pesquisa/$id) e widget flutuante global do Desk",
+    fonte: "componente único AssistentePesquisa (pesquisa-ia.server.ts)",
+    tipo: "componente_global",
+    nota: "Sem duplicação: o mesmo componente é reaproveitado em toda superfície — nunca uma segunda implementação de assistente.",
+  },
+] as const;
+
 /** Nenhuma subárea da Biblioteca Mestre pode ser projetada no App Cliente. */
 export function exposicaoAppCliente(): false {
   return false;

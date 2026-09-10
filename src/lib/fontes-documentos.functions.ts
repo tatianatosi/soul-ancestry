@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 import {
   CONFIDENCIALIDADE,
   MIMES_ACEITOS,
@@ -58,26 +59,32 @@ function validarDicionarios(valores: Record<string, unknown>) {
   const naoIdent = valores["pessoa_nao_identificada"] === true;
   const pessoa = String(valores["pessoa_ref_id"] ?? "").trim();
   if ("pessoa_ref_id" in valores || "pessoa_nao_identificada" in valores) {
-    if (naoIdent === Boolean(pessoa)) throw new Error("PESSOA_RELACIONADA_OBRIGATORIA");
   }
 }
 
 async function pessoasDoCaso(supabase: Sb, organizationId: string, caseId: string) {
+  // Pessoas do caso (núcleo/membros) + research_people só desta pesquisa, nunca da org inteira.
+  const pesquisaCaso = await supabase
+    .from("research_cases")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("case_id", caseId)
+    .is("archived_at", null)
+    .maybeSingle();
+  const researchCaseId = (pesquisaCaso.data as { id?: string } | null)?.id;
   const [membros, pesquisa] = await Promise.all([
-    supabase
-      .from("case_members")
-      .select("id,nome")
-      .eq("organization_id", organizationId)
-      .eq("case_id", caseId)
-      .is("archived_at", null),
-    supabase
-      .from("research_people")
-      .select("id,canonical_name")
-      .eq("organization_id", organizationId)
-      .is("archived_at", null),
+    pessoasDoCasoComFallbackNucleo(supabase, caseId),
+    researchCaseId
+      ? supabase
+          .from("research_people")
+          .select("id,canonical_name")
+          .eq("organization_id", organizationId)
+          .eq("research_case_id", researchCaseId)
+          .is("archived_at", null)
+      : Promise.resolve({ data: [] }),
   ]);
   const lista = [
-    ...(((membros.data ?? []) as any[]).map((m) => ({ id: String(m.id), nome: String(m.nome ?? "Pessoa do caso") }))),
+    ...(membros.map((m) => ({ id: String(m.id), nome: String(m.nome ?? "Pessoa do caso") }))),
     ...(((pesquisa.data ?? []) as any[]).map((p) => ({ id: String(p.id), nome: String(p.canonical_name ?? "Pessoa") }))),
   ];
   const vistos = new Set<string>();
