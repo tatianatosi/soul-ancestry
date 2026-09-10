@@ -1,10 +1,13 @@
 /**
  * Camada de REFERÊNCIA e BLOQUEIO de catálogo.
  *
- * A Planilha Mestre de Produtos (projetada em `public.product_catalog`) é a
- * fonte canônica de SKU, status, escopo, preço comercial vigente, condição e
- * link autorizado. O CRM/Painel de Calls NÃO é fonte de verdade e não pode
- * editar nem duplicar esses dados: no Desk eles são somente leitura.
+ * `public.product_catalog` é a fonte canônica de SKU, status, escopo, preço
+ * comercial vigente, condição e link autorizado — a Planilha Mestre de
+ * Produtos é só a origem histórica desses dados (legado, sem leitor
+ * operacional). O CRM/Painel de Calls NÃO é fonte de verdade e não pode
+ * editar nem duplicar esses dados: no Desk eles são somente leitura. SKU é
+ * referência técnica/complementar: a decisão de oferta por caso é do
+ * produto-pai (Planejador Universal), não do SKU isolado.
  *
  * Nada aqui cria ou altera cobrança, link Asaas, produto, preço, assinatura,
  * cliente Asaas, proposta ou contrato. Nenhuma integração externa é executada.

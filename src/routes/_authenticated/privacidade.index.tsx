@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SaasShell } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Painel, Selo } from "@/components/comercial/base";
 import { listarClientesECasos } from "@/lib/documentos.functions";
 
@@ -24,16 +25,21 @@ export const Route = createFileRoute("/_authenticated/privacidade/")({
 function PrivacidadeIndex() {
   const carregar = useServerFn(listarClientesECasos);
   const q = useQuery({ queryKey: ["privacidade", "vinculos"], queryFn: () => carregar() });
-  const casos = q.data?.casos ?? [];
-
   return (
     <SaasShell
       titulo="Privacidade e documentos"
       descricao="Escolha um caso para gerir documentos, consentimentos e permissões."
     >
       <Painel titulo="Casos">
-        {q.isLoading && <p className="text-sm text-navy/60">Carregando casos…</p>}
-        {q.error && <p className="text-sm text-terracotta">{(q.error as Error).message}</p>}
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.casos as Record<string, unknown>[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os casos"
+          vazio="Nenhum caso disponível."
+        >
+          {(casos) => (
         <div className="space-y-2">
           {casos.map((c: Record<string, unknown>) => (
             <Link
@@ -49,8 +55,9 @@ function PrivacidadeIndex() {
               </div>
             </Link>
           ))}
-          {q.data && casos.length === 0 && <p className="text-sm text-navy/60">Nenhum caso disponível.</p>}
         </div>
+          )}
+        </EstadoDados>
       </Painel>
     </SaasShell>
   );

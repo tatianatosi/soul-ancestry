@@ -175,6 +175,34 @@ export function filasCalls(leads: LeadDesk[], hojeIso: string): FilaCalls[] {
   ];
 }
 
+export type SinalCor = "verde" | "amarelo" | "vermelho" | "laranja" | "neutro";
+
+/**
+ * Cor de sinal da elegibilidade preliminar (seção 5 — formatação condicional —
+ * da especificação v1.0 do Painel de Calls, nunca implementada em tela até
+ * hoje). Sinal interno de triagem, não é parecer jurídico.
+ */
+export function corElegibilidade(elegibilidade: string | null | undefined): SinalCor {
+  const v = String(elegibilidade ?? "");
+  if (v === "forte" || v === "provavel") return "verde";
+  if (v === "inconclusiva" || v === "possivel_com_pesquisa") return "amarelo";
+  if (v === "baixa" || v === "sem_aderencia_atual") return "vermelho";
+  return "neutro";
+}
+
+/** Cor de sinal da complexidade documental — mesma seção 5. */
+export function corComplexidade(complexidade: string | null | undefined): SinalCor {
+  const v = String(complexidade ?? "");
+  if (v === "alta" || v === "muito_alta") return "laranja";
+  return "neutro";
+}
+
+/** Próxima ação com prazo já vencido (tem data e ela já passou). */
+export function acaoVencida(l: LeadDesk, hojeIso: string): boolean {
+  const prazo = l.proxima_acao_em ? String(l.proxima_acao_em).slice(0, 10) : "";
+  return Boolean(prazo) && prazo < hojeIso.slice(0, 10);
+}
+
 /** Contagens do cabeçalho do painel. */
 export function resumoCalls(leads: LeadDesk[], hojeIso: string) {
   const filas = filasCalls(leads, hojeIso);

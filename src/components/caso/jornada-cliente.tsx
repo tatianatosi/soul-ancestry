@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
+import { AcaoDeEscrita } from "@/components/caso/campos";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   carregarJornadaCaso,
   criarMicroentregaCliente,
@@ -10,6 +13,7 @@ import {
   registrarInteracao,
   transicionarMicroentrega,
 } from "@/lib/jornada-cliente.functions";
+import { projetarMicroentregaParaApp } from "@/lib/biblioteca-evidencias.functions";
 import {
   FASES_JORNADA,
   ROTULO_FASE,
@@ -92,6 +96,9 @@ function Selecao({
   );
 }
 
+/** Lista imutável usada como padrão de mapa constante — não é resultado de consulta. */
+const SEM_TRANSICAO: readonly StatusAprovacao[] = [];
+
 const CORES_CADENCIA: Record<string, string> = {
   regular: "bg-emerald-50 text-emerald-800 border-emerald-200",
   atencao: "bg-amber-50 text-amber-900 border-amber-200",
@@ -100,13 +107,24 @@ const CORES_CADENCIA: Record<string, string> = {
 
 /* -------------------------------- painel -------------------------------- */
 
-export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqueado?: boolean }) {
+export function AbaJornadaCliente({
+  casoId,
+  bloqueado: _bloqueado,
+}: {
+  casoId: string;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: a autoridade é decidida por `useAutoridade`/`AcaoOperacional`.
+   */
+  bloqueado?: boolean;
+}) {
   const qc = useQueryClient();
   const carregar = useServerFn(carregarJornadaCaso);
   const registrar = useServerFn(registrarInteracao);
   const espera = useServerFn(definirEsperaExterna);
   const criarEntrega = useServerFn(criarMicroentregaCliente);
   const transicionar = useServerFn(transicionarMicroentrega);
+  const projetar = useServerFn(projetarMicroentregaParaApp);
 
   const q = useQuery({
     queryKey: ["jornada-cliente", casoId],
@@ -114,7 +132,14 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
   });
 
   const invalidar = () => qc.invalidateQueries({ queryKey: ["jornada-cliente", casoId] });
-  const somenteLeitura = bloqueado || !q.data?.podeEscrever;
+  // Autoridade operacional: nenhum gate de domínio desabilita controle aqui.
+  // O vínculo somente leitura do servidor vira pendência declarada, levada a
+  // `AcaoOperacional`; apenas falta de papel ou de organização bloqueia, e essa
+  // decisão é do motor de autoridade, não desta tela.
+  const pendenciaJornada =
+    q.data && !q.data.podeEscrever
+      ? "Seu vínculo de equipe neste caso está marcado como somente leitura."
+      : null;
 
   const [inter, setInter] = useState({
     tipo: "call",
@@ -201,6 +226,19 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const mProjetar = useMutation({
+    mutationFn: (v: { entregaId: string }) => projetar({ data: v }),
+    onSuccess: (r) => {
+      toast.success(
+        r.criado
+          ? "Projeção criada em rascunho na Biblioteca Mestre. Segue revisão e aprovação por lá antes de liberar ao App."
+          : "Esta micro-entrega já tinha uma projeção — nenhuma duplicada.",
+      );
+      void invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const mEspera = useMutation({
     mutationFn: (v: { aguardando: boolean; motivo?: string }) => espera({ data: { casoId, ...v } }),
     onSuccess: () => {
@@ -215,7 +253,7 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
   const cadencia = q.data?.cadencia;
 
   const publicadas = useMemo(
-    () => (q.data?.entregas ?? []).filter((e) => e['approval_status'] === "publicado").length,
+    () => q.data?.entregas?.filter((e) => e['approval_status'] === "publicado").length ?? 0,
     [q.data?.entregas],
   );
 
@@ -224,6 +262,12 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
 
   return (
     <div className="space-y-4">
+      {pendenciaJornada ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaJornada} A operação segue disponível por decisão sua e a
+          gravação pede motivo.
+        </p>
+      ) : null}
       <Secao titulo="Saúde do caso" descricao="Cadência de contato e espera institucional. Nenhuma projeção de prazo ou resultado.">
         <div className="grid gap-3 sm:grid-cols-3">
           <div className={"rounded-lg border p-4 " + (CORES_CADENCIA[cadencia?.status ?? "regular"] ?? "")}>
@@ -239,7 +283,7 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
           <div className="rounded-lg border border-navy/10 p-4">
             <p className="text-[11px] uppercase tracking-wide text-navy/50">Micro-entregas publicadas</p>
             <p className="mt-1 font-serif text-2xl text-navy">{publicadas}</p>
-            <p className="mt-1 text-xs text-navy/55">Somente publicadas aparecem no App Cliente.</p>
+            <p className="mt-1 text-xs text-navy/55">Prontas para projetar ao App — chegam ao cliente só após revisão e aprovação na Biblioteca Mestre.</p>
           </div>
         </div>
 
@@ -252,28 +296,35 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
               <span className="rounded-full border border-navy/15 px-3 py-1 text-xs text-navy/70">
                 Aguardando instituição externa — {String(caso['motivo_espera_externa'] ?? "")}
               </span>
-              <button
-                type="button"
-                disabled={somenteLeitura}
+              <AcaoDeEscrita
+                rotulo="Encerrar espera"
+                capacidade="editar_fila_responsavel_prazo"
+                pendenciaGate={pendenciaJornada}
+                efeito="Encerra a espera institucional registrada neste caso."
                 className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
-                onClick={() => mEspera.mutate({ aguardando: false })}
-              >
-                Encerrar espera
-              </button>
+                onConfirmar={() => {
+                  if (mEspera.isPending) return;
+                  mEspera.mutate({ aguardando: false });
+                }}
+              />
             </div>
           ) : (
             <div className="mt-3 flex flex-wrap items-end gap-3">
               <div className="min-w-[16rem] flex-1">
-                <Campo label="Motivo da espera institucional" valor={motivoEspera} onChange={setMotivoEspera} desabilitado={somenteLeitura} />
+                <Campo label="Motivo da espera institucional" valor={motivoEspera} onChange={setMotivoEspera} />
               </div>
-              <button
-                type="button"
-                disabled={somenteLeitura || !motivoEspera.trim()}
+              <AcaoDeEscrita
+                rotulo="Registrar espera"
+                faltando={motivoEspera.trim() ? null : "Informe o motivo da espera institucional."}
+                capacidade="editar_fila_responsavel_prazo"
+                pendenciaGate={pendenciaJornada}
+                efeito="Marca o caso como aguardando instituição externa, com o motivo registrado."
                 className="rounded-lg bg-navy px-3 py-2 text-xs text-cream disabled:opacity-50"
-                onClick={() => mEspera.mutate({ aguardando: true, motivo: motivoEspera })}
-              >
-                Registrar espera
-              </button>
+                onConfirmar={() => {
+                  if (mEspera.isPending) return;
+                  mEspera.mutate({ aguardando: true, motivo: motivoEspera });
+                }}
+              />
             </div>
           )}
         </div>
@@ -288,7 +339,7 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
             label="Tipo"
             valor={inter.tipo}
             onChange={(v) => setInter((s) => ({ ...s, tipo: v }))}
-            desabilitado={somenteLeitura}
+           
             opcoes={[
               { valor: "call", rotulo: "Call" },
               { valor: "whatsapp", rotulo: "WhatsApp" },
@@ -298,18 +349,18 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
               { valor: "outro", rotulo: "Outro" },
             ]}
           />
-          <Campo label="Ocorrido em" tipo="datetime-local" valor={inter.ocorridoEm} onChange={(v) => setInter((s) => ({ ...s, ocorridoEm: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Ocorrido em" tipo="datetime-local" valor={inter.ocorridoEm} onChange={(v) => setInter((s) => ({ ...s, ocorridoEm: v }))} />
           <div className="sm:col-span-2">
-            <Campo label="Resumo interno" area valor={inter.resumo} onChange={(v) => setInter((s) => ({ ...s, resumo: v }))} desabilitado={somenteLeitura} />
+            <Campo label="Resumo interno" area valor={inter.resumo} onChange={(v) => setInter((s) => ({ ...s, resumo: v }))} />
           </div>
-          <Campo label="Resultado" valor={inter.resultado} onChange={(v) => setInter((s) => ({ ...s, resultado: v }))} desabilitado={somenteLeitura} />
-          <Campo label="Próxima ação" valor={inter.proximaAcao} onChange={(v) => setInter((s) => ({ ...s, proximaAcao: v }))} desabilitado={somenteLeitura} />
-          <Campo label="Prazo da próxima ação" tipo="date" valor={inter.prazo} onChange={(v) => setInter((s) => ({ ...s, prazo: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Resultado" valor={inter.resultado} onChange={(v) => setInter((s) => ({ ...s, resultado: v }))} />
+          <Campo label="Próxima ação" valor={inter.proximaAcao} onChange={(v) => setInter((s) => ({ ...s, proximaAcao: v }))} />
+          <Campo label="Prazo da próxima ação" tipo="date" valor={inter.prazo} onChange={(v) => setInter((s) => ({ ...s, prazo: v }))} />
           <Selecao
             label="Visibilidade"
             valor={inter.visibilidade}
             onChange={(v) => setInter((s) => ({ ...s, visibilidade: v }))}
-            desabilitado={somenteLeitura}
+           
             opcoes={[
               { valor: "interna", rotulo: "Interna" },
               { valor: "cliente_aprovado", rotulo: "Aprovada para o cliente" },
@@ -321,7 +372,6 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
           <input
             type="checkbox"
             checked={inter.touchpoint}
-            disabled={somenteLeitura}
             onChange={(e) => setInter((s) => ({ ...s, touchpoint: e.target.checked }))}
           />
           Conta como touchpoint com o cliente (exige as quatro respostas)
@@ -329,42 +379,48 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
 
         {inter.touchpoint ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            <Campo label="O que foi feito" area valor={inter.feito} onChange={(v) => setInter((s) => ({ ...s, feito: v }))} desabilitado={somenteLeitura} />
-            <Campo label="O que está sendo aguardado" area valor={inter.aguardando} onChange={(v) => setInter((s) => ({ ...s, aguardando: v }))} desabilitado={somenteLeitura} />
-            <Campo label="O que não depende do cliente" area valor={inter.naoDepende} onChange={(v) => setInter((s) => ({ ...s, naoDepende: v }))} desabilitado={somenteLeitura} />
-            <Campo label="Próximo marco verificável" area valor={inter.marco} onChange={(v) => setInter((s) => ({ ...s, marco: v }))} desabilitado={somenteLeitura} />
+            <Campo label="O que foi feito" area valor={inter.feito} onChange={(v) => setInter((s) => ({ ...s, feito: v }))} />
+            <Campo label="O que está sendo aguardado" area valor={inter.aguardando} onChange={(v) => setInter((s) => ({ ...s, aguardando: v }))} />
+            <Campo label="O que não depende do cliente" area valor={inter.naoDepende} onChange={(v) => setInter((s) => ({ ...s, naoDepende: v }))} />
+            <Campo label="Próximo marco verificável" area valor={inter.marco} onChange={(v) => setInter((s) => ({ ...s, marco: v }))} />
           </div>
         ) : null}
 
-        <button
-          type="button"
-          disabled={somenteLeitura || !inter.resumo.trim() || mRegistrar.isPending}
+        <AcaoDeEscrita
+          rotulo={mRegistrar.isPending ? "Registrando…" : "Registrar interação"}
+          faltando={inter.resumo.trim() ? null : "Preencha o resumo interno antes de registrar."}
+          capacidade="editar_rascunho"
+          pendenciaGate={pendenciaJornada}
+          efeito="Grava um registro imutável de interação interna neste caso."
           className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-          onClick={() => mRegistrar.mutate()}
-        >
-          Registrar interação
-        </button>
+          onConfirmar={() => {
+            if (mRegistrar.isPending) return;
+            mRegistrar.mutate();
+          }}
+        />
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-[11px] uppercase tracking-wide text-navy/50">
-              <tr>
-                <th className="py-2 pr-3">Quando</th>
-                <th className="py-2 pr-3">Tipo</th>
-                <th className="py-2 pr-3">Resumo interno</th>
-                <th className="py-2 pr-3">Próxima ação</th>
-                <th className="py-2 pr-3">Visibilidade</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-navy/5">
-              {(q.data?.interacoes ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-3 text-navy/55">
-                    Nenhuma interação registrada.
-                  </td>
-                </tr>
-              ) : (
-                (q.data?.interacoes ?? []).map((i) => (
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.interacoes}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as interações internas"
+          vazio="Nenhuma interação registrada."
+        >
+          {(interacoes) => (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="text-[11px] uppercase tracking-wide text-navy/50">
+                  <tr>
+                    <th className="py-2 pr-3">Quando</th>
+                    <th className="py-2 pr-3">Tipo</th>
+                    <th className="py-2 pr-3">Resumo interno</th>
+                    <th className="py-2 pr-3">Próxima ação</th>
+                    <th className="py-2 pr-3">Visibilidade</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy/5">
+                  {interacoes.map((i) => (
                   <tr key={String(i['id'])} className="align-top">
                     <td className="py-2 pr-3 text-navy/70">{String(i['ocorrido_em'] ?? "").slice(0, 16).replace("T", " ")}</td>
                     <td className="py-2 pr-3 text-navy/70">{String(i['tipo'] ?? "")}</td>
@@ -375,56 +431,73 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
                     </td>
                     <td className="py-2 pr-3 text-navy/70">{i['visibilidade'] === "cliente_aprovado" ? "Aprovada ao cliente" : "Interna"}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </EstadoDados>
       </Secao>
 
       <Secao
         titulo="Micro-entregas ao cliente"
-        descricao="Texto já aprovado para o cliente. Só o status “publicado” aparece no App Cliente."
+        descricao="Texto já aprovado para o cliente. “Publicado” marca pronta — só chega ao App depois de projetada, revisada e aprovada na Biblioteca Mestre."
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <Selecao
             label="Tipo de entrega"
             valor={entrega.tipo}
             onChange={(v) => setEntrega((s) => ({ ...s, tipo: v }))}
-            desabilitado={somenteLeitura}
+           
             opcoes={TIPOS_ENTREGA.map((t) => ({ valor: t, rotulo: ROTULO_TIPO_ENTREGA[t] }))}
           />
           <Selecao
             label="Fase da jornada"
             valor={entrega.fase}
             onChange={(v) => setEntrega((s) => ({ ...s, fase: v }))}
-            desabilitado={somenteLeitura}
+           
             opcoes={FASES_JORNADA.map((f) => ({ valor: f, rotulo: ROTULO_FASE[f] }))}
           />
           <div className="sm:col-span-2">
-            <Campo label="Título para o cliente" valor={entrega.titulo} onChange={(v) => setEntrega((s) => ({ ...s, titulo: v }))} desabilitado={somenteLeitura} />
+            <Campo label="Título para o cliente" valor={entrega.titulo} onChange={(v) => setEntrega((s) => ({ ...s, titulo: v }))} />
           </div>
           <div className="sm:col-span-2">
-            <Campo label="Resumo aprovado" area valor={entrega.resumo} onChange={(v) => setEntrega((s) => ({ ...s, resumo: v }))} desabilitado={somenteLeitura} />
+            <Campo label="Resumo aprovado" area valor={entrega.resumo} onChange={(v) => setEntrega((s) => ({ ...s, resumo: v }))} />
           </div>
-          <Campo label="Deep link no App Cliente" valor={entrega.deepLink} onChange={(v) => setEntrega((s) => ({ ...s, deepLink: v }))} desabilitado={somenteLeitura} />
-          <Campo label="Referência interna" valor={entrega.referencia} onChange={(v) => setEntrega((s) => ({ ...s, referencia: v }))} desabilitado={somenteLeitura} />
+          <Campo label="Deep link no App Cliente" valor={entrega.deepLink} onChange={(v) => setEntrega((s) => ({ ...s, deepLink: v }))} />
+          <Campo label="Referência interna" valor={entrega.referencia} onChange={(v) => setEntrega((s) => ({ ...s, referencia: v }))} />
         </div>
 
-        <button
-          type="button"
-          disabled={somenteLeitura || !entrega.titulo.trim() || !entrega.resumo.trim() || mEntrega.isPending}
+        <AcaoDeEscrita
+          rotulo={mEntrega.isPending ? "Criando…" : "Criar rascunho de micro-entrega"}
+          faltando={
+            !entrega.titulo.trim()
+              ? "Preencha o título para o cliente."
+              : !entrega.resumo.trim()
+                ? "Preencha o resumo aprovado."
+                : null
+          }
+          capacidade="editar_rascunho"
+          pendenciaGate={pendenciaJornada}
+          efeito="Cria a micro-entrega em rascunho. Nada aparece no App Cliente antes de publicar, projetar, revisar e aprovar na Biblioteca Mestre."
           className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
-          onClick={() => mEntrega.mutate()}
-        >
-          Criar rascunho de micro-entrega
-        </button>
+          onConfirmar={() => {
+            if (mEntrega.isPending) return;
+            mEntrega.mutate();
+          }}
+        />
 
-        <div className="space-y-3">
-          {(q.data?.entregas ?? []).length === 0 ? (
-            <p className="text-sm text-navy/55">Nenhuma micro-entrega registrada.</p>
-          ) : (
-            (q.data?.entregas ?? []).map((e) => {
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.entregas}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as micro-entregas ao cliente"
+          vazio="Nenhuma micro-entrega registrada."
+        >
+          {(entregas) => (
+            <div className="space-y-3">
+            {entregas.map((e) => {
               const status = String(e['approval_status'] ?? "rascunho") as StatusAprovacao;
               return (
                 <div key={String(e['id'])} className="rounded-lg border border-navy/10 p-4">
@@ -438,23 +511,45 @@ export function AbaJornadaCliente({ casoId, bloqueado }: { casoId: string; bloqu
                     {e['journey_phase'] ? ` · ${ROTULO_FASE[String(e['journey_phase']) as keyof typeof ROTULO_FASE] ?? String(e['journey_phase'])}` : ""}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {(TRANSICOES_ENTREGA[status] ?? []).map((p) => (
-                      <button
+                    {(TRANSICOES_ENTREGA[status] || SEM_TRANSICAO).map((p) => (
+                      <AcaoOperacional
                         key={p}
-                        type="button"
-                        disabled={somenteLeitura || mTransicao.isPending}
+                        rotulo={p === "publicado" ? "Publicar (pronta para o App)" : `Mover para ${p}`}
+                        capacidade={p === "publicado" ? undefined : "aprovar_projecao_app_cliente"}
+                        acaoExterna={p === "publicado" ? "publicar_no_app_cliente" : undefined}
+                        pendenciaGate={pendenciaJornada}
+                        efeito={
+                          p === "publicado"
+                            ? "Marca a micro-entrega como pronta. Ainda precisa ser projetada, revisada e aprovada na Biblioteca Mestre antes de chegar ao App Cliente."
+                            : `Move a micro-entrega para o estado ${p}.`
+                        }
                         className="rounded-lg border border-navy/15 px-3 py-1 text-xs text-navy hover:bg-navy/5 disabled:opacity-50"
-                        onClick={() => mTransicao.mutate({ entregaId: String(e['id']), para: p })}
-                      >
-                        {p === "publicado" ? "Publicar no App Cliente" : `Mover para ${p}`}
-                      </button>
+                        onConfirmar={() => {
+                          if (mTransicao.isPending) return;
+                          mTransicao.mutate({ entregaId: String(e['id']), para: p });
+                        }}
+                      />
                     ))}
+                    {status === "publicado" ? (
+                      <AcaoOperacional
+                        rotulo="Projetar ao App"
+                        capacidade="aprovar_projecao_app_cliente"
+                        pendenciaGate={pendenciaJornada}
+                        efeito="Cria a projeção correspondente na Biblioteca Mestre, em rascunho. Nada chega ao cliente até revisão e aprovação por lá."
+                        className="rounded-lg border border-gold/60 bg-gold/10 px-3 py-1 text-xs text-navy hover:bg-gold/20 disabled:opacity-50"
+                        onConfirmar={() => {
+                          if (mProjetar.isPending) return;
+                          mProjetar.mutate({ entregaId: String(e['id']) });
+                        }}
+                      />
+                    ) : null}
                   </div>
                 </div>
               );
-            })
+            })}
+            </div>
           )}
-        </div>
+        </EstadoDados>
       </Secao>
     </div>
   );

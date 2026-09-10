@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -34,6 +35,8 @@ import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 export type DadosPortal = {
   projecoes: ProjecaoBruta[];
   documentos: DocumentoPortal[];
+  /** Mesma próxima ação do motor, quando a fonte já a calculou. */
+  proximaAcao?: ProximaAcaoCliente | null;
 };
 
 /**
@@ -88,9 +91,21 @@ export function usePortalVivo() {
   });
 
   if (externa) {
-    return { data: externa.dados, isLoading: externa.carregando, isError: externa.erro };
+    return {
+      data: externa.dados,
+      isLoading: externa.carregando,
+      isError: externa.erro,
+      error: externa.erro ? new Error("Falha ao carregar os dados do acompanhamento.") : null,
+      refetch: () => {},
+    };
   }
-  return { data: consulta.data, isLoading: consulta.isLoading, isError: consulta.isError };
+  return {
+    data: consulta.data,
+    isLoading: consulta.isLoading,
+    isError: consulta.isError,
+    error: consulta.error,
+    refetch: () => void consulta.refetch(),
+  };
 }
 
 /**

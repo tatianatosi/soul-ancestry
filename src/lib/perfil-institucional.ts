@@ -26,6 +26,7 @@ export const CAMPOS_INSTITUCIONAIS_OBRIGATORIOS = [
   "razao_empresarial",
   "nome_operacao",
   "cnpj",
+  "representante_legal",
   "endereco_institucional",
   "email_oficial",
   "site",
@@ -72,6 +73,27 @@ export function perfilInstitucionalRenderizado(
     pendencias.push("Perfil institucional não vigente: revisão jurídica pendente bloqueia prévia final e assinatura.");
   }
   return { versao: PERFIL_INSTITUCIONAL_VERSAO, status, vigente: status === "vigente", campos, violacoes, pendencias };
+}
+
+/**
+ * Texto único de qualificação completa da contratada, para o campo
+ * `contratada_qualificacao` do motor contratual. Junta os campos do perfil
+ * institucional vigente (razão empresarial, CNPJ, endereço, representante
+ * legal) — nunca só o nome da representante, que é apenas um dos campos.
+ */
+export function qualificacaoContratadaTexto(
+  status: EstadoVigenciaContratoBase = PERFIL_INSTITUCIONAL_STATUS,
+): string {
+  const c = (campo: (typeof CAMPOS_INSTITUCIONAIS_OBRIGATORIOS)[number]) =>
+    PERFIL_INSTITUCIONAL.find((p) => p.campo === campo)?.valor ?? "";
+  return [
+    `${c("razao_empresarial")}, operando sob o nome "${c("nome_operacao")}", CNPJ ${c("cnpj")}`,
+    `com sede em ${c("endereco_institucional")}`,
+    `representada por ${c("representante_legal")}`,
+    `e-mail oficial ${c("email_oficial")}, site ${c("site")}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /** Edição dentro do caso é sempre negada; exceção administrativa é validada aqui. */

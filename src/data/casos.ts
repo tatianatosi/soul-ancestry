@@ -1,6 +1,11 @@
 /**
  * Ancestral Canvas — estruturas de dados dos casos.
  *
+ * LEGADO / NÃO É OPERAÇÃO ATIVA. Isolado. Não usar para status, prioridade,
+ * próxima ação, workflow, automação ou dashboard. O planejador ativo é
+ * `case_plans` + `salvarPlanejadorOperacional`. Preservar este dump só como
+ * evidência histórica e fallback de parâmetro contratual vazio.
+ *
  * ORIGEM DOS DADOS (planilhas reais anexadas ao projeto):
  *  - CASOS / CONVENCAO_IDS / PARAMETROS / SKUS_REFERENCIA / LANCAMENTOS / PAGAMENTOS /
  *    MARCOS_JURIDICOS_SYNC / PAINEL -> planejador-universal-simulador-todas-cidadanias.xlsx

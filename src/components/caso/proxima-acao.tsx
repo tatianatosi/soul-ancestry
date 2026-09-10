@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
-import { Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
-import { aprovarRascunho, atualizarAlerta, registrarProximaAcao } from "@/lib/caso-canonico.functions";
+import { AcaoDeEscrita, Secao, Selecao, Texto, Rotulo, inputCls } from "@/components/caso/campos";
+import {
+  aprovarRascunho,
+  atualizarAlerta,
+  marcarSemNovaAcaoNecessaria,
+  registrarProximaAcao,
+  voltarProximaAcaoAoAutomatico,
+} from "@/lib/caso-canonico.functions";
 import {
   ALERT_STATUS,
   COMMUNICATION_STATUS,
@@ -29,7 +36,7 @@ export function AbaProximaAcao({
   caso,
   alertas,
   comunicacoes,
-  bloqueado,
+  bloqueado: _bloqueado,
   onMudou,
   v,
   set,
@@ -38,12 +45,18 @@ export function AbaProximaAcao({
   caso: Linha;
   alertas: Linha[];
   comunicacoes: Linha[];
-  bloqueado: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: quem decide a escrita é a autoridade operacional.
+   */
+  bloqueado?: boolean;
   onMudou: () => void;
   v: (k: string) => string;
   set: (k: string, valor: unknown) => void;
 }) {
   const registrar = useServerFn(registrarProximaAcao);
+  const voltarAutomatico = useServerFn(voltarProximaAcaoAoAutomatico);
+  const semNovaAcao = useServerFn(marcarSemNovaAcaoNecessaria);
   const mudarAlerta = useServerFn(atualizarAlerta);
   const aprovar = useServerFn(aprovarRascunho);
   const [erro, setErro] = useState<string | null>(null);
@@ -59,9 +72,31 @@ export function AbaProximaAcao({
     onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao registrar a próxima ação."),
   });
 
+  const mVoltarAutomatico = useMutation({
+    mutationFn: () => voltarAutomatico({ data: { caseId } }),
+    onSuccess: () => {
+      setErro(null);
+      onMudou();
+    },
+    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao voltar à sugestão automática."),
+  });
+
+  const mSemNovaAcao = useMutation({
+    mutationFn: () => semNovaAcao({ data: { caseId } }),
+    onSuccess: () => {
+      setErro(null);
+      onMudou();
+    },
+    onError: (e: unknown) => setErro(e instanceof Error ? e.message : "Falha ao marcar sem nova ação necessária."),
+  });
+
   const mAlerta = useMutation({
     mutationFn: (p: { id: string; status: string }) => mudarAlerta({ data: p }),
-    onSuccess: () => onMudou(),
+    onSuccess: () => {
+      toast.success("Alerta atualizado.");
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível atualizar o alerta."),
   });
 
   return (
@@ -77,17 +112,16 @@ export function AbaProximaAcao({
               set("target_audience", m.audience);
               set("visibility", m.visibility);
               set("suggested_channel", m.channel);
-            }} desabilitado={bloqueado} />
-            <Texto label="Prazo da próxima ação" tipo="date" valor={v("prazo_proxima_acao")} onChange={(x) => set("prazo_proxima_acao", x)} desabilitado={bloqueado} />
-            <Texto label="Responsável principal" valor={v("responsavel_principal")} onChange={(x) => set("responsavel_principal", x)} desabilitado={bloqueado} />
-            <Selecao label="Público-alvo" valor={v("target_audience")} opcoes={TARGET_AUDIENCE} onChange={(x) => set("target_audience", x)} desabilitado={bloqueado} />
-            <Selecao label="Visibilidade" valor={v("visibility")} opcoes={VISIBILITY} onChange={(x) => set("visibility", x)} desabilitado={bloqueado} />
-            <Selecao label="Canal sugerido" valor={v("suggested_channel")} opcoes={SUGGESTED_CHANNEL} onChange={(x) => set("suggested_channel", x)} desabilitado={bloqueado} />
+            }} />
+            <Texto label="Prazo da próxima ação" tipo="date" valor={v("prazo_proxima_acao")} onChange={(x) => set("prazo_proxima_acao", x)} />
+            <Texto label="Responsável principal" valor={v("responsavel_principal")} onChange={(x) => set("responsavel_principal", x)} />
+            <Selecao label="Público-alvo" valor={v("target_audience")} opcoes={TARGET_AUDIENCE} onChange={(x) => set("target_audience", x)} />
+            <Selecao label="Visibilidade" valor={v("visibility")} opcoes={VISIBILITY} onChange={(x) => set("visibility", x)} />
+            <Selecao label="Canal sugerido" valor={v("suggested_channel")} opcoes={SUGGESTED_CHANNEL} onChange={(x) => set("suggested_channel", x)} />
             <Texto
               label="Justificativa / detalhe"
               valor={v("proxima_acao_justificativa")}
               onChange={(x) => set("proxima_acao_justificativa", x)}
-              desabilitado={bloqueado}
               area
               ajuda={v("proxima_acao_codigo") === "outro_justificar" ? "Obrigatório quando a ação é 'Outro'." : undefined}
             />
@@ -107,13 +141,43 @@ export function AbaProximaAcao({
             Salve as alterações do caso antes de registrar. O registro cria alerta interno e, quando previsto, rascunho de comunicação —
             nunca um envio externo.
           </div>
-          <button
-            onClick={() => mRegistrar.mutate()}
-            disabled={bloqueado || mRegistrar.isPending}
-            className="mt-4 rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
-          >
-            Registrar próxima ação e alerta
-          </button>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <AcaoDeEscrita
+              rotulo={mRegistrar.isPending ? "Registrando…" : "Assumir próxima ação manual"}
+              faltando={
+                v("proxima_acao_codigo") === "outro_justificar" && !v("proxima_acao_justificativa").trim()
+                  ? "Justificativa obrigatória quando a ação é 'Outro'."
+                  : null
+              }
+              capacidade="editar_fila_responsavel_prazo"
+              efeito="Registra a próxima ação e cria o alerta interno. Nenhuma mensagem externa é enviada."
+              className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
+              onConfirmar={() => {
+                if (mRegistrar.isPending) return;
+                mRegistrar.mutate();
+              }}
+            />
+            <AcaoDeEscrita
+              rotulo={mVoltarAutomatico.isPending ? "Revertendo…" : "Voltar à sugestão automática"}
+              capacidade="editar_fila_responsavel_prazo"
+              efeito="Limpa o override manual. A próxima ação volta a ser calculada pela régua automática (bloqueios, tarefas, documentos, pagamentos)."
+              className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-40"
+              onConfirmar={() => {
+                if (mVoltarAutomatico.isPending) return;
+                mVoltarAutomatico.mutate();
+              }}
+            />
+            <AcaoDeEscrita
+              rotulo={mSemNovaAcao.isPending ? "Marcando…" : "Marcar sem nova ação necessária"}
+              capacidade="editar_fila_responsavel_prazo"
+              efeito="Registra que não há nova ação pendente agora. Se surgir um bloqueio real (tarefa vencida, documento pendente etc.), ele volta a aparecer."
+              className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy disabled:opacity-40"
+              onConfirmar={() => {
+                if (mSemNovaAcao.isPending) return;
+                mSemNovaAcao.mutate();
+              }}
+            />
+          </div>
           <p className="mt-3 text-xs text-navy/55">
             Alerta atual: {rotulo(ALERT_STATUS, caso["alert_status"])} · Comunicação: {rotulo(COMMUNICATION_STATUS, caso["communication_status"])}
           </p>
@@ -136,14 +200,28 @@ export function AbaProximaAcao({
                   Prazo: {a.due_at ? new Date(a.due_at).toLocaleDateString("pt-BR") : "—"} · Criado em{" "}
                   {new Date(a.triggered_at).toLocaleString("pt-BR")}
                 </p>
-                {!bloqueado && a.status !== "completed" ? (
+                {a.status !== "completed" ? (
                   <div className="mt-2 flex gap-2 text-xs">
-                    <button className="rounded-md border border-navy/15 px-2 py-1" onClick={() => mAlerta.mutate({ id: a.id, status: "acknowledged" })}>
-                      Marcar ciente
-                    </button>
-                    <button className="rounded-md border border-navy/15 px-2 py-1" onClick={() => mAlerta.mutate({ id: a.id, status: "completed" })}>
-                      Concluir
-                    </button>
+                    <AcaoDeEscrita
+                      rotulo="Marcar ciente"
+                      capacidade="editar_fila_responsavel_prazo"
+                      efeito="Marca o alerta interno como ciente."
+                      className="rounded-md border border-navy/15 px-2 py-1"
+                      onConfirmar={() => {
+                        if (mAlerta.isPending) return;
+                        mAlerta.mutate({ id: a.id, status: "acknowledged" });
+                      }}
+                    />
+                    <AcaoDeEscrita
+                      rotulo="Concluir"
+                      capacidade="editar_fila_responsavel_prazo"
+                      efeito="Conclui o alerta interno."
+                      className="rounded-md border border-navy/15 px-2 py-1"
+                      onConfirmar={() => {
+                        if (mAlerta.isPending) return;
+                        mAlerta.mutate({ id: a.id, status: "completed" });
+                      }}
+                    />
                   </div>
                 ) : null}
               </li>
@@ -156,7 +234,7 @@ export function AbaProximaAcao({
         {comunicacoes.length === 0 ? (
           <p className="text-sm text-navy/55">Nenhum rascunho criado.</p>
         ) : (
-          comunicacoes.map((c) => <Rascunho key={c.id} item={c} bloqueado={bloqueado} aprovar={aprovar} onMudou={onMudou} />)
+          comunicacoes.map((c) => <Rascunho key={c.id} item={c} aprovar={aprovar} onMudou={onMudou} />)
         )}
       </Secao>
     </div>
@@ -165,19 +243,21 @@ export function AbaProximaAcao({
 
 function Rascunho({
   item,
-  bloqueado,
   aprovar,
   onMudou,
 }: {
   item: Linha;
-  bloqueado: boolean;
   aprovar: (a: { data: { id: string; corpo?: string } }) => Promise<unknown>;
   onMudou: () => void;
 }) {
   const [corpo, setCorpo] = useState(String(item.corpo_rascunho ?? ""));
   const m = useMutation({
     mutationFn: () => aprovar({ data: { id: String(item.id), corpo } }),
-    onSuccess: () => onMudou(),
+    onSuccess: () => {
+      toast.success("Rascunho aprovado.");
+      onMudou();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível aprovar o rascunho."),
   });
   const aprovado = item.status === "approved" || item.status === "sent";
 
@@ -192,16 +272,23 @@ function Rascunho({
       </p>
       <div className="mt-2">
         <Rotulo>Texto do rascunho</Rotulo>
-        <textarea className={inputCls} rows={4} value={corpo} disabled={bloqueado || aprovado} onChange={(e) => setCorpo(e.target.value)} />
+        <textarea className={inputCls} rows={4} value={corpo}
+          title={aprovado ? "Rascunho já aprovado — nova edição registra alteração." : undefined} onChange={(e) => setCorpo(e.target.value)} />
       </div>
       {!aprovado ? (
-        <button
-          onClick={() => m.mutate()}
-          disabled={bloqueado || m.isPending}
-          className="mt-2 rounded-lg border border-gold/50 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
-        >
-          Aprovar rascunho (sem envio)
-        </button>
+        <div className="mt-2">
+          <AcaoDeEscrita
+            rotulo={m.isPending ? "Aprovando…" : "Aprovar rascunho (sem envio)"}
+            faltando={corpo.trim() ? null : "Escreva o texto do rascunho antes de aprovar."}
+            capacidade="editar_rascunho"
+            efeito="Registra a aprovação interna do rascunho. Nenhuma mensagem externa é enviada."
+            className="rounded-lg border border-gold/50 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
+            onConfirmar={() => {
+              if (m.isPending) return;
+              m.mutate();
+            }}
+          />
+        </div>
       ) : (
         <p className="mt-2 text-xs text-navy/55">Aprovado em {item.approved_at ? new Date(item.approved_at).toLocaleString("pt-BR") : "—"}. Envio externo fora do escopo desta entrega.</p>
       )}

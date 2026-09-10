@@ -24,7 +24,20 @@ export function PainelCatalogo() {
 
   if (q.isLoading)
     return <p className="mt-6 text-sm text-navy/50">Carregando catálogo homologado…</p>;
-  if (q.isError || !q.data) return null;
+  if (q.isError)
+    return (
+      <p className="mt-6 flex flex-wrap items-center gap-3 text-sm text-terracotta">
+        Não foi possível carregar o catálogo homologado.
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
+  if (!q.data) return null;
 
   const { filas, resumo } = q.data;
   type Item = (typeof filas.bloqueados)[number];

@@ -74,7 +74,19 @@ function ReprocessarConciliacao({ proposalId }: { proposalId: string }) {
       {verHistorico && (
         <div className="mt-2 space-y-2">
           {qHist.isLoading && <p className="text-xs text-navy/60">Carregando histórico…</p>}
-          {!qHist.isLoading && linhas.length === 0 && (
+          {qHist.error ? (
+            <p role="alert" className="flex flex-wrap items-center gap-2 text-xs text-terracotta">
+              Não foi possível carregar o histórico de reprocessamentos.
+              <button
+                type="button"
+                onClick={() => void qHist.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 font-medium"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
+          {!qHist.isLoading && !qHist.error && linhas.length === 0 && (
             <p className="text-xs text-navy/60">Nenhum reprocessamento registrado para esta proposta.</p>
           )}
           {linhas.map((l) => (

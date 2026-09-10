@@ -1,5 +1,15 @@
 # De-Para — Cadência D0–D365, Micro-entregas, Planejador e Ciclo-Piloto: política nova × mecanismos reais
 
+> **Nota de recuperação (04/09/2026):** este documento foi escrito em 03/09/2026 (commit `6fc2521`)
+> numa branch própria (`docs/de-para-cadencia-microentregas-planejador-2026-09-03`) que nunca foi
+> mesclada a `main` nem a nenhuma outra branch de trabalho — por isso ficou invisível a toda busca
+> feita em `docs/`/`src/` nesta sessão até a Proprietária apontar para ele diretamente. Recuperado
+> aqui sem alteração de conteúdo, só com esta nota. Ver
+> `docs/auditorias/2026-09-04-consolidacao-12-documentos-drive-cadencia-d0-d365.md`, seção 2.1, para
+> a correção que isso gera na varredura de cadência de hoje — em especial: os dois vocabulários
+> conflitantes de `client_deliverables.approval_status` (seção 1.0/1.1 abaixo) **continuam ativos e
+> não corrigidos** em 04/09, um dia depois deste achado.
+
 ```yaml
 status: mapeamento — nenhum código alterado, aguardando decisão da Proprietária
 versão: 1.0

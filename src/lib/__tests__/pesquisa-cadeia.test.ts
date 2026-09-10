@@ -7,6 +7,7 @@ import {
   gatilhosDaEvidencia,
   podeGravarRelacaoOuEvento,
   relatorioVisivelAoCliente,
+  statusPesquisaCanonico,
   uploadCriaGenealogia,
   validacaoConcluiDireito,
   validarArquivamentoPesquisa,
@@ -25,7 +26,13 @@ describe("cadeia da pesquisa genealógica", () => {
     ]);
   });
 
-  it("validar internamente não conclui direito e upload não cria genealogia", () => {
+  it("grava só o vocabulário EN do CHECK de research_cases.status", () => {
+    expect(statusPesquisaCanonico("em_andamento")).toBe("internal_research");
+    expect(statusPesquisaCanonico("preparation")).toBe("preparation");
+    expect(statusPesquisaCanonico("inventado")).toBeNull();
+  });
+
+  it("validar internamente não conclui direito nem cria genealogia no upload", () => {
     expect(validacaoConcluiDireito()).toBe(false);
     expect(uploadCriaGenealogia()).toBe(false);
   });

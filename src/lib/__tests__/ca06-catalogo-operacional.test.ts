@@ -10,7 +10,7 @@ import {
   resumoCatalogo30,
   resumoForaCatalogo,
 } from "@/lib/ca06-catalogo-operacional";
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 describe("CA-06 — Catálogo Operacional 30", () => {
   it("registra exatamente 30 SKUs sem duplicidade", () => {
@@ -54,11 +54,13 @@ describe("CA-06 — Catálogo Operacional 30", () => {
     }
   });
 
-  it("mantém as 6 decisões bloqueadoras e a rota no menu do Desk", () => {
+  it("mantém as 6 decisões bloqueadoras e a rota no menu da conta", () => {
     expect(DECISOES_BLOQUEADORAS).toHaveLength(6);
+    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(conta).toContain("/governanca/catalogo-operacional-30");
     const contratos = GRUPOS_DESK.find((g) => g.id === "contratos");
     const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotas).toContain("/governanca/catalogo-operacional-30");
+    expect(rotas).not.toContain("/governanca/catalogo-operacional-30");
   });
 
   it("exporta CSV com cabeçalho e uma linha por SKU", () => {

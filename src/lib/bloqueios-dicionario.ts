@@ -88,6 +88,14 @@ export const REGRAS_BLOQUEIO: Record<string, RegraBloqueio> = {
     impeditivo: false,
     ancora: "previas",
   },
+  escopo_proposta: {
+    titulo: "Escopo da proposta Canva incompleto",
+    oQueBloqueia: "Versão final, revisão humana e assinatura.",
+    comoResolver:
+      "Na seção “Completude da proposta (Canva)”, confirme origem Canva, referência do deck e a extração das páginas 1–7. O motivo abaixo indica exatamente o que falta.",
+    impeditivo: true,
+    ancora: "canva",
+  },
 };
 
 export type BloqueioResolutivo = {

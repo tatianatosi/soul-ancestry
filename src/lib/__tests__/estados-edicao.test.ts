@@ -3,6 +3,7 @@ import {
   campoSatisfazAvanco,
   decidirEdicao,
   ehOperacaoAvanco,
+  ehOperacaoRascunho,
   OPERACOES_AVANCO,
   pendenciasPorGate,
   type Pendencia,
@@ -29,7 +30,19 @@ describe("estados de edição × avanço", () => {
     expect(d.mensagem).toContain("A formalização permanece bloqueada até resolver");
   });
 
-  it("proposta incompleta não aprova, não gera OS final e não congela prévia", () => {
+  it("proposta incompleta bloqueia avanço de quem não é proprietária", () => {
+    for (const op of ["aprovar_proposta", "gerar_os_final", "congelar_previa"] as const) {
+      const d = decidirEdicao({
+        estado: "bloqueado_por_pendencia",
+        operacao: op,
+        papel: "comercial",
+        pendencias: [pendencia(op)],
+      });
+      expect(d.permitido).toBe(false);
+    }
+  });
+
+  it("a proprietária avança mesmo com pendência: libera, preserva e exige confirmação", () => {
     for (const op of ["aprovar_proposta", "gerar_os_final", "congelar_previa"] as const) {
       const d = decidirEdicao({
         estado: "bloqueado_por_pendencia",
@@ -37,7 +50,13 @@ describe("estados de edição × avanço", () => {
         papel: "admin",
         pendencias: [pendencia(op)],
       });
-      expect(d.permitido).toBe(false);
+      expect(d.permitido).toBe(true);
+      if (d.permitido) {
+        expect(d.efeito).toBe("avanco_por_decisao_proprietaria");
+        expect(d.exigeConfirmacao).toBe(true);
+        // A pendência continua visível: liberar não é apagar.
+        expect(d.pendencias?.length).toBe(1);
+      }
     }
   });
 
@@ -81,8 +100,12 @@ describe("estados de edição × avanço", () => {
       papel: "admin",
       pendencias: [p],
     });
-    expect(d.permitido).toBe(false);
-    if (!d.permitido) expect(d.pendencias[0]?.campo).toBe("vencimentos");
+    expect(d.permitido).toBe(true);
+    if (d.permitido) {
+      expect(d.efeito).toBe("avanco_por_decisao_proprietaria");
+      expect(d.exigeConfirmacao).toBe(true);
+      expect(d.pendencias?.[0]?.campo).toBe("vencimentos");
+    }
   });
 
   it("nenhum ato externo é liberado por operação de rascunho", () => {
@@ -94,13 +117,27 @@ describe("estados de edição × avanço", () => {
     ] as const;
     for (const op of externos) {
       expect(ehOperacaoAvanco(op)).toBe(true);
-      const d = decidirEdicao({
+      // Rascunho nunca dispara ato externo.
+      expect(ehOperacaoRascunho(op)).toBe(false);
+
+      // Para quem não é proprietária, o ato externo segue bloqueado.
+      const outro = decidirEdicao({
+        estado: "bloqueado_por_pendencia",
+        operacao: op,
+        papel: "comercial",
+        pendencias: [],
+      });
+      expect(outro.permitido).toBe(false);
+
+      // Para a proprietária o ato externo nunca é automático: exige aceite.
+      const dona = decidirEdicao({
         estado: "bloqueado_por_pendencia",
         operacao: op,
         papel: "admin",
         pendencias: [],
       });
-      expect(d.permitido).toBe(false);
+      expect(dona.permitido).toBe(true);
+      if (dona.permitido) expect(dona.exigeConfirmacao).toBe(true);
     }
   });
 
