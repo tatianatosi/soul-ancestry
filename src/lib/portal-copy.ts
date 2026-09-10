@@ -123,7 +123,7 @@ export const COPY_TELAS = {
     vazio: "A sua proposta aparece aqui assim que estiver disponível para consulta.",
   },
   casos: {
-    navegacao: "Início",
+    navegacao: "Home",
     titulo: "Seu acompanhamento",
     descricao: "Aqui aparece o acompanhamento disponível para o seu acesso.",
     vazio: "Ainda não há um acompanhamento disponível para o seu acesso.",

@@ -7,13 +7,13 @@ import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
     meta: [
-      { title: "Qualidade e inconsistências — Clube Ancestral" },
+      { title: "Radar Interno — Clube Ancestral" },
       {
         name: "description",
         content:
           "Checklists por fase, inconsistências por severidade, relatório operacional semanal e exportação CSV auditada.",
       },
-      { property: "og:title", content: "Qualidade e inconsistências — Clube Ancestral" },
+      { property: "og:title", content: "Radar Interno — Clube Ancestral" },
       {
         property: "og:description",
         content: "Controles de qualidade e relatórios internos por organização.",

@@ -45,12 +45,12 @@ export const Route = createFileRoute("/_authenticated/casos/")({
   },
   head: () => ({
     meta: [
-      { title: "Casos — Clube Ancestral" },
+      { title: "Casos 360 — Clube Ancestral" },
       {
         name: "description",
         content: "Casos de cidadania com hipótese de elegibilidade e ativação condicionada.",
       },
-      { property: "og:title", content: "Casos — Clube Ancestral" },
+      { property: "og:title", content: "Casos 360 — Clube Ancestral" },
       { property: "og:description", content: "Gestão de casos de cidadania no Clube Ancestral." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -193,11 +193,11 @@ function CasosPage() {
 
   return (
     <SaasShell
-      titulo="Casos"
+      titulo="Casos 360"
       descricao="Comercial, formalização, financeiro e operação são eixos independentes. Hipótese de elegibilidade é sempre provisória e ativação depende de gates validados no servidor."
     >
       <PageHeader
-        titulo="Casos em acompanhamento"
+        titulo="Casos 360 em acompanhamento"
         subtitulo="Cada eixo tem estado próprio. Hipótese de elegibilidade nunca equivale a elegibilidade definitiva, e datas futuras são previsão condicional."
       />
 
@@ -254,7 +254,7 @@ function CasosPage() {
       ) : null}
       <EntidadeCrud
         entidade="crm_casos"
-        titulo="Casos"
+        titulo="Casos 360"
         podeEscrever={podeEscrever}
         dominio="caso"
         larguraMinima={2100}

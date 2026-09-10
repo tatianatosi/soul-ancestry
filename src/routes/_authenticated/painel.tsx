@@ -6,9 +6,9 @@ import { PainelDia } from "@/components/painel/painel-dia";
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "Painel Hoje — Clube Ancestral" },
-      { name: "description", content: "Fila priorizada do dia, exceções sem dono, comercial e casos com prazo." },
-      { property: "og:title", content: "Painel Hoje — Clube Ancestral" },
+      { title: "Visão Geral — Clube Ancestral" },
+      { name: "description", content: "Fila priorizada do dia (Painel Hoje), exceções sem dono, comercial e casos com prazo." },
+      { property: "og:title", content: "Visão Geral — Clube Ancestral" },
       { property: "og:description", content: "O que precisa de ação hoje, por quem e até quando." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 function Painel() {
   return (
-    <SaasShell titulo="Painel Hoje" descricao="O que precisa de ação hoje, por quem e até quando.">
+    <SaasShell titulo="Visão Geral" descricao="Painel Hoje — o que precisa de ação hoje, por quem e até quando.">
       <PainelDia />
       {/*
         08/09/2026 — correção de um erro meu de 07/09. Ao encontrar
