@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { SaasShell, EstadoVazio, BotaoTentarNovamente } from "@/components/saas/shell";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { carregarConversao } from "@/lib/conversao.functions";
 import {
   ESCADA,
@@ -21,12 +22,12 @@ import {
 export const Route = createFileRoute("/_authenticated/conversao")({
   head: () => ({
     meta: [
-      { title: "Conversão — funil por eventos | Clube Ancestral" },
+      { title: "Comercial | Clube Ancestral" },
       {
         name: "description",
         content: "Leitura interna do funil comercial: estado por lead, eventos imutáveis, saúde comercial e referência de aceite.",
       },
-      { property: "og:title", content: "Conversão — funil por eventos | Clube Ancestral" },
+      { property: "og:title", content: "Comercial | Clube Ancestral" },
       { property: "og:description", content: "Estado por lead, funil de eventos e saúde comercial do Desk Intelligence." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -114,17 +115,27 @@ function Conversao() {
 
   return (
     <SaasShell
-      titulo="Conversão — funil por eventos"
+      titulo="Comercial"
       descricao="Leitura interna. Nenhuma cobrança, mensagem, contrato ou automação é disparada nesta tela."
     >
       <p data-conversao="rotulo-canonico" className="text-[11px] uppercase tracking-wide text-navy/50">
         Fonte canônica de conversão e saúde comercial
       </p>
-      {q.isLoading ? (
-        <EstadoVazio mensagem="Carregando eventos…" />
-      ) : q.isError ? (
-        <EstadoVazio mensagem={q.error instanceof Error ? q.error.message : "Falha ao carregar."} />
-      ) : (
+      <details className="mb-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-xs text-navy/60">
+        <summary className="cursor-pointer font-medium text-navy/70">Leitura técnica do funil por eventos</summary>
+        <p className="mt-2">
+          Conversão — funil por eventos. Estado por lead, eventos imutáveis e saúde comercial. Uso interno de QA e
+          operação; o título da tela é Comercial.
+        </p>
+      </details>
+      <EstadoDados
+        carregando={q.isLoading}
+        erro={q.error}
+        dados={q.data ? [q.data] : undefined}
+        aoTentarNovamente={() => void q.refetch()}
+        recurso="os eventos de conversão"
+      >
+        {() => (
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 bg-white px-4 py-3 text-xs text-navy/70">
             <span>
@@ -346,7 +357,8 @@ function Conversao() {
             )}
           </section>
         </div>
-      )}
+        )}
+      </EstadoDados>
     </SaasShell>
   );
 }

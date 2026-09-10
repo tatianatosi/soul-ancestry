@@ -4,7 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-import { SaasShell, EstadoVazio } from "@/components/saas/shell";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
+import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { Painel, Selo, inputCls, dataBr } from "@/components/comercial/base";
 import {
   anotarResolucaoDivergencia,
@@ -36,6 +39,14 @@ export const Route = createFileRoute("/_authenticated/divergencias-catalogo")({
 type Status = "todos" | "bloqueio" | "atencao" | "resolvidas";
 
 function DivergenciasCatalogoPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "resolver_divergencia" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarDivergenciasCatalogo);
   const anotar = useServerFn(anotarResolucaoDivergencia);
   const qc = useQueryClient();
@@ -57,12 +68,13 @@ function DivergenciasCatalogoPage() {
       toast.error(e instanceof Error ? e.message : "Não foi possível registrar a observação."),
   });
 
-  const todas = useMemo(() => q.data?.linhas ?? [], [q.data]);
-  const skus = useMemo(() => [...new Set(todas.map((l) => l.sku))].sort(), [todas]);
+  // Sem default silencioso: `undefined` é falha de carga, não base vazia.
+  const todas = q.data?.linhas;
+  const skus = useMemo(() => [...new Set((todas ?? []).map((l) => l.sku))].sort(), [todas]);
 
   const linhas = useMemo(() => {
     const v = vinculo.trim().toLowerCase();
-    return todas.filter((l) => {
+    return (todas ?? []).filter((l) => {
       if (sku && l.sku !== sku) return false;
       if (status === "resolvidas" && !l.resolvido) return false;
       if (status === "bloqueio" && (l.resolvido || l.severidade !== "bloqueio")) return false;
@@ -87,6 +99,13 @@ function DivergenciasCatalogoPage() {
       titulo="Divergências de catálogo"
       descricao="Divergências registradas pela conciliação contra o catálogo homologado. Aqui só se registra observação de resolução — nada é aprovado, corrigido no catálogo ou desbloqueado."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-6">
         <Painel titulo="Filtros">
           <div className="grid gap-3 sm:grid-cols-3">
@@ -133,14 +152,18 @@ function DivergenciasCatalogoPage() {
         </Painel>
 
         <Painel titulo={`Divergências (${linhas.length})`}>
-          {q.isLoading ? (
-            <p className="text-sm text-navy/60">Carregando divergências…</p>
-          ) : q.isError ? (
-            <p className="text-sm text-terracotta">Não foi possível carregar as divergências.</p>
-          ) : linhas.length === 0 ? (
-            <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
-
-          ) : (
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={todas}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="as divergências de catálogo"
+            vazio="Nenhuma divergência registrada pela conciliação."
+          >
+            {() =>
+              linhas.length === 0 ? (
+                <EstadoVazio mensagem="Nenhuma divergência com esses filtros. Ajuste SKU, vínculo ou status para ver outros registros da conciliação." />
+              ) : (
             <ul className="space-y-3">
               {linhas.map((l) => (
                 <li key={l.id} className="rounded-xl border border-navy/15 bg-white p-4">
@@ -176,24 +199,29 @@ function DivergenciasCatalogoPage() {
                       value={edicao[l.id] ?? ""}
                       onChange={(e) => setEdicao((s) => ({ ...s, [l.id]: e.target.value }))}
                     />
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-50"
-                      disabled={salvar.isPending}
-                      onClick={() =>
-                        salvar.mutate(
-                          { id: l.id, observacao: edicao[l.id] ?? "" },
-                          { onSuccess: () => setEdicao((s) => ({ ...s, [l.id]: "" })) },
-                        )
+                    <AcaoOperacional
+                      rotulo="Registrar"
+                      capacidade="resolver_divergencia"
+                      pendenciaGate={
+                        (edicao[l.id] ?? "").trim()
+                          ? null
+                          : "Escreva a observação de resolução antes de registrar."
                       }
-                    >
-                      Registrar
-                    </button>
+                      efeito="Anexa uma observação de resolução auditada a esta divergência. A divergência continua visível."
+                      onConfirmar={async () => {
+                        const observacao = (edicao[l.id] ?? "").trim();
+                        if (!observacao) return;
+                        await salvar.mutateAsync({ id: l.id, observacao });
+                        setEdicao((s) => ({ ...s, [l.id]: "" }));
+                      }}
+                    />
                   </div>
                 </li>
               ))}
             </ul>
-          )}
+              )
+            }
+          </EstadoDados>
         </Painel>
       </div>
     </SaasShell>

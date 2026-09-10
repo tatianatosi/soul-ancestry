@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { painelHojeDesk } from "@/lib/crm-desk.functions";
 import {
   AREAS_RESPONSAVEIS,
@@ -12,21 +13,38 @@ import {
   rotulo,
 } from "@/lib/crm-desk";
 
+type DadosDeskHoje = NonNullable<Awaited<ReturnType<typeof painelHojeDesk>>>;
+
 /**
  * Painel Hoje do Desk comercial: filas ordenadas por criticidade e leitura
  * operacional. Somente leitura — nenhuma ação é disparada daqui.
+ *
+ * A carga passa por EstadoDados. Antes, falha de leitura devolvia `null` e a
+ * seção simplesmente desaparecia da tela, sem erro e sem nova tentativa.
  */
 export function PainelDeskHoje() {
   const carregar = useServerFn(painelHojeDesk);
   const q = useQuery({ queryKey: ["painel-desk-hoje"], queryFn: () => carregar(), retry: false });
+
+  return (
+    <EstadoDados<DadosDeskHoje>
+      carregando={q.isLoading}
+      erro={q.error}
+      dados={q.data ? [q.data as DadosDeskHoje] : undefined}
+      aoTentarNovamente={() => void q.refetch()}
+      recurso="as filas do Desk comercial"
+    >
+      {([dados]) => <ConteudoDeskHoje dados={dados} />}
+    </EstadoDados>
+  );
+}
+
+function ConteudoDeskHoje({ dados }: { dados: DadosDeskHoje }) {
   const [area, setArea] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [etapa, setEtapa] = useState("");
 
-  if (q.isLoading) return <p className="mt-6 text-sm text-navy/50">Carregando filas do Desk…</p>;
-  if (q.isError || !q.data) return null;
-
-  const { filas, metricas } = q.data;
+  const { filas, metricas } = dados;
   const responsaveis = Array.from(
     new Set(filas.flatMap((f) => f.itens.map((i) => i.responsavel)).filter(Boolean) as string[]),
   ).sort();

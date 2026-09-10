@@ -66,7 +66,7 @@ export const painelFontes = createServerFn({ method: "GET" })
 
     const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
     const [fontes, matriz, backlog] = await Promise.all([
-      org("genealogical_sources_catalog").order("nome", { ascending: true }),
+      org("genealogical_sources_catalog").is("archived_at", null).order("nome", { ascending: true }),
       org("source_evaluation_matrix").is("archived_at", null),
       org("sources_activation_backlog").is("archived_at", null).order("prazo", { ascending: true }),
     ]);

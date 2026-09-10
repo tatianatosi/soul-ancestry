@@ -39,8 +39,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
   };
 
   const mGerar = useMutation({
-    mutationFn: () =>
-      gerar({ data: { caseId, responsavelComercial: "Comercial responsável", responsavelOperacional: "Operações responsável" } }),
+    mutationFn: () => gerar({ data: { caseId } }),
     onSuccess: (r: any) => {
       toast.success(r.idempotente ? "Proposta já refletia o planejador vigente." : `Proposta estruturada v${r.versao} derivada do planejador.`);
       invalidar();
@@ -131,7 +130,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
         ))}
       </ol>
 
-      {podeEscrever && (
+      {(
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
@@ -143,7 +142,7 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
           </button>
           <button
             type="button"
-            disabled={ocupado || !proposalId || statusProposta === "aprovada"}
+            disabled={ocupado || !proposalId}
             onClick={() => proposalId && mAprovar.mutate(proposalId)}
             className="rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 disabled:opacity-50"
           >
@@ -151,17 +150,27 @@ export function CadeiaOperacional({ caseId, podeEscrever }: { caseId: string; po
           </button>
           <button
             type="button"
-            disabled={ocupado || !proposalId || statusProposta !== "aprovada"}
+            disabled={ocupado || !proposalId}
             onClick={() => proposalId && mEmitir.mutate(proposalId)}
             className="rounded-md border border-navy/20 px-3 py-1.5 text-xs font-medium text-navy hover:bg-navy/5 disabled:opacity-50"
           >
             Emitir OS / Anexo I (rascunho)
           </button>
           <span className="self-center text-xs text-navy/50">Assinatura permanece desabilitada nesta entrega.</span>
+          {statusProposta === "aprovada" ? (
+            <span className="w-full text-xs text-navy/60">
+              Proposta já aprovada: aprovar de novo repete o registro de condição comercial.
+            </span>
+          ) : (
+            <span className="w-full text-xs text-terracotta">
+              Pendência: proposta ainda não aprovada. Emitir OS / Anexo I agora gera rascunho sem condição
+              comercial aprovada.
+            </span>
+          )}
         </div>
       )}
 
-      {podeEscrever && <BloqueioEmissaoOS proposalId={proposalId} ativo={statusProposta === "aprovada"} />}
+      <BloqueioEmissaoOS proposalId={proposalId} ativo={statusProposta === "aprovada"} />
     </Painel>
   );
 }

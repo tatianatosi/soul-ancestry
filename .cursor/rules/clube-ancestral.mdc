@@ -1,0 +1,36 @@
+---
+description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, 8 grupos do Desk e 7 abas do App.
+alwaysApply: true
+---
+
+# Clube Ancestral — regras permanentes
+
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+
+## Fazer sempre
+
+- Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
+- Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
+- Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc. Cruzar escritores de `src/lib` com `types.ts` **e** `CHECK` das migrations — `string` no tipo gerado não libera vocabulário novo.
+- Manter os **8 grupos** de `GRUPOS_DESK` e as **7 abas canônicas** do App Cliente (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Hierarquia funcional da memória permanente não é menu novo.
+- Nav do cliente = só as 7. Entregas / Fase 01 / Fase 02 **fora** da barra (conteúdo ou rota profunda, não aba).
+- Usar o mockup de **17 páginas** como visual normativo. PDF de **47 páginas**, distorção e comparação visual = auditoria, não briefing de redesign.
+- Tratar Pessoa, Núcleo, Lead, Caso, Pesquisa e Contrato como entidades distintas ligadas por IDs. App Cliente = projeção autorizada desses objetos.
+- Classificar motor/planejador/skill/dump como operável só com fonte + escritor + persistência + consumidor + CTA + reload.
+- Preservar fechamentos da PR #85: escritor `confirmarDocumentosMinimos` → `documentos_minimos_ok`; convite/login cliente pelo fluxo oficial; não regredir.
+- Preservar o aviso Lovable em `AGENTS.md`: sem force-push, rebase, amend ou squash de commits já publicados.
+- Respeitar `docs/politicas/politica-autoridade-operacional.md`: para a proprietária, pendência informa, não impede; override auditado.
+
+## Nunca
+
+- Usar matriz operacional legada, planilha mestre, DRE ou reconciliação antiga do Asaas como operação atual.
+- Inventar tabelas (`citizenship_cases`, `case_participants`, …) ou prefixo **CHECK-*** de requisitos.
+- Inventar valores de `CHECK` Postgres (`em_pesquisa`, `descartado`, `not_started`, `fase_2_pesquisa` gravado, `validada_internamente` em `evidences`, etc.). Ler a constraint na migration.
+- Colocar Entregas / Fase 01 / Fase 02 (ou Proposta / Faturas / Mensagens) como aba de primeiro nível do App Cliente.
+- Redesenhar Desk/App para caber no mockup de 7 itens internos, no PDF de distorção, ou no README histórico de 6 abas.
+- Misturar legado com dado ativo sem rótulo e sem precedência do planejador.
+- Confiar só em esconder rota/botão; RLS e validação no servidor são a autorização.
+- Simular sucesso, usar mock permanente como produção, ou apresentar hipótese genealógica como fato.
+- Expor `service_role`, usar dado real de cliente em homologação, ou tratar TypeScript/Vitest/preview como prova de UI autenticada.
+- Mesclar/deployar produção sem autorização explícita da Proprietária (branch + SHA + se dispara produção).
+- Reescrever história git publicada (Lovable).

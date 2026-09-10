@@ -1,0 +1,34 @@
+---
+description: Premissas inegociáveis do motor unificado — planejador, caso, persistência real, legado isolado.
+alwaysApply: true
+---
+
+# Clube Ancestral — núcleo (Fase 1)
+
+Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Não altera legado; não inventa tabela.
+
+## Premissas permanentes
+
+1. O **planejador** (`case_plans` + `salvarPlanejadorOperacional`) é a única fonte válida para planejamento e operação ativa.
+2. Matriz operacional legada, planilha mestre, DRE e reconciliação antiga do Asaas são **passado**. Não usá-los para status, prioridade, próxima ação, workflow, automação ou dashboard. Preservar isolados; não adaptar nesta etapa.
+3. O produto opera com **motor unificado**. Fonte coerente entre: contatos/clientes, casos, serviços, jornadas, tarefas, responsáveis, prazos, próxima ação, pendências/bloqueios, documentos, timeline/auditoria, comunicações, permissões, planejador, portal.
+4. **Caso** (`crm_casos`) é a unidade operacional central. Tarefa, documento, pendência, comunicação ou evento relevante exige `caso_id` / `case_id`, salvo lead não convertido ou registro administrativo explícito.
+5. Tela sem persistência não é funcionalidade. Mock, layout isolado, endpoint solto, tabela sem fluxo, dado em memória ou permissão só no front **não** está implementado.
+6. Front-end operacional mostra: cliente e caso, etapa/estado, responsável, prazo, próxima ação, pendências, bloqueios, tarefas, documentos, histórico/timeline.
+7. Regras críticas no back-end/banco: migrations versionadas; transições e vínculos validados; autenticação e RLS reais; alterações materiais na timeline/auditoria; nunca expor segredos; não substituir migration por alteração manual em produção.
+8. Sem commit, push, merge, deploy, exclusão de tabela ou reset de banco sem confirmação explícita da proprietária.
+
+## Schema real (não inventar)
+
+Reusar: `clientes`, `leads`, `crm_casos`, `case_members`, `case_plans`, `case_services`, `tarefas`, `case_timeline_events`, `case_alerts`, `audit_logs`, `onboarding_planos`.
+
+Nunca criar: `case_participants`, `citizenship_cases`, `onboarding_runs`, `cadence_runs`, `country_catalog`.
+
+## Acesso
+
+Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na UI não é segurança — RLS e views de portal (`portal_casos`) são a barreira.
+
+## Peças que não se apagam
+
+- Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
+- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.

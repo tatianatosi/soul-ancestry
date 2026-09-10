@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -46,12 +47,16 @@ export function VinculosDoDocumento({
   const [tipoVinculo, setTipoVinculo] = useState("comprova");
   const [observacao, setObservacao] = useState("");
 
+  const autoridade = useAutoridade();
   const painel = useQuery({
     queryKey: ["g08b-vinculos", caseId, sourceDocumentId],
     queryFn: () => listarVinculosFonte({ data: { caseId, sourceDocumentId } }),
   });
 
   const d = painel.data as any;
+  // Autoridade operacional: o gate de papel vindo do servidor não esconde mais
+  // ação; falta de papel/organização é o único bloqueio e o servidor revalida.
+  const podeEditarAutoridade = !autoridade.bloqueado({ capacidade: "avancar_pesquisa_evidencia_microentrega" });
   const vinculos: Record<string, any>[] = d?.vinculos ?? [];
   const alvos: Record<TipoAlvo, { id: string; rotulo: string }[]> = d?.alvos ?? {
     evidencia: [],
@@ -128,7 +133,7 @@ export function VinculosDoDocumento({
                   <strong>{alvo ? ROTULO_ALVO[alvo.tipo] : "Alvo"}</strong> · {rot ?? "registro do caso"} ·{" "}
                   {TIPOS_VINCULO.find((t) => t.id === v["tipo_vinculo"])?.rotulo ?? String(v["tipo_vinculo"])}
                 </span>
-                {d?.podeEditar && (
+                {podeEditarAutoridade && (
                   <button
                     type="button"
                     className="text-terracotta underline"
@@ -147,7 +152,7 @@ export function VinculosDoDocumento({
         </ul>
       )}
 
-      {d?.podeEditar && (
+      {podeEditarAutoridade && (
         <div className="grid gap-2 md:grid-cols-4">
           <label className="block">
             <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Vincular a</span>

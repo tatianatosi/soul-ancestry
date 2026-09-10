@@ -263,7 +263,12 @@ export function avaliarGates(c: ContextoGates): AvaliacaoGate[] {
 
 export type ErroGate = { codigo: string; descricao: string };
 
-/** Erros legíveis por código para a ação pedida. Vazio = transição permitida. */
+/**
+ * Pendências legíveis por código para a ação pedida.
+ *
+ * Sempre retorna a lista real, independentemente do papel: a pendência nunca
+ * desaparece da tela. Quem decide se ela bloqueia é `podeExecutar`.
+ */
 export function bloqueiosDaAcao(acao: AcaoGateada, c: ContextoGates): ErroGate[] {
   const avaliacao = avaliarGates(c);
   const exigidos = GATES_POR_ACAO[acao];
@@ -272,8 +277,29 @@ export function bloqueiosDaAcao(acao: AcaoGateada, c: ContextoGates): ErroGate[]
     .map((a) => ({ codigo: `GATE_${a.gate.toUpperCase()}`, descricao: `${a.label}: ${a.motivo}` }));
 }
 
-export function podeExecutar(acao: AcaoGateada, c: ContextoGates): boolean {
+/**
+ * Pode executar a ação?
+ *
+ * Para a proprietária administradora (`papel = "admin"`), pendência de gate
+ * deixa de impedir: ela segue por decisão própria, com a pendência preservada
+ * e o avanço auditado. Sem papel informado, mantém o comportamento anterior.
+ */
+export function podeExecutar(acao: AcaoGateada, c: ContextoGates, papel?: string): boolean {
+  if (papel === "admin" || papel === "proprietaria_administradora") return true;
   return bloqueiosDaAcao(acao, c).length === 0;
+}
+
+/**
+ * A ação segue adiante, mas exige aceite explícito? Verdadeiro quando há
+ * pendência superada por decisão da proprietária ou quando a ação é externa.
+ */
+export function exigeAceiteExplicito(acao: AcaoGateada, c: ContextoGates, papel?: string): boolean {
+  const externa = (ACOES_GATEADAS_EXTERNAS as readonly string[]).includes(acao);
+  if (externa) return true;
+  if (papel === "admin" || papel === "proprietaria_administradora") {
+    return bloqueiosDaAcao(acao, c).length > 0;
+  }
+  return false;
 }
 
 /** Próxima ação recomendada: primeiro gate vermelho na ordem normativa. */

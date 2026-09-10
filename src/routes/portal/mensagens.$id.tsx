@@ -28,8 +28,9 @@ function MensagemPage() {
   const carregar = useServerFn(meuTicket);
   const responder = useServerFn(responderTicketCliente);
   const [texto, setTexto] = useState("");
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["portal-ticket", id],
     queryFn: () => carregar({ data: { ticketId: id } }),
   });
@@ -37,15 +38,33 @@ function MensagemPage() {
   const enviar = useMutation({
     mutationFn: () => responder({ data: { ticketId: id, mensagem: texto } }),
     onSuccess: () => {
+      setErroEnvio(null);
       setTexto("");
       queryClient.invalidateQueries({ queryKey: ["portal-ticket", id] });
     },
+    onError: (e: Error) => setErroEnvio(e.message || "Não foi possível enviar sua mensagem."),
   });
 
   if (isLoading) {
     return (
       <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
         <PortalCarregando />
+      </PortalShell>
+    );
+  }
+  if (isError) {
+    return (
+      <PortalShell titulo={COPY_TELAS.atendimento.titulo}>
+        <p className="flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não conseguimos abrir esta conversa agora.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta"
+          >
+            Tentar novamente
+          </button>
+        </p>
       </PortalShell>
     );
   }
@@ -80,6 +99,11 @@ function MensagemPage() {
 
       {data.ticket.status !== "fechado" ? (
         <div className="mt-5 rounded-xl border border-navy/10 bg-white p-4">
+          {erroEnvio ? (
+            <p className="mb-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+              {erroEnvio}
+            </p>
+          ) : null}
           <textarea
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
