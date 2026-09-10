@@ -193,7 +193,7 @@ function NucleosDuplicidadesPage() {
   });
   const [filtroConfianca, setFiltroConfianca] = useState("");
   const [escolha, setEscolha] = useState<Record<string, "A" | "B">>({});
-  const [dialogo, setDialogo] = useState<{ chave: string; plano: PlanoUnificacao } | null>(null);
+  const [dialogo, setDialogo] = useState<PlanoUnificacao | null>(null);
   const [confirmacao, setConfirmacao] = useState("");
 
   const mut = useMutation({
@@ -304,7 +304,7 @@ function NucleosDuplicidadesPage() {
                     disabled={plano.recusado || mut.isPending}
                     onClick={() => {
                       setConfirmacao("");
-                      setDialogo({ chave: c.chave, plano });
+                      setDialogo(plano);
                     }}
                     className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
                   >
@@ -340,10 +340,10 @@ function NucleosDuplicidadesPage() {
           {dialogo ? (
             <div className="space-y-2 text-sm text-navy/80">
               <p>
-                Canônico: <strong>{dialogo.plano.canonicoNome}</strong>
+                Canônico: <strong>{dialogo.canonicoNome}</strong>
               </p>
               <p>
-                Origem a arquivar: <strong>{dialogo.plano.origemNome}</strong>
+                Origem a arquivar: <strong>{dialogo.origemNome}</strong>
               </p>
               <label className="block text-xs uppercase tracking-wide text-navy/50">
                 Digite {CONFIRMACAO_UNIFICAR}
@@ -374,8 +374,8 @@ function NucleosDuplicidadesPage() {
               onClick={() => {
                 if (!dialogo) return;
                 mut.mutate({
-                  canonicoId: dialogo.plano.canonicoId,
-                  origemId: dialogo.plano.origemId,
+                  canonicoId: dialogo.canonicoId,
+                  origemId: dialogo.origemId,
                 });
               }}
               className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
