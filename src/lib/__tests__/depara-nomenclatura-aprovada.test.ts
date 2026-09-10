@@ -12,59 +12,46 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
  * navegação principal mudou, nunca a URL nem a funcionalidade.
  */
 
-describe("De-para de nomenclatura — Desk usa os nomes aprovados na navegação principal", () => {
-  it("continua com exatamente 7 telas do mockup, mesmas rotas de entrada", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
+  it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
+    expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
+      "/leads",
       "/casos",
-      "/tarefas",
-      "/matriz-juridica",
-      "/qualidade",
-      "/alertas",
       "/biblioteca",
+      "/contratos",
+      "/configuracoes",
     ]);
   });
 
-  it("usa os rótulos aprovados: Visão Geral, Casos 360, Checklist, Validação Jurídica, Radar Interno, Alertas, Biblioteca Mestre", () => {
+  it("usa os rótulos dos 6 grupos operacionais", () => {
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([
-      "Visão Geral",
-      "Casos 360",
-      "Checklist",
-      "Validação Jurídica",
-      "Radar Interno",
-      "Alertas",
-      "Biblioteca Mestre",
+      "Hoje",
+      "Marketing & Comercial",
+      "Pessoas & Casos",
+      "Inteligência & Pesquisa",
+      "Formalização & Financeiro",
+      "Governança & Administração",
     ]);
   });
 
-  it("trabalho operacional (Marketing, Comercial, Pesquisa, Contratos) mora como submenu, não como tela concorrente", () => {
-    const labels = GRUPOS_DESK.map((g) => g.label);
-    expect(labels).not.toContain("Marketing");
-    expect(labels).not.toContain("Comercial");
-    expect(labels).not.toContain("Pesquisa");
-    expect(labels).not.toContain("Contratos e financeiro");
-    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
-    expect(visao.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
-    expect(visao.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
+  it("Marketing e CRM Vivo moram no grupo comercial, sem segunda face", () => {
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/marketing")).toBe(true);
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/leads")).toBe(true);
   });
 
-  it("Checklist é tela própria; o submenu usa o nome aprovado", () => {
-    const checklist = GRUPOS_DESK.find((g) => g.id === "checklist")!;
-    expect(checklist.label).toBe("Checklist");
-    const tarefas = checklist.sub.find((s) => "to" in s && s.to === "/tarefas") as
+  it("Checklist continua no submenu de Pessoas & Casos, com o nome aprovado", () => {
+    const casos = GRUPOS_DESK.find((g) => g.id === "casos")!;
+    const tarefas = casos.sub.find((s) => "to" in s && s.to === "/tarefas") as
       | { label: string }
       | undefined;
     expect(tarefas?.label).toContain("Checklist");
   });
 
-  it("LINKS_CONTEXTUAIS referencia os grupos pelos rótulos aprovados (Biblioteca Mestre, Casos 360, Visão Geral)", () => {
-    const origens = LINKS_CONTEXTUAIS.map((l) => l.origem);
-    expect(origens).not.toContain("Governança");
-    expect(origens).not.toContain("Hoje");
-    for (const l of LINKS_CONTEXTUAIS) {
-      expect(l.tambemEm).not.toContain("Casos");
-    }
+  it("sem links contextuais sobrepostos entre grupos", () => {
+    expect(LINKS_CONTEXTUAIS).toEqual([]);
   });
 });
 

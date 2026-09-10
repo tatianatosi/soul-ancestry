@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   calcularMetricasCrm,
   errosBloqueantesAlteracao,
+  aceiteSemConfirmacaoFormal,
+  discoverySemDesdobramento,
+  leadSemOrigemDeclarada,
   montarFilasHoje,
   resultadoComercialDerivado,
   validarLead,
@@ -180,6 +183,64 @@ describe("Painel Hoje e métricas", () => {
     const fila = filas.find((f) => f.chave === "casos_pendencia_documental");
     expect(fila?.itens[0]?.detalhe).toBe("Definir próximo passo");
     expect(fila?.itens[0]?.origemAcao).toBe("automatica");
+  });
+
+  it("conta lead sem origem declarada na fila real, não em zero silencioso", () => {
+    expect(leadSemOrigemDeclarada({ origem: null })).toBe(true);
+    expect(leadSemOrigemDeclarada({ origem: "indicacao" })).toBe(false);
+    const filas = montarFilasHoje({
+      leads: [
+        { ...base, id: "o1", nome: "Sem origem", origem: null, proxima_acao_em: "2026-08-25" },
+        { ...base, id: "o2", nome: "Com origem", origem: "indicacao", proxima_acao_em: "2026-08-25" },
+      ],
+      casos: [],
+      hoje,
+    });
+    const fila = filas.find((f) => f.chave === "leads_sem_origem");
+    expect(fila?.itens.map((i) => i.id)).toEqual(["o1"]);
+  });
+
+  it("conta Discovery realizada sem desdobramento", () => {
+    const semDesfecho: LeadDesk = {
+      ...base,
+      id: "d1",
+      nome: "Discovery aberta",
+      origem: "indicacao",
+      status_call: "realizada",
+      discovery_resultado: null,
+      proxima_acao_em: "2026-08-25",
+    };
+    expect(discoverySemDesdobramento(semDesfecho)).toBe(true);
+    expect(
+      discoverySemDesdobramento({
+        ...semDesfecho,
+        discovery_resultado: "seguir_proposta",
+        proxima_acao: "enviar_proposta",
+        proxima_acao_em: "2026-08-25",
+      }),
+    ).toBe(false);
+    const filas = montarFilasHoje({ leads: [semDesfecho], casos: [], hoje });
+    expect(filas.find((f) => f.chave === "discoveries_sem_desdobramento")?.itens).toHaveLength(1);
+  });
+
+  it("conta aceite verbal sem confirmação formal", () => {
+    expect(aceiteSemConfirmacaoFormal({ eixo_comercial: "aceite_verbal" })).toBe(true);
+    expect(aceiteSemConfirmacaoFormal({ eixo_comercial: "proposta_enviada" })).toBe(false);
+    const filas = montarFilasHoje({
+      leads: [
+        {
+          ...base,
+          id: "a1",
+          nome: "Aceite verbal",
+          origem: "indicacao",
+          eixo_comercial: "aceite_verbal",
+          proxima_acao_em: "2026-08-25",
+        },
+      ],
+      casos: [],
+      hoje,
+    });
+    expect(filas.find((f) => f.chave === "aceites_sem_confirmacao")?.itens).toHaveLength(1);
   });
 });
 

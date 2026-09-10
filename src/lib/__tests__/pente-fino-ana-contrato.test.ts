@@ -40,7 +40,7 @@ describe("pente-fino Ana — primeira cliente e contrato decente", () => {
 
 describe("pente-fino visual — legado fora da face do produto", () => {
   it("grupo Biblioteca Mestre entra no módulo vivo e no dossiê do Legado; DEMO sai da face", () => {
-    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     expect(bib.to).toBe("/biblioteca");
     const rotasBib = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasBib).toContain("/pesquisa");

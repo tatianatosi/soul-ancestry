@@ -303,8 +303,8 @@ export function agruparLinhasIndicadores(linhas: LinhaIndicadorDia[]): Record<Gr
 
 /** Destino clicável de cada cartão do topo — o número sem ação não opera. */
 export const DESTINO_CARD_HOJE = {
-  acoes_vencidas: { destino: "/tarefas", acao: "Abrir Checklist — vencidos" },
-  acoes_hoje: { destino: "/tarefas", acao: "Abrir o que vence hoje" },
+  acoes_vencidas: { destino: "/calls", acao: "Abrir Painel de Calls — vencidos" },
+  acoes_hoje: { destino: "/calls", acao: "Abrir o que vence hoje no Painel de Calls" },
   sem_responsavel: { destino: "/casos", acao: "Abrir casos para atribuir dono" },
   excecoes_criticas: { destino: "/ops-excecoes", acao: "Abrir exceções operacionais" },
   sla_em_risco: { destino: "/ops", acao: "Abrir operação e SLA" },

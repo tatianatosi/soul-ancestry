@@ -10,15 +10,17 @@ import {
 } from "@/lib/crm-mestre-export";
 
 describe("/crm-mestre no menu do Desk", () => {
-  const links = MENU_CONTA.itens.filter((s): s is { to: string; label: string } => "to" in s);
+  const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+  const links = gov.sub.filter((s): s is { to: string; label: string } => "to" in s);
 
-  it("aparece no menu da conta, fora da face Comercial", () => {
+  it("aparece em Governança, fora da face Comercial", () => {
     expect(links.some((s) => s.to === "/crm-mestre")).toBe(true);
-    const visao = GRUPOS_DESK.find((g) => g.icone === "visao-geral");
-    const rotasVisao = (visao?.sub ?? [])
+    expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(false);
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
+    const rotasComercial = (comercial?.sub ?? [])
       .filter((s): s is { to: string; label: string } => "to" in s)
       .map((s) => s.to);
-    expect(rotasVisao).not.toContain("/crm-mestre");
+    expect(rotasComercial).not.toContain("/crm-mestre");
   });
 
   it("mantém estado ativo sem colisão de prefixo (desktop e mobile usam a mesma regra)", () => {

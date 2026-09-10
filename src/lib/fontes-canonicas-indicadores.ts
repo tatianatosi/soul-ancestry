@@ -42,11 +42,11 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     formula: "tarefas e marcos com prazo < hoje (vencido) ou = hoje (vence hoje), após filtrarParaFila",
     recorteTemporal: "dia corrente",
     responsavel: "responsável do registro",
-    rotaAcao: "/tarefas",
+    rotaAcao: "/calls",
     contagemEm: ["/painel"],
     etiquetaEm: ["/metricas", "/leads", "/casos", "/tarefas"],
     confianca: "confirmado",
-    observacao: "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Checklist.",
+    observacao: "Deduplicação obrigatória: um objeto aparece uma única vez na fila. O cartão abre o Painel de Calls — a fonte é leads.proxima_acao_em.",
   },
   {
     indicador: "Sem responsável",

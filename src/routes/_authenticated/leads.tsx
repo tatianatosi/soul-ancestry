@@ -767,7 +767,7 @@ function LeadsPage() {
                   })}
                 </div>
               </div>
-              <Texto label="Referência de SKU (Planilha Mestre)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} />
+              <Texto label="Referência de SKU (catálogo homologado)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} />
               <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} />
               <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} />
               <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} />

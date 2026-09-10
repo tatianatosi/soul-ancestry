@@ -9,6 +9,7 @@
  */
 
 import { obterProximaAcaoCanonica } from "@/lib/caso-ficha";
+import { ORIGEM_A_CONFIRMAR, classificarOrigem } from "@/lib/marketing-aquisicao";
 
 export type Opcao = { valor: string; rotulo: string };
 
@@ -792,6 +793,9 @@ export const CRITICIDADE_FILA: Record<string, number> = {
   propostas_sem_followup: 8,
   calls_hoje: 9,
   casos_pendencia_documental: 10,
+  leads_sem_origem: 11,
+  discoveries_sem_desdobramento: 12,
+  aceites_sem_confirmacao: 13,
 };
 
 export const ROTULO_FILA: Record<string, string> = {
@@ -806,7 +810,38 @@ export const ROTULO_FILA: Record<string, string> = {
   onboardings_pendentes: "Onboardings pendentes",
   cadeia_operacional: "Cadeia operacional pendente",
   casos_pendencia_documental: "Casos com pendência documental",
+  leads_sem_origem: "Leads sem origem declarada",
+  discoveries_sem_desdobramento: "Discovery sem desfecho",
+  aceites_sem_confirmacao: "Aceite verbal sem confirmação formal",
 };
+
+const campoVazio = (v: unknown) => v === null || v === undefined || String(v).trim() === "";
+
+/** Origem ausente ou fora do catálogo — mesma regra do Marketing (`classificarOrigem`). */
+export function leadSemOrigemDeclarada(l: Pick<LeadDesk, "origem">): boolean {
+  return classificarOrigem(l.origem).canonico === ORIGEM_A_CONFIRMAR;
+}
+
+/**
+ * Call/Discovery do CRM Vivo sem desfecho: realizada ou no-show, ou etapa
+ * discovery_realizada, sem resultado ou sem próxima ação datada.
+ * Espelha `bloqueiosRegistroCall` sem importar o painel (evita ciclo).
+ */
+export function discoverySemDesdobramento(l: LeadDesk): boolean {
+  const status = String(l.status_call ?? "");
+  const realizada =
+    status === "realizada" ||
+    status === "no_show" ||
+    !campoVazio(l.call_realizada_em) ||
+    l.eixo_comercial === "discovery_realizada";
+  if (!realizada) return false;
+  return campoVazio(l.discovery_resultado) || campoVazio(l.proxima_acao) || campoVazio(l.proxima_acao_em);
+}
+
+/** Aceite verbal ainda sem confirmação formal (escada do CRM Vivo). */
+export function aceiteSemConfirmacaoFormal(l: Pick<LeadDesk, "eixo_comercial">): boolean {
+  return l.eixo_comercial === "aceite_verbal";
+}
 
 export type ItemFila = {
   id: string;
@@ -906,6 +941,24 @@ export function montarFilasHoje(input: {
       itens: ativos
         .filter((l) => l.eixo_formalizacao === "pagamento_inicial_confirmado" || l.eixo_formalizacao === "cliente_ativo")
         .map((l) => itemLead(l, "Onboarding pendente de início", l.proxima_acao_em ?? null)),
+    },
+    {
+      chave: "leads_sem_origem",
+      itens: ativos
+        .filter((l) => leadSemOrigemDeclarada(l))
+        .map((l) => itemLead(l, "Origem ausente ou fora do catálogo", null)),
+    },
+    {
+      chave: "discoveries_sem_desdobramento",
+      itens: ativos
+        .filter((l) => discoverySemDesdobramento(l))
+        .map((l) => itemLead(l, "Discovery sem resultado ou sem próxima ação", l.call_realizada_em ?? null)),
+    },
+    {
+      chave: "aceites_sem_confirmacao",
+      itens: ativos
+        .filter((l) => aceiteSemConfirmacaoFormal(l))
+        .map((l) => itemLead(l, "Aceite verbal — aguardando confirmação formal", l.proxima_acao_em ?? null)),
     },
     {
       chave: "cadeia_operacional",

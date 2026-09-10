@@ -3,66 +3,59 @@ import { readFileSync } from "node:fs";
 
 import {
   GRUPOS_DESK,
+  GRUPOS_OPERACIONAIS_DESK,
   MENU_CONTA,
   ROTAS_PRESERVADAS,
-  TELAS_DESK_MOCKUP,
+  destinosDuplicados,
+  destinosSobrepostos,
   rotasDoMenu,
   rotasSemLink,
-  destinosDuplicados,
 } from "@/lib/navegacao-desk";
 
-describe("Desk Intelligence — face do mockup de 17 páginas", () => {
-  it("expõe exatamente as 7 telas do mockup, na ordem aprovada", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
-    expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...TELAS_DESK_MOCKUP]);
+describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas como referência)", () => {
+  it("expõe exatamente os 6 grupos, na ordem aprovada", () => {
+    expect(GRUPOS_DESK).toHaveLength(6);
+    expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([
       "/painel",
+      "/leads",
       "/casos",
-      "/tarefas",
-      "/matriz-juridica",
-      "/qualidade",
-      "/alertas",
       "/biblioteca",
+      "/contratos",
+      "/configuracoes",
     ]);
   });
 
-  it("não promove Marketing, Comercial, Pesquisa, Contratos nem Cliente a primeiro nível", () => {
+  it("não volta ao mockup de 14 abas nem às 7 telas como sidebar", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
-      "visao-geral",
+      "hoje",
+      "comercial",
       "casos",
-      "checklist",
-      "validacao",
-      "radar",
-      "alertas",
-      "biblioteca",
+      "pesquisa",
+      "contratos",
+      "governanca",
     ]);
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Marketing");
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Comercial");
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Pesquisa");
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Contratos e financeiro");
-    expect(GRUPOS_DESK.map((g) => g.label)).not.toContain("Cliente");
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
+    expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("checklist");
   });
 
-  it("mantém o trabalho operacional como submenu da tela certa", () => {
+  it("mantém o trabalho operacional no grupo certo, sem sobreposição", () => {
     const rotas = (id: string) =>
       GRUPOS_DESK.find((g) => g.id === id)!
         .sub.filter((s) => "to" in s)
         .map((s) => s.to);
-    expect(rotas("visao-geral")).toEqual(
+    expect(rotas("comercial")).toEqual(
       expect.arrayContaining(["/calls", "/leads", "/marketing", "/propostas", "/conversao"]),
     );
     expect(rotas("casos")).toEqual(
-      expect.arrayContaining([
-        "/contratos",
-        "/clientes",
-        "/acessos-portal",
-        "/app-cliente-como-pessoa",
-      ]),
+      expect.arrayContaining(["/clientes", "/acessos-portal", "/app-cliente-como-pessoa"]),
     );
-    expect(rotas("checklist")).toContain("/tarefas");
-    expect(rotas("biblioteca")).toEqual(
-      expect.arrayContaining(["/pesquisa-modulo", "/pesquisa", "/evidencias"]),
+    expect(rotas("casos")).not.toContain("/contratos");
+    expect(rotas("contratos")).toContain("/contratos");
+    expect(rotas("pesquisa")).toEqual(
+      expect.arrayContaining(["/pesquisa-modulo", "/pesquisa", "/evidencias", "/matriz-juridica"]),
     );
+    expect(destinosSobrepostos()).toEqual([]);
   });
 
   it("não perde rota preservada e não duplica destino dentro do grupo", () => {
@@ -71,17 +64,19 @@ describe("Desk Intelligence — face do mockup de 17 páginas", () => {
     for (const r of ROTAS_PRESERVADAS) expect(rotasDoMenu()).toContain(r);
   });
 
-  it("Painel de Calls permanece na face da Visão Geral; consulta de legado fica na conta", () => {
-    const visao = GRUPOS_DESK.find((g) => g.id === "visao-geral")!;
-    expect(visao.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
+  it("Painel de Calls fica no Comercial; legado e DEMO ficam fora da fila do dia", () => {
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(comercial.sub.some((s) => "to" in s && s.to === "/calls")).toBe(true);
     const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => s.to);
-    expect(conta).toContain("/crm-mestre");
     expect(conta).toContain("/app-cliente-demo");
     expect(conta).not.toContain("/pesquisa");
+    expect(conta).not.toContain("/crm-mestre");
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    expect(gov.sub.some((s) => "to" in s && s.to === "/crm-mestre")).toBe(true);
   });
 
-  it("dossiê /pesquisa é o repositório do Legado, dentro da Biblioteca Mestre", () => {
-    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+  it("dossiê /pesquisa é o repositório do Legado, dentro da Inteligência", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     const item = bib.sub.find((s) => "to" in s && s.to === "/pesquisa") as { label: string };
     expect(item.label).toMatch(/Legado/i);
   });

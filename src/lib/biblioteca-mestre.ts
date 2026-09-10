@@ -23,6 +23,8 @@ export interface SubareaBibliotecaMeta {
   dimensoes: readonly string[];
   /** Regra interna aplicada à subárea (sanitização, exposição, revisão). */
   regra: string;
+  /** Falso quando a subárea existe no registro mas some da face operacional. */
+  naFace?: boolean;
 }
 
 export const SUBAREAS_BIBLIOTECA: readonly SubareaBibliotecaMeta[] = [
@@ -83,6 +85,7 @@ export const SUBAREAS_BIBLIOTECA: readonly SubareaBibliotecaMeta[] = [
     finalidade: "Produtos homologados com escopo, condição, preço vigente e histórico.",
     dimensoes: ["SKU", "Escopo", "Condição comercial", "Preço vigente", "Histórico de preço"],
     regra: "Catálogo é interno: nada aqui é exposto ao App Cliente.",
+    naFace: false,
   },
   {
     chave: "mapas",

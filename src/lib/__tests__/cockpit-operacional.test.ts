@@ -7,16 +7,15 @@ import { INDICADORES_CANONICOS } from "@/lib/fontes-canonicas-indicadores";
 const ler = (p: string) => readFileSync(p, "utf8");
 
 describe("Cockpit — Visão Geral opera, Calls grava, Caso 360 sintetiza", () => {
-  it("as 7 telas do Desk permanecem; não volta o mockup de 14 abas", () => {
-    expect(GRUPOS_DESK).toHaveLength(7);
+  it("os 6 grupos do Desk permanecem; não volta o mockup de 14 abas", () => {
+    expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
-      "visao-geral",
+      "hoje",
+      "comercial",
       "casos",
-      "checklist",
-      "validacao",
-      "radar",
-      "alertas",
-      "biblioteca",
+      "pesquisa",
+      "contratos",
+      "governanca",
     ]);
   });
 
@@ -28,9 +27,19 @@ describe("Cockpit — Visão Geral opera, Calls grava, Caso 360 sintetiza", () =
     expect(painel).toContain('to="/calls"');
   });
 
+  it("o topo do Hoje usa KPIs vivos e tira receita e conversão da face", () => {
+    const painel = ler("src/components/painel/painel-dia.tsx");
+    expect(painel).toContain('rotulo="Alertas pendentes"');
+    expect(painel).toContain("qAlertas.isSuccess");
+    expect(painel).toContain('rotulo="Leads sem próxima ação"');
+    expect(painel).toContain('rotulo="Exceções e bloqueios"');
+    expect(painel).not.toContain('rotulo="Receita do mês"');
+    expect(painel).not.toContain('rotulo="Taxa de conversão"');
+  });
+
   it("indicadores canônicos de vencidos e sem responsável abrem a lista, não o próprio painel", () => {
     expect(INDICADORES_CANONICOS.find((i) => i.indicador === "Vencidos e vence hoje")?.rotaAcao).toBe(
-      "/tarefas",
+      "/calls",
     );
     expect(INDICADORES_CANONICOS.find((i) => i.indicador === "Sem responsável")?.rotaAcao).toBe("/casos");
   });

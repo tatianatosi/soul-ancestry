@@ -1,17 +1,12 @@
 /**
- * NAVEGAÇÃO CANÔNICA DO DESK — mockup de 17 páginas (7 telas)
+ * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
  *
- * A face do produto é a sidebar do mockup aprovado:
- * Visão Geral, Casos 360, Checklist, Validação Jurídica,
- * Radar Interno, Alertas, Biblioteca Mestre.
+ * Hoje · Marketing & Comercial · Pessoas & Casos · Inteligência & Pesquisa ·
+ * Formalização & Financeiro · Governança & Administração.
  *
- * CA-UX-03 (8 grupos) permanece como camada operacional interna: Marketing,
- * Comercial, Pesquisa, Contratos e Cliente não competem como primeiro nível.
- * Nenhuma rota operacional some — mora como submenu da tela certa ou no
- * menu da conta. URLs não mudam.
- *
- * Fonte visual: clube-ancestral-mockup (17 páginas).
- * Taxonomia: docs/politicas/TAXONOMIA-CANONICA-MOCKUP-APROVADO.md
+ * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
+ * moram na Formalização. Planilha Mestre, Top 30 e Catálogo 30 ficam só em
+ * Governança (legado). URLs não mudam. Nenhuma rota operacional some.
  */
 
 export type ItemNav =
@@ -25,19 +20,18 @@ export type GrupoDesk = {
   /** Descrição curta e humana exibida no menu e no topo do grupo. */
   descricao: string;
   icone:
-    | "visao-geral"
+    | "hoje"
+    | "comercial"
     | "casos"
-    | "checklist"
-    | "validacao"
-    | "radar"
-    | "alertas"
-    | "biblioteca";
+    | "pesquisa"
+    | "contratos"
+    | "governanca";
 
   agrupador?: boolean;
   sub: readonly ItemNav[];
 };
 
-/** Ordem e nomes da sidebar do mockup de 17 páginas. Trava de regressão da face. */
+/** Nomes das 7 telas do mockup — taxonomia visual, não a sidebar. */
 export const TELAS_DESK_MOCKUP = [
   "Visão Geral",
   "Casos 360",
@@ -48,55 +42,66 @@ export const TELAS_DESK_MOCKUP = [
   "Biblioteca Mestre",
 ] as const;
 
+export const GRUPOS_OPERACIONAIS_DESK = [
+  "Hoje",
+  "Marketing & Comercial",
+  "Pessoas & Casos",
+  "Inteligência & Pesquisa",
+  "Formalização & Financeiro",
+  "Governança & Administração",
+] as const;
+
 export const GRUPOS_DESK: readonly GrupoDesk[] = [
   {
-    id: "visao-geral",
+    id: "hoje",
     to: "/painel",
-    label: "Visão Geral",
-    descricao: "O que precisa de ação hoje — KPIs, funil, Calls e prioridades.",
-    icone: "visao-geral",
-    agrupador: true,
+    label: "Hoje",
+    descricao: "O que precisa de decisão agora — fila, alertas, bloqueios e próximos prazos.",
+    icone: "hoje",
     sub: [
-      { grupo: "Cockpit" },
       { to: "/painel", label: "Painel Hoje" },
       { to: "/painel", hash: "encontrar-no-desk", label: "Encontrar no Desk" },
-      { grupo: "Funil e Calls" },
-      { to: "/calls", label: "Painel de Calls" },
+      { to: "/alertas", label: "Alertas" },
+    ],
+  },
+  {
+    id: "comercial",
+    to: "/leads",
+    label: "Marketing & Comercial",
+    descricao: "Origem da demanda, Calls, Discovery, proposta e conversão — CRM Vivo.",
+    icone: "comercial",
+    agrupador: true,
+    sub: [
+      { grupo: "Aquisição" },
+      { to: "/marketing", label: "Marketing e aquisição" },
+      { grupo: "CRM Vivo" },
       { to: "/leads", label: "Leads e triagem" },
+      { to: "/calls", label: "Painel de Calls" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
-      { to: "/marketing", label: "Marketing e aquisição" },
-      { grupo: "Leitura" },
-      { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { to: "/relatorios", label: "Relatórios" },
+      { to: "/proximas-acoes", label: "Próximas ações dos leads" },
     ],
   },
   {
     id: "casos",
     to: "/casos",
-    label: "Casos 360",
-    descricao: "Carteira, saúde do caso, pessoa, contrato, portal e App como pessoa.",
+    label: "Pessoas & Casos",
+    descricao: "Pessoa, núcleo, caso, jornada, checklist e radar — sem copiar contrato nem pesquisa.",
     icone: "casos",
     agrupador: true,
     sub: [
       { grupo: "Carteira" },
       { to: "/casos", label: "Casos 360" },
-      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
       { to: "/nucleos", label: "Núcleos familiares e dossiê-mãe" },
       { to: "/nucleos-duplicidades", label: "Possíveis núcleos duplicados" },
       { to: "/clientes", label: "Clientes e pessoa 360" },
-      { grupo: "Formalização" },
-      { to: "/contratos", label: "Contratos, versões e anexos" },
-      { to: "/contrato-parametros", label: "Parâmetros contratuais" },
-      { to: "/ordens-servico", label: "Ordens de serviço" },
-      { to: "/catalogo", label: "Catálogo e SKUs" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
-      { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
-      { grupo: "App Cliente" },
+      { grupo: "Trabalho do caso" },
+      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
+      { to: "/ops", label: "Operação" },
+      { to: "/ops-excecoes", label: "Exceções operacionais" },
+      { to: "/qualidade", label: "Radar Interno e Qualidade" },
+      { to: "/casos", hash: "jornada", label: "Fechamento e ativação do caso" },
+      { grupo: "Portal" },
       { to: "/acessos-portal", label: "Acessos ao portal e App Cliente" },
       { to: "/atendimento", label: "Atendimento e solicitações de documentos" },
       { to: "/atendimento", hash: "publicacao", label: "Publicação de entregas autorizadas" },
@@ -104,52 +109,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     ],
   },
   {
-    id: "checklist",
-    to: "/tarefas",
-    label: "Checklist",
-    descricao: "Tarefas por prioridade, operação, exceções e próximas ações.",
-    icone: "checklist",
-    agrupador: true,
-    sub: [
-      { to: "/tarefas", label: "Checklist (tarefas e entregas internas)" },
-      { to: "/proximas-acoes", label: "Próximas ações" },
-      { to: "/ops", label: "Operação" },
-      { to: "/ops-excecoes", label: "Exceções operacionais" },
-    ],
-  },
-  {
-    id: "validacao",
-    to: "/matriz-juridica",
-    label: "Validação Jurídica",
-    descricao: "Elegibilidade e parecer jurídico por caso, decisão humana.",
-    icone: "validacao",
-    sub: [{ to: "/matriz-juridica", label: "Validação Jurídica" }],
-  },
-  {
-    id: "radar",
-    to: "/qualidade",
-    label: "Radar Interno",
-    descricao: "Matriz de prioridade e radares individuais da carteira.",
-    icone: "radar",
-    sub: [{ to: "/qualidade", label: "Radar Interno e Qualidade" }],
-  },
-  {
-    id: "alertas",
-    to: "/alertas",
-    label: "Alertas",
-    descricao: "Gestão de achados e notificações — sinal sem duplicar tarefa.",
-    icone: "alertas",
-    sub: [{ to: "/alertas", label: "Alertas" }],
-  },
-  {
-    id: "biblioteca",
+    id: "pesquisa",
     to: "/biblioteca",
-    label: "Biblioteca Mestre",
-    descricao: "Produção de conteúdo por caso, pesquisa, dossiê do Legado e referências.",
-    icone: "biblioteca",
+    label: "Inteligência & Pesquisa",
+    descricao: "Biblioteca Mestre, bases genealógicas, evidências, dossiê do Legado e trilhas.",
+    icone: "pesquisa",
     agrupador: true,
     sub: [
-      { grupo: "Produção por caso" },
+      { grupo: "Centro de inteligência" },
       { to: "/biblioteca", label: "Biblioteca Mestre" },
       { to: "/pesquisa-modulo", label: "Pesquisa Genealógica e Evidências" },
       { to: "/pesquisa", label: "Dossiê e repositório do Legado" },
@@ -158,25 +125,65 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/fontes-genealogicas", label: "Fontes, consultas e bases genealógicas" },
       { to: "/evidencias", label: "Evidências e documentos" },
       { to: "/privacidade", label: "Privacidade e consentimento" },
-      { to: "/nucleos", hash: "pessoas-linhagens", label: "Pessoas, famílias e ramos" },
-      { grupo: "Referência" },
+      { grupo: "Trilha" },
+      { to: "/matriz-juridica", label: "Validação Jurídica" },
       { to: "/biblioteca-mensagens", label: "Biblioteca de Mensagens" },
+      { to: "/relatorios", label: "Relatórios" },
+    ],
+  },
+  {
+    id: "contratos",
+    to: "/contratos",
+    label: "Formalização & Financeiro",
+    descricao: "Contrato vivo, matrizes individual/casal/familiar, catálogo homologado e financeiro.",
+    icone: "contratos",
+    agrupador: true,
+    sub: [
+      { grupo: "Formalização" },
+      { to: "/contratos", label: "Contratos, versões e anexos" },
+      { to: "/contrato-parametros", label: "Parâmetros contratuais" },
+      { to: "/ordens-servico", label: "Ordens de serviço" },
+      { grupo: "Matrizes de composição" },
       { to: "/governanca/contrato-base", label: "Contrato-base consolidado" },
       { to: "/governanca/modelo-individual", label: "Modelo individual + acompanhante" },
       { to: "/governanca/modelo-familiar-casal", label: "Modelo familiar — casal" },
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
-      { grupo: "Integrações" },
+      { grupo: "Catálogo e financeiro" },
+      { to: "/catalogo", label: "Catálogo homologado" },
+      { to: "/homologacao-skus", label: "Homologação de SKUs" },
+      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
+      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
+      { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
+      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
+      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
+    ],
+  },
+  {
+    id: "governanca",
+    to: "/configuracoes",
+    label: "Governança & Administração",
+    descricao: "Papéis, legado arquivado, integrações, DEMO e o que não decide o dia.",
+    icone: "governanca",
+    agrupador: true,
+    sub: [
+      { grupo: "Administração" },
+      { to: "/configuracoes", label: "Configurações e preferências" },
+      { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
+      { to: "/etiquetas", label: "Etiquetas canônicas" },
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
+      { to: "/metricas", label: "Métricas comerciais e operacionais" },
+      { grupo: "Legado (arquivo)" },
+      { to: "/crm-mestre", label: "CRM Mestre (legado)" },
+      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM (legado)" },
+      { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
     ],
   },
 ] as const;
 
 /**
- * Menu da conta (não é grupo principal, não é nona aba).
- * Configurações, Equipe, Perfis/Preferências e verificação administrativa saem
- * da navegação principal e passam a viver no menu da conta / Modo Proprietária,
- * com exatamente as mesmas rotas e as mesmas permissões de antes.
+ * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
+ * em Governança & Administração. Não é nona aba.
  */
 export const MENU_CONTA: {
   id: "conta";
@@ -186,22 +193,8 @@ export const MENU_CONTA: {
 } = {
   id: "conta",
   label: "Conta e administração",
-  descricao: "Modo Proprietária, equipe, papéis, configurações e verificação de segurança.",
-  itens: [
-    { to: "/equipe", label: "Equipe e papéis", adminOnly: true },
-    { to: "/configuracoes", label: "Configurações e preferências" },
-    { to: "/etiquetas", label: "Etiquetas canônicas" },
-    { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
-    { to: "/crm-mestre", label: "CRM Mestre (legado, consulta)" },
-    {
-      to: "/governanca/dicionario-calls-crm",
-      label: "Dicionário Calls → CRM (consulta)",
-    },
-    {
-      to: "/governanca/catalogo-operacional-30",
-      label: "Catálogo operacional 30 (consulta)",
-    },
-  ],
+  descricao: "Sessão DEMO do App Cliente — dado fictício, fora da operação.",
+  itens: [{ to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" }],
 } as const;
 
 /**
@@ -291,7 +284,7 @@ export function rotasDoMenu(): string[] {
   return [...set];
 }
 
-/** Rotas presentes apenas no menu da conta (fora dos 8 grupos principais). */
+/** Rotas presentes apenas no menu da conta (fora dos 6 grupos principais). */
 export function rotasDoMenuConta(): string[] {
   return MENU_CONTA.itens.flatMap((s) => ("to" in s ? [s.to] : []));
 }
@@ -321,10 +314,26 @@ export function destinosDuplicados(): string[] {
   return dup;
 }
 
-/** Links contextuais: mesma rota citada em mais de um grupo, de forma explícita. */
-export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [
-  { rota: "/nucleos", origem: "Casos 360", tambemEm: ["Biblioteca Mestre"] },
-] as const;
+/**
+ * Mesmo destino (rota + hash) citado em mais de um grupo. Com os 6 grupos
+ * sem sobreposição, a lista deve ficar vazia.
+ */
+export function destinosSobrepostos(): string[] {
+  const visto = new Map<string, string[]>();
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if (!("to" in s)) continue;
+      const chave = `${s.to}#${s.hash ?? ""}`;
+      const grupos = visto.get(chave) ?? [];
+      grupos.push(g.id);
+      visto.set(chave, grupos);
+    }
+  }
+  return [...visto.entries()].filter(([, grupos]) => grupos.length > 1).map(([chave]) => chave);
+}
+
+/** Sem atalhos cruzados: cada rota mora em um único grupo. */
+export const LINKS_CONTEXTUAIS: readonly { rota: string; origem: string; tambemEm: string[] }[] = [];
 
 /**
  * O grupo onde a rota mora, quando ela está sendo citada de fora dele.

@@ -74,15 +74,14 @@ describe("atalhos de descoberta", () => {
 });
 
 describe("superfícies preservadas", () => {
-  it("mantém as 7 telas do mockup na navegação do Desk", () => {
+  it("mantém os 6 grupos na navegação do Desk", () => {
     const grupos = [
-      "Visão Geral",
-      "Casos 360",
-      "Checklist",
-      "Validação Jurídica",
-      "Radar Interno",
-      "Alertas",
-      "Biblioteca Mestre",
+      "Hoje",
+      "Marketing & Comercial",
+      "Pessoas & Casos",
+      "Inteligência & Pesquisa",
+      "Formalização & Financeiro",
+      "Governança & Administração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
     expect(shell).toContain("GRUPOS_DESK");

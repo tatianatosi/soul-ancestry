@@ -6,10 +6,8 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
-  ListChecks,
   Scale,
   Target,
-  Bell,
   Library,
   LogOut,
   Menu,
@@ -97,13 +95,12 @@ type SecaoNav = {
 };
 
 const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
-  "visao-geral": LayoutDashboard,
+  hoje: LayoutDashboard,
+  comercial: Target,
   casos: FolderOpen,
-  checklist: ListChecks,
-  validacao: Scale,
-  radar: Target,
-  alertas: Bell,
-  biblioteca: Library,
+  pesquisa: Library,
+  contratos: Scale,
+  governanca: ShieldCheck,
 };
 
 const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({

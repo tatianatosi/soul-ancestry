@@ -319,11 +319,18 @@ export function PainelDia() {
     queryFn: () => carregarChecklistJuridico({ data: { incluirDemo } }),
     retry: false,
   });
+  const carregarAlertas = useServerFn(listarAlertas);
+  const qAlertas = useQuery({
+    queryKey: ["alertas-pendentes-hoje"],
+    queryFn: () => carregarAlertas({ data: { status: "pending" } }),
+    retry: false,
+  });
   const leiturasSecundarias = [
     { rotulo: "cadência dos casos", q: qCad },
     { rotulo: "bloqueios de catálogo", q: qCatalogo },
     { rotulo: "checklist jurídico", q: qJuridico },
     { rotulo: "estado de acesso do painel", q: qModo },
+    { rotulo: "alertas pendentes", q: qAlertas },
   ].filter((l) => l.q.isError);
 
   const instrumentosJuridico = (qJuridico.data?.instrumentos ?? []) as any[];
@@ -694,11 +701,11 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls abre o funil da Visão Geral: gravar a call e recarregar.{" "}
+        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
           Abrir Painel de Calls
         </Link>
-        . CRM Mestre, dicionário e Catálogo 30 ficam na conta, no rodapé da barra. Campo com
+        . CRM Mestre, dicionário e Catálogo 30 ficam em Governança, no arquivo. Campo com
         pendência continua editável — a gravação é revalidada no servidor.
       </p>
 
@@ -723,31 +730,31 @@ export function PainelDia() {
           >
             <CardIndicador
               rotulo="Alertas pendentes"
-              valor={null}
+              valor={qAlertas.isSuccess ? (qAlertas.data ?? []).length : null}
               apoio="Abrir a lista em Alertas"
               tom="atencao"
             />
           </Link>
           <Link
-            to="/financeiro"
+            to="/calls"
             className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             <CardIndicador
-              rotulo="Receita do mês"
-              valor={null}
-              apoio="Sem dados suficientes"
-              tom="neutro"
+              rotulo="Leads sem próxima ação"
+              valor={qtd("leads_sem_proxima_acao")}
+              apoio="Abrir no Painel de Calls"
+              tom={qtd("leads_sem_proxima_acao") ? "atencao" : "neutro"}
             />
           </Link>
           <Link
-            to="/leads"
+            to="/ops-excecoes"
             className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             <CardIndicador
-              rotulo="Taxa de conversão"
-              valor={null}
-              apoio="Sem dados suficientes — abrir funil"
-              tom="neutro"
+              rotulo="Exceções e bloqueios"
+              valor={cards.find((c) => c.chave === "excecoes_criticas")?.total ?? 0}
+              apoio="Abrir exceções operacionais"
+              tom={cards.find((c) => c.chave === "excecoes_criticas")?.total ? "critico" : "neutro"}
             />
           </Link>
         </div>

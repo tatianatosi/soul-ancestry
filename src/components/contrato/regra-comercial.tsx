@@ -129,7 +129,7 @@ export function RegraComercial({ caseId }: { caseId: string }) {
         </div>
       </Painel>
 
-      <Painel titulo="Preço e condição do SKU — Planilha Mestre">
+      <Painel titulo="Preço e condição do SKU — catálogo homologado">
         {isLoading && <p className="text-sm text-navy/60">Conferindo…</p>}
         {!isLoading && (
           <div className="space-y-2 text-sm text-navy/80">

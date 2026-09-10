@@ -26,15 +26,15 @@ describe("rota do menu sem colisão de prefixo", () => {
   });
 
   it("atalho não doura o grupo errado", () => {
-    const biblioteca = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
-    const validacao = GRUPOS_DESK.find((g) => g.id === "validacao")!;
-    expect(grupoNavAtivo("/matriz-juridica", "", biblioteca)).toBe(false);
-    expect(grupoNavAtivo("/matriz-juridica", "", validacao)).toBe(true);
-    expect(grupoNavAtivo("/pesquisa-modulo", "", biblioteca)).toBe(true);
+    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
+    expect(grupoNavAtivo("/matriz-juridica", "", comercial)).toBe(false);
+    expect(grupoNavAtivo("/matriz-juridica", "", pesquisa)).toBe(true);
+    expect(grupoNavAtivo("/pesquisa-modulo", "", pesquisa)).toBe(true);
   });
 
-  it("o grupo Biblioteca Mestre entra no módulo vivo e no dossiê do Legado", () => {
-    const bib = GRUPOS_DESK.find((g) => g.id === "biblioteca")!;
+  it("o grupo Inteligência entra no módulo vivo e no dossiê do Legado", () => {
+    const bib = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
     expect(bib.to).toBe("/biblioteca");
     const rotas = bib.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/pesquisa-modulo");

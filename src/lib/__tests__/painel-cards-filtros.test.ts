@@ -93,7 +93,7 @@ describe("cards e filtros do Painel Hoje", () => {
       expect(c.destino).not.toBe("/painel");
       expect(c.acao.length).toBeGreaterThan(8);
     }
-    expect(cards.find((c) => c.chave === "acoes_vencidas")?.destino).toBe("/tarefas");
+    expect(cards.find((c) => c.chave === "acoes_vencidas")?.destino).toBe("/calls");
     expect(cards.find((c) => c.chave === "sem_responsavel")?.destino).toBe("/casos");
   });
 

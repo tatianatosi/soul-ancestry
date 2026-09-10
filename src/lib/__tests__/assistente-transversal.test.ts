@@ -15,16 +15,15 @@ const CASO = "11111111-2222-3333-4444-555555555555";
 const OUTRO = "99999999-8888-7777-6666-555555555555";
 
 describe("CA-UX-03 adendo — Assistente transversal", () => {
-  it("1. cobre exatamente as 7 telas do mockup, sem oitava aba", () => {
-    expect(REGRAS_ASSISTENTE).toHaveLength(7);
+  it("1. cobre exatamente os 6 grupos, sem sétima aba", () => {
+    expect(REGRAS_ASSISTENTE).toHaveLength(6);
     expect(REGRAS_ASSISTENTE.map((r) => r.grupo)).toEqual([
-      "visao-geral",
+      "hoje",
+      "comercial",
       "casos",
-      "checklist",
-      "validacao",
-      "radar",
-      "alertas",
-      "biblioteca",
+      "pesquisa",
+      "contratos",
+      "governanca",
     ]);
   });
 
@@ -92,24 +91,24 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
 
   it("8. grupos sem análise por caso jamais entram em modo de análise", () => {
     for (const regra of REGRAS_ASSISTENTE.filter((r) => !r.analisaCaso)) {
-      const rota = regra.grupo === "visao-geral" ? "/painel" : "/alertas";
+      const rota = regra.grupo === "hoje" ? "/painel" : "/alertas";
       const e = estadoAssistente({ rota, confirmado: { casoId: CASO, rota } });
       if (!e.regra.analisaCaso) expect(e.podeAnalisarCaso).toBe(false);
     }
   });
 
   it("resolve o grupo pela rota usando o registro canônico de navegação", () => {
-    expect(grupoDaRota("/painel")).toBe("visao-geral");
-    expect(grupoDaRota("/leads")).toBe("visao-geral");
+    expect(grupoDaRota("/painel")).toBe("hoje");
+    expect(grupoDaRota("/leads")).toBe("comercial");
     expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
-    expect(grupoDaRota("/pesquisa-modulo")).toBe("biblioteca");
-    expect(grupoDaRota("/financeiro")).toBe("casos");
-    expect(grupoDaRota("/equipe")).toBe("biblioteca");
-    expect(grupoDaRota("/marketing")).toBe("visao-geral");
+    expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
+    expect(grupoDaRota("/financeiro")).toBe("contratos");
+    expect(grupoDaRota("/equipe")).toBe("governanca");
+    expect(grupoDaRota("/marketing")).toBe("comercial");
   });
 
   it("atalhos apontam apenas para rotas já existentes do grupo", () => {
-    const atalhos = atalhosDoGrupo("visao-geral");
+    const atalhos = atalhosDoGrupo("hoje");
     expect(atalhos.length).toBeGreaterThan(0);
     for (const a of atalhos) expect(a.to.startsWith("/")).toBe(true);
   });
