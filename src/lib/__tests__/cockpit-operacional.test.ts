@@ -55,6 +55,15 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     expect(calls).toContain('invalidateQueries({ queryKey: ["painel-desk-hoje"] })');
     expect(calls).toContain("void refetch()");
     expect(calls).toContain("Gravar registro da call");
+    expect(calls).toContain("data-mesa-discovery");
+    expect(calls).toContain("spinDerivadoDoLead");
+  });
+
+  it("o Hoje declara as três camadas: abas, Mesa de Discovery e KPIs de decisão", () => {
+    const painel = ler("src/components/painel/painel-dia.tsx");
+    expect(painel).toContain("parado, vencido ou pede decisão");
+    expect(painel).toContain("Mesa de Discovery");
+    expect(ler("src/lib/navegacao-desk.ts")).toContain("Painel de Calls — Mesa de Discovery");
   });
 
   it("Caso 360 mantém síntese no topo, Radar do caso e recolhe o restante técnico", () => {

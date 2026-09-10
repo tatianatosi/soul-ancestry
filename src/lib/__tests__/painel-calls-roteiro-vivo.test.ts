@@ -12,9 +12,14 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).not.toContain('titulo="Qualificação preliminar"');
   });
 
-  it("o roteiro deduplica campos repetidos entre blocos — cada campo aparece um único card", () => {
-    expect(painel).toContain("jaRenderizado");
-    expect(painel).toMatch(/jaRenderizado\.has\(c\)/);
+  it("a Mesa de Discovery caminha uma pergunta por vez e deriva o SPIN das respostas", () => {
+    expect(painel).toContain("PERGUNTAS_MESA");
+    expect(painel).toContain("spinDerivadoDoLead");
+    expect(painel).toContain("data-mesa-discovery");
+    expect(painel).toContain("salvarLeadDesk");
+    expect(painel).toContain("id: selecionado");
+    expect(painel).not.toContain("ROTEIRO_DISCOVERY.map");
+    expect(painel).not.toContain("jaRenderizado");
   });
 
   it("gravar rascunho da call não exige o roteiro inteiro (mesma trava de sempre)", () => {
@@ -52,7 +57,7 @@ describe("Painel de Calls — mesa de Discovery (CA02-CRM-VIVO-PAINEL-CALLS)", (
     expect(painel).toContain("Uso interno de triagem. Não apresentar como parecer, garantia de direito, prazo ou instrução ao cliente.");
   });
 
-  it("cards do roteiro usam grid responsivo (uma coluna no celular, duas a partir de md)", () => {
-    expect(painel).toContain('className="mt-3 grid gap-2 md:grid-cols-2"');
+  it("pergunta com dois ou mais campos usa grid a partir de md; pergunta única fica em uma coluna", () => {
+    expect(painel).toContain('camposDoCard.length > 1 ? "md:grid-cols-2"');
   });
 });

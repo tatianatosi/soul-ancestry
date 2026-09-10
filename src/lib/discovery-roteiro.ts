@@ -113,6 +113,250 @@ export const ROTEIRO_DISCOVERY: BlocoRoteiro[] = [
   },
 ];
 
+export type EtapaSpin = "situacao" | "problema" | "implicacao" | "necessidade";
+
+export const ETAPAS_SPIN: readonly {
+  chave: EtapaSpin;
+  rotulo: string;
+  paraQue: string;
+}[] = [
+  {
+    chave: "situacao",
+    rotulo: "Situação",
+    paraQue: "O que já está acontecendo: objetivo, país, quem participa e a linha familiar.",
+  },
+  {
+    chave: "problema",
+    rotulo: "Problema",
+    paraQue: "A dor ou lacuna objetiva: documento incerto, ruptura, o que falta confirmar.",
+  },
+  {
+    chave: "implicacao",
+    rotulo: "Implicação",
+    paraQue: "O que muda se não estruturar: via, complexidade, idioma, pesquisa prévia.",
+  },
+  {
+    chave: "necessidade",
+    rotulo: "Necessidade",
+    paraQue: "O valor verbalizado e o próximo passo: intenção, objeção, resultado e prazo.",
+  },
+];
+
+/**
+ * Uma pergunta da Mesa = um card. SPIN é a ordem da conversa, não checkbox.
+ * Campos já existiam no lead; cada pergunta aponta para o destino único.
+ */
+export type PerguntaMesa = {
+  id: string;
+  etapa: EtapaSpin;
+  bloco: BlocoRoteiro["chave"];
+  pergunta: string;
+  campos: readonly string[];
+};
+
+export const PERGUNTAS_MESA: readonly PerguntaMesa[] = [
+  {
+    id: "objetivo",
+    etapa: "situacao",
+    bloco: "abertura",
+    pergunta: "O que você gostaria de organizar, esclarecer ou viabilizar neste momento?",
+    campos: ["objetivo"],
+  },
+  {
+    id: "nacionalidades",
+    etapa: "situacao",
+    bloco: "abertura",
+    pergunta:
+      "Seu interesse está mais ligado a cidadania, origem familiar, documentos, memória ou uma combinação desses objetivos?",
+    campos: ["nacionalidades_interesse"],
+  },
+  {
+    id: "pais_partida",
+    etapa: "situacao",
+    bloco: "abertura",
+    pergunta: "Há algum país, pessoa da família ou história que aparece como ponto de partida?",
+    campos: ["pais_linha_prioritaria"],
+  },
+  {
+    id: "participantes",
+    etapa: "situacao",
+    bloco: "abertura",
+    pergunta: "Quem participa dessa decisão e quem pode estar envolvido na jornada?",
+    campos: ["estrutura_familiar", "requerentes_potenciais"],
+  },
+  {
+    id: "ascendente",
+    etapa: "situacao",
+    bloco: "linha_familiar",
+    pergunta: "Quem é o ascendente que conecta a família a esse país?",
+    campos: ["geracao_ascendente"],
+  },
+  {
+    id: "o_que_ja_sabem",
+    etapa: "situacao",
+    bloco: "linha_familiar",
+    pergunta: "O que vocês já sabem sobre nome, localidade, data e parentesco dessa pessoa?",
+    campos: ["localidades_conhecidas"],
+  },
+  {
+    id: "linha",
+    etapa: "situacao",
+    bloco: "linha_familiar",
+    pergunta: "Essa linha parece paterna, materna ou ainda precisa ser confirmada?",
+    campos: ["linha_transmissao"],
+  },
+  {
+    id: "ruptura",
+    etapa: "problema",
+    bloco: "linha_familiar",
+    pergunta:
+      "Há casamento, mudança de nome, migração, naturalização, adoção, reconhecimento ou outra situação que mereça atenção?",
+    campos: ["risco_ruptura"],
+  },
+  {
+    id: "docs_em_maos",
+    etapa: "problema",
+    bloco: "documentos",
+    pergunta: "Quais documentos a família já possui ou sabe onde localizar?",
+    campos: ["estado_documental_inicial", "documentos_chave"],
+  },
+  {
+    id: "incerteza",
+    etapa: "problema",
+    bloco: "documentos",
+    pergunta: "Qual certidão, nome, data, local ou vínculo parece mais incerto?",
+    campos: ["pendencia_documental_prioritaria"],
+  },
+  {
+    id: "via_investigada",
+    etapa: "implicacao",
+    bloco: "trilha",
+    pergunta: "Vocês já investigaram alguma via ou país específico?",
+    campos: ["via_juridica_preliminar", "trilha_referencia_id", "marco_referencia_id"],
+  },
+  {
+    id: "idioma",
+    etapa: "implicacao",
+    bloco: "trilha",
+    pergunta: "Existe idioma, entrevista, deslocamento ou exigência externa que possa influenciar a jornada?",
+    campos: ["exige_idioma_entrevista"],
+  },
+  {
+    id: "pesquisa_previa",
+    etapa: "implicacao",
+    bloco: "trilha",
+    pergunta: "Faz sentido registrar uma pesquisa prévia limitada? Qual seria o escopo?",
+    campos: ["pesquisa_previa_autorizacao", "pesquisa_previa_escopo"],
+  },
+  {
+    id: "revisao_juridica",
+    etapa: "implicacao",
+    bloco: "trilha",
+    pergunta:
+      "Há alguma informação que precise de revisão jurídica antes de ser apresentada como caminho possível?",
+    campos: ["status_via", "confianca_triagem", "complexidade_documental"],
+  },
+  {
+    id: "entender_para_decidir",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta: "O que você precisa entender para decidir com segurança?",
+    campos: ["nivel_intencao"],
+  },
+  {
+    id: "preocupacao",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta:
+      "Sua principal preocupação é investimento, documentos, tempo, família, confiança, idioma ou outra questão?",
+    campos: ["objecao_predominante"],
+  },
+  {
+    id: "proximo_passo",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta:
+      "Qual próximo passo seria mais útil agora: diagnóstico, checklist, documentos, proposta, nova conversa ou nutrição?",
+    campos: ["discovery_resultado", "proxima_acao", "proxima_acao_em"],
+  },
+  {
+    id: "dono_do_passo",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta: "Quem será responsável por esse próximo passo e qual prazo é realista?",
+    campos: ["responsavel_nome", "area_responsavel"],
+  },
+  {
+    id: "sinal_sintese",
+    etapa: "necessidade",
+    bloco: "decisao",
+    pergunta: "Qual é o sinal-síntese preliminar desta conversa — sem parecer nem garantia?",
+    campos: ["elegibilidade_preliminar"],
+  },
+];
+
+export function perguntaDaMesaPorCampo(campo: string): PerguntaMesa | undefined {
+  return PERGUNTAS_MESA.find((p) => p.campos.includes(campo));
+}
+
+export function perguntasDaEtapa(etapa: EtapaSpin): readonly PerguntaMesa[] {
+  return PERGUNTAS_MESA.filter((p) => p.etapa === etapa);
+}
+
+function valorCampoPreenchido(l: LeadDesk, campo: string): boolean {
+  const v = (l as unknown as Record<string, unknown>)[campo];
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== null && v !== undefined && String(v).trim() !== "";
+}
+
+export function perguntaRespondida(l: LeadDesk, p: PerguntaMesa): boolean {
+  return p.campos.some((c) => valorCampoPreenchido(l, c));
+}
+
+export type ProgressoSpin = {
+  chave: EtapaSpin;
+  rotulo: string;
+  preenchidas: number;
+  total: number;
+  completo: boolean;
+};
+
+export function progressoSpin(l: LeadDesk): ProgressoSpin[] {
+  return ETAPAS_SPIN.map((e) => {
+    const perguntas = perguntasDaEtapa(e.chave);
+    const preenchidas = perguntas.filter((p) => perguntaRespondida(l, p)).length;
+    return {
+      chave: e.chave,
+      rotulo: e.rotulo,
+      preenchidas,
+      total: perguntas.length,
+      completo: perguntas.length > 0 && preenchidas === perguntas.length,
+    };
+  });
+}
+
+/** Flags da tabela leads seguem a resposta da Mesa — não um checkbox solto. */
+export function spinDerivadoDoLead(l: LeadDesk): {
+  spin_situacao: boolean;
+  spin_problema: boolean;
+  spin_implicacao: boolean;
+  spin_necessidade: boolean;
+} {
+  const p = progressoSpin(l);
+  const de = (chave: EtapaSpin) => (p.find((x) => x.chave === chave)?.preenchidas ?? 0) > 0;
+  return {
+    spin_situacao: de("situacao"),
+    spin_problema: de("problema"),
+    spin_implicacao: de("implicacao"),
+    spin_necessidade: de("necessidade"),
+  };
+}
+
+export function indicePrimeiraPerguntaPendente(l: LeadDesk): number {
+  const i = PERGUNTAS_MESA.findIndex((p) => !perguntaRespondida(l, p));
+  return i < 0 ? 0 : i;
+}
+
 export type ProgressoBlocoRoteiro = { chave: string; titulo: string; preenchidos: number; total: number; completo: boolean };
 
 /**

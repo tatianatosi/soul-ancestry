@@ -61,7 +61,7 @@ import {
   type LeadDesk,
   type Opcao,
 } from "@/lib/crm-desk";
-import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
+import { progressoSpin, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
 import { formatarTelefone } from "@/lib/validacao-pessoa";
@@ -155,8 +155,6 @@ function LeadsPage() {
       }),
     [editado, marcos],
   );
-  const [roteiroAberto, setRoteiroAberto] = useState(false);
-
   const mutSalvar = useMutation({
     mutationFn: () => salvar({ data: { id: atual?.id ?? null, valores: rascunho } }),
     onSuccess: (r) => {
@@ -300,33 +298,16 @@ function LeadsPage() {
           {atual ? <DerivacaoJornada lead={editado} /> : null}
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
-            <button
-              type="button"
-              onClick={() => setRoteiroAberto((v) => !v)}
-              className="flex w-full items-center justify-between text-left"
-            >
-              <span className="text-sm font-medium text-navy">Roteiro vivo de Discovery</span>
-              <span className="text-xs text-navy/50">{roteiroAberto ? "recolher" : "expandir"}</span>
-            </button>
+            <p className="text-sm font-medium text-navy">Entrada comercial</p>
             <p className="mt-1 text-xs text-navy/55">
-              Guia contextual de perguntas. Não é formulário obrigatório e não conclui elegibilidade, rota, prazo, preço ou contrato — toda
-              leitura é preliminar e interna.
+              As perguntas SPIN vivem na Mesa de Discovery — um card por vez, sem checkbox. Esta ficha lê o que já foi gravado.
             </p>
-            {roteiroAberto ? (
-              <div className="mt-3 space-y-3">
-                {ROTEIRO_DISCOVERY.map((b) => (
-                  <div key={b.chave} className="rounded-lg border border-navy/10 bg-cream/40 p-3">
-                    <p className="text-sm font-medium text-navy">{b.titulo}</p>
-                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-navy/70">
-                      {b.perguntas.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2 text-[11px] uppercase tracking-wide text-navy/45">Alimenta: {b.campos.join(", ")}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <Link
+              to="/calls"
+              className="mt-2 inline-block text-xs font-medium text-navy underline decoration-gold underline-offset-2"
+            >
+              Abrir Mesa de Discovery
+            </Link>
           </div>
 
           <div className="rounded-xl border border-navy/10 bg-white p-4">
@@ -558,18 +539,20 @@ function LeadsPage() {
             </div>
           </Secao>
 
-          <Secao titulo="SPIN e registro da conversa" descricao="Gravação e transcrição só com consentimento explícito registrado.">
+          <Secao titulo="SPIN da Mesa de Discovery" descricao="Sai das respostas gravadas na Mesa. Não é checkbox. Gravação e transcrição só com consentimento explícito.">
+            <p className="mb-3 text-xs text-navy/60">
+              A entrada comercial vive em{" "}
+              <Link to="/calls" className="underline decoration-gold underline-offset-2">
+                Mesa de Discovery
+              </Link>
+              . Aqui só se lê o que já foi respondido.
+            </p>
             <div className="grid gap-3 md:grid-cols-2">
-              {[
-                ["spin_situacao", "Situação mapeada"],
-                ["spin_problema", "Problema explicitado"],
-                ["spin_implicacao", "Implicação discutida"],
-                ["spin_necessidade", "Necessidade de solução declarada"],
-              ].map(([k, label]) => (
-                <label key={k} className="flex items-center gap-2 text-sm text-navy">
-                  <input type="checkbox" checked={bool(k)} onChange={(e) => set(k)(e.target.checked)} />
-                  {label}
-                </label>
+              {progressoSpin(editado).map((e) => (
+                <p key={e.chave} className="rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy">
+                  {e.rotulo}: {e.preenchidas}/{e.total}
+                  {e.completo ? " — etapa coberta" : " — ainda em aberto"}
+                </p>
               ))}
               <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
             </div>

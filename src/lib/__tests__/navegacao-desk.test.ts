@@ -156,5 +156,10 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     const rotas = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/calls");
     expect(rotasDoMenu()).toContain("/calls");
+    expect(
+      comercial.sub.some(
+        (s) => "to" in s && s.to === "/calls" && s.label === "Painel de Calls — Mesa de Discovery",
+      ),
+    ).toBe(true);
   });
 });

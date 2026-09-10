@@ -696,12 +696,12 @@ export function PainelDia() {
         data-desk-enxuto
         className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
       >
-        Painel de Calls abre o funil comercial: gravar a call e recarregar.{" "}
+        As abas definem onde cada função vive. A{" "}
         <Link to="/calls" className="font-medium underline decoration-gold underline-offset-4">
-          Abrir Painel de Calls
-        </Link>
-        . Visão Geral do mockup: KPIs com ação, funil e alertas. Receita e conversão
-        de demonstração não entram aqui. Campo com pendência continua editável.
+          Mesa de Discovery
+        </Link>{" "}
+        faz a entrada comercial. Os KPIs mostram o que está parado, vencido ou pede decisão.
+        Funil e alertas abrem a fila. Receita e conversão de demonstração não entram aqui.
       </p>
 
       {/* 0 — Visão Geral do mockup: KPIs, funil (Calls) e alertas. Radar é camada, não aba. */}
@@ -710,7 +710,7 @@ export function PainelDia() {
         <div>
           <h2 className="font-serif text-lg text-navy">Radar da carteira</h2>
           <p className="text-xs text-navy/55">
-            Leitura do dia: bloqueio, comercial e alerta. Sem score. Cada número abre a fila.
+            Leitura do dia: o que está parado, vencido ou pede decisão. Sem score. Cada número abre a fila.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-mockup-kpis>

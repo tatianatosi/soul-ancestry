@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   META_CAMPO_ROTEIRO,
+  PERGUNTAS_MESA,
   ROTEIRO_DISCOVERY,
   ROTULO_CAMPO_ROTEIRO,
   estadoResposta,
+  indicePrimeiraPerguntaPendente,
   marcoUsavelExternamente,
   pesquisaExternaPermitida,
   progressoRoteiro,
+  progressoSpin,
   sinaisQualidadeLead,
+  spinDerivadoDoLead,
 } from "@/lib/discovery-roteiro";
 import { CATALOGOS, validarLead, type LeadDesk } from "@/lib/crm-desk";
 
@@ -148,5 +152,40 @@ describe("estadoResposta — confirmado/informado a confirmar/hipótese/pendente
     expect(
       estadoResposta({ valorSalvo: [], valorRascunho: null, emRascunho: false, marcadaComoHipotese: false }),
     ).toBe("pendente");
+  });
+});
+
+describe("Mesa de Discovery — SPIN sai das respostas", () => {
+  it("cada pergunta da Mesa aponta para campo que já existe no roteiro e tem meta", () => {
+    const camposDoRoteiro = new Set(ROTEIRO_DISCOVERY.flatMap((b) => b.campos));
+    expect(PERGUNTAS_MESA.length).toBeGreaterThanOrEqual(16);
+    for (const p of PERGUNTAS_MESA) {
+      expect(p.campos.length).toBeGreaterThan(0);
+      for (const c of p.campos) {
+        expect(camposDoRoteiro.has(c), c).toBe(true);
+        expect(META_CAMPO_ROTEIRO[c], c).toBeDefined();
+      }
+    }
+  });
+
+  it("lead vazio começa com SPIN falso e primeira pergunta pendente no índice 0", () => {
+    expect(spinDerivadoDoLead(base)).toEqual({
+      spin_situacao: false,
+      spin_problema: false,
+      spin_implicacao: false,
+      spin_necessidade: false,
+    });
+    expect(indicePrimeiraPerguntaPendente(base)).toBe(0);
+    for (const e of progressoSpin(base)) {
+      expect(e.preenchidas).toBe(0);
+      expect(e.completo).toBe(false);
+    }
+  });
+
+  it("responder um campo da etapa marca só aquela flag SPIN", () => {
+    const comObjetivo = { ...base, objetivo: "cidadania" } as LeadDesk;
+    expect(spinDerivadoDoLead(comObjetivo).spin_situacao).toBe(true);
+    expect(spinDerivadoDoLead(comObjetivo).spin_problema).toBe(false);
+    expect(indicePrimeiraPerguntaPendente(comObjetivo)).toBeGreaterThan(0);
   });
 });

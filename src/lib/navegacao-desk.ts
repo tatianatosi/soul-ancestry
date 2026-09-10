@@ -69,7 +69,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     id: "comercial",
     to: "/leads",
     label: "Marketing & Comercial",
-    descricao: "Origem da demanda, Calls, Discovery, proposta e conversão — CRM Vivo.",
+    descricao: "Origem da demanda, Mesa de Discovery, proposta e conversão — CRM Vivo.",
     icone: "comercial",
     agrupador: true,
     sub: [
@@ -77,7 +77,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/marketing", label: "Marketing e aquisição" },
       { grupo: "CRM Vivo" },
       { to: "/leads", label: "Leads e triagem" },
-      { to: "/calls", label: "Painel de Calls" },
+      { to: "/calls", label: "Painel de Calls — Mesa de Discovery" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },

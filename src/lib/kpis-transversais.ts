@@ -54,7 +54,7 @@ export const CLASSIFICACAO_SUPERFICIES: readonly SuperficieClassificada[] = [
 
   { rota: "/marketing", rotulo: "Marketing e aquisição", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
   { rota: "/leads", rotulo: "Leads e triagem", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
-  { rota: "/calls", rotulo: "Painel de Calls", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
+  { rota: "/calls", rotulo: "Painel de Calls — Mesa de Discovery", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
   { rota: "/propostas", rotulo: "Propostas", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
   { rota: "/conversao", rotulo: "Conversão e follow-up", aba: "comercial", natureza: "OPERACAO", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
   { rota: "/proximas-acoes", rotulo: "Próximas ações dos leads", aba: "comercial", natureza: "FILA", abaProprietaria: "comercial", visivelNoFluxoDiario: true },
