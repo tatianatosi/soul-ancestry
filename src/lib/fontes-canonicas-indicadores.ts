@@ -85,11 +85,12 @@ export const INDICADORES_CANONICOS: readonly IndicadorCanonico[] = [
     formula: "itens de escopo com SKU ou preço divergente da fonte homologada",
     recorteTemporal: "última conciliação executada",
     responsavel: "comercial / financeiro",
-    rotaAcao: "/conciliacao-catalogo",
-    contagemEm: ["/conciliacao-catalogo"],
-    etiquetaEm: ["/divergencias-catalogo", "/painel", "/metricas"],
+    rotaAcao: "/catalogo",
+    contagemEm: ["/catalogo"],
+    etiquetaEm: ["/painel", "/metricas"],
     confianca: "confirmado",
-    observacao: "Bloqueio de emissão de OS continua no registro canônico.",
+    observacao:
+      "Conciliação e divergências saíram do Desk; a face viva é o catálogo homologado. Bloqueio de OS continua no registro canônico.",
   },
   {
     indicador: "Pendência documental",
