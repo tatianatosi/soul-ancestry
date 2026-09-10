@@ -24,11 +24,15 @@ function tabelaExiste(nome: string) {
 }
 
 describe("Motores primordiais P0–P11", () => {
-  it("lista os 12 motores na ordem do prompt-mestre", () => {
+  it("lista os 12 motores na ordem do prompt-mestre e cada um aponta para uma rota do Desk", () => {
     expect(MOTORES_TABELAS.map((m) => m.id)).toEqual([...ORDEM_MOTORES_PRIMORDIAIS]);
     expect(MOTORES_TABELAS).toHaveLength(12);
     expect(MOTORES_TABELAS[0]?.estado).toBe("operando");
     expect(MOTORES_TABELAS.find((m) => m.id === "P10")?.estado).toBe("planta");
+    for (const m of MOTORES_TABELAS) {
+      expect(m.rotaDesk.startsWith("/")).toBe(true);
+      expect(m.oQueJaEscreve.length).toBeGreaterThan(10);
+    }
   });
 
   it("não cria 13º motor: cidadania 0–8 mora em P7", () => {
@@ -49,10 +53,13 @@ describe("Motores primordiais P0–P11", () => {
     expect(recusas).toEqual(expect.arrayContaining([...ENTIDADES_HIPOTETICAS_NAO_CRIAR]));
   });
 
-  it("Biblioteca Mestre e Caso 360 consomem o inventário, sem 9º grupo no Desk", () => {
+  it("Biblioteca Mestre aponta para a tela que executa, sem 9º grupo no Desk", () => {
     const biblio = readFileSync("src/routes/_authenticated/biblioteca.tsx", "utf8");
+    const componente = readFileSync("src/components/biblioteca/motores-primordiais.tsx", "utf8");
     const pagina = readFileSync("src/routes/_authenticated/casos.$caseId.index.tsx", "utf8");
     expect(biblio).toContain("MotoresPrimordiais");
+    expect(componente).toContain("Abrir no Desk");
+    expect(componente).toContain("Link");
     expect(pagina).toContain("FasesMotorCidadania");
     expect(pagina).not.toMatch(/setAba\(/);
     expect(GRUPOS_DESK).toHaveLength(8);
@@ -66,6 +73,7 @@ describe("P4 — onboarding cria a linha se faltar", () => {
     expect(fn).toContain('.from("onboarding_planos")');
     expect(fn).toContain(".insert(");
     expect(fn).toContain("clienteAtivado: false");
+    expect(fn).toContain("titulosTarefasDosGates");
     expect(fn).not.toMatch(/onboarding_runs/);
   });
 });

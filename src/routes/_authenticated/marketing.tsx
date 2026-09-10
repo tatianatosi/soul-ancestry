@@ -525,6 +525,11 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
           </p>
         </Bloco>
 
+        <details className="rounded-xl border border-navy/10 bg-white p-5">
+          <summary className="cursor-pointer font-serif text-lg text-navy">
+            Leitura complementar de aquisição
+          </summary>
+          <div className="mt-4 space-y-5">
         <Bloco id="conteudo-ctas" titulo="Conteúdo e CTAs" descricao={SECOES_MARKETING.find((s) => s.hash === "conteudo-ctas")!.descricao}>
           {/*
             27/08/2026 — "conteúdo vai pra área de comunicação" (Proprietária).
@@ -684,6 +689,8 @@ function ConteudoMarketing({ dados }: { dados: DadosMarketing }) {
             ))}
           </ul>
         </Bloco>
+          </div>
+        </details>
 
         <Bloco id="links-comercial" titulo="Links contextuais para Comercial" descricao={SECOES_MARKETING.find((s) => s.hash === "links-comercial")!.descricao}>
           <div className="flex flex-wrap gap-2">

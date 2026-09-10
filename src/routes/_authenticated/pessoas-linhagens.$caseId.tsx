@@ -46,6 +46,7 @@ import {
 } from "@/lib/pessoas-linhagens.functions";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { DecisaoAposSalvarPessoa } from "@/components/pessoa/decisao-apos-salvar";
 
 export const Route = createFileRoute("/_authenticated/pessoas-linhagens/$caseId")({
   component: Pagina,
@@ -155,6 +156,7 @@ function Pagina() {
   const chave = ["g02", caseId];
   const { data, isLoading, isError, refetch } = useQuery({ queryKey: chave, queryFn: () => buscar({ data: { caseId } }) });
   const [aba, setAba] = useState<AbaId>("perfis");
+  const [decisaoAposPerfil, setDecisaoAposPerfil] = useState(false);
 
   const salvarFn = useServerFn(salvarRegistroG02);
   const criarPessoaFn = useServerFn(criarPessoaComPerfil);
@@ -165,9 +167,10 @@ function Pagina() {
   const salvar = useMutation({
     mutationFn: (v: { tabela: string; id?: string; valores: Record<string, unknown> }) =>
       salvarFn({ data: { tabela: v.tabela as never, id: v.id, caseId, valores: v.valores } }),
-    onSuccess: () => {
-      toast.success("Registro gravado e reconferido no servidor.");
+    onSuccess: (_r, v) => {
+      toast.success("Salvo e confirmado no banco.");
       invalidar();
+      if (v.tabela === "genealogical_person_profiles") setDecisaoAposPerfil(true);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -364,17 +367,26 @@ function Pagina() {
       </nav>
 
       {aba === "perfis" ? (
-        <AbaPerfis
-          perfis={perfis}
-          variantes={variantes}
-          eventos={eventos}
-          relacoes={relacoes}
-          evidencias={evidenciaOpcoes}
-          pendenciaGate={pendenciaPerfis}
-          onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
-          onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
-          onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_person_profiles", id, motivo })}
-        />
+        <div>
+          {decisaoAposPerfil ? (
+            <DecisaoAposSalvarPessoa
+              nomePessoa="perfil genealógico"
+              casos={[{ id: caseId }]}
+              onFechou={() => setDecisaoAposPerfil(false)}
+            />
+          ) : null}
+          <AbaPerfis
+            perfis={perfis}
+            variantes={variantes}
+            eventos={eventos}
+            relacoes={relacoes}
+            evidencias={evidenciaOpcoes}
+            pendenciaGate={pendenciaPerfis}
+            onCriar={(valores) => criarPessoa.mutate({ pesquisaId, valores })}
+            onSalvar={(id, valores) => salvar.mutate({ tabela: "genealogical_person_profiles", id, valores })}
+            onArquivar={(id, motivo) => arquivar.mutate({ tabela: "genealogical_person_profiles", id, motivo })}
+          />
+        </div>
       ) : null}
 
       {aba === "arvore" ? <AbaArvore arvore={arvore} /> : null}

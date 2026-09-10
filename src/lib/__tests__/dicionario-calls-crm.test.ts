@@ -13,7 +13,7 @@ import {
   VOCABULARIO_OFICIAL,
   revisarTerminologiaCliente,
 } from "@/lib/glossario-oficial";
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 const base: RegistroCallsCrm = { dataRegistro: "2026-08-24" };
 
@@ -119,11 +119,13 @@ describe("Dicionário de validações Calls → CRM", () => {
     ).toBe(true);
   });
 
-  it("mantém a formatação condicional e a rota no menu Comercial", () => {
+  it("mantém a formatação condicional e a rota no menu da conta", () => {
     expect(FORMATACAO_CONDICIONAL_CALLS).toHaveLength(10);
+    const conta = MENU_CONTA.itens.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
+    expect(conta).toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial");
     const rotas = comercial?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotas).toContain("/governanca/dicionario-calls-crm");
+    expect(rotas).not.toContain("/governanca/dicionario-calls-crm");
   });
 });
 

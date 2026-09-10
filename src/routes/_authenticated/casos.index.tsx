@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
 import { EntidadeCrud } from "@/components/saas/entidade-crud";
+import { AbrirCasoMotor } from "@/components/caso/abrir-caso-motor";
 import { SaasShell, useSaas } from "@/components/saas/shell";
 import { listarEstadoAtivacao } from "@/lib/casos-ativacao.functions";
 import { rotuloFase } from "@/lib/fase-rotulo";
@@ -283,6 +284,7 @@ function CasosPage() {
               </div>
             ) : null}
             <BuscaPorCodigo />
+            <AbrirCasoMotor />
             <label className="flex items-center gap-2 text-sm text-navy/70">
               <input
                 type="checkbox"
@@ -531,6 +533,7 @@ function CasosPage() {
             chave: "cliente_id",
             rotulo: "Cliente vinculado",
             tipo: "select",
+            obrigatorio: true,
             origem: { entidade: "clientes", rotuloChave: "nome" },
           },
           {
@@ -544,6 +547,7 @@ function CasosPage() {
             chave: "tipo_servico",
             rotulo: "Tipo de serviço",
             tipo: "select",
+            obrigatorio: true,
             opcoes: [
               { valor: "pesquisa", rotulo: "Pesquisa genealógica" },
               { valor: "cidadania", rotulo: "Cidadania" },

@@ -22,10 +22,12 @@ import { pendenciaPesquisaAberta } from "@/lib/rotulo-negocio";
 import { ROTULO_ATO_FORMAL } from "@/lib/validacao-juridica-caso";
 import { carregarFichaCaso } from "@/lib/caso-ficha.functions";
 import { carregarCanonico, marcarSemNovaAcaoNecessaria } from "@/lib/caso-canonico.functions";
-import { listarFilaOps, salvarTarefa } from "@/lib/ops.functions";
+import { listarFilaOps } from "@/lib/ops.functions";
 import { listarDocumentos } from "@/lib/documentos.functions";
 import { resumoVisaoClienteCaso } from "@/lib/app-cliente-como-pessoa.functions";
 import { FasesMotorCidadania } from "@/components/caso/fases-motor-cidadania";
+import { FormularioTarefaCaso } from "@/components/caso/formulario-tarefa-caso";
+import { PlanejadorOperacional } from "@/components/contrato/planejador-operacional";
 import { AbaVisaoGeral } from "@/components/caso/visao-geral";
 import { RadarInternoCaso } from "@/components/caso/radar-interno";
 import { radarInternoDoCaso } from "@/lib/radar-interno-caso";
@@ -522,7 +524,7 @@ function FichaCaso() {
    * abaixo nesta página); "Reprogramar" e "Registrar atualização" gravam em
    * crm_casos pelo mesmo atualizarRegistro do "Salvar alterações", só que com
    * payload próprio (não dependem do form/sujo da ficha inteira); "Criar
-   * tarefa" reusa salvarTarefa, já deduplicado por caso+título+status aberto.
+   * tarefa" abre o formulário visível (#form-tarefa-caso) em vez de prompt().
    */
   const concluirFn = useServerFn(marcarSemNovaAcaoNecessaria);
   const mConcluir = useMutation({
@@ -558,16 +560,10 @@ function FichaCaso() {
     onError: (e: Error) => toast.error("Não foi possível registrar", { description: e.message }),
   });
 
-  const criarTarefaFn = useServerFn(salvarTarefa);
-  const mCriarTarefa = useMutation({
-    mutationFn: (titulo: string) =>
-      criarTarefaFn({ data: { valores: { caso_id: id, titulo, tipo: "caso" } } }),
-    onSuccess: () => {
-      toast.success("Tarefa criada/reaproveitada no caso.");
-      void qc.invalidateQueries({ queryKey: ["ficha-caso-tarefas", id] });
-    },
-    onError: (e: Error) => toast.error("Não foi possível criar a tarefa", { description: e.message }),
-  });
+  const recarregarTarefas = () => {
+    void qc.invalidateQueries({ queryKey: ["ficha-caso-tarefas", id] });
+    recarregar();
+  };
 
   const derivado = useMemo(
     () =>
@@ -776,13 +772,8 @@ function FichaCaso() {
           </button>
           <button
             type="button"
-            disabled={mCriarTarefa.isPending}
-            onClick={() => {
-              const titulo = prompt("Título da tarefa:");
-              if (!titulo?.trim()) return;
-              mCriarTarefa.mutate(titulo.trim());
-            }}
-            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5 disabled:opacity-40"
+            onClick={() => document.getElementById("form-tarefa-caso")?.scrollIntoView({ behavior: "smooth" })}
+            className="rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy hover:bg-navy/5"
           >
             Criar tarefa
           </button>
@@ -1111,6 +1102,7 @@ function FichaCaso() {
             ))}
             {!(qTarefas.data?.tarefas ?? []).length ? <li className="text-navy/50">Nenhuma tarefa aberta.</li> : null}
           </ul>
+          <FormularioTarefaCaso caseId={id} onCriada={recarregarTarefas} />
         </div>
         <div className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Atualizações recentes</p>
@@ -1784,6 +1776,7 @@ function FichaCaso() {
             propriamente dita, como moldura de tudo isso.
           */}
           <div className="space-y-8">
+            <PlanejadorOperacional caseId={id} podeEscrever={!bloqueado} inicialAberto />
             <AbaJornadaCliente casoId={id} bloqueado={bloqueado} />
 
             <div className="space-y-5">
@@ -2085,13 +2078,17 @@ function CartaoPessoa({
   pessoa,
   atualizar,
   onMudou,
-  bloqueado,
+  bloqueado: _bloqueado,
 }: {
   pessoa: Record<string, unknown>;
   atualizar: (a: {
     data: { entidade: "case_members"; id: string; dados: Record<string, unknown> };
   }) => Promise<unknown>;
   onMudou: () => void;
+  /**
+   * Mantida só por compatibilidade com quem chama. Pendência informa;
+   * não trava CPF, telefone nem CEP.
+   */
   bloqueado: boolean;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
@@ -2174,7 +2171,6 @@ function CartaoPessoa({
           label="CPF"
           valor={v("cpf")}
           onChange={(x) => set("cpf", formatarCpf(x))}
-          desabilitado={bloqueado}
         />
         <Texto
           label="RG / documento"
@@ -2195,7 +2191,6 @@ function CartaoPessoa({
           label="Telefone"
           valor={v("telefone")}
           onChange={(x) => set("telefone", formatarTelefone(x))}
-          desabilitado={bloqueado}
           ajuda="Máscara de Brasil (DDD) por padrão. Pessoa morando fora: comece digitando + e o DDI."
         />
         <Texto
@@ -2212,7 +2207,6 @@ function CartaoPessoa({
           label="CEP"
           valor={v("cep")}
           onChange={(x) => set("cep", formatarCep(x))}
-          desabilitado={bloqueado}
         />
         <Texto
           label="Documentos pendentes"

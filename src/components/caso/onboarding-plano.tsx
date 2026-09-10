@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Secao } from "@/components/caso/campos";
 import {
   carregarPlanoOnboarding,
+  criarPrimeiraMicroentregaOnboarding,
   recalcularPlanoOnboarding,
 } from "@/lib/onboarding-plano.functions";
 import { CadenciaOnboarding } from "@/components/caso/cadencia-onboarding";
@@ -22,6 +23,7 @@ type Linha = Record<string, any>;
 export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
   const carregar = useServerFn(carregarPlanoOnboarding);
   const recalcular = useServerFn(recalcularPlanoOnboarding);
+  const criarMicro = useServerFn(criarPrimeiraMicroentregaOnboarding);
 
   const q = useQuery({
     queryKey: ["plano-onboarding", caseId],
@@ -30,11 +32,29 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
 
   const m = useMutation({
     mutationFn: () => recalcular({ data: { caseId } }),
-    onSuccess: () => {
-      toast.success("Estado do plano recalculado.");
+    onSuccess: (r: { tarefas?: { criada: boolean }[] }) => {
+      const novas = (r.tarefas ?? []).filter((t) => t.criada).length;
+      toast.success(
+        novas > 0
+          ? `Plano gravado. ${novas} tarefa(s) de gate criada(s) na fila.`
+          : "Plano gravado. Checklist e gates atualizados — cliente não ativado.",
+      );
       q.refetch();
     },
     onError: (e: Error) => toast.error(e.message || "Não foi possível recalcular o estado."),
+  });
+
+  const mMicro = useMutation({
+    mutationFn: () => criarMicro({ data: { caseId } }),
+    onSuccess: (r: { reaproveitada?: boolean }) => {
+      toast.success(
+        r.reaproveitada
+          ? "A primeira micro-entrega já existia neste caso."
+          : "Micro-entrega criada em Ops — não publicada no App Cliente.",
+      );
+      q.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível criar a micro-entrega."),
   });
 
   if (q.isLoading) return <p className="text-sm text-navy/55">Carregando plano de onboarding…</p>;
@@ -64,8 +84,8 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
     return (
       <Secao titulo="Plano de onboarding" descricao="Preparação interna, sem ativação de cliente.">
         <p className="text-sm text-navy/55">
-          Nenhum plano de onboarding neste caso. Recalcular cria a linha em onboarding_planos — não
-          ativa o cliente.
+          Nenhum plano de onboarding neste caso. Preparar grava a linha, o checklist e as tarefas
+          dos gates pendentes — não ativa o cliente.
         </p>
         <button
           type="button"
@@ -73,7 +93,7 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
           disabled={m.isPending}
           className="mt-3 rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
         >
-          Preparar plano pelos gates
+          Preparar plano, checklist e tarefas
         </button>
       </Secao>
     );
@@ -107,7 +127,7 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
             disabled={m.isPending}
             className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
           >
-            Recalcular estado pelos gates
+            Recalcular gates, checklist e tarefas
           </button>
         </div>
 
@@ -191,10 +211,20 @@ export function PainelPlanoOnboarding({ caseId }: { caseId: string }) {
         descricao="Registro vivo (o mesmo que soma no Painel Hoje) — diferente da intenção do plano acima."
       >
         {microentregas.length === 0 ? (
-          <p className="text-sm text-terracotta">
-            Nenhuma micro-entrega registrada para este caso. A intenção do plano
-            (acima) ainda não virou nenhum item real.
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-terracotta">
+              Nenhuma micro-entrega registrada para este caso. A intenção do plano (acima) ainda não
+              virou nenhum item real.
+            </p>
+            <button
+              type="button"
+              onClick={() => mMicro.mutate()}
+              disabled={mMicro.isPending}
+              className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
+            >
+              {mMicro.isPending ? "Criando…" : "Criar primeira micro-entrega (rascunho interno)"}
+            </button>
+          </div>
         ) : (
           <ul className="space-y-2">
             {microentregas.map((m) => (

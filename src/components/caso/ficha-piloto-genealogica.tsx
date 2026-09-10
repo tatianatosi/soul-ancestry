@@ -26,12 +26,12 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   const carregar = useServerFn(carregarFichaPiloto);
   const q = useQuery({ queryKey: ["ficha-piloto", caseId], queryFn: () => carregar({ data: { caseId } }) });
 
-  if (q.isLoading) return <p className="text-sm text-navy/55">Carregando ficha piloto genealógica…</p>;
+  if (q.isLoading) return <p className="text-sm text-navy/55">Carregando ficha de pesquisa do caso…</p>;
   if (q.isError || !q.data) {
     return (
-      <Secao titulo="Ficha piloto genealógica" descricao="Preparação interna, sem consulta a fontes.">
+      <Secao titulo="Ficha de pesquisa do caso" descricao="Preparação interna, sem consulta a fontes.">
         <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
-          <p className="font-medium text-destructive">Não foi possível carregar a ficha piloto genealógica.</p>
+          <p className="font-medium text-destructive">Não foi possível carregar a ficha de pesquisa do caso.</p>
           <p className="text-navy/80">
             {q.error instanceof Error
               ? q.error.message
@@ -51,7 +51,7 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   const p = q.data?.pesquisa ?? null;
   if (!p) {
     return (
-      <Secao titulo="Ficha piloto genealógica" descricao="Preparação interna, sem consulta a fontes.">
+      <Secao titulo="Ficha de pesquisa do caso" descricao="Preparação interna, sem consulta a fontes.">
         <p className="text-sm text-navy/55">
           Nenhuma ficha de pesquisa preparada para este caso. A consulta foi concluída com sucesso.
         </p>
@@ -71,7 +71,7 @@ export function PainelFichaPiloto({ caseId }: { caseId: string }) {
   return (
     <div className="space-y-5 lg:col-span-2">
       <Secao
-        titulo="Ficha piloto genealógica"
+        titulo="Ficha de pesquisa do caso"
         descricao="Preparação apenas: nenhuma fonte consultada, nenhum documento solicitado, nenhum arquivo contatado, nenhuma árvore ou relatório publicado."
       >
         <dl className="grid gap-3 text-sm sm:grid-cols-2">

@@ -159,7 +159,7 @@ export const MODULOS_DESK: ModuloDesk[] = [
   },
   {
     id: "caso-ficha-piloto",
-    nome: "Ficha piloto genealógica",
+    nome: "Ficha de pesquisa do caso",
     tela: "casos",
     destino: "/piloto-ana · /piloto",
     forma: "subrota",
