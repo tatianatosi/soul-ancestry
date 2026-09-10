@@ -8,11 +8,7 @@
  */
 
 import { EIXO_FORMALIZACAO } from "@/lib/crm-desk";
-import {
-  DIAS_CADENCIA_ATENCAO,
-  DIAS_CADENCIA_CRITICA,
-  DIAS_PRIMEIRA_MICROENTREGA,
-} from "@/lib/cadencia-limiares";
+import { DIAS_PRIMEIRA_MICROENTREGA, DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
 
 /* ---------------------------------------------------------------- estados */
 

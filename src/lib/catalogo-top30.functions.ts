@@ -71,7 +71,8 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
 
     const listaCasos = (casos ?? []).map((c: any) => {
       const plano = planosPorCaso.get(c.id);
-      // case_plans.dias_sem_touchpoint nunca é recalculado (fica parado em 0) — dado morto.
+      // case_plans.dias_sem_touchpoint nunca é recalculado (fica parado em 0) — dado morto,
+      // não usar. dias sempre vem do touchpoint real do caso.
       const dias = diasDesde(c.ultimo_touchpoint_em);
       return {
         id: c.id as string,
@@ -98,8 +99,7 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       semPlano: listaCasos.filter((c: Caso) => !c.temPlano),
       semMicroentrega: listaCasos.filter((c: Caso) => c.temPlano && !c.proximaMicroentrega),
       atencao10: listaCasos.filter(
-        (c: Caso) =>
-          c.dias_sem_touchpoint >= DIAS_CADENCIA_ATENCAO && c.dias_sem_touchpoint < DIAS_CADENCIA_CRITICA,
+        (c: Caso) => c.dias_sem_touchpoint >= DIAS_CADENCIA_ATENCAO && c.dias_sem_touchpoint < DIAS_CADENCIA_CRITICA,
       ),
       critico14: listaCasos.filter((c: Caso) => c.dias_sem_touchpoint >= DIAS_CADENCIA_CRITICA),
       entregasPendentes: (entregas ?? [])
