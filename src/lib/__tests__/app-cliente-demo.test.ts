@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { GRUPOS_DESK } from "@/lib/navegacao-desk";
+import { GRUPOS_DESK, MENU_CONTA } from "@/lib/navegacao-desk";
 
 const ler = (p: string) => readFileSync(p, "utf8");
 
@@ -72,7 +72,8 @@ describe("o link morto do espelho no menu", () => {
     expect(json).not.toContain('"espelho"');
   });
 
-  it("o grupo App Cliente leva à sessão demo", () => {
-    expect(JSON.stringify(GRUPOS_DESK)).toContain("/app-cliente-demo");
+  it("a sessão demo saiu do grupo Cliente e mora no menu da conta", () => {
+    expect(JSON.stringify(GRUPOS_DESK)).not.toContain("/app-cliente-demo");
+    expect(JSON.stringify(MENU_CONTA)).toContain("/app-cliente-demo");
   });
 });

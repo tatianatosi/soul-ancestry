@@ -190,10 +190,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha abas novas: os módulos administrativos entram como
-  // subitens da seção "Governança e biblioteca" — o Desk mantém 7 abas.
-  // Contadores reais no menu: apenas números já existentes no banco (SLA de tarefas
-  // e microentregas). Sem dado, nenhum badge é exibido — nunca estimamos.
+  // Admin não ganha abas novas: os módulos administrativos entram no menu da
+  // conta. O Desk mantém exatamente 8 grupos para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],

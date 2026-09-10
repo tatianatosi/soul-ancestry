@@ -32,6 +32,14 @@ describe("rota do menu sem colisão de prefixo", () => {
     expect(grupoNavAtivo("/matriz-juridica", "", governanca)).toBe(true);
     expect(grupoNavAtivo("/pesquisa-modulo", "", pesquisa)).toBe(true);
   });
+
+  it("o grupo Pesquisa entra no módulo vivo; o dossiê legado não compete no mesmo grupo", () => {
+    const pesquisa = GRUPOS_DESK.find((g) => g.id === "pesquisa")!;
+    expect(pesquisa.to).toBe("/pesquisa-modulo");
+    const rotas = pesquisa.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotas).toContain("/pesquisa-modulo");
+    expect(rotas).not.toContain("/pesquisa");
+  });
 });
 
 describe("rótulos de negócio e notas técnicas", () => {

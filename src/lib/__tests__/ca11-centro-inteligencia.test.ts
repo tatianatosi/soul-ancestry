@@ -191,7 +191,7 @@ describe("CA11 — navegação não apresenta o dossiê legado como equivalente 
     expect(navegacao).not.toMatch(/to: "\/pesquisa", label: "Plano de ação e ficha genealógica"/);
   });
 
-  it("rota /pesquisa continua existindo (não foi removida, só rotulada com precisão)", () => {
+  it("rota /pesquisa continua existindo no menu da conta (não foi removida)", () => {
     expect(navegacao).toContain('to: "/pesquisa"');
   });
 

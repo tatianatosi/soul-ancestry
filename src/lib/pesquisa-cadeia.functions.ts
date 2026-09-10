@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
-import { validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
+import { statusPesquisaCanonico, validarTransicaoEvidencia } from "@/lib/pesquisa-cadeia";
 import { workflowStatusDeEvidenciaModulo } from "@/lib/rotulo-negocio";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -41,7 +41,7 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
 
     const researchCaseId = (pesquisa.data as any)?.id ?? null;
 
-    const [pessoas, variantes, relacoes, eventos, eventosModulo, linhagens, fontes, evidencias, evidenciasModulo, achados, relatorios, pendencias] =
+    const [pessoas, relacoes, eventos, eventosModulo, linhagens, fontes, evidencias, evidenciasModulo, achados, relatorios, pendencias] =
       await Promise.all([
         researchCaseId
           ? supabase
@@ -53,11 +53,6 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
               .eq("research_case_id", researchCaseId)
               .is("archived_at", null)
           : { data: [] },
-        supabase
-          .from("research_name_variants")
-          .select("id,person_id,variant_name,variant_type,status")
-          .eq("organization_id", organizationId)
-          .is("archived_at", null),
         supabase
           .from("research_relationships")
           .select("id,relationship_type,person_a_id,person_b_id,confidence_level,status,supporting_evidence_count")
@@ -136,6 +131,14 @@ export const cadeiaPesquisaDoCaso = createServerFn({ method: "GET" })
 
     const pessoasLista = ((pessoas as any).data ?? []) as any[];
     const idsPessoas = new Set(pessoasLista.map((p) => p.id));
+    const variantes = idsPessoas.size
+      ? await supabase
+          .from("research_name_variants")
+          .select("id,person_id,variant_name,variant_type,status")
+          .eq("organization_id", organizationId)
+          .in("person_id", [...idsPessoas])
+          .is("archived_at", null)
+      : { data: [] };
     const evidenciasCadeia = ((evidencias as any).data ?? []) as any[];
     const evidenciasDoModulo = (((evidenciasModulo as any).data ?? []) as any[]).map((e) => ({
       ...e,
@@ -234,6 +237,11 @@ export const salvarVisaoPesquisa = createServerFn({ method: "POST" })
     ];
     const valores: Record<string, unknown> = {};
     for (const k of permitidos) if (k in data.valores) valores[k] = data.valores[k] === "" ? null : data.valores[k];
+    if ("status" in valores) {
+      const canonico = statusPesquisaCanonico(valores.status);
+      if (!canonico) throw new Error("Situação da pesquisa inválida para este registro.");
+      valores.status = canonico;
+    }
     const sobra = Object.keys(data.valores).filter((k) => !permitidos.includes(k));
     if (sobra.length) throw new Error(`CAMPO_NAO_MAPEADO_PARA_PERSISTENCIA: ${sobra.join(", ")}`);
 

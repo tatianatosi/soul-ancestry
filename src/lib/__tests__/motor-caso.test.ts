@@ -157,4 +157,13 @@ describe("premissas que o motor não pode desfazer", () => {
     expect(home).toContain("proximoPasso");
     expect(detalhe).toContain("proximoPasso");
   });
+
+  it("Jornada consome a mesma projeção do motor, com cadência só como fallback", () => {
+    const jornada = readFileSync("src/routes/portal/jornada.tsx", "utf8");
+    const vivo = readFileSync("src/lib/portal-dados-vivos.ts", "utf8");
+    const fn = readFileSync("src/lib/portal-dados-vivos.functions.ts", "utf8");
+    expect(jornada).toContain("jornadaSanitizada(vivo.projecoes, new Date(), vivo.proximaAcao)");
+    expect(vivo).toContain("proximaDoMotor");
+    expect(fn).toContain("projetarProximaAcaoCliente");
+  });
 });

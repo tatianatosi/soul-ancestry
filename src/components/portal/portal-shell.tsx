@@ -60,7 +60,7 @@ export function PortalShell({
   const nav =
     previa || data?.nivel === "client_workspace"
       ? [
-          { to: "/portal", label: COPY_TELAS.casos.navegacao, icon: FolderOpen },
+          { to: "/portal", label: COPY_TELAS.home.navegacao, icon: FolderOpen },
           { to: "/portal/jornada", label: COPY_TELAS.jornada.navegacao, icon: Route },
           { to: "/portal/radar", label: COPY_TELAS.radar.navegacao, icon: Radar },
           { to: "/portal/arvore", label: COPY_TELAS.arvore.navegacao, icon: Trees },
@@ -138,7 +138,7 @@ export function PortalShell({
                 "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
                 rota === to
-                  ? "border-gold font-medium text-navy"
+                  ? "border-gold font-medium text-gold"
                   : "border-transparent text-navy/70 hover:text-navy",
               )}
             >
@@ -167,7 +167,7 @@ export function PortalShell({
               className={cn(
                 "flex flex-col items-center gap-0.5 px-1 py-2 text-[10px] leading-tight",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset",
-                rota === to ? "font-medium text-navy" : "text-navy/60",
+                rota === to ? "font-medium text-gold" : "text-navy/60",
               )}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />

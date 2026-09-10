@@ -54,7 +54,7 @@ export function VinculoNucleo({
 
   const papel =
     papelRegistro === "piloto_real"
-      ? "Piloto real — caso operacional de referência"
+      ? "Primeira cliente — caso operacional de referência"
       : papelRegistro === "demonstracao"
         ? "Demonstração — não operacional"
         : "Caso operacional";

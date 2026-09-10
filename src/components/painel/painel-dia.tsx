@@ -701,9 +701,9 @@ export function PainelDia() {
       </section>
 
       {/*
-        1 — Caso em destaque (mockup Fase 01). O que olhar primeiro, com a
-        regra que o colocou no topo. Reusa `calcularPrioridade`, a mesma
-        função da fila e de Casos 360 — nenhum cálculo paralelo.
+        1 — Caso em destaque. O que olhar primeiro, com a regra que o colocou
+        no topo. Reusa `calcularPrioridade`, a mesma função da fila e de
+        Casos 360 — nenhum cálculo paralelo.
       */}
       <CasoEmDestaque dados={casoDestaque} />
 

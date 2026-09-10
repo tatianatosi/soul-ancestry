@@ -20,7 +20,7 @@ describe("De-para de nomenclatura — Desk usa os nomes aprovados na navegação
       "/marketing",
       "/leads",
       "/casos",
-      "/pesquisa",
+      "/pesquisa-modulo",
       "/contratos",
       "/acessos-portal",
       "/biblioteca",
@@ -88,6 +88,7 @@ describe("De-para de nomenclatura — App Cliente segue com os 7 nomes aprovados
 
   it('a primeira aba usa o rótulo aprovado "Home" (mockup de 17 páginas), não "Início"', () => {
     const copy = readFileSync("src/lib/portal-copy.ts", "utf8");
+    expect(copy).toMatch(/home:\s*{\s*navegacao:\s*"Home"/);
     const bloco = copy.slice(copy.indexOf("casos: {"), copy.indexOf("casos: {") + 200);
     expect(bloco).toContain('navegacao: "Home"');
   });

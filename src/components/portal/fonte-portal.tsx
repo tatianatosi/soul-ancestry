@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { dadosVivosDoPortal } from "@/lib/portal-dados-vivos.functions";
 import type { DocumentoPortal } from "@/lib/portal-dados-vivos";
 import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
+import type { ProximaAcaoCliente } from "@/lib/motor-caso";
 
 /**
  * Fonte de dados do App Cliente — ponto único de desacoplamento.
@@ -34,6 +35,8 @@ import type { ProjecaoBruta } from "@/lib/projecoes-cliente";
 export type DadosPortal = {
   projecoes: ProjecaoBruta[];
   documentos: DocumentoPortal[];
+  /** Mesma próxima ação do motor, quando a fonte já a calculou. */
+  proximaAcao?: ProximaAcaoCliente | null;
 };
 
 /**

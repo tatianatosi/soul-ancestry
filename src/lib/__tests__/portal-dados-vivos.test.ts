@@ -37,6 +37,24 @@ describe("CA-PORTAL-02 — dados vivos sanitizados", () => {
     expect(antiga.proximoPasso).not.toMatch(/gate|SLA|alerta|touchpoint/i);
   });
 
+  it("quando o motor informa a próxima ação, a Jornada usa essa ação — não inventa um segundo motor", () => {
+    const j = jornadaSanitizada(
+      [
+        {
+          id: "1",
+          case_id: "A",
+          projection_type: "marco",
+          content_sanitized: "Etapa inicial concluída.",
+          effective_from: "2026-08-01T00:00:00Z",
+        },
+      ],
+      hoje,
+      { acao: "Há 1 documento para você enviar." },
+    );
+    expect(j.proximoPasso).toBe("Há 1 documento para você enviar.");
+    expect(j.marcosPublicados).toBe(1);
+  });
+
   it("radar mantém exatamente os quatro eixos canônicos", () => {
     const eixos = radarSanitizado({ projecoes: [], documentos: [] });
     expect(eixos.map((e) => e.id)).toEqual(EIXOS_RADAR_CANONICOS.map((e) => e.id));

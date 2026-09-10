@@ -54,9 +54,16 @@ function PesquisaIndex() {
       descricao="Fontes, evidências e próximos passos do caso — uso interno."
     >
       <PageHeader
-        titulo="Casos em pesquisa"
-        subtitulo="Hierarquia de leitura: caso → hipótese → fonte → evidência → estado de validação. Achados são hipóteses com estado de validação, nunca confirmação."
+        titulo="Dossiê legado de pesquisa"
+        subtitulo="Leitura do sistema anterior. A pesquisa operacional — fontes, evidências e próxima ação — está no módulo vivo."
       />
+      <p className="mb-4 rounded-lg border border-navy/10 bg-cream/60 px-4 py-3 text-sm text-navy/70">
+        Esta tela permanece disponível para consulta do dossiê antigo. Para trabalhar o caso, abra{" "}
+        <Link to="/pesquisa-modulo" className="font-medium text-navy underline decoration-gold underline-offset-4">
+          Pesquisa Genealógica e Evidências
+        </Link>
+        .
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <CardIndicador rotulo="Casos em pesquisa" valor={q.data ? casos.length : null} tom="neutro" />

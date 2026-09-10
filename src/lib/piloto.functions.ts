@@ -188,7 +188,7 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
         organization_id: org,
         case_id: caso["id"],
         status: "preparation",
-        research_objective: "Piloto real — preparação de pesquisa a partir de dados conferidos.",
+        research_objective: "Preparação de pesquisa a partir de dados conferidos — Ana Luiza, primeira cliente.",
         external_research_gate_status: "blocked_by_contract",
         external_research_authorization_status: "not_requested",
         demo: false,
