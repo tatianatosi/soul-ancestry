@@ -5,7 +5,9 @@
  * Não cria `onboarding_runs`, `cadence_runs`, `citizenship_cases`,
  * `case_participants` nem vocabulário CHECK novo. A série CA02–CA24 em
  * `main` ligou pedaços; não substitui os prompts #30–#84 que ainda não
- * rodaram como motor.
+ * rodaram como motor. P1 unifica núcleos com colunas já existentes
+ * (archived_at / status arquivado); permanece parcial enquanto Pessoa 360
+ * (#64) não existir.
  */
 
 export type EstadoMotor = "operando" | "parcial" | "planta";
@@ -33,6 +35,12 @@ export const MOTORES_TABELAS = [
       "case_dependents",
     ] as const,
     naoCriar: ["case_participants", "citizenship_cases"] as const,
+    // Unificação de núcleos (fases 2–6) já grava em nucleos_familiares,
+    // nucleo_membros e leads com colunas existentes. Pessoa 360 (#64) e a
+    // decisão de tarefa após salvar pessoa (#32) ainda faltam — por isso
+    // permanece parcial, não "operando".
+    oQueJaEscreve:
+      "Unificação controlada: reaponta nucleo_membros e leads.nucleo_id; arquiva a origem (archived_at, archive_motivo, archived_by, status arquivado). Sem coluna nova.",
   },
   {
     id: "P2",

@@ -2,20 +2,63 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { detectarDuplicidades, type NucleoParaComparar } from "@/lib/nucleo-duplicidade";
+import {
+  CONFIRMACAO_UNIFICAR,
+  chaveNomeUnico,
+  detectarDuplicidades,
+  exigirConfirmacaoUnificar,
+  montarPlanoUnificacao,
+  validarPosMerge,
+  type NucleoParaComparar,
+} from "@/lib/nucleo-duplicidade";
+import { gravarComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+type Sb = any;
+
+const UUID = /^[0-9a-f-]{36}$/i;
+
+async function orgDoUsuario(supabase: Sb, userId: string) {
+  const { data } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (!data?.organization_id) throw new Error("Usuário sem organização ativa.");
+  return data.organization_id as string;
+}
+
+async function auditarUnificacao(
+  supabase: Sb,
+  input: {
+    org: string;
+    userId: string;
+    acao: string;
+    entidadeId: string;
+    metadados?: Record<string, unknown>;
+  },
+) {
+  const { error } = await supabase.from("audit_logs").insert({
+    organization_id: input.org,
+    user_id: input.userId,
+    acao: input.acao,
+    entidade: "nucleos_familiares",
+    entidade_id: input.entidadeId,
+    metadados: input.metadados ?? {},
+  });
+  if (error) throw new Error(error.message);
+}
+
 /**
- * Fase 1 (Detecção) do prompt canônico "Unificação controlada de núcleos
- * familiares". Carrega os núcleos ativos da organização, junto com seus
- * requerentes e o caso vinculado, e roda `detectarDuplicidades` sobre eles.
+ * Fase 1 (Detecção) da unificação controlada de núcleos familiares.
+ * Carrega núcleos ativos da organização, requerentes, caso vinculado e
+ * contagem de leads, e roda `detectarDuplicidades`.
  *
- * Não decide, não funde, não persiste nada — ver `nucleo-duplicidade.ts`.
- * As Fases 2 a 6 (comparação assistida, plano de unificação, confirmação da
- * proprietária, execução atômica e validação pós-merge) dependem de colunas
- * que ainda não existem no schema (ex.: `nucleo_canonico_id`, `unificado_em`,
- * `unificado_por`, status `mesclado`) e ficam fora deste corte.
+ * Não decide e não funde. A execução (fases 2–6) está em
+ * `executarUnificacaoNucleo`, com as colunas já existentes
+ * (archived_at / archive_motivo / archived_by / status arquivado).
  */
 export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -35,16 +78,23 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
     const ids = ((nucleos ?? []) as any[]).map((n) => n.id);
     const caseIds = Array.from(new Set(((nucleos ?? []) as any[]).map((n) => n.case_id).filter(Boolean)));
 
-    const [{ data: membros }, { data: casos }] = await Promise.all([
+    const [{ data: membros }, { data: casos }, { data: leads }] = await Promise.all([
       ids.length
-        ? supabase.from("nucleo_membros").select("nucleo_id,nome,papel").in("nucleo_id", ids).is("archived_at", null)
+        ? supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel").in("nucleo_id", ids).is("archived_at", null)
         : Promise.resolve({ data: [] }),
       caseIds.length
         ? supabase.from("crm_casos").select("id,codigo,titulo,pais").in("id", caseIds)
         : Promise.resolve({ data: [] }),
+      ids.length
+        ? supabase.from("leads").select("id,nucleo_id").in("nucleo_id", ids).is("archived_at", null)
+        : Promise.resolve({ data: [] }),
     ]);
 
     const porCaso = new Map(((casos ?? []) as any[]).map((c) => [c.id, c]));
+    const leadsPorNucleo = new Map<string, number>();
+    for (const l of (leads ?? []) as any[]) {
+      leadsPorNucleo.set(l.nucleo_id, (leadsPorNucleo.get(l.nucleo_id) ?? 0) + 1);
+    }
 
     const paraComparar: NucleoParaComparar[] = ((nucleos ?? []) as any[]).map((n) => ({
       id: n.id,
@@ -57,10 +107,230 @@ export const listarCandidatosDuplicidadeNucleo = createServerFn({ method: "GET" 
       updated_at: n.updated_at,
       case_id: n.case_id,
       caso: n.case_id ? (porCaso.get(n.case_id) ?? null) : null,
+      leadsAtivos: leadsPorNucleo.get(n.id) ?? 0,
       membros: ((membros ?? []) as any[])
         .filter((m) => m.nucleo_id === n.id)
-        .map((m) => ({ nome: m.nome, papel: m.papel })),
+        .map((m) => ({ id: m.id, nome: m.nome, papel: m.papel })),
     }));
 
     return detectarDuplicidades(paraComparar);
+  });
+
+function paraCompararDoBanco(n: any, membros: any[], leadsAtivos: number): NucleoParaComparar {
+  return {
+    id: n.id,
+    nome: n.nome,
+    dossie_mae: n.dossie_mae ?? null,
+    contratante_nome: n.contratante_nome ?? null,
+    dossie_status: n.dossie_status ?? null,
+    status: n.status ?? null,
+    created_at: n.created_at,
+    updated_at: n.updated_at,
+    case_id: n.case_id ?? null,
+    caso: null,
+    leadsAtivos,
+    membros: membros.map((m) => ({ id: m.id, nome: m.nome, papel: m.papel })),
+  };
+}
+
+/**
+ * Fases 2–6: comparação, plano, confirmação humana UNIFICAR, reapontamento,
+ * arquivamento lógico do núcleo de origem e validação após refresh.
+ *
+ * Sem fusão automática, sem caso/núcleo novo, sem case_participants,
+ * sem coluna nucleo_canonico_id.
+ */
+export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { canonicoId: string; origemId: string; confirmacao: string }) => {
+    if (!UUID.test(data?.canonicoId ?? "") || !UUID.test(data?.origemId ?? "")) {
+      throw new Error("Identificadores de núcleo inválidos.");
+    }
+    exigirConfirmacaoUnificar(data.confirmacao ?? "");
+    return {
+      canonicoId: data.canonicoId,
+      origemId: data.origemId,
+      confirmacao: CONFIRMACAO_UNIFICAR,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    semCache();
+    const supabase = context.supabase as Sb;
+    const userId = context.userId as string;
+    const organizationId = await orgDoUsuario(supabase, userId);
+    const agora = new Date().toISOString();
+
+    if (data.canonicoId === data.origemId) {
+      throw new Error("Canônico e origem são o mesmo núcleo.");
+    }
+
+    const { data: nucleos, error: erroNucleos } = await supabase
+      .from("nucleos_familiares")
+      .select("*")
+      .in("id", [data.canonicoId, data.origemId])
+      .eq("organization_id", organizationId);
+    if (erroNucleos) throw new Error(erroNucleos.message);
+
+    const canonico = ((nucleos ?? []) as any[]).find((n) => n.id === data.canonicoId);
+    const origem = ((nucleos ?? []) as any[]).find((n) => n.id === data.origemId);
+    if (!canonico || !origem) {
+      throw new Error("Núcleo não encontrado nesta organização.");
+    }
+    if (canonico.archived_at || canonico.status === "arquivado") {
+      throw new Error("Núcleo canônico já está arquivado.");
+    }
+    if (origem.archived_at || origem.status === "arquivado") {
+      throw new Error("Núcleo de origem já está arquivado.");
+    }
+
+    const [{ data: membrosCanonicoTodos }, { data: membrosOrigemTodos }, { data: leadsOrigem }] =
+      await Promise.all([
+        supabase.from("nucleo_membros").select("id,nucleo_id,nome,archived_at").eq("nucleo_id", data.canonicoId),
+        supabase.from("nucleo_membros").select("id,nucleo_id,nome,papel,archived_at").eq("nucleo_id", data.origemId),
+        supabase.from("leads").select("id,nucleo_id").eq("nucleo_id", data.origemId),
+      ]);
+
+    const membrosCanonico = (membrosCanonicoTodos ?? []) as any[];
+    const membrosOrigem = ((membrosOrigemTodos ?? []) as any[]).filter((m) => !m.archived_at);
+    const leads = (leadsOrigem ?? []) as any[];
+
+    const plano = montarPlanoUnificacao(
+      paraCompararDoBanco(canonico, membrosCanonico, 0),
+      paraCompararDoBanco(origem, membrosOrigem, leads.length),
+    );
+    if (plano.recusado) {
+      throw new Error(plano.motivoRecusa ?? "Unificação recusada.");
+    }
+
+    if (plano.caso.acao === "transferir" && plano.caso.caseIdFinal) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "nucleos_familiares",
+        id: data.canonicoId,
+        organizationId,
+        userId,
+        payload: { case_id: plano.caso.caseIdFinal },
+      });
+    }
+
+    const nomesCanonico = new Set(
+      membrosCanonico.map((m) => chaveNomeUnico(m.nome)).filter(Boolean),
+    );
+
+    for (const membro of membrosOrigem) {
+      const chave = chaveNomeUnico(membro.nome);
+      if (nomesCanonico.has(chave)) {
+        await gravarComVerificacao({
+          supabase,
+          tabela: "nucleo_membros",
+          id: membro.id,
+          organizationId,
+          userId,
+          payload: {
+            archived_at: agora,
+            archived_by: userId,
+            archive_motivo: `Nome já existe no núcleo canônico "${canonico.nome}" (${canonico.id}).`,
+          },
+        });
+      } else {
+        await gravarComVerificacao({
+          supabase,
+          tabela: "nucleo_membros",
+          id: membro.id,
+          organizationId,
+          userId,
+          payload: { nucleo_id: data.canonicoId },
+        });
+        nomesCanonico.add(chave);
+      }
+    }
+
+    for (const lead of leads) {
+      await gravarComVerificacao({
+        supabase,
+        tabela: "leads",
+        id: lead.id,
+        organizationId,
+        userId,
+        payload: { nucleo_id: data.canonicoId },
+      });
+    }
+
+    await gravarComVerificacao({
+      supabase,
+      tabela: "nucleos_familiares",
+      id: data.origemId,
+      organizationId,
+      userId,
+      payload: {
+        archived_at: agora,
+        archived_by: userId,
+        archive_motivo: plano.arquivoOrigem.motivo,
+        status: "arquivado",
+      },
+    });
+
+    const [{ data: origemRelido }, { data: canonicoRelido }, { data: membrosRelidos }, { data: leadsRelidos }] =
+      await Promise.all([
+        supabase
+          .from("nucleos_familiares")
+          .select("id,status,archived_at,case_id")
+          .eq("id", data.origemId)
+          .eq("organization_id", organizationId)
+          .maybeSingle(),
+        supabase
+          .from("nucleos_familiares")
+          .select("id,status,archived_at,case_id")
+          .eq("id", data.canonicoId)
+          .eq("organization_id", organizationId)
+          .maybeSingle(),
+        supabase
+          .from("nucleo_membros")
+          .select("id,nucleo_id,nome,archived_at")
+          .in("nucleo_id", [data.canonicoId, data.origemId]),
+        supabase.from("leads").select("id,nucleo_id").in("nucleo_id", [data.canonicoId, data.origemId]),
+      ]);
+
+    if (!origemRelido || !canonicoRelido) {
+      throw new Error("Falha ao reler os núcleos após a unificação.");
+    }
+
+    const checagem = validarPosMerge({
+      canonicoId: data.canonicoId,
+      origemId: data.origemId,
+      caseIdEsperado: plano.caso.caseIdFinal,
+      origem: origemRelido,
+      canonico: canonicoRelido,
+      membros: (membrosRelidos ?? []) as any[],
+      leads: (leadsRelidos ?? []) as any[],
+    });
+    if (!checagem.ok) {
+      throw new Error(`Validação pós-unificação falhou: ${checagem.falhas.join(" ")}`);
+    }
+
+    await auditarUnificacao(supabase, {
+      org: organizationId,
+      userId,
+      acao: "unificar_nucleo",
+      entidadeId: data.canonicoId,
+      metadados: {
+        origem_id: data.origemId,
+        canonico_id: data.canonicoId,
+        origem_nome: origem.nome,
+        canonico_nome: canonico.nome,
+        case_id_final: plano.caso.caseIdFinal,
+        membros_movidos: plano.membros.filter((m) => m.acao === "mover").length,
+        membros_arquivados_por_conflito: plano.membros.filter((m) => m.acao === "arquivar_por_conflito").length,
+        leads_reapontados: leads.length,
+        confirmacao: CONFIRMACAO_UNIFICAR,
+      },
+    });
+
+    return {
+      ok: true as const,
+      canonicoId: data.canonicoId,
+      origemId: data.origemId,
+      caseIdFinal: plano.caso.caseIdFinal,
+      validacao: checagem,
+    };
   });

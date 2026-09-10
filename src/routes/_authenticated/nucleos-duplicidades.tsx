@@ -1,12 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
-import { Secao, Selecao } from "@/components/caso/campos";
+import { inputCls, Secao, Selecao } from "@/components/caso/campos";
 import { SaasShell } from "@/components/saas/shell";
-import { listarCandidatosDuplicidadeNucleo } from "@/lib/nucleo-duplicidade.functions";
-import type { CandidatoDuplicidade, NivelConfianca } from "@/lib/nucleo-duplicidade";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  CONFIRMACAO_UNIFICAR,
+  montarPlanoUnificacao,
+  type CandidatoDuplicidade,
+  type NivelConfianca,
+  type NucleoParaComparar,
+  type PlanoUnificacao,
+} from "@/lib/nucleo-duplicidade";
+import {
+  executarUnificacaoNucleo,
+  listarCandidatosDuplicidadeNucleo,
+} from "@/lib/nucleo-duplicidade.functions";
 
 export const Route = createFileRoute("/_authenticated/nucleos-duplicidades")({
   head: () => ({
@@ -14,7 +33,8 @@ export const Route = createFileRoute("/_authenticated/nucleos-duplicidades")({
       { title: "Possíveis núcleos duplicados — Clube Ancestral" },
       {
         name: "description",
-        content: "Fase 1 (Detecção) da unificação controlada de núcleos familiares: candidatos sugeridos, sem fusão automática.",
+        content:
+          "Unificação controlada de núcleos familiares: detecção, plano de reconciliação e confirmação humana UNIFICAR.",
       },
       { property: "og:title", content: "Possíveis núcleos duplicados — Clube Ancestral" },
       { property: "og:type", content: "website" },
@@ -37,10 +57,32 @@ const ROTULOS_CONFIANCA: Record<NivelConfianca, string> = {
   baixa: "Confiança baixa",
 };
 
-function CartaoNucleo({ n }: { n: CandidatoDuplicidade["nucleoA"] }) {
+function CartaoNucleo({
+  n,
+  papel,
+  selecionado,
+  onEscolher,
+}: {
+  n: NucleoParaComparar;
+  papel: "canonico" | "origem" | null;
+  selecionado: boolean;
+  onEscolher: () => void;
+}) {
   return (
-    <div className="min-w-0 flex-1 rounded-lg border border-navy/10 p-3">
-      <p className="truncate font-serif text-base text-navy">{n.nome}</p>
+    <div
+      className={`min-w-0 flex-1 rounded-lg border p-3 ${
+        selecionado ? "border-gold bg-gold/5" : "border-navy/10"
+      }`}
+    >
+      <label className="flex cursor-pointer items-start gap-2">
+        <input type="radio" className="mt-1" checked={selecionado} onChange={onEscolher} />
+        <span className="min-w-0 flex-1">
+          <p className="truncate font-serif text-base text-navy">{n.nome}</p>
+          <p className="text-[11px] uppercase tracking-wide text-navy/45">
+            {papel === "canonico" ? "Canônico — permanece" : papel === "origem" ? "Origem — será arquivado" : "Escolher como canônico"}
+          </p>
+        </span>
+      </label>
       <dl className="mt-2 space-y-1 text-xs text-navy/65">
         <div>
           <dt className="inline text-navy/45">Contratante: </dt>
@@ -77,6 +119,10 @@ function CartaoNucleo({ n }: { n: CandidatoDuplicidade["nucleoA"] }) {
           <dd className="inline">{n.membros.length ? n.membros.map((m) => m.nome).join(", ") : "nenhum cadastrado"}</dd>
         </div>
         <div>
+          <dt className="inline text-navy/45">Leads ativos: </dt>
+          <dd className="inline">{n.leadsAtivos ?? 0}</dd>
+        </div>
+        <div>
           <dt className="inline text-navy/45">Criado em: </dt>
           <dd className="inline">{new Date(n.created_at).toLocaleDateString("pt-BR")}</dd>
         </div>
@@ -95,14 +141,72 @@ function CartaoNucleo({ n }: { n: CandidatoDuplicidade["nucleoA"] }) {
   );
 }
 
+function ResumoPlano({ plano }: { plano: PlanoUnificacao }) {
+  if (plano.recusado) {
+    return (
+      <p className="mt-3 rounded-lg border border-terracotta/30 bg-terracotta/10 p-3 text-xs text-terracotta">
+        {plano.motivoRecusa}
+      </p>
+    );
+  }
+
+  const movidos = plano.membros.filter((m) => m.acao === "mover");
+  const conflitos = plano.membros.filter((m) => m.acao === "arquivar_por_conflito");
+  const rotuloCaso =
+    plano.caso.acao === "transferir"
+      ? `O caso da origem passa para o canônico (${plano.caso.caseIdFinal}).`
+      : plano.caso.acao === "manter"
+        ? "O caso do canônico permanece; a origem não leva caso embora."
+        : "Nenhum dos dois núcleos tem caso vinculado.";
+
+  return (
+    <div className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/75">
+      <p className="font-medium text-navy">Plano de reconciliação</p>
+      <ul className="mt-2 list-disc space-y-1 pl-4">
+        <li>
+          Canônico permanece: {plano.canonicoNome}. Origem «{plano.origemNome}» será arquivado
+          (status arquivado, com motivo auditado).
+        </li>
+        <li>Caso: {rotuloCaso}</li>
+        <li>
+          Membros a reapontar para o canônico:{" "}
+          {movidos.length ? movidos.map((m) => m.nome).join(", ") : "nenhum"}
+        </li>
+        <li>
+          Membros da origem arquivados por nome já existente no canônico:{" "}
+          {conflitos.length ? conflitos.map((m) => m.nome).join(", ") : "nenhum"}
+        </li>
+        <li>Leads a reapontar para o canônico: {plano.leads.quantidade}</li>
+      </ul>
+    </div>
+  );
+}
+
 function NucleosDuplicidadesPage() {
   const carregar = useServerFn(listarCandidatosDuplicidadeNucleo);
+  const unificar = useServerFn(executarUnificacaoNucleo);
+  const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["nucleos-duplicidades"],
     queryFn: () => carregar(),
     retry: false,
   });
   const [filtroConfianca, setFiltroConfianca] = useState("");
+  const [escolha, setEscolha] = useState<Record<string, "A" | "B">>({});
+  const [dialogo, setDialogo] = useState<{ chave: string; plano: PlanoUnificacao } | null>(null);
+  const [confirmacao, setConfirmacao] = useState("");
+
+  const mut = useMutation({
+    mutationFn: (p: { canonicoId: string; origemId: string }) =>
+      unificar({ data: { ...p, confirmacao: CONFIRMACAO_UNIFICAR } }),
+    onSuccess: () => {
+      toast.success("Núcleos unificados. A lista foi recarregada.");
+      setDialogo(null);
+      setConfirmacao("");
+      void qc.invalidateQueries({ queryKey: ["nucleos-duplicidades"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Não foi possível unificar os núcleos."),
+  });
 
   const candidatos = useMemo(() => {
     const lista = (q.data ?? []) as CandidatoDuplicidade[];
@@ -113,20 +217,22 @@ function NucleosDuplicidadesPage() {
   return (
     <SaasShell
       titulo="Possíveis núcleos duplicados"
-      descricao="Fase 1 (Detecção) da unificação controlada de núcleos familiares — sugestão, não decisão."
+      descricao="Detecção, plano de reconciliação e unificação controlada — a fusão só acontece se você digitar UNIFICAR."
     >
       <div className="space-y-5">
         <Secao
-          titulo="Como ler esta lista"
-          descricao="Cada par abaixo tem um motivo objetivo (o que exatamente bateu entre os dois núcleos). Nada aqui é fundido, arquivado ou marcado como igual automaticamente — a decisão continua sendo sua, feita na tela de Núcleos familiares."
+          titulo="Como usar"
+          descricao="Cada par tem um motivo objetivo. Nada é fundido automaticamente: você escolhe o canônico, confere o plano e confirma digitando UNIFICAR."
         >
           <ul className="list-disc space-y-1 pl-5 text-xs text-navy/65">
-            <li>Recalculada a cada carregamento — não existe ainda uma coluna para guardar "em revisão" ou "descartado".</li>
-            <li>Documentos e fontes vinculados não estão incluídos nesta fase: essa granularidade ainda não existe ligada ao núcleo.</li>
+            <li>A lista é recalculada a cada carregamento — núcleo arquivado some da detecção.</li>
             <li>
-              Comparação assistida, plano de unificação, confirmação, execução atômica e validação pós-merge (Fases 2 a 6 do
-              prompt canônico) dependem de colunas novas no banco e ficam para uma etapa seguinte, com acesso de escrita ao
-              schema.
+              A unificação reaponta membros e leads para o canônico e arquiva a origem com
+              archived_at / archive_motivo / status arquivado. Não cria caso nem núcleo novo.
+            </li>
+            <li>
+              Se os dois núcleos apontam para casos diferentes, a unificação é recusada: resolva os
+              casos antes. Conflito de nome no canônico arquiva o membro da origem, sem duplicar.
             </li>
           </ul>
         </Secao>
@@ -151,33 +257,134 @@ function NucleosDuplicidadesPage() {
         ) : null}
 
         <div className="space-y-4">
-          {candidatos.map((c) => (
-            <article key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className={`rounded-full px-2 py-1 text-[11px] ${CORES_CONFIANCA[c.confianca]}`}>
-                  {ROTULOS_CONFIANCA[c.confianca]}
-                </span>
-                <span className="text-[11px] uppercase tracking-wide text-navy/45">Status: sugerido</span>
-              </div>
+          {candidatos.map((c) => {
+            const lado = escolha[c.chave] ?? "A";
+            const canonico = lado === "A" ? c.nucleoA : c.nucleoB;
+            const origem = lado === "A" ? c.nucleoB : c.nucleoA;
+            const plano = montarPlanoUnificacao(canonico, origem);
+            return (
+              <article key={c.chave} className="rounded-xl border border-navy/10 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className={`rounded-full px-2 py-1 text-[11px] ${CORES_CONFIANCA[c.confianca]}`}>
+                    {ROTULOS_CONFIANCA[c.confianca]}
+                  </span>
+                  <span className="text-[11px] uppercase tracking-wide text-navy/45">Status: sugerido</span>
+                </div>
 
-              <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-navy/70">
-                {c.motivos.map((m) => (
-                  <li key={m}>{m}</li>
-                ))}
-              </ul>
+                <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs text-navy/70">
+                  {c.motivos.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
 
-              {c.pessoasEmComum.length > 0 ? (
-                <p className="mt-1 text-xs text-navy/55">Pessoas em comum: {c.pessoasEmComum.join(", ")}</p>
-              ) : null}
+                {c.pessoasEmComum.length > 0 ? (
+                  <p className="mt-1 text-xs text-navy/55">Pessoas em comum: {c.pessoasEmComum.join(", ")}</p>
+                ) : null}
 
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                <CartaoNucleo n={c.nucleoA} />
-                <CartaoNucleo n={c.nucleoB} />
-              </div>
-            </article>
-          ))}
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <CartaoNucleo
+                    n={c.nucleoA}
+                    papel={lado === "A" ? "canonico" : "origem"}
+                    selecionado={lado === "A"}
+                    onEscolher={() => setEscolha((s) => ({ ...s, [c.chave]: "A" }))}
+                  />
+                  <CartaoNucleo
+                    n={c.nucleoB}
+                    papel={lado === "B" ? "canonico" : "origem"}
+                    selecionado={lado === "B"}
+                    onEscolher={() => setEscolha((s) => ({ ...s, [c.chave]: "B" }))}
+                  />
+                </div>
+
+                <ResumoPlano plano={plano} />
+
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    disabled={plano.recusado || mut.isPending}
+                    onClick={() => {
+                      setConfirmacao("");
+                      setDialogo({ chave: c.chave, plano });
+                    }}
+                    className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
+                  >
+                    Unificar neste canônico
+                  </button>
+                  {plano.recusado ? (
+                    <p className="mt-1 text-xs text-navy/55">Ação indisponível até resolver o conflito acima.</p>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
+
+      <Dialog
+        open={Boolean(dialogo)}
+        onOpenChange={(aberto) => {
+          if (!aberto) {
+            setDialogo(null);
+            setConfirmacao("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Confirmar unificação</DialogTitle>
+            <DialogDescription>
+              Esta ação arquiva o núcleo de origem e reaponta membros e leads para o canônico. Não
+              cria caso novo. Digite {CONFIRMACAO_UNIFICAR} para confirmar.
+            </DialogDescription>
+          </DialogHeader>
+          {dialogo ? (
+            <div className="space-y-2 text-sm text-navy/80">
+              <p>
+                Canônico: <strong>{dialogo.plano.canonicoNome}</strong>
+              </p>
+              <p>
+                Origem a arquivar: <strong>{dialogo.plano.origemNome}</strong>
+              </p>
+              <label className="block text-xs uppercase tracking-wide text-navy/50">
+                Digite {CONFIRMACAO_UNIFICAR}
+                <input
+                  className={`${inputCls} mt-1`}
+                  value={confirmacao}
+                  onChange={(e) => setConfirmacao(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </label>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <button
+              type="button"
+              className="rounded-lg border border-navy/15 px-4 py-2 text-sm text-navy"
+              onClick={() => {
+                setDialogo(null);
+                setConfirmacao("");
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={!dialogo || confirmacao !== CONFIRMACAO_UNIFICAR || mut.isPending}
+              onClick={() => {
+                if (!dialogo) return;
+                mut.mutate({
+                  canonicoId: dialogo.plano.canonicoId,
+                  origemId: dialogo.plano.origemId,
+                });
+              }}
+              className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-50"
+            >
+              {mut.isPending ? "Unificando…" : "Confirmar unificação"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SaasShell>
   );
 }
