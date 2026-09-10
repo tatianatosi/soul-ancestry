@@ -1,0 +1,28 @@
+---
+description: Memória permanente do Clube Ancestral — autoridade, motor unificado, legado, schema real, 8 grupos do Desk e 7 abas do App.
+alwaysApply: true
+---
+
+# Clube Ancestral — regras permanentes
+
+Texto canônico: `AGENTS.md` (após o aviso Lovable). Fonte completa da proprietária: `docs/politicas/MEMORIA-PERMANENTE-CLUBE-ANCESTRAL-2026-09-10.md`. Verificação contra o código: `docs/relatorios/2026-09-10_memoria-permanente-verificacao.md`.
+
+## Fazer sempre
+
+- Tratar o **planejador** como fonte do trabalho ativo; o **caso** (`crm_casos`) como eixo; a próxima ação como campo obrigatório de caso ativo (`proxima_acao_prioritaria`).
+- Entregar fatia vertical (UI + persistência + permissão + evidência). Aparência sozinha não é “feito”.
+- Mapear conceitos para tabelas **já existentes** em `src/integrations/supabase/types.ts` e `supabase/migrations/`. Reaproveitar `case_members` / `tarefas` / `planner_tarefas` / `research_cases` / `documents` etc.
+- Manter os **8 grupos** de `GRUPOS_DESK` e as **7 abas canônicas** do App Cliente. Hierarquia funcional da memória permanente não é menu novo.
+- Usar o mockup de **17 páginas** como visual normativo. O PDF de **47 páginas** é auditoria complementar.
+- Preservar o aviso Lovable em `AGENTS.md`: sem force-push, rebase, amend ou squash de commits já publicados.
+- Respeitar `docs/politicas/politica-autoridade-operacional.md`: para a proprietária, pendência informa, não impede; override auditado.
+
+## Nunca
+
+- Usar matriz operacional legada, planilha mestre, DRE ou reconciliação antiga do Asaas como operação atual.
+- Inventar tabelas (`citizenship_cases`, `case_participants`, …) ou vocabulário **CHECK-*** de requisitos.
+- Redesenhar Desk/App para caber no mockup de 7 itens internos, ou no README histórico de 6 abas.
+- Misturar legado com dado ativo sem rótulo e sem precedência do planejador.
+- Confiar só em esconder rota/botão; RLS e validação no servidor são a autorização.
+- Simular sucesso, usar mock permanente como produção, ou apresentar hipótese genealógica como fato.
+- Reescrever história git publicada (Lovable).
