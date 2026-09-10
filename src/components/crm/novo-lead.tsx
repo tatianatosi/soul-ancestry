@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Rotulo, Selecao, Texto, inputCls } from "@/components/caso/campos";
+import { useSaas } from "@/components/saas/shell";
 import { criarLeadManual, type PossivelDuplicidade } from "@/lib/crm-desk.functions";
 import { OBJETIVOS, ORIGENS_LEAD, PROXIMAS_ACOES } from "@/lib/crm-desk";
+import { hojeISO } from "@/lib/painel-dia";
 
 type Props = {
   aberto: boolean;
@@ -12,6 +14,14 @@ type Props = {
   onCriado: (id: string | null) => void;
 };
 
+/**
+ * Responsável, próxima ação e prazo vêm pré-preenchidos (usuária logada,
+ * "Realizar Discovery", hoje) em vez de bloquear o salvamento: quem está
+ * criando o lead em plena call precisa registrar o essencial e ajustar
+ * depois, não parar para escolher três campos antes de começar. A regra de
+ * "nenhum lead ativo sem responsável/próxima ação/prazo" continua valendo —
+ * só deixa de exigir digitação manual no momento da captura.
+ */
 const vazio = {
   nome: "",
   email: "",
@@ -19,8 +29,8 @@ const vazio = {
   origem: "",
   objetivo: "",
   responsavel_nome: "",
-  proxima_acao: "",
-  proxima_acao_em: "",
+  proxima_acao: "realizar_discovery",
+  proxima_acao_em: hojeISO(),
   resumo_call: "",
   indicado_por: "",
 };
@@ -29,9 +39,18 @@ const vazio = {
 export function NovoLeadDialog({ aberto, onFechar, onCriado }: Props) {
   const criar = useServerFn(criarLeadManual);
   const qc = useQueryClient();
+  const { contexto } = useSaas();
   const [form, setForm] = useState({ ...vazio });
   const [duplicidades, setDuplicidades] = useState<PossivelDuplicidade[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
+
+  // Pré-preenche com o nome da usuária logada assim que carregar, sem
+  // sobrescrever se ela já tiver digitado outro responsável.
+  useEffect(() => {
+    const nome = contexto?.perfil?.nome;
+    if (nome && !form.responsavel_nome) setForm((f) => ({ ...f, responsavel_nome: nome }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contexto?.perfil?.nome]);
 
   const set = (k: keyof typeof vazio) => (v: unknown) => setForm((f) => ({ ...f, [k]: String(v ?? "") }));
 
