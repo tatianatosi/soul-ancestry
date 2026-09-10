@@ -30,4 +30,10 @@ describe("Desk — pendência informa e não trava campo", () => {
     expect(src).not.toContain("const podeAgir = dados.podeEscrever && !bloqueado");
     expect(src).toContain("disabled={tarefa.isPending}");
   });
+
+  it("login do Desk e Painel Hoje declaram o menu enxuto na cara", () => {
+    expect(ler("src/routes/equipe.entrar.tsx")).toContain("Entrar no Desk");
+    expect(ler("src/components/saas/shell.tsx")).toContain("Desk · menu enxuto");
+    expect(ler("src/components/painel/painel-dia.tsx")).toContain("data-desk-enxuto");
+  });
 });

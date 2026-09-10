@@ -221,7 +221,7 @@ export function SaasShell({
         <div className="px-2 pb-6">
           <BrandLogo size={34} variant="client-dark" className="items-center" />
           <p className="mt-2 pl-0.5 text-[11px] uppercase tracking-widest text-cream/60">
-            Gestão de pesquisa
+            Desk · menu enxuto
           </p>
         </div>
 

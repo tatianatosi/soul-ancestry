@@ -685,6 +685,14 @@ export function PainelDia() {
         </div>
       ) : null}
       <AberturaPainel cards={cards} totalCasos={(qCad.data?.casos ?? []).length} />
+      <p
+        data-desk-enxuto
+        className="rounded-xl border border-gold/40 bg-gold/15 px-4 py-3 text-sm text-navy"
+      >
+        Neste Desk o menu da esquerda ficou mais curto. CRM Mestre, dicionário e Catálogo 30
+        estão na conta, no rodapé da barra. Campo com pendência continua editável — a gravação
+        é revalidada no servidor.
+      </p>
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />
@@ -968,21 +976,23 @@ export function PainelDia() {
           ))}
         </div>
 
-        <p className="mt-4 text-[11px] uppercase tracking-wide text-navy/50">
-          Módulos que mudaram de nome
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          {ATALHOS_DESCOBERTA.map((a) => (
-            <Link
-              key={a.rota}
-              to={a.rota}
-              className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
-              title={a.onde}
-            >
-              {a.rotulo}
-            </Link>
-          ))}
-        </div>
+        <details className="mt-4">
+          <summary className="cursor-pointer text-[11px] uppercase tracking-wide text-navy/50">
+            Módulos que mudaram de nome
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {ATALHOS_DESCOBERTA.map((a) => (
+              <Link
+                key={a.rota}
+                to={a.rota}
+                className="rounded-md border border-navy/15 px-3 py-1.5 text-navy/75 hover:bg-navy/5"
+                title={a.onde}
+              >
+                {a.rotulo}
+              </Link>
+            ))}
+          </div>
+        </details>
 
         {/*
           Sinais de atenção, fundidos aqui em 25/08. Cada grupo já era contagem,
