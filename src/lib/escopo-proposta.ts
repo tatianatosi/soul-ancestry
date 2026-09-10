@@ -124,6 +124,7 @@ export type PropostaCanva = {
   origem?: string | null;
   origem_referencia?: string | null;
   paginas_registradas?: number[] | null;
+  escopo?: string | null;
   escopo_paginas?: Record<string, unknown> | null;
 };
 
