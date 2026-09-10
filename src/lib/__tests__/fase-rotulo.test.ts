@@ -44,10 +44,10 @@ describe("rótulo de fase", () => {
 });
 
 describe("atalhos contextuais no menu", () => {
-  it("marca o grupo de origem quando a rota é citada de fora dele", async () => {
+  it("sem atalho cruzado, /nucleos não ganha marca de origem", async () => {
     const { origemDoAtalho } = await import("@/lib/navegacao-desk");
-    expect(origemDoAtalho("Biblioteca Mestre", "/nucleos")).toBe("Casos 360");
-    expect(origemDoAtalho("Casos 360", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Inteligência & Pesquisa", "/nucleos")).toBeNull();
+    expect(origemDoAtalho("Pessoas & Casos", "/nucleos")).toBeNull();
   });
 
   it("não marca a entrada canônica — não há nada a dizer ali", async () => {
