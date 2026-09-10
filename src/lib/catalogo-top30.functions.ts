@@ -2,6 +2,7 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { DIAS_CADENCIA_ATENCAO, DIAS_CADENCIA_CRITICA } from "@/lib/cadencia-limiares";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,7 +27,7 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       supabase
         .from("case_plans")
         .select(
-          "id,case_id,fase_jornada,marco_atual,responsavel_user_id,proxima_acao,prazo_proxima_acao,proxima_microentrega,dias_sem_touchpoint,status_saude,status,case_service_id,product_catalog_id",
+          "id,case_id,fase_jornada,marco_atual,responsavel_user_id,proxima_acao,prazo_proxima_acao,proxima_microentrega,status,case_service_id,product_catalog_id",
         )
         .is("archived_at", null)
         .limit(500),
@@ -70,7 +71,8 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
 
     const listaCasos = (casos ?? []).map((c: any) => {
       const plano = planosPorCaso.get(c.id);
-      const dias = plano?.dias_sem_touchpoint ?? diasDesde(c.ultimo_touchpoint_em);
+      // case_plans.dias_sem_touchpoint nunca é recalculado (fica parado em 0) — dado morto.
+      const dias = diasDesde(c.ultimo_touchpoint_em);
       return {
         id: c.id as string,
         codigo: (c.codigo ?? "") as string,
@@ -95,8 +97,11 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       semProduto: listaCasos.filter((c: Caso) => c.temPlano && !c.temProduto),
       semPlano: listaCasos.filter((c: Caso) => !c.temPlano),
       semMicroentrega: listaCasos.filter((c: Caso) => c.temPlano && !c.proximaMicroentrega),
-      atencao10: listaCasos.filter((c: Caso) => c.dias_sem_touchpoint >= 10 && c.dias_sem_touchpoint < 14),
-      critico14: listaCasos.filter((c: Caso) => c.dias_sem_touchpoint >= 14),
+      atencao10: listaCasos.filter(
+        (c: Caso) =>
+          c.dias_sem_touchpoint >= DIAS_CADENCIA_ATENCAO && c.dias_sem_touchpoint < DIAS_CADENCIA_CRITICA,
+      ),
+      critico14: listaCasos.filter((c: Caso) => c.dias_sem_touchpoint >= DIAS_CADENCIA_CRITICA),
       entregasPendentes: (entregas ?? [])
         .filter((d: any) => (d.approval_status ?? "rascunho") !== "aprovado" && d.approval_status !== "publicado")
         .map((d: any) => ({
@@ -114,7 +119,9 @@ export const painelTop30Planejador = createServerFn({ method: "GET" })
       const chave = c.responsavel ?? "sem-responsavel";
       const atual = porResponsavel.get(chave) ?? { responsavel: chave, casos: 0, pendencias: 0 };
       atual.casos += 1;
-      if (!c.temProduto || !c.temPlano || !c.proximaMicroentrega || c.dias_sem_touchpoint >= 10) atual.pendencias += 1;
+      if (!c.temProduto || !c.temPlano || !c.proximaMicroentrega || c.dias_sem_touchpoint >= DIAS_CADENCIA_ATENCAO) {
+        atual.pendencias += 1;
+      }
       porResponsavel.set(chave, atual);
     }
     const pendenciasPorResponsavel = [...porResponsavel.values()].sort((a, b) => b.pendencias - a.pendencias);

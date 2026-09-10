@@ -220,7 +220,22 @@ export function montarConfirmacao(pedido: PedidoConfirmacao): Confirmacao {
 }
 
 
-export const MOTIVO_MINIMO = 10;
+/**
+ * Motivo continua obrigatório onde a confirmação existe — mas sem contagem
+ * arbitrária de caracteres.
+ *
+ * 06/09/2026: era 10. `hotfix_autonomia_operacional_proprietaria.md` proíbe,
+ * com estas palavras, "mínimo arbitrário de caracteres em motivo,
+ * justificativa, comentário, observação ou nota", e os dois prompts de
+ * remoção de barreiras listam "justificativa obrigatória" entre o que trava a
+ * operação. Na prática a dona precisava redigir uma frase de 10+ caracteres
+ * para confirmar a própria decisão; agora "ok" basta e o registro continua
+ * existindo. Quem é obrigado a justificar de verdade — exceção comercial de
+ * preço (`MOTIVO_MINIMO_EXCECAO_COMERCIAL`) e override de gate comercial
+ * (`MOTIVO_MINIMO_OVERRIDE`) — tem constante própria e não foi afrouxado:
+ * ali o motivo é peça de defesa financeira, não cerimônia de interface.
+ */
+export const MOTIVO_MINIMO = 1;
 
 export type DecisaoProprietaria = {
   acao: string;

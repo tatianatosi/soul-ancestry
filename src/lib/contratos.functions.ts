@@ -2,6 +2,8 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+// Alias obrigatório: este arquivo já usa `linhas` como variável local.
+import { linhas as linhasDe } from "@/lib/linhas";
 
 /**
  * Motor contratual — camada de servidor.
@@ -135,20 +137,41 @@ export const obterContrato = createServerFn({ method: "GET" })
       contratoBase = r.data ?? null;
     }
 
+    // Parâmetros já capturados pelo Planejador para o mesmo caso — nem sempre
+    // existem (nem todo contrato nasce de um caso com Planejador rodado), mas
+    // quando existem precisam estar acessíveis daqui, não só por URL direta.
+    const parametros = contrato.data.case_id
+      ? (
+          await supabase
+            .from("contract_case_parameters")
+            .select("id,contract_parameter_values(campo,valor)")
+            .eq("organization_id", organizationId)
+            .eq("case_id", contrato.data.case_id)
+            .is("archived_at", null)
+            .maybeSingle()
+        ).data
+      : null;
+    const valoresParametros = (parametros as any)?.contract_parameter_values as
+      | { campo: string; valor: string | null }[]
+      | undefined;
+
     return {
       papel,
       contrato: contrato.data,
       contratoBase,
-      partes: partes.data ?? [],
-      escopo: escopo.data ?? [],
-      clausulas: clausulas.data ?? [],
-      anexos: anexos.data ?? [],
-      fontes: fontes.data ?? [],
-      versoes: versoes.data ?? [],
-      validacoes: validacoes.data ?? [],
-      eventos: eventos.data ?? [],
-      ordens: ordens.data ?? [],
-      excecoes: excecoes.data ?? [],
+      parametrosId: (parametros?.id as string | undefined) ?? null,
+      valorReferencia: valoresParametros?.find((v) => v.campo === "valor_total")?.valor ?? null,
+      prazoReferencia: valoresParametros?.find((v) => v.campo === "vencimentos")?.valor ?? null,
+      partes: linhasDe<any>(partes, "partes do instrumento"),
+      escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
+      clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
+      anexos: linhasDe<any>(anexos, "anexos do instrumento"),
+      fontes: linhasDe<any>(fontes, "fontes vinculadas ao instrumento"),
+      versoes: linhasDe<any>(versoes, "versões do instrumento"),
+      validacoes: linhasDe<any>(validacoes, "validações do instrumento"),
+      eventos: linhasDe<any>(eventos, "eventos de revisão do instrumento"),
+      ordens: linhasDe<any>(ordens, "ordens de serviço do instrumento"),
+      excecoes: linhasDe<any>(excecoes, "exceções do instrumento"),
     };
   });
 
@@ -186,12 +209,12 @@ export const painelContratual = createServerFn({ method: "GET" })
       supabase.from("contract_exceptions").select("*").match(org).is("archived_at", null),
     ]);
 
-    const listaContratos = (contratos.data ?? []) as any[];
-    const abertas = (validacoes.data ?? []) as any[];
-    const anexosPendentes = ((anexos.data ?? []) as any[]).filter(
+    const listaContratos = linhasDe<any>(contratos, "instrumentos do painel contratual");
+    const abertas = linhasDe<any>(validacoes, "validações abertas do painel contratual");
+    const anexosPendentes = linhasDe<any>(anexos, "anexos exigidos do painel contratual").filter(
       (a) => !["ready_for_review", "approved", "attached", "not_applicable"].includes(a.status),
     );
-    const ordensImpedidas = ((ordens.data ?? []) as any[]).filter((o) =>
+    const ordensImpedidas = linhasDe<any>(ordens, "ordens de serviço do painel contratual").filter((o) =>
       ["draft", "pending_approval", "approved", "paused"].includes(o.status),
     );
     const agora = Date.now();
@@ -205,10 +228,10 @@ export const painelContratual = createServerFn({ method: "GET" })
       ),
       anexosAusentes: anexosPendentes,
       ordensImpedidas,
-      excecoesExpiradas: ((excecoes.data ?? []) as any[]).filter(
+      excecoesExpiradas: linhasDe<any>(excecoes, "exceções do painel contratual").filter(
         (e) => e.expires_at && new Date(e.expires_at).getTime() < agora,
       ),
-      excecoesVigentes: ((excecoes.data ?? []) as any[]).filter(
+      excecoesVigentes: linhasDe<any>(excecoes, "exceções do painel contratual").filter(
         (e) => !e.revoked_at && (!e.expires_at || new Date(e.expires_at).getTime() >= agora),
       ),
     };
@@ -259,6 +282,19 @@ export const criarInstrumento = createServerFn({ method: "POST" })
       .select("id,contract_number")
       .single();
     if (error) throw new Error(error.message);
+
+    // Reconecta com os parâmetros já capturados pelo Planejador para este caso
+    // (contract_case_parameters), quando existirem — sem isso, o contrato-base
+    // nasce desconectado de tudo que já foi validado para o caso (nome,
+    // documento, endereço, valor, escopo), como aconteceu com o caso real da
+    // Ana Luiza: os 22 campos existiam, só nunca foram ligados a este contrato.
+    if (data.contract_type === "contract_base" && data.case_id) {
+      await supabase
+        .from("contract_case_parameters")
+        .update({ contract_id: novo.id, updated_by: context.userId })
+        .eq("case_id", data.case_id)
+        .is("contract_id", null);
+    }
 
     await evento(supabase, organizationId, novo.id, "created", { tipo: data.contract_type });
     return novo as { id: string; contract_number: string };
@@ -422,6 +458,88 @@ export const salvarItemContrato = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Fase 3 da unificação de pessoa (autorizada pela proprietária, 06/09/2026):
+ * sincroniza documento (CPF) das partes do contrato a partir do cadastro
+ * canônico (clientes), pelo mesmo padrão já em produção em
+ * ressincronizarAnexosDoCaso — "Verificar" (confirmar: false) devolve um
+ * plano, "Sincronizar" (confirmar: true) grava. Só preenche o que está
+ * vazio; um valor diferente já registrado nunca é sobrescrito sozinho,
+ * vira conflito para decisão humana. Nunca mexe em parte de contrato já
+ * assinado.
+ */
+export const sincronizarPessoaDoCaso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string; confirmar?: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as unknown as Sb;
+    const { organizationId } = await contexto(supabase, context.userId as string);
+
+    const { data: contrato } = await supabase
+      .from("contracts")
+      .select("id,signed_at")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!contrato?.id) throw new Error("Nenhum contrato vinculado a este caso.");
+
+    const { data: partes } = await supabase
+      .from("contract_parties")
+      .select("id,person_name,role,document_type,document_number,client_id")
+      .eq("contract_id", contrato.id)
+      .is("archived_at", null);
+
+    const clientIds = Array.from(new Set(((partes ?? []) as any[]).map((p) => p.client_id).filter(Boolean)));
+    const { data: clientesRaw } = clientIds.length
+      ? await supabase.from("clientes").select("id,nome,cpf").in("id", clientIds)
+      : { data: [] as any[] };
+    const clientePorId = new Map(((clientesRaw ?? []) as any[]).map((c) => [c.id, c]));
+    const normalizar = (s: string) => s.replace(/\D/g, "");
+
+    const plano = ((partes ?? []) as any[]).map((p) => {
+      // Dependente (ex.: menor sem cadastro próprio) pode ter client_id
+      // apontando para o responsável — nunca herdar o documento de outra
+      // pessoa. Achado real: Felipe (dependente) tem client_id da própria
+      // mãe; sincronizar por engano gravaria o CPF dela como se fosse dele.
+      if (p.role === "dependent") return { parte: p.person_name, id: p.id, acao: "dependente_nao_sincronizado" as const };
+      const cliente = p.client_id ? clientePorId.get(p.client_id) : null;
+      if (!cliente?.cpf) return { parte: p.person_name, id: p.id, acao: "sem_dado_canonico" as const };
+      if (p.document_number) {
+        return normalizar(String(p.document_number)) !== normalizar(String(cliente.cpf))
+          ? { parte: p.person_name, id: p.id, acao: "conflito" as const, atual: p.document_number, canonico: cliente.cpf }
+          : { parte: p.person_name, id: p.id, acao: "ja_sincronizado" as const };
+      }
+      return { parte: p.person_name, id: p.id, acao: "preencher" as const, cpf: cliente.cpf as string };
+    });
+
+    if (!data.confirmar) return { simulado: true, plano, contratoAssinado: Boolean(contrato.signed_at) };
+    if (contrato.signed_at) throw new Error("Contrato já assinado: partes não podem ser alteradas.");
+
+    let atualizados = 0;
+    for (const item of plano) {
+      if (item.acao !== "preencher") continue;
+      const { error } = await supabase
+        .from("contract_parties")
+        .update({ document_type: "CPF", document_number: item.cpf })
+        .eq("id", item.id);
+      if (error) throw new Error(error.message);
+      atualizados++;
+    }
+
+    await supabase.from("audit_logs").insert({
+      organization_id: organizationId,
+      entidade: "contract_parties",
+      entidade_id: contrato.id,
+      acao: "pessoa_sincronizada_do_cadastro_canonico",
+      user_id: context.userId as string,
+      metadados: { case_id: data.caseId, plano, atualizados },
+    });
+
+    return { simulado: false, plano, atualizados };
+  });
+
 export const arquivarItemContrato = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tabela: Filho; contract_id: string; id: string; motivo: string }) => data)
@@ -477,8 +595,39 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
     if (!contrato.data) throw new Error("Instrumento não encontrado nesta organização.");
     if (contrato.data.status === "signed") throw new Error("Contrato assinado é imutável: use complementar ou aditivo.");
 
-    // Conciliação obrigatória: só SKU, preço e condição homologados no
-    // product_catalog sustentam minuta. Escopo insuficiente barra a geração.
+    // Achado 06/09 (CA-CONTRATO-RASCUNHO-SEM-MODELO-013): o instrumento é
+    // vinculado a um contract_templates.id (contrato.data.template_id) desde a
+    // criação, mas esse ID nunca era lido de volta — só gravado como rótulo em
+    // contract_versions.source_template_id. O modelo real (14 cláusulas
+    // completas, preâmbulo, perfil institucional, em
+    // contract_templates.default_clauses) ficava 100% sem uso: quem editava o
+    // contrato via UI (contract_clause_overrides vazio) sempre via "Cláusulas
+    // indicadas: Pendente de preenchimento", mesmo com o modelo pronto e
+    // aprovado no banco. Buscamos o modelo aqui para servir de piso textual
+    // quando não há cláusula específica sobrescrita para este contrato.
+    let modelo: any = null;
+    if (contrato.data.template_id) {
+      const r = await supabase
+        .from("contract_templates")
+        .select("id,name,default_clauses,status")
+        .eq("organization_id", organizationId)
+        .eq("id", contrato.data.template_id)
+        .maybeSingle();
+      modelo = r.data ?? null;
+    }
+
+    /*
+      Achado 05/09 (CA-CONTRATO-OS-SEM-BLOQUEIO-SURREAL-011): esta checagem
+      barrava a própria geração do RASCUNHO INTERNO — que a tela já rotula
+      "não enviar/não assinar" — com requisitos que só fazem sentido para um
+      ato externo. Criar/editar minuta interna precisa ser sempre possível;
+      quem realmente barra envio/assinatura é aprovarParaEnvio (re-executa
+      esta mesma conciliação) e tentarEtapaExterna (etapa desabilitada nesta
+      fase, incondicionalmente). Aqui a pendência só passa a ser registrada —
+      no evento de auditoria e devolvida ao chamador — nunca mais lançada como
+      erro que impede salvar o trabalho em andamento.
+    */
+    let pendenciasConciliacao: string[] = [];
     {
       const { conciliacaoDoContrato } = await import("@/lib/conciliacao-catalogo.server");
       const { mensagemBloqueio } = await import("@/lib/conciliacao-catalogo");
@@ -489,16 +638,15 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       if (conc) {
         const barra = mensagemBloqueio(conc);
         if (barra) {
+          pendenciasConciliacao = conc.bloqueios;
           await evento(supabase, organizationId, data.contract_id, "render_blocked", {
             motivo: "conciliacao_catalogo",
             bloqueios: conc.bloqueios.length,
+            observacao: "rascunho interno gerado mesmo assim — pendência registrada, não impeditiva",
           });
-          throw new Error(barra);
         }
-      } else if (!(escopo.data ?? []).length) {
-        throw new Error(
-          "Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados.",
-        );
+      } else if (!linhasDe<any>(escopo, "itens de escopo do instrumento").length) {
+        pendenciasConciliacao = ["Escopo insuficiente: o instrumento não tem proposta conciliada nem itens de escopo homologados."];
       }
     }
 
@@ -516,17 +664,16 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
 
     const conteudo = helpers.montarRascunho({
       contrato: contrato.data,
-      partes: partes.data ?? [],
-      escopo: escopo.data ?? [],
-      clausulas: clausulas.data ?? [],
-      anexos: anexos.data ?? [],
+      partes: linhasDe<any>(partes, "partes do instrumento"),
+      escopo: linhasDe<any>(escopo, "itens de escopo do instrumento"),
+      clausulas: linhasDe<any>(clausulas, "cláusulas do instrumento"),
+      anexos: linhasDe<any>(anexos, "anexos do instrumento"),
       contratoBase,
+      modeloClausulas: modelo?.default_clauses ?? null,
+      modeloStatus: modelo?.status ?? null,
     });
 
     const proxima = (ultima.data?.version_number ?? 0) + 1;
-    if (proxima > 1 && !data.change_summary?.trim()) {
-      throw new Error("A partir da versão 2 informe o resumo das alterações.");
-    }
 
     const { data: versao, error } = await supabase
       .from("contract_versions")
@@ -610,6 +757,7 @@ export const gerarRascunhoInterno = createServerFn({ method: "POST" })
       versao: versao.version_number as number,
       falhaRenderizacao: falha,
       snapshotInstitucional: snapshot,
+      pendenciasConciliacao,
     };
 
   });
@@ -859,16 +1007,48 @@ export const salvarOrdemServico = createServerFn({ method: "POST" })
       if (!linhaAtualizada?.id) {
         return { ok: false, mensagem: "Nada foi gravado: ordem de serviço não encontrada nesta organização." };
       }
-    } else {
-      const { error } = await supabase.from("service_orders").insert({
-        ...corpo,
-        organization_id: organizationId,
-        contract_id: data.contract_id,
-        service_order_number: "auto",
-      });
-      if (error) return { ok: false, mensagem: error.message };
+      return { ok: true, mensagem: "Ordem de serviço registrada." };
     }
-    return { ok: true, mensagem: "Ordem de serviço registrada." };
+
+    /*
+     * Corte B (09/09/2026) — escritor único e idempotente. Este formulário
+     * inseria direto em service_orders, sem checar OS existente nem
+     * preencher proposal_id/commercial_condition_id/hash: dois caminhos
+     * podiam criar duas OS para o mesmo caso. Agora chama o mesmo escritor
+     * do caminho automático (emitirOuRecuperarOS), com origem="manual" —
+     * localiza a OS ativa/rascunho do caso antes de inserir, ou explica a
+     * pendência comercial em vez de criar uma OS solta e desvinculada.
+     */
+    let caseId = data.case_id ?? null;
+    if (!caseId) {
+      const { data: contrato } = await supabase
+        .from("contracts")
+        .select("case_id")
+        .eq("organization_id", organizationId)
+        .eq("id", data.contract_id)
+        .maybeSingle();
+      caseId = contrato?.case_id ?? null;
+    }
+    if (!caseId) {
+      return { ok: false, mensagem: "Ordem de serviço exige um caso vinculado ao contrato para localizar a proposta aprovada." };
+    }
+    try {
+      const { emitirOuRecuperarOS } = await import("@/lib/cadeia-operacional.server");
+      const r = await emitirOuRecuperarOS(supabase, {
+        org: organizationId,
+        userId: context.userId as string,
+        origem: "manual",
+        caseId,
+      });
+      return {
+        ok: true,
+        mensagem: r.idempotente
+          ? "Ordem de serviço já existia para este caso — reaproveitada, não duplicada."
+          : "Ordem de serviço registrada.",
+      };
+    } catch (e) {
+      return { ok: false, mensagem: e instanceof Error ? e.message : "Não foi possível registrar a ordem de serviço." };
+    }
   });
 
 export const criarExcecao = createServerFn({ method: "POST" })
@@ -1087,9 +1267,27 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
       relacionada("contract_versions", "*"),
     ]);
 
+    // Valor total e vencimento não existem em `contracts` — vêm dos
+    // parâmetros do Planejador vinculados (contract_case_parameters.contract_id
+    // → contract_parameter_values), quando o contrato já estiver religado.
+    const parametrosVinculados = await supabase
+      .from("contract_case_parameters")
+      .select("contract_id,contract_parameter_values(campo,valor)")
+      .eq("organization_id", organizationId)
+      .in("contract_id", ids);
+    const referenciaPorContrato = new Map<string, { valor: string | null; prazo: string | null }>();
+    for (const reg of linhasDe<any>(parametrosVinculados, "parâmetros do Planejador vinculados aos contratos")) {
+      const valores = (reg.contract_parameter_values ?? []) as { campo: string; valor: string | null }[];
+      referenciaPorContrato.set(reg.contract_id, {
+        valor: valores.find((v) => v.campo === "valor_total")?.valor ?? null,
+        prazo: valores.find((v) => v.campo === "vencimentos")?.valor ?? null,
+      });
+    }
+
     const por = (linhas: any[], id: string) => linhas.filter((l) => l.contract_id === id);
 
     const instrumentos = lista.map((c) => {
+      const referencia = referenciaPorContrato.get(c.id);
       const resumo = montarChecklistJuridico({
         contrato: c,
         partes: por(partes, c.id),
@@ -1097,6 +1295,8 @@ export const panoramaChecklistJuridico = createServerFn({ method: "GET" })
         clausulas: por(clausulas, c.id),
         anexos: por(anexos, c.id),
         versoes: por(versoes, c.id),
+        valorReferencia: referencia?.valor ?? null,
+        prazoReferencia: referencia?.prazo ?? null,
       });
       return {
         id: c.id as string,

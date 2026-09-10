@@ -11,6 +11,7 @@ import {
 } from "@/lib/ops.server";
 import { TIPOS_EXCECAO_ROTULOS, validadeSugerida } from "@/lib/varredura-autorizacoes";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { registrarTimelineCaso } from "@/lib/timeline-operacional.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -183,7 +184,9 @@ export const salvarTarefa = createServerFn({ method: "POST" })
     exigirEscrita(ctx);
 
     const valores = limparOps(CAMPOS_TAREFA, data.valores);
-    if (!valores["titulo"]) throw new Error("Informe o título da tarefa.");
+    if (!data.id && !valores["caso_id"]) {
+      throw new Error("Tarefa operacional exige caso vinculado.");
+    }
 
     if (data.id) {
       await gravarComVerificacao({
@@ -197,13 +200,52 @@ export const salvarTarefa = createServerFn({ method: "POST" })
       return { id: data.id };
     }
 
+    /*
+     * Idempotência (achado de 31/08/2026, MATRIZ-AUTORIDADE-PERSISTENCIA-
+     * CONTINUIDADE-SEGURANCA-2026-08-31.md, seção "Continuidade operacional"):
+     * clicar duas vezes em "criar tarefa" criava duas tarefas idênticas.
+     * Antes de inserir, procura uma tarefa lógica equivalente já aberta
+     * (mesmo caso, mesmo título, não concluída/arquivada, criada há pouco) e
+     * reaproveita em vez de duplicar — regra: case_id + referência (título) +
+     * status aberto.
+     */
+    if (valores["caso_id"] && valores["titulo"]) {
+      const janela = new Date(Date.now() - 60_000).toISOString();
+      const { data: existente } = await supabase
+        .from("tarefas")
+        .select("id")
+        .eq("organization_id", ctx.organizationId)
+        .eq("caso_id", valores["caso_id"] as string)
+        .eq("titulo", valores["titulo"] as string)
+        .not("status", "in", "(concluida,cancelada)")
+        .is("archived_at", null)
+        .gte("created_at", janela)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existente?.id) return { id: existente.id as string, reaproveitada: true };
+    }
+
     const { data: novo, error } = await supabase
       .from("tarefas")
       .insert({ ...valores, organization_id: ctx.organizationId })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { id: novo.id as string };
+    const casoId = String(valores["caso_id"] ?? "");
+    const bloqueada = valores["status"] === "bloqueada";
+    await registrarTimelineCaso(supabase, {
+      organizationId: ctx.organizationId,
+      caseId: casoId,
+      eventType: bloqueada ? "pendencia" : "tarefa",
+      title: bloqueada ? "Pendência/bloqueio registrado" : "Tarefa criada",
+      summaryInternal: String(valores["titulo"] ?? ""),
+      sourceEntityType: "tarefas",
+      sourceEntityId: novo.id as string,
+      bloqueio: bloqueada,
+      userId: context.userId as string,
+    });
+    return { id: novo.id as string, reaproveitada: false };
   });
 
 /** Muda o status da tarefa no kanban, exigindo motivo/desbloqueio quando aplicável. */
@@ -228,7 +270,7 @@ export const moverTarefa = createServerFn({ method: "POST" })
 
     const atual = await supabase
       .from("tarefas")
-      .select("status,bloqueio,bloqueado_em")
+      .select("status,bloqueio,bloqueado_em,caso_id,titulo")
       .eq("id", data.id)
       .eq("organization_id", ctx.organizationId)
       .maybeSingle();
@@ -258,6 +300,20 @@ export const moverTarefa = createServerFn({ method: "POST" })
       userId,
       payload: patch,
     });
+    if (atual.data.caso_id) {
+      const bloqueada = data.status === "bloqueada";
+      await registrarTimelineCaso(supabase, {
+        organizationId: ctx.organizationId,
+        caseId: atual.data.caso_id as string,
+        eventType: bloqueada ? "pendencia" : "tarefa",
+        title: "Tarefa atualizada",
+        summaryInternal: `${String(atual.data.titulo ?? "")} → ${data.status}`,
+        sourceEntityType: "tarefas",
+        sourceEntityId: data.id,
+        bloqueio: bloqueada,
+        userId,
+      });
+    }
     return { ok: true };
   });
 
@@ -274,7 +330,6 @@ export const salvarMicroentrega = createServerFn({ method: "POST" })
     exigirEscrita(ctx);
 
     const valores = limparOps(CAMPOS_MICRO, data.valores);
-    if (!valores["titulo"]) throw new Error("Informe o título da micro-entrega.");
     if (!valores["caso_id"]) throw new Error("Vincule a micro-entrega a um caso.");
 
     if (data.id) {
@@ -342,7 +397,6 @@ export const salvarRegraSla = createServerFn({ method: "POST" })
       ativo?: boolean;
       observacoes?: string;
     }) => {
-      if (!data?.tipoTarefa || !data?.prioridade) throw new Error("Informe tipo e prioridade.");
       if (!(data.horasAlvo > 0) || !(data.horasAlerta >= 0)) throw new Error("Horas inválidas.");
       return data;
     },

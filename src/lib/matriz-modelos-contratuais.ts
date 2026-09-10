@@ -234,6 +234,48 @@ export function modeloPorChave(chave: ChaveModelo): ModeloContratual {
 }
 
 /* ------------------------------------------------------------------ */
+/* CA14-MATRIZES-DE-COMPOSICAO — aplicação por caso real                */
+/* ------------------------------------------------------------------ */
+
+export type PessoaComposicao = { titular: boolean; dependente: boolean };
+
+export type ComposicaoCaso =
+  | { estado: "classificado"; chave: ChaveModelo; motivo: string }
+  | { estado: "sem_dados"; motivo: string };
+
+/**
+ * Classifica a composição real do caso — a partir dos papéis já resolvidos
+ * por `pessoasDoCasoComFallbackNucleo` (titular/dependente), nunca fundindo
+ * pessoas de fontes diferentes nem inferindo papel que a fonte não deu.
+ * Sem titular confirmado, devolve "sem_dados": nenhuma matriz é escolhida
+ * por suposição.
+ */
+export function classificarComposicaoCaso(pessoas: readonly PessoaComposicao[]): ComposicaoCaso {
+  if (!pessoas.length) return { estado: "sem_dados", motivo: "Nenhuma pessoa registrada no caso ainda." };
+  const titulares = pessoas.filter((p) => p.titular).length;
+  const dependentes = pessoas.filter((p) => p.dependente).length;
+  if (!titulares) return { estado: "sem_dados", motivo: "Nenhum titular confirmado entre as pessoas do caso." };
+  if (dependentes > 0 || titulares > 2) {
+    return {
+      estado: "classificado",
+      chave: "nucleo_familiar",
+      motivo: `${titulares} titular(es) e ${dependentes} dependente(s) confirmados.`,
+    };
+  }
+  if (titulares === 2) return { estado: "classificado", chave: "casal", motivo: "Dois titulares confirmados, sem dependente." };
+  return { estado: "classificado", chave: "individual", motivo: "Um titular confirmado, sem dependente." };
+}
+
+/** Matriz (regras de composição + anexos aplicáveis) do caso real, ou pendência honesta. */
+export function modeloAplicavelAoCaso(
+  pessoas: readonly PessoaComposicao[],
+): { estado: "classificado"; modelo: ModeloContratual; motivo: string } | { estado: "sem_dados"; motivo: string } {
+  const c = classificarComposicaoCaso(pessoas);
+  if (c.estado === "sem_dados") return c;
+  return { estado: "classificado", modelo: modeloPorChave(c.chave), motivo: c.motivo };
+}
+
+/* ------------------------------------------------------------------ */
 /* Quadro de pendências para formalização                               */
 /* ------------------------------------------------------------------ */
 
@@ -335,7 +377,12 @@ export function montarRascunhoModelo(chave: ChaveModelo, dataGeracao = new Date(
     perfil: {
       versao: PERFIL_INSTITUCIONAL_VERSAO,
       status: perfil.status,
-      campos: perfil.campos.map((c) => ({ rotulo: c.rotulo, valor: c.valor })),
+      // representante_legal fica de fora do rascunho: é nome de pessoa física
+      // (a Proprietária), e a prévia não aprovada só pode mostrar o placeholder
+      // neutro abaixo — mesma regra que já valia para CNPJ e endereço.
+      campos: perfil.campos
+        .filter((c) => c.campo !== "representante_legal")
+        .map((c) => ({ rotulo: c.rotulo, valor: c.valor })),
       placeholders: [
         { rotulo: "CNPJ (prévia não aprovada)", valor: PLACEHOLDERS_INSTITUCIONAIS.cnpj },
         { rotulo: "Endereço (prévia não aprovada)", valor: PLACEHOLDERS_INSTITUCIONAIS.endereco },

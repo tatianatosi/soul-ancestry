@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 
 import { painelCadencia } from "@/lib/jornada-cliente.functions";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 const CORES: Record<string, string> = {
   regular: "border-emerald-200 bg-emerald-50 text-emerald-800",
@@ -16,10 +17,11 @@ export function PainelCadencia() {
   const carregar = useServerFn(painelCadencia);
   const q = useQuery({ queryKey: ["painel-cadencia"], queryFn: () => carregar() });
 
-  const criticos = (q.data?.casos ?? [])
-    .filter((c: any) => c.cadencia.status !== "regular")
-    .sort((a: any, b: any) => b.cadencia.diasSemTouchpoint - a.cadencia.diasSemTouchpoint)
-    .slice(0, 12);
+  const criticosDe = (casos: any[]) =>
+    casos
+      .filter((c: any) => c.cadencia.status !== "regular")
+      .sort((a: any, b: any) => b.cadencia.diasSemTouchpoint - a.cadencia.diasSemTouchpoint)
+      .slice(0, 12);
 
   return (
     <section className="rounded-xl border border-navy/10 bg-white p-5">
@@ -36,32 +38,44 @@ export function PainelCadencia() {
               {s === "atencao" ? "Atenção" : s === "critico" ? "Crítico" : "Regular"}
             </p>
             <p className="mt-1 font-serif text-2xl">
-              {q.isLoading ? "…" : (q.data?.resumo[s] ?? 0)}
+              {q.isLoading ? "…" : q.isError ? "—" : (q.data?.resumo[s] ?? 0)}
             </p>
           </div>
         ))}
       </div>
 
       <div className="mt-4 space-y-2">
-        {q.isLoading ? (
-          <p className="text-sm text-navy/55">Carregando…</p>
-        ) : criticos.length === 0 ? (
-          <p className="text-sm text-navy/55">Nenhum caso fora da cadência.</p>
-        ) : (
-          criticos.map((c: any) => (
-            <Link
-              key={String(c["id"])}
-              to="/casos/$caseId"
-              params={{ caseId: String(c["id"]) }}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm hover:bg-navy/5"
-            >
-              <span className="text-navy">{String(c["codigo"] ?? c["titulo"] ?? "Caso")}</span>
-              <span className="text-xs text-navy/60">
-                {c.cadencia.diasSemTouchpoint} dias · {c.cadencia.status}
-              </span>
-            </Link>
-          ))
-        )}
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.casos as any[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="a cadência dos casos"
+          vazio="Nenhum caso com cadência registrada."
+        >
+          {(casos) => {
+            const criticos = criticosDe(casos);
+            if (!criticos.length)
+              return <p className="text-sm text-navy/55">Nenhum caso fora da cadência.</p>;
+            return (
+              <>
+                {criticos.map((c: any) => (
+                  <Link
+                    key={String(c["id"])}
+                    to="/casos/$caseId"
+                    params={{ caseId: String(c["id"]) }}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-navy/10 px-3 py-2 text-sm hover:bg-navy/5"
+                  >
+                    <span className="text-navy">{String(c["codigo"] ?? c["titulo"] ?? "Caso")}</span>
+                    <span className="text-xs text-navy/60">
+                      {c.cadencia.diasSemTouchpoint} dias · {c.cadencia.status}
+                    </span>
+                  </Link>
+                ))}
+              </>
+            );
+          }}
+        </EstadoDados>
       </div>
     </section>
   );

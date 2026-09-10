@@ -8,6 +8,11 @@
  */
 
 import { EIXO_FORMALIZACAO } from "@/lib/crm-desk";
+import {
+  DIAS_CADENCIA_ATENCAO,
+  DIAS_CADENCIA_CRITICA,
+  DIAS_PRIMEIRA_MICROENTREGA,
+} from "@/lib/cadencia-limiares";
 
 /* ---------------------------------------------------------------- estados */
 
@@ -60,12 +65,20 @@ export const STATUS_CHECKLIST = [
 
 export type StatusChecklist = (typeof STATUS_CHECKLIST)[number]["id"];
 
+/*
+ * 04/09/2026 — decisão da Proprietária: vocabulário em português sempre
+ * prevalece. `client_deliverables.approval_status` tinha dois conjuntos de
+ * strings conflitantes na mesma coluna — este (inglês) e o de
+ * `jornada-cliente.ts` (`STATUS_APROVACAO`, português). Alinhado aqui aos
+ * mesmos 5 valores/mesma ordem de `STATUS_APROVACAO` para que os dois
+ * módulos leiam e gravem exatamente a mesma coisa.
+ */
 export const STATUS_ENTREGA = [
-  { id: "draft", rotulo: "Rascunho" },
-  { id: "in_review", rotulo: "Em revisão" },
-  { id: "approved", rotulo: "Aprovada" },
-  { id: "published", rotulo: "Publicada" },
-  { id: "archived", rotulo: "Arquivada" },
+  { id: "rascunho", rotulo: "Rascunho" },
+  { id: "em_revisao", rotulo: "Em revisão" },
+  { id: "aprovado", rotulo: "Aprovada" },
+  { id: "publicado", rotulo: "Publicada" },
+  { id: "arquivado", rotulo: "Arquivada" },
 ] as const;
 
 export type StatusEntrega = (typeof STATUS_ENTREGA)[number]["id"];
@@ -255,7 +268,11 @@ export function derivarEstadoCaso(caso: CasoDiagnostico, diag: DiagnosticoOnboar
 
 /* -------------------------------------------------------------- cadência */
 
-export const CADENCIA = { primeiraMicroentregaDias: 7, atencaoDias: 10, criticoDias: 14 } as const;
+export const CADENCIA = {
+  primeiraMicroentregaDias: DIAS_PRIMEIRA_MICROENTREGA,
+  atencaoDias: DIAS_CADENCIA_ATENCAO,
+  criticoDias: DIAS_CADENCIA_CRITICA,
+} as const;
 
 export type AlertaCadencia = {
   regra: "D7" | "D10" | "D14";
@@ -422,7 +439,7 @@ export type EntregaCliente = {
 export function projetarEntregasCliente(entregas: EntregaBruta[], caseId?: string | null): EntregaCliente[] {
   return entregas
     .filter((e) => !e.archived_at)
-    .filter((e) => e.approval_status === "published")
+    .filter((e) => e.approval_status === "publicado")
     .filter((e) => Boolean(e.approved_by))
     .filter((e) => (caseId ? e.case_id === caseId : true))
     .filter((e) => Boolean(e.summary_approved?.trim()))

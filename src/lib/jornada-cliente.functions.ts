@@ -97,7 +97,6 @@ export const registrarInteracao = createServerFn({ method: "POST" })
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
 
-    if (!data.resumoInterno?.trim()) throw new Error("Resumo interno é obrigatório.");
 
     if (data.contaComoTouchpoint) {
       const check = validarTouchpoint(data.touchpoint ?? {});
@@ -193,8 +192,6 @@ export const criarMicroentregaCliente = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const ctx = await contextoOps(supabase, context.userId as string);
     exigirEscrita(ctx);
-    if (!data.tituloCliente?.trim() || !data.resumoAprovado?.trim())
-      throw new Error("Título e resumo aprovados pelo cliente são obrigatórios.");
 
     const { data: criada, error } = await supabase
       .from("client_deliverables")
@@ -230,7 +227,7 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
 
     const { data: atual, error: erroLeitura } = await supabase
       .from("client_deliverables")
-      .select("id,approval_status,organization_id")
+      .select("id,approval_status,organization_id,case_id,title_client")
       .eq("id", data.entregaId)
       .eq("organization_id", ctx.organizationId)
       .maybeSingle();
@@ -259,6 +256,39 @@ export const transicionarMicroentrega = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: patch,
     });
+
+    // CA05-CADENCIA-MICROENTREGAS (09/09/2026) — achado real: uma micro-entrega
+    // em revisão só era visível para quem abrisse a aba Jornada do caso. Mesma
+    // tabela e mesmo padrão de dedup já usados por `prepararAlertaProjecao`
+    // (biblioteca-evidencias.functions.ts): reaproveita alerta pendente do
+    // mesmo tipo para o mesmo caso, nunca duplica. Não cria tarefa nenhuma —
+    // é sinal, não fila de trabalho.
+    if (data.para === "em_revisao") {
+      const caseId = (atual as any).case_id as string;
+      const { data: alertaExistente } = await supabase
+        .from("case_alerts")
+        .select("id")
+        .eq("case_id", caseId)
+        .eq("tipo", "microentrega_em_revisao")
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+      const alertaPayload = {
+        organization_id: ctx.organizationId,
+        case_id: caseId,
+        tipo: "microentrega_em_revisao",
+        criticidade: "atencao",
+        titulo: `Micro-entrega em revisão: ${(atual as any).title_client ?? "sem título"}`,
+        detalhe: `Entrega ${data.entregaId} aguarda revisão antes de poder ser publicada ao cliente.`,
+        status: "pending",
+      };
+      if (alertaExistente?.id) {
+        await supabase.from("case_alerts").update(alertaPayload).eq("id", alertaExistente.id);
+      } else {
+        await supabase.from("case_alerts").insert(alertaPayload);
+      }
+    }
+
     return { ok: true, de, para: data.para };
   });
 

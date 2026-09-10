@@ -20,20 +20,65 @@ export const CADEIA_PESQUISA = [
 
 export type EtapaCadeia = (typeof CADEIA_PESQUISA)[number]["etapa"];
 
-/** A. Situações controladas da pesquisa. */
+/** A. Situações controladas da pesquisa (CHECK de research_cases.status). */
+export const STATUS_PESQUISA_CHECK = [
+  "not_started",
+  "preparation",
+  "internal_research",
+  "awaiting_documents",
+  "awaiting_review",
+  "paused",
+  "completed",
+  "archived",
+] as const;
+
+export type StatusPesquisaCheck = (typeof STATUS_PESQUISA_CHECK)[number];
+
+/** Aliases PT de linhas antigas → vocabulário EN do CHECK. Nunca gravar o alias. */
+export const STATUS_PESQUISA_ALIAS: Record<string, StatusPesquisaCheck> = {
+  nao_iniciada: "not_started",
+  preparacao_pendente: "preparation",
+  em_andamento: "internal_research",
+  aguardando_cliente: "awaiting_documents",
+  aguardando_autorizacao: "awaiting_documents",
+  aguardando_terceiro_ou_arquivo: "awaiting_documents",
+  em_revisao: "awaiting_review",
+  pausada: "paused",
+  concluida: "completed",
+  concluida_parcialmente: "completed",
+  arquivada: "archived",
+};
+
+/** A. Situações controladas da pesquisa (ids EN do CHECK + aliases PT só para leitura). */
 export const STATUS_PESQUISA = [
+  { id: "not_started", rotulo: "Não iniciada" },
   { id: "nao_iniciada", rotulo: "Não iniciada" },
+  { id: "preparation", rotulo: "Preparação pendente" },
   { id: "preparacao_pendente", rotulo: "Preparação pendente" },
-  { id: "aguardando_autorizacao", rotulo: "Aguardando autorização" },
+  { id: "internal_research", rotulo: "Pesquisa interna" },
   { id: "em_andamento", rotulo: "Em andamento" },
+  { id: "awaiting_documents", rotulo: "Aguardando documentos" },
   { id: "aguardando_cliente", rotulo: "Aguardando cliente" },
+  { id: "aguardando_autorizacao", rotulo: "Aguardando autorização" },
   { id: "aguardando_terceiro_ou_arquivo", rotulo: "Aguardando terceiro ou arquivo" },
+  { id: "awaiting_review", rotulo: "Aguardando revisão" },
   { id: "em_revisao", rotulo: "Em revisão" },
+  { id: "paused", rotulo: "Pausada" },
   { id: "pausada", rotulo: "Pausada" },
-  { id: "concluida_parcialmente", rotulo: "Concluída parcialmente" },
+  { id: "completed", rotulo: "Concluída" },
   { id: "concluida", rotulo: "Concluída" },
+  { id: "concluida_parcialmente", rotulo: "Concluída parcialmente" },
+  { id: "archived", rotulo: "Arquivada" },
   { id: "arquivada", rotulo: "Arquivada" },
 ] as const;
+
+/** Normaliza status de research_cases para o CHECK EN. Recusa valor inventado. */
+export function statusPesquisaCanonico(bruto: unknown): StatusPesquisaCheck | null {
+  const id = String(bruto ?? "").trim();
+  if (!id) return null;
+  if ((STATUS_PESQUISA_CHECK as readonly string[]).includes(id)) return id as StatusPesquisaCheck;
+  return STATUS_PESQUISA_ALIAS[id] ?? null;
+}
 
 /** D. Situações controladas da evidência. */
 export const STATUS_EVIDENCIA = [

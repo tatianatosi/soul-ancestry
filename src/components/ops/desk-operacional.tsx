@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -76,6 +77,7 @@ export function DeskOperacional() {
   const fnArquivar = useServerFn(arquivarOps);
   const fnSla = useServerFn(salvarRegraSla);
 
+  const autoridade = useAutoridade();
   const refs = useQuery({ queryKey: ["ops", "refs"], queryFn: () => fnRefs() });
   const painel = useQuery({ queryKey: ["ops", "painel"], queryFn: () => fnPainel() });
   const alertas = useQuery({ queryKey: ["ops", "alertas"], queryFn: () => fnAlertas() });
@@ -111,7 +113,20 @@ export function DeskOperacional() {
         eixoComercial: casoDaMicro?.["eixo_comercial"],
         eixoFormalizacao: casoDaMicro?.["eixo_formalizacao"],
       });
-  const podeEscrever = refs.data?.podeEscrever ?? false;
+  // Autoridade operacional: vínculo somente leitura deixa de esconder as ações
+  // do desk. Só falta de papel/organização bloqueia; o servidor revalida.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_fila_responsavel_prazo" });
+  const pendenciaVinculo =
+    refs.data && !refs.data.podeEscrever
+      ? "Seu vínculo de equipe está marcado como somente leitura — as ações do desk seguem disponíveis por decisão sua."
+      : null;
+  const falhasConsulta = [
+    refs.isError ? "referências (equipe, casos e regras de SLA)" : null,
+    painel.isError ? "painel de indicadores" : null,
+    fila.isError ? "fila de tarefas" : null,
+    micro.isError ? "microentregas" : null,
+    alertas.isError ? "alertas operacionais" : null,
+  ].filter(Boolean) as string[];
   const tarefas = (fila.data?.tarefas ?? []) as Linha[];
   const microentregas = (micro.data?.microentregas ?? []) as Linha[];
 
@@ -158,6 +173,32 @@ export function DeskOperacional() {
 
   return (
     <div className="space-y-4">
+      {pendenciaVinculo ? (
+        <p className="rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada: {pendenciaVinculo}
+        </p>
+      ) : null}
+      {falhasConsulta.length ? (
+        <div role="alert" className="space-y-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-xs text-terracotta">
+          <p>
+            Falha de consulta em: {falhasConsulta.join(", ")}. As listas abaixo estão incompletas por erro de leitura,
+            não por ausência de registro.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              if (refs.isError) void refs.refetch();
+              if (painel.isError) void painel.refetch();
+              if (fila.isError) void fila.refetch();
+              if (micro.isError) void micro.refetch();
+              if (alertas.isError) void alertas.refetch();
+            }}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-[11px] font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
       {(alertas.data?.atrasadas.length || alertas.data?.emRisco.length || alertas.data?.microAtrasadas.length) ? (
         <div className="rounded-xl border border-terracotta/40 bg-terracotta/5 p-4">
           <h2 className="font-serif text-lg">Alertas operacionais</h2>

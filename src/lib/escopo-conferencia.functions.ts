@@ -2,8 +2,10 @@ import { semCache } from "@/lib/no-store";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { contextoInterno } from "@/lib/comercial.server";
 import { auditoriaSanitizada } from "@/lib/escopo-conferencia";
 import { montarConferencia } from "@/lib/escopo-conferencia.server";
+import { ACOES_GATEADAS_INTERNAS, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { ACAO_REVALIDAR, detalheAcaoRevalidar } from "@/lib/proposta-saneamento";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -134,4 +136,54 @@ export const registrarRevalidacaoProposta = createServerFn({ method: "POST" })
     });
 
     return { id: criada.id, criada: true };
+  });
+
+/**
+ * 04/09/2026 — a Proprietária pediu execução do pedido histórico de remoção
+ * de barreiras operacionais (docs/politicas/PROMPT-REMOCAO-TOTAL-BARREIRAS-OPERACIONAIS-REJEITADO.md),
+ * que continua registrado como rejeitado por conflitar com a fronteira de
+ * segurança desta operação (RLS, sessão, permissões, auditoria e confirmação
+ * de ações externas irreversíveis — nunca removidas). O gate de formalização
+ * (gates-formalizacao.ts) já foi desenhado com exatamente essa fronteira:
+ * ações INTERNAS (ACOES_GATEADAS_INTERNAS) já são superáveis por decisão
+ * auditada da Proprietária Administradora (exigirGate,
+ * escopo-conferencia.server.ts:281-322) — só faltava uma tela chamar essa
+ * função. Ações EXTERNAS/irreversíveis (assinatura, envio, pagamento)
+ * continuam fora do alcance desta função, por desenho.
+ */
+export const registrarOverrideGateInterno = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { caseId: string; acao: AcaoGateada; motivo: string }) => d)
+  .handler(async ({ data, context }) => {
+    const supabase = context.supabase as any;
+    const actorId = context.userId as string;
+    if (!(ACOES_GATEADAS_INTERNAS as readonly string[]).includes(data.acao)) {
+      throw new Error(`"${data.acao}" não é uma ação interna superável por decisão da Proprietária.`);
+    }
+    const motivo = data.motivo?.trim();
+    if (!motivo || motivo.length < 10) throw new Error("Motivo da decisão precisa ter ao menos 10 caracteres.");
+
+    const { organizationId, papel } = await contextoInterno(supabase, actorId);
+    const { data: row, error } = await supabase
+      .from("owner_override_events")
+      .insert({
+        organization_id: organizationId,
+        actor_user_id: actorId,
+        actor_papel: papel,
+        categoria: "override_interno",
+        acao: data.acao,
+        entidade: "crm_casos",
+        entidade_id: data.caseId,
+        campo: data.acao,
+        motivo,
+        acao_externa: false,
+        irreversivel: false,
+        confirmacao_manual: false,
+        executado: true,
+      })
+      .select("id,created_at")
+      .single();
+    if (error) throw new Error(error.message);
+
+    return { registrado: true, eventoId: row.id as string, criadoEm: row.created_at as string };
   });

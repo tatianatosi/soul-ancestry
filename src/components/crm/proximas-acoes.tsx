@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
 import { Selecao, Texto } from "@/components/caso/campos";
-import { useSaas } from "@/components/saas/shell";
 import { PROXIMAS_ACOES, type LeadDesk } from "@/lib/crm-desk";
 import { listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import { ROTULO_ESTADO_ACAO, listaAcoes, resumoAcoes, type EstadoAcao, type LinhaAcao } from "@/lib/proximas-acoes";
@@ -20,7 +19,6 @@ const COR: Record<EstadoAcao, string> = {
 };
 
 export function ProximasAcoes() {
-  const { podeEscrever } = useSaas();
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const qc = useQueryClient();
@@ -34,7 +32,12 @@ export function ProximasAcoes() {
   });
   const [erros, setErros] = useState<string[]>([]);
 
-  const { data: leads = [], isLoading } = useQuery({
+  const {
+    data: leads = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["leads-desk"],
     queryFn: () => carregar({}) as Promise<LeadDesk[]>,
   });
@@ -97,6 +100,21 @@ export function ProximasAcoes() {
       </p>
 
       {isLoading ? <p className="text-sm text-navy/60">Carregando próximas ações…</p> : null}
+      {isError ? (
+        <p
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta"
+        >
+          Não foi possível carregar os leads. Isto é falha de leitura, não fila vazia.
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
 
       <div className="space-y-3">
         {linhas.map((l) => (
@@ -117,15 +135,13 @@ export function ProximasAcoes() {
                 <p>Prazo: {l.prazo ?? "—"}</p>
                 <p>Responsável: {l.responsavel || "—"}</p>
               </div>
-              {podeEscrever ? (
-                <button
-                  type="button"
-                  className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-cream"
-                  onClick={() => (editando === l.leadId ? setEditando(null) : abrir(l))}
-                >
-                  {editando === l.leadId ? "Fechar" : "Corrigir"}
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy hover:bg-cream"
+                onClick={() => (editando === l.leadId ? setEditando(null) : abrir(l))}
+              >
+                {editando === l.leadId ? "Fechar" : "Corrigir"}
+              </button>
             </div>
 
             {l.pendencias.length ? (
@@ -176,7 +192,7 @@ export function ProximasAcoes() {
             ) : null}
           </article>
         ))}
-        {!isLoading && !linhas.length ? (
+        {!isLoading && !isError && !linhas.length ? (
           <p className={`${CARTAO} text-sm text-navy/60`}>Nenhum lead ativo na fila de próximas ações.</p>
         ) : null}
       </div>

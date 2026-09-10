@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
+import { AcaoDeEscrita } from "@/components/caso/campos";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import {
   FONTES_CADASTRO,
   PESSOA_TIPOS,
@@ -33,7 +35,17 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao?: st
   );
 }
 
-export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?: boolean }) {
+export function AbaCadastro({
+  caseId,
+  bloqueado: _bloqueado,
+}: {
+  caseId: string;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: a decisão de escrita é da autoridade operacional.
+   */
+  bloqueado?: boolean;
+}) {
   const qc = useQueryClient();
   const carregar = useServerFn(carregarChecklistCadastral);
   const semear = useServerFn(semearChecklistCadastral);
@@ -67,7 +79,46 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
     onError: (e: any) => setErro(e?.message ?? "Falha ao registrar a ação."),
   });
 
-  const itens = (q.data?.itens ?? []) as ItemChecklist[];
+  // Sem leitura confirmada não se afirma "nenhuma linha": mostra a falha.
+  if (q.isLoading) return <p className="py-6 text-sm text-navy/60" role="status">Carregando o checklist cadastral…</p>;
+  if (q.isError || !q.data) {
+    return (
+      <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">Não foi possível carregar o checklist cadastral.</p>
+        <p className="text-navy/80">
+          {q.error instanceof Error
+            ? q.error.message
+            : "A consulta não retornou resultado nem erro. Isso é falha de carga, não base vazia."}
+        </p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(q.data.itens)) {
+    return (
+      <div role="alert" className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p className="font-medium text-destructive">A consulta do checklist não devolveu a lista de itens.</p>
+        <p className="text-navy/80">Isso é falha de carga, não base vazia. Tente novamente.</p>
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  const itens = q.data.itens as ItemChecklist[];
+  const resumo: any[] = Array.isArray(q.data.resumo) ? q.data.resumo : [];
   const grupos = [...new Set(itens.map((i) => `${i.pessoa_tipo}::${i.pessoa_nome}`))];
 
   return (
@@ -79,16 +130,24 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
         descricao="Cada dado pertence à pessoa, não ao caso. Nada é inferido: sem fonte declarada e data, o item continua pendente. Nenhum formulário, mensagem ou documento externo é criado aqui."
       >
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <button
-            type="button"
-            disabled={bloqueado || mSemear.isPending}
-            onClick={() => mSemear.mutate()}
+          <AcaoDeEscrita
+            rotulo={
+              mSemear.isPending
+                ? "Registrando…"
+                : itens.length
+                  ? "Completar linhas faltantes"
+                  : "Registrar checklist das pessoas do caso"
+            }
+            capacidade="corrigir_pessoas_dependentes_representacao"
+            efeito="Cria as linhas do checklist cadastral das pessoas deste caso."
             className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-50"
-          >
-            {itens.length ? "Completar linhas faltantes" : "Registrar checklist das pessoas do caso"}
-          </button>
+            onConfirmar={() => {
+              if (mSemear.isPending) return;
+              mSemear.mutate();
+            }}
+          />
           <span className="text-navy/55">
-            {(q.data?.resumo ?? []).map((r: any) => `${r.pessoa_nome}: ${r.resolvidos}/${r.total}`).join(" · ") ||
+            {resumo.map((r: any) => `${r.pessoa_nome}: ${r.resolvidos}/${r.total}`).join(" · ") ||
               "Nenhuma linha registrada."}
           </span>
         </div>
@@ -121,7 +180,10 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                   </tr>
                 </thead>
                 <tbody>
-                  {lista.map((i) => (
+                  {lista.map((i) => {
+                    const fonteDeclarada = Boolean(i.fonte) && i.fonte !== "nao_declarada";
+                    const faltaParaVerificar = !fonteDeclarada || !i.data_verificacao;
+                    return (
                     <tr key={i.id} className="border-t border-navy/5 align-top">
                       <td className="py-2 pr-3 text-navy">
                         {i.campo_rotulo}
@@ -131,11 +193,23 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                         <select
                           className={inputCls}
                           value={i.status}
-                          disabled={bloqueado}
-                          onChange={(e) => mSalvar.mutate({ id: i.id, status: e.target.value })}
+                          title={
+                            faltaParaVerificar
+                              ? "Defina Fonte e Data de verificação (colunas ao lado) antes de marcar como Verificado."
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            if (e.target.value === "verificado" && faltaParaVerificar) {
+                              setErro("Defina Fonte e Data de verificação (colunas ao lado) antes de marcar como Verificado.");
+                              return;
+                            }
+                            mSalvar.mutate({ id: i.id, status: e.target.value });
+                          }}
                         >
                           {STATUS_CADASTRO.map((s) => (
-                            <option key={s.valor} value={s.valor}>{s.rotulo}</option>
+                            <option key={s.valor} value={s.valor} disabled={s.valor === "verificado" && faltaParaVerificar}>
+                              {s.rotulo}
+                            </option>
                           ))}
                         </select>
                       </td>
@@ -143,7 +217,6 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                         <select
                           className={inputCls}
                           value={i.fonte ?? "nao_declarada"}
-                          disabled={bloqueado}
                           onChange={(e) => mSalvar.mutate({ id: i.id, fonte: e.target.value })}
                         >
                           {FONTES_CADASTRO.map((f) => (
@@ -156,7 +229,6 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                           type="date"
                           className={inputCls}
                           value={i.data_verificacao ?? ""}
-                          disabled={bloqueado}
                           onChange={(e) => mSalvar.mutate({ id: i.id, data_verificacao: e.target.value })}
                         />
                       </td>
@@ -164,7 +236,6 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                         <input
                           type="checkbox"
                           checked={i.acesso_restrito}
-                          disabled={bloqueado}
                           onChange={(e) => mSalvar.mutate({ id: i.id, acesso_restrito: e.target.checked })}
                         />
                       </td>
@@ -172,7 +243,8 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
                         {itemResolvido(i) ? "Resolvido" : `${rotuloStatus(i.status)} · ${rotuloFonte(i.fonte)}`}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -184,17 +256,24 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
         titulo="Pendências cadastrais"
         descricao="Enquanto houver pendência obrigatória, contrato, assinatura e financeiro seguem bloqueados."
       >
-        {(q.data?.pendencias ?? []).length === 0 ? (
-          <p className="text-sm text-navy/55">Nenhuma pendência registrada.</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-terracotta">
-            {(q.data?.pendencias ?? []).map((p: any, n: number) => (
-              <li key={n}>
-                {p.pessoa} · {p.rotulo}: {p.motivo}
-              </li>
-            ))}
-          </ul>
-        )}
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={q.data?.pendencias as any[] | undefined}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="as pendências cadastrais"
+          vazio="Nenhuma pendência registrada."
+        >
+          {(pendencias) => (
+            <ul className="space-y-1 text-sm text-terracotta">
+              {pendencias.map((p: any, n: number) => (
+                <li key={n}>
+                  {p.pessoa} · {p.rotulo}: {p.motivo}
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       </Secao>
 
       <Secao
@@ -204,7 +283,7 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
         <div className="flex flex-wrap items-end gap-3">
           <label className="block">
             <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Pessoa</span>
-            <select className={inputCls} value={pessoaAcao} disabled={bloqueado} onChange={(e) => setPessoaAcao(e.target.value)}>
+            <select className={inputCls} value={pessoaAcao} onChange={(e) => setPessoaAcao(e.target.value)}>
               <option value="">Selecionar…</option>
               {[...new Set(itens.map((i) => i.pessoa_nome))].map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -213,32 +292,42 @@ export function AbaCadastro({ caseId, bloqueado }: { caseId: string; bloqueado?:
           </label>
           <label className="block">
             <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy/50">Prazo</span>
-            <input type="date" className={inputCls} value={prazo} disabled={bloqueado} onChange={(e) => setPrazo(e.target.value)} />
+            <input type="date" className={inputCls} value={prazo} onChange={(e) => setPrazo(e.target.value)} />
           </label>
-          <button
-            type="button"
-            disabled={bloqueado || !prazo || !pessoaAcao || mAcao.isPending}
-            onClick={() => mAcao.mutate()}
+          <AcaoDeEscrita
+            rotulo={mAcao.isPending ? "Registrando…" : "Registrar ação e rascunho"}
+            faltando={!pessoaAcao ? "Selecione a pessoa." : !prazo ? "Informe o prazo." : null}
+            capacidade="editar_fila_responsavel_prazo"
+            efeito="Registra a ação datada e cria o rascunho interno de comunicação. Nada é enviado."
             className="rounded-lg bg-gold px-3 py-2 text-sm font-medium text-navy disabled:opacity-50"
-          >
-            Registrar ação e rascunho
-          </button>
+            onConfirmar={() => {
+              if (mAcao.isPending) return;
+              mAcao.mutate();
+            }}
+          />
         </div>
 
         <div className="mt-4 space-y-2">
-          {(q.data?.comunicacoes ?? []).length === 0 ? (
-            <p className="text-sm text-navy/55">Nenhum rascunho registrado.</p>
-          ) : (
-            (q.data?.comunicacoes ?? []).map((c: any) => (
-              <article key={c.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
-                <p className="font-medium text-navy">{c.assunto}</p>
-                <p className="text-xs text-navy/50">
-                  {c.status} · {c.suggested_channel} · {c.sent_at ? "enviado" : "não enviado"}
-                </p>
-                <pre className="mt-2 whitespace-pre-wrap font-sans text-xs text-navy/70">{c.corpo_rascunho}</pre>
-              </article>
-            ))
-          )}
+          <EstadoDados
+            carregando={q.isLoading}
+            erro={q.error}
+            dados={q.data?.comunicacoes as any[] | undefined}
+            aoTentarNovamente={() => void q.refetch()}
+            recurso="os rascunhos de comunicação"
+            vazio="Nenhum rascunho registrado."
+          >
+            {(comunicacoes) =>
+              comunicacoes.map((c: any) => (
+                <article key={c.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
+                  <p className="font-medium text-navy">{c.assunto}</p>
+                  <p className="text-xs text-navy/50">
+                    {c.status} · {c.suggested_channel} · {c.sent_at ? "enviado" : "não enviado"}
+                  </p>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-xs text-navy/70">{c.corpo_rascunho}</pre>
+                </article>
+              ))
+            }
+          </EstadoDados>
         </div>
       </Secao>
     </div>

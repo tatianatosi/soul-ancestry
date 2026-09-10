@@ -25,13 +25,17 @@ export function AbaEtiquetas({
   caseId,
   taxonomia,
   aplicadas,
-  bloqueado,
+  bloqueado: _bloqueado,
   onMudou,
 }: {
   caseId: string;
   taxonomia: Linha[];
   aplicadas: Linha[];
-  bloqueado: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: a decisão de escrita é da autoridade operacional.
+   */
+  bloqueado?: boolean;
   onMudou: () => void;
 }) {
   const aplicar = useServerFn(aplicarEtiqueta);
@@ -48,7 +52,8 @@ export function AbaEtiquetas({
     for (const l of taxonomia) {
       if (filtro && !`${l.name} ${l.code} ${l.meta_agent_equivalent ?? ""}`.toLowerCase().includes(filtro)) continue;
       const cat = String(l.category ?? "outros");
-      mapa.set(cat, [...(mapa.get(cat) ?? []), l]);
+      const atual = mapa.get(cat);
+      mapa.set(cat, atual ? [...atual, l] : [l]);
     }
     return [...mapa.entries()];
   }, [taxonomia, busca]);
@@ -81,11 +86,9 @@ export function AbaEtiquetas({
               return (
                 <span key={a.id} className="inline-flex items-center gap-2 rounded-full border border-gold bg-gold/15 px-3 py-1 text-xs text-navy">
                   {l?.name ?? a.label_id}
-                  {!bloqueado ? (
-                    <button className="text-navy/50 hover:text-terracotta" onClick={() => mRemover.mutate(String(a.id))} aria-label="Remover etiqueta">
-                      ×
-                    </button>
-                  ) : null}
+                  <button className="text-navy/50 hover:text-terracotta" onClick={() => mRemover.mutate(String(a.id))} aria-label="Remover etiqueta">
+                    ×
+                  </button>
                 </span>
               );
             })}
@@ -111,7 +114,6 @@ export function AbaEtiquetas({
                     <button
                       key={String(l.id)}
                       type="button"
-                      disabled={bloqueado}
                       title={l.meta_agent_equivalent ? `Meta Agent: ${l.meta_agent_equivalent}` : undefined}
                       onClick={() => (ativa ? mRemover.mutate(String(ativa.id)) : mAplicar.mutate(String(l.id)))}
                       className={
