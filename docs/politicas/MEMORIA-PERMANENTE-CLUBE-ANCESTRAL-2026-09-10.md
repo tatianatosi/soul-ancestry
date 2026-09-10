@@ -652,3 +652,17 @@ O Clube Ancestral deve ser construído como uma plataforma operacional coerente,
 A matriz operacional legada, a planilha mestre, o DRE e a reconciliação antiga do Asaas pertencem ao passado e só podem ser tratados como histórico, auditoria ou migração controlada. Eles não definem a arquitetura, não dirigem o workflow e não substituem o planejamento atual.
 
 Toda implementação futura deve produzir rastreabilidade entre pedido, requisito, dado, regra, código, teste, deploy e aceite. O objetivo é encerrar definitivamente a repetição de pedidos, a perda de contexto, a entrega de módulos desconectados e a confusão entre legado e operação ativa.
+
+---
+
+## 19. Adendo 2026-09-10 — artefatos 005–010
+
+A destilação operacional destes artefatos vive em `AGENTS.md` e `.cursor/rules/clube-ancestral.mdc` (mesma superfície; não criar arquivo de memória paralelo).
+
+Resumo normativo, sem contradizer as seções 1–18:
+
+- App Cliente: 7 abas (`Home, Jornada, Radar, Árvore, Documentos, Legado, Conta`). Sem Entregas / Fase 01 / Fase 02 na nav.
+- Desk: 8 grupos operacionais (CA-UX-03); seis núcleos = composição, não menu. Fichas Pessoa / Núcleo / Lead / Caso / Pesquisa / Contrato são entidades distintas.
+- Mockup de 17 páginas = visual normativo. PDF de 47 páginas e PDFs de distorção/comparação = auditoria, não redesign.
+- “Entregue” exige fonte + escritor + persistência + consumidor + CTA + reload. Não inventar vocabulário de `CHECK`.
+- PR #85 mesclada: não regredir `documentos_minimos_ok`, convite/login oficial, RLS, isolamento. Merge futuro só com autorização explícita.

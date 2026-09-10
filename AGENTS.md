@@ -90,7 +90,7 @@ Home · Jornada · Radar · Árvore · Documentos · Legado · Conta
 
 Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (não “Início”). O portal sanitiza: sem notas internas, hipóteses como fato, SKU, preço técnico, gates, dados de outros casos.
 
-Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) existem no código — dívida a declarar, não expansão silenciosa da taxonomia aprovada.
+Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
 **Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) é complementar (conteúdo/estados/fluxos), **sem força normativa de design**. Produção tem 8 grupos operacionais; o mockup mostra 7 itens de Desk — divergência já decidida: manter os 8.
 
@@ -122,3 +122,58 @@ Núcleo canônico → motor de casos → planner ligado à próxima ação → t
 ## Antes de cada entrega, perguntar
 
 Isto fortalece ou fragmenta o motor? Qual é a fonte de verdade? O planejador continua válido? Há legado tratado como operação atual? Há responsável, próxima ação e prazo? O perfil certo vê a informação? O fluxo fecha sem planilha/banco manual? Há persistência e teste? Falha é visível? O requisito original tem prova?
+
+## Artefatos 005–010 (verificados contra o repo em 2026-09-10)
+
+Destilado operacional dos uploads CA-MOCKUP-007, CA-FICHAS-009, CA-PENTE-FINO-010, CA-FECHAMENTO-PR85-006 e CA-ENTREGA-REAL-005. Complementam as seções acima; não criam memória paralela.
+
+### App Cliente — fidelidade ao mockup (007)
+
+Nav de primeiro nível: **exatamente 7 abas**, nesta ordem e com estes rótulos:
+
+`Home` · `Jornada` · `Radar` · `Árvore` · `Documentos` · `Legado` · `Conta`
+
+**Não** colocar `Entregas`, `Fase 01` ou `Fase 02` na barra do cliente. Entregas são conteúdo (Documentos / Jornada / Home) quando publicadas; Fase 01/02 são entregáveis, não abas. Rotas profundas podem existir até arquivamento explícito — não são navegação aprovada. Proposta, Faturas e Mensagens também não são aba de primeiro nível (bloco em Conta / Home-Jornada / Atendimento).
+
+Critério: rota existir ou a tela carregar **não** é alinhamento. Placeholder genérico não é aceite. Estado vazio deve ser específico da aba. Desk publica e despublica (autor, data, caso, estado) sem SQL manual. Cliente A só vê conteúdo publicado próprio. Não inventar conteúdo genealógico nem expor dado interno ou de outro cliente.
+
+Código atual (`portal-shell.tsx`, `portal-navegacao.ts`) ainda injeta Entregas/Fase 01/02 quando “aplicáveis” e `PORTAL_ROTAS_SPEC` lista 10 telas — **dívida**, não autorização. Outro agente nesta branch corrige `src/`; não expandir essa nav.
+
+### Desk — fichas e mockups (009)
+
+Oito superfícies distintas, ligadas por IDs — não formulários duplicados da mesma entidade: Pessoa 360, Núcleo 360, Lead/Discovery, Caso 360, Pesquisa/Genealogia 360, Contrato/Formalização/OS, visão admin do App Cliente, Desk em 8 grupos.
+
+Seis blocos = composição de trabalho, não substituição de navegação. CA-UX-04: Marketing explícito; Administração = utilidade no menu da conta. Protótipo histórico fora do runtime. App Cliente = projeção autorizada dos mesmos objetos canônicos, não um segundo banco.
+
+Visual normativo: mockup de **17 páginas**. PDF de auditoria de **47 páginas**, PDF de distorção/comparação visual e relatórios de pente-fino visual = **auditoria**, não briefing de redesign. Nenhuma migration/merge/deploy de produção sem autorização explícita. Homologação só com dado sintético reversível.
+
+### Motores, planejadores, skills, dumps (010)
+
+Um item só é **entregue e operável** se existir, ao mesmo tempo: (1) fonte/evento de entrada, (2) escritor real no servidor ou UI, (3) persistência, (4) consumidor no Desk ou App, (5) rota/CTA acessível, (6) teste com reload ou consulta persistida. Documento, migration, função, tipo, teste unitário, dump, seed, branch, PR, build ou rota isolada **não** são aceite.
+
+Cruzar escritores em `src/lib` (`*.functions.ts` / `*.server.ts`) com `src/integrations/supabase/types.ts` **e** `CHECK`/`CONSTRAINT` em `supabase/migrations/`. `types.ts` tipa muitas colunas restritas como `string` — isso **não** autoriza vocabulário novo.
+
+Vocabulário CHECK verificado (gravar só estes; não inventar sinônimo):
+
+- `status_pesquisa`: `a_confirmar`, `pendente`, `hipotese`, `provavel`, `com_suporte`, `confirmado`, `refutado`
+- `evidences.workflow_status`: `recebida`, `registrada`, `em_revisao`, `divergente`, `insuficiente`, `requer_complemento`, `requer_retificacao`, `requer_traducao_apostila`, `rejeitada_inaplicavel`, `aprovada_para_entrega`, `publicada`
+- `case_plans.fase_jornada`: `aceite_e_formalizacao`, `onboarding`, `pesquisa_inicial`, `pesquisa_e_validacao`, `preparacao_documental`, `protocolo_e_acompanhamento`, `reconhecimento`, `pos_reconhecimento`
+- `client_visibility`: `interna`, `sanitizada`, `aprovada`
+
+Drift já no código (não “corrigir” inventando CHECK): `pessoas-linhagens.ts` oferece `em_pesquisa` / `descartado`; `jornada-pos-gates.ts` faz fallback `not_started`; aliases de leitura (`fase_2_pesquisa`) só via de-para, nunca como valor gravado; trigger antigo cita `validada_internamente` / `aprovada_para_entrega_cliente`, que **não** estão no CHECK atual de `evidences`.
+
+Conectar peça órfã existente antes de criar arquitetura paralela. Não apagar sem classificação, dependência, arquivamento e reversão. Isto é distinto da proibição de prefixo `CHECK-*` em IDs de requisito (prompts antigos): são duas regras, ambas válidas.
+
+### PR #85 e entrega real ADMIN + cliente (006 + 005)
+
+A PR #85 foi **mesclada** em 2026-09-05 (`Desbloqueio operacional real: App Cliente, Comercial e correção de bugs de causa raiz`). Não regredir esses fechamentos.
+
+Preservar o escritor `confirmarDocumentosMinimos` → `crm_casos.documentos_minimos_ok` (o gate do portal consulta esse campo). Distinguir erro de leitura vs estado vazio **não** prova CRUD. TypeScript, Vitest, build e preview **não** substituem prova autenticada na UI.
+
+Acesso cliente: fluxo oficial (e-mail autorizado, convite/magic link, login sem staff). Nunca colar ou pedir `service_role` em chat/GitHub/artefato. Isolamento A×B só é SIM com dois clientes/logins; prova estrutural de RLS ≠ prova de UI. Homologação: dado sintético reversível, nunca dado real.
+
+Merge/deploy irreversível só com autorização explícita da Proprietária, informando branch, SHA e se o merge dispara produção. Sem essa resposta, não mesclar.
+
+### Proteções (todos os artefatos)
+
+Não remover: RLS/isolamento, LGPD e consentimento, representação de menor, histórico/auditoria, canônicos, contrato assinado, evidência para achado confirmado, bloqueio de exclusão física crítica.

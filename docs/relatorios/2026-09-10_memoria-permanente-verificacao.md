@@ -40,6 +40,23 @@ Nenhuma tela, rota ou tabela foi alterada nesta verificação. Outro agente nest
 
 10. **O documento permanente não define vocabulário CHECK, IDs de requisito nem as 17 páginas / 8 grupos.** Não completar essas lacunas com taxonomia inventada. Requisitos continuam na matriz de rastreabilidade descrita no próprio documento, sem prefixo CHECK-*.
 
+## Artefatos 005–010 — verificação adicional (mesma data)
+
+Uploads lidos: `ARTEFATO_CA-MOCKUP-APP-CLIENTE-FIDELIDADE-007`, `CA-FICHAS-MOCKUPS-DESK-APP-EXEC-009`, `CA-PENTE-FINO-MOTORES-PLANEJADORES-SKILLS-DUMP-010`, `CA-FECHAMENTO-PR85-MAIN-006`, `CA-ENTREGA-REAL-ADMIN-CLIENTE-005` (.docx extraído via XML). Destilado mesclado em `AGENTS.md` / `.cursor/rules/clube-ancestral.mdc`. Nenhum `src/routes` ou `src/components` foi editado aqui.
+
+| Afirmação do artefato | Estado no repo |
+|---|---|
+| 7 abas cliente; sem Entregas/Fase 01/Fase 02 na nav | Taxonomia confirma as 7. `portal-shell.tsx` ainda acrescenta Entregas/Fase 01/02 quando “aplicáveis”; `portal-navegacao.ts` lista 10 telas do spec CA-UX-01.2. **Contradição vigente** — dívida, não aceite. |
+| Mockup 17 páginas normativo; distorção/47 páginas = auditoria | Confirmado: `clube-ancestral-mockup.pdf` ≈ 17 páginas; `clube-ancestral-mockup-auditoria.pdf` ≈ 47. Relatório 09/09 já corrige o erro de referência. |
+| Desk 8 grupos; 6 blocos ≠ nav | Confirmado em `GRUPOS_DESK`. Relatórios que citam “Financeiro” como 8º grupo divergem do código (`cliente` é o 8º; financeiro é subgrupo de `contratos`). |
+| Não inventar CHECK | `types.ts` tipa `status_pesquisa`, `workflow_status`, `fase_jornada` como `string`. CHECKs reais estão nas migrations. Drift: `pessoas-linhagens.ts` lista `em_pesquisa`/`descartado` fora do CHECK de `status_pesquisa`; `jornada-pos-gates.ts` usa `not_started`. |
+| Escritor de `documentos_minimos_ok` | Existe: `confirmarDocumentosMinimos` em `portal-atendimento.functions.ts`. Não remover. |
+| PR #85 draft, 63 commits | **Desatualizado no artefato.** PR #85 foi mesclada em 2026-09-05. Fechamentos permanecem; não reabrir fragmentação main vs preview com o mesmo discurso. |
+| Conta cliente de homologação / magic link / isolamento A×B | Relatório `docs/relatorios/2026-09-05_acesso_cliente_homologacao.md`: conta criada; magic link **não** comprovado nesta automação; isolamento A×B só estrutural. Não vender como prova de UI. |
+| Relatórios de execução exigidos pelos artefatos (05/09) | `2026-09-05_app_cliente_mockup_aprovado_depara_execucao.md` existe (parcial). Não existem `…_execucao_fichas_mockups_desk_app_cliente.md`, `…_motores_planejadores_skills_dumps_depara_execucao.md` nem `…_entrega_real_admin_cliente.md` com os nomes mandatórios. Não inventar esses relatórios como “feito”. |
+
+Contradição interna do artefato 007: o escopo pede “cobrir Entregas, Fase 01, Fase 02” **conforme existirem no mockup/taxonomia**. A taxonomia **não** as lista como abas. Precedência: taxonomia + decisão da Proprietária = fora da nav; cobrir como conteúdo/rota profunda se já existirem, sem promovê-las a aba.
+
 ## Políticas já existentes (atualizadas, não substituídas)
 
 - `docs/politicas/fonte-de-verdade-design-e-execucao.md` — ordem visual/execução; agora aponta para o planejador e para o legado.
