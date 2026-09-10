@@ -5,10 +5,6 @@
  * marca nada como igual. Cada candidato carrega o motivo objetivo para que a
  * decisão continue sendo humana.
  *
- * Fases 2–6 (comparação, plano, confirmação UNIFICAR, reapontamento,
- * arquivamento lógico, validação pós-merge) usam colunas que já existem:
- * archived_at, archive_motivo, archived_by, status 'arquivado', case_id,
- * nucleo_membros.nucleo_id, leads.nucleo_id. Sem coluna nova
  * (nucleo_canonico_id, unificado_em, status mesclado).
  *
  * A lista de candidatos continua recalculada a cada carregamento: não há

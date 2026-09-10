@@ -138,7 +138,7 @@ function paraCompararDoBanco(n: any, membros: any[], leadsAtivos: number): Nucle
  * arquivamento lógico do núcleo de origem e validação após refresh.
  *
  * Sem fusão automática, sem caso/núcleo novo, sem case_participants,
- * sem coluna nucleo_canonico_id.
+ * sem coluna nova: o canônico é o id escolhido pela operadora.
  */
 export const executarUnificacaoNucleo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
