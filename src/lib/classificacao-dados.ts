@@ -119,7 +119,7 @@ export const INVENTARIO_FONTES: readonly FonteClassificada[] = [
     descricao: "Caso de demonstração do mockup navegável",
     classificacao: "demo",
     superficies: ["mockup_interno"],
-    prova: "Cabeçalho do módulo declara dado demonstrativo (mockup original).",
+    prova: "Confirmado pela proprietária (01/09/2026): caso piloto não se realizou, nunca foi cliente real — cabeçalho do módulo corrigido para refletir isso.",
   },
   {
     modulo: "src/data/caseDataSophia.ts",
