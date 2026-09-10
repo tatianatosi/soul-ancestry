@@ -182,3 +182,17 @@ Planilha como ponte obrigatória; SKU por país ou via; SKU automático por caso
 | Versão | Data | Decisão |
 | --- | --- | --- |
 | 1.0 | 19/08/2026 | Consolidação inicial de CRM, legado, Placego, Top 30, Planejador, Ana, João, naturalização brasileira e higiene de dados |
+
+## Reconciliação com o estado real do repositório (02/09/2026)
+
+A proprietária pediu para aplicar as decisões deste documento, apontando que a Planilha Mestre é só uma camada (layer) dentro delas. Conferido linha a linha contra o código e as migrations:
+
+**Já implementado, confirmado por schema real** — as decisões de Catálogo (seção 8) e Planejador (seção 7) já existem como tabelas reais desde 19–22/08: `product_catalog` (catálogo homologado, preço vigente) e `trilhas_juridicas` (equivalente a `citizenship_tracks` — país, via, marco jurídico, status). `preco-canonico.ts` já declara exatamente a precedência pedida aqui: `product_catalog`/exceção comercial aprovada são as fontes canônicas de preço; Planilha Mestre é `"legado — auditoria histórica"`, nunca fonte operacional. `leads.tsx` já usa `listarTrilhasJuridicas` para vincular trilha e marco ao lead. Ou seja: a arquitetura de dados desta seção já está de pé — o que faltava era a interface ainda falar como se a Planilha Mestre fosse a fonte viva.
+
+**Corrigido nesta rodada** — texto e rótulos que ainda descreviam a Planilha Mestre como fonte de verdade viva, em vez de camada legada por trás do catálogo homologado: `leads.tsx` (seção "Recomendação comercial", campo "Referência de SKU"), `dicionario-calls-crm.ts` (Princípios de Governança, v1.0 → v1.1), `governanca.dicionario-calls-crm.tsx` e `painel-catalogo.tsx`. Nenhuma mudança de schema, comportamento ou dado — só a descrição passou a bater com o que `preco-canonico.ts` já impunha.
+
+**Não aplicado, e não deveria ser** — a seção 5 deste documento propõe entidades novas de CRM (`contacts`, `opportunities`, `crm_interactions`, `discovery_assessments`, `conversion_events`, `families`, `family_members`, `cases`...). Essas tabelas chegaram a ser criadas (ver `contacts`/`opportunities`, hoje preservadas só em `/historico/fluxo-comercial-canonico`, 0 registros desde 21/08) — mas foram deliberadamente descontinuadas por uma decisão posterior e mais recente, `CA-LOVABLE-RESGATE-DESK-7-SECOES-CRM-VIVO-E-SUBITENS-v1.1` (28/08/2026): *"não basta haver funções, tabelas ou componentes isolados... use apenas rotas e telas existentes"* — o CRM Vivo real roda sobre `leads`/`crm_casos`, não sobre um segundo modelo paralelo. Pela regra já combinada com a proprietária (documento mais novo prevalece quando há contradição), esta parte da seção 5 fica como registro histórico da decisão de 19/08, superada pela de 28/08 — não como pendência de implementação.
+
+**Ainda pendente de decisão, não tocado agora** — as seções 5 (`case_services`, `client_deliverables`, `communication_queue`), 6 (Painel de Calls/Discovery além do que já existe), 9–13 (produtos contratados por caso, onboarding, caso-piloto Ana, fluxo João) e 14 (higiene de dados fictícios) não têm o mesmo tipo de evidência direta de schema já implementado que Catálogo/Planejador têm — ficam para revisão específica, não fabricadas aqui.
+
+Verificação: `npx tsc --noEmit` (limpo), `npx vitest run` (164 arquivos, 1595 testes, todos verdes), `npx vite build` (sucesso).

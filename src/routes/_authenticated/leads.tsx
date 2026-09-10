@@ -742,7 +742,7 @@ function LeadsPage() {
 
           <Secao
             titulo="Recomendação comercial e despesas de terceiros"
-            descricao="Preço, condição e link de cobrança vêm da Planilha Mestre de Produtos/SKUs. O CRM registra apenas a recomendação e a referência."
+            descricao="Preço, condição e link de cobrança vêm do catálogo homologado (product_catalog). A Planilha Mestre é legado de auditoria histórica, não fonte viva. O CRM registra apenas a recomendação e a referência."
           >
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2">
