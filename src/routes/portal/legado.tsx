@@ -22,7 +22,7 @@ export const Route = createFileRoute("/portal/legado")({
   component: PortalLegado,
 });
 
-function PortalLegado() {
+export function PortalLegado() {
   const { visibilidade, carregando } = useVisibilidade("biblio");
   const { data, isLoading, isError, error, refetch } = usePortalVivo();
 

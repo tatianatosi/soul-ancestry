@@ -204,6 +204,9 @@ export function PainelCalls() {
       setAviso("Registro gravado no lead canônico com auditoria.");
       setRascunho({});
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
+      void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
+      void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
+      void refetch();
     },
     onError: (e: any) => setAviso(e?.message ?? "Falha ao gravar."),
   });

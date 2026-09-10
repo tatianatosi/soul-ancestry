@@ -11,6 +11,7 @@ import {
 import { escopoDoPortal } from "@/lib/portal-jornada.functions";
 import { TIPO_CLIENTE } from "@/lib/marca";
 import { COPY_ESTADO_TEXTO, COPY_ESTADO_TITULO } from "@/lib/portal-copy";
+import { usePreviaPortal } from "@/components/portal/fonte-portal";
 
 /** Escopo conservador enquanto a leitura não retorna: nada é presumido. */
 const ESCOPO_INDEFINIDO: EscopoCliente = {
@@ -22,14 +23,40 @@ const ESCOPO_INDEFINIDO: EscopoCliente = {
   fase2Status: "nao_aplicavel",
 };
 
+/**
+ * Prévia no Desk: a sessão de staff não é cliente. Sem isto, Jornada / Radar /
+ * Árvore / Legado / Conta ficam em "Carregando" para sempre (escopoDoPortal
+ * exige portal autenticado).
+ */
+const ESCOPO_PREVIA: EscopoCliente = {
+  temAcesso: true,
+  entregasLiberadas: 0,
+  fase1Contratada: true,
+  fase1Status: "em_preparacao",
+  escopoIncluiFase2: false,
+  fase2Status: "nao_aplicavel",
+};
+
 export function useEscopoPortal() {
+  const previa = usePreviaPortal();
   const carregar = useServerFn(escopoDoPortal);
-  return useQuery({ queryKey: ["portal-escopo"], queryFn: () => carregar({}) });
+  return useQuery({
+    queryKey: ["portal-escopo"],
+    queryFn: () => carregar({}),
+    enabled: previa === null,
+  });
 }
 
 /** Estado de visibilidade de uma tela do spec CA-UX-01.2. */
 export function useVisibilidade(tela: TelaApp): { visibilidade: ResultadoVisibilidade; carregando: boolean } {
+  const previa = usePreviaPortal();
   const { data, isLoading } = useEscopoPortal();
+  if (previa) {
+    return {
+      visibilidade: visibilidadeTela(tela, ESCOPO_PREVIA),
+      carregando: false,
+    };
+  }
   return {
     visibilidade: visibilidadeTela(tela, data ?? ESCOPO_INDEFINIDO),
     carregando: isLoading,

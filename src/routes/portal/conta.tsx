@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
+import { usePreviaPortal } from "@/components/portal/fonte-portal";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
 import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
@@ -22,7 +23,8 @@ export const Route = createFileRoute("/portal/conta")({
   component: PortalConta,
 });
 
-function PortalConta() {
+export function PortalConta() {
+  const previa = usePreviaPortal();
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
   const carregarFaturas = useServerFn(minhasFaturas);
@@ -30,6 +32,7 @@ function PortalConta() {
     queryKey: ["portal-conta-faturas"],
     queryFn: () => carregarFaturas({}),
     retry: false,
+    enabled: previa === null,
   });
   const temFatura = (faturas.data?.length ?? 0) > 0;
   const falhaFaturas = faturas.isError;
@@ -43,7 +46,7 @@ function PortalConta() {
           <dl className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
               <dt className="text-[11px] uppercase tracking-widest text-navy/50">Titular</dt>
-              <dd className="text-sm text-navy">{data?.cliente?.nome ?? "—"}</dd>
+              <dd className="text-sm text-navy">{previa?.titulo ?? data?.cliente?.nome ?? "—"}</dd>
             </div>
             <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
               <dt className="text-[11px] uppercase tracking-widest text-navy/50">Acesso</dt>
@@ -64,13 +67,13 @@ function PortalConta() {
             </p>
           ) : null}
 
-          {temFatura && (
+          {temFatura && !previa ? (
             <div className="mt-4 flex flex-wrap gap-2">
               <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
                 Pagamentos já feitos
               </Link>
             </div>
-          )}
+          ) : null}
         </BlocoVisibilidade>
       )}
     </PortalShell>

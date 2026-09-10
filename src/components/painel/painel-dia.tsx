@@ -36,6 +36,7 @@ import {
   aplicarFiltrosDia,
   cadenciaRelevante,
   cardsHoje,
+  faixaCockpitHoje,
   chavesExibidas,
   comercialHoje,
   consolidarDia,
@@ -125,7 +126,7 @@ function LinkItem({
     );
   }
   return (
-    <Link to="/leads" className="text-navy underline underline-offset-2">
+    <Link to="/calls" className="text-navy underline underline-offset-2">
       {children}
     </Link>
   );
@@ -391,6 +392,10 @@ export function PainelDia() {
     incluirDemo,
   });
   const cadencia = cadenciaRelevante((qCad.data?.casos ?? []) as any[], 6, usados);
+  const faixa = faixaCockpitHoje(filas, {
+    incluirDemo,
+    cadenciasAtrasadas: cadencia.length,
+  });
   for (const c of cadencia) usados.add(`caso:${String((c as any).id)}`);
   for (const i of cadenciaFollowUp) usados.add(i.pessoaOuCasoId);
   const qtd = (chave: string) =>
@@ -699,16 +704,40 @@ export function PainelDia() {
 
       {/* 0 — Métricas de decisão do dia (CA-UX-02 §7: cinco, nesta ordem) */}
       <AncoraApp bloco="cards" />
-      <section data-painel-bloco="cards" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {cards.map((c) => (
-          <CardIndicador
-            key={c.chave}
-            rotulo={c.rotulo}
-            valor={c.total}
-            apoio={c.leitura}
-            tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
-          />
-        ))}
+      <section data-painel-bloco="cards" className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {cards.map((c) => (
+            <Link
+              key={c.chave}
+              to={c.destino as "/tarefas"}
+              className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <CardIndicador
+                rotulo={c.rotulo}
+                valor={c.total}
+                apoio={c.acao}
+                tom={c.total ? (TOM_DO_CARD[c.chave] ?? "neutro") : "neutro"}
+              />
+            </Link>
+          ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {faixa.map((f) => (
+            <Link
+              key={f.chave}
+              to={f.destino as "/calls"}
+              className="flex items-baseline justify-between gap-3 rounded-lg border border-navy/10 bg-white px-3 py-2 text-sm text-navy hover:border-gold/60"
+            >
+              <span>
+                <span className="block text-[11px] uppercase tracking-wide text-navy/50">{f.rotulo}</span>
+                <span className="text-xs text-navy/65">{f.acao}</span>
+              </span>
+              <span className="shrink-0 font-serif text-xl tabular-nums">
+                {f.total === null ? "—" : f.total}
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/*
@@ -778,6 +807,39 @@ export function PainelDia() {
         </div>
         <p className="mt-1 text-xs text-navy/50">
           Ordenada pela data da próxima ação, nunca pela data de criação.
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {priorizada
+            .flatMap((f) => f.itens)
+            .slice(0, 6)
+            .map((i) => (
+              <li key={`pessoa-${i.tipo}-${i.id}`} className="rounded-lg border border-navy/10 bg-cream/40 px-3 py-2">
+                <p className="text-sm font-medium text-navy">
+                  <LinkItem item={i}>{i.rotulo}</LinkItem>
+                </p>
+                <p className="mt-0.5 text-xs text-navy/70">Próxima ação: {i.acao}</p>
+                <p className="text-xs text-navy/55">
+                  {i.responsavel ?? "Sem responsável"} · {textoPrazo(i.data)}
+                </p>
+                {i.tipo === "caso" ? (
+                  <Link
+                    to="/app-cliente-como-pessoa"
+                    search={{ casoId: i.id }}
+                    className="mt-1 inline-block text-[11px] text-navy underline underline-offset-2"
+                  >
+                    Ver App Cliente
+                  </Link>
+                ) : null}
+              </li>
+            ))}
+        </ul>
+        {priorizada.every((f) => f.itens.length === 0) ? (
+          <p className="mt-2 text-xs text-navy/50">Nenhuma pessoa ou caso na fila de hoje.</p>
+        ) : null}
+        <p className="mt-2 text-xs">
+          <Link to="/clientes" className="text-navy underline underline-offset-2">
+            Buscar pessoa 360
+          </Link>
         </p>
         <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {priorizadaVisivel.map((f) => (

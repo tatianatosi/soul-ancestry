@@ -5,6 +5,7 @@ import {
   cadenciaRelevante,
   cardsHoje,
   consolidarDia,
+  faixaCockpitHoje,
   itensNaoExibidos,
   opcoesFiltroDia,
 } from "@/lib/painel-dia";
@@ -85,6 +86,17 @@ describe("cards e filtros do Painel Hoje", () => {
     expect(cardsHoje(filas).find((c) => c.chave === "sla_em_risco")?.total).toBeNull();
   });
 
+  it("cada cartão de decisão aponta para uma lista com ação, nunca para si mesmo", () => {
+    const cards = cardsHoje(filas);
+    for (const c of cards) {
+      expect(c.destino.startsWith("/")).toBe(true);
+      expect(c.destino).not.toBe("/painel");
+      expect(c.acao.length).toBeGreaterThan(8);
+    }
+    expect(cards.find((c) => c.chave === "acoes_vencidas")?.destino).toBe("/tarefas");
+    expect(cards.find((c) => c.chave === "sem_responsavel")?.destino).toBe("/casos");
+  });
+
   it("deriva opções de filtro dos próprios itens e restringe a fila", () => {
     const itens = consolidarDia(filas);
     expect(opcoesFiltroDia(itens)).toEqual({
@@ -114,5 +126,15 @@ describe("deduplicação de resumos", () => {
       { id: "c2", cadencia: { status: "critico", diasSemTouchpoint: 30 } },
     ];
     expect(cadenciaRelevante(casos, 6, new Set(["caso:c2"])).map((c) => c["id"])).toEqual(["c1"]);
+  });
+});
+
+describe("faixa do cockpit no Hoje", () => {
+  it("abre lista real e não conta SLA inventado", () => {
+    const faixa = faixaCockpitHoje(filas, { cadenciasAtrasadas: 2 });
+    expect(faixa.find((f) => f.chave === "cadencias")?.total).toBe(2);
+    expect(faixa.find((f) => f.chave === "calls_hoje")?.destino).toBe("/calls");
+    expect(faixa.find((f) => f.chave === "leads_sem_acao")?.destino).toBe("/calls");
+    expect(faixa.every((f) => f.destino.startsWith("/") && f.destino !== "/painel")).toBe(true);
   });
 });

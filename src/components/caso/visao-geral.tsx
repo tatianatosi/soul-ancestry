@@ -176,6 +176,17 @@ export function AbaVisaoGeral({
         <FaixaPrioridade caso={caso} />
       </div>
 
+      <p className="lg:col-span-2 text-sm text-navy/70">
+        Situação, próxima ação, responsável e prazo estão no topo desta ficha, com concluir,
+        reprogramar e criar tarefa. Abaixo ficam só os quatro indicadores e, recolhido, o restante
+        técnico.
+      </p>
+
+      <details className="lg:col-span-2 rounded-xl border border-navy/10 bg-white p-5">
+        <summary className="cursor-pointer font-serif text-lg text-navy">
+          Dados técnicos e validações desta visão
+        </summary>
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
       <CartaoFinanceiro financeiro={financeiro} />
 
       <Cartao titulo="Formalização — sequência com critério de conclusão">
@@ -315,6 +326,8 @@ export function AbaVisaoGeral({
           <p className="mt-1 text-sm text-navy/55">Nenhum item na fila. Nada é criado no Drive automaticamente.</p>
         )}
       </Cartao>
+        </div>
+      </details>
     </div>
   );
 }

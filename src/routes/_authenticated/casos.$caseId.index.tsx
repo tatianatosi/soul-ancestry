@@ -314,7 +314,7 @@ function Secao({
  * um clique que faz o resto sumir.
  */
 const SECOES = [
-  { id: "visao", rotulo: "Indicadores" },
+  { id: "visao", rotulo: "Histórico" },
   { id: "comercial", rotulo: "Jurídico" },
   { id: "tecnico", rotulo: "Técnico e riscos" },
   { id: "pessoas", rotulo: "Pessoa e família" },
