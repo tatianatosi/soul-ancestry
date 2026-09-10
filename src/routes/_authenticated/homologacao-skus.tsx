@@ -3,7 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -48,6 +51,14 @@ const moeda = (v: number | null, m: string) =>
 type Filtro = "todos" | "elegiveis" | "bloqueados" | "nao_revisados";
 
 function HomologacaoSkusPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "homologar_sku" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(lerSaneamentoCatalogo);
   const confirmar = useServerFn(confirmarHomologacaoLote);
   const qc = useQueryClient();
@@ -58,7 +69,9 @@ function HomologacaoSkusPage() {
     retry: false,
   });
 
-  const itens = useMemo(() => itensRevisao((q.data?.skus ?? []) as never[]), [q.data]);
+  // `undefined` aqui significa leitura falha; a lista vazia legítima vem como [].
+  const skus = q.data?.skus as never[] | undefined;
+  const itens = useMemo(() => itensRevisao((skus ?? []) as never[]), [skus]);
   const [decisoes, setDecisoes] = useState<Record<string, DecisaoRevisao>>({});
   const [motivo, setMotivo] = useState("");
   const [confirmado, setConfirmado] = useState(false);
@@ -76,16 +89,21 @@ function HomologacaoSkusPage() {
     return true;
   });
 
+  const entradaAtual = { itens, decisoes, motivo, confirmado };
+  // As pendências continuam visíveis, mas não desabilitam mais o controle:
+  // viram gate de confirmação auditada. A elegíbilidade por SKU segue no servidor,
+  // que devolve os recusados item a item.
+  const pendenciasLote = validarConfirmacaoLote(entradaAtual);
+
   const m = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (motivoConfirmacao: string) => {
       const entrada = { itens, decisoes, motivo, confirmado };
-      const problemas = validarConfirmacaoLote(entrada);
-      if (problemas.length) {
-        setErros(problemas);
-        return null;
-      }
-      setErros([]);
-      return confirmar({ data: { ids: selecaoHomologavel(entrada), motivo: motivo.trim() } });
+      setErros(validarConfirmacaoLote(entrada));
+      const ids = selecaoHomologavel(entrada);
+      if (!ids.length) return null;
+      return confirmar({
+        data: { ids, motivo: motivo.trim() || motivoConfirmacao.trim() },
+      });
     },
     onSuccess: (r) => {
       if (!r) return;
@@ -100,6 +118,13 @@ function HomologacaoSkusPage() {
       titulo="Revisão de SKUs para homologação"
       descricao="Leia e decida item a item antes de confirmar a homologação em lote. Nenhum preço é criado ou alterado aqui, e nenhuma cobrança, link ou envio é executado pela confirmação."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {[
           { r: "SKUs ativos em revisão", v: resumo.total },
@@ -133,14 +158,17 @@ function HomologacaoSkusPage() {
         </span>
       </section>
 
-      {q.isLoading ? <p className="mt-6 text-sm text-navy/50">Carregando SKUs ativos…</p> : null}
-      {q.isError ? (
-        <p className="mt-6 text-sm text-terracotta">
-          Não foi possível ler o catálogo. Perfil sem permissão ou leitura indisponível.
-        </p>
-      ) : null}
-
       <section className="mt-4 space-y-3">
+        <EstadoDados
+          carregando={q.isLoading}
+          erro={q.error}
+          dados={skus}
+          aoTentarNovamente={() => void q.refetch()}
+          recurso="os SKUs ativos do catálogo"
+          vazio="Nenhum SKU ativo aguardando revisão."
+        >
+          {() => (
+            <div className="space-y-3">
         {visiveis.map((i) => {
           const d = decisaoDe(i.id);
           return (
@@ -199,12 +227,17 @@ function HomologacaoSkusPage() {
               ) : (
                 <p className="mt-3 text-xs text-navy/60">Sem pendência bloqueante para homologar.</p>
               )}
+              {!i.elegivel ? (
+                <p className="mt-2 text-xs text-terracotta">
+                  Pendência aberta: marcar para homologar exige justificativa da proprietária no momento da
+                  confirmação.
+                </p>
+              ) : null}
 
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant={d === "homologar" ? "default" : "outline"}
-                  disabled={!i.elegivel}
                   onClick={() => decidir(i.id, "homologar")}
                 >
                   Homologar
@@ -233,9 +266,12 @@ function HomologacaoSkusPage() {
             </article>
           );
         })}
-        {!visiveis.length && !q.isLoading ? (
+        {!visiveis.length ? (
           <p className="text-sm text-navy/50">Nenhum SKU neste filtro.</p>
         ) : null}
+            </div>
+          )}
+        </EstadoDados>
       </section>
 
       <section className="mt-6 rounded-xl border border-navy/15 bg-white p-4">
@@ -266,10 +302,16 @@ function HomologacaoSkusPage() {
           </ul>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button onClick={() => m.mutate()} disabled={m.isPending}>
-            {m.isPending ? "Confirmando…" : `Confirmar homologação (${resumo.marcados_homologar})`}
-          </Button>
+        <div className="mt-4 flex flex-wrap items-start gap-3">
+          <AcaoOperacional
+            rotulo={`Confirmar homologação (${resumo.marcados_homologar})`}
+            capacidade="homologar_sku"
+            pendenciaGate={pendenciasLote.length ? pendenciasLote.join(" · ") : null}
+            efeito="Homologa os SKUs marcados e elegíveis. Nenhum preço é alterado, nenhuma cobrança ou link é criado."
+            onConfirmar={async (motivoConfirmacao) => {
+              await m.mutateAsync(motivoConfirmacao);
+            }}
+          />
           <span className="text-xs text-navy/55">
             {resumo.nao_revisados} SKU(s) ainda sem decisão registrada.
           </span>

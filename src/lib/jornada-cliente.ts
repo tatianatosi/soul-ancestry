@@ -179,8 +179,12 @@ export function calcularCadencia(e: EntradaCadencia): SaudeCadencia {
   if (esperaComunicada) {
     return { diasSemTouchpoint: dias, status: "regular", motivo: "Espera institucional externa previamente comunicada." };
   }
-  if (dias >= DIAS_CADENCIA_CRITICA) return { diasSemTouchpoint: dias, status: "critico", motivo: "14 dias ou mais sem atualização contextualizada." };
-  if (dias >= DIAS_CADENCIA_ATENCAO) return { diasSemTouchpoint: dias, status: "atencao", motivo: "10 dias ou mais sem atualização contextualizada." };
+  if (dias >= DIAS_CADENCIA_CRITICA) {
+    return { diasSemTouchpoint: dias, status: "critico", motivo: "14 dias ou mais sem atualização contextualizada." };
+  }
+  if (dias >= DIAS_CADENCIA_ATENCAO) {
+    return { diasSemTouchpoint: dias, status: "atencao", motivo: "10 dias ou mais sem atualização contextualizada." };
+  }
   return { diasSemTouchpoint: dias, status: "regular", motivo: "Cadência dentro do limite de 14 dias." };
 }
 

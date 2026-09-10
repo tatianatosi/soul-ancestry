@@ -5,6 +5,7 @@ import { derivarPendenciasPiloto, NUCLEO_PILOTO, PILOTO_ANA } from "@/lib/piloto
 import { perfilInstitucionalRenderizado } from "@/lib/perfil-institucional";
 import { semCache } from "@/lib/no-store";
 import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { clienteCorrespondentePorNome } from "@/lib/pessoa-vinculo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -158,15 +159,45 @@ export const materializarPilotoAna = createServerFn({ method: "POST" })
       nucleoId = novo.id as string;
     }
 
-    const { data: membrosAtuais } = await supabase.from("nucleo_membros").select("nome").eq("nucleo_id", nucleoId);
-    const nomes = new Set(((membrosAtuais ?? []) as Linha[]).map((m) => String(m.nome)));
+    const { data: membrosAtuais } = await supabase
+      .from("nucleo_membros")
+      .select("id,nome,cliente_id")
+      .eq("nucleo_id", nucleoId);
+    const membrosPorNome = new Map(((membrosAtuais ?? []) as Linha[]).map((m) => [String(m.nome), m]));
+
+    const { data: clientesOrg } = await supabase
+      .from("clientes")
+      .select("id,nome")
+      .eq("organization_id", organizationId)
+      .is("archived_at", null);
+    const clientes = (clientesOrg ?? []) as { id: string; nome: string }[];
+
     let ordem = 0;
     for (const m of NUCLEO_PILOTO) {
       ordem += 1;
-      if (nomes.has(m.nome)) continue;
+      const existente = membrosPorNome.get(m.nome);
+      const clienteId = clienteCorrespondentePorNome(m.nome, clientes);
+      if (existente) {
+        /*
+         * 04/09/2026 — achado real (Ana Luiza): o cliente canônico foi
+         * cadastrado com nome curto ("Ana Luiza") e o núcleo, dois dias
+         * depois, com nome completo. O `left join` por igualdade exata na
+         * migration original nunca ligou os dois; esta materialização
+         * também nunca corrigia porque só inseria membro novo, nunca
+         * atualizava um já existente. Agora, se o membro já existe sem
+         * cliente_id e um cliente correspondente é encontrado, o vínculo é
+         * completado — sem tocar em nenhum outro campo.
+         */
+        if (!existente.cliente_id && clienteId) {
+          const { error } = await supabase.from("nucleo_membros").update({ cliente_id: clienteId }).eq("id", existente.id);
+          if (error) throw new Error(`Vínculo do requerente (${m.nome}): ${error.message}`);
+        }
+        continue;
+      }
       const { error } = await supabase.from("nucleo_membros").insert({
         organization_id: organizationId,
         nucleo_id: nucleoId,
+        cliente_id: clienteId,
         nome: m.nome,
         papel: m.papel,
         vinculo: m.signatario ? "signatário" : "dependente",

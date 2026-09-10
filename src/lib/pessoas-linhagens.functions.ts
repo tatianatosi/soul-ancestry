@@ -1,9 +1,12 @@
 import { semCache } from "@/lib/no-store";
+import { linhas } from "@/lib/linhas";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MODULOS_HISTORICOS } from "@/lib/genealogia-modulos";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
+import { normalizarNome } from "@/lib/pessoa-identidade";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -150,13 +153,15 @@ function filtrar(tabela: TabelaG02, entrada: Record<string, unknown>) {
 
 async function autorizarLeitura(supabase: Sb, userId: string) {
   const { organizationId, papel } = await contextoRg(supabase, userId);
-  if (!PAPEIS_LE_DETALHE.includes(papel)) throw new Error("Seu papel não acessa a ficha genealógica interna.");
+  if (!PAPEIS_LE_DETALHE.includes(papel))
+    throw new Error("Seu papel não acessa a ficha genealógica interna.");
   return { organizationId, podeEditar: PAPEIS_EDITA.includes(papel) };
 }
 
 async function autorizarEscrita(supabase: Sb, userId: string) {
   const { organizationId, papel } = await contextoRg(supabase, userId);
-  if (!PAPEIS_EDITA.includes(papel)) throw new Error("Seu papel não pode editar pessoas, relações ou linhagens.");
+  if (!PAPEIS_EDITA.includes(papel))
+    throw new Error("Seu papel não pode editar pessoas, relações ou linhagens.");
   return organizationId;
 }
 
@@ -167,60 +172,126 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     semCache();
     const supabase = context.supabase as unknown as Sb;
-    const { organizationId, podeEditar } = await autorizarLeitura(supabase, context.userId as string);
+    const { organizationId, podeEditar } = await autorizarLeitura(
+      supabase,
+      context.userId as string,
+    );
     const org = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const pesquisas = await org("research_cases").eq("case_id", data.caseId).is("archived_at", null);
-    const pesquisaIds = (pesquisas.data ?? []).map((p: any) => p.id as string);
+    const pesquisas = await org("research_cases")
+      .eq("case_id", data.caseId)
+      .is("archived_at", null);
+    const pesquisaIds = linhas<any>(pesquisas, "pesquisas do caso").map((p: any) => p.id as string);
 
     const pessoas = pesquisaIds.length
       ? await supabase
           .from("research_people")
-          .select("id,canonical_name,preferred_display_name,person_status,identity_status,research_case_id,archived_at")
+          .select(
+            "id,canonical_name,preferred_display_name,person_status,identity_status,research_case_id,archived_at",
+          )
           .eq("organization_id", organizationId)
           .in("research_case_id", pesquisaIds)
           .is("archived_at", null)
       : { data: [] as any[] };
 
-    const personIds = (pessoas.data ?? []).map((p: any) => p.id as string);
+    const listaPessoas = linhas<any>(pessoas as any, "pessoas de pesquisa do caso");
+    const personIds = listaPessoas.map((p: any) => p.id as string);
 
-    const [perfis, variantes, relacoes, eventos, linhagens, evidencias, fontes, nucleos, trilhas, caso] =
-      await Promise.all([
-        org("genealogical_person_profiles").eq("case_id", data.caseId).order("created_at", { ascending: true }),
-        personIds.length
-          ? supabase
-              .from("name_variants")
-              .select("*")
-              .eq("organization_id", organizationId)
-              .in("person_id", personIds)
-              .order("created_at", { ascending: true })
-          : Promise.resolve({ data: [] as any[] }),
-        org("genealogical_relationships").eq("case_id", data.caseId).order("created_at", { ascending: true }),
-        org("genealogical_events").eq("case_id", data.caseId).order("start_date", { ascending: true }),
-        org("lineage_paths").eq("case_id", data.caseId).order("created_at", { ascending: true }),
-        supabase
-          .from("research_evidence_items")
-          .select("id,title,evidence_status")
-          .eq("organization_id", organizationId)
-          .is("archived_at", null),
-        supabase
-          .from("research_sources")
-          .select("id,title,source_type,source_status")
-          .eq("organization_id", organizationId)
-          .is("archived_at", null),
-        org("nucleos_familiares").eq("case_id", data.caseId).is("archived_at", null),
-        supabase
-          .from("citizenship_tracks")
-          .select("id,code,pais,via_preliminar")
-          .eq("organization_id", organizationId)
-          .is("archived_at", null),
-        supabase.from("crm_casos").select("id,codigo,titulo,pais").eq("id", data.caseId).maybeSingle(),
-      ]);
+    /*
+     * 05/09/2026 — achado real reportado pela Proprietária: a aba "Perfil
+     * 360°" (e a árvore, a timeline e as lacunas, que também derivam de
+     * genealogical_person_profiles) mostrava "Nenhuma pessoa cadastrada
+     * neste caso" mesmo com research_people já tendo Ana, Adair, Alice e
+     * Felipe reais para este caso. As duas tabelas nunca foram costuradas:
+     * criarPessoaComPerfil cria as duas juntas, mas as 4 pessoas já
+     * existiam de antes, sem perfil correspondente. Backfill idempotente:
+     * toda pessoa de pesquisa sem perfil ganha um, com o nome real que já
+     * existe — nunca um dado inventado.
+     */
+    if (personIds.length) {
+      const perfisExistentes = await supabase
+        .from("genealogical_person_profiles")
+        .select("research_person_id")
+        .eq("organization_id", organizationId)
+        .in("research_person_id", personIds);
+      const comPerfil = new Set(
+        linhas<any>(perfisExistentes, "perfis genealógicos já existentes").map(
+          (p: any) => p.research_person_id as string,
+        ),
+      );
+      const semPerfil = listaPessoas.filter((p) => !comPerfil.has(p.id));
+      if (semPerfil.length) {
+        await supabase.from("genealogical_person_profiles").insert(
+          semPerfil.map((p) => ({
+            organization_id: organizationId,
+            case_id: data.caseId,
+            research_person_id: p.id,
+            nome_completo:
+              p.canonical_name || p.preferred_display_name || "Pessoa sem nome registrado",
+          })),
+        );
+      }
+    }
+
+    const [
+      perfis,
+      variantes,
+      relacoes,
+      eventos,
+      linhagens,
+      evidencias,
+      fontes,
+      nucleos,
+      trilhas,
+      caso,
+    ] = await Promise.all([
+      org("genealogical_person_profiles")
+        .eq("case_id", data.caseId)
+        .order("created_at", { ascending: true }),
+      personIds.length
+        ? supabase
+            .from("name_variants")
+            .select("*")
+            .eq("organization_id", organizationId)
+            .in("person_id", personIds)
+            .order("created_at", { ascending: true })
+        : Promise.resolve({ data: [] as any[] }),
+      org("genealogical_relationships")
+        .eq("case_id", data.caseId)
+        .order("created_at", { ascending: true }),
+      org("genealogical_events")
+        .eq("case_id", data.caseId)
+        .order("start_date", { ascending: true }),
+      org("lineage_paths").eq("case_id", data.caseId).order("created_at", { ascending: true }),
+      supabase
+        .from("research_evidence_items")
+        .select("id,title,evidence_status")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      supabase
+        .from("research_sources")
+        .select("id,title,source_type,source_status")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      org("nucleos_familiares").eq("case_id", data.caseId).is("archived_at", null),
+      supabase
+        .from("citizenship_tracks")
+        .select("id,code,pais,via_preliminar")
+        .eq("organization_id", organizationId)
+        .is("archived_at", null),
+      supabase
+        .from("crm_casos")
+        .select("id,codigo,titulo,pais")
+        .eq("id", data.caseId)
+        .maybeSingle(),
+    ]);
 
     const modulos = await Promise.all(
       MODULOS_HISTORICOS.map(async (m) => {
-        const r = await org(m.tabela).eq("case_id", data.caseId).order("created_at", { ascending: true });
-        return [m.tabela, ((r as any).data ?? []) as any[]] as const;
+        const r = await org(m.tabela)
+          .eq("case_id", data.caseId)
+          .order("created_at", { ascending: true });
+        return [m.tabela, linhas<any>(r as any, `módulo histórico ${m.tabela}`)] as const;
       }),
     );
 
@@ -228,49 +299,94 @@ export const painelPessoasLinhagens = createServerFn({ method: "GET" })
       podeEditar,
       modulos: Object.fromEntries(modulos) as Record<string, any[]>,
       caso: (caso as any).data ?? null,
-      pesquisas: (pesquisas.data ?? []) as any[],
-      pessoas: ((pessoas as any).data ?? []) as any[],
-      perfis: (perfis.data ?? []) as any[],
-      variantes: (((variantes as any).data ?? []) as any[]),
-      relacoes: (relacoes.data ?? []) as any[],
-      eventos: (eventos.data ?? []) as any[],
-      linhagens: (linhagens.data ?? []) as any[],
-      evidencias: ((evidencias as any).data ?? []) as any[],
-      fontes: ((fontes as any).data ?? []) as any[],
-      nucleos: (nucleos.data ?? []) as any[],
-      trilhas: ((trilhas as any).data ?? []) as any[],
+      pesquisas: linhas<any>(pesquisas, "pesquisas do caso"),
+      pessoas: listaPessoas,
+      perfis: linhas<any>(perfis, "perfis genealógicos do caso"),
+      variantes: linhas<any>(variantes as any, "variantes de nome do caso"),
+      relacoes: linhas<any>(relacoes, "relações genealógicas do caso"),
+      eventos: linhas<any>(eventos, "eventos genealógicos do caso"),
+      linhagens: linhas<any>(linhagens, "caminhos de linhagem do caso"),
+      evidencias: linhas<any>(evidencias as any, "evidências de pesquisa"),
+      fontes: linhas<any>(fontes as any, "fontes de pesquisa"),
+      nucleos: linhas<any>(nucleos, "núcleos familiares do caso"),
+      trilhas: linhas<any>(trilhas as any, "trilhas de cidadania"),
     };
   });
 
 /**
  * Cria a pessoa no registro de pesquisa e o perfil genealógico 360° em um único
  * passo. Nada é inferido: apenas o nome é obrigatório.
+ *
+ * Idempotente por nome dentro da mesma pesquisa: "Ana Luiza Gomes Silveira
+ * Rodrigues" clicado duas vezes (duplo clique, nova tentativa após demora)
+ * não cria uma segunda pessoa nem um segundo perfil — reaproveita o que já
+ * existe. Comparação por nome normalizado (sem acento/pontuação), nunca
+ * decide que são pessoas diferentes por uma vírgula ou maiúscula a mais.
  */
 export const criarPessoaComPerfil = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { caseId: string; pesquisaId: string; valores: Record<string, unknown> }) => d)
+  .inputValidator(
+    (d: { caseId: string; pesquisaId: string; valores: Record<string, unknown> }) => d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar("genealogical_person_profiles", data.valores);
     const nome = String(valores["nome_completo"] ?? "").trim();
-    if (!nome) throw new Error("Nome completo é obrigatório.");
     if (!data.pesquisaId) {
-      throw new Error("Este caso ainda não tem registro de pesquisa. Crie a pesquisa do caso antes de cadastrar pessoas.");
+      throw new Error(
+        "Este caso ainda não tem registro de pesquisa. Crie a pesquisa do caso antes de cadastrar pessoas.",
+      );
     }
 
-    const pessoa = await supabase
+    const nomeNormalizado = normalizarNome(nome);
+    const existentes = await supabase
       .from("research_people")
-      .insert({
-        organization_id: organizationId,
-        research_case_id: data.pesquisaId,
-        canonical_name: nome,
-        person_status: "related_person",
-        identity_status: "unreviewed",
-      })
-      .select("id")
+      .select("id,canonical_name")
+      .eq("organization_id", organizationId)
+      .eq("research_case_id", data.pesquisaId)
+      .is("archived_at", null);
+    if (existentes.error) throw new Error(existentes.error.message);
+    const pessoaExistente = (nomeNormalizado
+      ? ((existentes.data ?? []) as any[]).find(
+          (p) => normalizarNome(p.canonical_name) === nomeNormalizado,
+        )
+      : null) as { id: string } | null | undefined;
+
+    let pessoaId: string;
+    if (pessoaExistente) {
+      pessoaId = pessoaExistente.id;
+    } else {
+      const pessoa = await supabase
+        .from("research_people")
+        .insert({
+          organization_id: organizationId,
+          research_case_id: data.pesquisaId,
+          canonical_name: nome,
+          person_status: "related_person",
+          identity_status: "unreviewed",
+        })
+        .select("id")
+        .maybeSingle();
+      if (pessoa.error) throw new Error(pessoa.error.message);
+      pessoaId = pessoa.data.id as string;
+    }
+
+    const perfilExistente = await supabase
+      .from("genealogical_person_profiles")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("research_person_id", pessoaId)
+      .is("archived_at", null)
       .maybeSingle();
-    if (pessoa.error) throw new Error(pessoa.error.message);
+    if (perfilExistente.error) throw new Error(perfilExistente.error.message);
+    if (perfilExistente.data) {
+      return {
+        id: perfilExistente.data.id as string,
+        research_person_id: pessoaId,
+        reaproveitado: true,
+      };
+    }
 
     const perfil = await supabase
       .from("genealogical_person_profiles")
@@ -278,35 +394,57 @@ export const criarPessoaComPerfil = createServerFn({ method: "POST" })
         ...valores,
         case_id: data.caseId,
         organization_id: organizationId,
-        research_person_id: pessoa.data.id,
+        research_person_id: pessoaId,
       })
       .select("*")
       .maybeSingle();
     if (perfil.error) throw new Error(perfil.error.message);
-    return { id: perfil.data.id as string, research_person_id: pessoa.data.id as string };
+    return {
+      id: perfil.data.id as string,
+      research_person_id: pessoaId,
+      reaproveitado: Boolean(pessoaExistente),
+    };
   });
 
-/** Gravação genérica das entidades G-02, com releitura de conferência. */
+/**
+ * Gravação genérica das entidades G-02, com confirmação de linha afetada,
+ * releitura independente da gravação e comparação campo a campo. O retorno
+ * só é "salvo" quando o valor relido do banco bate com o que foi enviado —
+ * a UPDATE/INSERT devolver a própria linha não é, por si, confirmação.
+ */
 export const salvarRegistroG02 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { tabela: TabelaG02; id?: string; caseId?: string; valores: Record<string, unknown> }) => d)
+  .inputValidator(
+    (d: { tabela: TabelaG02; id?: string; caseId?: string; valores: Record<string, unknown> }) => d,
+  )
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!TABELAS[data.tabela]) throw new Error("Entidade não reconhecida na ficha genealógica.");
     const valores = filtrar(data.tabela, data.valores);
-    if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id")) valores["case_id"] = data.caseId;
+    if (data.caseId && (TABELAS[data.tabela] as string[]).includes("case_id"))
+      valores["case_id"] = data.caseId;
 
-    const r = data.id
-      ? await supabase.from(data.tabela).update(valores).eq("id", data.id).select("*").maybeSingle()
-      : await supabase
-          .from(data.tabela)
-          .insert({ ...valores, organization_id: organizationId })
-          .select("*")
-          .maybeSingle();
-    if (r.error) throw new Error(r.error.message);
-    if (!r.data) throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
-    return { registro: r.data as any };
+    if (data.id) {
+      const r = await gravarComVerificacao({
+        supabase,
+        tabela: data.tabela,
+        id: data.id,
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      return { registro: r.registro } as any;
+    }
+
+    const r = await inserirComVerificacao({
+      supabase,
+      tabela: data.tabela,
+      organizationId,
+      userId: context.userId as string,
+      payload: valores,
+    });
+    return { registro: r.registro } as any;
   });
 
 /** Sem exclusão física: somente arquivamento com motivo. */
@@ -325,6 +463,7 @@ export const arquivarRegistroG02 = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (r.error) throw new Error(r.error.message);
-    if (!r.data) throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
+    if (!r.data)
+      throw new Error("Nada foi gravado: registro fora da sua organização ou sem permissão.");
     return { ok: true };
   });

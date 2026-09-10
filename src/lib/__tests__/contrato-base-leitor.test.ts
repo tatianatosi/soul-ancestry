@@ -14,9 +14,9 @@ import { CLAUSULAS_MATRIZ } from "@/lib/matriz-clausulas";
 describe("leitor do contrato-base", () => {
   const doc = lerContratoBase();
 
-  it("renderiza as 14 seções publicadas", () => {
-    expect(doc.secoes).toHaveLength(14);
-    expect(doc.secoes.map((s) => s.secao)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+  it("renderiza as 16 seções publicadas (14 originais + 15/16 de 07/09/2026)", () => {
+    expect(doc.secoes).toHaveLength(16);
+    expect(doc.secoes.map((s) => s.secao)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 
   it("cada seção tem texto não vazio, selo, versão e vínculo A–P", () => {

@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 
-import { SaasShell } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   lerRegistroModeloIndividual,
@@ -57,15 +60,23 @@ const CLASSE_ROTULO: Record<string, string> = {
   nao_aplicavel_por_padrao: "Não aplicável por padrão",
 };
 
+type EventoRegistro = { id: string; evento: string; detalhe: string | null; criado_em: string };
+
 function RegistroVersionado() {
   const queryClient = useQueryClient();
   const ler = useServerFn(lerRegistroModeloIndividual);
   const registrar = useServerFn(registrarModeloIndividual);
 
-  const { data } = useQuery({ queryKey: ["modelo-individual-registro"], queryFn: () => ler({}) });
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ["modelo-individual-registro"],
+    queryFn: () => ler({}),
+  });
   const mutation = useMutation({
     mutationFn: () => registrar({}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] }),
+    onSuccess: () => {
+      toast.success("Modelo individual registrado.");
+      queryClient.invalidateQueries({ queryKey: ["modelo-individual-registro"] });
+    },
   });
 
   const modelo = data?.modelo as
@@ -95,29 +106,52 @@ function RegistroVersionado() {
           </p>
         )}
         {!modelo && (
-          <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            Registrar modelo v1.0 (under_legal_review)
-          </Button>
+          <AcaoOperacional
+            size="sm"
+            rotulo="Registrar modelo v1.0 (under_legal_review)"
+            capacidade="criar_versao_derivada"
+            efeito="Grava o registro versionado do modelo nesta organização. Não libera contrato, assinatura ou cobrança."
+            onConfirmar={async () => {
+              await mutation.mutateAsync();
+            }}
+          />
         )}
         {mutation.isError && (
           <p className="text-xs text-terracotta">{(mutation.error as Error).message}</p>
         )}
-        {(data?.eventos ?? []).length > 0 && (
-          <ul className="space-y-1 text-xs text-muted-foreground">
-            {(data?.eventos ?? []).map((ev: { id: string; evento: string; detalhe: string | null; criado_em: string }) => (
-              <li key={ev.id}>
-                {new Date(ev.criado_em).toLocaleString("pt-BR")} · {ev.evento}
-                {ev.detalhe ? ` · ${ev.detalhe}` : ""}
-              </li>
-            ))}
-          </ul>
-        )}
+        <EstadoDados
+          carregando={isLoading}
+          erro={error}
+          dados={data?.eventos as EventoRegistro[] | undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="os eventos do registro"
+          vazio="Nenhum evento registrado ainda."
+        >
+          {(eventos) => (
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              {eventos.map((ev) => (
+                <li key={ev.id}>
+                  {new Date(ev.criado_em).toLocaleString("pt-BR")} · {ev.evento}
+                  {ev.detalhe ? ` · ${ev.detalhe}` : ""}
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       </CardContent>
     </Card>
   );
 }
 
 function ModeloIndividualPage() {
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_rascunho" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const previa = previaTesteModeloIndividual();
 
 
@@ -126,6 +160,13 @@ function ModeloIndividualPage() {
       titulo={`${MODELO_INDIVIDUAL_NOME} — ${MODELO_INDIVIDUAL_VERSAO}`}
       descricao="Modelo interno versionado de composição contratual. Sem dados reais ou DEMO."
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <div className="space-y-6 p-6">
         <header className="space-y-2">
           <h1 className="sr-only">

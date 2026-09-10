@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { contextoRg, PAPEIS_EDITA, PAPEIS_LE_DETALHE, type Sb } from "@/lib/pesquisa-modulo.server";
-import { gravarComVerificacao } from "@/lib/persistencia.server";
+import { gravarComVerificacao, inserirComVerificacao } from "@/lib/persistencia.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -120,6 +120,59 @@ async function autorizarEscrita(supabase: Sb, userId: string) {
   return organizationId;
 }
 
+/**
+ * CA11-CENTRO-INTELIGENCIA (09/09/2026) — achado nunca fica como linha sem
+ * consequência. Os campos `eligible_for_client_deliverable`/`client_deliverable_id`
+ * já existiam no schema e nunca eram lidos por nenhum gravador: marcar um
+ * achado como elegível para entrega e não vinculá-lo a uma microentrega
+ * ficava sem nenhum rastro operacional. Agora isso abre (ou atualiza) um
+ * alerta interno pendente por caso em `case_alerts` — nunca cria, projeta ou
+ * publica nada no App Cliente sozinho; a decisão de gerar a microentrega
+ * continua humana. Deixar de ser elegível ou já ter entrega vinculada
+ * resolve o alerta automaticamente, sem deixar pendência fantasma.
+ */
+export async function prepararConsequenciaAchado(
+  supabase: Sb,
+  organizationId: string,
+  achado: Record<string, any>,
+): Promise<void> {
+  if (!achado?.case_id) return;
+  const pendente =
+    Boolean(achado.eligible_for_client_deliverable) && !achado.client_deliverable_id && !achado.archived_at;
+
+  const { data: existente } = await supabase
+    .from("case_alerts")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("case_id", achado.case_id)
+    .eq("tipo", "achado_pendente_decisao")
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+
+  if (pendente) {
+    const payload = {
+      organization_id: organizationId,
+      case_id: achado.case_id,
+      tipo: "achado_pendente_decisao",
+      criticidade: "atencao",
+      titulo: `Achado elegível para microentrega: ${achado.title ?? "sem título"}`,
+      detalhe: `Achado ${achado.id} marcado como elegível para entrega ao cliente e ainda sem microentrega vinculada. Decisão humana pendente — nada é publicado automaticamente.`,
+      status: "pending",
+    };
+    if (existente?.id) {
+      await supabase.from("case_alerts").update(payload).eq("id", existente.id);
+    } else {
+      await supabase.from("case_alerts").insert(payload);
+    }
+  } else if (existente?.id) {
+    await supabase
+      .from("case_alerts")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", existente.id);
+  }
+}
+
 export const salvarAchado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id?: string; valores: Record<string, unknown> }) => d)
@@ -128,8 +181,9 @@ export const salvarAchado = createServerFn({ method: "POST" })
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     const valores = filtrar(CAMPOS_ACHADO, data.valores);
 
+    let registro: Record<string, any>;
     if (data.id) {
-      await gravarComVerificacao({
+      const r = await gravarComVerificacao({
         supabase,
         tabela: "genealogical_findings",
         id: data.id,
@@ -137,15 +191,20 @@ export const salvarAchado = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload: valores,
       });
-      return { id: data.id };
+      registro = r.registro;
+    } else {
+      const r = await inserirComVerificacao({
+        supabase,
+        tabela: "genealogical_findings",
+        organizationId,
+        userId: context.userId as string,
+        payload: valores,
+      });
+      registro = r.registro;
     }
-    const { data: linha, error } = await supabase
-      .from("genealogical_findings")
-      .insert({ ...valores, organization_id: organizationId })
-      .select("id")
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { id: linha?.id as string };
+
+    await prepararConsequenciaAchado(supabase, organizationId, registro);
+    return { id: registro.id as string };
   });
 
 export const salvarEncontro = createServerFn({ method: "POST" })
@@ -184,7 +243,7 @@ export const arquivarRegistroG06 = createServerFn({ method: "POST" })
     const supabase = context.supabase as unknown as Sb;
     const organizationId = await autorizarEscrita(supabase, context.userId as string);
     if (!data.motivo.trim()) throw new Error("Informe o motivo do arquivamento.");
-    await gravarComVerificacao({
+    const r = await gravarComVerificacao({
       supabase,
       tabela: data.tabela,
       id: data.id,
@@ -192,5 +251,8 @@ export const arquivarRegistroG06 = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { archived_at: new Date().toISOString(), archive_motivo: data.motivo },
     });
+    if (data.tabela === "genealogical_findings") {
+      await prepararConsequenciaAchado(supabase, organizationId, r.registro);
+    }
     return { ok: true };
   });

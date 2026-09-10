@@ -35,6 +35,10 @@ export type EntradaChecklistJuridico = {
   clausulas?: Lista;
   anexos?: Lista;
   versoes?: Lista;
+  /** Valor total e prazo de execução — não existem em `contracts`; vêm dos
+   * parâmetros do Planejador vinculados (contract_parameter_values), quando houver. */
+  valorReferencia?: string | number | null;
+  prazoReferencia?: string | null;
 };
 
 const ANEXOS_OBRIGATORIOS = ["I", "II", "III", "IV", "V"] as const;
@@ -74,14 +78,21 @@ export function montarChecklistJuridico(entrada: EntradaChecklistJuridico): Resu
   const anexos = ativos(entrada.anexos);
   const versoes = entrada.versoes ?? [];
 
-  const contratada = partes.some((p) => texto(p["party_role"]) === "contratada");
-  const contratante = partes.some((p) => texto(p["party_role"]) === "contratante");
+  // Valores reais da coluna `role` em contract_parties (contratada = "provider",
+  // contratante = "contracting_client") — nunca os rótulos em português do
+  // checklist, que não existem no banco e faziam este item falhar sempre.
+  const contratada = partes.some((p) => texto(p["role"]) === "provider");
+  const contratante = partes.some((p) => texto(p["role"]) === "contracting_client");
   const partesSemDocumento = partes.filter((p) => !texto(p["document_number"]));
 
   const anexosPresentes = new Set(anexos.map((a) => texto(a["annex_code"]).toUpperCase()));
   const anexosFaltantes = ANEXOS_OBRIGATORIOS.filter((code) => !anexosPresentes.has(code) && !anexosPresentes.has(`ANEXO ${code}`));
 
-  const overridesPendentes = clausulas.filter((cl) => texto(cl["status"]) === "pending_approval" || !texto(cl["approved_at"]));
+  // contract_clause_overrides não tem `status`/`approved_at` — a aprovação real
+  // é `requires_human_review` (false = já aprovado/sem revisão pendente) e
+  // `reviewed_at`. O checklist antigo checava colunas inexistentes e por isso
+  // marcava toda alteração de cláusula como pendente, sempre.
+  const overridesPendentes = clausulas.filter((cl) => cl["requires_human_review"] === true && !texto(cl["reviewed_at"]));
 
   const itens: ItemChecklistJuridico[] = [
     item("parte_contratada", "Contratada qualificada", "Partes", contratada, "Contratada identificada.", "Nenhuma parte com papel de contratada."),
@@ -116,17 +127,17 @@ export function montarChecklistJuridico(entrada: EntradaChecklistJuridico): Resu
       "valor",
       "Valor e forma de pagamento",
       "Comercial",
-      Number(c["total_amount"] ?? 0) > 0,
+      Number(entrada.valorReferencia ?? 0) > 0,
       "Valor total definido.",
-      "Valor total ausente ou zerado.",
+      "Valor total ausente ou zerado — verifique os parâmetros do Planejador.",
     ),
     item(
       "prazo",
       "Prazo de execução",
       "Comercial",
-      texto(c["execution_deadline"]).length > 0 || Number(c["execution_days"] ?? 0) > 0,
+      texto(entrada.prazoReferencia).length > 0 || Boolean(c["effective_end_date"]),
       "Prazo definido.",
-      "Prazo de execução não definido.",
+      "Prazo de execução não definido — verifique os parâmetros do Planejador.",
     ),
     item(
       "clausulas_override",

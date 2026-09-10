@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Secao, Selecao, inputCls } from "@/components/caso/campos";
+import { AcaoDeEscrita, Secao, Selecao, inputCls } from "@/components/caso/campos";
 import { PainelJornadaPosGates } from "@/components/caso/jornada-pos-gates";
 import { PainelPlanoOnboarding } from "@/components/caso/onboarding-plano";
 import { atualizarItemOnboarding } from "@/lib/caso-canonico.functions";
@@ -18,7 +18,7 @@ export function AbaOnboarding({
   nucleos,
   membrosNucleo,
   planoInicialOk,
-  bloqueado,
+  bloqueado: _bloqueado,
   onMudou,
 }: {
   caso: Linha;
@@ -26,7 +26,11 @@ export function AbaOnboarding({
   nucleos: Linha[];
   membrosNucleo: Linha[];
   planoInicialOk: boolean;
-  bloqueado: boolean;
+  /**
+   * Mantida apenas por compatibilidade com quem chama em `src/routes/`.
+   * Ignorada: a decisão de escrita é da autoridade operacional.
+   */
+  bloqueado?: boolean;
   onMudou: () => void;
 }) {
   const nucleo = nucleos[0] ?? null;
@@ -98,7 +102,16 @@ export function AbaOnboarding({
         ) : (
           <ul className="space-y-3">
             {itens.map((i) => (
-              <ItemOnboarding key={i.id} item={i} bloqueado={bloqueado} onMudou={onMudou} />
+              <ItemOnboarding
+                key={i.id}
+                item={i}
+                pendenciaGate={
+                  pendentes.length
+                    ? `Gates de cliente ativo pendentes: ${pendentes.map((g) => g.rotulo).join(", ")}.`
+                    : null
+                }
+                onMudou={onMudou}
+              />
             ))}
           </ul>
         )}
@@ -107,7 +120,15 @@ export function AbaOnboarding({
   );
 }
 
-function ItemOnboarding({ item, bloqueado, onMudou }: { item: Linha; bloqueado: boolean; onMudou: () => void }) {
+function ItemOnboarding({
+  item,
+  pendenciaGate,
+  onMudou,
+}: {
+  item: Linha;
+  pendenciaGate: string | null;
+  onMudou: () => void;
+}) {
   const atualizar = useServerFn(atualizarItemOnboarding);
   const [status, setStatus] = useState(String(item.status ?? "pendente"));
   const [obs, setObs] = useState(String(item.observacao ?? ""));
@@ -136,19 +157,32 @@ function ItemOnboarding({ item, bloqueado, onMudou }: { item: Linha; bloqueado: 
       </div>
       {erro ? <p className="mt-2 text-xs text-terracotta">{erro}</p> : null}
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
-        <Selecao label="Status" valor={status} opcoes={STATUS_ONBOARDING_ITEM} onChange={setStatus} desabilitado={bloqueado} />
+        <Selecao label="Status" valor={status} opcoes={STATUS_ONBOARDING_ITEM} onChange={setStatus} />
         <label className="block">
           <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-navy/50">Observação interna</span>
-          <input className={inputCls} value={obs} disabled={bloqueado} onChange={(e) => setObs(e.target.value)} />
+          <input className={inputCls} value={obs} onChange={(e) => setObs(e.target.value)} />
         </label>
       </div>
-      <button
-        onClick={() => m.mutate()}
-        disabled={bloqueado || !sujo || m.isPending}
-        className="mt-2 rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
-      >
-        Salvar item
-      </button>
+      <div className="mt-2">
+        <AcaoDeEscrita
+          rotulo={m.isPending ? "Salvando…" : "Salvar item"}
+          faltando={
+            !sujo
+              ? "Nenhuma alteração para salvar."
+              : item.obrigatorio && status === "nao_aplicavel" && !obs.trim()
+                ? "Item obrigatório marcado como não aplicável exige observação interna."
+                : null
+          }
+          capacidade="avancar_caso_planejador_tarefa"
+          pendenciaGate={pendenciaGate}
+          efeito="Grava o status e a observação deste item do checklist de onboarding."
+          className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy disabled:opacity-40"
+          onConfirmar={() => {
+            if (m.isPending) return;
+            m.mutate();
+          }}
+        />
+      </div>
     </li>
   );
 }

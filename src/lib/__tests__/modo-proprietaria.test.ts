@@ -105,8 +105,16 @@ describe("modo proprietária administradora", () => {
       dados_enviados: { parcela: 1 },
     };
 
-    // Sem motivo suficiente ou sem checkbox manual, a janela recusa a ação.
+    // Sem motivo ou sem checkbox manual, a janela recusa a ação.
+    //
+    // 06/09/2026 — antes esta linha usava motivo: "curto" e esperava `false`,
+    // porque o mínimo de 10 caracteres reprovava a palavra. A proprietária
+    // mandou remover mínimo arbitrário de caracteres em motivo, então "curto"
+    // agora é motivo válido e o que segue reprovando é motivo em branco.
     expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "curto" }).pronta).toBe(
+      true,
+    );
+    expect(montarConfirmacao({ ...base, confirmacao_manual: true, motivo: "   " }).pronta).toBe(
       false,
     );
     expect(montarConfirmacao({ ...base, motivo: "Cobrança acordada em call" }).faltantes).toContain(

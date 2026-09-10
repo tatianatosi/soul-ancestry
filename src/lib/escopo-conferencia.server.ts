@@ -14,6 +14,7 @@ import { TEMAS_JURIDICOS, temasBloqueantesPendentes, type LinhaMatriz } from "@/
 import { GateBloqueadoError, bloqueiosDaAcao, ehAcaoGateadaInterna, type AcaoGateada } from "@/lib/gates-formalizacao";
 import { extrairEscopoDaProposta, mapaCoberturaEscopo } from "@/lib/escopo-proposta";
 import { sanearProposta, type SaneamentoProposta } from "@/lib/proposta-saneamento";
+import { pessoasDoCasoComFallbackNucleo } from "@/lib/pessoa-vinculo";
 
 type Sb = any;
 
@@ -68,11 +69,7 @@ export async function montarConferencia(
             .is("archived_at", null)
             .limit(1)
             .maybeSingle(),
-      supabase
-        .from("case_members")
-        .select("id,nome,data_nascimento,representante_legal,status_cadastral,contratante,titular,dependente,cpf")
-        .eq("case_id", caso.id)
-        .is("archived_at", null),
+      pessoasDoCasoComFallbackNucleo(supabase, caso.id).then((data) => ({ data })),
       supabase.from("nucleos_familiares").select("id,nome,dossie_mae").eq("case_id", caso.id).is("archived_at", null).maybeSingle(),
       supabase.from("third_party_expenses").select("*").eq("case_id", caso.id).is("archived_at", null),
       supabase

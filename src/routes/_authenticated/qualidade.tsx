@@ -7,13 +7,13 @@ import { EIXOS_RADAR_CANONICOS, garantirEixosCanonicos } from "@/lib/radar-eixos
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
     meta: [
-      { title: "Qualidade e inconsistências — Clube Ancestral" },
+      { title: "Radar Interno — Clube Ancestral" },
       {
         name: "description",
         content:
           "Checklists por fase, inconsistências por severidade, relatório operacional semanal e exportação CSV auditada.",
       },
-      { property: "og:title", content: "Qualidade e inconsistências — Clube Ancestral" },
+      { property: "og:title", content: "Radar Interno — Clube Ancestral" },
       {
         property: "og:description",
         content: "Controles de qualidade e relatórios internos por organização.",
@@ -30,7 +30,7 @@ function QualidadePage() {
   return (
     <SaasShell
       titulo="Radar Interno"
-      descricao="Antes chamado Qualidade e fechamento. Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
+      descricao="Checklists, inconsistências por severidade, relatório semanal e exportação CSV registrada em auditoria."
     >
       <EixosCanonicosInternos />
       {/*
@@ -41,11 +41,12 @@ function QualidadePage() {
         hábito de olhar aqui.
       */}
       <p className="mb-4 rounded-lg border border-navy/10 bg-cream/50 px-4 py-3 text-sm text-navy/70">
-        A matriz de prioridades (Elegibilidade × Urgência) agora mora em{" "}
+        A matriz de prioridades (Elegibilidade × Urgência — visão macro, todos os casos) agora mora em{" "}
         <Link to="/casos" className="font-medium text-navy underline">
           Casos 360
         </Link>
-        , junto dos casos que ela posiciona.
+        , junto dos casos que ela posiciona. O Radar Individual de um caso (visão micro) fica na
+        aba "Indicadores" da ficha do próprio caso.
       </p>
       <PainelQualidade />
     </SaasShell>

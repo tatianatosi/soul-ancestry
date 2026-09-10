@@ -8,7 +8,7 @@ export const DECISAO_ANA_CANONICA = {
   caseId: "a11a0000-0000-4000-8000-000000000002",
   codigoCanonico: "CA-CID-AT-FAM-2026-001",
   nomeOperacional: "Projeto familiar — Ana Luiza",
-  classificacao: "Piloto real",
+  classificacao: "Primeira cliente",
   referenciaLegada: "CA-AUT-ANALUIZA-FAM-2026-001",
   /** Outros identificadores históricos preservados no mecanismo canônico de aliases. */
   outrasReferenciasLegadas: ["CA-2026-ANA-001", "CA-CID-AT-2026-002"],
