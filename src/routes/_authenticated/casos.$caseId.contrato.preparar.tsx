@@ -113,6 +113,18 @@ function Pagina() {
   const chave = ["contrato-preparar", caseId];
   const invalidar = () => qc.invalidateQueries({ queryKey: chave });
 
+  const lerPerfilPersistido = useServerFn(lerPerfilInstitucionalPersistido);
+  const qp = useQuery({ queryKey: ["perfil-institucional-persistido"], queryFn: () => lerPerfilPersistido(), retry: false });
+  /**
+   * Fonte canônica do status do perfil institucional: o registro persistido em
+   * `institutional_profiles` (decisão da proprietária, 02/09/2026 — CA Regra
+   * Contratada). Sem registro ainda, cai no valor fixo de código (comportamento
+   * inalterado até a organização ter uma versão institucional registrada).
+   */
+  const perfilStatusPersistido = qp.data?.persistido
+    ? (qp.data.payload.status as EstadoVigenciaContratoBase)
+    : undefined;
+
   const abrir = useServerFn(abrirPreparacaoContrato);
   const importar = useServerFn(preencherDeOrigens);
   const gerar = useServerFn(gerarPrevia);
@@ -338,7 +350,7 @@ function Pagina() {
     valores: listaOpcional(d.valores) as any[],
   });
   const anexosGovernados = anexosIaV(entradaAnexos);
-  const perfilInstitucional = perfilInstitucionalRenderizado();
+  const perfilInstitucional = perfilInstitucionalRenderizado(perfilStatusPersistido);
   const gatesContratuais = gatesBloqueados({
     anexos: anexosGovernados,
     modelo: "MODELO-ESTUDO",
@@ -372,6 +384,7 @@ function Pagina() {
     foroConfigurado: contratoBaseAssinavel(),
     metodoAssinaturaConfigurado: Boolean(listaOpcional<any>(d.valores).find((v) => v.campo === "forma_assinatura")?.valor),
     revisaoJuridicaAprovada: Boolean(finalAprovada),
+    perfilStatus: perfilStatusPersistido,
   });
   const blocosCaso = blocosRenderizados(anexosGovernados);
   const linhasInstancia = conferirInstancias(
