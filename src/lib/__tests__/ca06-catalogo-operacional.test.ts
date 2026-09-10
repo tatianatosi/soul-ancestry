@@ -54,11 +54,11 @@ describe("CA-06 — Catálogo Operacional 30", () => {
     }
   });
 
-  it("mantém as 6 decisões bloqueadoras e a rota em Governança, fora de Contratos", () => {
+  it("mantém as 6 decisões bloqueadoras e tira o Catálogo 30 do Desk", () => {
     expect(DECISOES_BLOQUEADORAS).toHaveLength(6);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca");
     const rotasGov = gov?.sub.filter((s) => "to" in s).map((s) => (s as { to: string }).to);
-    expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
+    expect(rotasGov).not.toContain("/governanca/catalogo-operacional-30");
     const contratos = GRUPOS_DESK.find((g) => g.id === "contratos");
     const rotas = contratos?.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).not.toContain("/governanca/catalogo-operacional-30");

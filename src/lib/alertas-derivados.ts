@@ -300,8 +300,8 @@ export function derivarAlertas(entrada: EntradaAlertas): AlertaDerivado[] {
       criticidade: "alta",
       titulo: `Divergência de catálogo: ${d.sku ?? d.id}`,
       detalhe: d.descricao ?? "Fontes canônicas de preço/SKU divergentes.",
-      origem: { entidade: "sku_catalog", id: d.id, destino: `/divergencias-catalogo?item=${d.id}` },
-      encerraQuando: "Conciliar as fontes na tela de conciliação de catálogo.",
+      origem: { entidade: "sku_catalog", id: d.id, destino: `/catalogo` },
+      encerraQuando: "Abrir o catálogo homologado e tratar a divergência no registro canônico.",
     });
   }
 

@@ -4,7 +4,7 @@
 **Tipo:** de-para canônico de navegação, layout e domínio, com cotejo factual das fontes atuais.  
 **Branch lida:** `cursor/desk-produto-mockup-17-5d7b` após o cockpit de 6 grupos e a correção CA-04.  
 
-**Correção da Proprietária (10/09, após o primeiro de-para):** CA-04 CRM Mestre **não** é legado de Governança. É o mapa de regras do **mesmo sistema** do Painel de Calls. O Dicionário Calls → CRM **não** fica como consulta arquivada: avalia o lead canônico em `/calls`. Planilha Mestre, Top 30 e Catálogo 30 continuam arquivo. Sem tabela nova, sem segunda ficha, sem Planilha como preço.
+**Correção da Proprietária (10/09, após o primeiro de-para):** CA-04 CRM Mestre **não** é legado de Governança. É o mapa de regras do **mesmo sistema** do Painel de Calls. O Dicionário Calls → CRM **não** fica como consulta arquivada: avalia o lead canônico em `/calls`. Planilha Mestre, Top 30, Catálogo 30, conciliação e homologação de SKU legado **saíram do Desk** — arquivo só no GitHub (`archive/github/2026-09-10-legado-catalogo-desk/`). Sem grupo Legado no menu. Sem tabela nova, sem segunda ficha, sem Planilha como preço.
 
 **Fontes visuais (ordem de autoridade):**
 
@@ -199,7 +199,7 @@ Nível 4 — evidência, auditoria, dicionário, DEMO
 | **Pessoas & Casos** | Carteira + saúde (matriz em `/qualidade`) | Checklist, exceções, cadência | Caso 360, núcleo, pessoa, App como pessoa, Radar de caso (proposta) | Papéis de portal |
 | **Inteligência & Pesquisa** | Biblioteca + bases + trilhas | Pendências de pesquisa / evidência | Dossiê, árvore interna, Validação Jurídica, assistente | Dicionários de termo (não Top 30) |
 | **Formalização & Financeiro** | Contratos + catálogo homologado + financeiro | OS, divergências, pendência de cobrança | Preparar contrato do caso; matrizes individual/casal/familiar | Preço/cobertura — sem Planilha como decisão |
-| **Governança & Administração** | Config, equipe, métricas | — | Integrações, importações | Catálogo 30, DEMO, arquivo — **não** o CA-04 |
+| **Governança & Administração** | Config, equipe, métricas | — | Integrações, importações | DEMO e administração — **não** o CA-04; Catálogo 30 só no GitHub |
 
 ### 3.2 App Cliente (não é grupo do Desk)
 

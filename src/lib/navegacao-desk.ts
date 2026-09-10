@@ -6,8 +6,8 @@
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
  * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
- * junto do Painel de Calls. Planilha Mestre, Top 30 e Catálogo 30 ficam só
- * em Governança (legado). URLs não mudam. Nenhuma rota operacional some.
+ * junto do Painel de Calls. Planilha Mestre, conciliação, Catálogo 30 e
+ * homologação de SKU legado saíram do Desk — arquivo só no GitHub.
  */
 
 export type ItemNav =
@@ -153,19 +153,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
       { grupo: "Catálogo e financeiro" },
       { to: "/catalogo", label: "Catálogo homologado" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
   },
   {
     id: "governanca",
     to: "/configuracoes",
     label: "Governança & Administração",
-    descricao: "Papéis, legado arquivado, integrações, DEMO e o que não decide o dia.",
+    descricao: "Papéis, integrações, DEMO e o que não decide o dia.",
     icone: "governanca",
     agrupador: true,
     sub: [
@@ -176,8 +171,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { grupo: "Legado (arquivo)" },
-      { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
     ],
   },
 ] as const;
@@ -253,10 +246,6 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/privacidade",
   "/contratos",
   "/ordens-servico",
-  "/escopo-origem",
-  "/conciliacao-catalogo",
-  "/divergencias-catalogo",
-  "/homologacao-skus",
   "/contrato-parametros",
   "/financeiro",
   "/governanca/contrato-base",
@@ -275,6 +264,20 @@ export const ROTAS_PRESERVADAS: readonly string[] = [
   "/atendimento",
   "/equipe",
 ] as const;
+
+/**
+ * Superfícies de Planilha Mestre, conciliação e SKU legado.
+ * Saíram do Desk (menu e conta). Cópia em
+ * archive/github/2026-09-10-legado-catalogo-desk/. Rotas em src/ permanecem
+ * para URL direta e recuperação — não apagar tabela nem arquivo.
+ */
+export const ROTAS_ARQUIVO_GITHUB: readonly string[] = [
+  "/governanca/catalogo-operacional-30",
+  "/conciliacao-catalogo",
+  "/divergencias-catalogo",
+  "/homologacao-skus",
+  "/escopo-origem",
+];
 
 /** Todas as rotas com link direto no menu principal ou no menu da conta. */
 export function rotasDoMenu(): string[] {
