@@ -18,6 +18,7 @@ export const GRUPOS: { chave: string; titulo: string }[] = [
 ];
 
 export const ORIGENS_PARAM = [
+  "perfil_institucional",
   "planejador",
   "crm",
   "proposta",
@@ -30,8 +31,13 @@ export const ORIGENS_PARAM = [
 ] as const;
 export type OrigemParam = (typeof ORIGENS_PARAM)[number];
 
-/** Ordem de confiança: Planejador homologado acima de qualquer outra fonte. */
+/**
+ * Ordem de confiança: perfil institucional (identidade da própria contratada,
+ * a mesma em todo caso, nunca varia) acima até do Planejador homologado
+ * (que é específico do caso).
+ */
 const CONFIANCA: Record<string, number> = {
+  perfil_institucional: 7,
   planejador: 6,
   documento: 5,
   crm: 4,

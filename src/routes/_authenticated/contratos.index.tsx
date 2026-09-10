@@ -5,14 +5,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 
-import { SaasShell, EstadoVazio, useSaas } from "@/components/saas/shell";
+import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { FilaRevisaoJuridica } from "@/components/contratos/fila-revisao-juridica";
 import { criarInstrumento, listarContratos, painelContratual } from "@/lib/contratos.functions";
 import {
+  ROTULO_GATE_FINANCEIRO,
+  ROTULO_GATE_PESQUISA,
   ROTULO_STATUS_CONTRATO,
   ROTULO_TIPO_INSTRUMENTO,
   Selo,
+  tomGateFinanceiro,
+  tomGatePesquisa,
 } from "@/components/contratos/rotulos";
+import { INVENTARIO_DATA, ROTULO_DOMINIO, itensPorDominio } from "@/lib/inventario-patrimonial";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
   head: () => ({
@@ -34,7 +41,14 @@ export const Route = createFileRoute("/_authenticated/contratos/")({
 });
 
 function ContratosPage() {
-  const { papeis } = useSaas();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "corrigir_os_anexos_previa" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const navigate = useNavigate();
   const listar = useServerFn(listarContratos);
   const painel = useServerFn(painelContratual);
@@ -53,7 +67,7 @@ function ContratosPage() {
   const qPainel = useQuery({ queryKey: ["contratos-painel"], queryFn: () => painel({}) });
 
   const bases = (qLista.data?.contratos ?? []).filter((c: any) => c.contract_type === "contract_base");
-  const podeCriar = papeis.some((p) => ["admin", "operacoes", "comercial", "financeiro"].includes(p));
+  const basesIndisponiveis = !qLista.isLoading && (Boolean(qLista.error) || qLista.data === undefined);
 
   const mCriar = useMutation({
     mutationFn: (dados: any) => criar({ data: dados }),
@@ -66,16 +80,35 @@ function ContratosPage() {
       titulo="Contratos"
       descricao="Instrumentos de trabalho interno. Nada aqui é enviado, cobrado ou assinado automaticamente."
       acoes={
-        podeCriar ? (
+        (
           <button
             onClick={() => setNovo((v) => !v)}
             className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream hover:bg-navy/90"
           >
             Novo instrumento
           </button>
-        ) : null
+        )
       }
     >
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
+      {qPainel.isError ? (
+        <p className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+          Não foi possível carregar os indicadores abaixo — os números não são zero, a leitura falhou.
+          <button
+            type="button"
+            onClick={() => void qPainel.refetch()}
+            className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+          >
+            Tentar novamente
+          </button>
+        </p>
+      ) : null}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Cartao titulo="Bloqueios abertos" valor={qPainel.data?.bloqueios.length ?? 0} />
         <Cartao titulo="Aguardando revisão humana" valor={qPainel.data?.revisaoPendente.length ?? 0} />
@@ -89,11 +122,52 @@ function ContratosPage() {
         </p>
       ) : null}
 
+      <section className="mb-6 rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-serif text-lg text-navy">Contrato de Estudo Genealógico v2 e anexos</h2>
+          <span className="text-[11px] text-navy/50">Inventário patrimonial · leitura de {INVENTARIO_DATA}</span>
+        </div>
+        <p className="mb-3 text-xs text-navy/60">
+          Ativos preservados: versão, situação e onde cada um realmente está. Somente leitura — nenhum texto
+          jurídico é reescrito ou substituído aqui.{" "}
+          <Link to="/governanca/contrato-base" className="text-terracotta underline">
+            Ver texto do contrato-base
+          </Link>
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px] text-left text-xs">
+            <thead className="text-[10px] uppercase tracking-wide text-navy/45">
+              <tr>
+                <th className="py-1.5 pr-3">Ativo</th>
+                <th className="py-1.5 pr-3">Domínio</th>
+                <th className="py-1.5 pr-3">Versão</th>
+                <th className="py-1.5 pr-3">Situação</th>
+                <th className="py-1.5 pr-3">Fonte de verdade atual</th>
+                <th className="py-1.5">Ação necessária</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-navy/10">
+              {[...itensPorDominio("contrato_base"), ...itensPorDominio("anexos")].map((i) => (
+                <tr key={i.id} className="align-top">
+                  <td className="py-1.5 pr-3 font-medium text-navy">{i.nomeCanonico}</td>
+                  <td className="py-1.5 pr-3 text-navy/60">{ROTULO_DOMINIO[i.dominio]}</td>
+                  <td className="py-1.5 pr-3">{i.versao}</td>
+                  <td className="py-1.5 pr-3">{i.status}</td>
+                  <td className="py-1.5 pr-3 font-mono text-[11px] text-navy/60">{i.fonteDeVerdadeAtual}</td>
+                  <td className="py-1.5 text-navy/60">{i.acaoNecessaria ?? "Nenhuma — manter como leitura."}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <FilaRevisaoJuridica />
 
       {novo ? (
         <FormNovo
           bases={bases}
+          basesIndisponiveis={basesIndisponiveis}
           erro={erro}
           onCancelar={() => setNovo(false)}
           onCriar={(dados) => mCriar.mutate(dados)}
@@ -126,11 +200,15 @@ function ContratosPage() {
         </select>
       </div>
 
-      {qLista.isLoading ? (
-        <EstadoVazio mensagem="Carregando instrumentos…" />
-      ) : !qLista.data?.contratos.length ? (
-        <EstadoVazio mensagem="Nenhum instrumento contratual nesta organização ainda." />
-      ) : (
+      <EstadoDados
+        carregando={qLista.isLoading}
+        erro={qLista.error}
+        dados={qLista.data?.contratos}
+        aoTentarNovamente={() => void qLista.refetch()}
+        recurso="os instrumentos contratuais"
+        vazio="Nenhum instrumento contratual nesta organização ainda."
+      >
+        {(contratos) => (
         <div className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-navy/5 text-left text-xs uppercase tracking-wide text-navy/60">
@@ -144,7 +222,7 @@ function ContratosPage() {
               </tr>
             </thead>
             <tbody>
-              {qLista.data.contratos.map((c: any) => (
+              {contratos.map((c: any) => (
                 <tr key={c.id} className="border-t border-navy/10 hover:bg-cream/60">
                   <td className="px-3 py-2 font-mono text-xs">{c.contract_number}</td>
                   <td className="px-3 py-2">
@@ -156,14 +234,25 @@ function ContratosPage() {
                   <td className="px-3 py-2">
                     <Selo texto={ROTULO_STATUS_CONTRATO[c.status] ?? c.status} />
                   </td>
-                  <td className="px-3 py-2 text-navy/70">{c.financial_gate_status}</td>
-                  <td className="px-3 py-2 text-navy/70">{c.research_gate_status}</td>
+                  <td className="px-3 py-2">
+                    <Selo
+                      texto={ROTULO_GATE_FINANCEIRO[c.financial_gate_status] ?? c.financial_gate_status}
+                      tom={tomGateFinanceiro(c.financial_gate_status)}
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <Selo
+                      texto={ROTULO_GATE_PESQUISA[c.research_gate_status] ?? c.research_gate_status}
+                      tom={tomGatePesquisa(c.research_gate_status)}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      )}
+        )}
+      </EstadoDados>
       <PainelCatalogo />
       <PainelTop30 />
     </SaasShell>
@@ -181,12 +270,14 @@ function Cartao({ titulo, valor }: { titulo: string; valor: number }) {
 
 function FormNovo({
   bases,
+  basesIndisponiveis,
   erro,
   onCriar,
   onCancelar,
   enviando,
 }: {
   bases: any[];
+  basesIndisponiveis: boolean;
   erro: string | null;
   onCriar: (dados: any) => void;
   onCancelar: () => void;
@@ -251,6 +342,12 @@ function FormNovo({
                 </option>
               ))}
             </select>
+            {basesIndisponiveis ? (
+              <span role="alert" className="mt-1 block text-xs text-terracotta">
+                A lista de contratos-base não pôde ser carregada. Está vazia por falha de leitura, não por
+                ausência de instrumentos.
+              </span>
+            ) : null}
           </label>
           <label className="text-sm">
             Referência do contrato-base

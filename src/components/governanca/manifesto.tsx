@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Archive, BookOpen, History, Plus, Save, Scale } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DOMINIOS,
@@ -13,7 +14,6 @@ import {
   TIPOS_CONHECIMENTO,
   TOM_STATUS_RECUPERACAO,
   pendenciasDecisao,
-  podeEscreverBiblioteca,
   resumirManifesto,
   type StatusRecuperacao,
 } from "@/lib/governanca.server";
@@ -25,6 +25,8 @@ import {
   salvarDecisao,
   salvarItemConhecimento,
 } from "@/lib/governanca.functions";
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -44,7 +46,10 @@ function Selo({ status }: { status: string }) {
 export function ManifestoResgate() {
   const carregar = useServerFn(listarBiblioteca);
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ["biblioteca"], queryFn: () => carregar({}) });
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["biblioteca"],
+    queryFn: () => carregar({}),
+  });
 
   const [aba, setAba] = useState<Aba>("manifesto");
   const [fStatus, setFStatus] = useState("");
@@ -53,34 +58,56 @@ export function ManifestoResgate() {
   const [somenteLacuna, setSomenteLacuna] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  const podeEscrever = podeEscreverBiblioteca(data?.papel as string | undefined);
-  const ehAdmin = data?.papel === "admin";
-
   const invalidar = () => qc.invalidateQueries({ queryKey: ["biblioteca"] });
   const falhar = (e: unknown) => setErro(e instanceof Error ? e.message : "Não foi possível concluir.");
+  const confirmar = (mensagem: string) => () => {
+    toast.success(mensagem);
+    invalidar();
+  };
 
-  const mArtefato = useMutation({ mutationFn: useServerFn(salvarArtefato), onSuccess: invalidar, onError: falhar });
-  const mArquivar = useMutation({ mutationFn: useServerFn(arquivarArtefato), onSuccess: invalidar, onError: falhar });
-  const mItem = useMutation({ mutationFn: useServerFn(salvarItemConhecimento), onSuccess: invalidar, onError: falhar });
-  const mDecisao = useMutation({ mutationFn: useServerFn(salvarDecisao), onSuccess: invalidar, onError: falhar });
-  const mArquivarDecisao = useMutation({ mutationFn: useServerFn(arquivarDecisao), onSuccess: invalidar, onError: falhar });
+  const mArtefato = useMutation({
+    mutationFn: useServerFn(salvarArtefato),
+    onSuccess: confirmar("Artefato salvo."),
+    onError: falhar,
+  });
+  const mArquivar = useMutation({
+    mutationFn: useServerFn(arquivarArtefato),
+    onSuccess: confirmar("Artefato arquivado."),
+    onError: falhar,
+  });
+  const mItem = useMutation({
+    mutationFn: useServerFn(salvarItemConhecimento),
+    onSuccess: confirmar("Item de conhecimento salvo."),
+    onError: falhar,
+  });
+  const mDecisao = useMutation({
+    mutationFn: useServerFn(salvarDecisao),
+    onSuccess: confirmar("Decisão salva."),
+    onError: falhar,
+  });
+  const mArquivarDecisao = useMutation({
+    mutationFn: useServerFn(arquivarDecisao),
+    onSuccess: confirmar("Decisão arquivada."),
+    onError: falhar,
+  });
 
-  const artefatos: any[] = data?.artefatos ?? [];
-  const ativos = artefatos.filter((a) => !a.archived_at);
+  const artefatos = data?.artefatos as any[] | undefined;
+  const ativos = artefatos ? artefatos.filter((a) => !a.archived_at) : [];
   const resumo = useMemo(() => resumirManifesto(ativos), [artefatos]);
 
   const responsaveis = useMemo(
-    () => Array.from(new Set(artefatos.map((a) => a.responsavel_nome).filter(Boolean))) as string[],
+    () => Array.from(new Set((artefatos ?? []).map((a) => a.responsavel_nome).filter(Boolean))) as string[],
     [artefatos],
   );
 
-  const filtrados = ativos.filter((a) => {
-    if (fStatus && a.status_recuperacao !== fStatus) return false;
-    if (fDominio && a.dominio !== fDominio) return false;
-    if (fResponsavel && (a.responsavel_nome ?? "") !== fResponsavel) return false;
-    if (somenteLacuna && !a.lacuna?.trim()) return false;
-    return true;
-  });
+  const filtrar = (lista: any[]) =>
+    lista.filter((a) => {
+      if (fStatus && a.status_recuperacao !== fStatus) return false;
+      if (fDominio && a.dominio !== fDominio) return false;
+      if (fResponsavel && (a.responsavel_nome ?? "") !== fResponsavel) return false;
+      if (somenteLacuna && !a.lacuna?.trim()) return false;
+      return true;
+    });
 
   return (
     <div className="space-y-6">
@@ -143,81 +170,115 @@ export function ManifestoResgate() {
             </label>
           </div>
 
-          <ul className="space-y-3">
-            {filtrados.map((a) => (
-              <LinhaArtefato
-                key={a.id}
-                artefato={a}
-                candidatos={ativos.filter((o) => o.id !== a.id)}
-                podeEscrever={podeEscrever}
-                ehAdmin={ehAdmin}
-                onSalvar={(campos) => mArtefato.mutate({ data: { id: a.id, ...campos } as any })}
-                onArquivar={(motivo, sucessor) => mArquivar.mutate({ data: { id: a.id, motivo, sucessor_id: sucessor } })}
-              />
-            ))}
-            {!filtrados.length && !isLoading ? (
-              <li className="rounded-xl border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
-                Nenhum artefato com esses filtros.
-              </li>
-            ) : null}
-          </ul>
+          <EstadoDados
+            carregando={isLoading}
+            erro={error}
+            dados={artefatos}
+            aoTentarNovamente={() => void refetch()}
+            recurso="os artefatos do manifesto"
+            vazio="Nenhum artefato registrado ainda."
+          >
+            {(todos) => {
+              const filtrados = filtrar(todos.filter((a) => !a.archived_at));
+              const arquivados = todos.filter((a) => a.archived_at);
+              return (
+                <>
+                  <ul className="space-y-3">
+                    {filtrados.map((a) => (
+                      <LinhaArtefato
+                        key={a.id}
+                        artefato={a}
+                        candidatos={ativos.filter((o) => o.id !== a.id)}
+                        onSalvar={(campos) => mArtefato.mutate({ data: { id: a.id, ...campos } as any })}
+                        onArquivar={(motivo, sucessor) => mArquivar.mutate({ data: { id: a.id, motivo, sucessor_id: sucessor } })}
+                      />
+                    ))}
+                    {!filtrados.length ? (
+                      <li className="rounded-xl border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
+                        Nenhum artefato com esses filtros.
+                      </li>
+                    ) : null}
+                  </ul>
 
-          {podeEscrever ? (
-            <NovoArtefato onCriar={(campos) => mArtefato.mutate({ data: campos as any })} />
-          ) : null}
+                  {arquivados.length ? (
+                    <details className="mt-3 rounded-xl border border-navy/10 bg-white p-3">
+                      <summary className="cursor-pointer text-sm font-medium text-navy">Artefatos arquivados</summary>
+                      <ul className="mt-2 space-y-1 text-sm text-navy/70">
+                        {arquivados.map((a) => (
+                          <li key={a.id}>
+                            {a.nome_original} — motivo: {a.archive_motivo ?? "—"}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  ) : null}
+                </>
+              );
+            }}
+          </EstadoDados>
 
-          {artefatos.some((a) => a.archived_at) ? (
-            <details className="rounded-xl border border-navy/10 bg-white p-3">
-              <summary className="cursor-pointer text-sm font-medium text-navy">Artefatos arquivados</summary>
-              <ul className="mt-2 space-y-1 text-sm text-navy/70">
-                {artefatos.filter((a) => a.archived_at).map((a) => (
-                  <li key={a.id}>
-                    {a.nome_original} — motivo: {a.archive_motivo ?? "—"}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          ) : null}
+          <NovoArtefato onCriar={(campos) => mArtefato.mutate({ data: campos as any })} />
         </section>
       ) : null}
 
       {aba === "biblioteca" ? (
-        <Biblioteca
-          itens={data?.conhecimento ?? []}
-          podeEscrever={podeEscrever}
-          onSalvar={(campos) => mItem.mutate({ data: campos as any })}
-        />
+        <EstadoDados
+          carregando={isLoading}
+          erro={error}
+          dados={data?.conhecimento as any[] | undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="a biblioteca de conhecimento"
+          vazio="Nenhum item de conhecimento registrado ainda."
+        >
+          {(itens) => <Biblioteca itens={itens} onSalvar={(campos) => mItem.mutate({ data: campos as any })} />}
+        </EstadoDados>
       ) : null}
 
       {aba === "decisoes" ? (
-        <Decisoes
-          decisoes={data?.decisoes ?? []}
-          podeEscrever={podeEscrever}
-          onSalvar={(campos) => mDecisao.mutate({ data: campos as any })}
-          onArquivar={(id, motivo) => mArquivarDecisao.mutate({ data: { id, motivo } })}
-        />
+        <EstadoDados
+          carregando={isLoading}
+          erro={error}
+          dados={data?.decisoes as any[] | undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="as decisões de governança"
+          vazio="Nenhuma decisão registrada."
+        >
+          {(decisoes) => (
+            <Decisoes
+              decisoes={decisoes}
+              onSalvar={(campos) => mDecisao.mutate({ data: campos as any })}
+              onArquivar={(id, motivo) => mArquivarDecisao.mutate({ data: { id, motivo } })}
+            />
+          )}
+        </EstadoDados>
       ) : null}
 
       {aba === "historico" ? (
-        <ul className="space-y-2">
-          {(data?.historico ?? []).map((h: any) => (
-            <li key={h.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <strong className="text-navy">{h.titulo ?? h.entidade_id}</strong>
-                <span className="text-xs text-navy/50">
-                  v{h.versao_anterior} → v{h.versao_nova} · {new Date(h.created_at).toLocaleString("pt-BR")}
-                </span>
-              </div>
-              <p className="mt-1 text-navy/70">{h.resumo}</p>
-              <p className="text-xs text-navy/40">{h.entidade}</p>
-            </li>
-          ))}
-          {!(data?.historico ?? []).length && !isLoading ? (
-            <li className="rounded-xl border border-dashed border-navy/20 p-6 text-center text-sm text-navy/60">
-              Ainda não há alterações registradas.
-            </li>
-          ) : null}
-        </ul>
+        <EstadoDados
+          carregando={isLoading}
+          erro={error}
+          dados={data?.historico as any[] | undefined}
+          aoTentarNovamente={() => void refetch()}
+          recurso="o histórico de versões"
+          vazio="Ainda não há alterações registradas."
+        >
+          {(historico) => (
+            <ul className="space-y-2">
+              {historico.map((h: any) => (
+                <li key={h.id} className="rounded-xl border border-navy/10 bg-white p-3 text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <strong className="text-navy">{h.titulo ?? h.entidade_id}</strong>
+                    <span className="text-xs text-navy/50">
+                      v{h.versao_anterior} → v{h.versao_nova} · {new Date(h.created_at).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-navy/70">{h.resumo}</p>
+                  <p className="text-xs text-navy/40">{h.entidade}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </EstadoDados>
       ) : null}
     </div>
   );
@@ -235,15 +296,11 @@ function Cartao({ rotulo, valor, alerta }: { rotulo: string; valor: number; aler
 function LinhaArtefato({
   artefato,
   candidatos,
-  podeEscrever,
-  ehAdmin,
   onSalvar,
   onArquivar,
 }: {
   artefato: any;
   candidatos: any[];
-  podeEscrever: boolean;
-  ehAdmin: boolean;
   onSalvar: (campos: Record<string, unknown>) => void;
   onArquivar: (motivo: string, sucessor: string | null) => void;
 }) {
@@ -253,7 +310,6 @@ function LinhaArtefato({
   const [sucessor, setSucessor] = useState("");
 
   const naoLocalizado = artefato.status_recuperacao === "NAO_LOCALIZADO";
-  const bloqueioArquivo = naoLocalizado && !ehAdmin;
 
   return (
     <li className={`rounded-xl border bg-white p-4 ${naoLocalizado ? "border-red-600/30" : "border-navy/10"}`}>
@@ -268,11 +324,9 @@ function LinhaArtefato({
           {artefato.lacuna ? <p className="mt-1 text-sm text-amber-800">Lacuna: {artefato.lacuna}</p> : null}
           <p className="mt-1 text-xs text-navy/50">Próxima ação: {artefato.proxima_acao ?? "a definir"}</p>
         </div>
-        {podeEscrever ? (
-          <button onClick={() => setAberto((v) => !v)} className="rounded-lg border border-navy/15 px-3 py-1.5 text-sm text-navy">
-            {aberto ? "Fechar" : "Editar"}
-          </button>
-        ) : null}
+        <button onClick={() => setAberto((v) => !v)} className="rounded-lg border border-navy/15 px-3 py-1.5 text-sm text-navy">
+          {aberto ? "Fechar" : "Editar"}
+        </button>
       </div>
 
       {aberto ? (
@@ -299,8 +353,11 @@ function LinhaArtefato({
             </label>
             <Campo rotulo="Resumo da alteração" valor={form.change_resumo ?? ""} onChange={(v) => setForm({ ...form, change_resumo: v })} />
           </div>
-          <button
-            onClick={() => onSalvar({
+          <AcaoOperacional
+            rotulo="Salvar nova versão"
+            capacidade="editar_rascunho"
+            efeito="Grava uma nova versão deste artefato no manifesto. O histórico anterior é preservado."
+            onConfirmar={() => onSalvar({
               nome_original: form.nome_original,
               localizacao: form.localizacao,
               origem: form.origem,
@@ -316,10 +373,11 @@ function LinhaArtefato({
               nivel_acesso: form.nivel_acesso,
               change_resumo: form.change_resumo,
             })}
-            className="inline-flex items-center gap-2 rounded-lg bg-navy px-3 py-2 text-sm text-cream"
           >
-            <Save className="h-4 w-4" /> Salvar nova versão
-          </button>
+            <span className="inline-flex items-center gap-2">
+              <Save className="h-4 w-4" /> Salvar nova versão
+            </span>
+          </AcaoOperacional>
 
           <div className="rounded-lg border border-navy/10 bg-cream/60 p-3">
             <p className="text-xs font-medium uppercase tracking-wide text-navy/60">Arquivar (sem exclusão)</p>
@@ -332,16 +390,30 @@ function LinhaArtefato({
             </div>
             {naoLocalizado ? (
               <p className="mt-2 text-xs text-red-800">
-                Item não localizado permanece visível: só um admin pode arquivá-lo.
+                Item não localizado permanece visível mesmo depois de arquivado.
               </p>
             ) : null}
-            <button
-              disabled={bloqueioArquivo}
-              onClick={() => onArquivar(motivo, sucessor || null)}
-              className="mt-2 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-sm text-navy disabled:opacity-40"
-            >
-              <Archive className="h-4 w-4" /> Arquivar artefato
-            </button>
+            <div className="mt-2">
+              <AcaoOperacional
+                variant="outline"
+                rotulo="Arquivar artefato"
+                capacidade="editar_rascunho"
+                pendenciaGate={
+                  [
+                    naoLocalizado ? "Artefato ainda não localizado" : null,
+                    motivo.trim() ? null : "Motivo do arquivamento não preenchido",
+                  ]
+                    .filter(Boolean)
+                    .join("; ") || null
+                }
+                efeito="Arquiva o artefato sem exclusão: o registro continua consultável no histórico."
+                onConfirmar={(justificativa) => onArquivar(motivo.trim() || justificativa, sucessor || null)}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Archive className="h-4 w-4" /> Arquivar artefato
+                </span>
+              </AcaoOperacional>
+            </div>
           </div>
         </div>
       ) : null}
@@ -387,11 +459,9 @@ function NovoArtefato({ onCriar }: { onCriar: (campos: Record<string, unknown>) 
 
 function Biblioteca({
   itens,
-  podeEscrever,
   onSalvar,
 }: {
   itens: any[];
-  podeEscrever: boolean;
   onSalvar: (campos: Record<string, unknown>) => void;
 }) {
   const [titulo, setTitulo] = useState("");
@@ -413,25 +483,26 @@ function Biblioteca({
             <p className="text-xs text-navy/50">
               Fonte: {i.fonte ?? "—"} · Proprietário: {i.owner_nome ?? "—"} · Domínio: {i.dominio}
             </p>
-            {podeEscrever ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(["em_revisao", "publicado", "obsoleto"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => onSalvar({ id: i.id, titulo: i.titulo, tipo: i.tipo, dominio: i.dominio, status: s, resumo: i.resumo, fonte: i.fonte, change_resumo: `Situação alterada para ${STATUS_CONHECIMENTO[s]}.` })}
-                    className="rounded-full border border-navy/15 px-3 py-1 text-xs text-navy"
-                  >
-                    {STATUS_CONHECIMENTO[s]}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["em_revisao", "publicado", "obsoleto"] as const).map((s) => (
+                <AcaoOperacional
+                  key={s}
+                  size="sm"
+                  variant="outline"
+                  rotulo={`Marcar como ${STATUS_CONHECIMENTO[s]}`}
+                  capacidade="editar_rascunho"
+                  efeito="Altera a situação deste item de conhecimento e gera nova versão."
+                  onConfirmar={() => onSalvar({ id: i.id, titulo: i.titulo, tipo: i.tipo, dominio: i.dominio, status: s, resumo: i.resumo, fonte: i.fonte, change_resumo: `Situação alterada para ${STATUS_CONHECIMENTO[s]}.` })}
+                >
+                  {STATUS_CONHECIMENTO[s]}
+                </AcaoOperacional>
+              ))}
+            </div>
           </li>
         ))}
       </ul>
 
-      {podeEscrever ? (
-        <div className="rounded-xl border border-dashed border-navy/20 bg-white p-3">
+      <div className="rounded-xl border border-dashed border-navy/20 bg-white p-3">
           <div className="grid gap-2 sm:grid-cols-3">
             <input className={CAMPO} placeholder="Título do item" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
             <select className={CAMPO} value={tipo} onChange={(e) => setTipo(e.target.value)}>
@@ -445,20 +516,17 @@ function Biblioteca({
               <Plus className="h-4 w-4" /> Adicionar à biblioteca
             </button>
           </div>
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }
 
 function Decisoes({
   decisoes,
-  podeEscrever,
   onSalvar,
   onArquivar,
 }: {
   decisoes: any[];
-  podeEscrever: boolean;
   onSalvar: (campos: Record<string, unknown>) => void;
   onArquivar: (id: string, motivo: string) => void;
 }) {
@@ -496,16 +564,24 @@ function Decisoes({
               Responsável: {d.responsavel_nome ?? "equipe interna"} · Vigência: {d.vigencia_inicio ?? "—"} a {d.vigencia_fim ?? "indeterminada"}
               {d.substitui_ids?.length ? ` · substitui ${d.substitui_ids.length} item(ns)` : ""}
             </p>
-            {podeEscrever && d.status !== "arquivada" ? (
-              <button
-                onClick={() => {
-                  const motivo = window.prompt("Motivo do arquivamento da decisão:");
-                  if (motivo && motivo.trim()) onArquivar(d.id, motivo.trim());
-                }}
-                className="mt-2 inline-flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-1.5 text-xs text-navy"
-              >
-                <Archive className="h-3.5 w-3.5" /> Arquivar
-              </button>
+            {d.status !== "arquivada" ? (
+              <div className="mt-2">
+                <AcaoOperacional
+                  size="sm"
+                  variant="outline"
+                  rotulo="Arquivar decisão"
+                  capacidade="editar_rascunho"
+                  efeito="Arquiva a decisão sem exclusão: ela continua no histórico de governança."
+                  onConfirmar={(motivo) => {
+                    const texto = motivo.trim() || window.prompt("Motivo do arquivamento da decisão:")?.trim();
+                    if (texto) onArquivar(d.id, texto);
+                  }}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Archive className="h-3.5 w-3.5" /> Arquivar
+                  </span>
+                </AcaoOperacional>
+              </div>
             ) : null}
           </li>
         ))}
@@ -516,8 +592,7 @@ function Decisoes({
         ) : null}
       </ul>
 
-      {podeEscrever ? (
-        <div className="space-y-2 rounded-xl border border-dashed border-navy/20 bg-white p-3">
+      <div className="space-y-2 rounded-xl border border-dashed border-navy/20 bg-white p-3">
           <p className="text-sm font-medium text-navy">Nova decisão</p>
           <div className="grid gap-2 sm:grid-cols-2">
             <Campo rotulo="Título" valor={form.titulo} onChange={(v) => setForm({ ...form, titulo: v })} />
@@ -563,16 +638,22 @@ function Decisoes({
             >
               Salvar rascunho
             </button>
-            <button
-              disabled={!form.titulo.trim() || faltando.length > 0}
-              onClick={() => onSalvar({ ...form, status: "publicada" })}
-              className="rounded-lg bg-navy px-3 py-2 text-sm text-cream disabled:opacity-40"
-            >
-              Publicar decisão
-            </button>
+            <AcaoOperacional
+              rotulo="Publicar decisão"
+              capacidade="editar_rascunho"
+              pendenciaGate={
+                [
+                  form.titulo.trim() ? null : "título da decisão",
+                  ...faltando,
+                ]
+                  .filter(Boolean)
+                  .join("; ") || null
+              }
+              efeito="Publica a decisão de governança na versão atual. O registro anterior é preservado."
+              onConfirmar={() => onSalvar({ ...form, status: "publicada" })}
+            />
           </div>
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }

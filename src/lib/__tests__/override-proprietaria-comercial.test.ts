@@ -207,7 +207,11 @@ describe("evento de auditoria — nunca marca pagamento, nunca autoriza ação e
     const evento = montarEventoOverride(solicitacaoAnaLuiza(), "org-1");
     expect(evento.actor_user_id).toBe("user-proprietaria-1");
     expect(evento.actor_papel).toBe("admin");
-    expect(evento.categoria).toBe("override_proprietaria_comercial");
+    // 05/09/2026 — "override_proprietaria_comercial" violava o CHECK de
+    // owner_override_events.categoria (só aceita 'override_interno'/
+    // 'confirmacao_externa'); todo INSERT sempre falhou. Corrigido — ver
+    // override-proprietaria-comercial.ts.
+    expect(evento.categoria).toBe("override_interno");
     expect(evento.entidade_id).toBe(CASO_ANA_LUIZA);
     expect(evento.pendencias_assumidas).toEqual(solicitacaoAnaLuiza().gatesPendentes);
     expect(evento.motivo.length).toBeGreaterThanOrEqual(MOTIVO_MINIMO_OVERRIDE);

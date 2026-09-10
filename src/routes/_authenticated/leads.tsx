@@ -3,13 +3,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 
-import { Secao, Selecao, Texto } from "@/components/caso/campos";
+import { MultiSelecao, Secao, Selecao, Texto } from "@/components/caso/campos";
 import { DerivacaoJornada } from "@/components/crm/derivacao-jornada";
 import { HandoffLead } from "@/components/crm/handoff-lead";
 import { NovoLeadDialog } from "@/components/crm/novo-lead";
 import { TemplatesWhatsapp } from "@/components/crm/templates-whatsapp";
 
+import { AcaoOperacional } from "@/components/saas/acao-operacional";
+import { EstadoDados } from "@/components/saas/estado-dados";
 import { SaasShell, useSaas } from "@/components/saas/shell";
+import { useAutoridade } from "@/components/saas/autoridade";
 import { arquivarLeadDesk, listarLeadsDesk, salvarLeadDesk } from "@/lib/crm-desk.functions";
 import {
   AREAS_RESPONSAVEIS,
@@ -61,39 +64,7 @@ import {
 import { ROTEIRO_DISCOVERY, sinaisQualidadeLead } from "@/lib/discovery-roteiro";
 import { calcularRadar } from "@/lib/radar-elegibilidade";
 import { listarTrilhasJuridicas } from "@/lib/trilhas-juridicas.functions";
-
-function MultiSelecao({
-  label,
-  opcoes,
-  valores,
-  onChange,
-  desabilitado,
-}: {
-  label: string;
-  opcoes: Opcao[];
-  valores: string[];
-  onChange: (v: string[]) => void;
-  desabilitado?: boolean;
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-navy/60">{label}</p>
-      <div className="grid gap-1 md:grid-cols-2">
-        {opcoes.map((o) => (
-          <label key={o.valor} className="flex items-center gap-2 text-xs text-navy">
-            <input
-              type="checkbox"
-              disabled={desabilitado}
-              checked={valores.includes(o.valor)}
-              onChange={(e) => onChange(e.target.checked ? [...valores, o.valor] : valores.filter((v) => v !== o.valor))}
-            />
-            {o.rotulo}
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { formatarTelefone } from "@/lib/validacao-pessoa";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -113,17 +84,33 @@ export const Route = createFileRoute("/_authenticated/leads")({
 type LeadComPendencias = LeadDesk & { pendencias?: ErroValidacao[] };
 
 function LeadsPage() {
-  const { podeEscrever } = useSaas();
+  const autoridade = useAutoridade();
+  const { podeEscrever: podeEscreverVinculo } = useSaas();
+  // Autoridade operacional: vínculo somente leitura vira pendência declarada,
+  // nunca botão desabilitado. Só falta de papel ou de organização bloqueia.
+  const podeEscrever = !autoridade.bloqueado({ capacidade: "editar_fila_responsavel_prazo" });
+  const pendenciaVinculo = podeEscreverVinculo
+    ? null
+    : "Seu vínculo de equipe está marcado como somente leitura — a gravação segue disponível por decisão sua e é revalidada no servidor.";
   const carregar = useServerFn(listarLeadsDesk);
   const salvar = useServerFn(salvarLeadDesk);
   const arquivar = useServerFn(arquivarLeadDesk);
   const qc = useQueryClient();
 
-  const q = useQuery({ queryKey: ["leads-desk"], queryFn: () => carregar(), retry: false });
+  const [mostrarArquivados, setMostrarArquivados] = useState(false);
+  const q = useQuery({
+    queryKey: ["leads-desk", mostrarArquivados],
+    queryFn: () => carregar({ data: { incluirArquivados: mostrarArquivados } }),
+    retry: false,
+  });
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState<Record<string, unknown>>({});
   const [filtroEixo, setFiltroEixo] = useState("");
   const [filtroArea, setFiltroArea] = useState("");
+  // CA10-MARKETING-CONTEUDO-VIVO (09/09/2026): filtro de origem já existia
+  // como campo do lead, nunca como filtro da lista — Marketing agora abre
+  // esta tela para o usuário aplicar o mesmo recorte que viu no indicador.
+  const [filtroOrigem, setFiltroOrigem] = useState("");
   const [busca, setBusca] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [novoLeadAberto, setNovoLeadAberto] = useState(false);
@@ -141,6 +128,8 @@ function LeadsPage() {
   const qTrilhas = useQuery({ queryKey: ["trilhas-juridicas"], queryFn: () => carregarTrilhas(), retry: false });
   const trilhas = qTrilhas.data?.trilhas ?? [];
   const marcos = qTrilhas.data?.marcos ?? [];
+  const trilhasIndisponiveis =
+    !qTrilhas.isLoading && (Boolean(qTrilhas.error) || qTrilhas.data === undefined);
   const trilhaSelecionada = trilhas.find((t) => t.id === editado.trilha_referencia_id) ?? null;
   const opcoesTrilhas: Opcao[] = trilhas.map((t) => ({
     valor: t.id,
@@ -196,6 +185,7 @@ function LeadsPage() {
   const visiveis = leads.filter((l) => {
     if (filtroEixo && l.eixo_comercial !== filtroEixo) return false;
     if (filtroArea && l.area_responsavel !== filtroArea) return false;
+    if (filtroOrigem && l.origem !== filtroOrigem) return false;
     if (busca && !`${l.nome} ${l.codigo ?? ""} ${l.email ?? ""}`.toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   });
@@ -207,6 +197,13 @@ function LeadsPage() {
 
   return (
     <SaasShell titulo="CRM Vivo — Leads e triagem" descricao="Comercial → CRM Vivo: entrada, Discovery, contatos e conversas, proposta e handoff.">
+      {pendenciaVinculo || !podeEscrever ? (
+        <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/70">
+          Pendência registrada:{" "}
+          {pendenciaVinculo ??
+            "Contexto de acesso ainda não confirmado — a gravação é revalidada no servidor."}
+        </p>
+      ) : null}
       <NovoLeadDialog
         aberto={novoLeadAberto}
         onFechar={() => setNovoLeadAberto(false)}
@@ -224,23 +221,34 @@ function LeadsPage() {
               <Texto label="Buscar por nome, código ou e-mail" valor={busca} onChange={setBusca} />
               <Selecao label="Eixo comercial" valor={filtroEixo} opcoes={EIXO_COMERCIAL} onChange={setFiltroEixo} />
               <Selecao label="Área responsável" valor={filtroArea} opcoes={AREAS_RESPONSAVEIS} onChange={setFiltroArea} />
-              {podeEscrever ? (
-                <button
-                  type="button"
-                  className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
-                  onClick={() => {
-                    setNovoLeadAberto(true);
-                    setMsg(null);
-                  }}
-                >
-                  Novo lead
-                </button>
-              ) : null}
+              <Selecao label="Origem" valor={filtroOrigem} opcoes={ORIGENS_LEAD} onChange={setFiltroOrigem} />
+              <label className="flex items-center gap-2 text-sm text-navy/70">
+                <input type="checkbox" checked={mostrarArquivados} onChange={(e) => setMostrarArquivados(e.target.checked)} />
+                Mostrar arquivados
+              </label>
+              <button
+                type="button"
+                className="rounded-lg bg-navy px-3 py-2 text-sm text-cream"
+                onClick={() => {
+                  setNovoLeadAberto(true);
+                  setMsg(null);
+                }}
+              >
+                Novo lead
+              </button>
             </div>
           </Secao>
 
           <Secao titulo={`Leads (${visiveis.length})`} descricao="Código único gerado pelo sistema.">
-            {q.isLoading ? <p className="text-sm text-navy/50">Carregando…</p> : null}
+            <EstadoDados
+              carregando={q.isLoading}
+              erro={q.error}
+              dados={q.data as LeadComPendencias[] | undefined}
+              aoTentarNovamente={() => void q.refetch()}
+              recurso="os leads"
+              vazio="Nenhum lead cadastrado ainda."
+            >
+              {() => (
             <ul className="max-h-[520px] space-y-2 overflow-auto">
               {visiveis.map((l) => (
                 <li key={l.id}>
@@ -275,8 +283,12 @@ function LeadsPage() {
                   </button>
                 </li>
               ))}
-              {!visiveis.length && !q.isLoading ? <li className="text-sm text-navy/50">Nenhum lead nos filtros.</li> : null}
+              {!visiveis.length ? (
+                <li className="text-sm text-navy/50">Nenhum lead nos filtros.</li>
+              ) : null}
             </ul>
+              )}
+            </EstadoDados>
           </Secao>
         </div>
 
@@ -412,71 +424,67 @@ function LeadsPage() {
 
           <Secao titulo="Identificação e responsabilidade" descricao="Lead ativo exige área, responsável e próxima ação datada.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} desabilitado={!podeEscrever} />
+              <Texto label="Nome" valor={campo("nome")} onChange={set("nome")} />
               <Texto label="Código" valor={String(editado.codigo ?? "gerado ao salvar")} onChange={() => {}} desabilitado />
-              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} desabilitado={!podeEscrever} />
-              <Texto label="Telefone" valor={campo("telefone")} onChange={set("telefone")} desabilitado={!podeEscrever} />
-              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} desabilitado={!podeEscrever} />
+              <Texto label="E-mail" valor={campo("email")} onChange={set("email")} />
+              <Texto
+                label="Telefone"
+                valor={campo("telefone")}
+                onChange={(x) => set("telefone")(formatarTelefone(x))}
+              />
+              <Selecao label="Origem" valor={campo("origem")} opcoes={ORIGENS_LEAD} onChange={set("origem")} />
               <Selecao
                 label="Área responsável"
                 valor={campo("area_responsavel")}
                 opcoes={AREAS_RESPONSAVEIS}
                 onChange={set("area_responsavel")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Responsável nominal"
                 valor={campo("responsavel_nome")}
                 onChange={set("responsavel_nome")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Próxima ação"
                 valor={campo("proxima_acao")}
                 opcoes={PROXIMAS_ACOES}
                 onChange={set("proxima_acao")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Data da próxima ação"
                 tipo="date"
                 valor={data("proxima_acao_em")}
                 onChange={set("proxima_acao_em")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Último follow-up"
                 tipo="date"
                 valor={data("ultimo_followup_em")}
                 onChange={set("ultimo_followup_em")}
-                desabilitado={!podeEscrever}
               />
             </div>
           </Secao>
 
           <Secao titulo="Objetivo e linha preliminar" descricao="Leitura interna preliminar; não é parecer jurídico.">
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} desabilitado={!podeEscrever} />
+              <Selecao label="Objetivo" valor={campo("objetivo")} opcoes={OBJETIVOS} onChange={set("objetivo")} />
               <Selecao
                 label="Nacionalidade de interesse"
                 valor={campo("nacionalidade")}
                 opcoes={NACIONALIDADES}
                 onChange={set("nacionalidade")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Via jurídica preliminar"
                 valor={campo("via_juridica_preliminar")}
                 opcoes={VIAS_JURIDICAS}
                 onChange={set("via_juridica_preliminar")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Status da via"
                 valor={campo("status_via")}
                 opcoes={STATUS_VIA}
                 onChange={set("status_via")}
-                desabilitado={!podeEscrever}
               />
               <div className="md:col-span-2">
                 <Texto
@@ -484,7 +492,6 @@ function LeadsPage() {
                   area
                   valor={campo("narrativa_familiar")}
                   onChange={set("narrativa_familiar")}
-                  desabilitado={!podeEscrever}
                 />
               </div>
             </div>
@@ -497,27 +504,23 @@ function LeadsPage() {
                 tipo="datetime-local"
                 valor={String(editado.call_agendada_em ?? "").slice(0, 16)}
                 onChange={set("call_agendada_em")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Call realizada em"
                 tipo="datetime-local"
                 valor={String(editado.call_realizada_em ?? "").slice(0, 16)}
                 onChange={set("call_realizada_em")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Resultado da Discovery"
                 valor={campo("discovery_resultado")}
                 opcoes={RESULTADOS_DISCOVERY}
                 onChange={set("discovery_resultado")}
-                desabilitado={!podeEscrever}
               />
               <label className="flex items-end gap-2 text-sm text-navy">
                 <input
                   type="checkbox"
                   checked={bool("resumo_validado")}
-                  disabled={!podeEscrever}
                   onChange={(e) => set("resumo_validado")(e.target.checked)}
                 />
                 Resumo da call validado
@@ -528,7 +531,6 @@ function LeadsPage() {
                   area
                   valor={campo("resumo_call")}
                   onChange={set("resumo_call")}
-                  desabilitado={!podeEscrever}
                 />
               </div>
             </div>
@@ -539,20 +541,20 @@ function LeadsPage() {
             descricao="Leitura comercial/técnica preliminar. Não é decisão jurídica final nem promessa de resultado."
           >
             <div className="grid gap-3 md:grid-cols-2">
-              <Selecao label="Status da call" valor={campo("status_call")} opcoes={STATUS_CALL} onChange={set("status_call")} desabilitado={!podeEscrever} />
-              <Selecao label="Elegibilidade preliminar" valor={campo("elegibilidade_preliminar")} opcoes={ELEGIBILIDADE_PRELIMINAR} onChange={set("elegibilidade_preliminar")} desabilitado={!podeEscrever} />
-              <Selecao label="Confiança da triagem" valor={campo("confianca_triagem")} opcoes={CONFIANCA_TRIAGEM} onChange={set("confianca_triagem")} desabilitado={!podeEscrever} />
-              <Selecao label="Geração do ascendente" valor={campo("geracao_ascendente")} opcoes={GERACOES_ASCENDENTE} onChange={set("geracao_ascendente")} desabilitado={!podeEscrever} />
-              <Selecao label="Linha de transmissão" valor={campo("linha_transmissao")} opcoes={LINHAS_TRANSMISSAO} onChange={set("linha_transmissao")} desabilitado={!podeEscrever} />
-              <Selecao label="Risco de ruptura" valor={campo("risco_ruptura")} opcoes={RISCOS_RUPTURA} onChange={set("risco_ruptura")} desabilitado={!podeEscrever} />
-              <Selecao label="Complexidade documental" valor={campo("complexidade_documental")} opcoes={COMPLEXIDADE_DOCUMENTAL} onChange={set("complexidade_documental")} desabilitado={!podeEscrever} />
-              <Selecao label="Estado documental inicial" valor={campo("estado_documental_inicial")} opcoes={ESTADO_DOCUMENTAL_INICIAL} onChange={set("estado_documental_inicial")} desabilitado={!podeEscrever} />
-              <Selecao label="Pendência documental prioritária" valor={campo("pendencia_documental_prioritaria")} opcoes={PENDENCIAS_DOCUMENTAIS} onChange={set("pendencia_documental_prioritaria")} desabilitado={!podeEscrever} />
-              <Selecao label="Exige idioma/entrevista" valor={campo("exige_idioma_entrevista")} opcoes={EXIGE_IDIOMA_ENTREVISTA} onChange={set("exige_idioma_entrevista")} desabilitado={!podeEscrever} />
-              <Texto label="Requerentes potenciais" tipo="number" valor={campo("requerentes_potenciais")} onChange={(v) => set("requerentes_potenciais")(v === "" ? null : Number(v))} desabilitado={!podeEscrever} />
-              <Selecao label="Estrutura familiar" valor={campo("estrutura_familiar")} opcoes={ESTRUTURAS_FAMILIARES} onChange={set("estrutura_familiar")} desabilitado={!podeEscrever} />
-              <Selecao label="Objeção predominante" valor={campo("objecao_predominante")} opcoes={OBJECOES} onChange={set("objecao_predominante")} desabilitado={!podeEscrever} />
-              <Selecao label="Nível de intenção" valor={campo("nivel_intencao")} opcoes={NIVEIS_INTENCAO} onChange={set("nivel_intencao")} desabilitado={!podeEscrever} />
+              <Selecao label="Status da call" valor={campo("status_call")} opcoes={STATUS_CALL} onChange={set("status_call")} />
+              <Selecao label="Elegibilidade preliminar" valor={campo("elegibilidade_preliminar")} opcoes={ELEGIBILIDADE_PRELIMINAR} onChange={set("elegibilidade_preliminar")} />
+              <Selecao label="Confiança da triagem" valor={campo("confianca_triagem")} opcoes={CONFIANCA_TRIAGEM} onChange={set("confianca_triagem")} />
+              <Selecao label="Geração do ascendente" valor={campo("geracao_ascendente")} opcoes={GERACOES_ASCENDENTE} onChange={set("geracao_ascendente")} />
+              <Selecao label="Linha de transmissão" valor={campo("linha_transmissao")} opcoes={LINHAS_TRANSMISSAO} onChange={set("linha_transmissao")} />
+              <Selecao label="Risco de ruptura" valor={campo("risco_ruptura")} opcoes={RISCOS_RUPTURA} onChange={set("risco_ruptura")} />
+              <Selecao label="Complexidade documental" valor={campo("complexidade_documental")} opcoes={COMPLEXIDADE_DOCUMENTAL} onChange={set("complexidade_documental")} />
+              <Selecao label="Estado documental inicial" valor={campo("estado_documental_inicial")} opcoes={ESTADO_DOCUMENTAL_INICIAL} onChange={set("estado_documental_inicial")} />
+              <Selecao label="Pendência documental prioritária" valor={campo("pendencia_documental_prioritaria")} opcoes={PENDENCIAS_DOCUMENTAIS} onChange={set("pendencia_documental_prioritaria")} />
+              <Selecao label="Exige idioma/entrevista" valor={campo("exige_idioma_entrevista")} opcoes={EXIGE_IDIOMA_ENTREVISTA} onChange={set("exige_idioma_entrevista")} />
+              <Texto label="Requerentes potenciais" tipo="number" valor={campo("requerentes_potenciais")} onChange={(v) => set("requerentes_potenciais")(v === "" ? null : Number(v))} />
+              <Selecao label="Estrutura familiar" valor={campo("estrutura_familiar")} opcoes={ESTRUTURAS_FAMILIARES} onChange={set("estrutura_familiar")} />
+              <Selecao label="Objeção predominante" valor={campo("objecao_predominante")} opcoes={OBJECOES} onChange={set("objecao_predominante")} />
+              <Selecao label="Nível de intenção" valor={campo("nivel_intencao")} opcoes={NIVEIS_INTENCAO} onChange={set("nivel_intencao")} />
             </div>
           </Secao>
 
@@ -565,11 +567,11 @@ function LeadsPage() {
                 ["spin_necessidade", "Necessidade de solução declarada"],
               ].map(([k, label]) => (
                 <label key={k} className="flex items-center gap-2 text-sm text-navy">
-                  <input type="checkbox" checked={bool(k)} disabled={!podeEscrever} onChange={(e) => set(k)(e.target.checked)} />
+                  <input type="checkbox" checked={bool(k)} onChange={(e) => set(k)(e.target.checked)} />
                   {label}
                 </label>
               ))}
-              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} desabilitado={!podeEscrever} />
+              <Texto label="Dossiê do cliente (referência interna)" valor={campo("dossie_link_interno")} onChange={set("dossie_link_interno")} />
             </div>
           </Secao>
 
@@ -582,27 +584,24 @@ function LeadsPage() {
                 <input
                   type="checkbox"
                   checked={bool("dossie_ativo")}
-                  disabled={!podeEscrever}
                   onChange={(e) => set("dossie_ativo")(e.target.checked)}
                 />
                 Dossiê-mãe ativo
               </label>
-              <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} desabilitado={!podeEscrever} />
+              <Texto label="ID/nome do dossiê-mãe" valor={campo("dossie_mae_ref")} onChange={set("dossie_mae_ref")} />
               <Selecao
                 label="Ambiente autorizado"
                 valor={campo("dossie_ambiente")}
                 opcoes={AMBIENTES_DOSSIE}
                 onChange={set("dossie_ambiente")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Nível de acesso"
                 valor={campo("dossie_nivel_acesso")}
                 opcoes={NIVEIS_ACESSO_DOSSIE}
                 onChange={set("dossie_nivel_acesso")}
-                desabilitado={!podeEscrever}
               />
-              <Texto label="Responsável pelo dossiê" valor={campo("dossie_responsavel")} onChange={set("dossie_responsavel")} desabilitado={!podeEscrever} />
+              <Texto label="Responsável pelo dossiê" valor={campo("dossie_responsavel")} onChange={set("dossie_responsavel")} />
             </div>
           </Secao>
 
@@ -617,45 +616,57 @@ function LeadsPage() {
                 valor={campo("consentimento_status")}
                 opcoes={CONSENTIMENTO_STATUS}
                 onChange={set("consentimento_status")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Data/hora do consentimento"
                 tipo="datetime-local"
                 valor={String(editado.consentimento_em ?? "").slice(0, 16)}
                 onChange={set("consentimento_em")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Canal do consentimento"
                 valor={campo("consentimento_canal")}
                 opcoes={CANAIS_CONSENTIMENTO}
                 onChange={set("consentimento_canal")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Versão do aviso apresentada"
                 valor={campo("consentimento_versao_aviso")}
                 onChange={set("consentimento_versao_aviso")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Gravação (referência interna)"
                 valor={campo("gravacao_link_interno")}
                 onChange={set("gravacao_link_interno")}
-                desabilitado={!podeEscrever || campo("consentimento_status") !== "concedido"}
+                ajuda={
+                  campo("consentimento_status") !== "concedido"
+                    ? "Pendência: consentimento ainda não consta como concedido. O campo segue editável e a pendência é registrada na gravação."
+                    : undefined
+                }
               />
               <label className="flex items-end gap-2 text-sm text-navy">
                 <input
                   type="checkbox"
                   checked={bool("consentimento_gravacao")}
-                  disabled={!podeEscrever}
                   onChange={(e) => set("consentimento_gravacao")(e.target.checked)}
                 />
                 Consentimento confirmado na conversa
               </label>
             </div>
           </Secao>
+
+          {trilhasIndisponiveis ? (
+            <p
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-navy/80"
+            >
+              Não foi possível carregar as trilhas e marcos jurídicos. As listas de trilha e marco abaixo estão
+              vazias por falha de carga, não por ausência de cadastro.{" "}
+              <button type="button" className="underline" onClick={() => void qTrilhas.refetch()}>
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
 
           <Secao
             titulo="Linha familiar, trilha jurídica e pesquisa prévia"
@@ -667,61 +678,52 @@ function LeadsPage() {
                 valor={campo("pais_linha_prioritaria")}
                 opcoes={PAISES_LINHA_PRIORITARIA}
                 onChange={set("pais_linha_prioritaria")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Localidades conhecidas (comuna, paróquia, província)"
                 valor={campo("localidades_conhecidas")}
                 onChange={set("localidades_conhecidas")}
-                desabilitado={!podeEscrever}
               />
               <MultiSelecao
                 label="Nacionalidades de interesse"
                 opcoes={NACIONALIDADES}
                 valores={(editado.nacionalidades_interesse ?? []) as string[]}
                 onChange={set("nacionalidades_interesse")}
-                desabilitado={!podeEscrever}
               />
               <MultiSelecao
                 label="Documentos-chave já indicados"
                 opcoes={DOCUMENTOS_CHAVE}
                 valores={(editado.documentos_chave ?? []) as string[]}
                 onChange={set("documentos_chave")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Trilha jurídica de referência"
                 valor={campo("trilha_referencia_id")}
                 opcoes={opcoesTrilhas}
                 onChange={set("trilha_referencia_id")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Marco jurídico de referência"
                 valor={campo("marco_referencia_id")}
                 opcoes={opcoesMarcos}
                 onChange={set("marco_referencia_id")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Autorização de pesquisa prévia"
                 valor={campo("pesquisa_previa_autorizacao")}
                 opcoes={PESQUISA_PREVIA_AUTORIZACAO}
                 onChange={set("pesquisa_previa_autorizacao")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Limite declarado da pesquisa prévia"
                 valor={campo("pesquisa_previa_limite")}
                 onChange={set("pesquisa_previa_limite")}
-                desabilitado={!podeEscrever}
               />
               <MultiSelecao
                 label="Escopo autorizado da pesquisa prévia"
                 opcoes={PESQUISA_PREVIA_ESCOPO}
                 valores={(editado.pesquisa_previa_escopo ?? []) as string[]}
                 onChange={set("pesquisa_previa_escopo")}
-                desabilitado={!podeEscrever}
               />
               {trilhaSelecionada ? (
                 <div className="md:col-span-2 rounded-lg border border-navy/10 bg-cream/40 p-3 text-xs text-navy/70">
@@ -752,7 +754,6 @@ function LeadsPage() {
                       <label key={o.valor} className="flex items-center gap-2 text-sm text-navy/80">
                         <input
                           type="checkbox"
-                          disabled={!podeEscrever}
                           checked={atuais.includes(o.valor)}
                           onChange={(e) =>
                             set("produtos_recomendados")(
@@ -766,10 +767,10 @@ function LeadsPage() {
                   })}
                 </div>
               </div>
-              <Texto label="Referência de SKU (Planilha Mestre)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} desabilitado={!podeEscrever} />
-              <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} desabilitado={!podeEscrever} />
-              <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} desabilitado={!podeEscrever} />
-              <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} desabilitado={!podeEscrever} />
+              <Texto label="Referência de SKU (Planilha Mestre)" valor={campo("sku_referencia")} onChange={set("sku_referencia")} />
+              <Selecao label="Status das despesas de terceiros" valor={campo("despesas_terceiros_status")} opcoes={DESPESAS_TERCEIROS_STATUS} onChange={set("despesas_terceiros_status")} />
+              <Selecao label="Regra de pagamento das despesas" valor={campo("despesas_terceiros_regra")} opcoes={DESPESAS_TERCEIROS_REGRA} onChange={set("despesas_terceiros_regra")} />
+              <Selecao label="Faixa estimada de despesas" valor={campo("despesas_terceiros_faixa")} opcoes={DESPESAS_TERCEIROS_FAIXA} onChange={set("despesas_terceiros_faixa")} />
             </div>
             <p className="mt-2 text-xs text-navy/60">
               Despesas de terceiros são sempre do cliente: o Clube não antecipa nem reembolsa. Nenhum valor ou link de cobrança é editável aqui.
@@ -786,66 +787,56 @@ function LeadsPage() {
                 valor={campo("eixo_comercial")}
                 opcoes={EIXO_COMERCIAL}
                 onChange={set("eixo_comercial")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Eixo de formalização"
                 valor={campo("eixo_formalizacao")}
                 opcoes={EIXO_FORMALIZACAO}
                 onChange={set("eixo_formalizacao")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Serviço inicial aprovado"
                 valor={campo("servico_inicial_aprovado")}
                 opcoes={SERVICOS_INICIAIS}
                 onChange={set("servico_inicial_aprovado")}
-                desabilitado={!podeEscrever}
               />
               <Selecao
                 label="Motivo de perda"
                 valor={campo("motivo_perda")}
                 opcoes={MOTIVOS_PERDA}
                 onChange={set("motivo_perda")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Link interno da proposta"
                 valor={campo("proposta_link_interno")}
                 onChange={set("proposta_link_interno")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Referência interna da proposta"
                 valor={campo("proposta_referencia_interna")}
                 onChange={set("proposta_referencia_interna")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Link interno do contrato"
                 valor={campo("contrato_link_interno")}
                 onChange={set("contrato_link_interno")}
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Referência do evento Asaas"
                 valor={campo("asaas_evento_referencia")}
                 onChange={set("asaas_evento_referencia")}
                 ajuda="Somente referência ao evento transacional; nenhum valor ou link é criado aqui."
-                desabilitado={!podeEscrever}
               />
               <Texto
                 label="Pagamento previsto para"
                 tipo="date"
                 valor={data("pagamento_previsto_em")}
                 onChange={set("pagamento_previsto_em")}
-                desabilitado={!podeEscrever}
               />
               <label className="flex items-end gap-2 text-sm text-navy">
                 <input
                   type="checkbox"
                   checked={bool("dados_teste")}
-                  disabled={!podeEscrever}
                   onChange={(e) => set("dados_teste")(e.target.checked)}
                 />
                 Registro de teste (excluído das métricas)
@@ -856,30 +847,42 @@ function LeadsPage() {
             </p>
           </Secao>
 
-          {podeEscrever ? (
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-start gap-2">
+            {Object.keys(rascunho).length ? (
+              <AcaoOperacional
+                rotulo={mutSalvar.isPending ? "Gravando…" : "Gravar"}
+                capacidade="editar_rascunho"
+                pendenciaGate={
+                  errosBloqueantes.length
+                    ? errosBloqueantes.map((e) => `${e.campo}: ${e.motivo}`).join("; ")
+                    : null
+                }
+                efeito="Grava as alterações desta ficha de lead."
+                onConfirmar={async () => {
+                  await mutSalvar.mutateAsync();
+                }}
+              />
+            ) : (
               <button
                 type="button"
-                disabled={mutSalvar.isPending || errosBloqueantes.length > 0 || !Object.keys(rascunho).length}
-                onClick={() => mutSalvar.mutate()}
+                disabled
                 className="rounded-lg bg-navy px-4 py-2 text-sm text-cream disabled:opacity-40"
               >
-                {mutSalvar.isPending ? "Gravando…" : "Gravar"}
+                Gravar
               </button>
-              {atual?.id && !atual.archived_at ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const motivo = window.prompt("Motivo do arquivamento (opcional):");
-                    if (motivo !== null) mutArquivar.mutate(motivo);
-                  }}
-                  className="rounded-lg border border-navy/20 px-4 py-2 text-sm text-navy"
-                >
-                  Arquivar
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+            )}
+            {atual?.id && !atual.archived_at ? (
+              <AcaoOperacional
+                rotulo="Arquivar"
+                variant="outline"
+                capacidade="editar_rascunho"
+                efeito="Arquiva o lead sem exclusão física. O registro continua consultável."
+                onConfirmar={async (motivo) => {
+                  await mutArquivar.mutateAsync(motivo);
+                }}
+              />
+            ) : null}
+          </div>
 
           <p className="text-xs text-navy/45">
             Listas controladas em uso: {Object.keys(CATALOGOS).length} campos classificatórios. Entrada fora da lista é recusada no

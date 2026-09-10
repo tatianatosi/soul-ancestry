@@ -89,41 +89,68 @@ export function bloqueioCriacaoPorNome(input: {
 }
 
 
-/** Campos cadastrais de pessoa física titular/contratante. */
+/**
+ * Campos cadastrais de pessoa física titular/contratante.
+ *
+ * 08/09/2026 — antes, TODO campo nascia obrigatório, e cada pendente travava
+ * `cadastroCompleto`, que por sua vez trava a conferência de escopo e o
+ * fechamento do caso. Eram 9 travas por pessoa adulta. Por decisão da
+ * proprietária ("excessivo para uma startup"), só seguem obrigatórios os campos
+ * necessários para qualificar a parte e assinar: nome, CPF, RG, endereço e
+ * e-mail. Profissão, estado civil, CEP e telefone continuam existindo e podem
+ * ser preenchidos — apenas deixam de bloquear.
+ */
 export const CAMPOS_TITULAR = [
-  { campo: "nome_completo", rotulo: "Nome completo confirmado" },
-  { campo: "cpf", rotulo: "CPF" },
-  { campo: "rg", rotulo: "RG / documento de identidade" },
-  { campo: "profissao", rotulo: "Profissão" },
-  { campo: "estado_civil", rotulo: "Estado civil" },
-  { campo: "endereco", rotulo: "Endereço completo" },
-  { campo: "cep", rotulo: "CEP" },
-  { campo: "telefone", rotulo: "Telefone" },
-  { campo: "email", rotulo: "E-mail" },
+  { campo: "nome_completo", rotulo: "Nome completo confirmado", obrigatorio: true },
+  { campo: "cpf", rotulo: "CPF", obrigatorio: true },
+  { campo: "rg", rotulo: "RG / documento de identidade", obrigatorio: true },
+  { campo: "profissao", rotulo: "Profissão", obrigatorio: false },
+  { campo: "estado_civil", rotulo: "Estado civil", obrigatorio: false },
+  { campo: "endereco", rotulo: "Endereço completo", obrigatorio: true },
+  { campo: "cep", rotulo: "CEP", obrigatorio: false },
+  { campo: "telefone", rotulo: "Telefone", obrigatorio: false },
+  { campo: "email", rotulo: "E-mail", obrigatorio: true },
 ] as const;
 
-/** Campos do dependente: vínculo, representação e necessidade formal. */
+/**
+ * Campos do dependente: vínculo, representação e necessidade formal.
+ *
+ * Os três campos `necessidade_*` são decisões internas com padrão de política
+ * (menor não assina, acesso ao App acompanha o titular, anexo de representação
+ * existe quando há menor). Não são dado do cliente e deixaram de travar.
+ */
 export const CAMPOS_DEPENDENTE = [
-  { campo: "nome_completo", rotulo: "Nome completo confirmado" },
-  { campo: "vinculo_com_titular", rotulo: "Vínculo com o titular responsável" },
-  { campo: "status_representacao", rotulo: "Status de representação" },
-  { campo: "necessidade_contrato", rotulo: "Necessidade de participação no contrato" },
-  { campo: "necessidade_app", rotulo: "Necessidade de acesso ao App" },
-  { campo: "necessidade_anexo", rotulo: "Necessidade de anexo individual" },
+  { campo: "nome_completo", rotulo: "Nome completo confirmado", obrigatorio: true },
+  { campo: "vinculo_com_titular", rotulo: "Vínculo com o titular responsável", obrigatorio: true },
+  { campo: "status_representacao", rotulo: "Status de representação", obrigatorio: true },
+  { campo: "necessidade_contrato", rotulo: "Necessidade de participação no contrato", obrigatorio: false },
+  { campo: "necessidade_app", rotulo: "Necessidade de acesso ao App", obrigatorio: false },
+  { campo: "necessidade_anexo", rotulo: "Necessidade de anexo individual", obrigatorio: false },
 ] as const;
 
-/** Dados oficiais da contratada — só de fonte societária. */
+/**
+ * Dados oficiais da contratada — só de fonte societária.
+ *
+ * 08/09/2026 — por decisão da proprietária, este bloco deixou de ser gerado no
+ * checklist de cada caso. São constantes institucionais idênticas em todo caso,
+ * mantidas em `PERFIL_INSTITUCIONAL` e sempre verificadas: repetir 5 itens
+ * verificados por caso era ruído, não controle. A lista permanece exportada
+ * porque descreve os campos exigidos do perfil institucional, agora lidos de lá.
+ */
 export const CAMPOS_CONTRATADA = [
-  { campo: "razao_social", rotulo: "Razão social" },
-  { campo: "cnpj", rotulo: "CNPJ" },
-  { campo: "endereco", rotulo: "Endereço da sede" },
-  { campo: "email", rotulo: "E-mail institucional" },
-  { campo: "representante_legal", rotulo: "Representante legal" },
+  { campo: "razao_social", rotulo: "Razão social", obrigatorio: true },
+  { campo: "cnpj", rotulo: "CNPJ", obrigatorio: true },
+  { campo: "endereco", rotulo: "Endereço da sede", obrigatorio: true },
+  { campo: "email", rotulo: "E-mail institucional", obrigatorio: true },
+  { campo: "representante_legal", rotulo: "Representante legal", obrigatorio: true },
 ] as const;
 
-export function camposDoTipo(tipo: PessoaTipo): readonly { campo: string; rotulo: string }[] {
+export type CampoCadastral = { campo: string; rotulo: string; obrigatorio: boolean };
+
+export function camposDoTipo(tipo: PessoaTipo): readonly CampoCadastral[] {
   if (tipo === "dependente") return CAMPOS_DEPENDENTE;
-  if (tipo === "contratada") return CAMPOS_CONTRATADA;
+  // A contratada não gera mais itens de checklist por caso.
+  if (tipo === "contratada") return [];
   return CAMPOS_TITULAR;
 }
 

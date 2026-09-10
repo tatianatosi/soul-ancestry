@@ -21,7 +21,20 @@ export function FilaSlaOperacional() {
   const q = useQuery({ queryKey: ["ops-alertas-sla"], queryFn: () => carregar(), retry: false });
 
   if (q.isLoading) return null;
-  if (q.isError || !q.data) return null;
+  if (q.isError)
+    return (
+      <p className="mt-4 flex flex-wrap items-center gap-3 border-t border-navy/10 pt-4 text-sm text-terracotta">
+        Não foi possível carregar exceções com dono.
+        <button
+          type="button"
+          onClick={() => void q.refetch()}
+          className="rounded-md border border-terracotta/50 px-2 py-1 text-xs font-medium text-terracotta hover:bg-terracotta/10"
+        >
+          Tentar novamente
+        </button>
+      </p>
+    );
+  if (!q.data) return null;
 
   const { atrasadas, emRisco, microAtrasadas, microEmRisco } = q.data;
   const grupos = [

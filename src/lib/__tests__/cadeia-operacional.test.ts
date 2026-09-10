@@ -230,6 +230,7 @@ describe("cadeia operacional no Painel Hoje", () => {
           titulo: "Caso",
           documentos_minimos_ok: false,
           prazo_proxima_acao: "2026-08-25",
+          responsavel_principal: null,
         },
       ],
       cadeia: [itemCadeia],

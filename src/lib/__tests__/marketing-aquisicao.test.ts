@@ -10,6 +10,7 @@ import {
   SECOES_MARKETING,
   SEM_DADOS,
   aprendizadosCampanha,
+  casosPorOrigem,
   desempenhoAgregado,
   desempenhoPorCanal,
   leituraMetricas,
@@ -151,5 +152,64 @@ describe("Marketing e aquisição — CA-UX-04", () => {
 
   it("nenhuma ação externa é oferecida pela superfície", () => {
     expect(ACOES_EXTERNAS_BLOQUEADAS.length).toBeGreaterThanOrEqual(5);
+  });
+
+  describe("CA10-MARKETING-CONTEUDO-VIVO — casos por origem", () => {
+    it("sem atribuição ligando case_id e lead_source_id, não inventa nenhuma origem", () => {
+      expect(casosPorOrigem(vazio)).toEqual([]);
+      expect(
+        casosPorOrigem({
+          ...vazio,
+          fontes: [{ id: "fonte-1", nome: "Instagram" }],
+          atribuicoes: [{ canal: "instagram", case_id: "caso-1" }],
+          casos: [{ id: "caso-1", pagamento_confirmado: true }],
+        }),
+      ).toEqual([]);
+    });
+
+    it("origem não catalogada em fontes não aparece — nenhum rótulo é inferido", () => {
+      const r = casosPorOrigem({
+        ...vazio,
+        fontes: [],
+        atribuicoes: [{ canal: "instagram", case_id: "caso-1", lead_source_id: "fonte-fantasma" }],
+        casos: [{ id: "caso-1", pagamento_confirmado: true }],
+      });
+      expect(r).toEqual([]);
+    });
+
+    it("agrupa casos reais por origem catalogada e conta pagamentos confirmados", () => {
+      const r = casosPorOrigem({
+        ...vazio,
+        fontes: [{ id: "fonte-1", nome: "Instagram" }],
+        atribuicoes: [
+          { canal: "instagram", case_id: "caso-1", lead_source_id: "fonte-1" },
+          { canal: "instagram", case_id: "caso-2", lead_source_id: "fonte-1" },
+        ],
+        casos: [
+          { id: "caso-1", pagamento_confirmado: true, titulo: "Família Silva" },
+          { id: "caso-2", pagamento_confirmado: false, codigo: "CASO-002" },
+        ],
+      });
+      expect(r).toHaveLength(1);
+      expect(r[0].rotulo).toBe("Instagram");
+      expect(r[0].casos).toHaveLength(2);
+      expect(r[0].pagamentosConfirmados).toBe(1);
+      expect(r[0].casos.find((c) => c.id === "caso-1")!.rotulo).toBe("Família Silva");
+      expect(r[0].casos.find((c) => c.id === "caso-2")!.rotulo).toBe("CASO-002");
+    });
+
+    it("não duplica o mesmo caso quando há mais de uma atribuição para ele", () => {
+      const r = casosPorOrigem({
+        ...vazio,
+        fontes: [{ id: "fonte-1", nome: "Google" }],
+        atribuicoes: [
+          { canal: "google", case_id: "caso-1", lead_source_id: "fonte-1" },
+          { canal: "google", case_id: "caso-1", lead_source_id: "fonte-1" },
+        ],
+        casos: [{ id: "caso-1", pagamento_confirmado: true }],
+      });
+      expect(r[0].casos).toHaveLength(1);
+      expect(r[0].pagamentosConfirmados).toBe(1);
+    });
   });
 });

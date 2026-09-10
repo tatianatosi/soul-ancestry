@@ -83,9 +83,6 @@ export const salvarDadoPiloto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; valor: string; origem: string; origemDetalhe?: string; observacao?: string }) => {
     const valor = input.valor.trim();
-    if (valor && !ORIGENS.includes(input.origem as (typeof ORIGENS)[number])) {
-      throw new Error("Selecione uma origem válida para o dado.");
-    }
     if (valor && PLACEHOLDER.test(valor)) {
       throw new Error("Valor contém texto de exemplo. Deixe o campo vazio como pendência.");
     }
@@ -191,7 +188,7 @@ export const criarPesquisaPiloto = createServerFn({ method: "POST" })
         organization_id: org,
         case_id: caso["id"],
         status: "preparation",
-        research_objective: "Piloto real — preparação de pesquisa a partir de dados conferidos.",
+        research_objective: "Preparação de pesquisa a partir de dados conferidos — Ana Luiza, primeira cliente.",
         external_research_gate_status: "blocked_by_contract",
         external_research_authorization_status: "not_requested",
         demo: false,

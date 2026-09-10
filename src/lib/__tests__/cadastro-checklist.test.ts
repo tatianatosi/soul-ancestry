@@ -26,7 +26,29 @@ describe("checklist cadastral", () => {
   it("dicionário por tipo de pessoa", () => {
     expect(camposDoTipo("titular").map((c) => c.campo)).toContain("estado_civil");
     expect(camposDoTipo("dependente").map((c) => c.campo)).toContain("status_representacao");
-    expect(camposDoTipo("contratada").map((c) => c.campo)).toContain("cnpj");
+    // 08/09/2026 — a contratada deixou de gerar itens de checklist por caso: são
+    // constantes institucionais lidas de PERFIL_INSTITUCIONAL.
+    expect(camposDoTipo("contratada")).toHaveLength(0);
+  });
+
+  it("só qualificação e assinatura são obrigatórias para o titular", () => {
+    // Antes, todo campo nascia obrigatório e cada pendente travava a conferência
+    // de escopo e o fechamento — 9 travas por pessoa adulta.
+    const obrigatorios = camposDoTipo("titular")
+      .filter((c) => c.obrigatorio)
+      .map((c) => c.campo);
+    expect(obrigatorios).toEqual(["nome_completo", "cpf", "rg", "endereco", "email"]);
+    const opcionais = camposDoTipo("titular")
+      .filter((c) => !c.obrigatorio)
+      .map((c) => c.campo);
+    expect(opcionais).toEqual(["profissao", "estado_civil", "cep", "telefone"]);
+  });
+
+  it("as necessidades do dependente são decisão interna e não travam", () => {
+    const obrigatorios = camposDoTipo("dependente")
+      .filter((c) => c.obrigatorio)
+      .map((c) => c.campo);
+    expect(obrigatorios).toEqual(["nome_completo", "vinculo_com_titular", "status_representacao"]);
   });
   it("verificado sem fonte ou data não resolve", () => {
     expect(itemResolvido(base({ status: "verificado" }))).toBe(false);

@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { COPY_TELAS } from "@/lib/portal-copy";
 import { PortalShell, usePortal, PortalCarregando } from "@/components/portal/portal-shell";
 import { BlocoVisibilidade, useVisibilidade } from "@/components/portal/portal-visibilidade";
+import { minhasFaturas } from "@/lib/portal-cliente.functions";
 
 export const Route = createFileRoute("/portal/conta")({
   head: () => ({
@@ -22,6 +25,14 @@ export const Route = createFileRoute("/portal/conta")({
 function PortalConta() {
   const { visibilidade, carregando } = useVisibilidade("conta");
   const { data } = usePortal();
+  const carregarFaturas = useServerFn(minhasFaturas);
+  const faturas = useQuery({
+    queryKey: ["portal-conta-faturas"],
+    queryFn: () => carregarFaturas({}),
+    retry: false,
+  });
+  const temFatura = (faturas.data?.length ?? 0) > 0;
+  const falhaFaturas = faturas.isError;
 
   return (
     <PortalShell titulo={COPY_TELAS.conta.titulo} descricao={COPY_TELAS.conta.descricao}>
@@ -40,14 +51,26 @@ function PortalConta() {
             </div>
           </dl>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
-              Faturas
-            </Link>
-            <Link to="/portal/proposta" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
-              Proposta
-            </Link>
-          </div>
+          {falhaFaturas ? (
+            <p className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-terracotta/40 bg-terracotta/10 px-3 py-2 text-sm text-terracotta">
+              Não conseguimos abrir o seu histórico de pagamentos agora.
+              <button
+                type="button"
+                onClick={() => void faturas.refetch()}
+                className="rounded-md border border-terracotta/50 px-2 py-0.5 text-xs font-medium text-terracotta"
+              >
+                Tentar novamente
+              </button>
+            </p>
+          ) : null}
+
+          {temFatura && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link to="/portal/faturas" className="rounded-lg border border-navy/15 px-3 py-1.5 text-xs text-navy">
+                Pagamentos já feitos
+              </Link>
+            </div>
+          )}
         </BlocoVisibilidade>
       )}
     </PortalShell>

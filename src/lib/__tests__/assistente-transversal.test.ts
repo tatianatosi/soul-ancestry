@@ -37,10 +37,18 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
       assistenteVisivel({ superficieInterna: true, papeis: ["comercial"], rota: "/equipe" }),
     ).toBe(false);
     expect(
-      assistenteVisivel({ superficieInterna: true, papeis: ["financeiro"], rota: "/pesquisa" }),
+      assistenteVisivel({
+        superficieInterna: true,
+        papeis: ["financeiro"],
+        rota: "/pesquisa-modulo",
+      }),
     ).toBe(false);
     expect(
-      assistenteVisivel({ superficieInterna: true, papeis: ["pesquisador"], rota: "/pesquisa" }),
+      assistenteVisivel({
+        superficieInterna: true,
+        papeis: ["pesquisador"],
+        rota: "/pesquisa-modulo",
+      }),
     ).toBe(true);
   });
 
@@ -95,7 +103,7 @@ describe("CA-UX-03 adendo — Assistente transversal", () => {
     expect(grupoDaRota("/painel")).toBe("hoje");
     expect(grupoDaRota("/leads")).toBe("comercial");
     expect(grupoDaRota(`/casos/${CASO}`)).toBe("casos");
-    expect(grupoDaRota("/pesquisa")).toBe("pesquisa");
+    expect(grupoDaRota("/pesquisa-modulo")).toBe("pesquisa");
     expect(grupoDaRota("/financeiro")).toBe("contratos");
     expect(grupoDaRota("/equipe")).toBe("governanca");
     expect(grupoDaRota("/marketing")).toBe("marketing");
