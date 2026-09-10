@@ -19,20 +19,23 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
     ]);
   });
 
-  it("cartões do Painel Hoje são links para lista com ação", () => {
+  it("cartões do Painel Hoje são os nove KPIs com link para a fila de origem", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
-    expect(painel).toContain('to={c.destino as "/tarefas"}');
+    expect(painel).toContain("KPIS_TRANSVERSAIS");
     expect(painel).toContain("Buscar pessoa 360");
     expect(painel).toContain('to="/calls"');
+    expect(painel).not.toContain('to={c.destino as "/tarefas"}');
   });
 
-  it("o topo do Hoje usa KPIs vivos e tira receita e conversão da face", () => {
+  it("o topo do Hoje usa os nove KPIs vivos e tira receita, conversão e volume sem ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
-    expect(painel).toContain('rotulo="Alertas pendentes"');
-    expect(painel).toContain("qAlertas.isSuccess");
-    expect(painel).toContain('rotulo="Leads sem próxima ação"');
-    expect(painel).toContain('rotulo="Exceções e bloqueios"');
+    const kpis = ler("src/lib/kpis-transversais.ts");
+    expect(painel).toContain("GradeKpisVivos");
+    expect(painel).toContain("KPIS_TRANSVERSAIS");
+    expect(kpis).toContain("Lead/Discovery parado");
+    expect(kpis).toContain("Ação vencida ou sem dono");
+    expect(painel).not.toContain('rotulo="Casos ativos"');
     expect(painel).not.toContain('rotulo="Receita do mês"');
     expect(painel).not.toContain('rotulo="Taxa de conversão"');
   });

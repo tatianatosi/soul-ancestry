@@ -65,7 +65,7 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(rotas).toContain("/configuracoes");
     expect(rotas).toContain("/equipe");
     expect(rotas).toContain("/governanca/catalogo-operacional-30");
-    expect(rotas).not.toContain("/crm-mestre");
+    expect(rotas).toContain("/crm-mestre");
   });
 
   it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {
@@ -128,17 +128,23 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     }
   });
 
-  it("CA-04 e o dicionário moram no Comercial com as Calls; Catálogo 30 fica em Governança", () => {
+  it("CA-04 e o dicionário informam o Calls; no menu diário ficam em Governança", () => {
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotasGov = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasGov).toContain("/governanca/catalogo-operacional-30");
-    expect(rotasGov).not.toContain("/crm-mestre");
-    expect(rotasGov).not.toContain("/governanca/dicionario-calls-crm");
+    expect(rotasGov).toContain("/crm-mestre");
+    expect(rotasGov).toContain("/governanca/dicionario-calls-crm");
     const comercial = GRUPOS_DESK.find((g) => g.id === "comercial")!;
     const rotasComercial = comercial.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasComercial).toContain("/calls");
-    expect(rotasComercial).toContain("/crm-mestre");
-    expect(rotasComercial).toContain("/governanca/dicionario-calls-crm");
+    expect(rotasComercial).not.toContain("/crm-mestre");
+    expect(rotasComercial).not.toContain("/governanca/dicionario-calls-crm");
+    const contratos = GRUPOS_DESK.find((g) => g.id === "contratos")!;
+    const rotasContratos = contratos.sub.filter((s) => "to" in s).map((s) => s.to);
+    expect(rotasContratos).toContain("/catalogo");
+    expect(rotasContratos).toContain("/financeiro");
+    expect(rotasContratos).not.toContain("/conciliacao-catalogo");
+    expect(rotasContratos).not.toContain("/homologacao-skus");
     const hoje = GRUPOS_DESK.find((g) => g.id === "hoje")!;
     const rotasHoje = hoje.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasHoje).not.toContain("/crm-mestre");

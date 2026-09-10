@@ -5,9 +5,9 @@
  * Formalização & Financeiro · Governança & Administração.
  *
  * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 (CRM Mestre + Dicionário) mora no Comercial
- * junto do Painel de Calls. Planilha Mestre, Top 30 e Catálogo 30 ficam só
- * em Governança (legado). URLs não mudam. Nenhuma rota operacional some.
+ * moram na Formalização. CA-04 (CRM Mestre + Dicionário) é dicionário
+ * administrativo: informa o Painel de Calls, mas não disputa o fluxo diário.
+ * Planilha Mestre, conciliação e SKU legado ficam só em Governança.
  */
 
 export type ItemNav =
@@ -78,8 +78,6 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { grupo: "CRM Vivo" },
       { to: "/leads", label: "Leads e triagem" },
       { to: "/calls", label: "Painel de Calls" },
-      { to: "/crm-mestre", label: "CRM Mestre — Discovery e Handoff" },
-      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/propostas", label: "Propostas" },
       { to: "/conversao", label: "Conversão, follow-up e handoff" },
       { to: "/proximas-acoes", label: "Próximas ações dos leads" },
@@ -153,12 +151,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/governanca/modelos-contratuais", label: "Matriz de modelos contratuais" },
       { grupo: "Catálogo e financeiro" },
       { to: "/catalogo", label: "Catálogo homologado" },
-      { to: "/homologacao-skus", label: "Homologação de SKUs" },
-      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo" },
-      { to: "/divergencias-catalogo", label: "Divergências de catálogo" },
       { to: "/financeiro", label: "Condições, faturas e pagamentos internos" },
-      { to: "/conciliacao-catalogo", hash: "bloqueios", label: "Pendências de cobrança" },
-      { to: "/escopo-origem", label: "Origem do escopo (leitura, exportação CSV)" },
     ],
   },
   {
@@ -176,8 +169,14 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
-      { grupo: "Legado (arquivo)" },
+      { grupo: "Dicionários e arquivo" },
+      { to: "/crm-mestre", label: "CRM Mestre — mapa de regras (não é fila)" },
+      { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
       { to: "/governanca/catalogo-operacional-30", label: "Catálogo operacional 30 (legado)" },
+      { to: "/homologacao-skus", label: "Homologação de SKUs (legado)" },
+      { to: "/conciliacao-catalogo", label: "Conciliação de catálogo (legado)" },
+      { to: "/divergencias-catalogo", label: "Divergências de catálogo (legado)" },
+      { to: "/escopo-origem", label: "Origem do escopo (legado)" },
     ],
   },
 ] as const;
