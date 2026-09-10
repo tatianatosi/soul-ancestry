@@ -48,7 +48,7 @@ describe("pente-fino visual — legado fora da face do produto", () => {
     const rotasCliente = cliente.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotasCliente).not.toContain("/app-cliente-demo");
     expect(rotasCliente).toContain("/app-cliente-como-pessoa");
-    const conta = MENU_CONTA.itens.map((i) => i.to);
+    const conta = MENU_CONTA.itens.filter((i) => "to" in i).map((i) => i.to);
     expect(conta).toContain("/pesquisa");
     expect(conta).toContain("/app-cliente-demo");
   });
