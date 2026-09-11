@@ -22,6 +22,8 @@ describe("Cockpit — Hoje opera, Calls grava, Caso 360 sintetiza", () => {
   it("cartões do Painel Hoje são os KPIs do mockup Visão Geral, com ação", () => {
     const painel = ler("src/components/painel/painel-dia.tsx");
     expect(painel).toContain("faixaCockpitHoje");
+    expect(painel).toContain('from "@/lib/painel-derivados"');
+    expect(painel).toContain("itensDerivadosDoPainel");
     expect(painel).toContain("Radar da carteira");
     expect(painel).toContain('rotulo="Casos ativos"');
     expect(painel).toContain('rotulo="Alertas pendentes"');

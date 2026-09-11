@@ -51,6 +51,7 @@ import {
   type LinhaIndicadorDia,
 } from "@/lib/painel-dia";
 import { ItensDerivados } from "@/components/painel/itens-derivados";
+import { itensDerivadosDoPainel } from "@/lib/painel-derivados";
 import { calcularPrioridade, etiquetaParaFila } from "@/lib/prioridade-matriz";
 import {
   validarPainelHoje,
