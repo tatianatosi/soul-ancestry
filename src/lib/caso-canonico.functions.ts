@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { organizacaoDo, payloadServico, rascunhoDaAcao, type Linha } from "@/lib/caso-canonico.server";
 import { mapaDaAcao } from "@/lib/caso-ficha";
 import { construirMapaProdutoPaiPorCodigo, produtoPaiDoCodigo } from "@/lib/planejador-produtos-pai";
+import { faseCanonicaDaListaAlimento, resumirCano } from "@/lib/cano-operacional";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -26,7 +27,7 @@ export const carregarCanonico = createServerFn({ method: "GET" })
     const organizationId = await organizacaoDo(supabase, context.userId as string);
     const eq = (t: string) => supabase.from(t).select("*").eq("organization_id", organizationId);
 
-    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao] =
+    const [produtos, catalogoPlanejador, trilhas, servicos, taxonomia, etiquetas, alertas, comunicacoes, onboarding, nucleos, entregas, aliases, proximaAcao, planos, projecoes] =
       await Promise.all([
         eq("product_catalog").is("archived_at", null).order("nome_comercial"),
         eq("planner_catalog_feed").is("archived_at", null),
@@ -43,6 +44,12 @@ export const carregarCanonico = createServerFn({ method: "GET" })
         eq("case_aliases").eq("case_id", data.caseId).order("created_at"),
         // CRM Vivo — próxima ação prioritária única (PROMPT-MOTORES-UNIFICADOS-CRM-VIVO.md, seção 3.4).
         supabase.rpc("proxima_acao_prioritaria", { _case: data.caseId }),
+        eq("case_plans").eq("case_id", data.caseId).is("archived_at", null).order("created_at", { ascending: false }).limit(1),
+        eq("app_projections")
+          .eq("case_id", data.caseId)
+          .eq("destination", "app")
+          .eq("approval_status", "published")
+          .is("archived_at", null),
       ]);
 
 
@@ -66,19 +73,49 @@ export const carregarCanonico = createServerFn({ method: "GET" })
       ...produtoPaiDoCodigo(p.code, mapaProdutoPai),
     }));
 
+    const listaServicos = linhas<Linha>(servicos, "serviços do caso");
+    const listaPlanos = linhas<Linha>(planos, "planos do caso");
+    const listaProjecoes = linhas<Linha>(projecoes, "projeções publicadas do caso");
+    const listaAlertas = linhas<Linha>(alertas, "alertas do caso");
+    const listaFeed = linhas<Linha>(catalogoPlanejador, "catálogo do planejador");
+    const servicoAtivo = listaServicos[0] ?? null;
+    const planoAtivo = listaPlanos[0] ?? null;
+    const codigoSku = servicoAtivo
+      ? String(
+          produtosComProdutoPai.find((p) => p.id === servicoAtivo.product_catalog_id)?.code ?? "",
+        )
+      : "";
+    const itemFeed = codigoSku
+      ? listaFeed.find((f) => String(f.item_id) === codigoSku) ?? null
+      : null;
+    const enriquecimento = codigoSku ? produtoPaiDoCodigo(codigoSku, mapaProdutoPai) : { produto_pai: null };
+
+    const cano = resumirCano({
+      temItemListaAlimento: Boolean(itemFeed),
+      produtoPai: (enriquecimento.produto_pai as string | null) ?? null,
+      caseServiceId: (servicoAtivo?.id as string | null) ?? null,
+      casePlanId: (planoAtivo?.id as string | null) ?? null,
+      faseJornada: (planoAtivo?.fase_jornada as string | null) ?? null,
+      projecoesPublicadas: listaProjecoes.length,
+      alertasAbertos: listaAlertas.filter((a) => !a.resolved_at && !a.dismissed_at).length,
+    });
+
     return {
       produtos: produtosComProdutoPai,
       trilhas: linhas<Linha>(trilhas, "trilhas de cidadania"),
-      servicos: linhas<Linha>(servicos, "serviços do caso"),
+      servicos: listaServicos,
       taxonomia: linhas<Linha>(taxonomia, "taxonomia de etiquetas"),
       etiquetas: linhas<Linha>(etiquetas, "etiquetas aplicadas ao caso"),
-      alertas: linhas<Linha>(alertas, "alertas do caso"),
+      alertas: listaAlertas,
       comunicacoes: linhas<Linha>(comunicacoes, "fila de comunicações do caso"),
       onboarding: linhas<Linha>(onboarding, "checklist de onboarding do caso"),
       nucleos: listaNucleos,
       membrosNucleo: linhas<Linha>(membrosNucleo as any, "membros do núcleo familiar"),
       entregas: linhas<Linha>(entregas, "entregas ao cliente do caso"),
       aliases: linhas<Linha>(aliases, "aliases históricos do caso"),
+      planoAtivo,
+      projecoesPublicadas: listaProjecoes,
+      cano,
       proximaAcaoPrioritaria: (proximaAcao.data?.[0] ?? null) as {
         nivel: number;
         motivo: string;
@@ -120,6 +157,13 @@ export const salvarCaseService = createServerFn({ method: "POST" })
         userId: context.userId as string,
         payload,
       });
+      await amarrarServicoAoPlanejador(supabase, {
+        caseId: data.caseId,
+        organizationId,
+        userId: context.userId as string,
+        caseServiceId: data.id,
+        productCatalogId: (payload["product_catalog_id"] as string | null | undefined) ?? null,
+      });
       return { id: data.id, salvoEm: r.salvoEm };
     }
 
@@ -130,9 +174,95 @@ export const salvarCaseService = createServerFn({ method: "POST" })
       userId: context.userId as string,
       payload: { ...payload, case_id: data.caseId },
     });
+    await amarrarServicoAoPlanejador(supabase, {
+      caseId: data.caseId,
+      organizationId,
+      userId: context.userId as string,
+      caseServiceId: r.id,
+      productCatalogId: (payload["product_catalog_id"] as string | null | undefined) ?? null,
+    });
     return { id: r.id, salvoEm: r.salvoEm };
   });
 
+/**
+ * Elo cano: case_services → case_plans.
+ * Preenche vínculos vazios (SKU, serviço, fase canônica da lista-alimento).
+ * Não apaga plano existente nem força status ativo (índice único por fase).
+ */
+async function amarrarServicoAoPlanejador(
+  supabase: any,
+  input: {
+    caseId: string;
+    organizationId: string;
+    userId: string;
+    caseServiceId: string;
+    productCatalogId: string | null;
+  },
+): Promise<void> {
+  const catalogId = input.productCatalogId;
+  if (!catalogId) return;
+
+  const { data: produto } = await supabase
+    .from("product_catalog")
+    .select("code")
+    .eq("id", catalogId)
+    .eq("organization_id", input.organizationId)
+    .maybeSingle();
+  const codigo = produto?.code ? String(produto.code) : "";
+
+  let faseCanon: string | null = null;
+  if (codigo) {
+    const { data: feed } = await supabase
+      .from("planner_catalog_feed")
+      .select("journey_phase_default,item_id")
+      .eq("organization_id", input.organizationId)
+      .eq("item_id", codigo)
+      .is("archived_at", null)
+      .maybeSingle();
+    faseCanon = faseCanonicaDaListaAlimento(
+      (feed as { journey_phase_default?: string | null } | null)?.journey_phase_default,
+    );
+  }
+
+  const { data: planos } = await supabase
+    .from("case_plans")
+    .select("id,product_catalog_id,case_service_id,fase_jornada")
+    .eq("case_id", input.caseId)
+    .eq("organization_id", input.organizationId)
+    .is("archived_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  const plano = (planos as Linha[] | null)?.[0];
+  const agora = new Date().toISOString();
+
+  if (plano) {
+    const patch: Record<string, unknown> = {
+      updated_at: agora,
+      updated_by: input.userId,
+    };
+    if (!plano.product_catalog_id) patch.product_catalog_id = catalogId;
+    if (!plano.case_service_id) patch.case_service_id = input.caseServiceId;
+    if (!plano.fase_jornada && faseCanon) patch.fase_jornada = faseCanon;
+    if (Object.keys(patch).length <= 2) return; // só updated_at/updated_by — já amarrado
+    const { error } = await supabase.from("case_plans").update(patch).eq("id", plano.id);
+    if (error) console.warn("[cano] amarrarServicoAoPlanejador update:", error.message);
+    return;
+  }
+
+  const { error } = await supabase.from("case_plans").insert({
+    organization_id: input.organizationId,
+    case_id: input.caseId,
+    product_catalog_id: catalogId,
+    case_service_id: input.caseServiceId,
+    fase_jornada: faseCanon ?? "aceite_e_formalizacao",
+    status: "rascunho",
+    created_by: input.userId,
+    updated_by: input.userId,
+    updated_at: agora,
+  });
+  if (error) console.warn("[cano] amarrarServicoAoPlanejador insert:", error.message);
+}
 
 /** Aplica etiqueta canônica (nunca cria etiqueta livre fora da taxonomia). */
 export const aplicarEtiqueta = createServerFn({ method: "POST" })

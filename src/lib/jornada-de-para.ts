@@ -130,19 +130,35 @@ const DE_PRODUTO_CATALOGO: Record<string, Correspondencia> = {
   pos_reconhecimento: { canonico: "pos_reconhecimento", rotuloCanonico: rotulo("pos_reconhecimento"), precisao: "exata", motivo: "" },
 };
 
+/**
+ * lista-alimento (`planner_catalog_feed.journey_phase_default` = F1…F7)
+ * → fase canônica de `case_plans.fase_jornada`. Nunca grava F1 cru no plano.
+ */
+const DE_LISTA_ALIMENTO: Record<string, Correspondencia> = {
+  F1: { canonico: "aceite_e_formalizacao", rotuloCanonico: rotulo("aceite_e_formalizacao"), precisao: "aproximada", motivo: "F1 da lista-alimento = diagnóstico/entrada → aceite e formalização." },
+  F2: { canonico: "preparacao_documental", rotuloCanonico: rotulo("preparacao_documental"), precisao: "aproximada", motivo: "F2 = pesquisa/prova documental na lista-alimento." },
+  F3: { canonico: "pesquisa_e_validacao", rotuloCanonico: rotulo("pesquisa_e_validacao"), precisao: "aproximada", motivo: "F3 ≈ validação da pesquisa." },
+  F4: { canonico: "protocolo_e_acompanhamento", rotuloCanonico: rotulo("protocolo_e_acompanhamento"), precisao: "aproximada", motivo: "F4 ≈ protocolo." },
+  F5: { canonico: "reconhecimento", rotuloCanonico: rotulo("reconhecimento"), precisao: "aproximada", motivo: "F5 ≈ reconhecimento." },
+  F6: { canonico: "pos_reconhecimento", rotuloCanonico: rotulo("pos_reconhecimento"), precisao: "aproximada", motivo: "F6 ≈ pós-reconhecimento." },
+  F7: { canonico: "pos_reconhecimento", rotuloCanonico: rotulo("pos_reconhecimento"), precisao: "aproximada", motivo: "F7 = continuidade; mapeada ao último marco canônico." },
+};
+
 export type DicionarioFase =
   | "canonico"
   | "jornada_cliente"
   | "derivacao_jornada"
   | "relatorios_fase"
   | "catalogo_operacional"
-  | "produto_catalogo";
+  | "produto_catalogo"
+  | "lista_alimento";
 
 const DICIONARIOS_TABELA: Partial<Record<DicionarioFase, Record<string, Correspondencia>>> = {
   derivacao_jornada: DE_DERIVACAO_JORNADA,
   relatorios_fase: DE_RELATORIOS_FASE,
   catalogo_operacional: DE_CATALOGO_OPERACIONAL,
   produto_catalogo: DE_PRODUTO_CATALOGO,
+  lista_alimento: DE_LISTA_ALIMENTO,
 };
 
 /**

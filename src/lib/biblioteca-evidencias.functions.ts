@@ -284,11 +284,14 @@ export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
       throw new Error("Só uma micro-entrega já publicada internamente pode ser projetada ao App.");
     }
 
+    // CHECK app_proj_source_ck: evidence|finding|lineage|event|milestone|case.
+    // Micro-entrega operacional = marco liberável → "milestone" (nunca inventar
+    // client_deliverable — quebrava o insert silenciosamente no PostgREST).
     const existente = await supabase
       .from("app_projections")
       .select("id")
       .eq("organization_id", organizationId)
-      .eq("source_entity_type", "client_deliverable")
+      .eq("source_entity_type", "milestone")
       .eq("source_entity_id", data.entregaId)
       .is("archived_at", null)
       .maybeSingle();
@@ -302,7 +305,7 @@ export const projetarMicroentregaParaApp = createServerFn({ method: "POST" })
       .from("app_projections")
       .insert({
         organization_id: organizationId,
-        source_entity_type: "client_deliverable",
+        source_entity_type: "milestone",
         source_entity_id: data.entregaId,
         case_id: entrega.data["case_id"],
         projection_type: entrega.data["deliverable_type"],
