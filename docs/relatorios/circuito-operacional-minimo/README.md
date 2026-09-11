@@ -5,6 +5,8 @@
 **Como usar:** preencher **manhã** (plano do dia) e **fim do dia** (o que fechou / o que travou).  
 **Pasta:** `docs/relatorios/circuito-operacional-minimo/`
 
+**Dia 2026-09-11:** [`2026-09-11_manha.md`](2026-09-11_manha.md) · [`2026-09-11_fim-do-dia.md`](2026-09-11_fim-do-dia.md)
+
 ---
 
 ## Modelo (copiar a cada turno)

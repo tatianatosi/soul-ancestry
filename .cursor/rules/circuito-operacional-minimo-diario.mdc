@@ -1,17 +1,17 @@
 ---
 description: Relatório diário (manhã e fim do dia) do Circuito operacional mínimo — Abas → Mesa → KPIs.
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Circuito operacional mínimo — relatório diário
 
-Quando a proprietária pedir status desta aba, ou no **início** e **fim** de cada jornada de trabalho sobre o circuito, gerar ou atualizar um relatório em:
+**Obrigatório** em toda jornada de trabalho neste repositório que toque Desk/App/circuito: no **início** e no **fim** do dia (ou do turno Cloud), criar ou atualizar:
 
 `docs/relatorios/circuito-operacional-minimo/AAAA-MM-DD_manha.md`  
-ou  
 `docs/relatorios/circuito-operacional-minimo/AAAA-MM-DD_fim-do-dia.md`
 
-Usar o modelo em `docs/relatorios/circuito-operacional-minimo/README.md`.
+Usar o modelo em `docs/relatorios/circuito-operacional-minimo/README.md`.  
+Índice do dia atual: apontar no registro vivo de prova quando houver mudança de status de motor.
 
 ## Quatro blocos obrigatórios (simples)
 

@@ -7,6 +7,8 @@
 
 Nenhum motor abaixo está `COMPROVADO_EM_USO`. Código, PR, Vitest, build, preview ou declaração de agente **não** alteram essa certificação.
 
+**Circuito operacional mínimo (Abas → Mesa → KPIs):** relatórios manhã/fim do dia em `docs/relatorios/circuito-operacional-minimo/` (ex.: `2026-09-11_fim-do-dia.md`). Não substitui este registro de prova.
+
 ## Ambientes tentados
 
 ### A. Vite local no Cloud Agent (`http://127.0.0.1:8080`)
