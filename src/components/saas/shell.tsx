@@ -6,13 +6,14 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
+  ListChecks,
   Scale,
-  Target,
+  Radar,
+  Bell,
   Library,
   LogOut,
   Menu,
   ChevronDown,
-  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,14 +24,15 @@ import { cn } from "@/lib/utils";
 import { limparArmazenamentoDaSessao } from "@/lib/limpar-sessao";
 import { sessaoAusenteConfirmada } from "@/lib/guarda-sessao";
 import {
-  GRUPOS_DESK,
+  FACE_DESK,
   MENU_CONTA,
-  grupoNavAtivo,
+  faceNavAtivo,
+  internosDaFace,
   itemNavAtivo,
   naturezaDaBiblioteca,
   origemDoAtalho,
   rotaAtendeDestino,
-  type GrupoDesk,
+  type FaceDesk,
   type ItemNav,
 } from "@/lib/navegacao-desk";
 import { AssistenteTransversal } from "@/components/desk/assistente-transversal";
@@ -78,37 +80,37 @@ export function useSaas() {
 }
 
 /**
- * Navegação do Desk: 6 grupos. O registro canônico vive em
- * `src/lib/navegacao-desk.ts`; aqui só há apresentação. Cada função mora em
- * um grupo; atalho não cria segunda fila. Nenhuma rota operacional some.
+ * Face do Desk: 7 telas do mockup. Os 6 grupos internos só aparecem
+ * recolhidos no submenu. Nenhuma rota operacional some.
  */
 type SubItem = ItemNav;
 
 type SecaoNav = {
+  id: FaceDesk["id"];
   to: string;
   label: string;
   descricao: string;
   icon: typeof LayoutDashboard;
-  agrupador?: boolean;
   sub: readonly SubItem[];
 };
 
-const ICONES: Record<GrupoDesk["icone"], typeof LayoutDashboard> = {
-  hoje: LayoutDashboard,
-  comercial: Target,
-  casos: FolderOpen,
-  pesquisa: Library,
-  contratos: Scale,
-  governanca: ShieldCheck,
+const ICONES: Record<FaceDesk["icone"], typeof LayoutDashboard> = {
+  "visao-geral": LayoutDashboard,
+  "casos-360": FolderOpen,
+  checklist: ListChecks,
+  "validacao-juridica": Scale,
+  "radar-interno": Radar,
+  alertas: Bell,
+  "biblioteca-mestre": Library,
 };
 
-const NAV: readonly SecaoNav[] = GRUPOS_DESK.map((g) => ({
-  to: g.to,
-  label: g.label,
-  descricao: g.descricao,
-  icon: ICONES[g.icone],
-  ...(g.agrupador ? { agrupador: true } : {}),
-  sub: g.sub,
+const NAV: readonly SecaoNav[] = FACE_DESK.map((f) => ({
+  id: f.id,
+  to: f.to,
+  label: f.label,
+  descricao: f.descricao,
+  icon: ICONES[f.icone],
+  sub: internosDaFace(f.id),
 }));
 
 export function SaasShell({
@@ -184,8 +186,8 @@ export function SaasShell({
     navigate({ to: "/equipe/entrar", replace: true });
   }
 
-  // Admin não ganha aba nova: módulos administrativos entram em Governança.
-  // O Desk tem 6 grupos para qualquer papel interno.
+  // Admin não ganha aba nova: módulos administrativos entram na Biblioteca.
+  // A face tem 7 telas para qualquer papel interno.
   const carregarAlertas = useServerFn(alertasOps);
   const alertas = useQuery({
     queryKey: ["shell", "alertas-menu"],
@@ -198,7 +200,6 @@ export function SaasShell({
   const badgeDe = (to: string): number => (to === "/casos" ? atrasadasCasos : 0);
 
   // Itens restritos a admin (equipe) só aparecem para admin.
-  // O Desk tem 6 grupos para qualquer papel interno.
   const itens: SecaoNav[] = NAV.map((item) => ({
     ...item,
     sub: item.sub.filter((s) => !("to" in s) || !s.adminOnly || ehAdmin),
@@ -219,27 +220,38 @@ export function SaasShell({
           </p>
         </div>
 
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1" data-face-desk="principal">
           {itens.map((item) => {
-            const { to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
-            const ativo = grupoNavAtivo(rota, hash, item);
-            const expandida = to in abertosManuais ? abertosManuais[to] : desktop && ativo;
+            const { id, to, label, icon: Icon, sub, descricao: descricaoGrupo } = item;
+            const ativo = faceNavAtivo(rota, hash, FACE_DESK.find((f) => f.id === id)!);
+            // Mobile: os 7 itens começam fechados. Submenu só após toque.
+            // Desktop: a tela ativa pode mostrar o contexto interno.
+            const expandida =
+              sub.length > 0 && (id in abertosManuais ? abertosManuais[id] : desktop && ativo);
             return (
-              <div key={to}>
+              <div key={id} data-face-id={id}>
                 <button
                   type="button"
                   title={descricaoGrupo}
+                  data-face-desk={id}
+                  aria-expanded={sub.length ? expandida : undefined}
                   onClick={() => {
+                    if (sub.length === 0) {
+                      void navigate({ to: to as never });
+                      setAberto(false);
+                      return;
+                    }
                     if (ativo) {
                       setAbertosManuais((v) => ({
                         ...v,
-                        [to]: !(to in v ? v[to] : desktop && ativo),
+                        [id]: !(id in v ? v[id] : desktop && ativo),
                       }));
                       return;
                     }
-                    setAbertosManuais((v) => ({ ...v, [to]: true }));
+                    setAbertosManuais((v) => ({ ...v, [id]: true }));
                     void navigate({ to: to as never });
-                    setAberto(false);
+                    // Mobile: a gaveta permanece aberta para o segundo toque
+                    // (Mesa, pessoa, contrato). Só o link folha fecha.
                   }}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors",
@@ -256,9 +268,11 @@ export function SaasShell({
                       {badgeDe(to)}
                     </span>
                   ) : null}
-                  <ChevronDown
-                    className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
-                  />
+                  {sub.length > 0 ? (
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform", expandida ? "" : "-rotate-90")}
+                    />
+                  ) : null}
                 </button>
                 {expandida && sub.length ? (
                   <div className="mb-1 ml-7 space-y-0.5 border-l border-cream/15 pl-3">
@@ -395,8 +409,7 @@ export function SaasShell({
         >
           {children}
         </main>
-        {/* CA-UX-03 (adendo v1.0): Assistente transversal — presente nos 8 grupos,
-            conforme papel e contexto. Não é aba nem fonte de verdade. */}
+        {/* Assistente transversal — presente nas 7 telas. Não é aba nem fonte de verdade. */}
         <AssistenteTransversal papeis={papeis} />
       </div>
     </div>

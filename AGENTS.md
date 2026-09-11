@@ -69,18 +69,12 @@ Migrations versionadas; sem alteração manual de produção como substituto. Va
 
 ## Navegação real — não redesenhar
 
-**Desk: exatamente 8 grupos** em `src/lib/navegacao-desk.ts` (`GRUPOS_DESK`), decisão vinculante. Não fundir, não criar nona aba, não voltar às 7 itens do mockup sem nova decisão da proprietária.
+**Desk — 11/09/2026:** a **face principal** são as **7 telas do mockup** (`FACE_DESK` em `src/lib/navegacao-desk.ts`): Visão Geral · Casos 360 · Checklist · Validação Jurídica · Radar Interno · Alertas · Biblioteca Mestre. Os **6 grupos** (`GRUPOS_DESK`) ficam **recolhidos por dentro** (submenu/contexto). Os 8 grupos **não** voltam como menu. Não apagar rotas. Calls, pessoa, contrato, financeiro, pesquisa e config continuam em até dois cliques.
 
-1. `hoje` — Visão Geral (`/painel`)
-2. `marketing` — Marketing
-3. `comercial` — Comercial
-4. `casos` — Casos 360
-5. `pesquisa` — Pesquisa
-6. `contratos` — Contratos e financeiro (financeiro **não** é grupo separado)
-7. `cliente` — Cliente / App
-8. `governanca` — Biblioteca Mestre
+1. `FACE_DESK` — sempre visível (mockup)
+2. `GRUPOS_DESK` — camada interna: Hoje, Comercial, Casos & Pessoas, Pesquisa, Formalização, Governança
 
-Configuração, equipe e preferências ficam no **menu da conta**, não como 9º grupo.
+Configuração e legado entram no submenu da **Biblioteca Mestre**, não como 8º/9º item.
 
 A “hierarquia de telas” da memória permanente (planner, lista de casos, caso 360, pessoa, documentos, pesquisa, portal, admin) é **prioridade funcional**, não um menu novo.
 
@@ -92,7 +86,7 @@ Rótulo da primeira aba no mockup e em `COPY_TELAS.casos.navegacao`: **Home** (n
 
 Abas extras condicionais (Entregas, Fase 01, Fase 02, Proposta) ainda existem no código — **dívida a retirar da barra**, não expansão da taxonomia. Ver artefato 007 abaixo.
 
-**Mockup vs produção:** o PDF de 17 páginas é normativo visual. O PDF de auditoria de **47 páginas** (`clube-ancestral-mockup-auditoria.pdf`) guia **conteúdo, estados e indicadores** em conjunto com o de 17 — sem redesenhar navegação. Comparativos visuais e telas Lovable arquivados em `docs/evolucao/recuperados/auditoria-mockup-2026-09-11/` e Canvas em `…/ancestral-canvas-2026-09-11/`; destilado em `docs/politicas/ADENDO-MEMORIA-AUDITORIA-MOCKUP-CANVAS-2026-09-11.md`. Prompts em `docs/politicas/PROMPT-*` são **execução** (`ADENDO-PROMPTS-SAO-EXECUCAO-2026-09-11.md`), não arquivo morto. Resgate do produto: `ESTRATEGIA-RESGATE-PRODUTO-CLUBE-ANCESTRAL-2026-09-11.md`. “Aderente” no PDF de comparação **não** é aceite. Grupos Desk = o que `GRUPOS_DESK` define no código; App Cliente = 7 abas.
+**Mockup vs produção:** o PDF de 17 páginas é normativo visual **e a face do Desk**. Barra = `FACE_DESK` (7 telas). `GRUPOS_DESK` (6) = camada interna recolhida. Os 8 grupos não voltam como menu. App Cliente = 7 abas. PDF de auditoria de 47 páginas guia conteúdo/estados, sem criar barra concorrente.
 
 README raiz ainda descreve o protótipo visual antigo (6 abas, dados fictícios). É histórico, não a operação atual.
 
@@ -126,7 +120,7 @@ Texto integral: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA
 - Nenhum agente pode arquivar, reduzir a “histórico” ou declarar “já resolvido, pode arquivar” só porque existe código, PR, teste, migration, mockup ou log.
 - Arquivamento só depois de `COMPROVADO_EM_USO` pela proprietária autenticada (`tati@pluggedresearch.com`), com prints **inicial, ação, confirmação, releitura** e, na cadeia, **integração**. Resultado: `PASSOU` / `FALHOU` / `BLOQUEADO_POR_DADO` / `BLOQUEADO_POR_DECISAO` / `ERRO_DE_FONTE` / `NAO_LOCALIZADO`.
 - Este adendo **não** autoriza alterar dados, contratos, pagamentos, RLS, permissões, migrations, integrações, publicações, mensagens ou merges. Print complementa — não substitui — RLS, auditoria e persistência.
-- “Seis áreas” no adendo **não** cria nona aba. Dívida declarada: `GRUPOS_DESK` nesta linha tem 6 grupos; a memória permanente ainda cita 8. Nenhuma das duas leituras se arquiva até a proprietária certificar a taxonomia.
+- “Seis grupos” são a camada **interna**. A face visível são as **7 telas** do mockup. Os 8 grupos não voltam como menu. Nada disso se arquiva.
 - Contextos de resgate (Discovery, Pessoa 360, Pesquisa, formalização, Radar, App Cliente, RLS etc.) permanecem **ativos** até a prova integrada. Listar um documento como “arquivado” no inventário antigo **não** retira a continuidade.
 
 ## Recuperação (se o produto estiver fragmentado)

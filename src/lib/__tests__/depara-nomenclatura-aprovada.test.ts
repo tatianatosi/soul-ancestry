@@ -12,7 +12,7 @@ import { GRUPOS_DESK, LINKS_CONTEXTUAIS } from "@/lib/navegacao-desk";
  * navegação principal mudou, nunca a URL nem a funcionalidade.
  */
 
-describe("De-para de nomenclatura — Desk usa os 6 grupos na navegação principal", () => {
+describe("De-para de nomenclatura — 6 grupos internos; face = 7 telas do mockup", () => {
   it("expõe os 6 grupos, com rotas de entrada já existentes", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.to)).toEqual([

@@ -1,15 +1,12 @@
 /**
- * NAVEGAÇÃO CANÔNICA DO DESK — 6 grupos, um endereço por função.
+ * NAVEGAÇÃO CANÔNICA DO DESK — 11/09/2026, decisão da proprietária.
  *
- * Três camadas, sem concorrer:
- *   Abas     — definem onde cada função vive.
- *   Mesa     — faz a entrada comercial funcionar (/calls).
- *   KPIs     — mostram o que está parado, vencido ou precisa de decisão (/painel).
+ * Face principal (sempre visível): as 7 telas do mockup aprovado (`FACE_DESK`).
+ * Camada interna (recolhida): 6 grupos (`GRUPOS_DESK`) — metadado, filtro e
+ * submenu. Não são o menu do produto. Os 8 grupos não voltam como barra.
  *
- * Pesquisa e bases moram na Inteligência. Matrizes individual/casal/familiar
- * moram na Formalização. CA-04 mora no Comercial com a Mesa. URLs não mudam.
- * Planilha Mestre, conciliação e SKU legado saem da operação diária e ficam
- * em Governança, rotulados. Nada é apagado nesta rodada.
+ * Nada é apagado: rotas, Calls, contratos, financeiro, pesquisa, pessoas e
+ * governança continuam acessíveis em até dois cliques, no submenu da tela certa.
  */
 
 /** As três camadas do Desk. Não são abas novas. */
@@ -18,7 +15,7 @@ export const CAMADAS_DESK = [
     id: "abas",
     papel: "Onde cada função vive",
     frase: "Abas definem onde cada função vive.",
-    superficie: "os 6 grupos",
+    superficie: "as 7 telas do mockup",
   },
   {
     id: "mesa",
@@ -58,7 +55,7 @@ export type GrupoDesk = {
   sub: readonly ItemNav[];
 };
 
-/** Nomes das 7 telas do mockup — taxonomia visual, não a sidebar. */
+/** Nomes das 7 telas do mockup — esta é a face do Desk. */
 export const TELAS_DESK_MOCKUP = [
   "Visão Geral",
   "Casos 360",
@@ -206,6 +203,176 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
     ],
   },
 ] as const;
+
+export type FaceDeskId =
+  | "visao-geral"
+  | "casos-360"
+  | "checklist"
+  | "validacao-juridica"
+  | "radar-interno"
+  | "alertas"
+  | "biblioteca-mestre";
+
+export type FaceDesk = {
+  id: FaceDeskId;
+  label: (typeof TELAS_DESK_MOCKUP)[number];
+  to: string;
+  descricao: string;
+  icone: FaceDeskId;
+};
+
+/**
+ * Face principal do Desk — 7 telas aprovadas. Sempre visível.
+ * 11/09/2026: não usar 6 abas nem 8 grupos como barra.
+ */
+export const FACE_DESK: readonly FaceDesk[] = [
+  {
+    id: "visao-geral",
+    label: "Visão Geral",
+    to: "/painel",
+    descricao: "KPIs, funil e o que precisa de decisão hoje. Mesa e leads entram daqui.",
+    icone: "visao-geral",
+  },
+  {
+    id: "casos-360",
+    label: "Casos 360",
+    to: "/casos",
+    descricao: "Carteira, pessoa, núcleo e formalização do mesmo caso.",
+    icone: "casos-360",
+  },
+  {
+    id: "checklist",
+    label: "Checklist",
+    to: "/tarefas",
+    descricao: "Tarefas por prioridade, ligadas ao caso.",
+    icone: "checklist",
+  },
+  {
+    id: "validacao-juridica",
+    label: "Validação Jurídica",
+    to: "/matriz-juridica",
+    descricao: "Trilha e marco internos — não é parecer final.",
+    icone: "validacao-juridica",
+  },
+  {
+    id: "radar-interno",
+    label: "Radar Interno",
+    to: "/qualidade",
+    descricao: "Risco e qualidade da carteira, com fonte canônica.",
+    icone: "radar-interno",
+  },
+  {
+    id: "alertas",
+    label: "Alertas",
+    to: "/alertas",
+    descricao: "Prazo, documento e cadência — sempre com pessoa/caso/ação.",
+    icone: "alertas",
+  },
+  {
+    id: "biblioteca-mestre",
+    label: "Biblioteca Mestre",
+    to: "/biblioteca",
+    descricao: "Pesquisa, bases, catálogo e governança em submenu.",
+    icone: "biblioteca-mestre",
+  },
+] as const;
+
+/**
+ * Cada rota interna mora em uma tela da face. Os 6 grupos continuam sendo
+ * o agrupamento de implementação — não uma segunda barra.
+ */
+export const FACE_DA_ROTA: Readonly<Record<string, FaceDeskId>> = {
+  "/painel": "visao-geral",
+  "/marketing": "visao-geral",
+  "/calls": "visao-geral",
+  "/leads": "visao-geral",
+  "/crm-mestre": "visao-geral",
+  "/governanca/dicionario-calls-crm": "visao-geral",
+  "/propostas": "visao-geral",
+  "/conversao": "visao-geral",
+  "/proximas-acoes": "visao-geral",
+  "/casos": "casos-360",
+  "/nucleos": "casos-360",
+  "/nucleos-duplicidades": "casos-360",
+  "/clientes": "casos-360",
+  "/acessos-portal": "casos-360",
+  "/atendimento": "casos-360",
+  "/app-cliente-como-pessoa": "casos-360",
+  "/contratos": "casos-360",
+  "/contrato-parametros": "casos-360",
+  "/ordens-servico": "casos-360",
+  "/governanca/contrato-base": "casos-360",
+  "/governanca/modelo-individual": "casos-360",
+  "/governanca/modelo-familiar-casal": "casos-360",
+  "/governanca/modelos-contratuais": "casos-360",
+  "/financeiro": "casos-360",
+  "/tarefas": "checklist",
+  "/ops": "checklist",
+  "/ops-excecoes": "checklist",
+  "/matriz-juridica": "validacao-juridica",
+  "/qualidade": "radar-interno",
+  "/alertas": "alertas",
+  "/biblioteca": "biblioteca-mestre",
+  "/pesquisa-modulo": "biblioteca-mestre",
+  "/pesquisa": "biblioteca-mestre",
+  "/fontes-genealogicas": "biblioteca-mestre",
+  "/evidencias": "biblioteca-mestre",
+  "/biblioteca-mensagens": "biblioteca-mestre",
+  "/relatorios": "biblioteca-mestre",
+  "/catalogo": "biblioteca-mestre",
+  "/configuracoes": "biblioteca-mestre",
+  "/equipe": "biblioteca-mestre",
+  "/etiquetas": "biblioteca-mestre",
+  "/integracoes": "biblioteca-mestre",
+  "/importacoes": "biblioteca-mestre",
+  "/metricas": "biblioteca-mestre",
+  "/privacidade": "biblioteca-mestre",
+  "/governanca/catalogo-operacional-30": "biblioteca-mestre",
+  "/homologacao-skus": "biblioteca-mestre",
+  "/conciliacao-catalogo": "biblioteca-mestre",
+  "/divergencias-catalogo": "biblioteca-mestre",
+  "/escopo-origem": "biblioteca-mestre",
+};
+
+function compactarCabecalhos(itens: ItemNav[]): ItemNav[] {
+  const out: ItemNav[] = [];
+  for (let i = 0; i < itens.length; i++) {
+    const atual = itens[i]!;
+    if ("grupo" in atual) {
+      const proximo = itens[i + 1];
+      if (proximo && "to" in proximo) out.push(atual);
+      continue;
+    }
+    out.push(atual);
+  }
+  return out;
+}
+
+/** Submenu recolhido da tela da face — rotas já existentes, nada novo. */
+export function internosDaFace(faceId: FaceDeskId): ItemNav[] {
+  const face = FACE_DESK.find((f) => f.id === faceId);
+  const itens: ItemNav[] = [];
+  for (const g of GRUPOS_DESK) {
+    for (const s of g.sub) {
+      if ("grupo" in s) {
+        itens.push(s);
+        continue;
+      }
+      if (FACE_DA_ROTA[s.to] !== faceId) continue;
+      if (face && s.to === face.to && !s.hash) continue;
+      itens.push(s);
+    }
+  }
+  return compactarCabecalhos(itens);
+}
+
+export function faceNavAtivo(atual: string, hashAtual: string, face: FaceDesk): boolean {
+  if (rotaAtendeDestino(atual, face.to) && !hashDaRota(hashAtual)) return true;
+  return internosDaFace(face.id).some((s) => {
+    if (!("to" in s)) return false;
+    return itemNavAtivo(atual, hashAtual, s);
+  });
+}
 
 /**
  * Legado no menu de Governança. Decisão de 10/09/2026: fica aqui agora.

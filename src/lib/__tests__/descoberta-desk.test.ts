@@ -96,7 +96,7 @@ describe("superfícies preservadas", () => {
       "Governança & Administração",
     ];
     for (const g of grupos) expect(navegacao).toContain(`label: "${g}"`);
-    expect(shell).toContain("GRUPOS_DESK");
+    expect(shell).toContain("FACE_DESK");
   });
 
   it("o protótipo antigo saiu do runtime; o mockup aprovado volta como referência (CA-UX-04, revisto 05/09/2026)", () => {

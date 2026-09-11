@@ -12,7 +12,7 @@ import {
   rotasSemLink,
 } from "@/lib/navegacao-desk";
 
-describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas como referência)", () => {
+describe("Desk Intelligence — 6 grupos internos (face = 7 telas do mockup)", () => {
   it("expõe exatamente os 6 grupos, na ordem aprovada", () => {
     expect(GRUPOS_DESK).toHaveLength(6);
     expect(GRUPOS_DESK.map((g) => g.label)).toEqual([...GRUPOS_OPERACIONAIS_DESK]);
@@ -26,7 +26,7 @@ describe("Desk Intelligence — 6 grupos operacionais (mockup de 17 páginas com
     ]);
   });
 
-  it("não volta ao mockup de 14 abas nem às 7 telas como sidebar", () => {
+  it("os 6 grupos internos existem; a face do mockup são as 7 telas, não 14 abas", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).toEqual([
       "hoje",
       "comercial",
