@@ -54,7 +54,7 @@ Não anunciar “feito” se houver apenas código, migration, tela, teste, comm
 | Classificação no mapa | Ação obrigatória |
 |---|---|
 | EXECUTADO | Preservar. Testar somente o fluxo relacionado antes de alterar. Corrigir apenas falha comprovada. |
-| EXECUTADO DOCUMENTAL | Arquivar como referência. Não tratar como implementação nem reexecutar. |
+| EXECUTADO DOCUMENTAL | Manter como contexto ativo. Não tratar como implementação nem reexecutar. Arquivar só depois de `COMPROVADO_EM_USO` (adendo 2026-09-10). |
 | EXECUTADO PARCIALMENTE | Completar apenas a lacuna concreta que impede o fluxo canônico. Não reescrever o módulo. |
 | EXECUTADO NO GIT; NÃO COMPROVADO EM PRODUÇÃO | Colocar em quarentena: verificar se é front-end, migration, RPC ou integração. Não prometer produção até prova de deploy e banco. |
 | PARCIAL | Converter o requisito em uma tarefa de implementação pequena e vertical, priorizada pelo núcleo. |
@@ -288,4 +288,22 @@ Proposta/Condição/OS rastreáveis
 Portal seguro e informação autorizada ao cliente
 ```
 
-Tudo que não fortalece esse circuito deve permanecer em backlog, documentação histórica ou legado isolado até nova decisão explícita.
+Tudo que não fortalece esse circuito deve permanecer em backlog, documentação histórica ou legado isolado até nova decisão explícita. Documentação histórica **não** se arquiva até `COMPROVADO_EM_USO`.
+
+```text
+REGRA DE CONTINUIDADE — CONTEXTO NÃO ARQUIVÁVEL
+
+Nenhum contexto, premissa, decisão, prompt, mockup, matriz, roteiro ou artefato
+vinculado a este fluxo pode ser arquivado, reduzido a histórico ou considerado
+substituído enquanto os motores relacionados não estiverem comprovadamente
+funcionando como um único produto do Clube Ancestral.
+
+A comprovação exige teste executado pela Proprietária autenticada em sua própria
+conta, com print inicial, ação, confirmação, releitura após F5/reabertura e,
+quando aplicável, print de integração com o módulo seguinte. Código, PR, build,
+teste automatizado, log, mockup, preview ou declaração de agente não bastam
+isoladamente.
+
+Resultado permitido: PASSOU, FALHOU, BLOQUEADO_POR_DADO,
+BLOQUEADO_POR_DECISAO, ERRO_DE_FONTE ou NAO_LOCALIZADO.
+```

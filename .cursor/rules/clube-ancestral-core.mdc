@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Clube Ancestral — núcleo (Fase 1)
 
-Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Não altera legado; não inventa tabela.
+Texto irmão: `.cursor/rules/clube-ancestral.mdc`. Adendo de continuidade: `docs/politicas/ADENDO-CONTEXTO-NAO-ARQUIVAVEL-PROVA-AUTENTICADA-2026-09-10.md`. Não altera legado; não inventa tabela.
 
 ## Premissas permanentes
 
@@ -31,4 +31,4 @@ Cliente externo nunca vê nota interna, outro caso ou outro cliente. Esconder na
 ## Peças que não se apagam
 
 - Painel de Calls (`/calls`, `PainelCalls`) é entrada canônica do CRM Vivo. Isolar dicionário/legado não autoriza esconder a rota.
-- Os 8 grupos de `GRUPOS_DESK` permanecem. Não fundir, não criar nona aba.
+- Os 6 grupos de `GRUPOS_OPERACIONAIS_DESK` permanecem. Não fundir, não criar sétima aba de Desk. O texto de 8 grupos é contexto ativo, não menu a restaurar.
