@@ -36,8 +36,8 @@ O Journey sugere `crm_calls`, `crm_interactions`, `opportunities`, `discovery_da
 | Estado | Itens |
 |---|---|
 | **ESTÁVEL** | `/calls` sobre `leads`; SPIN na Mesa; validação lead ativo (área + responsável + próxima ação datada); handoff → pessoa+caso; dicionário CA-04 em `/governanca/dicionario-calls-crm` |
-| **PILOTO** | CTA pós-handoff → registrar/abrir proposta; avisos operacionais claros na UI (pendência informa a proprietária — autoridade operacional); deep-link `?lead=` / `?caso=` em propostas |
-| **BLOQUEADO** (fora desta fatia) | Tabela `crm_calls` / `crm_interactions`; webhooks WhatsApp; Asaas como master; Edge Functions Claude; split monorepo App/Desk; apontar `clubeancestral.com.br` ao Vercel |
+| **PILOTO** | CTA pós-handoff → registrar/abrir proposta; avisos operacionais claros na UI (pendência informa a proprietária — autoridade operacional); deep-link `?lead=` / `?caso=` em propostas; matriz de fases em `/conversao` (`crm-journey-fases.ts`) |
+| **BLOQUEADO** (fora desta fatia) | Tabela `crm_calls` / `crm_interactions`; **envio** WhatsApp via webhook automático (fila/cópia = permitido); Asaas como master; Edge Functions Claude; split monorepo App/Desk; apontar `clubeancestral.com.br` ao Vercel |
 
 ## Regras que não se negociam
 
