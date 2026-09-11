@@ -960,7 +960,10 @@ export function entradaDeValores(input: {
         versao: null,
         produtoSku: val("produto_sku"),
         produtoNome: val("objeto_contrato"),
-        fontePreco: get("valor_total")?.status === "confirmado" ? "planilha_mestre" : (get("valor_total")?.origem ?? null),
+        fontePreco:
+          get("valor_total")?.status === "confirmado"
+            ? "product_catalog"
+            : (get("valor_total")?.origem ?? null),
         valorContratado: val("valor_total"),
         modalidade: val("forma_pagamento"),
         formaPagamento: val("forma_pagamento"),

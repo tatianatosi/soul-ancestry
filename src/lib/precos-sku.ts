@@ -1,36 +1,51 @@
 /**
  * Regra institucional — preço e condição de SKU.
  *
- * Única fonte oficial: Planilha Mestre homologada para SKU ativo.
+ * Fonte oficial viva: `product_catalog` homologado (Desk Intelligence) ou
+ * exceção comercial aprovada e vigente. A Planilha Mestre é LEGADO de
+ * inventário/migração — nunca fonte operacional de runtime.
  * Planejador, WhatsApp, transcrição, template, proposta antiga ou dado manual
  * não valem como preço. Exceção comercial exige aprovação humana, motivo,
  * validade, responsável e auditoria.
+ *
+ * Alinhado a `preco-canonico.ts` e à cadeia Legado → Alimento → Planejador.
  */
 
-export const FONTES_OFICIAIS_PRECO = ["planilha_mestre", "excecao_comercial_aprovada"] as const;
+import { ehFonteLegadoPlanilha, proibirPlanilhaMestreRuntime } from "@/lib/cadeia-catalogo-planejador";
+
+export const FONTES_OFICIAIS_PRECO = ["product_catalog", "excecao_comercial_aprovada"] as const;
 
 export const FONTES_NAO_OFICIAIS_PRECO = [
+  "planilha_mestre",
+  "planilha_mestre_legado",
   "planejador",
   "whatsapp",
   "transcricao",
   "template",
   "proposta_antiga",
   "manual",
+  "price_catalog_rescued",
 ] as const;
 
 export const ROTULO_FONTE_PRECO: Record<string, string> = {
-  planilha_mestre: "Planilha Mestre (homologada)",
+  product_catalog: "Catálogo homologado (Desk Intelligence)",
   excecao_comercial_aprovada: "Exceção comercial aprovada",
+  planilha_mestre: "Planilha Mestre (legado — não operacional)",
+  planilha_mestre_legado: "Planilha Mestre (legado — auditoria histórica)",
   planejador: "Planejador",
   whatsapp: "WhatsApp",
   transcricao: "Transcrição",
   template: "Template",
   proposta_antiga: "Proposta antiga",
   manual: "Dado manual",
+  price_catalog_rescued: "Preço resgatado (referência versionada)",
 };
 
 export function fonteOficialDePreco(origem?: string | null): boolean {
   if (!origem) return false;
+  if (ehFonteLegadoPlanilha(origem)) return false;
+  const gate = proibirPlanilhaMestreRuntime(origem);
+  if (!gate.permitido) return false;
   return (FONTES_OFICIAIS_PRECO as readonly string[]).includes(origem);
 }
 
@@ -97,8 +112,9 @@ export function validarExcecaoComercial(s: SolicitacaoExcecaoComercial): { valid
 }
 
 export const REGRAS_PRECO_SKU = [
-  "Proposta, contrato e checkout só podem usar preço/condição homologados da Planilha Mestre para SKU ativo.",
-  "Planejador, WhatsApp, transcrição, template, proposta antiga ou dado manual não são fontes oficiais de preço.",
+  "Proposta, contrato e checkout só podem usar preço/condição homologados do product_catalog (ou exceção comercial aprovada).",
+  "Planilha Mestre é legado inventariado — nunca fonte operacional de runtime.",
+  "Planejador, WhatsApp, transcrição, template, proposta antiga, preço resgatado ou dado manual não são fontes oficiais de preço.",
   "SKU sem preço/condição homologados não pode gerar valor, cobrança ou checkout.",
   "Exceção comercial exige aprovação humana, motivo, validade, responsável e auditoria.",
   "Asaas recebe somente condição contratual aprovada, com assinatura e gates aplicáveis.",

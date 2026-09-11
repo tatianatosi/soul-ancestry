@@ -78,9 +78,10 @@ describe("despesas de terceiros", () => {
 });
 
 describe("preço de SKU", () => {
-  it("só Planilha Mestre e exceção aprovada são fontes oficiais", () => {
-    expect(fonteOficialDePreco("planilha_mestre")).toBe(true);
+  it("só product_catalog e exceção aprovada são fontes oficiais — Planilha é legado", () => {
+    expect(fonteOficialDePreco("product_catalog")).toBe(true);
     expect(fonteOficialDePreco("excecao_comercial_aprovada")).toBe(true);
+    expect(fonteOficialDePreco("planilha_mestre")).toBe(false);
     for (const f of [
       "planejador",
       "whatsapp",
@@ -88,6 +89,7 @@ describe("preço de SKU", () => {
       "template",
       "proposta_antiga",
       "manual",
+      "price_catalog_rescued",
     ]) {
       expect(fonteOficialDePreco(f)).toBe(false);
     }
@@ -102,7 +104,7 @@ describe("preço de SKU", () => {
     expect(
       bloqueiosDePreco({ ok: false, motivo: "SKU sem preço/condição homologados." }),
     ).toHaveLength(1);
-    expect(bloqueiosDePreco({ ok: true, fonte: "planilha_mestre" })).toEqual([]);
+    expect(bloqueiosDePreco({ ok: true, fonte: "product_catalog" })).toEqual([]);
   });
 });
 

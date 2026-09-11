@@ -676,8 +676,16 @@ export const INVENTARIO_CAPACIDADES_DIA: readonly LinhaCapacidadeDia[] = [
     capacidade: "Financeiro no Desk (leitura)",
     classificacao: "LEITURA_DERIVADA",
     rota: "/financeiro",
-    evidencia: "fila pagamentos_aguardados → somente_leitura",
+    evidencia:
+      "product_catalog + commercial_conditions; price_catalog_rescued só referência; Planilha Mestre = legado",
     lacuna: "Sem criar cobrança/link Asaas",
+  },
+  {
+    capacidade: "Cadeia Legado→Alimento→Planejador→Caso360",
+    classificacao: "OPERACIONAL",
+    rota: "/painel",
+    evidencia: "cadeia-catalogo-planejador.ts + planner_catalog_feed + case_plans",
+    lacuna: "research_base / legal_gate / family_branch pendentes de decisão",
   },
   {
     capacidade: "Contrato/OS preparação interna",
@@ -743,3 +751,137 @@ export function chavesAlinhadasComConsolidacao(
 }
 
 export const SISTEMA_DIA_NUNCA_ESCREVE_EXTERNO = true as const;
+
+/* ------------------------------------------------------------------ */
+/* Projeção CRM Vivo / higiene / radar jurídico (leitura)              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * CRM Vivo e Painel Hoje são projeção operacional do Caso 360
+ * (planejador + trilhas + condição), não cópia de Planilha Mestre nem de SKU.
+ */
+export const CRM_VIVO_E_PROJECAO_DO_CASO_360 =
+  "CRM Vivo / Painel Hoje = projeção do Caso 360 (case_plans + trilhas + condição). Não é cópia da Planilha Mestre nem catálogo de SKU." as const;
+
+export type EntradaRadarJuridico = {
+  trackId: string;
+  pais: string;
+  via: string | null;
+  marcoTitulo: string | null;
+  statusRegra: string | null;
+  casosPotencialmenteAfetados: number;
+  responsavelRevisao: string | null;
+  demo?: boolean;
+};
+
+export type ItemRadarJuridico = ItemOperacionalDia & {
+  trackId: string;
+  pais: string;
+};
+
+/**
+ * Radar de marcos jurídicos — somente leitura. Nunca conclui elegibilidade
+ * nem dispara cobrança. Demo/teste ficam de fora por padrão.
+ */
+export function derivarRadarJuridicoPainel(
+  entradas: readonly EntradaRadarJuridico[],
+  opcoes?: { incluirDemo?: boolean; hoje?: string },
+): ItemRadarJuridico[] {
+  const hoje = opcoes?.hoje ?? hojeISO();
+  return entradas
+    .filter((e) => opcoes?.incluirDemo || !e.demo)
+    .filter((e) => e.marcoTitulo || e.statusRegra)
+    .map((e) => {
+      const precisaRevisao =
+        e.statusRegra === "em_revisao" || e.statusRegra === "pendente" || !e.marcoTitulo;
+      const base = {
+        id: `trilha:${e.trackId}`,
+        categoria: "gates_ativacao_formalizacao" as const,
+        prioridade: PRECEDENCIA_CATEGORIA.gates_ativacao_formalizacao,
+        estado: (precisaRevisao ? "em_atencao" : "pendente") as EstadoItemOperacional,
+        objetoTipo: "caso" as const,
+        objetoId: e.trackId,
+        rotulo: `${e.pais}${e.via ? ` · ${e.via}` : ""}`,
+        motivo: e.marcoTitulo
+          ? `Marco: ${e.marcoTitulo} (${e.statusRegra ?? "sem status"})`
+          : "Trilha sem marco jurídico vinculado — revisão humana",
+        evidencia: `citizenship_tracks:${e.trackId} → versioned_legal_rules`,
+        atualizadoEm: hoje,
+        responsavel: e.responsavelRevisao,
+        prazo: null,
+        regraPrazo: "revisão normativa — sem prazo automático",
+        proximaAcao: precisaRevisao
+          ? "Abrir validação jurídica da trilha (não conclui elegibilidade)"
+          : "Monitorar marco — sem ação automática",
+        rotaDestino: "/biblioteca",
+        tipoAcao: "somente_leitura" as const,
+        origem: (e.demo ? "demo" : "real") as IndicadorOrigem,
+        dependeDe: null,
+        classificacao: "LEITURA_DERIVADA" as const,
+      };
+      return { ...base, trackId: e.trackId, pais: e.pais };
+    });
+}
+
+export type EntradaHigienePreco = {
+  chave: string;
+  countryCode: string | null;
+  amount: number | null;
+  priceStatus: string;
+  caseOnly: boolean;
+  notes: string | null;
+};
+
+/**
+ * Higiene de preço resgatado no Painel: divergências e pendências aparecem
+ * como falha de dado / financeiro somente_leitura — nunca CTA de cobrança.
+ */
+export function derivarHigienePrecoPainel(
+  entradas: readonly EntradaHigienePreco[],
+  opcoes?: { hoje?: string },
+): ItemOperacionalDia[] {
+  const hoje = opcoes?.hoje ?? hojeISO();
+  return entradas
+    .filter((e) =>
+      ["DIVERGENTE", "PENDENTE_DE_HOMOLOGACAO", "CONDICAO_PARTICULAR_DE_CASO"].includes(e.priceStatus),
+    )
+    .map((e) => ({
+      id: `preco:${e.chave}`,
+      categoria:
+        e.priceStatus === "DIVERGENTE"
+          ? ("falhas_dado_integracao" as const)
+          : ("financeiro_reconciliacao" as const),
+      prioridade:
+        e.priceStatus === "DIVERGENTE"
+          ? PRECEDENCIA_CATEGORIA.falhas_dado_integracao
+          : PRECEDENCIA_CATEGORIA.financeiro_reconciliacao,
+      estado: (e.priceStatus === "DIVERGENTE" ? "critico" : "em_atencao") as EstadoItemOperacional,
+      objetoTipo: "sistema" as const,
+      objetoId: e.chave,
+      rotulo: `Preço ${e.countryCode ?? e.chave} · ${e.priceStatus}`,
+      motivo: e.notes ?? `Status ${e.priceStatus} — não expor em oferta/link`,
+      evidencia: `price_catalog_rescued:${e.chave}`,
+      atualizadoEm: hoje,
+      responsavel: "Proprietária / catálogo",
+      prazo: null,
+      regraPrazo: null,
+      proximaAcao:
+        e.priceStatus === "CONDICAO_PARTICULAR_DE_CASO"
+          ? "Manter isolada do catálogo — só condição do caso"
+          : "Revisar divergência/pendência sem promover a HOMOLOGADO_CATALOGO nesta fatia",
+      rotaDestino: "/divergencias-catalogo",
+      tipoAcao: "somente_leitura" as const,
+      origem: "pendente_de_dado" as const,
+      dependeDe: "homologação explícita da Proprietária",
+      classificacao: "LEITURA_DERIVADA" as const,
+    }));
+}
+
+/** Demo/teste fora de KPI e fila operacional por padrão. */
+export function excluirDemoDaFilaOperacional(
+  itens: readonly ItemOperacionalDia[],
+  incluirDemo = false,
+): ItemOperacionalDia[] {
+  if (incluirDemo) return [...itens];
+  return itens.filter((i) => i.origem !== "demo" && !/demo|demonstra|fixture|teste/i.test(i.rotulo));
+}

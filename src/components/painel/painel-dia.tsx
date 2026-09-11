@@ -1034,6 +1034,10 @@ export function PainelDia() {
             Conversão e saúde comercial
           </Link>
         </div>
+        <p className="mt-1 text-[11px] text-navy/50" data-crm-vivo-projecao>
+          CRM Vivo / Painel = projeção do Caso 360 (planejador + trilhas + condição). Não lê Planilha
+          Mestre em runtime; preços resgatados só como referência versionada.
+        </p>
         <p data-painel-resumo="comercial" className="mt-3 text-sm text-navy">
           <Link to="/conversao" className="text-navy underline underline-offset-2">
             {fraseComercialHoje(

@@ -173,9 +173,9 @@ describe("P0 — motor contratual executável", () => {
   });
 
   it("13. preço não vem de WhatsApp, transcrição, template ou valor livre", () => {
-    for (const f of ["whatsapp", "transcricao", "template", "manual", null])
+    for (const f of ["whatsapp", "transcricao", "template", "manual", "planilha_mestre", null])
       expect(precoDeFonteHomologada(f)).toBe(false);
-    for (const f of ["planilha_mestre", "planejador_homologado", "sku_homologado"])
+    for (const f of ["product_catalog", "excecao_comercial_aprovada", "sku_homologado"])
       expect(precoDeFonteHomologada(f)).toBe(true);
     const e = clone();
     const anexo = anexoIOrdemServico({

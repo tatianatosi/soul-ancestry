@@ -45,7 +45,7 @@ const PROPOSTA: PropostaVinculada = {
   versao: "v1",
   produtoSku: "SKU-TESTE-000",
   produtoNome: "Produto de teste",
-  fontePreco: "planilha_mestre",
+  fontePreco: "product_catalog",
   valorContratado: "R$ 0,00",
   modalidade: "Por etapas",
   formaPagamento: "Pix",
@@ -295,7 +295,7 @@ describe("Anexos III, IV e V", () => {
     expect(
       escopoVigenteAposAlteracao("Escopo A", {
         ...alteracao,
-        fonteNovoValor: "planilha_mestre",
+        fonteNovoValor: "product_catalog",
         aceiteRegistrado: true,
         aceiteEvidencia: "aceite registrado",
       }),

@@ -197,7 +197,7 @@ export const ENTRADA_TESTE_ANEXOS: EntradaAnexosIaV = {
     versao: "v1",
     produtoSku: "SKU-TESTE-000",
     produtoNome: "Produto de teste",
-    fontePreco: "planilha_mestre",
+    fontePreco: "product_catalog",
     valorContratado: "R$ 0,00 (teste)",
     modalidade: "Por etapas",
     formaPagamento: "Pix",

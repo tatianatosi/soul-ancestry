@@ -135,7 +135,12 @@ export const REGRA_COMERCIAL_APLICACAO = [
   "SKU sem preço/condição homologados não gera valor nem cobrança.",
 ];
 
-export const FONTES_PRECO_HOMOLOGADAS = ["planilha_mestre", "planejador_homologado", "sku_homologado"] as const;
+/** Fontes homologadas de preço operacional — Planilha Mestre é legado, não entra. */
+export const FONTES_PRECO_HOMOLOGADAS = [
+  "product_catalog",
+  "excecao_comercial_aprovada",
+  "sku_homologado",
+] as const;
 
 /** Template, WhatsApp, transcrição e preenchimento livre nunca definem preço. */
 export function precoDeFonteHomologada(fonte?: string | null): boolean {

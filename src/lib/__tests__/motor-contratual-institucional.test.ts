@@ -145,7 +145,8 @@ describe("Motor contratual institucional", () => {
     ]) {
       expect(precoDeFonteHomologada(f)).toBe(false);
     }
-    expect(precoDeFonteHomologada("planilha_mestre")).toBe(true);
+    expect(precoDeFonteHomologada("product_catalog")).toBe(true);
+    expect(precoDeFonteHomologada("planilha_mestre")).toBe(false);
     const entrada = {
       ...ENTRADA_TESTE_ANEXOS,
       proposta: { ...ENTRADA_TESTE_ANEXOS.proposta!, fontePreco: "whatsapp" },
@@ -165,7 +166,7 @@ describe("Motor contratual institucional", () => {
         sku: "SKU-1",
         precoHomologado: null,
         condicaoHomologada: "à vista",
-        fonte: "planilha_mestre",
+        fonte: "product_catalog",
       }).ok,
     ).toBe(false);
     expect(
@@ -173,7 +174,7 @@ describe("Motor contratual institucional", () => {
         sku: "SKU-1",
         precoHomologado: "R$ 1",
         condicaoHomologada: null,
-        fonte: "planilha_mestre",
+        fonte: "product_catalog",
       }).ok,
     ).toBe(false);
     expect(
@@ -181,9 +182,17 @@ describe("Motor contratual institucional", () => {
         sku: "SKU-1",
         precoHomologado: "R$ 1",
         condicaoHomologada: "à vista",
-        fonte: "planilha_mestre",
+        fonte: "product_catalog",
       }).ok,
     ).toBe(true);
+    expect(
+      skuPodeGerarValor({
+        sku: "SKU-1",
+        precoHomologado: "R$ 1",
+        condicaoHomologada: "à vista",
+        fonte: "planilha_mestre",
+      }).ok,
+    ).toBe(false);
   });
 
   it("10. despesa de terceiro é segregada de caixa e cobrança do Clube", () => {
