@@ -169,6 +169,7 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
       { to: "/integracoes", label: "Integrações" },
       { to: "/importacoes", label: "Importações e migração" },
       { to: "/metricas", label: "Métricas comerciais e operacionais" },
+      { to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" },
       { grupo: "Dicionários e arquivo" },
       { to: "/crm-mestre", label: "CRM Mestre — mapa de regras (não é fila)" },
       { to: "/governanca/dicionario-calls-crm", label: "Dicionário Calls → CRM" },
@@ -182,8 +183,9 @@ export const GRUPOS_DESK: readonly GrupoDesk[] = [
 ] as const;
 
 /**
- * Menu da conta — só a sessão DEMO. Equipe, configurações e legado moram
- * em Governança & Administração. Não é nona aba.
+ * Menu da conta — vazio por enquanto. Equipe, configurações, legado e a
+ * sessão DEMO moram em Governança & Administração. Não é nona aba e não é a
+ * aba Conta do App Cliente (`/portal/conta`).
  */
 export const MENU_CONTA: {
   id: "conta";
@@ -193,8 +195,8 @@ export const MENU_CONTA: {
 } = {
   id: "conta",
   label: "Conta e administração",
-  descricao: "Sessão DEMO do App Cliente — dado fictício, fora da operação.",
-  itens: [{ to: "/app-cliente-demo", label: "Sessão demo do App Cliente (dado fictício)" }],
+  descricao: "Preferências da sessão. Administração e DEMO moram em Governança.",
+  itens: [],
 } as const;
 
 /**

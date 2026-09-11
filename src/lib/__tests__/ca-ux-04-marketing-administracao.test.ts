@@ -37,8 +37,9 @@ describe("CA-UX-04 — navegação", () => {
   });
 
   it("mantém rotas administrativas em Governança, com permissão preservada", () => {
-    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
+    expect(rotasDoMenuConta()).toEqual([]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     for (const r of ["/equipe", "/configuracoes", "/etiquetas"]) {
       expect(rotas).toContain(r);

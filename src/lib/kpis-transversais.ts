@@ -46,7 +46,7 @@ export type SuperficieClassificada = {
 
 /**
  * Cada atalho do menu. visivelNoFluxoDiario=false = sai do cockpit operacional
- * e permanece só em Governança/conta. A rota continua no repositório.
+ * e permanece só em Governança. A rota continua no repositório.
  */
 export const CLASSIFICACAO_SUPERFICIES: readonly SuperficieClassificada[] = [
   { rota: "/painel", rotulo: "Painel Hoje", aba: "hoje", natureza: "FILA", abaProprietaria: "hoje", visivelNoFluxoDiario: true },
@@ -105,7 +105,7 @@ export const CLASSIFICACAO_SUPERFICIES: readonly SuperficieClassificada[] = [
   { rota: "/metricas", rotulo: "Métricas", aba: "governanca", natureza: "METRICA_AGREGADA", abaProprietaria: "governanca", visivelNoFluxoDiario: false },
   { rota: "/governanca/catalogo-operacional-30", rotulo: "Catálogo 30", aba: "governanca", natureza: "LEGADO", abaProprietaria: "governanca", visivelNoFluxoDiario: false },
 
-  { rota: "/app-cliente-demo", rotulo: "Sessão DEMO", aba: "conta", natureza: "DEMO_LOCAL", abaProprietaria: "conta", visivelNoFluxoDiario: false },
+  { rota: "/app-cliente-demo", rotulo: "Sessão DEMO", aba: "governanca", natureza: "DEMO_LOCAL", abaProprietaria: "governanca", visivelNoFluxoDiario: false },
 ];
 
 export type KpiTransversal = {

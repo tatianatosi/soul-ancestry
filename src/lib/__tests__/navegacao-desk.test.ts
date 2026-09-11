@@ -58,14 +58,15 @@ describe("Navegação do Desk — 6 grupos operacionais", () => {
     expect(GRUPOS_DESK.map((g) => g.id)).not.toContain("visao-geral");
   });
 
-  it("menu da conta só tem a sessão DEMO; administração mora em Governança", () => {
-    expect(rotasDoMenuConta()).toEqual(["/app-cliente-demo"]);
+  it("menu da conta fica vazio; administração e DEMO moram em Governança", () => {
+    expect(rotasDoMenuConta()).toEqual([]);
     const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
     const rotas = gov.sub.filter((s) => "to" in s).map((s) => s.to);
     expect(rotas).toContain("/configuracoes");
     expect(rotas).toContain("/equipe");
     expect(rotas).toContain("/governanca/catalogo-operacional-30");
     expect(rotas).toContain("/crm-mestre");
+    expect(rotas).toContain("/app-cliente-demo");
   });
 
   it("Validação Jurídica mora na Inteligência; Radar Interno mora em Pessoas & Casos", () => {

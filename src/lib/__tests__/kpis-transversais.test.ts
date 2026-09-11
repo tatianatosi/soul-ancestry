@@ -31,7 +31,12 @@ describe("Entrega 1 — classificação das superfícies", () => {
         expect(menuOperacional.has(s.rota)).toBe(false);
       }
     }
-    expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
+    expect(
+      GRUPOS_DESK.find((g) => g.id === "governanca")!.sub.some(
+        (s) => "to" in s && s.to === "/app-cliente-demo",
+      ),
+    ).toBe(true);
+    expect(MENU_CONTA.itens.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(false);
   });
 
   it("toda rota classificada como visível no fluxo diário tem link de menu", () => {

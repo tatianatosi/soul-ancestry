@@ -88,8 +88,13 @@ describe("o link morto do espelho no menu", () => {
     expect(json).not.toContain('"espelho"');
   });
 
-  it("a sessão demo saiu do grupo Cliente e mora no menu da conta", () => {
-    expect(JSON.stringify(GRUPOS_DESK)).not.toContain("/app-cliente-demo");
-    expect(JSON.stringify(MENU_CONTA)).toContain("/app-cliente-demo");
+  it("a sessão demo não entra na Conta do App Cliente; mora em Governança", () => {
+    expect(abas).not.toContain("/app-cliente-demo");
+    expect(JSON.stringify(MENU_CONTA)).not.toContain("/app-cliente-demo");
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
+    expect(GRUPOS_DESK.find((g) => g.id === "casos")!.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(
+      false,
+    );
   });
 });

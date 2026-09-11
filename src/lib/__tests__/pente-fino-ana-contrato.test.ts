@@ -51,7 +51,9 @@ describe("pente-fino visual — legado fora da face do produto", () => {
     expect(rotasCasos).toContain("/app-cliente-como-pessoa");
     const conta = MENU_CONTA.itens.filter((i) => "to" in i).map((i) => i.to);
     expect(conta).not.toContain("/pesquisa");
-    expect(conta).toContain("/app-cliente-demo");
+    expect(conta).not.toContain("/app-cliente-demo");
+    const gov = GRUPOS_DESK.find((g) => g.id === "governanca")!;
+    expect(gov.sub.some((s) => "to" in s && s.to === "/app-cliente-demo")).toBe(true);
   });
 
   it("App Cliente: Home, 7 abas, sem Entregas/Fase na barra", () => {

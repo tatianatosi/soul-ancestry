@@ -316,29 +316,31 @@ export function SaasShell({
             );
           })}
         </nav>
-        <div className="mt-4 border-t border-cream/15 pt-3">
-          <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
-            {MENU_CONTA.label}
-          </p>
-          {MENU_CONTA.itens
-            .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s)
-            .filter((s) => !s.adminOnly || ehAdmin)
-            .map((s) => (
-              <Link
-                key={s.to}
-                to={s.to}
-                onClick={() => setAberto(false)}
-                className={cn(
-                  "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                  rotaAtendeDestino(rota, s.to)
-                    ? "bg-cream/15 text-cream font-medium"
-                    : "text-cream/65 hover:bg-cream/10",
-                )}
-              >
-                {s.label}
-              </Link>
-            ))}
-        </div>
+        {MENU_CONTA.itens.some((s) => "to" in s) ? (
+          <div className="mt-4 border-t border-cream/15 pt-3">
+            <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
+              {MENU_CONTA.label}
+            </p>
+            {MENU_CONTA.itens
+              .filter((s): s is { to: string; label: string; adminOnly?: boolean } => "to" in s)
+              .filter((s) => !s.adminOnly || ehAdmin)
+              .map((s) => (
+                <Link
+                  key={s.to}
+                  to={s.to}
+                  onClick={() => setAberto(false)}
+                  className={cn(
+                    "block rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                    rotaAtendeDestino(rota, s.to)
+                      ? "bg-cream/15 text-cream font-medium"
+                      : "text-cream/65 hover:bg-cream/10",
+                  )}
+                >
+                  {s.label}
+                </Link>
+              ))}
+          </div>
+        ) : null}
         <div className="mt-4 border-t border-cream/15 pt-3 text-xs text-cream/70">
           <p className="truncate font-medium text-cream">{contexto?.perfil?.email ?? "—"}</p>
           <p className="truncate">{contexto?.organizacao?.nome ?? "—"}</p>
