@@ -80,7 +80,22 @@ export function PainelOnboardingJornada() {
               {data.casos.slice(0, 25).map((c) => (
                 <tr key={c.case_id} className="border-t border-navy/5 align-top">
                   <td className="py-2 pr-3 font-medium text-navy">
-                    {c.codigo ?? c.case_id.slice(0, 8)}
+                    <div className="flex flex-col gap-1">
+                      <Link
+                        to="/casos/$caseId"
+                        params={{ caseId: c.case_id }}
+                        className="underline underline-offset-2"
+                      >
+                        {c.codigo ?? c.case_id.slice(0, 8)}
+                      </Link>
+                      <Link
+                        to="/onboarding/$id"
+                        params={{ id: c.case_id }}
+                        className="text-[11px] font-normal text-navy/60 underline underline-offset-2"
+                      >
+                        Abrir onboarding / jornada
+                      </Link>
+                    </div>
                   </td>
                   <td className="py-2 pr-3 text-navy/70">{rotulo(ESTADO_DERIVADO, c.estado)}</td>
                   <td className="py-2 pr-3 text-navy/70">{c.diagnostico.replace(/_/g, " ")}</td>

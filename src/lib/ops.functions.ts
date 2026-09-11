@@ -148,13 +148,13 @@ export const alertasOps = createServerFn({ method: "GET" })
     const [tarefas, micro] = await Promise.all([
       supabase
         .from("v_ops_tarefas")
-        .select("id,titulo,status,prioridade,prazo,sla_prazo_em,sla_status,responsavel_id,caso_codigo")
+        .select("id,titulo,status,prioridade,prazo,sla_prazo_em,sla_status,responsavel_id,caso_id,caso_codigo")
         .eq("organization_id", ctx.organizationId)
         .is("archived_at", null)
         .not("status", "in", "(concluida,cancelada)"),
       supabase
         .from("v_ops_microentregas")
-        .select("id,titulo,status,prazo,prazo_status,responsavel_id,caso_codigo,fase")
+        .select("id,titulo,status,prazo,prazo_status,responsavel_id,caso_id,caso_codigo,fase")
         .eq("organization_id", ctx.organizationId)
         .is("archived_at", null)
         .not("status", "in", "(concluida,cancelada)"),

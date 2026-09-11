@@ -21,6 +21,7 @@ import {
   RESULTADOS_DISCOVERY,
   STATUS_CALL,
   rotulo,
+  validarLead,
   type LeadDesk,
   type Opcao,
 } from "@/lib/crm-desk";
@@ -240,6 +241,11 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const [candidatosCliente, setCandidatosCliente] = useState<
     Array<{ id: string; nome: string; motivo: string }>
   >([]);
+  const [posHandoff, setPosHandoff] = useState<{
+    casoId: string;
+    clienteId: string;
+    codigoCaso: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (leadIdInicial) setSelecionado(leadIdInicial);
@@ -269,6 +275,9 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
   const leadBase = visiveis.find((l) => l.id === selecionado) ?? null;
   const lead = leadBase ? ({ ...leadBase, ...rascunho } as LeadDesk) : null;
   const avaliacao = lead ? avaliarHandoffCall(lead) : null;
+  const errosValidacao = lead ? validarLead(lead) : [];
+  const casoCircuito = posHandoff?.casoId ?? lead?.case_id ?? null;
+  const clienteCircuito = posHandoff?.clienteId ?? lead?.cliente_id ?? null;
 
   const opcoesTrilhas: Opcao[] = trilhas.map((t: any) => ({
     valor: t.id,
@@ -378,13 +387,17 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
         r.codigoCaso ? `código ${r.codigoCaso}` : null,
       ].filter(Boolean);
       setAviso(
-        `Handoff gravado: ${partes.join(" · ")}. Abrindo Propostas — o handoff cria pessoa e caso; a proposta comercial é o próximo passo.`,
+        `Handoff gravado: ${partes.join(" · ")}. Circuito comercial: abra a proposta, o caso ou o onboarding — não é só um KPI.`,
       );
+      setPosHandoff({
+        casoId: r.casoId,
+        clienteId: r.clienteId,
+        codigoCaso: r.codigoCaso ?? null,
+      });
       void qc.invalidateQueries({ queryKey: ["leads-desk"] });
       void qc.invalidateQueries({ queryKey: ["painel-desk-hoje"] });
       void qc.invalidateQueries({ queryKey: ["painel-cadencia"] });
       void refetch();
-      void navegar({ to: "/propostas" });
     },
     onError: (e: Error) => setAviso(e.message),
   });
@@ -835,6 +848,62 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
                       className="text-xs text-navy/60 underline"
                     >
                       Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {errosValidacao.length ? (
+                <div className={`${CARTAO} space-y-1 border-terracotta/40 bg-terracotta/5`}>
+                  <p className="text-sm font-medium text-navy">Validação do lead ativo</p>
+                  <ul className="space-y-1 text-xs text-terracotta">
+                    {errosValidacao.map((e) => (
+                      <li key={`${e.campo}-${e.motivo}`}>
+                        <strong>{e.campo}</strong>: {e.motivo}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {casoCircuito ? (
+                <div className={`${CARTAO} space-y-2 border-gold/40 bg-gold/5`}>
+                  <p className="text-sm font-medium text-navy">
+                    Circuito pós-Discovery — sistema, não indicador
+                  </p>
+                  <p className="text-xs text-navy/65">
+                    Handoff com destino proposta exige abrir a proposta comercial e seguir o caso/onboarding.
+                    {posHandoff?.codigoCaso ? ` Código ${posHandoff.codigoCaso}.` : ""}
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <Link
+                      to="/casos/$caseId"
+                      params={{ caseId: casoCircuito }}
+                      className="rounded-lg border border-navy/20 bg-white px-3 py-1.5 text-navy hover:bg-navy/5"
+                    >
+                      Abrir caso 360
+                    </Link>
+                    <Link
+                      to="/onboarding/$id"
+                      params={{ id: casoCircuito }}
+                      className="rounded-lg border border-navy/20 bg-white px-3 py-1.5 text-navy hover:bg-navy/5"
+                    >
+                      Abrir onboarding / jornada
+                    </Link>
+                    <Link
+                      to="/propostas"
+                      className="rounded-lg border border-gold bg-gold/20 px-3 py-1.5 font-medium text-navy hover:bg-gold/30"
+                    >
+                      Abrir propostas{clienteCircuito ? " (cliente do handoff)" : ""}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void navegar({ to: "/casos/$caseId", params: { caseId: casoCircuito } })
+                      }
+                      className="text-navy/60 underline"
+                    >
+                      Ir direto ao caso
                     </button>
                   </div>
                 </div>

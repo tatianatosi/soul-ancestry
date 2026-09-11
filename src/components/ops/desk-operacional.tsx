@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useAutoridade } from "@/components/saas/autoridade";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -34,6 +35,17 @@ import { cn } from "@/lib/utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Linha = Record<string, any>;
+
+function EloCaso({ linha }: { linha: Linha }) {
+  const id = linha["caso_id"] as string | null | undefined;
+  const codigo = (linha["caso_codigo"] as string | null | undefined) ?? "sem caso";
+  if (!id) return <span>{codigo}</span>;
+  return (
+    <Link to="/casos/$caseId" params={{ caseId: id }} className="underline underline-offset-2">
+      {codigo}
+    </Link>
+  );
+}
 
 const ABAS = [
   { id: "painel", rotulo: "Painel OPS" },
@@ -205,7 +217,7 @@ export function DeskOperacional() {
           <ul className="mt-1 space-y-1 text-sm">
             {alertas.data!.atrasadas.slice(0, 5).map((t: Linha) => (
               <li key={t["id"]}>
-                Atrasada: {t["titulo"]} · {t["caso_codigo"] ?? "sem caso"} · prazo {dataBr(t["prazo"])}
+                Atrasada: {t["titulo"]} · <EloCaso linha={t} /> · prazo {dataBr(t["prazo"])}
               </li>
             ))}
             {alertas.data!.emRisco.slice(0, 5).map((t: Linha) => (
@@ -213,7 +225,7 @@ export function DeskOperacional() {
             ))}
             {alertas.data!.microAtrasadas.slice(0, 5).map((m: Linha) => (
               <li key={m["id"]}>
-                Micro-entrega atrasada: {m["titulo"]} · {m["caso_codigo"] ?? "sem caso"}
+                Micro-entrega atrasada: {m["titulo"]} · <EloCaso linha={m} />
               </li>
             ))}
           </ul>
@@ -369,7 +381,7 @@ export function DeskOperacional() {
                   <Selo texto={ROTULO_SLA[t["sla_status"]] ?? t["sla_status"]} tom={tomSla(t["sla_status"])} />
                 </div>
                 <p className="mt-1 text-xs text-navy/60">
-                  {t["caso_codigo"] ?? "sem caso"} · {nomePessoa(t["responsavel_id"])} · prazo {dataBr(t["prazo"])} ·
+                  <EloCaso linha={t} /> · {nomePessoa(t["responsavel_id"])} · prazo {dataBr(t["prazo"])} ·
                   SLA até {dataBr(t["sla_prazo_em"])}
                 </p>
                 {t["status"] === "bloqueada" && (
@@ -434,7 +446,7 @@ export function DeskOperacional() {
                     >
                       <p className="font-medium">{t["titulo"]}</p>
                       <p className="text-navy/50">
-                        {t["caso_codigo"] ?? "sem caso"} · {nomePessoa(t["responsavel_id"])}
+                        <EloCaso linha={t} /> · {nomePessoa(t["responsavel_id"])}
                       </p>
                       <p className="text-navy/50">Prazo {dataBr(t["prazo"])}</p>
                       {podeEscrever && (
@@ -480,7 +492,7 @@ export function DeskOperacional() {
                   <Selo texto={ROTULO_SLA[m["prazo_status"]] ?? m["prazo_status"]} tom={tomSla(m["prazo_status"])} />
                 </div>
                 <p className="mt-1 text-xs text-navy/60">
-                  {m["caso_codigo"] ?? "sem caso"} · {nomePessoa(m["responsavel_id"])} · prazo {dataBr(m["prazo"])}
+                  <EloCaso linha={m} /> · {nomePessoa(m["responsavel_id"])} · prazo {dataBr(m["prazo"])}
                 </p>
                 <p className="mt-1 text-xs text-navy/60">
                   Critério de aceite: {m["criterio_aceite"] || "não preenchido"}
