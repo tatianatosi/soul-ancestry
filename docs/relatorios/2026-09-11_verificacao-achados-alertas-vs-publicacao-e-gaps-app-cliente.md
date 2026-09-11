@@ -62,14 +62,16 @@ Prova recente: ambiente D em `2026-09-11_registro-prova-autenticada.md`.
 | Home: resumo + próxima ação | **Parcial** — título do caso + próximo passo; sem blocos ricos do mockup |
 | Home: achados recentes | **Parcial** — reusa fatia de `app_projections` (não achados genealógicos) |
 | Home: radar 4 eixos + timeline dupla | **Ausente** na Home (prompt Lovable pedia ambos na Home) |
-| Jornada: **timeline dupla** (operacional + familiar/genealógica via `case_timeline_events`) | **Ausente** — uma lista única de projeções `marco` |
-| Jornada: linha do tempo ancestral 1820–2024 | **Ausente** (taxonomia Tela 2) |
-| Radar: 6 dimensões (print atual) vs 4 eixos canônicos (`radar-eixos.ts`) | **Drift** — UI Radar mostra 6; lib canônica de portal ainda fala em 4 |
-| Árvore estruturada G1–G5 | **Ausente** — só texto de projeção `arvore` |
-| Documentos: checklist / ação necessária / biblioteca | **Parcial** — preparado vs compartilhado; sem checklist rico do mockup |
-| Legado com conteúdo publicado | **Gap estrutural** — tela + copy; cano Desk→portal frágil |
-| Entregas / Fase 01–02 | Rotas profundas; conteúdo estático / sem RLS portal em `client_deliverables` |
-| Publicação Desk→Jornada/Árvore | **Existe** o atalho em Atendimento + Biblioteca de evidências/projeções — **não** o elo achado |
+| Jornada: **timeline dupla** (operacional + familiar/genealógica via `case_timeline_events`) | **Ausente** no portal — uma lista única de projeções `marco`. UI dual só em mockup/fixture (`cliente-mockup.tsx`). Desk grava timeline; **portal não lê** `case_timeline_events`. |
+| Jornada: linha do tempo ancestral 1820–2024 + União de Ramos | **Ausente** |
+| Radar: 6 dimensões | **Feito** (`radar-seis-eixos`); empty em 0% = honesto |
+| Radar vs lib 4 eixos | Módulo legado `radar-eixos.ts` / `radarSanitizado` — **não** é a aba Radar atual |
+| Árvore estruturada G1–G5 | **Ausente** — só texto de projeção `arvore`; `genealogical_*` sem policy portal |
+| Documentos: liberados + enviados | **Parcial** — checklist/upload na aba Documentos **faltam** (upload vive em `/portal/casos/$id`) |
+| Legado com conteúdo publicado | **Parcial** — lê tipo `legado`; Desk `publicarProjecaoApp` só marco/árvore |
+| Conta: plano/alertas/família | **Ausente** — titular + acesso (+ faturas se houver) |
+| Entregas / Fase 01–02 | Rotas profundas; filtros de projeção; `client_deliverables` bloqueado |
+| Publicação Desk→Jornada/Árvore | Atalho Atendimento + Biblioteca de evidências — **não** o elo achado→App |
 
 ## 5. Mapa mental (como deveria ler)
 
