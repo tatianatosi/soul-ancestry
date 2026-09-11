@@ -194,7 +194,7 @@ function CasosPage() {
   return (
     <SaasShell
       titulo="Casos 360"
-      descricao="Comercial, formalização, financeiro e operação são eixos independentes. Hipótese de elegibilidade é sempre provisória e ativação depende de gates validados no servidor."
+      descricao="Comercial, formalização, financeiro e operação são eixos independentes. A ativação do caso só acontece quando o que falta para o próximo passo estiver resolvido."
     >
       <PageHeader
         titulo="Casos 360 em acompanhamento"
@@ -205,7 +205,7 @@ function CasosPage() {
         <CardIndicador
           rotulo="Casos ativos"
           valor={casosAtivos}
-          apoio="14 requisitos validados no servidor"
+          apoio="Prontos para o próximo passo"
         />
         <CardIndicador
           rotulo="Aguardando ativação"
@@ -216,7 +216,7 @@ function CasosPage() {
         <CardIndicador
           rotulo="Sem responsável interno"
           valor={semResponsavelInterno}
-          apoio="Gate de ativação — distinto do «Sem responsável» do Painel Hoje"
+          apoio="Falta quem conduz o caso por dentro"
           tom="critico"
         />
         <CardIndicador
@@ -228,7 +228,7 @@ function CasosPage() {
       </div>
 
       {qAtivacao.isLoading ? (
-        <CarregandoDesk linhas={2} rotulo="Verificando requisitos de ativação no servidor" />
+        <CarregandoDesk linhas={2} rotulo="Verificando o que falta para ativar cada caso" />
       ) : null}
       {qAtivacao.error ? (
         <AlertaDesk tom="critico" titulo="Não foi possível ler o estado de ativação">
@@ -388,14 +388,19 @@ function CasosPage() {
             ) : null}
             <BuscaPorCodigo />
             <AbrirCasoMotor />
-            <label className="flex items-center gap-2 text-sm text-navy/70">
-              <input
-                type="checkbox"
-                checked={mostrarDemo}
-                onChange={(e) => setMostrarDemo(e.target.checked)}
-              />
-              Mostrar casos demonstrativos (fora de relatórios e métricas reais)
-            </label>
+            <details className="rounded-lg border border-navy/10 bg-cream/40 p-3 text-sm text-navy/70">
+              <summary className="cursor-pointer text-xs font-medium text-navy/70">
+                Opções de revisão
+              </summary>
+              <label className="mt-2 flex items-center gap-2 text-xs text-navy/60">
+                <input
+                  type="checkbox"
+                  checked={mostrarDemo}
+                  onChange={(e) => setMostrarDemo(e.target.checked)}
+                />
+                Incluir casos de demonstração nesta lista (fora de métricas reais)
+              </label>
+            </details>
           </div>
         }
 

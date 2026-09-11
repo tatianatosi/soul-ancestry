@@ -24,7 +24,7 @@ export const COPY_ESTADO_TITULO: Record<EstadoVisibilidade, string> = {
   contracted_not_released: "Faz parte da sua jornada",
   released: "Disponível para você",
   not_applicable: "Fora do seu percurso atual",
-  hidden_by_permission: "Área indisponível neste acesso",
+  hidden_by_permission: "Área indisponível nesta conta",
 };
 
 /** Texto de cada estado. Sem prazo, sem promessa e sem termo interno. */
@@ -38,7 +38,7 @@ export const COPY_ESTADO_TEXTO: Record<EstadoVisibilidade, string> = {
     "Esta etapa faz parte do seu acompanhamento e ainda não foi disponibilizada.",
   released: "Aqui está o material já preparado e liberado para você.",
   not_applicable: "Esta etapa não faz parte do percurso combinado para o seu acompanhamento.",
-  hidden_by_permission: "Esta área não está disponível no seu acesso. A equipe pode orientar você.",
+  hidden_by_permission: "Esta área não está disponível na sua conta. A equipe pode orientar você.",
 };
 
 /** Uma tela do App Cliente, com toda a sua linguagem reunida. */
@@ -107,8 +107,8 @@ export const COPY_TELAS = {
   conta: {
     navegacao: "Conta",
     titulo: "Sua conta",
-    descricao: "Os dados do seu acesso ao Clube Ancestral.",
-    vazio: "As informações do seu acesso aparecem aqui.",
+    descricao: "Os dados da sua conta no Clube Ancestral.",
+    vazio: "As informações da sua conta aparecem aqui.",
   },
   faturas: {
     navegacao: "Faturas",
@@ -125,8 +125,8 @@ export const COPY_TELAS = {
   casos: {
     navegacao: "Home",
     titulo: "Seu acompanhamento",
-    descricao: "Aqui aparece o acompanhamento disponível para o seu acesso.",
-    vazio: "Ainda não há um acompanhamento disponível para o seu acesso.",
+    descricao: "Aqui aparece o acompanhamento disponível na sua conta.",
+    vazio: "Ainda não há um acompanhamento disponível na sua conta.",
   },
   atendimento: {
     navegacao: "Atendimento",
@@ -143,8 +143,8 @@ export const COPY_GERAL = {
   carregando: "Carregando as suas informações…",
   erro:
     "Não conseguimos carregar esta parte agora. Tente novamente em instantes — se continuar assim, a equipe pode ajudar você.",
-  indisponivel: "Esta área não está disponível para o seu acesso no momento.",
-  semPermissao: "Este conteúdo não está disponível no seu acesso. A equipe pode orientar você.",
+  indisponivel: "Esta área não está disponível na sua conta no momento.",
+  semPermissao: "Este conteúdo não está disponível na sua conta. A equipe pode orientar você.",
   sair: "Sair",
   voltar: "Voltar",
   irParaConteudo: "Ir para o conteúdo",

@@ -480,7 +480,7 @@ function Pessoa() {
             <p className="text-xs text-navy/55">{casos.length} caso(s)</p>
           </div>
           <p className="mt-1 text-xs text-navy/55">
-            Próxima ação vem do mesmo planejador da ficha do caso (RPC). Responsável padrão da operação:{" "}
+            Próxima ação vem do mesmo planejador da ficha do caso. Responsável padrão da operação:{" "}
             {NOME_RESPONSAVEL_PADRAO}.
           </p>
           {casos.length === 0 ? (

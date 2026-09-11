@@ -12,9 +12,9 @@ export const Route = createFileRoute("/portal/conta")({
   head: () => ({
     meta: [
       { title: "Conta — Portal Clube Ancestral" },
-      { name: "description", content: "Seus dados de acesso ao portal do Clube Ancestral." },
+      { name: "description", content: "Os dados da sua conta no portal do Clube Ancestral." },
       { property: "og:title", content: "Conta — Portal Clube Ancestral" },
-      { property: "og:description", content: "Dados básicos do seu acesso." },
+      { property: "og:description", content: "Dados básicos da sua conta." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },

@@ -586,14 +586,17 @@ export function PainelCalls({ leadIdInicial }: { leadIdInicial?: string } = {}) 
             </div>
           ))}
         </div>
-        <label className="mt-3 flex items-center gap-2 text-xs text-navy/70">
-          <input
-            type="checkbox"
-            checked={mostrarTeste}
-            onChange={(e) => setMostrarTeste(e.target.checked)}
-          />
-          Exibir registros de teste/demonstração (fora das métricas reais)
-        </label>
+        <details className="mt-3 rounded-lg border border-navy/10 bg-cream/40 p-2 text-xs text-navy/70">
+          <summary className="cursor-pointer font-medium text-navy/70">Opções de revisão</summary>
+          <label className="mt-2 flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={mostrarTeste}
+              onChange={(e) => setMostrarTeste(e.target.checked)}
+            />
+            Incluir registros de teste/demonstração (fora das métricas reais)
+          </label>
+        </details>
         <p className="mt-2 text-xs text-navy/60">
           Regras do CRM:{" "}
           <Link to="/crm-mestre" className="underline decoration-gold underline-offset-2">

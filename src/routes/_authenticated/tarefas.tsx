@@ -75,7 +75,7 @@ function TarefasPage() {
               { valor: "financeiro", rotulo: "Financeiro" },
             ],
           },
-          { chave: "responsavel_id", rotulo: "Responsável (UUID da equipe)" },
+          { chave: "responsavel_id", rotulo: "Responsável (membro da equipe)" },
           { chave: "prioridade", rotulo: "Prioridade", tipo: "select", opcoes: PRIORIDADES },
           {
             chave: "status",

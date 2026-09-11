@@ -49,8 +49,8 @@ export function AbrirCasoMotor() {
     <section className="rounded-xl border border-gold/40 bg-gold/10 p-4">
       <h2 className="font-serif text-lg text-navy">Abrir caso operacional</h2>
       <p className="mt-1 text-xs text-navy/60">
-        Cliente, serviço e título são obrigatórios. O caso nasce em rascunho, com primeira tarefa e
-        próxima ação. Depois disto, o planejador da ficha grava o plano em <code>case_plans</code>.
+        Cliente, serviço e título são obrigatórios. O caso nasce em rascunho, com a primeira tarefa e
+        a próxima ação. Em seguida o planejador da ficha grava o plano do caso.
       </p>
       <form
         className="mt-3 grid gap-3 sm:grid-cols-2"

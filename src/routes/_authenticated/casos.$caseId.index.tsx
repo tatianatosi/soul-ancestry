@@ -830,7 +830,7 @@ function FichaCaso() {
       ) : null}
       {!erro && !sujo && camposSalvos.length ? (
         <p className="mb-4 rounded-lg border border-navy/15 bg-navy/5 px-3 py-2 text-xs text-navy/80">
-          Conferido no banco após gravar: {camposSalvos.join(", ")}.
+          Alterações gravadas: {camposSalvos.join(", ")}.
         </p>
       ) : null}
       {pendenciaCadastro ? (
@@ -888,7 +888,7 @@ function FichaCaso() {
           <p className="text-xs text-navy/60">{rotulo(EIXO_FORMALIZACAO, v("eixo_formalizacao"))}</p>
         </a>
         <div className="rounded-xl border border-navy/10 bg-white p-4">
-          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa/entregas</p>
+          <p className="text-[11px] uppercase tracking-wide text-navy/50">Pesquisa</p>
           {qPesquisa.isLoading ? (
             <p className="mt-1 text-xs text-navy/50">Carregando resumo de pesquisa…</p>
           ) : qPesquisa.isError ? (
@@ -908,43 +908,48 @@ function FichaCaso() {
               );
             })()
           )}
-          <ul className="mt-2 space-y-1 text-xs">
-            <li>
-              <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Achados genealógicos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Biblioteca de evidências →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pesquisa e documentos →
-              </Link>
-            </li>
-            <li>
-              <Link to="/pessoas-linhagens/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Pessoas e linhagens →
-              </Link>
-            </li>
-            <li>
-              <Link to="/plano-acao/$caseId" params={{ caseId: id }} search={{ foco: undefined }} className="text-navy underline decoration-gold underline-offset-4">
-                Plano de ação de pesquisa →
-              </Link>
-            </li>
-            <li>
-              <Link to="/relatorios-fase/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
-                Relatórios de fase →
-              </Link>
-            </li>
-            <li>
-              <Link to="/fontes-genealogicas" className="text-navy underline decoration-gold underline-offset-4">
-                Fontes e integrações →
-              </Link>
-            </li>
-          </ul>
+          <details className="mt-2 text-xs">
+            <summary className="cursor-pointer font-medium text-navy underline decoration-gold underline-offset-4">
+              Ver pesquisa completa
+            </summary>
+            <ul className="mt-2 space-y-1">
+              <li>
+                <Link to="/achados/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                  Achados genealógicos →
+                </Link>
+              </li>
+              <li>
+                <Link to="/biblioteca-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                  Biblioteca de evidências →
+                </Link>
+              </li>
+              <li>
+                <Link to="/pesquisa-evidencias/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                  Pesquisa e documentos →
+                </Link>
+              </li>
+              <li>
+                <Link to="/pessoas-linhagens/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                  Pessoas e linhagens →
+                </Link>
+              </li>
+              <li>
+                <Link to="/plano-acao/$caseId" params={{ caseId: id }} search={{ foco: undefined }} className="text-navy underline decoration-gold underline-offset-4">
+                  Plano de ação de pesquisa →
+                </Link>
+              </li>
+              <li>
+                <Link to="/relatorios-fase/$caseId" params={{ caseId: id }} className="text-navy underline decoration-gold underline-offset-4">
+                  Relatórios de fase →
+                </Link>
+              </li>
+              <li>
+                <Link to="/fontes-genealogicas" className="text-navy underline decoration-gold underline-offset-4">
+                  Fontes e integrações →
+                </Link>
+              </li>
+            </ul>
+          </details>
         </div>
         <div id="resumo-visao-cliente" className="rounded-xl border border-navy/10 bg-white p-4">
           <p className="text-[11px] uppercase tracking-wide text-navy/50">Visão do cliente</p>
