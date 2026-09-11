@@ -48,6 +48,7 @@ Essa linha **não** pede que a proprietária refaça o clique só para repetir o
 | Confirmação (2) | Policy `app_proj_select_portal` cita `fn_app_projection_compartilhada_com_cliente` (sem `EXISTS` cruzado em shares) |
 | Smoke leitura | `SET ROLE authenticated` + `SELECT` em `app_projections` e `app_projection_shares` → **sem** `42P17`; PostgREST publishable `HTTP 200` `[]` (vazio legítimo) sem recursão |
 | Logs Postgres | Último erro `infinite recursion…app_projections` **antes** do DDL (~02:37 UTC); **nenhum** após 13:56 UTC |
+| UI preview (agente) | Landing Vercel da branch carregou; sem 42P17 na página pública; **sem login** (sem credenciais) — Desk/portal não abertos |
 | Certificação dona | **não** `COMPROVADO_EM_USO` — evidência de agente/SQL remoto; falta clique autenticado dela em Biblioteca / portal / visão do cliente |
 
 ## Matriz por motor
